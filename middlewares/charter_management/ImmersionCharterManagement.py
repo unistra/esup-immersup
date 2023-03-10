@@ -51,7 +51,6 @@ class ImmersionCharterManagement:
                     reverse('procedure'),
                     reverse('shibboleth_login'),
                     reverse('immersion:change_password'),
-                    reverse('GetAgreedHighSchools'),
                     reverse('GetImmersionsProposalEstablishments'),
                     reverse('offer'),
                     reverse('offer_off_offer_events'),

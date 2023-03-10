@@ -58,7 +58,7 @@ from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
     IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions,
-    IsSpeakerPermissions
+    IsSpeakerPermissions, HighSchoolReadOnlyPermissions
 )
 
 logger = logging.getLogger(__name__)
@@ -601,18 +601,6 @@ def ajax_get_event_speakers(request, event_id=None):
                 'last_name': speaker.last_name.upper(),
             }
             response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-def ajax_get_agreed_highschools(request):
-    response = {'msg': '', 'data': []}
-    try:
-        response['data'].append(list(HighSchool.agreed.all().order_by('city').values()))
-    except:
-        # Bouhhhh
-        pass
 
     return JsonResponse(response, safe=False)
 
@@ -3813,12 +3801,27 @@ class SpeakerList(generics.ListCreateAPIView):
 class HighSchoolList(generics.ListCreateAPIView):
     """
     High schools list / creation
+    Unauthenticated GET is granted only when requesting high schools with valid agreements
+    Other users need authentication or Django permissions (can_* ...)
     """
     model = HighSchool
     queryset = HighSchool.objects.all()
     serializer_class = HighSchoolSerializer
-    permission_classes = [CustomDjangoModelPermissions]
-    # Auth : default (see settings/base.py)
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [HighSchoolReadOnlyPermissions|CustomDjangoModelPermissions]
+
+    def __init__(self, *args, **kwargs):
+        self.agreed = None
+        super().__init__(*args, **kwargs)
+
+    def get_queryset(self):
+        if self.request.GET.get("agreed") is not None:
+            self.agreed = self.request.GET.get("agreed", False) in ('true', 'True')
+
+        if self.agreed:
+            return HighSchool.agreed.all()
+
+        return HighSchool.objects.all()
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:

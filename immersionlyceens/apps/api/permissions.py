@@ -65,3 +65,12 @@ class IsSpeakerPermissions(BasePermission):
             return request.user.is_speaker()
         except AttributeError:
             return False
+
+class HighSchoolReadOnlyPermissions(BasePermission):
+    """
+    Grant GET permission only when querying high schools with a valid agreement
+    (see procedure.html)
+    """
+    def has_permission(self, request, view):
+        agreed = request.GET.get("agreed", 'false').lower() == "true"
+        return request.method == "GET" and (agreed or request.user.is_authenticated)

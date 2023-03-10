@@ -1705,18 +1705,36 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['data']), 0)
 
 
-    def test_API_ajax_get_agreed_highschools(self):
+    def test_API_get_agreed_highschools(self):
+        """
+        Get only high schools with valid agreements
+        """
+
+        # Create another high school without agreement just to be sure it doesn't show up in the results
+        HighSchool.objects.create(
+            label='no-agreement',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0987654321',
+            email='b@domain.tld',
+            mailing_list='ml@domain.tld',
+            head_teacher_name='M. A B',
+            postbac_immersion=True,
+            signed_charter=True,
+        )
+
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
-        url = "/api/get_agreed_highschools"
+        url = "/api/highschools/?agreed=true"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        hs = content['data'][0][0]
+        self.assertEqual(len(content), 1)
+        hs = content[0]
         self.assertEqual(self.high_school.id, hs['id'])
         self.assertEqual(self.high_school.label, hs['label'])
         self.assertEqual(self.high_school.address, hs['address'])
@@ -3165,13 +3183,20 @@ class APITestCase(TestCase):
 
         self.assertTrue(HighSchool.objects.count() > 0)
 
-        # Without permission
-        response = self.api_client_token.get(url)
+        # Unauthenticated GET
+        self.client.logout()
+        response = self.client.get(url)
         result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'Authentication credentials were not provided.')
 
-        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+        # Agreed high schools : success
+        response = self.client.get("/api/highschools/?agreed=true")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(result), 1)
 
-        # Add view permission and try again
+        # Add view permission
         self.api_user.user_permissions.add(view_permission)
         response = self.api_client_token.get(url)
         result = json.loads(response.content.decode('utf-8'))

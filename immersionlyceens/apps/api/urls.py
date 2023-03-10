@@ -14,7 +14,8 @@ urlpatterns = [
     path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 
-    path('get_agreed_highschools', views.ajax_get_agreed_highschools, name='GetAgreedHighSchools'),
+
+
     path('get_immersions_proposal_establishments',
          views.ajax_get_immersions_proposal_establishments,
          name='GetImmersionsProposalEstablishments'),
@@ -32,8 +33,6 @@ urlpatterns = [
     path('get_csv_highschool/', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_csv_structures/', views.get_csv_structures, name='get_csv_structures'),
     path('get_duplicates', views.ajax_get_duplicates, name='get_duplicates'),
-    path('get_highschool_students/', views.ajax_get_highschool_students, name='get_highschool_students'),
-    path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
     path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
 
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
@@ -57,8 +56,6 @@ urlpatterns = [
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
 
-    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
-
     path('remove_link', views.remove_link, name='remove_link'),
 
     # DRF
@@ -74,6 +71,12 @@ urlpatterns = [
     path('trainingdomains/', views.TrainingDomainList.as_view(), name='training_domain_list'),
     path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
 
+    # High schools
+    path('highschools/', views.HighSchoolList.as_view(), name='highschool_list'),
+    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
+    path('get_highschool_students/', views.ajax_get_highschool_students, name='get_highschool_students'),
+    path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
+
     # Trainings
     path('trainings/', views.TrainingList.as_view(), name='training_list'),
     path("training/<int:pk>", views.TrainingDetail.as_view(), name="training_detail"),
@@ -86,7 +89,7 @@ urlpatterns = [
     path('slots/v2/', views.SlotList.as_view(), name='slot_list',),
 
     path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
-    path('highschools/', views.HighSchoolList.as_view(), name='highschool_list'),
+
 
     path('visits/', views.VisitList.as_view(), name='visit_list'),
     path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),

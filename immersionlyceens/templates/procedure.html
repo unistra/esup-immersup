@@ -141,10 +141,10 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "{% url 'GetAgreedHighSchools' %}",
+        url: "{% url 'highschool_list' %}?agreed=true",
         dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'][0];
+          if (json !== undefined) {
+            return json;
           }
         }
       },

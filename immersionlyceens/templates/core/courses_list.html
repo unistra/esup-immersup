@@ -318,6 +318,8 @@
       ],
     });
 
+    // Create a tableConfig without Ajax settings to prevent first datatable ajax call
+    // Ajax settings will be added in load_courses function and the datatable recreated
     tableConfig = {
       'processing': false,
       'order': [
