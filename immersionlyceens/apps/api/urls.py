@@ -82,8 +82,6 @@ urlpatterns = [
     path('courses/', views.CourseList.as_view(), name='course_list'),
     path("course/<int:pk>", views.CourseDetail.as_view(), name="course_detail"),
 
-    path('get_courses/', views.ajax_get_courses, name='GetCourses'),
-
     # The following path may change to 'slots/' in a near future : please always use the 'name'
     path('slots/v2/', views.SlotList.as_view(), name='slot_list',),
 

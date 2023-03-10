@@ -72,13 +72,10 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_courses",
-          data: {
-            user_courses: true
-          },
+        url: "/api/courses/?user_courses=true",
           dataSrc: function (json) {
-            if (json['data'] !== undefined) {
-              return json['data'];
+            if (json !== undefined) {
+              return json;
             }
           }
       },
@@ -102,13 +99,13 @@
         },
       },
       { "data": "managed_by" },
-      { "data": "training_label",
+      { "data": "training",
         "render": function(data, type, row) {
           if(type === 'filter') {
-            return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            return data.label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
           }
 
-          return data
+          return data.label
         }
       },
       { "data": "label",
@@ -125,7 +122,7 @@
         "render": function (data, type, row) {
           let txt = "";
           $.each(data, function (index, speaker) {
-            txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
+            txt += `<a href='mailto:${speaker.email}'>${speaker.last_name} ${speaker.first_name}</a><br>`;
           });
 
           if(type === 'filter') {
@@ -244,30 +241,6 @@
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
-    /*
-    {
-      column_number: 2,
-      filter_type: "text",
-      filter_default_label: "",
-      style_class: "form-control form-control-sm",
-      filter_container_id: "courses_training_filter",
-      filter_reset_button_text: false,
-    }, {
-      column_number: 3,
-      filter_type: "text",
-      filter_default_label: "",
-      style_class: "form-control form-control-sm",
-      filter_container_id: "courses_label_filter",
-      filter_reset_button_text: false,
-    }, {
-      column_number: 4,
-      filter_type: "text",
-      filter_default_label: "",
-      style_class: "form-control form-control-sm",
-      filter_container_id: "courses_speaker_filter",
-      filter_reset_button_text: false,
-    }
-    */
     ]);
   });
 </script>

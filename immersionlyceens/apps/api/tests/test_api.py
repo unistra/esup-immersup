@@ -1564,70 +1564,26 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], [])
 
 
-    def test_API_get_courses(self):
-        self.client.login(username='ref_etab', password='pass')
-        request.user = self.ref_etab_user
-
-        url = f"/api/get_courses/?structure={self.structure.id}"
-
-        response = self.client.get(url, request, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], '')
-        self.assertEqual(len(content['data']), 1)
-        c = content['data'][0]
-        self.assertEqual(c['id'], self.course.id)
-        self.assertEqual(c['published'], self.course.published)
-        self.assertEqual(c['training_label'], self.course.training.label)
-        self.assertEqual(c['label'], self.course.label)
-        self.assertEqual(c['structure_code'], self.course.structure.code)
-        self.assertEqual(c['structure_id'], self.course.structure.id)
-
-        speakers = [{
-            'name': f'{t.last_name} {t.first_name}',
-            'email': t.email
-        } for t in self.course.speakers.all()]
-
-        for speaker in c['speakers']:
-            self.assertIn(speaker, speakers)
-
-        self.assertEqual(c['slots_count'], self.course.slots_count())
-        self.assertEqual(c['n_places'], self.course.free_seats())
-        self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
-        self.assertEqual(c['registered_students_count'], self.course.registrations_count())
-        self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
-        self.assertEqual(c['can_delete'], not self.course.slots.exists())
-
-        print(f"result : {c}")
-
-        url = "/api/get_courses/"
-        response = self.client.get(url, request, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
-
-
     def test_API_ajax_get_speaker_courses(self):
         # As a 'structure' speaker
         request.user = self.speaker1
         client = Client()
         client.login(username='speaker1', password='pass')
 
-        url = "/api/get_courses/"
+        url = "/api/courses/"
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        c = content['data'][0]
+        self.assertGreater(len(content), 0)
+        c = content[0]
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
         self.assertEqual(
             f"{self.course.structure.establishment.code} - {self.course.structure.code}",
             c['managed_by']
         )
-        self.assertEqual(self.course.training.label, c['training_label'])
+        self.assertEqual(self.course.training.label, c['training']['label'])
         self.assertEqual(self.course.label, c['label'])
         # speakers
         self.assertEqual(self.course.slots_count(speakers=self.speaker1.id), c['slots_count'])
@@ -1643,13 +1599,12 @@ class APITestCase(TestCase):
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        c = content['data'][0]
+        self.assertGreater(len(content), 0)
+        c = content[0]
         self.assertEqual(self.highschool_course.id, c['id'])
         self.assertEqual(self.highschool_course.published, c['published'])
         self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", c['managed_by'])
-        self.assertEqual(self.highschool_course.training.label, c['training_label'])
+        self.assertEqual(self.highschool_course.training.label, c['training']['label'])
         self.assertEqual(self.highschool_course.label, c['label'])
         # speakers
         self.assertEqual(self.highschool_course.slots_count(speakers=self.highschool_speaker.id), c['slots_count'])
@@ -4148,9 +4103,58 @@ class APITestCase(TestCase):
         self.assertTrue(Training.objects.filter(label='Training test B').exists())
 
 
+    def test_course_list(self):
+        """
+        Test CourseList called from a datatable with various options
+        """
+        self.client.login(username='ref_etab', password='pass')
+        request.user = self.ref_etab_user
+
+        url = f"/api/courses/?training__structures={self.structure.id}"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content), 1)
+        c = content[0]
+        self.assertEqual(c['id'], self.course.id)
+        self.assertEqual(c['published'], self.course.published)
+        self.assertEqual(c['training']['label'], self.course.training.label)
+        self.assertEqual(c['label'], self.course.label)
+        self.assertEqual(c['structure']['code'], self.course.structure.code)
+        self.assertEqual(c['structure']['id'], self.course.structure.id)
+
+        speakers = [{
+            'last_name': t.last_name,
+            'first_name': t.first_name,
+            'email': t.email,
+            "establishment": t.establishment.pk if t.establishment else None,
+            "id": t.pk,
+            "highschool": t.highschool.pk if t.highschool else None
+        } for t in self.course.speakers.all()]
+
+        for speaker in c['speakers']:
+            self.assertIn(speaker, speakers)
+
+        self.assertEqual(c['slots_count'], self.course.slots_count())
+        self.assertEqual(c['n_places'], self.course.free_seats())
+        self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
+        self.assertEqual(c['registered_students_count'], self.course.registrations_count())
+        self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
+        self.assertEqual(c['can_delete'], not self.course.slots.exists())
+
+        """
+        # Is this still an error ?
+                
+        url = "/api/courses/"
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
+        """
+
+
     @patch('immersionlyceens.libs.api.accounts.ldap.ldap3.Connection.__init__', side_effect=mocked_ldap_connection)
     @patch('immersionlyceens.libs.api.accounts.ldap.AccountAPI.search_user', side_effect=mocked_search_user)
-    def test_course_list(self, mocked_search_user, mocked_ldap_connection):
+    def test_course_creation(self, mocked_search_user, mocked_ldap_connection):
         view_permission = Permission.objects.get(codename='view_course')
         add_permission = Permission.objects.get(codename='add_course')
         url = reverse("course_list")
@@ -4171,7 +4175,9 @@ class APITestCase(TestCase):
         for course in Course.objects.all():
             self.assertTrue(course.id in [c['id'] for c in result])
 
+        # =======================================================
         # Creation (POST)
+        # =======================================================
         structure = self.structure
         training = Training.objects.first()
 
@@ -4344,12 +4350,41 @@ class APITestCase(TestCase):
             'data': {
                 'id': course.pk,
                 'label': 'Course test C',
-                'published': True,
-                'url': 'http://test.com',
-                'training': training.id,
-                'structure': self.structure3.id,
+                'training': {
+                    'id': training.id,
+                    'label': 'test highschool training',
+                    'training_subdomains': [{
+                        'id': training.training_subdomains.first().pk,
+                        'training_domain': training.training_subdomains.first().training_domain.pk,
+                        'label': 'test t_sub_domain',
+                        'active': True
+                    }],
+                    'active': True,
+                    'can_delete': False,
+                    'url': None,
+                    'structures': [],
+                    'highschool': training.highschool.id
+                },
+                'structure': {
+                    'id': self.structure3.id,
+                    'code': 'STR3',
+                    'label': 'test structure 3',
+                    'mailing_list': None,
+                    'active': True,
+                    'establishment': self.structure3.establishment.id
+                },
                 'highschool': None,
-                'speakers': [new_user.pk]
+                'published': True,
+                'speakers': [{
+                    'last_name': 'Dubois',
+                    'first_name': 'Martine',
+                    'email': 'new_user@domain.tld',
+                    'establishment': self.structure3.establishment.id,
+                    'id': new_user.pk,
+                    'highschool': None
+                }],
+                'url': 'http://test.com',
+                'managed_by': 'ETA3 - STR3'
             },
             'status': 'success',
             'msg': ''

@@ -56,3 +56,12 @@ class IsStructureManagerPermissions(BasePermission):
             return request.user.is_structure_manager()
         except AttributeError:
             return False
+
+class IsSpeakerPermissions(BasePermission):
+    message = _("You're not allowed to access this ressource")
+
+    def has_permission(self, request, view):
+        try:
+            return request.user.is_speaker()
+        except AttributeError:
+            return False

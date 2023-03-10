@@ -1464,7 +1464,6 @@ class Course(models.Model):
     def get_structures_queryset(self):
         return self.training.structures.all()
 
-
     def free_seats(self, speakers=None):
         """
         :speakers: optional : only consider slots attached to 'speakers'
@@ -1482,7 +1481,6 @@ class Course(models.Model):
 
         return d['total_seats']
 
-
     def published_slots_count(self, speakers=None):
         """
         :speakers: optional : only consider slots attached to 'speakers'
@@ -1498,6 +1496,17 @@ class Course(models.Model):
 
         return self.slots.filter(**filters).count()
 
+    def is_deletable(self):
+        """
+        Return True if the course can be deleted
+        """
+        return not self.slots.exists()
+
+    def managed_by(self):
+        if self.structure:
+            return f"{self.structure.establishment.code} - {self.structure.code}"
+        elif self.highschool:
+            return f"{self.highschool.city} - {self.highschool.label}"
 
     def slots_count(self, speakers=None):
         """
@@ -1511,7 +1520,6 @@ class Course(models.Model):
             return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
-
 
     def registrations_count(self, speakers=None):
         """
@@ -1528,7 +1536,6 @@ class Course(models.Model):
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
-
 
     def get_alerts_count(self):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
