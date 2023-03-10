@@ -74,3 +74,11 @@ class HighSchoolReadOnlyPermissions(BasePermission):
     def has_permission(self, request, view):
         agreed = request.GET.get("agreed", 'false').lower() == "true"
         return request.method == "GET" and (agreed or request.user.is_authenticated)
+
+
+class SpeakersReadOnlyPermissions(BasePermission):
+    """
+    GET permission only
+    """
+    def has_permission(self, request, view):
+        return request.method == "GET" and request.user.is_high_school_manager()

@@ -73,7 +73,6 @@ urlpatterns = [
 
     # High schools
     path('highschools/', views.HighSchoolList.as_view(), name='highschool_list'),
-    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
     path('get_highschool_students/', views.ajax_get_highschool_students, name='get_highschool_students'),
     path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
 
@@ -88,30 +87,38 @@ urlpatterns = [
     # The following path may change to 'slots/' in a near future : please always use the 'name'
     path('slots/v2/', views.SlotList.as_view(), name='slot_list',),
 
+    # Speakers
     path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
 
-
+    # Visits
     path('visits/', views.VisitList.as_view(), name='visit_list'),
     path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
 
+    # Off offer events
     path('off_offer_events/', views.OffOfferEventList.as_view(), name='off_offer_event_list'),
     path('off_offer_event/<int:pk>', views.OffOfferEventDetail.as_view(), name='off_offer_event_detail'),
 
+    # High school levels
     path('high_school_levels', views.HighSchoolLevelList.as_view(), name='high_school_level_list'),
     path('high_school_level/<int:pk>', views.HighSchoolLevelDetail.as_view(), name='high_school_level_detail'),
 
+    # Visitor records
     path('visitor/records/<operator>', views.VisitorRecordValidation.as_view(), name="visitors_records"),
+    path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(),
+         name="validate_reject_visitor"),
 
-    path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(), name="validate_reject_visitor"),
+    # Charter
     path('sign_charter', views.signCharter, name="sign_charter"),
 
+    # Mailing lists
     path("mailing_list/global", views.MailingListGlobalView.as_view(), name="mailing_list_global"),
     path("mailing_list/structures", views.MailingListStructuresView.as_view(), name="mailing_list_global"),
     path("mailing_list/establishments", views.MailingListEstablishmentsView.as_view(), name="mailing_list_global"),
     path("mailing_list/high_schools", views.MailingListHighSchoolsView.as_view(), name="mailing_list_global"),
 
+    # Mail template
     path("mail_template/<int:pk>/preview", views.MailTemplatePreviewAPI.as_view(), name="mail_template_preview"),
 
-
+    # Annual purge
     path("commands/annual_purge/", views.AnnualPurgeAPI.as_view(), name="annual_purge"),
 ]

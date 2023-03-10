@@ -83,9 +83,39 @@ class SpeakerSerializer(ImmersionUserSerializer):
 
         return user
 
+    def to_representation(self, instance):
+        """
+        CREATE : Inject status and warning messages in response
+        GET : add extra fields useful in datatables
+        """
+        data = super().to_representation(instance)
+
+        if hasattr(self, "initial_data"):
+            if isinstance(self.initial_data, list):
+                objects = { c["email"]: c for c in self.initial_data }
+                status = objects.get(data["email"]).get("status", "success")
+                message = objects.get(data["email"]).get("msg", "")
+            else:
+                status = self.initial_data.get("status", "success")
+                message = self.initial_data.get("msg", "")
+
+            response = {
+                "data": data,
+                "status": status,
+                "msg": message,
+            }
+
+            return response
+        else:
+            if instance:
+                data['has_courses'] = instance.courses.exists()
+                data['can_delete'] = not data['has_courses']
+
+            return data
+
     class Meta:
         model = ImmersionUser
-        fields = ('last_name', 'first_name', 'email', 'establishment', 'id', 'highschool')
+        fields = ('id', 'last_name', 'first_name', 'email', 'establishment', 'highschool', 'is_active')
 
 
 class CampusSerializer(serializers.ModelSerializer):

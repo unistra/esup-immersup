@@ -58,7 +58,7 @@ from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
     IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions,
-    IsSpeakerPermissions, HighSchoolReadOnlyPermissions
+    IsSpeakerPermissions, HighSchoolReadOnlyPermissions, SpeakersReadOnlyPermissions
 )
 
 logger = logging.getLogger(__name__)
@@ -3573,32 +3573,6 @@ def ajax_keep_entries(request):
     return JsonResponse(response, safe=False)
 
 
-@is_ajax_request
-@groups_required('REF-LYC')
-def ajax_get_highschool_speakers(request, highschool_id=None):
-    """
-    get highschool speakers
-    """
-    response = {'data': [], 'msg': '', 'error': ''}
-
-    if request.user.highschool and highschool_id and request.user.highschool.id == highschool_id:
-        for speaker in ImmersionUser.objects.filter(groups__name='INTER', highschool=request.user.highschool):
-            has_courses = speaker.courses.exists()
-            has_slots = speaker.slots.exists() # useless ?
-
-            response["data"].append({
-                'id': speaker.id,
-                'last_name': speaker.last_name,
-                'first_name': speaker.first_name,
-                'email': speaker.email,
-                'is_active': _("Yes") if speaker.is_active else _("No"),
-                'has_courses': _("Yes") if has_courses else _("No"),
-                'can_delete': not has_courses
-            })
-
-    return JsonResponse(response, safe=False)
-
-
 @login_required
 @is_post_request
 @groups_required('INTER')
@@ -3781,10 +3755,23 @@ class SpeakerList(generics.ListCreateAPIView):
     Speakers (only) list / creation
     """
     model = ImmersionUser
-    queryset = ImmersionUser.objects.filter(groups__name='INTER')
     serializer_class = SpeakerSerializer
-    permission_classes = [CustomDjangoModelPermissions]
+    permission_classes = [SpeakersReadOnlyPermissions|CustomDjangoModelPermissions]
+    filterset_fields = ['highschool', ]
     # Auth : default (see settings/base.py)
+
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        super().__init__(*args,**kwargs)
+
+    def get_queryset(self):
+        self.user = self.request.user
+        filters = {'groups__name': 'INTER'}
+
+        if self.user.is_high_school_manager():
+            filters["highschool"] = self.user.highschool
+
+        return ImmersionUser.objects.prefetch_related("groups").filter(**filters)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:

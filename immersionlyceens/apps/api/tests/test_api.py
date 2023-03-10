@@ -3162,7 +3162,7 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         result = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(result.get('email'), "new_speaker@domain.tld")
+        self.assertEqual(result["data"].get('email'), "new_speaker@domain.tld")
         self.assertTrue(ImmersionUser.objects.filter(email='new_speaker@domain.tld', groups__name='INTER').exists())
 
         # Duplicate
@@ -3257,21 +3257,21 @@ class APITestCase(TestCase):
 
         # Success
         client.login(username='ref_lyc', password='pass')
-        response = client.get(
-            reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}),
-            **self.header
-        )
+        response = client.get(f"/api/speakers/?highschool={self.high_school.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content['data'], [{
+
+        self.assertEqual(content[0], {
             'id': self.highschool_speaker.id,
             'last_name': 'highschool_speaker',
             'first_name': 'highschool_speaker',
             'email': 'highschool_speaker@no-reply.com',
-            'is_active': 'Yes',
-            'has_courses': 'Yes',
-            'can_delete': False
-        }])
+            'establishment': self.highschool_speaker.establishment,
+            'is_active': True,
+            'has_courses': True,
+            'can_delete': False,
+            'highschool': self.highschool_speaker.highschool.pk,
+        })
 
     def test_visit(self):
         visit = Visit.objects.create(
@@ -3986,8 +3986,6 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = sorted(json.loads(response.content.decode()), key=lambda k:k['id'])
 
-        print(f"content : {content}")
-
         self.assertEqual(content, [{
             'id': self.highschool_training.pk,
             'label': 'test highschool training',
@@ -4149,13 +4147,16 @@ class APITestCase(TestCase):
         self.assertEqual(c['structure']['id'], self.course.structure.id)
 
         speakers = [{
-            'last_name': t.last_name,
-            'first_name': t.first_name,
-            'email': t.email,
-            "establishment": t.establishment.pk if t.establishment else None,
-            "id": t.pk,
-            "highschool": t.highschool.pk if t.highschool else None
-        } for t in self.course.speakers.all()]
+            'last_name': sp.last_name,
+            'first_name': sp.first_name,
+            'email': sp.email,
+            "establishment": sp.establishment.pk if sp.establishment else None,
+            "id": sp.pk,
+            "highschool": sp.highschool.pk if sp.highschool else None,
+            'is_active': sp.is_active,
+            'has_courses': sp.courses.exists(),
+            'can_delete': not sp.courses.exists()
+        } for sp in self.course.speakers.all()]
 
         for speaker in c['speakers']:
             self.assertIn(speaker, speakers)
@@ -4406,7 +4407,10 @@ class APITestCase(TestCase):
                     'email': 'new_user@domain.tld',
                     'establishment': self.structure3.establishment.id,
                     'id': new_user.pk,
-                    'highschool': None
+                    'highschool': None,
+                    'is_active': new_user.is_active,
+                    'has_courses': new_user.courses.exists(),
+                    'can_delete': not new_user.courses.exists()
                 }],
                 'url': 'http://test.com',
                 'managed_by': 'ETA3 - STR3'
