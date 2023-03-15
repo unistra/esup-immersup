@@ -127,8 +127,14 @@
 {% endblock %}
 <script type="text/javascript">
   $(document).ready(function() {
+    function decodeHTMLEntities(text) {
+      return $("<textarea/>").html(text).text();
+    }
 
-    dt = $('#highschool_table').DataTable({
+    let highschools = JSON.parse(decodeHTMLEntities('{{ highschools }}'));
+    let immersions_establishments = JSON.parse(decodeHTMLEntities('{{ immersion_establishments }}'));
+
+    let dt = $('#highschool_table').DataTable({
       'processing': false,
       'order': [
           [0, "asc"],
@@ -140,14 +146,8 @@
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
-      'ajax': {
-        url: "{% url 'highschool_list' %}?agreed=true",
-        dataSrc: function (json) {
-          if (json !== undefined) {
-            return json;
-          }
-        }
-      },
+      'dataType': 'json',
+      'data': highschools,
       'searching': true,
       'language': {
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
@@ -164,8 +164,7 @@
       ],
     });
 
-
-    dt2 = $('#establishment_table').DataTable({
+    let dt2 = $('#establishment_table').DataTable({
       'processing': false,
       'order': [
           [0, "asc"],
@@ -178,14 +177,8 @@
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
-      'ajax': {
-        url: "{% url 'GetImmersionsProposalEstablishments' %}",
-        dataSrc: function (json) {
-          if (json['data'] != undefined) {
-            return json['data'][0];
-          }
-        }
-      },
+      'dataType': 'json',
+      'data': immersions_establishments,
       'searching': true,
       'language': {
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"

@@ -14,9 +14,6 @@ urlpatterns = [
     path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 
-    path('get_immersions_proposal_establishments',
-         views.ajax_get_immersions_proposal_establishments,
-         name='GetImmersionsProposalEstablishments'),
     path('get_alerts', views.ajax_get_alerts, name='get_alerts'),
     path('get_available_documents/', views.ajax_get_documents, name='get_available_documents'),
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),

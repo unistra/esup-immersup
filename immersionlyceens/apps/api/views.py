@@ -3565,6 +3565,7 @@ class EstablishmentList(generics.ListAPIView):
     """
     serializer_class = EstablishmentSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['active', ]
 
     def get_queryset(self):
         queryset = Establishment.activated.order_by('label')
@@ -3741,10 +3742,10 @@ class HighSchoolList(generics.ListCreateAPIView):
     Other users need authentication or Django permissions (can_* ...)
     """
     model = HighSchool
-    queryset = HighSchool.objects.all()
     serializer_class = HighSchoolSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [HighSchoolReadOnlyPermissions|CustomDjangoModelPermissions]
+    filterset_fields = ['postbac_immersion', 'signed_charter']
 
     def __init__(self, *args, **kwargs):
         self.agreed = None
@@ -4116,23 +4117,6 @@ class TrainingDetail(generics.RetrieveDestroyAPIView):
 
     def get_queryset(self):
         return Training.objects.filter(highschool=self.request.user.highschool)
-
-
-@is_ajax_request
-def ajax_get_immersions_proposal_establishments(request):
-    response = {'msg': '', 'data': []}
-    try:
-        establishments = Establishment.activated.all().values('city', 'label', 'email')
-        highschools = HighSchool.immersions_proposal\
-            .filter(signed_charter=True)\
-            .values('city', 'label', 'email')
-        results = list(establishments.union(highschools).order_by('city'))
-        response['data'].append(results)
-    except:
-        # Bouhhhh
-        pass
-
-    return JsonResponse(response, safe=False)
 
 
 class VisitList(generics.ListAPIView):

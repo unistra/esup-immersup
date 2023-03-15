@@ -4591,3 +4591,21 @@ class APITestCase(TestCase):
         response = self.client.post(url, data)
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content["msg"], "Template #9999 can't be found")
+
+
+    def test_sign_charter(self):
+        establishment = self.ref_etab3_user.establishment
+        establishment.signed_charter = False
+        establishment.save()
+
+        self.client.login(username=self.ref_etab3_user.username, password="pass")
+        url = reverse("sign_charter")
+        response = self.client.post(url, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['msg'], "Charter successfully signed")
+
+        establishment.refresh_from_db()
+        self.assertTrue(establishment.signed_charter)
+
+
+

@@ -53,7 +53,6 @@ class CustomDeleteManager(models.Manager):
             obj.delete()
 
 
-
 class PostBacImmersionManager(models.Manager):
     """
     Get high schools offering immersions
