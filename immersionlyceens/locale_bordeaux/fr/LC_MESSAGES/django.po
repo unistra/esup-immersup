@@ -1,0 +1,103 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-02 09:07+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: immersionlyceens/templates/core/off_offer_events_list.html:17
+#: immersionlyceens/templates/core/off_offer_events_list.html:30
+#: immersionlyceens/templates/fragments/main_menu.html:85
+msgid "Off offer events list"
+msgstr "Liste des autres évènements"
+
+#: immersionlyceens/templates/fragments/main_menu.html:36
+msgid "Off offer Events"
+msgstr "Autres évènements"
+
+#: immersionlyceens/templates/fragments/main_menu.html:86
+msgid "Off offer events slots list"
+msgstr "Liste des créneaux d'évènements"
+
+#: immersionlyceens/templates/fragments/main_menu.html:87
+msgid "New off offer event slot"
+msgstr "Nouveau créneau d'évènement"
+
+#: immersionlyceens/apps/core/models.py:1709
+msgid "An off offer event type with this label already exists"
+msgstr "Un type d'autre évènement avec ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:1716
+msgid "Off offer event type"
+msgstr "Type d'autre évènement"
+
+#: immersionlyceens/apps/core/models.py:1717
+msgid "Off offer event types"
+msgstr "Types d'autrss évènements"
+
+#: immersionlyceens/apps/core/models.py:1870
+msgid "An off offer event with the same attachments and label already exists"
+msgstr "Un 'autre évènement' avec les mêmes éléments et le même libellé existe déjà"
+
+#: immersionlyceens/apps/core/models.py:2214
+msgid "Off offer event"
+msgstr "Autre évènement"
+
+#: immersionlyceens/apps/core/views.py:1952
+#, python-format
+msgid "Off offer event \"%s\" created."
+msgstr "Autre évènement \"%s\" créé."
+
+#: immersionlyceens/apps/core/views.py:1963
+msgid "Off offer event not created."
+msgstr "Autre évènement non créé."
+
+#: immersionlyceens/apps/core/views.py:2033
+#, python-format
+msgid "Off offer event \"%s\" updated."
+msgstr "Autre évènement \"%s\" mis à jour."
+
+#: immersionlyceens/apps/core/views.py:2046
+#, python-format
+msgid "Off offer event \"%s\" not updated."
+msgstr "Echec de la mise à jour de l'évènement \"%s\""
+
+#: immersionlyceens/libs/api/views.py:4329
+msgid "Off offer event successfully deleted"
+msgstr "Autre évènement supprimé avec succès"
+
+#: immersionlyceens/templates/core/off_offer_event.html:10
+#: immersionlyceens/templates/core/off_offer_event.html:28
+msgid "Duplicate an off offer event"
+msgstr "Dupliquer cet évènement"
+
+#: immersionlyceens/templates/core/off_offer_event.html:12
+#: immersionlyceens/templates/core/off_offer_event.html:30
+msgid "Update an off offer event"
+msgstr "Modifier cet évènement"
+
+#: immersionlyceens/templates/core/off_offer_event.html:14
+#: immersionlyceens/templates/core/off_offer_events_list.html:36
+msgid "New off offer event"
+msgstr "Nouvel évènement"
+
+#: immersionlyceens/templates/core/off_offer_event.html:32
+msgid "Create a new off offer event"
+msgstr "Créer un 'autre évènement'"
+
+#: immersionlyceens/templates/offer_off_offer_events.html:232
+msgid "No off offer event available"
+msgstr "Pas d'autre évènement disponible"
