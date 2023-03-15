@@ -1427,11 +1427,9 @@ class Course(models.Model):
     """
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-
     training = models.ForeignKey(
         Training, verbose_name=_("Training"), null=False, blank=False, on_delete=models.CASCADE, related_name="courses",
     )
-
     structure = models.ForeignKey(
         Structure,
         verbose_name=_("Structure"),
@@ -1440,7 +1438,6 @@ class Course(models.Model):
         on_delete=models.CASCADE,
         related_name="courses",
     )
-
     highschool = models.ForeignKey(
         HighSchool,
         verbose_name=_("High school"),
@@ -1451,15 +1448,11 @@ class Course(models.Model):
     )
 
     published = models.BooleanField(_("Published"), default=True)
-
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses', blank=True)
-
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
-
 
     def __str__(self):
         return self.label
-
 
     def get_structures_queryset(self):
         return self.training.structures.all()

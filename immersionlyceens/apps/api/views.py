@@ -543,69 +543,6 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_get_course_speakers(request, course_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not course_id:
-        response['msg'] = gettext("Error : a valid course must be selected")
-    else:
-        speakers = Course.objects.get(id=course_id).speakers.all().order_by('last_name')
-
-        for speaker in speakers:
-            speakers_data = {
-                'id': speaker.id,
-                'first_name': speaker.first_name,
-                'last_name': speaker.last_name.upper(),
-            }
-            response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_get_visit_speakers(request, visit_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not visit_id:
-        response['msg'] = gettext("Error : a valid visit must be selected")
-    else:
-        speakers = Visit.objects.get(id=visit_id).speakers.all().order_by('last_name')
-
-        for speaker in speakers:
-            speakers_data = {
-                'id': speaker.id,
-                'first_name': speaker.first_name,
-                'last_name': speaker.last_name.upper(),
-            }
-            response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_get_event_speakers(request, event_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not event_id:
-        response['msg'] = gettext("Error : a valid event must be selected")
-    else:
-        speakers = OffOfferEvent.objects.get(id=event_id).speakers.all().order_by('last_name')
-
-        for speaker in speakers:
-            speakers_data = {
-                'id': speaker.id,
-                'first_name': speaker.first_name,
-                'last_name': speaker.last_name.upper(),
-            }
-            response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -3766,6 +3703,18 @@ class SpeakerList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         self.user = self.request.user
+
+        course_id = self.kwargs.get("course_id")
+        visit_id = self.kwargs.get("visit_id")
+        event_id = self.kwargs.get("event_id")
+
+        if course_id:
+            return Course.objects.get(id=course_id).speakers.all()
+        if visit_id:
+            return Visit.objects.get(id=visit_id).speakers.all()
+        if event_id:
+            return OffOfferEvent.objects.get(id=event_id).speakers.all()
+
         filters = {'groups__name': 'INTER'}
 
         if self.user.is_high_school_manager():

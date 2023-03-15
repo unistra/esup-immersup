@@ -81,4 +81,12 @@ class SpeakersReadOnlyPermissions(BasePermission):
     GET permission only
     """
     def has_permission(self, request, view):
-        return request.method == "GET" and request.user.is_high_school_manager()
+        users = [
+            request.user.is_high_school_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_structure_manager(),
+            request.user.is_operator(),
+        ]
+
+        return request.method == "GET" and any(users)

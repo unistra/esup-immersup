@@ -14,8 +14,6 @@ urlpatterns = [
     path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 
-
-
     path('get_immersions_proposal_establishments',
          views.ajax_get_immersions_proposal_establishments,
          name='GetImmersionsProposalEstablishments'),
@@ -24,10 +22,6 @@ urlpatterns = [
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars',),
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
-
-    path('get_course_speakers/<int:course_id>', views.ajax_get_course_speakers, name='get_course_speakers',),
-    path('get_visit_speakers/<int:visit_id>', views.ajax_get_visit_speakers, name='get_visit_speakers',),
-    path('get_event_speakers/<int:event_id>', views.ajax_get_event_speakers, name='get_event_speakers',),
 
     path('get_csv_anonymous/', views.get_csv_anonymous, name='get_csv_anonymous'),
     path('get_csv_highschool/', views.get_csv_highschool, name='get_csv_highschool'),
@@ -89,6 +83,9 @@ urlpatterns = [
 
     # Speakers
     path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
+    path('speakers/course/<int:course_id>', views.SpeakerList.as_view(), name='course_speaker_list'),
+    path('speakers/visit/<int:visit_id>', views.SpeakerList.as_view(), name='visit_speaker_list'),
+    path('speakers/event/<int:event_id>', views.SpeakerList.as_view(), name='event_speaker_list'),
 
     # Visits
     path('visits/', views.VisitList.as_view(), name='visit_list'),

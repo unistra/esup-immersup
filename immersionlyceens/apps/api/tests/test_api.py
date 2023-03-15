@@ -127,6 +127,8 @@ class APITestCase(TestCase):
             signed_charter=True,
         )
 
+        cls.visit = Visit.objects.first()
+
         cls.visitor = get_user_model().objects.create_user(
             username="visitor",
             password="pass",
@@ -598,22 +600,6 @@ class APITestCase(TestCase):
             docs = AccompanyingDocument.objects.filter(active=True)
             self.assertEqual(len(json_content['data']), docs.count())
 
-
-    def test_API_ajax_get_course_speakers(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = f"/api/get_course_speakers/{self.course.id}"
-        response = self.client.post(url, {}, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['data']), 1)
-        self.assertEqual(content['data'][0]['id'], self.speaker1.id)
-        self.assertEqual(content['data'][0]['first_name'], self.speaker1.first_name)
-        self.assertEqual(content['data'][0]['last_name'], self.speaker1.last_name)
-
-        # 404
-        url = "/api/check_course_speakers/"
-        response = self.client.post(url, {}, **self.header)
-        self.assertEqual(response.status_code, 404)
 
     def test_API_ajax_get_buildings(self):
         self.client.login(username='ref_etab', password='pass')
@@ -3176,6 +3162,101 @@ class APITestCase(TestCase):
         self.assertEqual(ImmersionUser.objects.filter(email='new_speaker@domain.tld').count(), 1)
 
 
+    def test_get_course_speakers(self):
+        url = f"/api/speakers/course/{self.course.id}"
+        speaker = self.course.speakers.first()
+
+        # Check access for the following users
+        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
+            self.client.login(username=user.username, password='pass')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content, [{
+                "id": speaker.id,
+                "last_name": speaker.last_name,
+                "first_name": speaker.first_name,
+                "email": speaker.email,
+                "establishment": speaker.establishment.pk,
+                "highschool": speaker.highschool,
+                "is_active": speaker.is_active,
+                "has_courses": speaker.courses.exists(),
+                "can_delete": not speaker.courses.exists()
+            }])
+
+
+    def test_get_visit_speakers(self):
+        visit = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever",
+            published=True
+        )
+
+        visit.speakers.add(self.speaker1)
+
+        url = f"/api/speakers/visit/{visit.id}"
+
+        # Check access for the following users
+        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
+            self.client.login(username=user.username, password='pass')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content, [{
+                "id": self.speaker1.id,
+                "last_name": self.speaker1.last_name,
+                "first_name": self.speaker1.first_name,
+                "email": self.speaker1.email,
+                "establishment": self.speaker1.establishment.pk,
+                "highschool": self.speaker1.highschool,
+                "is_active": self.speaker1.is_active,
+                "has_courses": self.speaker1.courses.exists(),
+                "can_delete": not self.speaker1.courses.exists()
+            }])
+
+
+    def test_get_event_speakers(self):
+        event_type = OffOfferEventType.objects.create(
+            label="My event type",
+            active=True
+        )
+
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            label="Whatever",
+            description="",
+            event_type=event_type,
+            published=True
+        )
+
+        event.speakers.add(self.speaker1)
+
+        url = f"/api/speakers/event/{event.id}"
+
+        # Check access for the following users
+        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
+            self.client.login(username=user.username, password='pass')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content, [{
+                "id": self.speaker1.id,
+                "last_name": self.speaker1.last_name,
+                "first_name": self.speaker1.first_name,
+                "email": self.speaker1.email,
+                "establishment": self.speaker1.establishment.pk,
+                "highschool": self.speaker1.highschool,
+                "is_active": self.speaker1.is_active,
+                "has_courses": self.speaker1.courses.exists(),
+                "can_delete": not self.speaker1.courses.exists()
+            }])
+
+
     def test_high_school_list(self):
         url = reverse("highschool_list")
         view_permission = Permission.objects.get(codename='view_highschool')
@@ -4475,3 +4556,38 @@ class APITestCase(TestCase):
 
         with self.assertRaises(Course.DoesNotExist):
             Course.objects.get(id=self.course.id)
+
+
+    def test_mail_template_preview(self):
+        self.client.login(username=self.ref_master_etab_user.username, password="pass")
+
+        template = MailTemplate.objects.get(code="CPT_MIN_CREATE")
+
+        data = {
+            "user_group": "estetudiant",
+            "slot_type": "estuncours",
+            "local_account": True,
+            "remote": False,
+        }
+
+        url = reverse("mail_template_preview", args=[template.id])
+
+        # No body
+        response = self.client.post(url, data)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "No body for this template provided")
+
+        # with body
+        data["body"] = template.body
+        response = self.client.post(url, data)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertIn(
+            "Connectez vous avec vos identifiants ENT de votre \u00e9tablissement d'origine.",
+            content["data"]
+        )
+
+        # Template does not exist
+        url = reverse("mail_template_preview", args=[9999])
+        response = self.client.post(url, data)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "Template #9999 can't be found")

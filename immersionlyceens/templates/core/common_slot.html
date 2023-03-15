@@ -737,24 +737,15 @@
   function load_speakers(value) {
     $('select#id_speakers').html('');
 
-    let url = ""
-    if (slot_mode === 'course') {
-      url = '/api/get_course_speakers/' + value
-    }
-    else if (slot_mode === 'event') {
-      url = '/api/get_event_speakers/' + value
-    }
-    else if (slot_mode === 'visit') {
-      url = '/api/get_visit_speakers/' + value
-    }
+    let url = `/api/speakers/${slot_mode}/${value}`
 
     if(value !== '') {
       $.ajax({
         url: url,
         success: function(data) {
-          if ( data['data'] ) {
+          if ( data ) {
             let options = ''
-            data['data'].forEach(function(e) {
+            data.forEach(function(e) {
               let selected = ''
 
               if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
