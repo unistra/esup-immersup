@@ -1,7 +1,7 @@
 import os
 import socket
 from os import environ
-from os.path import normpath
+from os.path import normpath, join
 
 from .base import *
 
@@ -138,3 +138,8 @@ STAGE = 'Dev'
 
 # Use Unistra theme & css
 UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')
+
+if environ.get('EXTRA_LOCALE_PATH', ''):
+    LOCALE_PATHS = [
+        normpath(join(DJANGO_ROOT, environ.get('EXTRA_LOCALE_PATH'))),
+    ] + LOCALE_PATHS
