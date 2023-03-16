@@ -2559,7 +2559,7 @@ class UserCourseAlert(models.Model):
     email = models.EmailField(_('Recipient'), blank=False, null=False)
     email_sent = models.BooleanField(_("Alert sent status"), default=False, blank=False, null=False)
     alert_date = models.DateField(_("Date"), auto_now_add=True)
-    course = course = models.ForeignKey(
+    course = models.ForeignKey(
         Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="alerts",
     )
 

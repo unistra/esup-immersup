@@ -14,7 +14,6 @@ urlpatterns = [
     path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 
-    path('get_alerts', views.ajax_get_alerts, name='get_alerts'),
     path('get_available_documents/', views.ajax_get_documents, name='get_available_documents'),
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars',),
@@ -100,6 +99,9 @@ urlpatterns = [
     path('visitor/records/<operator>', views.VisitorRecordValidation.as_view(), name="visitors_records"),
     path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(),
          name="validate_reject_visitor"),
+
+    # User course alerts
+    path('course_alerts', views.UserCourseAlertList.as_view(), name='user_course_alert_list'),
 
     # Charter
     path('sign_charter', views.signCharter, name="sign_charter"),

@@ -9,7 +9,7 @@ from django.conf import settings
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, Slot
+    HighSchoolLevel, UserCourseAlert, Slot
 )
 
 class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
@@ -208,14 +208,16 @@ class HighSchoolViewSerializer(serializers.ModelSerializer):
         fields = ("id", "city", "label")
 
 
+class TrainingDomainSerializer(serializers.ModelSerializer):
+    """Training domain serializer"""
+    class Meta:
+        model = TrainingDomain
+        fields = "__all__"
+
+
 class TrainingSubdomainSerializer(serializers.ModelSerializer):
     """Training sub domain serializer"""
-    # training_domain = TrainingDomainSerializer(many=False, required=True)
-    training_domain = serializers.PrimaryKeyRelatedField(
-        queryset=TrainingDomain.objects.all(),
-        many=False,
-        required=True
-    )
+    training_domain = AsymetricRelatedField.from_serializer(TrainingDomainSerializer)(required=True, many=False)
 
     class Meta:
         model = TrainingSubdomain
@@ -310,13 +312,6 @@ class TrainingSerializer(serializers.ModelSerializer):
         model = Training
         fields = ("id", "label", "training_subdomains", "active", "can_delete", "url", "structures", "highschool")
         # fields = "__all__"
-
-
-class TrainingDomainSerializer(serializers.ModelSerializer):
-    """Training domain serializer"""
-    class Meta:
-        model = TrainingDomain
-        fields = "__all__"
 
 
 class VisitSerializer(serializers.ModelSerializer):
@@ -582,4 +577,12 @@ class SlotSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Slot
+        fields = "__all__"
+
+
+class UserCourseAlertSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = UserCourseAlert
         fields = "__all__"

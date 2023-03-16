@@ -45,7 +45,7 @@ from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
     HighSchoolLevelSerializer, OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
-    TrainingSubdomainSerializer, VisitSerializer,
+    TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -58,7 +58,8 @@ from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
     IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions,
-    IsSpeakerPermissions, HighSchoolReadOnlyPermissions, SpeakersReadOnlyPermissions
+    IsSpeakerPermissions, HighSchoolReadOnlyPermissions, SpeakersReadOnlyPermissions, IsStudentPermissions,
+    IsVisitorPermissions, IsHighSchoolStudentPermissions
 )
 
 logger = logging.getLogger(__name__)
@@ -3377,37 +3378,22 @@ def ajax_set_course_alert(request):
     return JsonResponse(response, safe=False)
 
 
-@is_ajax_request
-@groups_required('ETU', 'LYC', 'VIS')
-def ajax_get_alerts(request):
+class UserCourseAlertList(generics.ListCreateAPIView):
     """
-    Get alerts list
+    User course alerts
     """
-    response = {'data': [], 'msg': ''}
+    serializer_class = UserCourseAlertSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [IsVisitorPermissions|IsHighSchoolStudentPermissions|IsStudentPermissions|CustomDjangoModelPermissions]
 
-    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain').filter(
-        email=request.user.email
-    )
+    def get_queryset(self):
+        user = self.request.user
 
-    for alert in alerts:
-        subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
-        domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
-        slot = Slot.objects.filter(course=alert.course.pk)
-        etab = alert.course.get_etab_or_high_school()
+        queryset = UserCourseAlert.objects\
+            .prefetch_related('course__training__training_subdomains__training_domain')\
+            .filter(email=user.email)
 
-        alert_data = {
-            'id': alert.id,
-            'course': alert.course.label,
-            'training': alert.course.training.label,
-            'subdomains': [subdomain.label for subdomain in subdomains],
-            'domains': [domain.label for domain in domains],
-            'establishments': [etab],
-            'email_sent': alert.email_sent,
-        }
-
-        response['data'].append(alert_data.copy())
-
-    return JsonResponse(response, safe=False)
+        return queryset
 
 
 @is_ajax_request

@@ -2393,22 +2393,19 @@ class APITestCase(TestCase):
         client = Client()
         client.login(username='student', password='pass')
 
-        url = "/api/get_alerts"
+        url = "/api/course_alerts"
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        a = content['data'][0]
-        self.assertEqual(self.alert.id, a['id'])
-        self.assertEqual(self.alert.course.label, a['course'])
-        self.assertEqual(self.alert.course.training.label, a['training'])
-        self.assertEqual([s.label for s in self.alert.course.training.training_subdomains.all()], a['subdomains'])
-        self.assertEqual(
-            [s.training_domain.label for s in self.alert.course.training.training_subdomains.all()],
-            a['domains'])
-        self.assertEqual(self.alert.email_sent, a['email_sent'])
+        self.assertEqual(len(content), 1)
+        alert = content[0]
+        self.assertEqual(self.alert.id, alert['id'])
+        self.assertEqual(self.alert.course.label, alert['course']['label'])
+        self.assertEqual(self.alert.course.training.label, alert['course']['training']['label'])
+        self.assertEqual(self.alert.email_sent, alert['email_sent'])
+
+        # TODO : test with a visitor and a high school student
 
 
     def test_API_ajax_send_email(self):
@@ -4035,7 +4032,11 @@ class APITestCase(TestCase):
             'label': 'test training',
             'training_subdomains': [{
                 'id': self.t_sub_domain.pk,
-                'training_domain': self.t_domain.pk,
+                'training_domain': {
+                   "id": self.t_sub_domain.training_domain.pk,
+                   "label": self.t_sub_domain.training_domain.label,
+                   "active": self.t_sub_domain.training_domain.active
+                },
                 'label': 'test t_sub_domain',
                 'active': True
             }],
@@ -4049,7 +4050,11 @@ class APITestCase(TestCase):
             'label': 'test training 2',
             'training_subdomains': [{
                 'id': self.t_sub_domain.pk,
-                'training_domain': self.t_domain.pk,
+                'training_domain': {
+                   "id": self.t_sub_domain.training_domain.pk,
+                   "label": self.t_sub_domain.training_domain.label,
+                   "active": self.t_sub_domain.training_domain.active
+                },
                 'label': 'test t_sub_domain',
                 'active': True
             }],
@@ -4072,7 +4077,11 @@ class APITestCase(TestCase):
             'label': 'test highschool training',
             'training_subdomains': [{
                 'id': self.t_sub_domain.pk,
-                'training_domain': self.t_domain.pk,
+                'training_domain': {
+                    "id": self.t_sub_domain.training_domain.pk,
+                    "label": self.t_sub_domain.training_domain.label,
+                    "active": self.t_sub_domain.training_domain.active
+                },
                 'label': 'test t_sub_domain',
                 'active': True
             }],
@@ -4462,7 +4471,11 @@ class APITestCase(TestCase):
                     'label': 'test highschool training',
                     'training_subdomains': [{
                         'id': training.training_subdomains.first().pk,
-                        'training_domain': training.training_subdomains.first().training_domain.pk,
+                        'training_domain': {
+                            "id": training.training_subdomains.first().training_domain.pk,
+                            "label": training.training_subdomains.first().training_domain.label,
+                            "active": training.training_subdomains.first().training_domain.active,
+                        },
                         'label': 'test t_sub_domain',
                         'active': True
                     }],

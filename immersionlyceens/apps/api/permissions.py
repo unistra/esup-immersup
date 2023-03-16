@@ -12,6 +12,7 @@ class CustomDjangoModelPermissions(DjangoModelPermissions):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
+
 class IsRefLycPermissions(BasePermission):
     message = _("You're not allowed to access this ressource")
 
@@ -20,6 +21,7 @@ class IsRefLycPermissions(BasePermission):
             return request.user.is_high_school_manager()
         except AttributeError:
             return False
+
 
 class IsTecPermissions(BasePermission):
     message = _("You're not allowed to access this ressource")
@@ -30,6 +32,7 @@ class IsTecPermissions(BasePermission):
         except AttributeError:
             return False
 
+
 class IsEstablishmentManagerPermissions(BasePermission):
     message = _("You're not allowed to access this ressource")
 
@@ -38,6 +41,7 @@ class IsEstablishmentManagerPermissions(BasePermission):
             return request.user.is_establishment_manager()
         except AttributeError:
             return False
+
 
 class IsMasterEstablishmentManagerPermissions(BasePermission):
     message = _("You're not allowed to access this ressource")
@@ -48,6 +52,7 @@ class IsMasterEstablishmentManagerPermissions(BasePermission):
         except AttributeError:
             return False
 
+
 class IsStructureManagerPermissions(BasePermission):
     message = _("You're not allowed to access this ressource")
 
@@ -57,6 +62,7 @@ class IsStructureManagerPermissions(BasePermission):
         except AttributeError:
             return False
 
+
 class IsSpeakerPermissions(BasePermission):
     message = _("You're not allowed to access this ressource")
 
@@ -65,6 +71,37 @@ class IsSpeakerPermissions(BasePermission):
             return request.user.is_speaker()
         except AttributeError:
             return False
+
+
+class IsStudentPermissions(BasePermission):
+    message = _("You're not allowed to access this ressource")
+
+    def has_permission(self, request, view):
+        try:
+            return request.user.is_student()
+        except AttributeError:
+            return False
+
+
+class IsHighSchoolStudentPermissions(BasePermission):
+    message = _("You're not allowed to access this ressource")
+
+    def has_permission(self, request, view):
+        try:
+            return request.user.is_high_school_student()
+        except AttributeError:
+            return False
+
+
+class IsVisitorPermissions(BasePermission):
+    message = _("You're not allowed to access this ressource")
+
+    def has_permission(self, request, view):
+        try:
+            return request.user.is_visitor()
+        except AttributeError:
+            return False
+
 
 class HighSchoolReadOnlyPermissions(BasePermission):
     """
