@@ -156,6 +156,7 @@ class HighschoolListFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+
 class HighschoolConventionFilter(admin.SimpleListFilter):
     title = _('Conventions')
     parameter_name = 'conventions'

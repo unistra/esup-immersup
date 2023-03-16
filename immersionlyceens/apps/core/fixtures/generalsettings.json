@@ -177,5 +177,29 @@
           "description": "Si le paramètre est à 'true', la pièce d'identité des visiteurs est supprimée après la validation de leur fiche."
       }
   }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 18,
+  "fields": {
+      "setting": "SLOT_REGISTRATION_LIMIT",
+      "parameters": {
+          "type": "integer",
+          "value": 48,
+          "description": "Nombre d'heures, avant le début d'un créneau, fixant la limite après laquelle l'inscription n'est plus possible."
+      }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 19,
+  "fields": {
+      "setting": "SLOT_CANCELLATION_LIMIT",
+      "parameters": {
+          "type": "integer",
+          "value": 48,
+          "description": "Nombre d'heures, avant le début d'un créneau, fixant la limite après laquelle l'annulation n'est plus possible."
+      }
+  }
 }
 ]
