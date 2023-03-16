@@ -2426,6 +2426,9 @@ def charter(request):
     establishment_or_highschool = ""
     address = ""
 
+    if request.user.is_anonymous:
+        return HttpResponseRedirect("/")
+
     try:
         charter_txt = InformationText.objects.get(code="CHARTE_ETABLISSEMENT_ACCUEIL", active=True).content
     except InformationText.DoesNotExist:
@@ -2445,4 +2448,5 @@ def charter(request):
         'establishment_or_highschool_address': address,
         'charter_txt': charter_txt
     }
+
     return render(request, 'core/charter.html', context)
