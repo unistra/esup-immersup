@@ -132,6 +132,7 @@
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var conformDialog;
+  var tableConfig;
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
@@ -145,20 +146,11 @@
         request.setRequestHeader("X-CSRFToken", csrftoken);
       },
 
-      url: "/api/delete_course",
-      data: {
-        course_id: course_id,
-      },
-
-      success: function (json) {
-        let msg = json['msg'];
-        let error = json['error'];
-
-        if(error !== '') {
-          feedback.trigger("showFeedback", [[error, "danger"]]);
-        }
-        else if(msg !== '') {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
+      url: `/api/course/${course_id}`,
+      method: "DELETE",
+      success: function (response) {
+        if(is_set(response.msg)) {
+          feedback.trigger("showFeedback", [[response.msg, "success"]]);
         }
 
         if ($('#strs option:selected').val() !== "") {
@@ -168,9 +160,9 @@
           load_courses("highschool", $('#highschools option:selected').val());
         }
       },
-      error: function (e) {
-        obj = JSON.stringify(e);
-        console.log("Error : " + obj);
+      error: function (response) {
+        let error = response.responseJSON.error
+        feedback.trigger("showFeedback", [[error, "danger"]])
       }
     });
   }
@@ -245,13 +237,34 @@
   function load_courses(key, value) {
     yadcf.exResetAllFilters(dt);
     dt.clear().draw()
-    dt.ajax.reload()
+
+    let url;
 
     if(key === 'highschool') {
+      if(is_set(value)) {
+        url = `/api/courses/?training__highschool=${value}`
+      }
       current_highschool_id = value
     }
     else if(key === 'structure') {
+      if(is_set(value)) {
+        url = `/api/courses/?training__structures=${value}`
+      }
       current_structure_id = value
+    }
+
+    if(is_set(url)) {
+      tableConfig.ajax = {
+        "url": url,
+        "dataSrc": function (json) {
+          if (json !== undefined) {
+            return json
+          }
+        },
+      };
+
+      dt.destroy();
+      dt = $('#courses_table').DataTable( tableConfig );
     }
   }
 
@@ -305,7 +318,9 @@
       ],
     });
 
-    dt = $('#courses_table').DataTable({
+    // Create a tableConfig without Ajax settings to prevent first datatable ajax call
+    // Ajax settings will be added in load_courses function and the datatable recreated
+    tableConfig = {
       'processing': false,
       'order': [
           [1, "asc"],
@@ -315,24 +330,6 @@
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
-      'ajax': {
-        url: "/api/get_courses",
-        data: function(d) {
-          if($('#strs').val()) {
-            d.structure = $('#strs').val();
-          }
-          else if($('#highschools').val()) {
-            d.highschool = $('#highschools').val();
-          }
-
-          return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
       'searching': true,
       'language': {
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
@@ -340,17 +337,18 @@
       'columns': [
           { "data": "published",
             "render": function (data) {
-              if (data) {
-                txt="{% trans 'Yes' %}";
-              }
-              else {
-                txt="{% trans 'No' %}";
-              }
-
-              return txt;
+              return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
             },
           },
-          { "data": "training_label"},
+          { "data": "training",
+            "render": function(data, type, row) {
+              if(type === 'filter') {
+                return data.label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data.label
+            }
+          },
           { "data": "managed_by" },
           { "data": "label",
             "render": function (data, type, row) {
@@ -365,7 +363,7 @@
             "render": function (data, type, row) {
               let txt = "";
               $.each(data, function (index, speaker) {
-                txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
+                txt += `<a href='mailto:${speaker.email}'>${speaker.last_name} ${speaker.first_name}</a><br>`;
               });
 
               if(type === 'filter') {
@@ -407,13 +405,13 @@
               let add_slot_url = '/core/slot/add/'
 
               if(row.has_rights) {
-                if(is_set(row.establishment_id) && is_set(row.structure_id) && is_set(row.training_id)) {
-                    slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id + "/" + row.id
-                    add_slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id + "/" + row.id
+                if(is_set(row.structure) && is_set(row.structure.establishment) && is_set(row.structure.id) && is_set(row.training.id)) {
+                    slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
+                    add_slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
                 }
-                else if(is_set(row.highschool_id) && is_set(row.training_id)) {
-                    slot_url += row.highschool_id + "/" + row.training_id + "/" + row.id
-                    add_slot_url += row.highschool_id + "/" + row.training_id + "/" + row.id
+                else if(is_set(row.highschool) && is_set(row.highschool.id) && is_set(row.training.id)) {
+                    slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
+                    add_slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
                 }
 
                 // direct link to slots list
@@ -444,10 +442,7 @@
                            "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                            "</button>";
                 }
-
-
               }
-
               return icons;
             },
           },
@@ -504,7 +499,9 @@
           });
         })
       }
-    });
+    };
+
+    dt = $('#courses_table').DataTable(tableConfig);
 
     // Filters init
     yadcf.init(dt, [{
@@ -530,16 +527,6 @@
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
-      /*
-      {
-        column_number: 3,
-        filter_default_label: "",
-        filter_match_mode: "exact",
-        filter_container_id: "label_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      */
       {
         column_number: 7,
         filter_default_label: "",

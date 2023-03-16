@@ -127,6 +127,8 @@ class APITestCase(TestCase):
             signed_charter=True,
         )
 
+        cls.visit = Visit.objects.first()
+
         cls.visitor = get_user_model().objects.create_user(
             username="visitor",
             password="pass",
@@ -598,42 +600,6 @@ class APITestCase(TestCase):
             docs = AccompanyingDocument.objects.filter(active=True)
             self.assertEqual(len(json_content['data']), docs.count())
 
-    def test_API_ajax_check_course_publication(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = f"/api/check_course_publication/{self.course.id}"
-
-        # True
-        self.course.published = True
-        self.course.save()
-        content = json.loads(self.client.get(url, **self.header).content.decode())
-        self.assertTrue(content['data']['published'])
-
-        # False
-        self.course.published = False
-        self.course.save()
-        content = json.loads(self.client.get(url, **self.header).content.decode())
-        self.assertFalse(content['data']['published'])
-
-        # 404
-        url = "/api/check_course_publication/"
-        response = self.client.get(url, {}, **self.header)
-        self.assertEqual(response.status_code, 404)
-
-    def test_API_ajax_get_course_speakers(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = f"/api/get_course_speakers/{self.course.id}"
-        response = self.client.post(url, {}, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['data']), 1)
-        self.assertEqual(content['data'][0]['id'], self.speaker1.id)
-        self.assertEqual(content['data'][0]['first_name'], self.speaker1.first_name)
-        self.assertEqual(content['data'][0]['last_name'], self.speaker1.last_name)
-
-        # 404
-        url = "/api/check_course_speakers/"
-        response = self.client.post(url, {}, **self.header)
-        self.assertEqual(response.status_code, 404)
 
     def test_API_ajax_get_buildings(self):
         self.client.login(username='ref_etab', password='pass')
@@ -645,19 +611,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['id'], self.building.id)
         self.assertEqual(content['data'][0]['label'], self.building.label)
 
-    def test_API_ajax_get_courses_by_training(self):
-        self.client.login(username='ref_etab', password='pass')
-
-        # structure id & training
-        url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
-        response = self.client.post(url, {}, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['data']), 1)
-        self.assertEqual(content['data'][0]['key'], self.course.id)
-        self.assertEqual(content['data'][0]['label'], self.course.label)
-        self.assertEqual(content['data'][0]['url'], self.course.url)
-        self.assertEqual(content['data'][0]['slots'], Slot.objects.filter(course__training=self.training).count())
 
     def test_API_get_ajax_slots(self):
         self.client.login(username='ref_etab', password='pass')
@@ -770,7 +723,6 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], slot.id)
-
 
     def test_course_slot_creation(self):
         """
@@ -896,67 +848,6 @@ class APITestCase(TestCase):
             [f"Speaker '{self.operator_user}' is not linked to course '{self.course}'"],
             result['error']['speakers']
         )
-
-
-    def test_API_get_trainings(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = "/api/get_trainings"
-
-        data = {
-            'type': 'structure',
-            'object_id': self.structure.id
-        }
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 2)
-        t1 = content['data'][0]
-        self.assertEqual(t1['label'], self.training.label)
-        self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
-
-        t2 = content['data'][1]
-        self.assertEqual(t2['label'], self.training2.label)
-        self.assertEqual(t2['subdomain'], [s.label for s in self.training2.training_subdomains.filter(active=True)])
-
-        # No data : empty results
-        data = {}
-        response = self.client.post(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-
-        # No object id & bad type parameter
-        data = {
-            'type': 'badtype',
-        }
-        response = self.client.post(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
-
-        # Highschool type
-        data = {
-            'type': 'highschool',
-            'object_id': self.high_school.id
-        }
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 1)
-        t1 = content['data'][0]
-        self.assertEqual(t1['label'], self.highschool_training.label)
-        self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
-
-        # Bad object_id value
-        data = {
-            'type': 'highschool',
-            'object_id': '',
-        }
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
-
-
 
     def test_API_get_student_records(self):
         self.client.login(username='ref_etab', password='pass')
@@ -1659,122 +1550,26 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], [])
 
 
-    def test_API_get_courses(self):
-        self.client.login(username='ref_etab', password='pass')
-        request.user = self.ref_etab_user
-
-        url = f"/api/get_courses/?structure={self.structure.id}"
-
-        response = self.client.get(url, request, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], '')
-        self.assertEqual(len(content['data']), 1)
-        c = content['data'][0]
-        self.assertEqual(c['id'], self.course.id)
-        self.assertEqual(c['published'], self.course.published)
-        self.assertEqual(c['training_label'], self.course.training.label)
-        self.assertEqual(c['label'], self.course.label)
-        self.assertEqual(c['structure_code'], self.course.structure.code)
-        self.assertEqual(c['structure_id'], self.course.structure.id)
-
-        speakers = [{
-            'name': f'{t.last_name} {t.first_name}',
-            'email': t.email
-        } for t in self.course.speakers.all()]
-
-        for speaker in c['speakers']:
-            self.assertIn(speaker, speakers)
-
-        self.assertEqual(c['slots_count'], self.course.slots_count())
-        self.assertEqual(c['n_places'], self.course.free_seats())
-        self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
-        self.assertEqual(c['registered_students_count'], self.course.registrations_count())
-        self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
-        self.assertEqual(c['can_delete'], not self.course.slots.exists())
-
-        url = "/api/get_courses/"
-        response = self.client.get(url, request, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
-
-
-    def test_API_ajax_delete_course(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = "/api/delete_course"
-
-        # No data
-        data = {}
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['error'], "Error : a valid course must be selected")
-        self.assertEqual(content['msg'], '')
-
-        # Course doesn't exists
-        data = {
-            'course_id': 0
-        }
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['error'], "Error : a valid course must be selected")
-        self.assertEqual(content['msg'], '')
-
-        # With linked slots
-        data = {
-            'course_id': self.course.id
-        }
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['error'], "Error : slots are linked to this course")
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(Slot.objects.filter(course=self.course).count(), 0)
-        self.assertEqual(Course.objects.filter(id=self.course.id).count(), 1)
-
-        # Without any slot
-        self.slot.delete()
-        self.slot2.delete()
-        self.slot3.delete()
-        self.full_slot.delete()
-        self.past_slot.delete()
-        self.unpublished_slot.delete()
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['error']), 0)
-        self.assertGreater(len(content['msg']), 0)
-        self.assertEqual(content['msg'], "Course successfully deleted")
-        self.assertEqual(Slot.objects.filter(course=self.course).count(), 0)
-
-        with self.assertRaises(Course.DoesNotExist):
-            Course.objects.get(id=self.course.id)
-
-
     def test_API_ajax_get_speaker_courses(self):
         # As a 'structure' speaker
         request.user = self.speaker1
         client = Client()
         client.login(username='speaker1', password='pass')
 
-        url = "/api/get_courses/"
+        url = "/api/courses/"
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        c = content['data'][0]
+        self.assertGreater(len(content), 0)
+        c = content[0]
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
         self.assertEqual(
             f"{self.course.structure.establishment.code} - {self.course.structure.code}",
             c['managed_by']
         )
-        self.assertEqual(self.course.training.label, c['training_label'])
+        self.assertEqual(self.course.training.label, c['training']['label'])
         self.assertEqual(self.course.label, c['label'])
         # speakers
         self.assertEqual(self.course.slots_count(speakers=self.speaker1.id), c['slots_count'])
@@ -1790,13 +1585,12 @@ class APITestCase(TestCase):
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        c = content['data'][0]
+        self.assertGreater(len(content), 0)
+        c = content[0]
         self.assertEqual(self.highschool_course.id, c['id'])
         self.assertEqual(self.highschool_course.published, c['published'])
         self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", c['managed_by'])
-        self.assertEqual(self.highschool_course.training.label, c['training_label'])
+        self.assertEqual(self.highschool_course.training.label, c['training']['label'])
         self.assertEqual(self.highschool_course.label, c['label'])
         # speakers
         self.assertEqual(self.highschool_course.slots_count(speakers=self.highschool_speaker.id), c['slots_count'])
@@ -1897,18 +1691,36 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['data']), 0)
 
 
-    def test_API_ajax_get_agreed_highschools(self):
+    def test_API_get_agreed_highschools(self):
+        """
+        Get only high schools with valid agreements
+        """
+
+        # Create another high school without agreement just to be sure it doesn't show up in the results
+        HighSchool.objects.create(
+            label='no-agreement',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0987654321',
+            email='b@domain.tld',
+            mailing_list='ml@domain.tld',
+            head_teacher_name='M. A B',
+            postbac_immersion=True,
+            signed_charter=True,
+        )
+
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
-        url = "/api/get_agreed_highschools"
+        url = "/api/highschools/?agreed=true"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        hs = content['data'][0][0]
+        self.assertEqual(len(content), 1)
+        hs = content[0]
         self.assertEqual(self.high_school.id, hs['id'])
         self.assertEqual(self.high_school.label, hs['label'])
         self.assertEqual(self.high_school.address, hs['address'])
@@ -2581,22 +2393,19 @@ class APITestCase(TestCase):
         client = Client()
         client.login(username='student', password='pass')
 
-        url = "/api/get_alerts"
+        url = "/api/course_alerts"
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(len(content['data']), 0)
-        a = content['data'][0]
-        self.assertEqual(self.alert.id, a['id'])
-        self.assertEqual(self.alert.course.label, a['course'])
-        self.assertEqual(self.alert.course.training.label, a['training'])
-        self.assertEqual([s.label for s in self.alert.course.training.training_subdomains.all()], a['subdomains'])
-        self.assertEqual(
-            [s.training_domain.label for s in self.alert.course.training.training_subdomains.all()],
-            a['domains'])
-        self.assertEqual(self.alert.email_sent, a['email_sent'])
+        self.assertEqual(len(content), 1)
+        alert = content[0]
+        self.assertEqual(self.alert.id, alert['id'])
+        self.assertEqual(self.alert.course.label, alert['course']['label'])
+        self.assertEqual(self.alert.course.training.label, alert['course']['training']['label'])
+        self.assertEqual(self.alert.email_sent, alert['email_sent'])
+
+        # TODO : test with a visitor and a high school student
 
 
     def test_API_ajax_send_email(self):
@@ -2775,59 +2584,6 @@ class APITestCase(TestCase):
         # No data
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertEqual(content['msg'], "")
-
-
-    def test_API_ajax_get_trainings(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = "/api/get_trainings"
-
-        # No data
-        data = {}
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
-
-        # No object_id value
-        data = {
-            'type': 'structure'
-        }
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
-
-
-    def test_get_trainings_highschool(self):
-        url = reverse("get_trainings_highschool")
-
-        training = Training.objects.get(label='test highschool training')
-        subdomain = training.training_subdomains.first()
-
-        # Establishment manager
-        self.client.login(username='ref_etab', password='pass')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-
-        # High school manager
-        self.client.logout()
-        self.client.login(username='ref_lyc', password='pass')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content, [{
-            'id': training.pk,
-            'label': 'test highschool training',
-            'training_subdomains': [{
-                'id': subdomain.pk, 
-                'training_domain': subdomain.training_domain.pk, 
-                'label': 'test t_sub_domain', 
-                'active': True
-            }],
-            'active': True,
-            'can_delete': False
-        }])
 
 
     def test_API_ajax_set_course_alert(self):
@@ -3389,7 +3145,7 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         result = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(result.get('email'), "new_speaker@domain.tld")
+        self.assertEqual(result["data"].get('email'), "new_speaker@domain.tld")
         self.assertTrue(ImmersionUser.objects.filter(email='new_speaker@domain.tld', groups__name='INTER').exists())
 
         # Duplicate
@@ -3403,6 +3159,101 @@ class APITestCase(TestCase):
         self.assertEqual(ImmersionUser.objects.filter(email='new_speaker@domain.tld').count(), 1)
 
 
+    def test_get_course_speakers(self):
+        url = f"/api/speakers/course/{self.course.id}"
+        speaker = self.course.speakers.first()
+
+        # Check access for the following users
+        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
+            self.client.login(username=user.username, password='pass')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content, [{
+                "id": speaker.id,
+                "last_name": speaker.last_name,
+                "first_name": speaker.first_name,
+                "email": speaker.email,
+                "establishment": speaker.establishment.pk,
+                "highschool": speaker.highschool,
+                "is_active": speaker.is_active,
+                "has_courses": speaker.courses.exists(),
+                "can_delete": not speaker.courses.exists()
+            }])
+
+
+    def test_get_visit_speakers(self):
+        visit = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever",
+            published=True
+        )
+
+        visit.speakers.add(self.speaker1)
+
+        url = f"/api/speakers/visit/{visit.id}"
+
+        # Check access for the following users
+        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
+            self.client.login(username=user.username, password='pass')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content, [{
+                "id": self.speaker1.id,
+                "last_name": self.speaker1.last_name,
+                "first_name": self.speaker1.first_name,
+                "email": self.speaker1.email,
+                "establishment": self.speaker1.establishment.pk,
+                "highschool": self.speaker1.highschool,
+                "is_active": self.speaker1.is_active,
+                "has_courses": self.speaker1.courses.exists(),
+                "can_delete": not self.speaker1.courses.exists()
+            }])
+
+
+    def test_get_event_speakers(self):
+        event_type = OffOfferEventType.objects.create(
+            label="My event type",
+            active=True
+        )
+
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            label="Whatever",
+            description="",
+            event_type=event_type,
+            published=True
+        )
+
+        event.speakers.add(self.speaker1)
+
+        url = f"/api/speakers/event/{event.id}"
+
+        # Check access for the following users
+        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
+            self.client.login(username=user.username, password='pass')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content, [{
+                "id": self.speaker1.id,
+                "last_name": self.speaker1.last_name,
+                "first_name": self.speaker1.first_name,
+                "email": self.speaker1.email,
+                "establishment": self.speaker1.establishment.pk,
+                "highschool": self.speaker1.highschool,
+                "is_active": self.speaker1.is_active,
+                "has_courses": self.speaker1.courses.exists(),
+                "can_delete": not self.speaker1.courses.exists()
+            }])
+
+
     def test_high_school_list(self):
         url = reverse("highschool_list")
         view_permission = Permission.objects.get(codename='view_highschool')
@@ -3410,13 +3261,20 @@ class APITestCase(TestCase):
 
         self.assertTrue(HighSchool.objects.count() > 0)
 
-        # Without permission
-        response = self.api_client_token.get(url)
+        # Unauthenticated GET
+        self.client.logout()
+        response = self.client.get(url)
         result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'Authentication credentials were not provided.')
 
-        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+        # Agreed high schools : success
+        response = self.client.get("/api/highschools/?agreed=true")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(result), 1)
 
-        # Add view permission and try again
+        # Add view permission
         self.api_user.user_permissions.add(view_permission)
         response = self.api_client_token.get(url)
         result = json.loads(response.content.decode('utf-8'))
@@ -3477,21 +3335,21 @@ class APITestCase(TestCase):
 
         # Success
         client.login(username='ref_lyc', password='pass')
-        response = client.get(
-            reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}),
-            **self.header
-        )
+        response = client.get(f"/api/speakers/?highschool={self.high_school.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content['data'], [{
+
+        self.assertEqual(content[0], {
             'id': self.highschool_speaker.id,
             'last_name': 'highschool_speaker',
             'first_name': 'highschool_speaker',
             'email': 'highschool_speaker@no-reply.com',
-            'is_active': 'Yes',
-            'has_courses': 'Yes',
-            'can_delete': False
-        }])
+            'establishment': self.highschool_speaker.establishment,
+            'is_active': True,
+            'has_courses': True,
+            'can_delete': False,
+            'highschool': self.highschool_speaker.highschool.pk,
+        })
 
     def test_visit(self):
         visit = Visit.objects.create(
@@ -4160,6 +4018,81 @@ class APITestCase(TestCase):
 
 
     def test_training_list(self):
+        url = reverse('training_list')
+
+        # GET as users
+        # Establishment manager
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = sorted(json.loads(response.content.decode()), key=lambda k:k['id'])
+
+        self.assertEqual(content, [{
+            'id': self.training.pk,
+            'label': 'test training',
+            'training_subdomains': [{
+                'id': self.t_sub_domain.pk,
+                'training_domain': {
+                   "id": self.t_sub_domain.training_domain.pk,
+                   "label": self.t_sub_domain.training_domain.label,
+                   "active": self.t_sub_domain.training_domain.active
+                },
+                'label': 'test t_sub_domain',
+                'active': True
+            }],
+            'active': True,
+            'can_delete': False,
+            'url': None,
+            'structures': [self.structure.pk],
+            'highschool': None
+        }, {
+            'id': self.training2.pk,
+            'label': 'test training 2',
+            'training_subdomains': [{
+                'id': self.t_sub_domain.pk,
+                'training_domain': {
+                   "id": self.t_sub_domain.training_domain.pk,
+                   "label": self.t_sub_domain.training_domain.label,
+                   "active": self.t_sub_domain.training_domain.active
+                },
+                'label': 'test t_sub_domain',
+                'active': True
+            }],
+            'active': True,
+            'can_delete': True,
+            'url': None,
+            'structures': [self.structure.pk],
+            'highschool': None
+        }])
+
+        # High school manager
+        self.client.logout()
+        self.client.login(username='ref_lyc', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = sorted(json.loads(response.content.decode()), key=lambda k:k['id'])
+
+        self.assertEqual(content, [{
+            'id': self.highschool_training.pk,
+            'label': 'test highschool training',
+            'training_subdomains': [{
+                'id': self.t_sub_domain.pk,
+                'training_domain': {
+                    "id": self.t_sub_domain.training_domain.pk,
+                    "label": self.t_sub_domain.training_domain.label,
+                    "active": self.t_sub_domain.training_domain.active
+                },
+                'label': 'test t_sub_domain',
+                'active': True
+            }],
+            'active': True,
+            'can_delete': False,
+            'url': None,
+            'structures': [],
+            'highschool': self.high_school.pk
+        }])
+
+        # API with token
         view_permission = Permission.objects.get(codename='view_training')
         add_permission = Permission.objects.get(codename='add_training')
         url = reverse("training_list")
@@ -4200,8 +4133,9 @@ class APITestCase(TestCase):
         # Add add permission and try again
         self.api_user.user_permissions.add(add_permission)
         response = self.api_client_token.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(result.get('label'), "Training test")
         self.assertTrue(Training.objects.filter(label='Training test').exists())
         self.assertEqual(Training.objects.filter(label__iexact='Training test').count(), 1)
@@ -4217,7 +4151,9 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         result = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(result['error'], {'training_subdomains': ['This list may not be empty.']})
+        self.assertEqual(result['error'], {
+            'training_subdomains': ["'Another training test' : please provide at least one training subdomain"]
+        })
 
         # Missing structure and highschool : fail
         data = {
@@ -4244,6 +4180,7 @@ class APITestCase(TestCase):
             "structures": [structure.id],
             "highschool": self.high_school.id
         }
+
         response = self.api_client_token.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         result = json.loads(response.content.decode('utf-8'))
@@ -4279,9 +4216,61 @@ class APITestCase(TestCase):
         self.assertTrue(Training.objects.filter(label='Training test B').exists())
 
 
+    def test_course_list(self):
+        """
+        Test CourseList called from a datatable with various options
+        """
+        self.client.login(username='ref_etab', password='pass')
+        request.user = self.ref_etab_user
+
+        url = f"/api/courses/?training__structures={self.structure.id}"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content), 1)
+        c = content[0]
+        self.assertEqual(c['id'], self.course.id)
+        self.assertEqual(c['published'], self.course.published)
+        self.assertEqual(c['training']['label'], self.course.training.label)
+        self.assertEqual(c['label'], self.course.label)
+        self.assertEqual(c['structure']['code'], self.course.structure.code)
+        self.assertEqual(c['structure']['id'], self.course.structure.id)
+
+        speakers = [{
+            'last_name': sp.last_name,
+            'first_name': sp.first_name,
+            'email': sp.email,
+            "establishment": sp.establishment.pk if sp.establishment else None,
+            "id": sp.pk,
+            "highschool": sp.highschool.pk if sp.highschool else None,
+            'is_active': sp.is_active,
+            'has_courses': sp.courses.exists(),
+            'can_delete': not sp.courses.exists()
+        } for sp in self.course.speakers.all()]
+
+        for speaker in c['speakers']:
+            self.assertIn(speaker, speakers)
+
+        self.assertEqual(c['slots_count'], self.course.slots_count())
+        self.assertEqual(c['n_places'], self.course.free_seats())
+        self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
+        self.assertEqual(c['registered_students_count'], self.course.registrations_count())
+        self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
+        self.assertEqual(c['can_delete'], not self.course.slots.exists())
+
+        """
+        # Is this still an error ?
+                
+        url = "/api/courses/"
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
+        """
+
+
     @patch('immersionlyceens.libs.api.accounts.ldap.ldap3.Connection.__init__', side_effect=mocked_ldap_connection)
     @patch('immersionlyceens.libs.api.accounts.ldap.AccountAPI.search_user', side_effect=mocked_search_user)
-    def test_course_list(self, mocked_search_user, mocked_ldap_connection):
+    def test_course_creation(self, mocked_search_user, mocked_ldap_connection):
         view_permission = Permission.objects.get(codename='view_course')
         add_permission = Permission.objects.get(codename='add_course')
         url = reverse("course_list")
@@ -4302,7 +4291,9 @@ class APITestCase(TestCase):
         for course in Course.objects.all():
             self.assertTrue(course.id in [c['id'] for c in result])
 
+        # =======================================================
         # Creation (POST)
+        # =======================================================
         structure = self.structure
         training = Training.objects.first()
 
@@ -4475,12 +4466,48 @@ class APITestCase(TestCase):
             'data': {
                 'id': course.pk,
                 'label': 'Course test C',
-                'published': True,
-                'url': 'http://test.com',
-                'training': training.id,
-                'structure': self.structure3.id,
+                'training': {
+                    'id': training.id,
+                    'label': 'test highschool training',
+                    'training_subdomains': [{
+                        'id': training.training_subdomains.first().pk,
+                        'training_domain': {
+                            "id": training.training_subdomains.first().training_domain.pk,
+                            "label": training.training_subdomains.first().training_domain.label,
+                            "active": training.training_subdomains.first().training_domain.active,
+                        },
+                        'label': 'test t_sub_domain',
+                        'active': True
+                    }],
+                    'active': True,
+                    'can_delete': False,
+                    'url': None,
+                    'structures': [],
+                    'highschool': training.highschool.id
+                },
+                'structure': {
+                    'id': self.structure3.id,
+                    'code': 'STR3',
+                    'label': 'test structure 3',
+                    'mailing_list': None,
+                    'active': True,
+                    'establishment': self.structure3.establishment.id
+                },
                 'highschool': None,
-                'speakers': [new_user.pk]
+                'published': True,
+                'speakers': [{
+                    'last_name': 'Dubois',
+                    'first_name': 'Martine',
+                    'email': 'new_user@domain.tld',
+                    'establishment': self.structure3.establishment.id,
+                    'id': new_user.pk,
+                    'highschool': None,
+                    'is_active': new_user.is_active,
+                    'has_courses': new_user.courses.exists(),
+                    'can_delete': not new_user.courses.exists()
+                }],
+                'url': 'http://test.com',
+                'managed_by': 'ETA3 - STR3'
             },
             'status': 'success',
             'msg': ''
@@ -4505,3 +4532,93 @@ class APITestCase(TestCase):
 
         course = Course.objects.get(label='Course test D')
         self.assertIn(self.speaker1, course.speakers.all())
+
+
+    def test_course_delete(self):
+        self.client.login(username='ref_etab', password='pass')
+
+        # Course doesn't exists
+        data = { 'pk': 0 }
+        response = self.client.delete(reverse("course_detail", kwargs=data))
+        content = json.loads(response.content.decode())
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(content['error'], "A valid course must be selected")
+
+        # With linked slots
+        data = { 'pk': self.course.id }
+        response = self.client.delete(reverse("course_detail", kwargs=data))
+        content = json.loads(response.content.decode())
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(content['error'], "Slots are linked to this course, it can't be deleted")
+        self.assertGreater(Slot.objects.filter(course=self.course).count(), 0)
+        self.assertEqual(Course.objects.filter(id=self.course.id).count(), 1)
+
+        # Without any slot
+        self.slot.delete()
+        self.slot2.delete()
+        self.slot3.delete()
+        self.full_slot.delete()
+        self.past_slot.delete()
+        self.unpublished_slot.delete()
+
+        response = self.client.delete(reverse("course_detail", kwargs=data))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], "Course successfully deleted")
+        self.assertEqual(Slot.objects.filter(course=self.course).count(), 0)
+
+        with self.assertRaises(Course.DoesNotExist):
+            Course.objects.get(id=self.course.id)
+
+
+    def test_mail_template_preview(self):
+        self.client.login(username=self.ref_master_etab_user.username, password="pass")
+
+        template = MailTemplate.objects.get(code="CPT_MIN_CREATE")
+
+        data = {
+            "user_group": "estetudiant",
+            "slot_type": "estuncours",
+            "local_account": True,
+            "remote": False,
+        }
+
+        url = reverse("mail_template_preview", args=[template.id])
+
+        # No body
+        response = self.client.post(url, data)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "No body for this template provided")
+
+        # with body
+        data["body"] = template.body
+        response = self.client.post(url, data)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertIn(
+            "Connectez vous avec vos identifiants ENT de votre \u00e9tablissement d'origine.",
+            content["data"]
+        )
+
+        # Template does not exist
+        url = reverse("mail_template_preview", args=[9999])
+        response = self.client.post(url, data)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "Template #9999 can't be found")
+
+
+    def test_sign_charter(self):
+        establishment = self.ref_etab3_user.establishment
+        establishment.signed_charter = False
+        establishment.save()
+
+        self.client.login(username=self.ref_etab3_user.username, password="pass")
+        url = reverse("sign_charter")
+        response = self.client.post(url, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['msg'], "Charter successfully signed")
+
+        establishment.refresh_from_db()
+        self.assertTrue(establishment.signed_charter)
+
+
+

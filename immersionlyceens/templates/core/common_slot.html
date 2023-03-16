@@ -524,18 +524,27 @@
   }
 
   function set_trainings(type, object_id) {
+    // Get selected high school or structure trainings
+    // type must be one of "structures" or "highschool"
+    let options = "<option value=''>---------</option>"
+
+    if(!is_set(object_id)) {
+       $('select#id_training').html(options)
+       $("#id_training").val($("#id_training option:first").val());
+       return
+    }
+
     $.ajax({
-      url: "{% url 'GetTrainings' %}",
+      url: "{% url 'training_list' %}",
+      method: 'GET',
       data: {
-        'type': type,
-        'object_id': object_id,
-        csrfmiddlewaretoken: '{{ csrf_token }}'
+        "csrfmiddlewaretoken": '{{ csrf_token }}',
+        [type]: object_id
       },
       success: function (json) {
-        let options = '<option value="">---------</option>'
-        for (let i = 0; i < json['data'].length; i++) {
-          let selected = json['data'][i]['id'] === parseInt(training_id) ? "selected='selected'" : ""
-          options += `<option ${selected} value="${json['data'][i]['id']}">${json['data'][i]['label']}</option>`
+        for (let i = 0; i < json.length; i++) {
+          let selected = json[i]['id'] === parseInt(training_id) ? "selected='selected'" : ""
+          options += `<option ${selected} value="${json[i]['id']}">${json[i]['label']}</option>`
         }
 
         $('select#id_training').html(options)
@@ -728,24 +737,15 @@
   function load_speakers(value) {
     $('select#id_speakers').html('');
 
-    let url = ""
-    if (slot_mode === 'course') {
-      url = '/api/get_course_speakers/' + value
-    }
-    else if (slot_mode === 'event') {
-      url = '/api/get_event_speakers/' + value
-    }
-    else if (slot_mode === 'visit') {
-      url = '/api/get_visit_speakers/' + value
-    }
+    let url = `/api/speakers/${slot_mode}/${value}`
 
     if(value !== '') {
       $.ajax({
         url: url,
         success: function(data) {
-          if ( data['data'] ) {
+          if ( data ) {
             let options = ''
-            data['data'].forEach(function(e) {
+            data.forEach(function(e) {
               let selected = ''
 
               if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
@@ -802,13 +802,15 @@
 
   $('#id_structure').change( function() {
     structure_id = $('#id_structure option:selected').val()
-    if (slot_mode === "course") set_trainings('structure', structure_id)
+    training_id = ""
+    if (slot_mode === "course") set_trainings('structures', structure_id)
     if (slot_mode === "event") set_events()
     if (slot_mode === "visit") set_visits()
   });
 
   $('#id_highschool').change( function() {
     highschool_id = $('#id_highschool option:selected').val()
+    training_id = ""
 
     if (slot_mode === "course") empty_courses()
     if (slot_mode === "event") empty_events()
@@ -1270,7 +1272,7 @@ $(document).ready(function(){
   }
   else if (is_set(structure_id)) {
     if(slot_mode === "course") {
-      set_trainings('structure', structure_id)
+      set_trainings('structures', structure_id)
       set_courses('structure', structure_id, training_id);
     }
   }

@@ -3,6 +3,7 @@ import mimetypes
 import os
 import sys
 import requests
+import json
 
 from email.policy import default
 from wsgiref.util import FileWrapper
@@ -25,7 +26,7 @@ from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, ImmersupFile, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
-    UserCourseAlert, Visit,
+    UserCourseAlert, Visit, HighSchool, Establishment
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -142,9 +143,19 @@ def procedure(request):
     except InformationText.DoesNotExist:
         procedure_group_txt = ''
 
+    highschools = HighSchool.agreed.values("city", "label", "email")
+    establishments = Establishment.activated.all().values('city', 'label', 'email')
+    immersion_highschools = HighSchool.immersions_proposal\
+            .filter(signed_charter=True)\
+            .values('city', 'label', 'email')
+
+    immersion_establishments = establishments.union(immersion_highschools)
+
     context = {
         'procedure_txt': procedure_txt,
         'procedure_group_txt': procedure_group_txt,
+        'highschools': json.dumps(list(highschools)),
+        'immersion_establishments': json.dumps(list(immersion_establishments))
     }
     return render(request, 'procedure.html', context)
 

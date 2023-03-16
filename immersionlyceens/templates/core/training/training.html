@@ -25,7 +25,7 @@
     </div>
     <div class="card-body">
 
-      <form class="" role="form" action="/core/training/{% if training %}{{ training.id }}/update{% else %}add{% endif %}" method="POST">
+      <form class="" role="form" action="/core/training/{% if training %}{{ training.id }}/update{% endif %}" method="POST">
       {% csrf_token %}
       {{ form.id }}
 
@@ -122,16 +122,17 @@
   var can_update = "{{ update_rights }}";
 
 
-  function set_trainings(cmp_id) {
+  function set_trainings(str_id) {
+    // get structure 'str_id' trainings
     $.ajax({
-      url: "{% url 'GetTrainings' %}",
-      type: 'POST',
+      url: "{% url 'training_list' %}",
+      type: 'GET',
       data: {
-        'structure_id': cmp_id,
+        'structures': str_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        if(json["data"] != 'undefined') {
+        if(json["data"] !== 'undefined') {
           var trainings_list = [];
           $.each(json["data"], function(i, item) {
             trainings_list.push(item["id"]);
@@ -141,10 +142,10 @@
             var $this = $(this);
             var opt_value = parseInt($this.val());
 
-            if($.inArray(opt_value, trainings_list) == -1) {
+            if($.inArray(opt_value, trainings_list) === -1) {
               $this.hide();
               // Forget the current training_id if it is hidden
-              if(training_id == opt_value) {
+              if(training_id === opt_value) {
                 training_id = "";
               }
             }
@@ -165,14 +166,14 @@
   }
 
   $('#id_structure').change( function() {
-    let cmp_id = $('#id_structure option:selected').val();
-    set_trainings(cmp_id);
+    let str_id = $('#id_structure option:selected').val();
+    set_trainings(str_id);
   });
 
   $('#live_select').change(function () {
     let val = $('#live_select option:selected').val();
 
-    if(val != '') {
+    if(val !== '') {
       $('#id_add_button').show();
     }
     else {

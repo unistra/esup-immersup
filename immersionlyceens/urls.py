@@ -16,7 +16,6 @@ from .views import (
 
 admin.autodiscover()
 
-
 urlpatterns = [
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('', home, name='home'),
@@ -26,7 +25,7 @@ urlpatterns = [
     path('cas_accounts/', include('django_cas.urls', namespace='django_cas')),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('admin/', admin.site.urls),
-    path('api/', include('immersionlyceens.libs.api.urls')),
+    path('api/', include('immersionlyceens.apps.api.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),

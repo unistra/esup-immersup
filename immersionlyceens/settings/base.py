@@ -294,6 +294,7 @@ LOCAL_APPS = [
     'immersionlyceens.apps.immersion',
     'immersionlyceens.apps.charts',
     'immersionlyceens.apps.user',
+    'immersionlyceens.apps.api',
 ]
 
 
@@ -369,8 +370,8 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'rest_framework_custom_exceptions.exceptions.simple_error_handler',

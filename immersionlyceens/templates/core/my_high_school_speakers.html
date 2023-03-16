@@ -88,12 +88,12 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_highschool_speakers/" + highschool_id,
-          dataSrc: function (json) {
-            if (json['data'] !== undefined) {
-              return json['data'];
-            }
+        url: `{% url 'speaker_list' %}?highschool=${highschool_id}`,
+        dataSrc: function (json) {
+          if (json !== undefined) {
+            return json;
           }
+        }
       },
     'searching': true,
     'language': {
@@ -103,8 +103,16 @@
     { "data": "last_name" },
     { "data": "first_name" },
     { "data": "email" },
-    { "data": "is_active" },
-    { "data": "has_courses" },
+    { "data": "is_active",
+      "render": function(data, type, row) {
+        return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+      }
+    },
+    { "data": "has_courses",
+      "render": function(data, type, row) {
+        return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+      }
+    },
     { "data": "can_delete",
       "render": function(data, type, row) {
         let msg = "<a href='/core/speaker/"+ row.id +"' type=\"button\" class=\"ml-4 btn btn-light btn-sm\" title=\"{% trans 'Edit' %}\">" +

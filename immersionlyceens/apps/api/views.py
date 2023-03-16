@@ -10,6 +10,7 @@ import time
 from rest_framework import generics, status, serializers
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from functools import reduce
 from itertools import permutations
@@ -43,8 +44,8 @@ from immersionlyceens.apps.core.models import (
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
     HighSchoolLevelSerializer, OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
-    StructureSerializer, TrainingDomainSerializer, TrainingHighSchoolSerializer, TrainingSerializer,
-    TrainingSubdomainSerializer, VisitSerializer,
+    StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
+    TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -55,7 +56,11 @@ from immersionlyceens.decorators import (
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
-from .permissions import CustomDjangoModelPermissions
+from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
+    IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions,
+    IsSpeakerPermissions, HighSchoolReadOnlyPermissions, SpeakersReadOnlyPermissions, IsStudentPermissions,
+    IsVisitorPermissions, IsHighSchoolStudentPermissions
+)
 
 logger = logging.getLogger(__name__)
 
@@ -169,153 +174,6 @@ def ajax_get_available_vars(request, template_id=None):
         response["data"] = [{'id': v.id, 'code': v.code, 'description': v.description} for v in template_vars]
     else:
         response["msg"] = gettext("Error : no template id")
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER', 'REF-TEC')
-def ajax_get_courses(request):
-    response = {'msg': '', 'data': []}
-    user = request.user
-
-    structure_id = request.GET.get('structure')
-    highschool_id = request.GET.get('highschool')
-    user_courses = request.GET.get('user_courses', False) == 'true'
-
-    filters = {}
-    speaker_filter = {}
-    user_filter = False
-
-    force_user_filter = [
-        user_courses,
-        user.is_speaker() and not any([
-            user.is_master_establishment_manager(),
-            user.is_establishment_manager(),
-            user.is_structure_manager(),
-            user.is_operator()
-        ])
-    ]
-
-    if any(force_user_filter):
-        user_filter = True
-        filters["speakers__in"] = user.linked_users()
-        speaker_filter["speakers"] = user.linked_users()
-
-    try:
-        int(structure_id)
-        filters["training__structures"] = structure_id
-    except (TypeError, ValueError):
-        structure_id = None
-
-    try:
-        int(highschool_id)
-        filters["training__highschool"] = highschool_id
-    except (TypeError, ValueError):
-        highschool_id = None
-
-    if not user_filter and not structure_id and not highschool_id:
-        response['msg'] = gettext("Error : a valid structure or high school must be selected")
-        return JsonResponse(response, safe=False)
-
-    courses = Course.objects.prefetch_related('training', 'highschool', 'structure').filter(**filters)
-
-    allowed_structures = user.get_authorized_structures()
-
-    for course in courses:
-        managed_by = None
-        has_rights = False
-
-        if course.structure:
-            managed_by = f"{course.structure.establishment.code} - {course.structure.code}"
-            has_rights = (Structure.objects.filter(pk=course.structure.id) & allowed_structures).exists()
-        elif course.highschool:
-            managed_by = f"{course.highschool.city} - {course.highschool.label}"
-
-            has_rights = any([
-                user.is_master_establishment_manager(),
-                user.is_operator(),
-                course.highschool == user.highschool
-            ])
-
-        course_data = {
-            'id': course.id,
-            'published': course.published,
-            'training_id': course.training.id,
-            'training_label': course.training.label,
-            'label': course.label,
-            'managed_by': managed_by,
-            'establishment_id': course.structure.establishment.id if course.structure else None,
-            'structure_code': course.structure.code if course.structure else None,
-            'structure_id': course.structure.id if course.structure else None,
-            'highschool_id': course.highschool.id if course.highschool else None,
-            'highschool_label': f"{course.highschool.city} - {course.highschool.label}" if course.highschool else None,
-            'speakers': [],
-            'slots_count': course.slots_count(**speaker_filter),
-            'n_places': course.free_seats(**speaker_filter),
-            'published_slots_count': course.published_slots_count(**speaker_filter),
-            'registered_students_count': course.registrations_count(**speaker_filter),
-            'alerts_count': course.get_alerts_count(),
-            'has_rights': has_rights,
-            'can_delete': not course.slots.exists(),
-        }
-
-        for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].append({
-                'name': f"{speaker.last_name} {speaker.first_name}",
-                'email': speaker.email
-            })
-
-        response['data'].append(course_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required("REF-ETAB", "REF-STR", 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_get_trainings(request):
-    """
-    Get trainings linked to a structure or a highschool
-    GET params :
-    - 'type' : 'highschool' or 'structure'
-    - 'object_id' : highschool or structure id
-    """
-
-    response = {'msg': '', 'data': []}
-
-    object_type = request.GET.get("type")
-    object_id = request.GET.get("object_id")
-
-    if object_type == 'structure':
-        filters = {'structures': object_id, 'active': True}
-    elif object_type == 'highschool':
-        filters = {'highschool': object_id, 'active': True}
-    else:
-        response['msg'] = gettext("Error : invalid parameter 'object_type' value")
-        return JsonResponse(response, safe=False)
-
-    if not object_id:
-        response['msg'] = gettext("Error : a valid structure or high school must be selected")
-        return JsonResponse(response, safe=False)
-
-    try:
-        trainings = (
-            Training.objects.prefetch_related('training_subdomains')
-            .filter(**filters)
-            .order_by('label')
-        )
-    except FieldError:
-        # Not implemented yet
-        trainings = Training.objects.none()
-
-    for training in trainings:
-        training_data = {
-            'id': training.id,
-            'label': training.label,
-            'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
-        }
-
-        response['data'].append(training_data.copy())
 
     return JsonResponse(response, safe=False)
 
@@ -666,34 +524,6 @@ def slots(request):
 
 
 @is_ajax_request
-def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
-    response = {'msg': '', 'data': []}
-
-    # TODO: this tests are not useful should never happen !!!!
-    if not structure_id:
-        response['msg'] = gettext("Error : a valid structure must be selected")
-    if not training_id:
-        response['msg'] = gettext("Error : a valid training must be selected")
-
-    courses = (
-        Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, structure__id=structure_id, )
-        .order_by('label')
-    )
-
-    for course in courses:
-        course_data = {
-            'key': course.id,
-            'label': course.label,
-            'url': course.url,
-            'slots': Slot.objects.filter(course__training__id=training_id).count(),
-        }
-        response['data'].append(course_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
@@ -709,112 +539,6 @@ def ajax_get_buildings(request, campus_id=None):
             'label': building.label,
         }
         response['data'].append(buildings_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_get_course_speakers(request, course_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not course_id:
-        response['msg'] = gettext("Error : a valid course must be selected")
-    else:
-        speakers = Course.objects.get(id=course_id).speakers.all().order_by('last_name')
-
-        for speaker in speakers:
-            speakers_data = {
-                'id': speaker.id,
-                'first_name': speaker.first_name,
-                'last_name': speaker.last_name.upper(),
-            }
-            response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_get_visit_speakers(request, visit_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not visit_id:
-        response['msg'] = gettext("Error : a valid visit must be selected")
-    else:
-        speakers = Visit.objects.get(id=visit_id).speakers.all().order_by('last_name')
-
-        for speaker in speakers:
-            speakers_data = {
-                'id': speaker.id,
-                'first_name': speaker.first_name,
-                'last_name': speaker.last_name.upper(),
-            }
-            response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_get_event_speakers(request, event_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not event_id:
-        response['msg'] = gettext("Error : a valid event must be selected")
-    else:
-        speakers = OffOfferEvent.objects.get(id=event_id).speakers.all().order_by('last_name')
-
-        for speaker in speakers:
-            speakers_data = {
-                'id': speaker.id,
-                'first_name': speaker.first_name,
-                'last_name': speaker.last_name.upper(),
-            }
-            response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_delete_course(request):
-    response = {'msg': '', 'error': ''}
-    course_id = request.GET.get('course_id')
-
-    if course_id is None:
-        response['error'] = gettext("Error : a valid course must be selected")
-        return JsonResponse(response, safe=False)
-
-    try:
-        course = Course.objects.get(pk=course_id)
-    except Course.DoesNotExist:
-        response['error'] = gettext("Error : a valid course must be selected")
-        return JsonResponse(response, safe=False)
-
-    # Check rights
-    if not request.user.has_course_rights(course_id):
-        response['error'] = gettext("Error : you can't delete this course")
-        return JsonResponse(response, safe=False)
-
-    course = Course.objects.get(pk=course_id)
-    if not course.slots.exists():
-        course.delete()
-        response['msg'] = gettext("Course successfully deleted")
-    else:
-        response['error'] = gettext("Error : slots are linked to this course")
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-def ajax_get_agreed_highschools(request):
-    response = {'msg': '', 'data': []}
-    try:
-        response['data'].append(list(HighSchool.agreed.all().order_by('city').values()))
-    except:
-        # Bouhhhh
-        pass
 
     return JsonResponse(response, safe=False)
 
@@ -966,19 +690,6 @@ def ajax_validate_student(request):
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
-
-
-@is_ajax_request
-@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_check_course_publication(request, course_id):
-    from immersionlyceens.apps.core.models import Course
-
-    response = {'data': None, 'msg': ''}
-
-    c = Course.objects.get(id=course_id)
-    response['data'] = {'published': c.published}
-
-    return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
@@ -3667,37 +3378,22 @@ def ajax_set_course_alert(request):
     return JsonResponse(response, safe=False)
 
 
-@is_ajax_request
-@groups_required('ETU', 'LYC', 'VIS')
-def ajax_get_alerts(request):
+class UserCourseAlertList(generics.ListCreateAPIView):
     """
-    Get alerts list
+    User course alerts
     """
-    response = {'data': [], 'msg': ''}
+    serializer_class = UserCourseAlertSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [IsVisitorPermissions|IsHighSchoolStudentPermissions|IsStudentPermissions|CustomDjangoModelPermissions]
 
-    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain').filter(
-        email=request.user.email
-    )
+    def get_queryset(self):
+        user = self.request.user
 
-    for alert in alerts:
-        subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
-        domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
-        slot = Slot.objects.filter(course=alert.course.pk)
-        etab = alert.course.get_etab_or_high_school()
+        queryset = UserCourseAlert.objects\
+            .prefetch_related('course__training__training_subdomains__training_domain')\
+            .filter(email=user.email)
 
-        alert_data = {
-            'id': alert.id,
-            'course': alert.course.label,
-            'training': alert.course.training.label,
-            'subdomains': [subdomain.label for subdomain in subdomains],
-            'domains': [domain.label for domain in domains],
-            'establishments': [etab],
-            'email_sent': alert.email_sent,
-        }
-
-        response['data'].append(alert_data.copy())
-
-    return JsonResponse(response, safe=False)
+        return queryset
 
 
 @is_ajax_request
@@ -3800,32 +3496,6 @@ def ajax_keep_entries(request):
     return JsonResponse(response, safe=False)
 
 
-@is_ajax_request
-@groups_required('REF-LYC')
-def ajax_get_highschool_speakers(request, highschool_id=None):
-    """
-    get highschool speakers
-    """
-    response = {'data': [], 'msg': '', 'error': ''}
-
-    if request.user.highschool and highschool_id and request.user.highschool.id == highschool_id:
-        for speaker in ImmersionUser.objects.filter(groups__name='INTER', highschool=request.user.highschool):
-            has_courses = speaker.courses.exists()
-            has_slots = speaker.slots.exists() # useless ?
-
-            response["data"].append({
-                'id': speaker.id,
-                'last_name': speaker.last_name,
-                'first_name': speaker.first_name,
-                'email': speaker.email,
-                'is_active': _("Yes") if speaker.is_active else _("No"),
-                'has_courses': _("Yes") if has_courses else _("No"),
-                'can_delete': not has_courses
-            })
-
-    return JsonResponse(response, safe=False)
-
-
 @login_required
 @is_post_request
 @groups_required('INTER')
@@ -3881,6 +3551,7 @@ class EstablishmentList(generics.ListAPIView):
     """
     serializer_class = EstablishmentSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['active', ]
 
     def get_queryset(self):
         queryset = Establishment.activated.order_by('label')
@@ -3924,28 +3595,29 @@ class StructureList(generics.ListCreateAPIView):
 class TrainingList(generics.ListCreateAPIView):
     """
     Training list / creation
+    Returns only active trainings
     """
-    queryset = Training.objects.all()
+    # queryset = Training.objects.all()
     serializer_class = TrainingSerializer
-    permission_classes = [CustomDjangoModelPermissions]
+    permission_classes = [
+        IsRefLycPermissions|IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|
+        IsStructureManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions
+    ]
+    filterset_fields = ['structures', 'highschool', ]
+
     # Auth : default (see settings/base.py)
 
-    """
-    def create(self, request, *args, **kwargs):
-        content = None
-        structures = request.data.get("structures")
-        highschool = request.data.get("highschool")
+    def get_queryset(self):
+        user = self.request.user
+        trainings_queryset = Training.objects.filter(active=True)
 
-        if not structures and not highschool:
-            content = {'error': gettext("Please provide a structure or a high school")}
-        elif structures and highschool:
-            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
+        if user.is_high_school_manager():
+            return trainings_queryset.filter(highschool=user.highschool)
+        elif user.is_establishment_manager():
+            return trainings_queryset.filter(structures__establishment=user.establishment)
 
-        if content:
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        return trainings_queryset
 
-        return super().create(request, *args, **kwargs)
-    """
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
@@ -4007,10 +3679,35 @@ class SpeakerList(generics.ListCreateAPIView):
     Speakers (only) list / creation
     """
     model = ImmersionUser
-    queryset = ImmersionUser.objects.filter(groups__name='INTER')
     serializer_class = SpeakerSerializer
-    permission_classes = [CustomDjangoModelPermissions]
+    permission_classes = [SpeakersReadOnlyPermissions|CustomDjangoModelPermissions]
+    filterset_fields = ['highschool', ]
     # Auth : default (see settings/base.py)
+
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        super().__init__(*args,**kwargs)
+
+    def get_queryset(self):
+        self.user = self.request.user
+
+        course_id = self.kwargs.get("course_id")
+        visit_id = self.kwargs.get("visit_id")
+        event_id = self.kwargs.get("event_id")
+
+        if course_id:
+            return Course.objects.get(id=course_id).speakers.all()
+        if visit_id:
+            return Visit.objects.get(id=visit_id).speakers.all()
+        if event_id:
+            return OffOfferEvent.objects.get(id=event_id).speakers.all()
+
+        filters = {'groups__name': 'INTER'}
+
+        if self.user.is_high_school_manager():
+            filters["highschool"] = self.user.highschool
+
+        return ImmersionUser.objects.prefetch_related("groups").filter(**filters)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
@@ -4027,12 +3724,27 @@ class SpeakerList(generics.ListCreateAPIView):
 class HighSchoolList(generics.ListCreateAPIView):
     """
     High schools list / creation
+    Unauthenticated GET is granted only when requesting high schools with valid agreements
+    Other users need authentication or Django permissions (can_* ...)
     """
     model = HighSchool
-    queryset = HighSchool.objects.all()
     serializer_class = HighSchoolSerializer
-    permission_classes = [CustomDjangoModelPermissions]
-    # Auth : default (see settings/base.py)
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [HighSchoolReadOnlyPermissions|CustomDjangoModelPermissions]
+    filterset_fields = ['postbac_immersion', 'signed_charter']
+
+    def __init__(self, *args, **kwargs):
+        self.agreed = None
+        super().__init__(*args, **kwargs)
+
+    def get_queryset(self):
+        if self.request.GET.get("agreed") is not None:
+            self.agreed = self.request.GET.get("agreed", False) in ('true', 'True')
+
+        if self.agreed:
+            return HighSchool.agreed.all()
+
+        return HighSchool.objects.all()
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
@@ -4053,12 +3765,22 @@ class CourseList(generics.ListCreateAPIView):
     model = Course
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    permission_classes = [CustomDjangoModelPermissions]
-    filterset_fields = ['training', 'structure', 'highschool', 'published']
+    permission_classes = [
+        IsMasterEstablishmentManagerPermissions | IsEstablishmentManagerPermissions | IsStructureManagerPermissions |
+        IsTecPermissions | IsRefLycPermissions | IsSpeakerPermissions | CustomDjangoModelPermissions
+    ]
+    filterset_fields = [
+        'training', 'structure', 'highschool', 'published', 'training__structures', 'training__highschool'
+    ]
 
     def __init__(self, *args, **kwargs):
         self.message = {}
         self.status = ""
+        self.user = None
+        self.user_courses = False
+        self.user_filter = False
+        self.filters = {}
+
         super().__init__(*args, **kwargs)
 
     def get_or_create_user(self, request, data):
@@ -4153,14 +3875,35 @@ class CourseList(generics.ListCreateAPIView):
         return data
 
     def get_queryset(self):
-        queryset = Course.objects.all().order_by('label')
-        user = self.request.user
+        self.user = self.request.user
+        self.user_courses = self.request.GET.get("user_courses", False) in ('true', 'True')
+        self.user_filter = False
+        self.filters = {}
 
-        if not user.is_superuser:
-            if user.is_structure_manager():
-                return queryset.filter(structure__in=user.structures.all()).order_by('label')
-            if user.is_establishment_manager() and user.establishment:
-                return Course.objects.filter(structure__in=user.establishment.structures.all()).order_by('label')
+        force_user_filter = [
+            self.user_courses,
+            self.user.is_speaker() and not any([
+                self.user.is_master_establishment_manager(),
+                self.user.is_establishment_manager(),
+                self.user.is_structure_manager(),
+                self.user.is_operator()
+            ])
+        ]
+
+        if any(force_user_filter):
+            self.user_filter = True
+            self.filters["speakers__in"] = self.user.linked_users()
+
+        queryset = Course.objects.prefetch_related(
+            'training__structures', 'training__highschool', 'training__training_subdomains', 'highschool',
+            'structure', 'speakers'
+        ).filter(**self.filters).order_by('label')
+
+        if not self.user.is_superuser:
+            if self.user.is_structure_manager():
+                return queryset.filter(structure__in=self.user.structures.all()).order_by('label')
+            if self.user.is_establishment_manager() and self.user.establishment:
+                return Course.objects.filter(structure__in=self.user.establishment.structures.all()).order_by('label')
 
         return queryset
 
@@ -4185,7 +3928,95 @@ class CourseList(generics.ListCreateAPIView):
 
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
+            return super().get_serializer(
+                instance=instance,
+                many=many,
+                partial=partial,
+                context={
+                    'user_courses': self.user_filter,
+                    'request': self.request
+                }
+            )
+
+
+class CourseDetail(generics.RetrieveDestroyAPIView):
+    """
+    Course detail / destroy
+    """
+    serializer_class = CourseSerializer
+    permission_classes = [
+        IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|IsStructureManagerPermissions|
+        IsTecPermissions|IsRefLycPermissions|IsSpeakerPermissions|CustomDjangoModelPermissions
+    ]
+
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.user_courses = False
+        self.user_filter = False
+        self.filters = {}
+
+        super().__init__(*args, **kwargs)
+
+    def get_queryset(self):
+        return Course.objects.prefetch_related('training__structures', 'training__highschool', 'training__training_subdomains', 'highschool',
+            'structure', 'speakers').all()
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        """
+        Look for speaker emails and try to create/add them to serializer data
+        """
+        self.user = self.request.user
+        self.user_courses = self.request.GET.get("user_courses", False) in ('true', 'True')
+        self.user_filter = False
+        self.filters = {}
+
+        force_user_filter = [
+            self.user_courses,
+            self.user.is_speaker() and not any([
+                self.user.is_master_establishment_manager(),
+                self.user.is_establishment_manager(),
+                self.user.is_structure_manager(),
+                self.user.is_operator()
+            ])
+        ]
+
+        if any(force_user_filter):
+            self.user_filter = True
+            self.filters["speakers__in"] = self.user.linked_users()
+
+        return super().get_serializer(
+            instance=instance,
+            many=many,
+            partial=partial,
+            context={
+                'user_courses': self.user_filter,
+                'request': self.request
+            }
+        )
+
+    def delete(self, request, *args, **kwargs):
+        course_id = kwargs.get("pk")
+
+        try:
+            course = Course.objects.get(pk=course_id)
+        except Course.DoesNotExist:
+            return JsonResponse({"error": _("A valid course must be selected")}, status=status.HTTP_404_NOT_FOUND)
+
+        if not request.user.has_course_rights(course_id):
+            return JsonResponse({"error": _("You are not allowed to delete this course")}, status=status.HTTP_403_FORBIDDEN)
+
+        if course.slots.exists():
+            return JsonResponse(
+                {"error": _("Slots are linked to this course, it can't be deleted")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse(
+            {"msg": _("Course successfully deleted")},
+            status=status.HTTP_200_OK
+        )
 
 
 class SlotList(generics.ListCreateAPIView):
@@ -4252,33 +4083,12 @@ class GetEstablishment(generics.RetrieveAPIView):
     lookup_field = "id"
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
-class TrainingHighSchoolList(generics.ListAPIView):
-    """Training highschool list"""
-    serializer_class = TrainingHighSchoolSerializer
-    filterset_fields = ("highschool",)
-
-    def get_queryset(self):
-        """
-        Return user highschool is you are a REF-LYC,
-        :return:
-        """
-        user = self.request.user
-
-        if user.is_authenticated:
-            if user.is_master_establishment_manager() or user.is_operator():
-                if "pk" in self.kwargs:
-                    return Training.objects.filter(highschool_id=self.kwargs.get("pk"))
-                else:
-                    return Training.objects.filter(highschool__isnull=False)
-            else:
-                return Training.objects.filter(highschool=self.request.user.highschool)
-
-
 @method_decorator(groups_required('REF-LYC'), name="dispatch")
-class TrainingView(generics.DestroyAPIView):
-    """Training hs delete class"""
-    serializer_class = TrainingHighSchoolSerializer
+class TrainingDetail(generics.RetrieveDestroyAPIView):
+    """
+    Training detail / destroy
+    """
+    serializer_class = TrainingSerializer
 
     def delete(self, request, *args, **kwargs):
         if Course.objects.filter(training_id=kwargs.get("pk")).exists():
@@ -4293,23 +4103,6 @@ class TrainingView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return Training.objects.filter(highschool=self.request.user.highschool)
-
-
-@is_ajax_request
-def ajax_get_immersions_proposal_establishments(request):
-    response = {'msg': '', 'data': []}
-    try:
-        establishments = Establishment.activated.all().values('city', 'label', 'email')
-        highschools = HighSchool.immersions_proposal\
-            .filter(signed_charter=True)\
-            .values('city', 'label', 'email')
-        results = list(establishments.union(highschools).order_by('city'))
-        response['data'].append(results)
-    except:
-        # Bouhhhh
-        pass
-
-    return JsonResponse(response, safe=False)
 
 
 class VisitList(generics.ListAPIView):

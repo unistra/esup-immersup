@@ -1427,11 +1427,9 @@ class Course(models.Model):
     """
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-
     training = models.ForeignKey(
         Training, verbose_name=_("Training"), null=False, blank=False, on_delete=models.CASCADE, related_name="courses",
     )
-
     structure = models.ForeignKey(
         Structure,
         verbose_name=_("Structure"),
@@ -1440,7 +1438,6 @@ class Course(models.Model):
         on_delete=models.CASCADE,
         related_name="courses",
     )
-
     highschool = models.ForeignKey(
         HighSchool,
         verbose_name=_("High school"),
@@ -1451,19 +1448,14 @@ class Course(models.Model):
     )
 
     published = models.BooleanField(_("Published"), default=True)
-
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses', blank=True)
-
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
-
 
     def __str__(self):
         return self.label
 
-
     def get_structures_queryset(self):
         return self.training.structures.all()
-
 
     def free_seats(self, speakers=None):
         """
@@ -1482,7 +1474,6 @@ class Course(models.Model):
 
         return d['total_seats']
 
-
     def published_slots_count(self, speakers=None):
         """
         :speakers: optional : only consider slots attached to 'speakers'
@@ -1498,6 +1489,17 @@ class Course(models.Model):
 
         return self.slots.filter(**filters).count()
 
+    def is_deletable(self):
+        """
+        Return True if the course can be deleted
+        """
+        return not self.slots.exists()
+
+    def managed_by(self):
+        if self.structure:
+            return f"{self.structure.establishment.code} - {self.structure.code}"
+        elif self.highschool:
+            return f"{self.highschool.city} - {self.highschool.label}"
 
     def slots_count(self, speakers=None):
         """
@@ -1511,7 +1513,6 @@ class Course(models.Model):
             return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
-
 
     def registrations_count(self, speakers=None):
         """
@@ -1528,7 +1529,6 @@ class Course(models.Model):
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
-
 
     def get_alerts_count(self):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
@@ -2559,7 +2559,7 @@ class UserCourseAlert(models.Model):
     email = models.EmailField(_('Recipient'), blank=False, null=False)
     email_sent = models.BooleanField(_("Alert sent status"), default=False, blank=False, null=False)
     alert_date = models.DateField(_("Date"), auto_now_add=True)
-    course = course = models.ForeignKey(
+    course = models.ForeignKey(
         Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="alerts",
     )
 
