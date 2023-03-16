@@ -19,15 +19,6 @@ class HighSchoolStudentRecord(models.Model):
 
     # Use gettext on the next one because strings HAS to be translated here
     # in order to avoid sending lazy translation objects to JSON in charts API
-    """
-    LEVELS = [
-        (1, gettext('Pupil in year 11 / 10th grade student')),
-        (2, gettext('Pupil in year 12 / 11th grade student')),
-        (3, gettext('Pupil in year 13 / 12th grade student')),
-        (4, gettext('Above A Level / High-School Degree'))
-    ]
-    """
-
     BACHELOR_TYPES = [
         (1, _('General')),
         (2, _('Technological')),
@@ -38,16 +29,6 @@ class HighSchoolStudentRecord(models.Model):
     POST_BACHELOR_ORIGIN_TYPES.append(
         (4, _('DAEU'))
     )
-
-    """
-    POST_BACHELOR_LEVELS = [
-        (1, _('BTS1')),
-        (2, _('BTS2')),
-        (3, _('BTSA1')),
-        (4, _('BTSA2')),
-        (5, _('Other')),
-    ]
-    """
 
     VALIDATION_STATUS = [
         (1, _('To validate')),

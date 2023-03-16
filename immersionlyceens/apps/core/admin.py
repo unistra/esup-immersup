@@ -136,6 +136,9 @@ class HighschoolWithImmersionsListFilter(admin.SimpleListFilter):
 
 
 class HighschoolListFilter(admin.SimpleListFilter):
+    """
+    Custom filter on ref-lyc highschool or student record highschool
+    """
     title = _('High schools')
     parameter_name = 'highschool'
     template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
@@ -146,7 +149,10 @@ class HighschoolListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(highschool=self.value())
+            return queryset.filter(
+                Q(highschool=self.value())
+                |Q(high_school_student_record__highschool=self.value())
+            )
         else:
             return queryset
 
