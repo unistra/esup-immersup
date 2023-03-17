@@ -16,6 +16,7 @@ from rest_framework.exceptions import ValidationError
 
 from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
+from ...libs.utils import get_general_setting
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     Building, Calendar, Campus, Course, CourseType, Establishment, HighSchool,
@@ -145,7 +146,7 @@ class SlotForm(forms.ModelForm):
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels']:
+            'allowed_post_bachelor_levels', 'registration_limit_delay', 'cancellation_limit_delay']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # Disable autocomplete for date fields
@@ -221,6 +222,17 @@ class SlotForm(forms.ModelForm):
                 'autocomplete': 'off'
             }
         )
+
+        # registration and cancellation limit delays
+        try:
+            self.fields["registration_limit_delay"].initial = get_general_setting("SLOT_REGISTRATION_LIMIT")
+        except (ValueError, NameError):
+            self.fields["registration_limit_delay"].initial = 0
+
+        try:
+            self.fields["cancellation_limit_delay"].initial = get_general_setting("SLOT_CANCELLATION_LIMIT")
+        except (ValueError, NameError):
+            self.fields["cancellation_limit_delay"].initial = 0
 
     def clean_restrictions(self, cleaned_data):
         establishments_restrictions = cleaned_data.get('establishments_restrictions')
@@ -365,7 +377,8 @@ class SlotForm(forms.ModelForm):
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'speakers', 'repeat')
+            'allowed_post_bachelor_levels', 'speakers', 'repeat', 'registration_limit_delay',
+            'cancellation_limit_delay')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),

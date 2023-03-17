@@ -1462,6 +1462,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label', 'active')
     filter_horizontal = ('available_vars',)
+    ordering = ('code', )
     summernote_fields = ('body',)
 
     def has_module_permission(self, request):
