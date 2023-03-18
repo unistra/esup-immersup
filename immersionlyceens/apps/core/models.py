@@ -14,6 +14,8 @@ import logging
 import os
 import re
 import uuid
+import pytz
+
 from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
@@ -2496,11 +2498,18 @@ class Slot(models.Model):
             self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
             self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
 
+            if timezone.is_naive(self.registration_limit_date):
+                self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+
+            if timezone.is_naive(self.cancellation_limit_date):
+                self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+
             if self.registration_limit_delay > 0:
                 self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
 
             if self.cancellation_limit_delay > 0:
                 self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
+
         else:
             self.registration_limit_date = None
             self.cancellation_limit_date = None

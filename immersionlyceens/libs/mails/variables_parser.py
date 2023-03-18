@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
@@ -58,6 +58,7 @@ class ParserFaker:
     @classmethod
     def get_context(cls, request, user_is, slot_type, local_account, remote):
         today: str = datetime.today().strftime("%d/%m/%Y")
+        cancellation_date: str = date_format(datetime.today() - timedelta(hours=24), "j F - G\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
@@ -157,7 +158,7 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", today),
-                "limite_annulation": cls.add_tooltip("creneau.limite_annulation", today - datetime.timedelta(hours=24)),
+                "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
                 "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
                 "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),

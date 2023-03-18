@@ -748,6 +748,8 @@ class APITestCase(TestCase):
             "room": "salle 113",
             "levels_restrictions": True,
             "allowed_highschool_levels": [1],
+            "registration_limit_delay": 24,
+            "cancellation_limit_delay": 48,
             "speakers": [speaker.pk]
         }
 
@@ -763,6 +765,7 @@ class APITestCase(TestCase):
         slot = Slot.objects.get(date=date, course=self.course.pk)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         self.assertEqual(result, {
             "id":slot.pk,
             "room":"salle 113",
@@ -787,7 +790,11 @@ class APITestCase(TestCase):
             "allowed_highschools":[],
             "allowed_highschool_levels":[1],
             "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[]
+            "allowed_post_bachelor_levels":[],
+            "registration_limit_delay":24,
+            "cancellation_limit_delay":48,
+            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+02:00",
+            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+02:00",
         })
 
         # Published course - test missing fields
