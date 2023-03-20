@@ -1426,6 +1426,24 @@ class Calendar(models.Model):
         ordering = ['label', ]
 
 
+class Period(models.Model):
+    """
+    Period class. Replaces the semesters
+    """
+    label = models.CharField(_("Label"), max_length=256, unique=True, null=False, blank=False)
+    registration_start_date = models.DateField(_("Registrations start date"), null=False, blank=False)
+    immersion_start_date = models.DateField(_("Immersions start date"), null=False, blank=False)
+    immersion_end_date = models.DateField(_("Immersions end date"), null=False, blank=False)
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions per student'), null=False, blank=False, default=1
+    )
+
+    class Meta:
+        verbose_name = _('Period')
+        verbose_name_plural = _('Periods')
+        ordering = ['registration_start_date', ]
+
+
 class Course(models.Model):
     """
     Course class

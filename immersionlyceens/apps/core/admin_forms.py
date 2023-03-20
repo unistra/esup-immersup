@@ -27,7 +27,7 @@ from .models import (
     CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
-    MailTemplate, MailTemplateVars, OffOfferEventType, PostBachelorLevel,
+    MailTemplate, MailTemplateVars, OffOfferEventType, Period, PostBachelorLevel,
     PublicDocument, PublicType, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -799,6 +799,72 @@ class CalendarForm(forms.ModelForm):
 
     class Meta:
         model = Calendar
+        fields = '__all__'
+
+
+class PeriodForm(forms.ModelForm):
+    """
+    Period form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        start_date = cleaned_data.get('immersion_start_date')
+        end_date = cleaned_data.get('immersion_end_date')
+        registration_start_date = cleaned_data.get('registration_start_date')
+        valid_user = False
+
+        # Test user group
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
+        except AttributeError:
+            pass
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        # existence if an active university year
+        univ_years = UniversityYear.objects.filter(active=True)
+        if not univ_years.exists():
+            raise forms.ValidationError(_("You have to set a university year"))
+
+        univ_year = univ_years.first()
+
+        # Date checks
+        period_dates = [
+            start_date, end_date, registration_start_date,
+        ]
+
+        if not all(period_dates):
+            raise forms.ValidationError(_("A period requires all dates to be filled in"))
+
+        if not univ_year.start_date < start_date < univ_year.end_date:
+            raise forms.ValidationError(_("Period start date must be between university year dates"))
+
+        if not univ_year.start_date < end_date < univ_year.end_date:
+            raise forms.ValidationError(_("Period end date must be between university year dates"))
+
+        if not univ_year.start_date < registration_start_date < univ_year.end_date:
+            raise forms.ValidationError(
+                _("Period registration start date must be between university year dates")
+            )
+
+        # start < end
+        if start_date and end_date and start_date >= end_date:
+            raise forms.ValidationError(_("Start date is greater than end date"))
+
+        # Dates overlap
+
+
+        return cleaned_data
+
+    class Meta:
+        model = Period
         fields = '__all__'
 
 
