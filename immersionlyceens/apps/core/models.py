@@ -685,6 +685,9 @@ class ImmersionUser(AbstractUser):
         record.save()
 
     def can_register_slot(self, slot=None):
+        """
+        Slot registration check : validate only User vs Slot restrictions here, NOT slot registration delay
+        """
         errors = []
 
         # Returns True if no restrictions are found

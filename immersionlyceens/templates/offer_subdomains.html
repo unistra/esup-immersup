@@ -187,29 +187,30 @@
                             {% trans "Slot open to all" %}
                             {% endif %}
                               <td>
-                            {% if slot.cancelled %}
-                                <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                              {% if slot.can_register %}
-                                <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
-                                <div id="feedback_{{slot.pk}}" ></div>
-                              {% endif %}
-                            {% elif slot.already_registered %}
-                                <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                            {% elif slot.opening_soon %}
-                                <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                            {% elif slot.available_seats > 0 %}
-                                <span class="badge badge-primary badge-pill">
-                                {% trans 'Available places' %} : {{ slot.available_seats }}
-                                </span><br>
-                              {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+                                {% if slot.cancelled %}
+                                    <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                   {% if slot.can_register %}
-                                <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
-                                <div id="feedback_{{slot.pk}}" ></div>
+                                    <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                    <div id="feedback_{{slot.pk}}" ></div>
                                   {% endif %}
-                              {% endif %}
-                            {% else %}
-                                <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
-                            {% endif %}
+                                {% elif slot.already_registered %}
+                                    <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                                {% elif slot.opening_soon %}
+                                    <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
+                                {% elif slot.available_seats > 0 %}
+                                    <span class="badge badge-primary badge-pill">
+                                    {% trans 'Available places' %} : {{ slot.available_seats }}
+                                    </span><br>
+                                  {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+                                    {% if slot.can_register %}
+                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
+                                      <div id="feedback_{{slot.pk}}" ></div>
+                                    {% endif %}
+                                    <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span>
+                                  {% endif %}
+                                {% else %}
+                                    <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                {% endif %}
                               </td>
                             </tr>
                             <tr>

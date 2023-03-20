@@ -252,6 +252,7 @@ def offer_subdomain(request, subdomain_id):
         pass
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    now = timezone.now()
     today = datetime.datetime.today().date()
     reg_start_date = reg_end_date = datetime.date(1, 1, 1)
 
@@ -306,6 +307,9 @@ def offer_subdomain(request, subdomain_id):
                     slot.can_register = False
                     slot.cancelled = False
                     slot.opening_soon = False
+                    slot.passed_registration_limit_date = slot.registration_limit_date < timezone.now()
+                    slot.passed_cancellation_limit_date = slot.cancellation_limit_date < timezone.now()
+
                     # Already registered / cancelled ?
                     for immersion in student.immersions.all():
                         if immersion.slot == slot:
@@ -319,18 +323,19 @@ def offer_subdomain(request, subdomain_id):
                         if slot.available_seats() > 0 and can_register:
                             # TODO: should be rewritten used before with remaining_seats annual or by semester!
                             if calendar.calendar_mode == 'YEAR':
-                                if reg_start_date <= today <= cal_end_date:
+                                if reg_start_date <= today <= cal_end_date and slot.registration_limit_date >= now:
                                     slot.can_register = True
                                 elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
                                     slot.opening_soon = True
                             # Check if we could register with reg_date
                             elif semester == 1:
-                                if reg_start_date <= today and slot.date < reg_semester2_start_date:
+                                if reg_start_date <= today and slot.date < reg_semester2_start_date\
+                                        and slot.registration_limit_date >= now:
                                     slot.can_register = True
                                 elif slot.date > reg_semester2_start_date or today < reg_start_date:
                                     slot.opening_soon = True
                             elif semester == 2:
-                                if today >= reg_start_date:
+                                if reg_start_date <= today and slot.registration_limit_date >= now:
                                     slot.can_register = True
                                 elif today < reg_start_date:
                                     slot.opening_soon = True

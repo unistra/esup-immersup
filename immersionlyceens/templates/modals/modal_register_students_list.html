@@ -7,6 +7,9 @@
   <span id="id_restrictions">
     {% trans "Selected student doesn't match the slot restrictions, would you like to register anyway ?" %}
   </span>
+  <span id="id_passed_registration_date">
+    {% trans "The registration deadline for this slot has passed, would you like to register anyway ?" %}
+  </span>
 </div>
 <div class="modal fade" id="modal_register_students_list" tabindex="-1" role="dialog" aria-labelledby="modal_register_students_list_title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
@@ -193,10 +196,17 @@ function register_student(student_id, slot_id, force=false) {
               if(json['reason'] === "registrations") {
                   $('#id_registrations').show()
                   $('#id_restrictions').hide()
+                  $('#id_passed_registration_date').hide()
               }
               else if(json['reason'] === "restrictions") {
                   $('#id_registrations').hide()
+                  $('#id_passed_registration_date').hide()
                   $('#id_restrictions').show()
+              }
+              else if(json['reason'] === "passed_registration_date") {
+                  $('#id_registrations').hide()
+                  $('#id_restrictions').hide()
+                  $('#id_passed_registration_date').show()
               }
 
               let data = {
