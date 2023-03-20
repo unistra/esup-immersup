@@ -1,7 +1,10 @@
 from decimal import Decimal
 
 from django.test import TestCase
+
 from immersionlyceens.templatetags import immersionlyceens_tags as tags
+
+from ..models import AccompanyingDocument
 
 
 class TemplatetagsTestCase(TestCase):
@@ -15,3 +18,9 @@ class TemplatetagsTestCase(TestCase):
 
         self.assertEqual(
             tags.fix_lang_code('novlang'), 'novlang')
+
+    def test_active_accompanying_docs(self):
+        self.assertEqual(
+            len(tags.active_accompanying_docs()),
+            0
+        )

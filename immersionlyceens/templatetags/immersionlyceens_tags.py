@@ -11,11 +11,14 @@ from django.utils.encoding import force_str
 from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+
 from immersionlyceens.libs.utils import (
     get_custom_theme_files, get_general_setting, get_information_text,
 )
 
-from ..apps.core.models import GeneralSettings, HighSchool, ImmersionUser
+from ..apps.core.models import (
+    AccompanyingDocument, GeneralSettings, HighSchool, ImmersionUser,
+)
 
 register = template.Library()
 
@@ -213,3 +216,8 @@ def get_custom_images_files():
 def dictsortlower(value, sortkey):
     keys = sortkey.split(".")
     return sorted(value, key=lambda x:reduce(lambda y, z:getattr(y, z), [x] + keys).lower())
+
+
+@register.simple_tag
+def active_accompanying_docs():
+    return AccompanyingDocument.objects.filter(active=True)
