@@ -28,6 +28,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
@@ -776,6 +777,10 @@ def ajax_cancel_registration(request):
                 response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
                 return JsonResponse(response, safe=False)
 
+            if immersion.slot.cancellation_limit_date < timezone.now():
+                response = {'error': True, 'msg': _("Slot cancellation deadline has passed")}
+                return JsonResponse(response, safe=False)
+
             slot_establishment = immersion.slot.get_establishment()
             slot_structure = immersion.slot.get_structure()
             slot_highschool = immersion.slot.get_highschool()
@@ -973,7 +978,8 @@ def ajax_get_immersions(request, user_id=None):
             'info': slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
-            'cancellable': today < slot.date,
+            'cancellable': timezone.now() <= slot.cancellation_limit_date,
+            'cancellation_limit_date': date_format(slot.cancellation_limit_date, "j F - G\hi"),
             'cancellation_type': '',
             'slot_id': slot.id,
             'free_seats': 0,
@@ -1267,7 +1273,6 @@ def ajax_slot_registration(request):
     ]
 
     # Check registration rights depending on the (not student) authenticated user
-
     if not slot.published and not any(unpublished_slot_update_conditions):
         response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
         return JsonResponse(response, safe=False)
@@ -1298,21 +1303,40 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': _("Cannot register slot due to visitor record state")}
             return JsonResponse(response, safe=False)
 
-    can_register_slot, reasons = student.can_register_slot(slot)
-
-    if not can_register_slot:
-        if can_force_reg and not force == 'true':
-            return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'restrictions'}, safe=False)
-        elif can_force_reg and force == 'true':
-            can_register = True
-        else:
-            response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
-            return JsonResponse(response, safe=False)
-
-    # Check if slot is not past
+    # Check if slot date is not passed
     if slot.date < today or (slot.date == today and today_time > slot.start_time):
-        response = {'error': True, 'msg': _("Register to past slot is not available")}
+        response = {'error': True, 'msg': _("Register to past slot is not possible")}
         return JsonResponse(response, safe=False)
+
+    # Slot restrictions validation
+    can_register_slot, reasons = student.can_register_slot(slot)
+    passed_registration_date = timezone.now() > slot.registration_limit_date
+
+    if not can_register_slot or passed_registration_date:
+        if can_force_reg:
+            if not force == 'true':
+                if not can_register_slot:
+                    return JsonResponse({
+                        'error': True,
+                        'msg': 'force_update',
+                        'reason': 'restrictions'
+                    }, safe=False)
+
+                if passed_registration_date:
+                    return JsonResponse({
+                        'error': True,
+                        'msg': 'force_update',
+                        'reason': 'passed_registration_date'
+                    }, safe=False)
+            else:
+                can_register = True
+        else:
+            if not can_register_slot:
+                response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
+                return JsonResponse(response, safe=False)
+            if passed_registration_date:
+                response = {'error': True, 'msg': _("Cannot register slot due to passed registration date")}
+                return JsonResponse(response, safe=False)
 
     # Check free seat in slot
     if slot.available_seats() == 0:
@@ -1339,14 +1363,19 @@ def ajax_slot_registration(request):
                     can_register = True
                 # alert user he can force registering
                 elif can_force_reg and not force == 'true':
-                    return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
+                    return JsonResponse({
+                        'error': True,
+                        'msg': 'force_update',
+                        'reason': 'registrations'
+                    }, safe=False)
                 # force registering
                 elif force == 'true':
                     can_register = True
                     if slot.is_course():
                         student.set_increment_registrations_(type='annual')
                 # student request & no more remaining registration count
-                elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['annually'] <= 0:
+                elif (user.is_high_school_student() or user.is_student() or user.is_visitor())\
+                        and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _(
@@ -1355,7 +1384,8 @@ def ajax_slot_registration(request):
                     }
                     return JsonResponse(response, safe=False)
                 # ref str request & no more remaining registration count for student
-                elif (user.is_structure_manager() or user.is_high_school_manager()) and remaining_regs_count['annually'] <= 0:
+                elif (user.is_structure_manager() or user.is_high_school_manager())\
+                        and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _("This student has no more remaining slots to register to"),
@@ -1372,14 +1402,19 @@ def ajax_slot_registration(request):
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
-                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
+                        return JsonResponse({
+                            'error': True,
+                            'msg': 'force_update',
+                            'reason': 'registrations'
+                        }, safe=False)
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
                         if slot.is_course():
                             student.set_increment_registrations_(type='semester1')
                     # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['semester1'] <= 0:
+                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor())\
+                            and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1388,7 +1423,8 @@ def ajax_slot_registration(request):
                         }
                         return JsonResponse(response, safe=False)
                     # ref str request & no more remaining registration count for student
-                    elif (user.is_structure_manager() or user.is_high_school_manager()) and remaining_regs_count['semester1'] <= 0:
+                    elif (user.is_structure_manager() or user.is_high_school_manager())\
+                            and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1403,14 +1439,19 @@ def ajax_slot_registration(request):
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
-                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
+                        return JsonResponse({
+                            'error': True,
+                            'msg': 'force_update',
+                            'reason': 'registrations'
+                        }, safe=False)
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
                         if slot.is_course():
                             student.set_increment_registrations_(type='semester2')
                     # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['semester2'] <= 0:
+                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor())\
+                            and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1419,7 +1460,8 @@ def ajax_slot_registration(request):
                         }
                         return JsonResponse(response, safe=False)
                     # ref str request & no more remaining registration count for student
-                    elif (user.is_structure_manager() or user.is_high_school_manager()) and remaining_regs_count['semester2'] <= 0:
+                    elif (user.is_structure_manager() or user.is_high_school_manager())\
+                            and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),

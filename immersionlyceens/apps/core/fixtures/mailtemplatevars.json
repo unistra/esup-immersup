@@ -454,5 +454,13 @@
         "code": "{{ lienAssociationComptes }}",
         "description": "Lien vers la page de validation d'association de comptes intervenants"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 66,
+    "fields": {
+        "code": "{{ creneau.limite_annulation }}",
+        "description": "Date limite d'annulation de participation à un créneau"
+    }
 }
 ]

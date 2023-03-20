@@ -14,6 +14,8 @@ import logging
 import os
 import re
 import uuid
+import pytz
+
 from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
@@ -683,6 +685,9 @@ class ImmersionUser(AbstractUser):
         record.save()
 
     def can_register_slot(self, slot=None):
+        """
+        Slot registration check : validate only User vs Slot restrictions here, NOT slot registration delay
+        """
         errors = []
 
         # Returns True if no restrictions are found
@@ -2309,9 +2314,20 @@ class Slot(models.Model):
         PostBachelorLevel, verbose_name=_("Allowed post bachelor levels"), related_name='+', blank=True
     )
 
+    registration_limit_delay = models.PositiveSmallIntegerField(
+        _('Registration limit delay'), null=True, blank=True, default=0
+    )
+    cancellation_limit_delay = models.PositiveSmallIntegerField(
+        _('Cancellation limit delay'), null=True, blank=True, default=0
+    )
+
+    registration_limit_date = models.DateTimeField(_('Registration limit'), blank=True, null=True)
+    cancellation_limit_date = models.DateTimeField(_('Cancellation limit'), blank=True, null=True)
+
+
     def get_establishment(self):
         """
-        Get the slot establishment depending of the slot type (visit, course, event)
+        Get the slot establishment depending on the slot type (visit, course, event)
         """
         if self.course_id and self.course.structure_id:
             return self.course.structure.establishment
@@ -2324,7 +2340,7 @@ class Slot(models.Model):
 
     def get_structure(self):
         """
-        Get the slot structure depending of the slot type (visit, course, event)
+        Get the slot structure depending on the slot type (visit, course, event)
         """
         if self.course_id and self.course.structure_id:
             return self.course.structure
@@ -2337,7 +2353,7 @@ class Slot(models.Model):
 
     def get_highschool(self):
         """
-        Get the slot high school depending of the slot type (visit, course, event)
+        Get the slot high school depending on the slot type (visit, course, event)
         """
         if self.course_id and self.course.highschool_id:
             return self.course.highschool
@@ -2476,6 +2492,32 @@ class Slot(models.Model):
             return True
         else:
             return False
+
+    def save(self, *args, **kwargs):
+        """
+        Parse registration and cancellation dates based on slot date and delays
+        """
+        if self.date and self.start_time:
+            self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
+            self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
+
+            if timezone.is_naive(self.registration_limit_date):
+                self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+
+            if timezone.is_naive(self.cancellation_limit_date):
+                self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+
+            if self.registration_limit_delay > 0:
+                self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
+
+            if self.cancellation_limit_delay > 0:
+                self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
+
+        else:
+            self.registration_limit_date = None
+            self.cancellation_limit_date = None
+
+        return super().save(*args, **kwargs)
 
 
     class Meta:

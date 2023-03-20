@@ -1,10 +1,12 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
-from django.utils.formats import date_format
+from django.utils import timezone
+from django.utils.formats import date_format, time_format
 from django.utils.translation import pgettext, gettext as _
+
 from requests import Request
 
 from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
@@ -56,6 +58,7 @@ class ParserFaker:
     @classmethod
     def get_context(cls, request, user_is, slot_type, local_account, remote):
         today: str = datetime.today().strftime("%d/%m/%Y")
+        cancellation_date: str = date_format(datetime.today() - timedelta(hours=24), "j F - G\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
@@ -155,6 +158,7 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", today),
+                "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
                 "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
                 "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),
@@ -321,6 +325,9 @@ class Parser:
             highschool = slot.get_highschool()
             registered_students = get_registered_students(slot)
 
+            cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\hi") \
+                if slot.cancellation_limit_date else ""
+
             return {
                 "creneau": {
                     "libelle": slot.get_label(),
@@ -351,6 +358,7 @@ class Parser:
                         'libelle': slot.get_label(),
                     } if slot.visit else {},
                     "date": date_format(slot.date) if slot.date else "",
+                    "limite_annulation": cancellation_limit,
                     "intervenants": ",".join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
                     "heuredebut": slot.start_time.strftime("%-Hh%M") if slot.start_time else "",
                     "heurefin": slot.end_time.strftime("%-Hh%M") if slot.end_time else "",

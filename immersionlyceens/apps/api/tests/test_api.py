@@ -429,6 +429,20 @@ class APITestCase(TestCase):
             n_places=20,
             additional_information="Hello there!"
         )
+        self.passed_registration_date_slot = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today + timedelta(days=1),
+            registration_limit_delay=48,
+            cancellation_limit_delay=48,
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
         self.unpublished_slot = Slot.objects.create(
             course=self.course,
             course_type=self.course_type,
@@ -452,7 +466,7 @@ class APITestCase(TestCase):
             course=self.highschool_course,
             course_type=self.course_type,
             room='room 237',
-            date=self.today,
+            date=self.today + timedelta(days=2),
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -622,7 +636,7 @@ class APITestCase(TestCase):
         response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(len(content['data']), 6)
+        self.assertEqual(len(content['data']), 7)
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.past_slot.id)
         self.assertEqual(slot['published'], self.past_slot.published)
@@ -654,7 +668,7 @@ class APITestCase(TestCase):
         response = client.get(url, data, **self.header)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 6)
+        self.assertEqual(len(content['data']), 7)
 
         # Logged as highschool manager
         client = Client()
@@ -663,7 +677,7 @@ class APITestCase(TestCase):
         response = client.get(url, data, **self.header)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 6)
+        self.assertEqual(len(content['data']), 7)
 
 
     def test_API_get_visits_slots(self):
@@ -748,6 +762,8 @@ class APITestCase(TestCase):
             "room": "salle 113",
             "levels_restrictions": True,
             "allowed_highschool_levels": [1],
+            "registration_limit_delay": 24,
+            "cancellation_limit_delay": 48,
             "speakers": [speaker.pk]
         }
 
@@ -763,6 +779,7 @@ class APITestCase(TestCase):
         slot = Slot.objects.get(date=date, course=self.course.pk)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         self.assertEqual(result, {
             "id":slot.pk,
             "room":"salle 113",
@@ -787,7 +804,11 @@ class APITestCase(TestCase):
             "allowed_highschools":[],
             "allowed_highschool_levels":[1],
             "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[]
+            "allowed_post_bachelor_levels":[],
+            "registration_limit_delay":24,
+            "cancellation_limit_delay":48,
+            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+02:00",
+            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+02:00",
         })
 
         # Published course - test missing fields
@@ -2257,7 +2278,26 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
 
+        # Cancellation deadline has passed
+        passed_test_immersion = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=self.passed_registration_date_slot,
+        )
+
+        data = {
+            'immersion_id': passed_test_immersion.id,
+            'reason_id': self.cancel_type.id
+        }
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertEqual(content['msg'], "Slot cancellation deadline has passed")
+
         # Authenticated user has no rights
+        data = {
+            'immersion_id': self.immersion.id,
+            'reason_id': self.cancel_type.id
+        }
+
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
 
@@ -2741,7 +2781,7 @@ class APITestCase(TestCase):
         data['slot_id'] = self.past_slot.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Register to past slot is not available", content['msg'])
+        self.assertEqual("Register to past slot is not possible", content['msg'])
 
         # Fail with full slot registration
         data['slot_id'] = self.full_slot.id
@@ -2763,6 +2803,12 @@ class APITestCase(TestCase):
                                )
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
+
+        # Fail with passed slot registration limit date
+        data['slot_id'] = self.passed_registration_date_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to passed registration date", content['msg'])
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
@@ -4560,6 +4606,7 @@ class APITestCase(TestCase):
         self.full_slot.delete()
         self.past_slot.delete()
         self.unpublished_slot.delete()
+        self.passed_registration_date_slot.delete()
 
         response = self.client.delete(reverse("course_detail", kwargs=data))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

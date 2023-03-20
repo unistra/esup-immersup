@@ -235,12 +235,12 @@
         { "data": "info" },
         { "data": "",
           "render": function(data, type, row) {
+            let msg = "";
+
             if(is_highschool_student === true) {
-              var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+              msg += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
                         "<i class='fa fas fa-users fa-2x'></i>" +
                         "</button>";
-            } else {
-              var msg = "";
             }
 
             if(row.cancellable === true) {
@@ -248,6 +248,12 @@
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
+
+            if(msg !== "") {
+                msg += "<br>"
+            }
+
+            msg += `{% trans 'Cancellation limit' %} : ${row.cancellation_limit_date}`
 
             return msg;
           }
