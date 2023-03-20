@@ -5,6 +5,7 @@
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
 {% settings_get 'USE_CAS' as use_cas %}
+{% active_accompanying_docs as show_accompanying_docs %}
 
 <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
   <div class="container">
@@ -40,9 +41,11 @@
             {% endif %}
           </div>
         </div>
+        {% if show_accompanying_docs %}
         <div class="nav-item">
-        <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
+            <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
         </div>
+        {% endif %}
         {# ref-etab, ref-str, ref-etab-maitre, ref-lyc with postbac immersions #}
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
           <div class="nav-item dropdown">

@@ -4,6 +4,7 @@
 {% trans "Homepage" %}
 {% endblock %}
 {% block content %}
+{% active_accompanying_docs as show_accompanying_docs %}
 <div class="main-title">
     <div></div>
     <div class="container">
@@ -43,6 +44,7 @@
           </div>
         </div>
       </div>
+      {% if show_accompanying_docs %}
       <div class="col-md-3">
         <div class="info">
           <div class="info-icon">
@@ -55,6 +57,7 @@
           </div>
         </div>
       </div>
+      {% endif %}
       {% if twitter_url %}
       <div class="col-md-3">
         <div class="info">
