@@ -14,9 +14,9 @@ from django_countries.fields import CountryField
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from rest_framework.exceptions import ValidationError
 
+from ...libs.utils import get_general_setting
 from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
-from ...libs.utils import get_general_setting
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     Building, Calendar, Campus, Course, CourseType, Establishment, HighSchool,

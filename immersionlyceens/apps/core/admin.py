@@ -14,31 +14,34 @@ from django_admin_listfilter_dropdown.filters import (
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
+
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
     CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
-    GeneralSettingsForm, HighSchoolForm, HighSchoolLevelForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
-    InformationTextForm, MailTemplateForm, OffOfferEventTypeForm,
-    PostBachelorLevelForm, PublicDocumentForm, PublicTypeForm, StructureForm,
-    StudentLevelForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    EvaluationFormLinkForm, EvaluationTypeForm, FaqEntryAdminForm,
+    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
+    HighSchoolLevelForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
+    MailTemplateForm, OffOfferEventTypeForm, PostBachelorLevelForm,
+    PublicDocumentForm, PublicTypeForm, StructureForm, StudentLevelForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
     UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
-    InformationText, MailTemplate, OffOfferEventType, PostBachelorLevel,
-    PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
+    ImmersupFile, InformationText, MailTemplate, OffOfferEventType,
+    PostBachelorLevel, PublicDocument, PublicType, Slot, Structure,
+    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
 
 
@@ -1919,6 +1922,43 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
              'all': ('fonts/fontawesome/4.7.0/css/font-awesome.min.css',)
         }
 
+
+class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
+
+    form = FaqEntryAdminForm
+    list_display = ('id', 'order', 'label', 'question', 'answer', 'active')
+    ordering = ('order', )
+    sortable_by = ('order', )
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
+
+    def has_change_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser
+        ]
+        return any(valid_groups)
+
+    def has_delete_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser
+        ]
+        return any(valid_groups)
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
+
+
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
 
@@ -1959,3 +1999,4 @@ admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
+admin.site.register(FaqEntry, FaqEntryAdmin)

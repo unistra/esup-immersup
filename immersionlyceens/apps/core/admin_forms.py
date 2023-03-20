@@ -16,6 +16,7 @@ from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
+
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
 )
@@ -25,11 +26,11 @@ from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, CertificateLogo, CertificateSignature, CourseType,
     CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
-    MailTemplate, MailTemplateVars, OffOfferEventType, PostBachelorLevel,
-    PublicDocument, PublicType, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
+    HighSchoolLevel, Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile,
+    InformationText, MailTemplate, MailTemplateVars, OffOfferEventType,
+    PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1781,3 +1782,18 @@ class CustomThemeFileForm(forms.ModelForm):
     class Meta:
         model = CustomThemeFile
         fields = '__all__'
+
+
+class FaqEntryAdminForm(forms.ModelForm):
+    """
+    Faq entry form
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = FaqEntry
+        fields = '__all__'
+        widgets = {'answer': SummernoteWidget,}

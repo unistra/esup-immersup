@@ -14,12 +14,11 @@ import logging
 import os
 import re
 import uuid
-import pytz
-
 from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
 
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
@@ -33,6 +32,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django_countries.fields import CountryField
+
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
@@ -43,6 +43,10 @@ from .managers import (
     ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
     HighSchoolAgreedManager, StructureQuerySet,
 )
+
+#from ordered_model.models import OrderedModel
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -2820,3 +2824,21 @@ class CustomThemeFile(models.Model):
         """Meta class"""
         verbose_name = _('Custom theme file')
         verbose_name_plural = _('Custom theme files')
+
+
+class FaqEntry(models.Model):
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=partial(get_object_default_order, 'FaqEntry')
+    )
+    question = models.TextField(_('Question'), max_length=2000, blank=False, null=False)
+    answer = models.TextField(_('Answer'), max_length=10000, blank=False, null=False)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self):
+        return self.label
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Faq entry')
+        verbose_name_plural = _('Faq entries')
