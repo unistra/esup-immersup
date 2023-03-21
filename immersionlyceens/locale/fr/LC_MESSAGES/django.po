@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 09:53+0100\n"
+"POT-Creation-Date: 2023-03-21 15:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -950,7 +950,7 @@ msgstr "description"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:69
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:114
 #: immersionlyceens/templates/modals/modal_alerts.html:26
-#: immersionlyceens/templates/offer_subdomains.html:86
+#: immersionlyceens/templates/offer_subdomains.html:78
 msgid "Course"
 msgstr "Cours"
 
@@ -1294,7 +1294,7 @@ msgstr "Domaine/Sous domaine"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:67
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:112
 #: immersionlyceens/templates/modals/modal_alerts.html:27
-#: immersionlyceens/templates/offer_subdomains.html:76
+#: immersionlyceens/templates/offer_subdomains.html:68
 msgid "Training"
 msgstr "Formation"
 
@@ -2787,7 +2787,7 @@ msgstr "Utilisateurs groupés"
 #: immersionlyceens/templates/core/visits_slots_list.html:40
 #: immersionlyceens/templates/modals/modal_public_slots.html:20
 #: immersionlyceens/templates/offer_off_offer_events.html:84
-#: immersionlyceens/templates/offer_subdomains.html:121
+#: immersionlyceens/templates/offer_subdomains.html:113
 #: immersionlyceens/templates/visits_offer.html:83
 msgid "Date"
 msgstr "Date"
@@ -2866,7 +2866,7 @@ msgstr "Un campus de même nom existe déjà dans cet établissement"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:116
 #: immersionlyceens/templates/modals/modal_student_details.html:24
 #: immersionlyceens/templates/offer_off_offer_events.html:203
-#: immersionlyceens/templates/offer_subdomains.html:221
+#: immersionlyceens/templates/offer_subdomains.html:213
 msgid "Campus"
 msgstr "Campus"
 
@@ -2902,7 +2902,7 @@ msgstr "Un bâtiment avec ce nom existe déjà pour ce campus"
 #: immersionlyceens/templates/core/students_presence.html:53
 #: immersionlyceens/templates/modals/modal_public_slots.html:22
 #: immersionlyceens/templates/offer_off_offer_events.html:210
-#: immersionlyceens/templates/offer_subdomains.html:234
+#: immersionlyceens/templates/offer_subdomains.html:226
 msgid "Building"
 msgstr "Bâtiment"
 
@@ -2931,7 +2931,7 @@ msgstr "Un type de cours avec ce nom existe déjà"
 #: immersionlyceens/apps/core/models.py:2255
 #: immersionlyceens/templates/core/course_slot.html:77
 #: immersionlyceens/templates/core/courses_slots_list.html:55
-#: immersionlyceens/templates/offer_subdomains.html:123
+#: immersionlyceens/templates/offer_subdomains.html:115
 msgid "Course type"
 msgstr "Type de cours"
 
@@ -3366,7 +3366,7 @@ msgstr "Nombre maximum de places"
 #: immersionlyceens/apps/core/models.py:2286
 #: immersionlyceens/templates/core/common_slot.html:378
 #: immersionlyceens/templates/offer_off_offer_events.html:216
-#: immersionlyceens/templates/offer_subdomains.html:246
+#: immersionlyceens/templates/offer_subdomains.html:238
 #: immersionlyceens/templates/visits_offer.html:198
 msgid "Additional information"
 msgstr "Informations complémentaires"
@@ -3390,7 +3390,7 @@ msgstr "Restreindre à des niveaux"
 #: immersionlyceens/apps/core/models.py:2303
 #: immersionlyceens/templates/core/common_slot.html:309
 #: immersionlyceens/templates/offer_off_offer_events.html:122
-#: immersionlyceens/templates/offer_subdomains.html:142
+#: immersionlyceens/templates/offer_subdomains.html:134
 #: immersionlyceens/templates/visits_offer.html:117
 msgid "Allowed establishments"
 msgstr "Etablissements autorisés"
@@ -3408,7 +3408,7 @@ msgstr "Niveaux lycéens autorisés"
 #: immersionlyceens/apps/core/models.py:2315
 #: immersionlyceens/templates/core/common_slot.html:356
 #: immersionlyceens/templates/offer_off_offer_events.html:148
-#: immersionlyceens/templates/offer_subdomains.html:168
+#: immersionlyceens/templates/offer_subdomains.html:160
 #: immersionlyceens/templates/visits_offer.html:143
 msgid "Allowed student levels"
 msgstr "Niveaux étudiants autorisés"
@@ -3416,7 +3416,7 @@ msgstr "Niveaux étudiants autorisés"
 #: immersionlyceens/apps/core/models.py:2318
 #: immersionlyceens/templates/core/common_slot.html:362
 #: immersionlyceens/templates/offer_off_offer_events.html:156
-#: immersionlyceens/templates/offer_subdomains.html:176
+#: immersionlyceens/templates/offer_subdomains.html:168
 #: immersionlyceens/templates/visits_offer.html:151
 msgid "Allowed post bachelor levels"
 msgstr "Niveaux post-bac autorisés"
@@ -3430,7 +3430,7 @@ msgid "Cancellation limit delay"
 msgstr "Délai pour l'annulation de l'inscription (en heures)"
 
 #: immersionlyceens/apps/core/models.py:2328
-#: immersionlyceens/templates/offer_subdomains.html:210
+#: immersionlyceens/templates/offer_subdomains.html:202
 msgid "Registration limit"
 msgstr "Inscription avant le"
 
@@ -5176,7 +5176,7 @@ msgstr "ou"
 #: immersionlyceens/templates/immersion/fragments/my_visits.html:64
 #: immersionlyceens/templates/immersion/fragments/my_visits.html:105
 #: immersionlyceens/templates/offer_off_offer_events.html:97
-#: immersionlyceens/templates/offer_subdomains.html:242
+#: immersionlyceens/templates/offer_subdomains.html:234
 #: immersionlyceens/templates/visits_offer.html:92
 msgid "Meeting place"
 msgstr "Lieu de rencontre"
@@ -5695,7 +5695,7 @@ msgstr "Gérés par"
 #: immersionlyceens/templates/core/my_visits_slots.html:34
 #: immersionlyceens/templates/modals/modal_public_slots.html:21
 #: immersionlyceens/templates/offer_off_offer_events.html:88
-#: immersionlyceens/templates/offer_subdomains.html:122
+#: immersionlyceens/templates/offer_subdomains.html:114
 #: immersionlyceens/templates/visits_offer.html:87
 msgid "Schedules"
 msgstr "Horaires"
@@ -6600,7 +6600,7 @@ msgid "release"
 msgstr "libérer"
 
 #: immersionlyceens/templates/home.html:4
-#: immersionlyceens/templates/offer_subdomains.html:50
+#: immersionlyceens/templates/offer_subdomains.html:45
 msgid "Homepage"
 msgstr "Accueil"
 
@@ -6685,7 +6685,7 @@ msgstr "Immersions à venir"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:23
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:68
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:113
-#: immersionlyceens/templates/offer_subdomains.html:227
+#: immersionlyceens/templates/offer_subdomains.html:219
 msgid "Organizing structure"
 msgstr "Structure organisatrice"
 
@@ -6904,7 +6904,7 @@ msgstr "Télécharger l'attestation"
 #: immersionlyceens/templates/immersion/my_registrations.html:663
 #: immersionlyceens/templates/immersion/my_registrations.html:884
 #: immersionlyceens/templates/offer_off_offer_events.html:173
-#: immersionlyceens/templates/offer_subdomains.html:194
+#: immersionlyceens/templates/offer_subdomains.html:186
 #: immersionlyceens/templates/visits_offer.html:168
 msgid "Register again"
 msgstr "Se réinscrire"
@@ -6913,7 +6913,7 @@ msgstr "Se réinscrire"
 #: immersionlyceens/templates/immersion/my_registrations.html:667
 #: immersionlyceens/templates/immersion/my_registrations.html:888
 #: immersionlyceens/templates/offer_off_offer_events.html:189
-#: immersionlyceens/templates/offer_subdomains.html:213
+#: immersionlyceens/templates/offer_subdomains.html:205
 #: immersionlyceens/templates/visits_offer.html:184
 msgid "Full"
 msgstr "Complet"
@@ -7273,9 +7273,9 @@ msgstr "Université"
 #: immersionlyceens/templates/offer_off_offer_events.html:119
 #: immersionlyceens/templates/offer_off_offer_events.html:120
 #: immersionlyceens/templates/offer_off_offer_events.html:165
-#: immersionlyceens/templates/offer_subdomains.html:139
-#: immersionlyceens/templates/offer_subdomains.html:140
-#: immersionlyceens/templates/offer_subdomains.html:187
+#: immersionlyceens/templates/offer_subdomains.html:131
+#: immersionlyceens/templates/offer_subdomains.html:132
+#: immersionlyceens/templates/offer_subdomains.html:179
 #: immersionlyceens/templates/visits_offer.html:114
 #: immersionlyceens/templates/visits_offer.html:115
 #: immersionlyceens/templates/visits_offer.html:160
@@ -7380,20 +7380,20 @@ msgid "by domain and subdomain"
 msgstr "par domaine et sous-domaine"
 
 #: immersionlyceens/templates/offer.html:25
-#: immersionlyceens/templates/offer_subdomains.html:27
-#: immersionlyceens/templates/offer_subdomains.html:51
+#: immersionlyceens/templates/offer_subdomains.html:24
+#: immersionlyceens/templates/offer_subdomains.html:46
 msgid "Courses offer"
 msgstr "Offre de cours"
 
-#: immersionlyceens/templates/offer.html:45
-msgid "available courses divided in subdomains (see below)"
-msgstr "cours disponibles répartis en sous-domaines (voir ci-dessous)"
+#: immersionlyceens/templates/offer.html:44
+msgid "available slots divided in subdomains (see below)"
+msgstr "créneaux disponibles répartis en sous-domaines / cours (voir ci-dessous)"
 
-#: immersionlyceens/templates/offer.html:45
-msgid "available courses"
-msgstr "Cours disponibles"
+#: immersionlyceens/templates/offer.html:44
+msgid "available slots"
+msgstr "créneaux disponibles"
 
-#: immersionlyceens/templates/offer.html:74
+#: immersionlyceens/templates/offer.html:73
 msgid "No offer available"
 msgstr "Pas d'offre disponible"
 
@@ -7417,69 +7417,69 @@ msgstr "évènements disponibles"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:105
 #: immersionlyceens/templates/offer_off_offer_events.html:106
-#: immersionlyceens/templates/offer_subdomains.html:125
-#: immersionlyceens/templates/offer_subdomains.html:126
+#: immersionlyceens/templates/offer_subdomains.html:117
+#: immersionlyceens/templates/offer_subdomains.html:118
 #: immersionlyceens/templates/visits_offer.html:100
 #: immersionlyceens/templates/visits_offer.html:101
 msgid "Speaker(s)"
 msgstr "Intervenant(s)"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:113
-#: immersionlyceens/templates/offer_subdomains.html:133
+#: immersionlyceens/templates/offer_subdomains.html:125
 #: immersionlyceens/templates/visits_offer.html:108
 msgid "Data not available"
 msgstr "Non renseigné"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:130
-#: immersionlyceens/templates/offer_subdomains.html:150
+#: immersionlyceens/templates/offer_subdomains.html:142
 #: immersionlyceens/templates/visits_offer.html:125
 msgid "Allowed highschools"
 msgstr "Lycées autorisés"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:140
-#: immersionlyceens/templates/offer_subdomains.html:160
+#: immersionlyceens/templates/offer_subdomains.html:152
 #: immersionlyceens/templates/visits_offer.html:135
 msgid "Allowed highschool levels"
 msgstr "Niveaux lycéens autorisés"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:166
-#: immersionlyceens/templates/offer_subdomains.html:188
+#: immersionlyceens/templates/offer_subdomains.html:180
 #: immersionlyceens/templates/visits_offer.html:161
 msgid "Slot open to all"
 msgstr "Créneau ouvert à tous"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:171
-#: immersionlyceens/templates/offer_subdomains.html:192
+#: immersionlyceens/templates/offer_subdomains.html:184
 #: immersionlyceens/templates/visits_offer.html:166
 msgid "Cancelled registration"
 msgstr "Inscription annulée"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:177
-#: immersionlyceens/templates/offer_subdomains.html:198
+#: immersionlyceens/templates/offer_subdomains.html:190
 #: immersionlyceens/templates/visits_offer.html:172
 msgid "Already registered"
 msgstr "Déjà inscrit(e)"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:179
-#: immersionlyceens/templates/offer_subdomains.html:200
+#: immersionlyceens/templates/offer_subdomains.html:192
 #: immersionlyceens/templates/visits_offer.html:174
 msgid "Opening soon"
 msgstr "Ouverture prochaine"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:182
-#: immersionlyceens/templates/offer_subdomains.html:203
+#: immersionlyceens/templates/offer_subdomains.html:195
 #: immersionlyceens/templates/visits_offer.html:177
 msgid "Available places"
 msgstr "Places restantes"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:185
-#: immersionlyceens/templates/offer_subdomains.html:207
+#: immersionlyceens/templates/offer_subdomains.html:199
 #: immersionlyceens/templates/visits_offer.html:180
 msgid "Register"
 msgstr "S'inscrire"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:213
-#: immersionlyceens/templates/offer_subdomains.html:237
+#: immersionlyceens/templates/offer_subdomains.html:229
 msgid "Show map url"
 msgstr "Voir l'adresse de la carte"
 
@@ -7487,32 +7487,32 @@ msgstr "Voir l'adresse de la carte"
 msgid "No off offer event available"
 msgstr "Pas d'offre d'évènements hors offre disponible"
 
-#: immersionlyceens/templates/offer_subdomains.html:39
+#: immersionlyceens/templates/offer_subdomains.html:36
 msgid "Close all"
 msgstr "Tout réduire"
 
-#: immersionlyceens/templates/offer_subdomains.html:78
-#: immersionlyceens/templates/offer_subdomains.html:92
+#: immersionlyceens/templates/offer_subdomains.html:70
+#: immersionlyceens/templates/offer_subdomains.html:84
 msgid "Click here for more informations"
 msgstr "Cliquez ici pour plus d'informations"
 
-#: immersionlyceens/templates/offer_subdomains.html:95
+#: immersionlyceens/templates/offer_subdomains.html:87
 msgid "No slots available"
 msgstr "Aucun créneau disponible"
 
-#: immersionlyceens/templates/offer_subdomains.html:102
+#: immersionlyceens/templates/offer_subdomains.html:94
 msgid "Notify me when a place is available"
 msgstr "M'avertir quand une place est disponible"
 
-#: immersionlyceens/templates/offer_subdomains.html:106
+#: immersionlyceens/templates/offer_subdomains.html:98
 msgid "Availability alert set"
 msgstr "Alerte enregistrée"
 
-#: immersionlyceens/templates/offer_subdomains.html:263
+#: immersionlyceens/templates/offer_subdomains.html:255
 msgid "No training available for the selected domain"
 msgstr "Pas de formation pour le domaine selectionné"
 
-#: immersionlyceens/templates/offer_subdomains.html:264
+#: immersionlyceens/templates/offer_subdomains.html:256
 msgid "Click here to return to offer selection"
 msgstr "Cliquez ici pour revenir sur la selection de l'offre"
 
@@ -7563,7 +7563,10 @@ msgstr "visites disponibles"
 msgid "No visit available"
 msgstr "Pas de visite disponible"
 
-#: immersionlyceens/views.py:281 immersionlyceens/views.py:457
-#: immersionlyceens/views.py:584
+#: immersionlyceens/views.py:288 immersionlyceens/views.py:464
+#: immersionlyceens/views.py:591
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
+
+#~ msgid "available courses"
+#~ msgstr "Cours disponibles"
