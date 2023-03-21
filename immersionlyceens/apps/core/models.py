@@ -2830,3 +2830,4 @@ class FaqEntry(models.Model):
         """Meta class"""
         verbose_name = _('Faq entry')
         verbose_name_plural = _('Faq entries')
+        ordering = ['order']
