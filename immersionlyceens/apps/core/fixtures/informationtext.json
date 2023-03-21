@@ -174,5 +174,16 @@
       "description": "Texte d'introduction en haut du formulaire de contact",
       "active": false
     }
-  }  
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 17,
+    "fields": {
+      "label": "Texte d'introduction pour le formulaire de contact",
+      "code": "INTRO_OFFER_COURSE",
+      "content": "<p>TODO: Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
+      "description": "Texte d'introduction sur l'offre de cours non modifiable",
+      "active": false
+    }
+  }    
 ]
