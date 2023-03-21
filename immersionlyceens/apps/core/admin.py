@@ -1926,7 +1926,7 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
 class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
 
     form = FaqEntryAdminForm
-    list_display = ('id', 'order', 'label', 'question', 'answer', 'active')
+    list_display = ('id', 'order', 'label', 'question', 'active')
     ordering = ('order', )
     sortable_by = ('order', )
 

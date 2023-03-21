@@ -1,13 +1,12 @@
 import datetime
+import json
 import mimetypes
 import os
 import sys
-import requests
-import json
-
 from email.policy import default
 from wsgiref.util import FileWrapper
 
+import requests
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models.query_utils import Q
@@ -21,14 +20,14 @@ from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from immersionlyceens.exceptions import DisplayException
-
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, ImmersupFile, InformationText,
-    PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
-    UserCourseAlert, Visit, HighSchool, Establishment
+    AccompanyingDocument, Calendar, Course, Establishment, FaqEntry,
+    HighSchool, ImmersupFile, InformationText, PublicDocument, PublicType,
+    Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
+from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
+
 
 def home(request):
     """Homepage view"""
@@ -654,3 +653,15 @@ def error_500(request, *args, **kwargs):
         context["error"] = str(exc)
 
     return render(request, '500.html', context, status=500)
+
+
+def faq(request):
+    """FAQ view"""
+
+    entries = FaqEntry.activated.all().order_by('order')
+
+    context = {
+        'entries': entries,
+    }
+
+    return render(request, 'faq.html', context)

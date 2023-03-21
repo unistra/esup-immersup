@@ -2675,20 +2675,6 @@ class CertificateLogo(models.Model):
     # Singleton !
     def save(self, *args, **kwargs):
         """Save a singleton"""
-        self.id = 1
-        return super().save(*args, **kwargs)
-
-    def delete(self, using=None, keep_parents=False):
-        """Delete file uploaded from logo Filefield"""
-        self.logo.storage.delete(self.logo.name)
-        super().delete()
-
-
-    def __str__(self):
-        """str"""
-        return 'logo'
-
-    class Meta:
         """Meta class"""
         verbose_name = _('Logo for attendance certificate')
         verbose_name_plural = _('Logo for attendance certificate')
@@ -2834,6 +2820,8 @@ class FaqEntry(models.Model):
     question = models.TextField(_('Question'), max_length=2000, blank=False, null=False)
     answer = models.TextField(_('Answer'), max_length=10000, blank=False, null=False)
     active = models.BooleanField(_("Active"), default=True)
+    objects = models.Manager()
+    activated = ActiveManager()
 
     def __str__(self):
         return self.label

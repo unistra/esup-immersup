@@ -17,7 +17,7 @@ from immersionlyceens.libs.utils import (
 )
 
 from ..apps.core.models import (
-    AccompanyingDocument, GeneralSettings, HighSchool, ImmersionUser,
+    AccompanyingDocument, FaqEntry, GeneralSettings, HighSchool, ImmersionUser,
 )
 
 register = template.Library()
@@ -221,3 +221,7 @@ def dictsortlower(value, sortkey):
 @register.simple_tag
 def active_accompanying_docs():
     return AccompanyingDocument.objects.filter(active=True)
+
+@register.simple_tag
+def active_faq_entries():
+    return FaqEntry.activated.all()

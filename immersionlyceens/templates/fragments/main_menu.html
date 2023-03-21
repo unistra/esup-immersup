@@ -4,8 +4,10 @@
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
+{% general_settings_get 'CONTACT_FORM_URL' as external_contact_form_url %}
 {% settings_get 'USE_CAS' as use_cas %}
-{% active_accompanying_docs as show_accompanying_docs %}
+{% active_accompanying_docs as show_accompanying_docs_menu %}
+{% active_faq_entries as show_faq_menu %}
 
 <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
   <div class="container">
@@ -41,9 +43,14 @@
             {% endif %}
           </div>
         </div>
-        {% if show_accompanying_docs %}
+        {% if show_accompanying_docs_menu %}
         <div class="nav-item">
             <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
+        </div>
+        {% endif %}
+        {% if show_faq_menu %}
+        <div class="nav-item">
+            <a class="nav-link" href="{% url 'faq' %}">{% trans 'FAQ' %}</a>
         </div>
         {% endif %}
         {# ref-etab, ref-str, ref-etab-maitre, ref-lyc with postbac immersions #}
