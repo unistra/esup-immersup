@@ -22,8 +22,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Courses offer" %}
-</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Courses offer" %}</li>
       </ol>
     </nav>
   </div>
@@ -42,7 +41,7 @@
 
 <section class="py-5 bg-gray ">
   <div class="container ">
-    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ courses_count }} {% trans 'available courses divided in subdomains (see below)' %}">{{ courses_count }} {% trans 'available courses' %}</span></p>
+    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_count }} {% trans 'available slots divided in subdomains (see below)' %}">{{ slots_count }} {% trans 'available slots' %}</span></p>
     <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
     {% if subdomains %}
     {% regroup subdomains by training_domain.label as subdomains_list %}

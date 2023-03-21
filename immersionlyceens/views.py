@@ -89,15 +89,22 @@ def offer(request):
     """Offer view"""
 
     try:
-        offer_txt = InformationText.objects.get(code="OFFER", active=True).content
+        offer_txt = InformationText.objects.get(code="INTRO_OFFER_COURSE", active=True).content
     except InformationText.DoesNotExist:
         offer_txt = ''
 
+    today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    courses_count = Course.objects.filter(published=True).count()
+    slots_count = Slot.objects.filter(published=True, visit__isnull=True,event__isnull=True).filter(
+        Q(date__isnull=True)
+        | Q(date__gte=today.date())
+        | Q(date=today.date(), end_time__gte=today.time())
+
+    ).distinct().count()
+
     context = {
         'subdomains': subdomains,
-        'courses_count': courses_count,
+        'slots_count': slots_count,
         'offer_txt': offer_txt,
     }
     return render(request, 'offer.html', context)
