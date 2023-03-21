@@ -283,12 +283,6 @@ a.unlink:hover {
   background-color: attr(background-color);
 } */
 
-#result_list div.drag {
-    background: url(../img/updown_icon.png) 50% center no-repeat;
-    background-size: contain;
-    cursor: pointer;
-}
-
 /* FAQ section */
 
 .faq_area {
@@ -313,4 +307,21 @@ a.unlink:hover {
 }
 .faq-accordion .card .card-body p:last-child {
     margin-bottom: 0;
+}
+
+/* Attempt to fix django admin dark theme conflict with sortable2 */
+@media (prefers-color-scheme: dark) {
+    #result_list div.drag {
+        background: url(../img/updown_icon_white.png) center no-repeat !important;
+        background-size: contain !important;
+        cursor: pointer;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    #result_list div.drag {
+        background: url(../img/updown_icon.png) 50% center no-repeat !important;
+        background-size: contain !important;
+        cursor: pointer;
+    }
 }
