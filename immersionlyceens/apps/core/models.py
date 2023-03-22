@@ -886,6 +886,22 @@ class TrainingSubdomain(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A training sub domain with this label already exists'))
 
+    def count_subdomain_slots(self):
+        today = datetime.datetime.today()
+        slots_count = Slot.objects.filter(
+            course__training__training_subdomains=self,
+            published=True,
+            visit__isnull=True,event__isnull=True
+        ).prefetch_related('course__training__training_subdomains__training_domain') \
+        .filter(
+            Q(date__isnull=True)
+            | Q(date__gte=today.date())
+            | Q(date=today.date(), end_time__gte=today.time())
+        ).count()
+
+        return slots_count
+
+
     class Meta:
         verbose_name = _('Training sub domain')
         verbose_name_plural = _('Training sub domains')
