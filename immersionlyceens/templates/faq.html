@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load static i18n immersionlyceens_tags %}
-{% information_text_get 'INTRO_FAQ' as intro_faq %}
 {% block title %}
 {% trans "FAQ" %}
 {% endblock %}
@@ -32,8 +31,9 @@
             <div class="col-12 col-sm-8 col-lg-6">
                 <div class="text-center" >
                     <h3>{% trans "Frequently asked questions" %}</h3>
+                    {% information_text_get 'INTRO_FAQ' as intro_faq %}
                     {% if intro_faq %}
-                    {{ intro_faq }}
+                    {{ intro_faq|safe }}
                     {% else %}
                     <p>{% trans "We've put together some commonly asked questions to give you more information." %}</p>
                     {% endif %}
