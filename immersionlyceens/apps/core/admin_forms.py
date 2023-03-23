@@ -11,10 +11,11 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from immersionlyceens.apps.immersion.models import (
@@ -29,7 +30,7 @@ from .models import (
     FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile,
     InformationText, MailTemplate, MailTemplateVars, OffOfferEventType,
-    PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
+    Period, PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
@@ -800,6 +801,92 @@ class CalendarForm(forms.ModelForm):
 
     class Meta:
         model = Calendar
+        fields = '__all__'
+
+
+class PeriodForm(forms.ModelForm):
+    """
+    Period form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            # Lock start date update if in the past
+            if self.instance.id and self.instance.immersion_start_date < timezone.localdate():
+                 self.fields["immersion_start_date"].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        start_date = cleaned_data.get('immersion_start_date')
+        end_date = cleaned_data.get('immersion_end_date')
+        registration_start_date = cleaned_data.get('registration_start_date')
+        valid_user = False
+
+        # Test user group
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
+        except AttributeError:
+            pass
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        # active university year
+        univ_year = UniversityYear.get_active()
+
+        if not univ_year:
+            raise forms.ValidationError(_("An active university year is required to create a period"))
+
+        # Date checks
+        period_dates = [
+            start_date, end_date, registration_start_date,
+        ]
+
+        if not all(period_dates):
+            raise forms.ValidationError(_("A period requires all dates to be filled in"))
+
+        dates_conditions = [
+            not (univ_year.start_date < registration_start_date < univ_year.end_date),
+            not (univ_year.start_date < start_date < univ_year.end_date),
+            not (univ_year.start_date < end_date < univ_year.end_date),
+        ]
+
+        if any(dates_conditions):
+            raise forms.ValidationError(_("All period dates must be between university year start/end dates"))
+
+        if not self.instance.id and start_date < timezone.now().date():
+            raise forms.ValidationError(_("A new period can't be set with a start_date in the past"))
+
+        if registration_start_date >= start_date:
+            raise forms.ValidationError(_("Registration start date must be before the immersions start date"))
+
+        # start < end
+        if start_date and end_date and start_date >= end_date:
+            raise forms.ValidationError(_("Start date is after end date"))
+
+        # Label unicity and dates overlap test
+        excludes = {'pk':self.instance.id } if self.instance else {}
+
+        periods_qs = Period.objects.filter(
+                Q(registration_start_date__lte=end_date, immersion_end_date__gte=end_date)
+               |Q(registration_start_date__lte=start_date, immersion_end_date__gte=start_date)
+               |Q(registration_start_date__lte=registration_start_date, immersion_end_date__gte=registration_start_date)
+            ).exclude(**excludes)
+
+        if periods_qs.exists():
+            periods = ", ".join(p.label for p in periods_qs)
+            raise forms.ValidationError(
+                _("At least one existing period (%s) overlaps this one, please check the dates") % periods
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = Period
         fields = '__all__'
 
 

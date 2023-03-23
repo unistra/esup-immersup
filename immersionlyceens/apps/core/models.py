@@ -14,15 +14,14 @@ import logging
 import os
 import re
 import uuid
+import pytz
 from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
 
-import pytz
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max, Q, Sum
@@ -1219,6 +1218,14 @@ class UniversityYear(models.Model):
     registration_start_date = models.DateField(_("Registration date"))
     purge_date = models.DateField(_("Purge date"), null=True)
 
+    @classmethod
+    def get_active(cls):
+        try:
+            return UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return None
+        except UniversityYear.MultipleObjectsReturned as e:
+            raise Exception(_("Error : multiple active years")) from e
 
     def __str__(self):
         """str"""
@@ -1444,6 +1451,59 @@ class Calendar(models.Model):
         verbose_name = _('Calendar')
         verbose_name_plural = _('Calendars')
         ordering = ['label', ]
+
+
+class Period(models.Model):
+    """
+    Period class. Replaces the semesters
+    """
+    label = models.CharField(_("Label"), max_length=256, unique=True, null=False, blank=False)
+    registration_start_date = models.DateField(_("Registrations start date"), null=False, blank=False)
+    immersion_start_date = models.DateField(_("Immersions start date"), null=False, blank=False)
+    immersion_end_date = models.DateField(_("Immersions end date"), null=False, blank=False)
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions per student'), null=False, blank=False, default=1
+    )
+
+    def from_date(cls, date:datetime.date):
+        """
+        :param date: the date.
+        :return: the period that matches start_date < date < end_date
+        """
+
+        try:
+            return Period.objects.get(start_date__lte=date, end_date__gte=date)
+        except Period.DoesNotExist:
+            return None
+        except Period.MultipleObjectsReturned as e:
+            raise Exception(_("Configuration error : some periods overlap")) from e
+
+    def __str__(self):
+        return f"Period '{self.label}' : {self.immersion_start_date} - {self.immersion_end_date}"
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                if Period.objects.filter(label__unaccent__iexact=self.label).exclude(**excludes).exists():
+                    raise ValidationError(
+                        _("A Period object with the same label already exists")
+                    )
+        except ValidationError as e:
+            raise
+
+    class Meta:
+        verbose_name = _('Period')
+        verbose_name_plural = _('Periods')
+        ordering = ['registration_start_date', ]
 
 
 class Course(models.Model):

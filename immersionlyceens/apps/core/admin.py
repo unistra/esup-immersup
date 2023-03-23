@@ -6,7 +6,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
-from django.utils.encoding import force_text
+from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
@@ -27,10 +27,10 @@ from .admin_forms import (
     GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
     HighSchoolLevelForm, HolidayForm, ImmersionUserChangeForm,
     ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
-    MailTemplateForm, OffOfferEventTypeForm, PostBachelorLevelForm,
-    PublicDocumentForm, PublicTypeForm, StructureForm, StudentLevelForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
+    PostBachelorLevelForm, PublicDocumentForm, PublicTypeForm,
+    StructureForm, StudentLevelForm, TrainingDomainForm, TrainingForm,
+    TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -39,7 +39,7 @@ from .models import (
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
     ImmersupFile, InformationText, MailTemplate, OffOfferEventType,
-    PostBachelorLevel, PublicDocument, PublicType, Slot, Structure,
+    Period, PostBachelorLevel, PublicDocument, PublicType, Slot, Structure,
     StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
     Vacation,
 )
@@ -1290,6 +1290,185 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
             'js/admin_calendar.min.js',
         )
 
+class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
+    """
+    Period admin class
+    """
+    form = PeriodForm
+    list_display = (
+        'label', 'registration_start_date', 'immersion_start_date', 'immersion_end_date', 'allowed_immersions'
+    )
+    search_fields = ('label',)
+    order = ('registration_start_date', )
+
+    def get_readonly_fields(self, request, obj=None):
+        today = timezone.localdate()
+
+        if not obj:
+            return []
+
+        fields = []
+        uy = None
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
+
+        if uy is None or request.user.is_superuser:
+            return []
+
+        # passed period : can't modify
+        if obj.immersion_end_date < today:
+            fields = [
+                'label',
+                'immersion_start_date',
+                'immersion_end_date',
+                'registration_start_date',
+                'allowed_immersions',
+            ]
+        elif obj.registration_start_date < today < obj.immersion_end_date:
+            fields = [
+                'label',
+                'immersion_start_date',
+                'registration_start_date',
+            ]
+
+        return list(set(fields))
+
+    def has_add_permission(self, request):
+        uy = None
+
+        valid_users = [
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_superuser
+        ]
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
+            return False
+
+        if not uy:
+            messages.error(
+                request, _("Active year not found. Please check your university years settings."),
+            )
+            return False
+
+        return any(valid_users)
+
+
+    def has_delete_permission(self, request, obj=None):
+        uy = None
+        today = timezone.localdate()
+
+        if not obj:
+            return False
+
+        valid_users = [
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_superuser
+        ]
+
+        if not any(valid_users):
+            messages.warning(request, _("You are not allowed to delete periods"))
+            return False
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
+            return False
+
+        if not uy:
+            messages.error(
+                request, _("Active year not found. Please check your university years settings."),
+            )
+            return False
+
+        # University year not begun | period registration date is in the future
+        year_condition = [
+            uy.start_date > today,
+            today < uy.end_date,
+            obj.registration_start_date > today,
+        ]
+
+        slots_exist = Slot.objects.filter(
+            date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
+        ).exists()
+
+        can_delete = not slots_exist and any(year_condition)
+
+        if not can_delete:
+            messages.warning(
+                request,
+                _("This period has slots or has already begun, it can't be deleted")
+            )
+
+        return can_delete
+
+
+    def has_change_permission(self, request, obj=None):
+        uy = None
+        today = timezone.localdate()
+
+        if not obj:
+            return False
+
+        valid_users = [
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_superuser
+        ]
+
+        if not any(valid_users):
+            messages.warning(request, _("You are not allowed to update periods"))
+            return False
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
+            return False
+
+        if not uy:
+            messages.error(
+                request, _("Active year not found. Please check your university years settings."),
+            )
+            return False
+
+        # University year not begun | period registration date is in the future
+        year_condition = [
+            uy.start_date > today,
+            today < uy.end_date,
+            obj.registration_start_date > today,
+        ]
+
+        slots_exist = Slot.objects.filter(
+            date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
+        ).exists()
+
+        can_update = not slots_exist and any(year_condition)
+
+        if not can_update:
+            messages.warning(
+                request,
+                _("This period has slots or has already begun, it can't be updated")
+            )
+
+        return can_update
+
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolForm
@@ -1983,6 +2162,7 @@ admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
+admin.site.register(Period, PeriodAdmin)
 admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)

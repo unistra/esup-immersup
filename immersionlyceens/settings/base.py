@@ -498,6 +498,7 @@ ADMIN_MODELS_ORDER = {
         'Holiday',
         'Vacation',
         'Calendar',
+        'Period',
         'MailTemplate',
     ],
     'user': [
