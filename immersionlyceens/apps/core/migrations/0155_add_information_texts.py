@@ -33,7 +33,7 @@ def population_information_text(apps, schema_editor):
 
     if not texts.filter(code='INTRO_FAQ').exists():
         InformationText.objects.create(
-                label = "Texte d'intro sur l'offre de cours (page offre de cours)",
+                label = "Texte d'intro de la page FAQ",
                 code = "INTRO_FAQ",
                 content = "<p>Nous avons rassemblé les questions les plus fréquemment posées pour vous donnez plus d'informations.</p>",
                 description = "Texte d'intro sur la foire aux questions (page FAQ)",
