@@ -814,7 +814,7 @@ class PeriodForm(forms.ModelForm):
 
         if self.instance:
             # Lock start date update if in the past
-            if self.instance.id and self.instance.immersion_start_date < timezone.now().date():
+            if self.instance.id and self.instance.immersion_start_date < timezone.localdate():
                  self.fields["immersion_start_date"].disabled = True
 
     def clean(self):

@@ -1672,9 +1672,43 @@ class AdminFormsTestCase(TestCase):
             list(get_messages(request))
 
         # Readonly fields
+        # superuser : None
         request.user = self.superuser
         self.assertEqual(period_admin.get_readonly_fields(request=request, obj=period), [])
 
+        # master establishment manager
+        # future period : None
+        request.user = self.ref_master_etab_user
+        self.assertEqual(
+            period_admin.get_readonly_fields(request=request, obj=period),
+            []
+        )
+
+        # current period:
+        period2 = Period.objects.create(
+            label='Period 0',
+            registration_start_date=self.today - datetime.timedelta(days=3),
+            immersion_start_date=self.today - datetime.timedelta(days=2),
+            immersion_end_date=self.today + datetime.timedelta(days=2),
+            allowed_immersions=4
+        )
+        self.assertEqual(
+            sorted(period_admin.get_readonly_fields(request=request, obj=period2)),
+            ['immersion_start_date', 'label', 'registration_start_date',]
+        )
+
+        # passed period:
+        period2 = Period.objects.create(
+            label='Period -1',
+            registration_start_date=self.today - datetime.timedelta(days=9),
+            immersion_start_date=self.today - datetime.timedelta(days=8),
+            immersion_end_date=self.today - datetime.timedelta(days=7),
+            allowed_immersions=4
+        )
+        self.assertEqual(
+            sorted(period_admin.get_readonly_fields(request=request, obj=period2)),
+            ['allowed_immersions', 'immersion_end_date', 'immersion_start_date', 'label', 'registration_start_date']
+        )
 
     def test_public_document_creation(self):
         """

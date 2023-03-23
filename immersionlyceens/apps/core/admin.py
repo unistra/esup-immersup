@@ -1299,28 +1299,39 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     order = ('registration_start_date', )
 
     def get_readonly_fields(self, request, obj=None):
-        fields = []
+        today = timezone.localdate()
 
+        if not obj:
+            return []
+
+        fields = []
         uy = None
-        university_years = UniversityYear.objects.filter(active=True)
-        if university_years.exists():
-            uy = university_years[0]
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
 
         if uy is None or request.user.is_superuser:
             return []
 
-        if obj:
-            if uy.start_date <= timezone.now().date():
-                fields = [
-                    'label',
-                    'immersion_start_date',
-                    'immersion_end_date',
-                    'registration_start_date',
-                    'allowed_immersions',
-                ]
-
-            if uy.end_date <= datetime.today().date():
-                fields.append('global_evaluation_date')
+        # passed period : can't modify
+        if obj.immersion_end_date < today:
+            fields = [
+                'label',
+                'immersion_start_date',
+                'immersion_end_date',
+                'registration_start_date',
+                'allowed_immersions',
+            ]
+        elif obj.registration_start_date < today < obj.immersion_end_date:
+            fields = [
+                'label',
+                'immersion_start_date',
+                'registration_start_date',
+            ]
 
         return list(set(fields))
 
@@ -1392,7 +1403,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
         ).exists()
 
-        can_delete = not slots_exist and year_condition
+        can_delete = not slots_exist and any(year_condition)
 
         if not can_delete:
             messages.warning(
@@ -1404,18 +1415,56 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_change_permission(self, request, obj=None):
+        uy = None
+        today = timezone.localdate()
+
+        if not obj:
+            return False
+
         valid_users = [
-            request.user.is_superuser,
+            request.user.is_operator(),
             request.user.is_master_establishment_manager(),
-            request.user.is_operator()
+            request.user.is_superuser
         ]
 
         if not any(valid_users):
+            messages.warning(request, _("You are not allowed to update periods"))
             return False
 
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
+            return False
 
+        if not uy:
+            messages.error(
+                request, _("Active year not found. Please check your university years settings."),
+            )
+            return False
 
-        return True
+        # University year not begun | period registration date is in the future
+        year_condition = [
+            uy.start_date > today,
+            today < uy.end_date,
+            obj.registration_start_date > today,
+        ]
+
+        slots_exist = Slot.objects.filter(
+            date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
+        ).exists()
+
+        can_update = not slots_exist and any(year_condition)
+
+        if not can_update:
+            messages.warning(
+                request,
+                _("This period has slots or has already begun, it can't be updated")
+            )
+
+        return can_update
 
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
