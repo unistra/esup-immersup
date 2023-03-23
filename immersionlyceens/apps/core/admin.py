@@ -2110,7 +2110,7 @@ class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     sortable_by = ('order', )
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     def has_module_permission(self, request):
         return request.user.is_master_establishment_manager() or request.user.is_operator()
