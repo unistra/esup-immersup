@@ -1225,7 +1225,7 @@ class UniversityYear(models.Model):
         except UniversityYear.DoesNotExist:
             return None
         except UniversityYear.MultipleObjectsReturned as e:
-            raise Exception(_("Error : multiple active years")) from e
+            raise Exception(_("Error : multiple active university years")) from e
 
     def __str__(self):
         """str"""
