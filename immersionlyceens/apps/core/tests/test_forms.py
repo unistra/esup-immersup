@@ -20,7 +20,7 @@ from ..admin_forms import (
     EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
     HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
     StructureForm, TrainingDomainForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    UniversityYearForm, VacationForm, PeriodForm
 )
 from ..forms import (
     HighSchoolStudentImmersionUserForm, MyHighSchoolForm, OffOfferEventForm,
@@ -33,7 +33,7 @@ from ..models import (
     Holiday, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
     PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, Visit,
-    HigherEducationInstitution
+    HigherEducationInstitution, Period
 )
 
 request_factory = RequestFactory()
@@ -168,6 +168,8 @@ class FormTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(cls.ref_str_user)
         Group.objects.get(name='REF-TEC').user_set.add(cls.operator_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(cls.ref_master_etab_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
 
         cls.today = datetime.datetime.today()
         cls.structure = Structure.objects.create(label="test structure")
@@ -203,12 +205,21 @@ class FormTestCase(TestCase):
             professional_bachelor_mention='My spe'
         )
 
+        # FIXME : remove when periods are fully tested
         cls.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',
                         year_start_date=cls.today + datetime.timedelta(days=1),
                         year_end_date=cls.today + datetime.timedelta(days=100),
                         year_registration_start_date=cls.today + datetime.timedelta(days=2),
                         year_nb_authorized_immersion=4
                         )
+
+        cls.period1 = Period.objects.create(
+            label = 'Period 1',
+            registration_start_date = cls.today + datetime.timedelta(days=10),
+            immersion_start_date = cls.today + datetime.timedelta(days=20),
+            immersion_end_date = cls.today + datetime.timedelta(days=40),
+            allowed_immersions=4
+        )
 
         cls.evaluation_type = EvaluationType.objects.create(code='testCode', label='testLabel')
         cls.event_type = OffOfferEventType.objects.create(label="Event type label")
@@ -217,6 +228,167 @@ class FormTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
+
+    def test_period_form(self):
+        """
+        Period form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        data = {
+            'label': 'Period 2',
+            'registration_start_date': self.today - datetime.timedelta(days=8),
+            'immersion_start_date': self.today - datetime.timedelta(days=6),
+            'immersion_end_date': self.today + datetime.timedelta(days=1),
+            'allowed_immersions': 4
+        }
+
+        # Fail : no active year
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("An active university year is required to create a period", form.errors['__all__'])
+
+        university_year = UniversityYear.objects.create(
+            label='Active year',
+            start_date=self.today - datetime.timedelta(days=10),
+            end_date=self.today + datetime.timedelta(days=300),
+            registration_start_date=self.today,
+        )
+
+        # Fail : dates in the past
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A new period can't be set with a start_date in the past", form.errors["__all__"])
+
+        # Fail : start date overlaps an existing period
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=30),
+            "immersion_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_end_date": self.today + datetime.timedelta(days=60),
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : end date overlaps an existing period
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=2),
+            "immersion_start_date": self.today + datetime.timedelta(days=8),
+            "immersion_end_date": self.today + datetime.timedelta(days=15),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : end date out of university year dates
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=290),
+            "immersion_start_date": self.today + datetime.timedelta(days=295),
+            "immersion_end_date": self.today + datetime.timedelta(days=340),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "All period dates must be between university year start/end dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : start date out of university year dates
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=290),
+            "immersion_start_date": self.today + datetime.timedelta(days=310),
+            "immersion_end_date": self.today + datetime.timedelta(days=340),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "All period dates must be between university year start/end dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : registration date out of university year dates
+        data.update({
+            "registration_start_date": self.today - datetime.timedelta(days=15),
+            "immersion_start_date": self.today + datetime.timedelta(days=1),
+            "immersion_end_date": self.today + datetime.timedelta(days=2),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "All period dates must be between university year start/end dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : dates inversions
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_start_date": self.today + datetime.timedelta(days=70),
+            "immersion_end_date": self.today + datetime.timedelta(days=60),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Start date is after end date", form.errors["__all__"])
+
+        # Fail : registration date after immersions start_date
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=60),
+            "immersion_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_end_date": self.today + datetime.timedelta(days=70),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Registration start date must be before the immersions start date", form.errors["__all__"])
+
+        # Fail : missing dates
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_end_date": self.today + datetime.timedelta(days=70),
+        })
+
+        data.pop("immersion_start_date")
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A period requires all dates to be filled in", form.errors["__all__"])
+
+        # Fail : duplicated label
+        # test 1: exact same label
+        data.update({
+            "label": "Period 1",
+            "registration_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_start_date": self.today + datetime.timedelta(days=60),
+            "immersion_end_date": self.today + datetime.timedelta(days=70),
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Period with this Label already exists.", form.errors["label"])
+
+        # test 2 : using unaccent
+        data.update({
+            "label": "Périod 1",
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A Period object with the same label already exists", form.errors["__all__"])
+
+        # Success
+        data.update({
+            "label": "Period 2",
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Period.objects.filter(label='Period 2').exists())
 
 
     def test_slot_form(self):

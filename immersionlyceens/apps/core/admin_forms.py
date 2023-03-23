@@ -835,9 +835,10 @@ class PeriodForm(forms.ModelForm):
             raise forms.ValidationError(_("You don't have the required privileges"))
 
         # active university year
-        # We shouldn't need to test existence again since these tests are in
-        # has_add_permission admin section
         univ_year = UniversityYear.get_active()
+
+        if not univ_year:
+            raise forms.ValidationError(_("An active university year is required to create a period"))
 
         # Date checks
         period_dates = [
@@ -847,16 +848,14 @@ class PeriodForm(forms.ModelForm):
         if not all(period_dates):
             raise forms.ValidationError(_("A period requires all dates to be filled in"))
 
-        if not univ_year.start_date < start_date < univ_year.end_date:
-            raise forms.ValidationError(_("Period start date must be between university year dates"))
+        dates_conditions = [
+            not (univ_year.start_date < registration_start_date < univ_year.end_date),
+            not (univ_year.start_date < start_date < univ_year.end_date),
+            not (univ_year.start_date < end_date < univ_year.end_date),
+        ]
 
-        if not univ_year.start_date < end_date < univ_year.end_date:
-            raise forms.ValidationError(_("Period end date must be between university year dates"))
-
-        if not univ_year.start_date < registration_start_date < univ_year.end_date:
-            raise forms.ValidationError(
-                _("Period registration start date must be between university year dates")
-            )
+        if any(dates_conditions):
+            raise forms.ValidationError(_("All period dates must be between university year start/end dates"))
 
         if not self.instance.id and start_date < timezone.now().date():
             raise forms.ValidationError(_("A new period can't be set with a start_date in the past"))
@@ -866,9 +865,9 @@ class PeriodForm(forms.ModelForm):
 
         # start < end
         if start_date and end_date and start_date >= end_date:
-            raise forms.ValidationError(_("Start date is greater than end date"))
+            raise forms.ValidationError(_("Start date is after end date"))
 
-        # Dates overlap test
+        # Label unicity and dates overlap test
         excludes = {'pk':self.instance.id } if self.instance else {}
 
         periods_qs = Period.objects.filter(

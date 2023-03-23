@@ -1460,6 +1460,25 @@ class Period(models.Model):
     def __str__(self):
         return f"Period '{self.label}' : {self.immersion_start_date} - {self.immersion_end_date}"
 
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                if Period.objects.filter(label__unaccent__iexact=self.label).exclude(**excludes).exists():
+                    raise ValidationError(
+                        _("A Period object with the same label already exists")
+                    )
+        except ValidationError as e:
+            raise
+
     class Meta:
         verbose_name = _('Period')
         verbose_name_plural = _('Periods')
