@@ -8,13 +8,14 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
 from ..admin import (
     CalendarAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
-    EstablishmentAdmin, StructureAdmin, TrainingAdmin,
+    EstablishmentAdmin, StructureAdmin, TrainingAdmin, PeriodAdmin
 )
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
@@ -25,6 +26,7 @@ from ..admin_forms import (
     ImmersupFileForm, InformationTextForm, MailTemplateForm,
     PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    PeriodForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
@@ -33,7 +35,7 @@ from ..models import (
     HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
     ImmersupFile, InformationText, MailTemplate, MailTemplateVars,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    TrainingSubdomain, UniversityYear, Vacation, Period
 )
 
 
@@ -64,7 +66,7 @@ class AdminFormsTestCase(TestCase):
         They are only set once
         """
         cls.site = AdminSite()
-        cls.today = datetime.datetime.today()
+        cls.today = timezone.localdate()
 
         cls.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion1@no-reply.com'
@@ -238,6 +240,12 @@ class AdminFormsTestCase(TestCase):
         Group.objects.get(name='ETU').user_set.add(cls.student)
         Group.objects.get(name='VIS').user_set.add(cls.visitor)
 
+    def setUp(self):
+        """
+        Setup to run before each test
+        """
+        # Clean messages in queue
+        list(get_messages(request))
 
     def test_training_domain_creation(self):
         """
@@ -834,10 +842,10 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'university_year',
             'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
-            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'start_date': self.today + datetime.timedelta(days=2),
+            'end_date': self.today + datetime.timedelta(days=4),
+            'registration_start_date': self.today + datetime.timedelta(days=3),
+            'purge_date': self.today + datetime.timedelta(days=5),
         }
 
         # Failures (invalid users)
@@ -860,10 +868,10 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'test_ok',
             'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-99),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
-            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
-            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'start_date': self.today + datetime.timedelta(days=-99),
+            'end_date': self.today + datetime.timedelta(days=3),
+            'registration_start_date': self.today + datetime.timedelta(days=1),
+            'purge_date': self.today + datetime.timedelta(days=5),
         }
 
         form = UniversityYearForm(data=data, request=request)
@@ -874,10 +882,10 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'test_ok',
             'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=99),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=9),
-            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
-            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'start_date': self.today + datetime.timedelta(days=99),
+            'end_date': self.today + datetime.timedelta(days=9),
+            'registration_start_date': self.today + datetime.timedelta(days=1),
+            'purge_date': self.today + datetime.timedelta(days=5),
         }
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -887,10 +895,10 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'test_ok',
             'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
-            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
-            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'start_date': self.today + datetime.timedelta(days=5),
+            'end_date': self.today + datetime.timedelta(days=10),
+            'registration_start_date': self.today + datetime.timedelta(days=1),
+            'purge_date': self.today + datetime.timedelta(days=5),
         }
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -900,10 +908,10 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'test_ok',
             'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
-            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=20),
-            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'start_date': self.today + datetime.timedelta(days=5),
+            'end_date': self.today + datetime.timedelta(days=10),
+            'registration_start_date': self.today + datetime.timedelta(days=20),
+            'purge_date': self.today + datetime.timedelta(days=5),
         }
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -916,10 +924,10 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'university_year',
             'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
-            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'start_date': self.today + datetime.timedelta(days=2),
+            'end_date': self.today + datetime.timedelta(days=4),
+            'registration_start_date': self.today + datetime.timedelta(days=3),
+            'purge_date': self.today + datetime.timedelta(days=5),
         }
 
         request.user = self.ref_master_etab_user
@@ -962,7 +970,7 @@ class AdminFormsTestCase(TestCase):
             'fax': '+3397654321',
             'email': 'santodomingo@santodomingo.edu',
             'head_teacher_name': 'Madame Musso Grace',
-            'convention_start_date': datetime.datetime.today().date(),
+            'convention_start_date': self.today,
             'convention_end_date': '',
             'postbac_immersion': True,
             'mailing_list': 'test@mailing-list.fr',
@@ -1019,15 +1027,15 @@ class AdminFormsTestCase(TestCase):
         """
         university_year = UniversityYear.objects.create(
             label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            start_date=self.today + datetime.timedelta(days=1),
+            end_date=self.today + datetime.timedelta(days=10),
+            registration_start_date=self.today + datetime.timedelta(days=1),
         )
 
         # Failures (invalid users)
         data = {
             'label': 'Holiday',
-            'date': datetime.datetime.today().date() + datetime.timedelta(days=2),
+            'date': self.today + datetime.timedelta(days=2),
         }
         request.user = self.ref_str_user
         form = HolidayForm(data=data, request=request)
@@ -1054,7 +1062,7 @@ class AdminFormsTestCase(TestCase):
         request.user = self.operator_user
         data = {
             'label': 'Holiday 2',
-            'date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'date': self.today + datetime.timedelta(days=4),
         }
         form = HolidayForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -1062,11 +1070,11 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(Holiday.objects.filter(label=data['label']).exists())
 
         # Fail : University year has already begun
-        university_year.start_date = datetime.datetime.today().date() - datetime.timedelta(days=1)
+        university_year.start_date = self.today - datetime.timedelta(days=1)
         university_year.save()
         data = {
             'label': 'Holiday 3',
-            'date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'date': self.today + datetime.timedelta(days=5),
         }
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1076,16 +1084,16 @@ class AdminFormsTestCase(TestCase):
     def test_vacation_creation(self):
         university_year = UniversityYear.objects.create(
             label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            start_date=self.today + datetime.timedelta(days=1),
+            end_date=self.today + datetime.timedelta(days=10),
+            registration_start_date=self.today + datetime.timedelta(days=1),
         )
 
         # Failures (invalid users)
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'start_date': self.today + datetime.timedelta(days=2),
+            'end_date': self.today + datetime.timedelta(days=4),
         }
         request.user = self.ref_str_user
         form = VacationForm(data=data, request=request)
@@ -1104,8 +1112,8 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_master_etab_user
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=1)
+            'start_date': self.today + datetime.timedelta(days=2),
+            'end_date': self.today + datetime.timedelta(days=1)
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1115,8 +1123,8 @@ class AdminFormsTestCase(TestCase):
         # Fail : vacation before university year
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-10),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'start_date': self.today + datetime.timedelta(days=-10),
+            'end_date': self.today + datetime.timedelta(days=4),
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1125,8 +1133,8 @@ class AdminFormsTestCase(TestCase):
         # Fail : vacation after university year
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=40),
+            'start_date': self.today + datetime.timedelta(days=4),
+            'end_date': self.today + datetime.timedelta(days=40),
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1137,15 +1145,15 @@ class AdminFormsTestCase(TestCase):
         university_year.save()
         vacation = Vacation.objects.create(
             label='Vac 1',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=40),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=60),
+            start_date=self.today + datetime.timedelta(days=40),
+            end_date=self.today + datetime.timedelta(days=60),
         )
 
         # - invalid start date
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=50),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=70),
+            'start_date': self.today + datetime.timedelta(days=50),
+            'end_date': self.today + datetime.timedelta(days=70),
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1154,8 +1162,8 @@ class AdminFormsTestCase(TestCase):
         # - invalid end date
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=30),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=50),
+            'start_date': self.today + datetime.timedelta(days=30),
+            'end_date': self.today + datetime.timedelta(days=50),
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1164,8 +1172,8 @@ class AdminFormsTestCase(TestCase):
         # - vacation period inside the new one
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=70),
+            'start_date': self.today + datetime.timedelta(days=10),
+            'end_date': self.today + datetime.timedelta(days=70),
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1178,8 +1186,8 @@ class AdminFormsTestCase(TestCase):
 
         data = {
             'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'start_date': self.today + datetime.timedelta(days=2),
+            'end_date': self.today + datetime.timedelta(days=4),
         }
 
         form = VacationForm(data=data, request=request)
@@ -1191,8 +1199,8 @@ class AdminFormsTestCase(TestCase):
         request.user = self.operator_user
         data = {
             'label': 'Vacation 2',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=7),
+            'start_date': self.today + datetime.timedelta(days=5),
+            'end_date': self.today + datetime.timedelta(days=7),
         }
         form = VacationForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -1200,12 +1208,12 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
 
         # Fail : University year has already begun
-        university_year.start_date = datetime.datetime.today().date() - datetime.timedelta(days=1)
+        university_year.start_date = self.today - datetime.timedelta(days=1)
         university_year.save()
         data = {
             'label': 'Vacation 3',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=8),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+            'start_date': self.today + datetime.timedelta(days=8),
+            'end_date': self.today + datetime.timedelta(days=10),
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1263,7 +1271,7 @@ class AdminFormsTestCase(TestCase):
         """
         Test public type mention creation with group rights
         """
-        now = datetime.datetime.today().date()
+        now = self.today
         UniversityYear.objects.create(
             label='University Year',
             active=True,
@@ -1365,7 +1373,7 @@ class AdminFormsTestCase(TestCase):
         """
         Test public type mention creation with group rights
         """
-        now = datetime.datetime.today().date()
+        now = self.today
         UniversityYear.objects.create(
             label='University Year',
             active=True,
@@ -1582,9 +1590,9 @@ class AdminFormsTestCase(TestCase):
 
         university_year = UniversityYear.objects.create(
             label='2020-2021',
-            start_date=self.today.date() - datetime.timedelta(days=365),
-            end_date=self.today.date() + datetime.timedelta(days=20),
-            registration_start_date=self.today.date() - datetime.timedelta(days=1),
+            start_date=self.today - datetime.timedelta(days=365),
+            end_date=self.today + datetime.timedelta(days=20),
+            registration_start_date=self.today - datetime.timedelta(days=1),
             active=True,
         )
 
@@ -1605,6 +1613,67 @@ class AdminFormsTestCase(TestCase):
         for user in success_user_list + fail_user_list:
             request.user = user
             self.assertFalse(calendar_admin.has_add_permission(request=request))
+
+
+    def test_period_admin(self):
+        """
+        Test period admin rights
+        """
+        adminsite = CustomAdminSite(name='Repositories')
+        period_admin = PeriodAdmin(admin_site=adminsite, model=Period)
+
+        success_user_list = [self.ref_master_etab_user, self.superuser, self.operator_user]
+        fail_user_list = [self.ref_etab_user, self.ref_str_user, self.ref_lyc_user]
+
+        # Fail : no active year
+        for user in success_user_list:
+            request.user = user
+            self.assertFalse(period_admin.has_add_permission(request=request))
+            self.assertEqual(
+                request._messages._queued_messages[0].message,
+                "Active year not found. Please check your university years settings."
+            )
+            # Clear messages each time
+            list(get_messages(request))
+
+        # With an active University year
+        university_year = UniversityYear.objects.create(
+            label='Active year',
+            start_date=self.today - datetime.timedelta(days=10),
+            end_date=self.today + datetime.timedelta(days=300),
+            registration_start_date=self.today,
+            active=True
+        )
+
+        period = Period.objects.create(
+            label = 'Period 1',
+            registration_start_date = self.today + datetime.timedelta(days=10),
+            immersion_start_date = self.today + datetime.timedelta(days=20),
+            immersion_end_date = self.today + datetime.timedelta(days=40),
+            allowed_immersions=4
+        )
+
+        # Creation & deletion rights : ok for these users
+        for user in success_user_list:
+            request.user = user
+            self.assertTrue(period_admin.has_add_permission(request=request))
+            self.assertTrue(period_admin.has_delete_permission(request=request, obj=period))
+
+        # Bad user : fail
+        for user in fail_user_list:
+            request.user = user
+            self.assertFalse(period_admin.has_add_permission(request=request))
+            self.assertFalse(period_admin.has_delete_permission(request=request, obj=period))
+            self.assertEqual(
+                request._messages._queued_messages[0].message,
+                "You are not allowed to delete periods"
+            )
+            # Clear messages each time
+            list(get_messages(request))
+
+        # Readonly fields
+        request.user = self.superuser
+        self.assertEqual(period_admin.get_readonly_fields(request=request, obj=period), [])
 
 
     def test_public_document_creation(self):

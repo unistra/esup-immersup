@@ -1327,7 +1327,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request):
         uy = None
 
-        users = [
+        valid_users = [
             request.user.is_operator(),
             request.user.is_master_establishment_manager(),
             request.user.is_superuser
@@ -1347,25 +1347,24 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             )
             return False
 
-        return any([users])
+        return any(valid_users)
+
 
     def has_delete_permission(self, request, obj=None):
         uy = None
+        today = timezone.localdate()
 
         if not obj:
             return False
 
-        users = [
+        valid_users = [
             request.user.is_operator(),
             request.user.is_master_establishment_manager(),
             request.user.is_superuser
         ]
 
-        if not any([users]):
-            messages.warning(
-                request,
-                _("You are not allowed to delete periods")
-            )
+        if not any(valid_users):
+            messages.warning(request, _("You are not allowed to delete periods"))
             return False
 
         try:
@@ -1382,7 +1381,12 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             )
             return False
 
-        year_condition = uy.start_date > timezone.now().date()
+        # University year not begun | period registration date is in the future
+        year_condition = [
+            uy.start_date > today,
+            today < uy.end_date,
+            obj.registration_start_date > today,
+        ]
 
         slots_exist = Slot.objects.filter(
             date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
@@ -1397,6 +1401,21 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             )
 
         return can_delete
+
+
+    def has_change_permission(self, request, obj=None):
+        valid_users = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        if not any(valid_users):
+            return False
+
+
+
+        return True
 
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
