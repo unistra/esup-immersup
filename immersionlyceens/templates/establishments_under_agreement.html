@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+{% endblock %}
+{% block head-javascript %}
+{% endblock %}
+{% block title %}
+{% trans "Host establishments" %}
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Host establishments' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Host establishments' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row border-top my-3"></div>
+    <div class="row"><div class="col offset-sm-1 text-center"> <h3>{% trans 'Training establishments under agreement' %}</h3></div></div>
+    <div class="row" style="padding-top:20px;">
+      <div class="col offset-sm-1 text-center">
+        <form class="form-inline justify-content-center">
+          <i class="fa fas fa-search" aria-hidden="true"></i>
+          <input class="form-control form-control-sm ml-4 w-25" id="search_establishment" type="text" aria-label="{% trans 'Search Establishment'%}">
+        </form>
+      </div>
+    </div>
+
+    <div class="row" style="padding-top:20px;padding-bottom:20px;">
+      <div class="col table-responsive" style="width: 98%">
+        <table id="establishment_table" class="table table-striped table-bordered nowrap dt-body-nowrap">
+          <thead>
+            <tr>
+              <th>{% trans 'City' %}</th>
+              <th>{% trans 'Name' %}</th>
+              <th>{% trans 'Email' %}</th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% block foot-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+<script type="text/javascript">
+  $(document).ready(function() {
+    function decodeHTMLEntities(text) {
+      return $("<textarea/>").html(text).text();
+    }
+    let immersions_establishments = JSON.parse(decodeHTMLEntities('{{ immersion_establishments }}'));
+    let dt = $('#establishment_table').DataTable({
+      'processing': false,
+      'order': [
+          [0, "asc"],
+          [1, "asc"],
+          [2, "asc"]
+       ],
+      dom: 'ltpr',
+      lengthChange: false,
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'dataType': 'json',
+      'data': immersions_establishments,
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+          { "data": "city" },
+          { "data": "label"},
+          { "data": "email"},
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+    });
+    $('#search_establishment').keyup( function() {
+         dt.search($(this).val()).draw();
+     } );
+  });
+</script>
+{% endblock %}
+

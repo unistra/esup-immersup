@@ -672,3 +672,29 @@ def faq(request):
     }
 
     return render(request, 'faq.html', context)
+
+
+def host_establishments(request):
+    """Host establishments view"""
+
+    establishments = Establishment.activated.all().values('city', 'label', 'email')
+    immersion_highschools = HighSchool.immersions_proposal\
+            .filter(signed_charter=True)\
+            .values('city', 'label', 'email')
+
+    immersion_establishments = establishments.union(immersion_highschools)
+
+    context = {
+        'immersion_establishments': json.dumps(list(immersion_establishments))
+    }
+    return render(request, 'establishments_under_agreement.html', context)
+
+
+def affiliated_highschools(request):
+    """Affiliated highschools view"""
+
+    highschools = HighSchool.agreed.values("city", "label", "email")
+    context = {
+        'highschools': json.dumps(list(highschools)),
+    }
+    return render(request, 'affiliated_highschools.html', context)
