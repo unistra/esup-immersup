@@ -15,25 +15,25 @@ from django.test import Client, RequestFactory, TestCase
 
 from ...immersion.models import HighSchoolStudentRecord
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm,
     CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
     EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
-    HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
-    StructureForm, TrainingDomainForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm, PeriodForm
+    HighSchoolForm, HolidayForm, PeriodForm, PublicDocumentForm,
+    PublicTypeForm, StructureForm, TrainingDomainForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm
 )
 from ..forms import (
     HighSchoolStudentImmersionUserForm, MyHighSchoolForm, OffOfferEventForm,
     OffOfferEventSlotForm, SlotForm, VisitForm, VisitSlotForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    AccompanyingDocument, BachelorMention, Building, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
-    Holiday, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
+    Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, Visit,
-    HigherEducationInstitution, Period
+    HigherEducationInstitution
 )
 
 request_factory = RequestFactory()
@@ -205,14 +205,6 @@ class FormTestCase(TestCase):
             professional_bachelor_mention='My spe'
         )
 
-        # FIXME : remove when periods are fully tested
-        cls.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',
-                        year_start_date=cls.today + datetime.timedelta(days=1),
-                        year_end_date=cls.today + datetime.timedelta(days=100),
-                        year_registration_start_date=cls.today + datetime.timedelta(days=2),
-                        year_nb_authorized_immersion=4
-                        )
-
         cls.period1 = Period.objects.create(
             label = 'Period 1',
             registration_start_date = cls.today + datetime.timedelta(days=10),
@@ -228,6 +220,7 @@ class FormTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
+
 
     def test_period_form(self):
         """
@@ -482,7 +475,6 @@ class FormTestCase(TestCase):
         # FAILS #
         #########
         request.user = self.ref_master_etab_user
-
         invalid_data = {
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -501,13 +493,26 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("You can't set a date in the past", form.errors["date"])
 
-        # Fail : Not between calendar dates
-        invalid_data["date"] = self.today + datetime.timedelta(days=102)
+        # Fail : period not found
+        i_date = self.today + datetime.timedelta(days=102)
+        invalid_data["date"] = i_date
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % i_date,
+            form.errors["date"]
+        )
 
         # Fail : time errors
+
+        period_now = Period.objects.create(
+            label='Now',
+            registration_start_date=self.today - datetime.timedelta(days=2),
+            immersion_start_date=self.today - datetime.timedelta(days=1),
+            immersion_end_date=self.today + datetime.timedelta(days=1),
+            allowed_immersions=4
+        )
+
         invalid_data["date"] = self.today
         invalid_data["start_time"] = datetime.time(hour=0)
         invalid_data["end_time"] = datetime.time(hour=1)
@@ -515,7 +520,7 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
 
-        invalid_data["date"] = self.today + datetime.timedelta(days=10)
+        invalid_data["date"] = self.today + datetime.timedelta(days=21)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
         form = SlotForm(data=invalid_data, request=request)
@@ -527,12 +532,6 @@ class FormTestCase(TestCase):
         form = SlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Required fields are not filled in", form.errors["__all__"])
-
-        # Fail : no calendar
-        self.calendar.delete()
-        form = SlotForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Error: A calendar is required to set a slot.", form.errors["__all__"])
 
 
     def test_HighSchoolStudentImmersionUserForm(self):

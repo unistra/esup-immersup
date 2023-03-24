@@ -19,10 +19,10 @@ from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
-    Building, Calendar, Campus, Course, CourseType, Establishment, HighSchool,
+    Building, Campus, Course, CourseType, Establishment, HighSchool,
     HighSchoolLevel, ImmersionUser, OffOfferEvent, OffOfferEventType,
-    PostBachelorLevel, Slot, Structure, StudentLevel, Training, UniversityYear,
-    Visit,
+    Period, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
+    UniversityYear, Visit
 )
 
 
@@ -280,13 +280,6 @@ class SlotForm(forms.ModelForm):
         if cleaned_data.get('repeat'):
             self.slot_dates = self.request.POST.getlist("slot_dates")
 
-        cals = Calendar.objects.all()
-
-        if cals.exists():
-            cal = cals.first()
-        else:
-            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
-
         if published:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['course', 'course_type', 'date', 'start_time', 'end_time', 'speakers']
@@ -306,12 +299,30 @@ class SlotForm(forms.ModelForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            if _date < timezone.now().date():
+            # Period check
+            try:
+                period = Period.from_date(date=_date)
+            except Period.MultipleObjectsReturned:
+                raise forms.ValidationError(
+                    _("Multiple periods found for date '%s' : please check your periods settings") % _date
+                )
+
+            if not period:
+                raise forms.ValidationError(
+                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
+                )
+
+            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
+                raise forms.ValidationError(
+                    {'date': _("Slot date must be between period immersion start and end dates")}
+                )
+
+            if _date < timezone.localdate():
                 raise forms.ValidationError(
                     {'date': _("You can't set a date in the past")}
                 )
 
-            if _date == timezone.now().date() and start_time <= timezone.now().time():
+            if _date == timezone.localdate() and start_time <= timezone.now().time():
                 raise forms.ValidationError(
                     {'start_time': _("Slot is set for today : please enter a valid start_time")}
                 )
@@ -319,11 +330,6 @@ class SlotForm(forms.ModelForm):
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
                 raise forms.ValidationError({'n_places': msg})
-
-        if _date and not cal.date_is_between(_date):
-            raise forms.ValidationError(
-                {'date': _('Error: The date must be between the dates of the current calendar')}
-            )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
@@ -436,13 +442,6 @@ class VisitSlotForm(SlotForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
-        cals = Calendar.objects.all()
-
-        if cals.exists():
-            cal = cals.first()
-        else:
-            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
-
         if published is True:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['visit', 'date', 'start_time', 'end_time', 'speakers']
@@ -461,12 +460,30 @@ class VisitSlotForm(SlotForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            if _date < timezone.now().date():
+            # Period check
+            try:
+                period = Period.from_date(date=_date)
+            except Period.MultipleObjectsReturned:
+                raise forms.ValidationError(
+                    _("Multiple periods found for date '%s' : please check your periods settings") % _date
+                )
+
+            if not period:
+                raise forms.ValidationError(
+                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
+                )
+
+            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
+                raise forms.ValidationError(
+                    {'date': _("Slot date must be between period immersion start and end dates")}
+                )
+
+            if _date < timezone.localdate():
                 raise forms.ValidationError(
                     {'date': _("You can't set a date in the past")}
                 )
 
-            if _date == timezone.now().date() and start_time <= timezone.now().time():
+            if _date == timezone.localdate() and start_time <= timezone.now().time():
                 raise forms.ValidationError(
                     {'start_time': _("Slot is set for today : please enter a valid start_time")}
                 )
@@ -475,11 +492,6 @@ class VisitSlotForm(SlotForm):
                 raise forms.ValidationError(
                     {'n_places': _("Please enter a valid number for 'n_places' field")}
                 )
-
-        if _date and not cal.date_is_between(_date):
-            raise forms.ValidationError(
-                {'date': _('Error: The date must be between the dates of the current calendar')}
-            )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
@@ -555,13 +567,6 @@ class OffOfferEventSlotForm(SlotForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
-        cals = Calendar.objects.all()
-
-        if cals.exists():
-            cal = cals.first()
-        else:
-            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
-
         if published is True:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['event', 'date', 'start_time', 'end_time', 'speakers']
@@ -580,20 +585,33 @@ class OffOfferEventSlotForm(SlotForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            if _date < timezone.now().date():
+            # Period check
+            try:
+                period = Period.from_date(date=_date)
+            except Period.MultipleObjectsReturned:
+                raise forms.ValidationError(
+                    _("Multiple periods found for date '%s' : please check your periods settings") % _date
+                )
+
+            if not period:
+                raise forms.ValidationError(
+                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
+                )
+
+            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
+                raise forms.ValidationError(
+                    {'date': _("Slot date must be between period immersion start and end dates")}
+                )
+
+            if _date < timezone.localdate():
                 self.add_error('date', _("You can't set a date in the past"))
 
-            if _date == timezone.now().date() and start_time <= timezone.now().time():
+            if _date == timezone.localdate() and start_time <= timezone.now().time():
                 self.add_error('start_time', _("Slot is set for today : please enter a valid start_time"))
 
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
                 self.add_error('n_places', msg)
-
-        if _date and not cal.date_is_between(_date):
-            raise forms.ValidationError(
-                {'date': _('Error: The date must be between the dates of the current calendar')}
-            )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')

@@ -20,7 +20,7 @@ from rest_framework.authtoken.models import TokenProxy
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm,
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
     CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
     EvaluationFormLinkForm, EvaluationTypeForm, FaqEntryAdminForm,
@@ -34,7 +34,7 @@ from .admin_forms import (
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
+    Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
@@ -1206,90 +1206,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         }
 
 
-class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = CalendarForm
-    list_display = ('label',)
-    search_fields = ('label',)
-    fieldsets = (
-        (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
-        (
-            _('Year mode'),
-            {
-                'fields': (
-                    'year_nb_authorized_immersion',
-                    'year_registration_start_date',
-                    'year_start_date',
-                    'year_end_date',
-                )
-            },
-        ),
-        (
-            _('Semester mode'),
-            {
-                'fields': (
-                    'nb_authorized_immersion_per_semester',
-                    'semester1_registration_start_date',
-                    'semester2_registration_start_date',
-                )
-            },
-        ),
-        (_('Semester 1'), {'fields': ('semester1_start_date', 'semester1_end_date',)}),
-        (_('Semester 2'), {'fields': ('semester2_start_date', 'semester2_end_date',)}),
-    )
-
-    def get_readonly_fields(self, request, obj=None):
-        fields = []
-
-        uy = None
-        university_years = UniversityYear.objects.filter(active=True)
-        if university_years.count() > 0:
-            uy = university_years[0]
-
-        if uy is None or request.user.is_superuser:
-            return []
-
-        if obj:
-            if uy.start_date <= datetime.today().date():
-                fields = [
-                    'label',
-                    'calendar_mode',
-                    'year_start_date',
-                    'year_end_date',
-                    'semester1_start_date',
-                    'semester1_end_date',
-                    'semester2_start_date',
-                    'semester2_end_date',
-                    'year_registration_start_date',
-                    'semester1_registration_start_date',
-                    'semester2_registration_start_date',
-                    'year_nb_authorized_immersion',
-                    'nb_authorized_immersion_per_semester',
-                ]
-
-            if uy.end_date <= datetime.today().date():
-                fields.append('global_evaluation_date')
-
-        return list(set(fields))
-
-    def has_add_permission(self, request):
-        """Singleton"""
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
-        # Only one calendar can exist
-        return not Calendar.objects.exists()
-
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    class Media:
-        # TODO: check why I can't use django.jquery stuff !!!!!
-        js = (
-            'js/jquery-3.4.1.slim.min.js',
-            'js/admin_calendar.min.js',
-        )
-
 class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     """
     Period admin class
@@ -2161,7 +2077,6 @@ admin.site.register(PublicType, PublicTypeAdmin)
 admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
-admin.site.register(Calendar, CalendarAdmin)
 admin.site.register(Period, PeriodAdmin)
 admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)

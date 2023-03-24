@@ -19,12 +19,12 @@ from immersionlyceens.apps.immersion.models import (
 )
 
 from ..models import (
-    BachelorMention, Building, Calendar, Campus, Course, CourseType,
+    BachelorMention, Building, Campus, Course, CourseType,
     Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
-    OffOfferEvent, OffOfferEventType, PostBachelorLevel, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Visit,
+    OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Visit,
 )
 
 request_factory = RequestFactory()
@@ -281,13 +281,12 @@ class CoreViewsTestCase(TestCase):
         )
         cls.slot3.speakers.add(cls.speaker2)
 
-        cls.calendar = Calendar.objects.create(
-            label='my calendar',
-            calendar_mode='YEAR',
-            year_start_date=cls.today - datetime.timedelta(days=10),
-            year_end_date=cls.today + datetime.timedelta(days=10),
-            year_registration_start_date=cls.today + datetime.timedelta(days=2),
-            year_nb_authorized_immersion=4
+        cls.period1 = Period.objects.create(
+            label='Period 1',
+            registration_start_date=cls.today + datetime.timedelta(days=2),
+            immersion_start_date=cls.today + datetime.timedelta(days=5),
+            immersion_end_date=cls.today + datetime.timedelta(days=10),
+            allowed_immersion=4
         )
 
         cls.university_year = UniversityYear.objects.create(
@@ -408,15 +407,18 @@ class CoreViewsTestCase(TestCase):
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
-        # Fail with date outside of calendar boundaries
-        data["date"] = (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d")
+        # Fail with date outside of period dates
+        date = self.today + datetime.timedelta(days=15)
+        data["date"] = date.strftime("%Y-%m-%d")
         response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
-        self.assertIn("Error: The date must be between the dates of the current calendar",
-            response.content.decode('utf-8'))
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % date,
+            response.content.decode('utf-8')
+        )
 
         # Update to a valid date
-        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d")
 
         # Fail with missing field
         del(data['speakers'])
@@ -1292,12 +1294,15 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
-        # Invalid date (not between calendar boundaries)
-        data["date"] = (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d")
+        # Invalid date (not between period dates)
+        date = self.today + datetime.timedelta(days=15)
+        data["date"] = date.strftime("%Y-%m-%d")
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Error: The date must be between the dates of the current calendar",
-                      response.content.decode('utf-8'))
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % date,
+            response.content.decode('utf-8')
+        )
 
         # With a valid date, but speakers are still missing
         data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
@@ -1491,6 +1496,8 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/off_offer_event_slot", follow=True)
         self.assertEqual(response.status_code, 200)
 
+        date = self.today + datetime.timedelta(days=15)
+
         data = {
             'event': event.id,
             'face_to_face': True,
@@ -1498,7 +1505,7 @@ class CoreViewsTestCase(TestCase):
             'building': self.building.id,
             'room': "anywhere",
             'published': True,
-            'date': (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'date': date.strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
             'speakers': [self.speaker1.id],
@@ -1507,11 +1514,13 @@ class CoreViewsTestCase(TestCase):
             'save': "Save",
         }
 
-        # Invalid date (not between calendar boundaries)
+        # Invalid date
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Error: The date must be between the dates of the current calendar",
-                      response.content.decode('utf-8'))
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % date,
+            response.content.decode('utf-8')
+        )
 
         # Date in the past
         data["date"] = (self.today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")

@@ -21,9 +21,9 @@ from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, Establishment, FaqEntry,
-    HighSchool, ImmersupFile, InformationText, PublicDocument, PublicType,
-    Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
+    AccompanyingDocument, Course, Establishment, FaqEntry,HighSchool, ImmersupFile,
+    InformationText, Period, PublicDocument, PublicType, Slot, Training,
+    TrainingSubdomain, UserCourseAlert, Visit,
 )
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
@@ -222,10 +222,6 @@ def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
     student = None
     record = None
-    calendar = None
-    cal_start_date = None
-    cal_end_date = None
-    reg_start_date = None
     remaining_regs_count = None
     course_alerts = None
 
@@ -240,6 +236,8 @@ def offer_subdomain(request, subdomain_id):
         elif student.is_visitor():
             record = student.get_visitor_record()
 
+        # Remaining registrations for each period
+        # remaining_regs_count = { period.pk : nb_registrations_left }
         remaining_regs_count = student.remaining_registrations_count()
 
         course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).values_list(
@@ -251,41 +249,9 @@ def offer_subdomain(request, subdomain_id):
 
     data = []
 
-    # determine dates range to use
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     now = timezone.now()
-    today = datetime.datetime.today().date()
-    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-
-    try:
-        # Year mode
-        if calendar and calendar.calendar_mode == 'YEAR':
-            cal_start_date = calendar.year_registration_start_date
-            cal_end_date = calendar.year_end_date
-            reg_start_date = calendar.year_registration_start_date
-        # semester mode
-        elif calendar:
-            if calendar.which_semester(today) == 1:
-                semester = 1
-                cal_start_date = calendar.semester1_start_date
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester1_registration_start_date
-                reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.which_semester(today) == 2:
-                semester = 2
-                cal_start_date = calendar.semester2_start_date
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester2_registration_start_date
-            else:
-                raise AttributeError
-
-    except (AttributeError, TypeError):
-        raise DisplayException(_('Calendar not initialized'), display=True)
+    today = timezone.localdate()
 
     for training in trainings:
         training_courses = (
@@ -296,7 +262,7 @@ def offer_subdomain(request, subdomain_id):
 
         for course in training_courses:
             slots = Slot.objects.filter(
-                course__id=course.id, published=True, date__gte=today, date__lte=cal_end_date,
+                course__id=course.id, published=True, date__gte=today
             ).order_by('date', 'start_time', 'end_time')
 
             training_data = {
@@ -316,6 +282,16 @@ def offer_subdomain(request, subdomain_id):
                     slot.passed_registration_limit_date = slot.registration_limit_date < timezone.now()
                     slot.passed_cancellation_limit_date = slot.cancellation_limit_date < timezone.now()
 
+                    remaining_period_registrations = 0
+
+                    # get slot period (for dates)
+                    try:
+                        period = Period.from_date(date=slot.date)
+                        if period:
+                            remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
+                    except Period.MultipleObjectsReturned as e:
+                        raise
+
                     # Already registered / cancelled ?
                     for immersion in student.immersions.all():
                         if immersion.slot == slot:
@@ -324,28 +300,15 @@ def offer_subdomain(request, subdomain_id):
 
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
-                    if not slot.already_registered or slot.cancelled:
+                    if remaining_period_registrations and (not slot.already_registered or slot.cancelled):
                         can_register, reasons = student.can_register_slot(slot)
-                        if slot.available_seats() > 0 and can_register:
-                            # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                            if calendar.calendar_mode == 'YEAR':
-                                if reg_start_date <= today <= cal_end_date and slot.registration_limit_date >= now:
-                                    slot.can_register = True
-                                elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
-                                    slot.opening_soon = True
-                            # Check if we could register with reg_date
-                            elif semester == 1:
-                                if reg_start_date <= today and slot.date < reg_semester2_start_date\
-                                        and slot.registration_limit_date >= now:
-                                    slot.can_register = True
-                                elif slot.date > reg_semester2_start_date or today < reg_start_date:
-                                    slot.opening_soon = True
-                            elif semester == 2:
-                                if reg_start_date <= today and slot.registration_limit_date >= now:
-                                    slot.can_register = True
-                                elif today < reg_start_date:
-                                    slot.opening_soon = True
 
+                        if slot.available_seats() > 0 and can_register:
+                            if period.registration_start_date <= today <= period.immersion_end_date\
+                                and slot.registration_limit_date >= now:
+                                slot.can_register = True
+                            elif now < slot.registration_limit_date:
+                                slot.opening_soon = True
             else:
                 for slot in slots:
                     slot.cancelled = False
@@ -376,10 +339,7 @@ def offer_subdomain(request, subdomain_id):
     context = {
         'subdomain': subdomain,
         'data': data,
-        'reg_start_date': reg_start_date,
         'today': today,
-        'cal_start_date': cal_start_date,
-        'cal_end_date': cal_end_date,
         'student': student,
         'open_training_id': open_training_id,
         'open_course_id': open_course_id,
@@ -432,36 +392,9 @@ def visits_offer(request):
     if Q_filter:
         visits = visits.filter(Q_filter)
 
-    # determine dates range to use
-    # TODO: refactor in model !
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    today = datetime.datetime.today().date()
-    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-    try:
-        # Year mode
-        if calendar and calendar.calendar_mode == 'YEAR':
-            cal_end_date = calendar.year_end_date
-            reg_start_date = calendar.year_registration_start_date
-        # semester mode
-        elif calendar:
-            if calendar.which_semester(today) == 1:
-                semester = 1
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester1_registration_start_date
-                reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.which_semester(today) == 2:
-                semester = 2
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester2_registration_start_date
-        else:
-            raise AttributeError
-    except (AttributeError, TypeError):
-        raise DisplayException(_('Calendar not initialized'), display=True)
+    now = timezone.now()
+    today = timezone.localdate()
 
     # If the current user is a higschool student, check whether he can register
     if student and record:
@@ -480,25 +413,15 @@ def visits_offer(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not visit.already_registered or visit.cancelled:
                 can_register, reasons = student.can_register_slot(visit)
-                if visit.available_seats() > 0 and can_register:
-                    # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                    if calendar.calendar_mode == 'YEAR':
-                        if reg_start_date <= today <= cal_end_date:
-                            visit.can_register = True
-                        elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
-                            visit.opening_soon = True
-                    # Check if we could register with reg_date
-                    elif semester == 1:
-                        if reg_start_date <= today and visit.date < reg_semester2_start_date:
-                            visit.can_register = True
-                        elif visit.date > reg_semester2_start_date or today < reg_start_date:
-                            visit.opening_soon = True
-                    elif semester == 2:
-                        if today >= reg_start_date:
-                            visit.can_register = True
-                        elif today < reg_start_date:
-                            visit.opening_soon = True
 
+                period = Period.from_date(date=visit.date)
+
+                if visit.available_seats() > 0 and can_register:
+                    if period.registration_start_date <= today <= period.immersion_end_date \
+                            and visit.registration_limit_date >= now:
+                        visit.can_register = True
+                    elif now < visit.registration_limit_date:
+                        visit.opening_soon = True
     else:
         for visit in visits:
             visit.cancelled = False
@@ -522,9 +445,6 @@ def offer_off_offer_events(request):
     today = timezone.now().date()
     student = None
     record = None
-    calendar = None
-    cal_end_date = None
-    reg_start_date = None
     Q_Filter = None
     semester = None
 
@@ -559,36 +479,9 @@ def offer_off_offer_events(request):
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
             .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date' )
 
-    # determine dates range to use
-    # TODO: refactor in model !
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    today = datetime.datetime.today().date()
-    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-    try:
-        # Year mode
-        if calendar and calendar.calendar_mode == 'YEAR':
-            cal_end_date = calendar.year_end_date
-            reg_start_date = calendar.year_registration_start_date
-        # semester mode
-        elif calendar:
-            if calendar.which_semester(today) == 1:
-                semester = 1
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester1_registration_start_date
-                reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.which_semester(today) == 2:
-                semester = 2
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester2_registration_start_date
-            else:
-                raise AttributeError
-    except (AttributeError, TypeError):
-        raise DisplayException(_('Calendar not initialized'), display=True)
+    now = timezone.now()
+    today = timezone.localdate()
 
     # If the current user is a student/highschool student, check whether he can register
     if student and record:
@@ -608,24 +501,15 @@ def offer_off_offer_events(request):
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
                 can_register, reasons = student.can_register_slot(event)
+
+                period = Period.from_date(date=event.date)
+
                 if event.available_seats() > 0 and can_register:
-                    # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                    if calendar.calendar_mode == 'YEAR':
-                        if reg_start_date <= today <= cal_end_date:
-                            event.can_register = True
-                        elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
-                            event.opening_soon = True
-                    # Check if we could register with reg_date
-                    elif semester == 1:
-                        if reg_start_date <= today and visit.date < reg_semester2_start_date:
-                            event.can_register = True
-                        elif visit.date > reg_semester2_start_date or today < reg_start_date:
-                            event.opening_soon = True
-                    elif semester == 2:
-                        if today >= reg_start_date:
-                            event.can_register = True
-                        elif today < reg_start_date:
-                            event.opening_soon = True
+                    if period.registration_start_date <= today <= period.immersion_end_date \
+                            and event.registration_limit_date >= now:
+                        event.can_register = True
+                    elif now < event.registration_limit_date:
+                        event.opening_soon = True
     else:
         for event in events:
             event.cancelled = False

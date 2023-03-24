@@ -7,7 +7,7 @@ from django.db import models
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core import models as core_models
-from immersionlyceens.apps.core.models import Calendar, get_file_path
+from immersionlyceens.apps.core.models import Period, get_file_path
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,6 @@ class HighSchoolStudentRecord(models.Model):
 
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
-    # level = models.SmallIntegerField(_("Level"), default=1, choices=LEVELS)
 
     level = models.ForeignKey(
         core_models.HighSchoolLevel,
@@ -91,10 +90,6 @@ class HighSchoolStudentRecord(models.Model):
     professional_bachelor_mention = models.CharField(
         _("Professional bachelor mention"), blank=True, null=True, max_length=128)
 
-    # For post-bachelor levels
-    # post_bachelor_level = models.SmallIntegerField(_("Post bachelor level"),
-    #  default=1, null=True, blank=True, choices=POST_BACHELOR_LEVELS)
-
     post_bachelor_level = models.ForeignKey(
         core_models.PostBachelorLevel,
         verbose_name=_("Post bachelor level"),
@@ -118,14 +113,7 @@ class HighSchoolStudentRecord(models.Model):
     visible_email = models.BooleanField(
         _("Allow students from my school to see my email address"), default=False)
 
-    allowed_global_registrations = models.SmallIntegerField(
-        _("Number of allowed year registrations"), null=True, blank=True)
-
-    allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
-
-    allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
+    allowed_immersions = models.ManyToManyField(Period, through='HighSchoolStudentRecordQuota')
 
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
 
@@ -213,6 +201,14 @@ class HighSchoolStudentRecord(models.Model):
 
         self.save()
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for period in Period.objects.all():
+            if not HighSchoolStudentRecordQuota.objects.filter(period=period, record=self).exists():
+                HighSchoolStudentRecordQuota.objects.create(
+                    period=period, record=self, allowed_immersions=period.allowed_immersions
+                )
+
     def is_valid(self):
         return self.validation == 2
 
@@ -260,17 +256,6 @@ class StudentRecord(models.Model):
     Student record class, linked to ImmersionUsers accounts
     """
 
-    """
-    LEVELS = [
-        (1, _('Licence 1 (1st year above A level)')),
-        (2, _('Licence 2 (2nd year above A level)')),
-        (3, _('Licence 3 (3rd year above A level)')),
-        (4, _('BTEC 1')),
-        (5, _('BTEC 2')),
-        (6, _('Other')),
-    ]
-    """
-
     BACHELOR_TYPES = [
         (1, _('General')),
         (2, _('Technological')),
@@ -307,14 +292,7 @@ class StudentRecord(models.Model):
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 
-    allowed_global_registrations = models.SmallIntegerField(
-        _("Number of allowed year registrations (excluding visits and events)"), null=True, blank=True)
-
-    allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
-
-    allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
+    allowed_immersions = models.ManyToManyField(Period, through='StudentRecordQuota')
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
@@ -332,6 +310,14 @@ class StudentRecord(models.Model):
             return inst.label, inst
         except core_models.HigherEducationInstitution.DoesNotExist:
             return self.uai_code, None
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for period in Period.objects.all():
+            if not StudentRecordQuota.objects.filter(period=period, record=self).exists():
+                StudentRecordQuota.objects.create(
+                    period=period, record=self, allowed_immersions=period.allowed_immersions
+                )
 
     class Meta:
         verbose_name = _('Student record')
@@ -396,12 +382,7 @@ class VisitorRecord(models.Model):
     )
 
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
-    allowed_global_registrations = models.SmallIntegerField(
-        _("Number of allowed year registrations (excluding visits and events)"), null=True, blank=True)
-    allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
-    allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
+    allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
 
     def delete(self, using=None, keep_parents=False):
         """Delete the visitor record and attachments"""
@@ -410,15 +391,12 @@ class VisitorRecord(models.Model):
         super().delete(using, keep_parents)
 
     def save(self, *args, **kwargs):
-        if self.allowed_first_semester_registrations is None and self.allowed_second_semester_registrations is None \
-                and self.allowed_global_registrations is None:
-            calendar = Calendar.objects.all().first()
-            self.allowed_first_semester_registrations = calendar.nb_authorized_immersion_per_semester
-            self.allowed_second_semester_registrations = calendar.nb_authorized_immersion_per_semester
-            self.allowed_global_registrations = calendar.year_nb_authorized_immersion
-
         super().save(*args, **kwargs)
-
+        for period in Period.objects.all():
+            if not VisitorRecordQuota.objects.filter(period=period, record=self).exists():
+                VisitorRecordQuota.objects.create(
+                    period=period, record=self, allowed_immersions=period.allowed_immersions
+                )
 
     def is_valid(self):
         return self.validation == 2
@@ -429,3 +407,77 @@ class VisitorRecord(models.Model):
     class Meta:
         verbose_name = _('Visitor record')
         verbose_name_plural = _('Visitor records')
+
+
+class HighSchoolStudentRecordQuota(models.Model):
+    """
+    M2M 'through' relation between high school student records and period for immersions quotas
+    """
+    record = models.ForeignKey(HighSchoolStudentRecord, related_name="quota", on_delete=models.CASCADE)
+    period = models.ForeignKey(Period, on_delete=models.CASCADE)
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions'), null=False, blank=False, default=1
+    )
+
+    def __str__(self):
+        return f"{self.record} / {self.period} : {self.allowed_immersions}"
+
+    class Meta:
+        verbose_name = _('High school student record / Period quota')
+        verbose_name_plural = _('High school student record / Period quotas')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['record', 'period'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_high_school_student_record_period'
+            )
+        ]
+
+class StudentRecordQuota(models.Model):
+    """
+    M2M 'through' relation between student records and period for immersions quotas
+    """
+    record = models.ForeignKey(StudentRecord, related_name="quota", on_delete=models.CASCADE)
+    period = models.ForeignKey(Period, on_delete=models.CASCADE)
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions'), null=False, blank=False, default=1
+    )
+
+    def __str__(self):
+        return f"{self.record} / {self.period} : {self.allowed_immersions}"
+
+    class Meta:
+        verbose_name = _('Student record / Period quota')
+        verbose_name_plural = _('Student record / Period quotas')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['record', 'period'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_student_record_period'
+            )
+        ]
+
+
+class VisitorRecordQuota(models.Model):
+    """
+    M2M 'through' relation between visitor records and period for immersions quotas
+    """
+    record = models.ForeignKey(VisitorRecord, related_name="quota", on_delete=models.CASCADE)
+    period = models.ForeignKey(Period, on_delete=models.CASCADE)
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions'), null=False, blank=False, default=1
+    )
+
+    def __str__(self):
+        return f"{self.record} / {self.period} : {self.allowed_immersions}"
+
+    class Meta:
+        verbose_name = _('Visitor record / Period quota')
+        verbose_name_plural = _('Visitor record / Period quotas')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['record', 'period'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_visitor_record_period'
+            )
+        ]
