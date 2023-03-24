@@ -21,10 +21,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, pgettext
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Calendar, Campus, CancelType, Course,
+    AccompanyingDocument, Building, Campus, CancelType, Course,
     CourseType, Establishment, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
+    MailTemplateVars, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
     UserCourseAlert, Vacation, Visit,
 )
@@ -305,13 +305,12 @@ class APITestCase(TestCase):
 
         cls.cancel_type = CancelType.objects.create(label='Hello world')
 
-        cls.calendar = Calendar.objects.create(
-            label="Calendrier1",
-            calendar_mode=Calendar.CALENDAR_MODE[0][0],
-            year_start_date=cls.today - timedelta(days=10),
-            year_end_date=cls.today + timedelta(days=10),
-            year_nb_authorized_immersion=4,
-            year_registration_start_date=cls.today - timedelta(days=9)
+        cls.period = Period.objects.create(
+            label="Period 1",
+            immersion_start_date=cls.today - timedelta(days=9),
+            immersion_end_date=cls.today + timedelta(days=10),
+            registration_start_date=cls.today - timedelta(days=10),
+            allowed_immersions = 4,
         )
 
         cls.vac = Vacation.objects.create(
@@ -488,10 +487,7 @@ class APITestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
-            visible_email=True,
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=2,
-            allowed_second_semester_registrations=2,
+            visible_email=True
         )
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
@@ -503,37 +499,25 @@ class APITestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
-            visible_email=True,
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            visible_email=True
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
             uai_code='0673021V',  # Université de Strasbourg
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
             uai_code='0597065J',  # Université de Lille
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
         )
         self.visitor_record = VisitorRecord.objects.create(
             visitor=self.visitor,
-            birth_date=datetime.today(),
-            allowed_first_semester_registrations=2,
-            allowed_second_semester_registrations=2,
-            allowed_global_registrations=4,
+            birth_date=datetime.today()
         )
 
         self.slot4 = Slot.objects.create(
@@ -2730,7 +2714,7 @@ class APITestCase(TestCase):
 
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
-            {'semester1': 2, 'semester2': 2, 'annually': 1}
+            {self.period.pk: 3}
         )
 
         client = Client()
@@ -2749,7 +2733,7 @@ class APITestCase(TestCase):
         self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
-            {'semester1': 2, 'semester2': 2, 'annually': 0}
+            {self.period.pk: 2}
         )
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
 
@@ -2812,66 +2796,6 @@ class APITestCase(TestCase):
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
-
-    def test_ajax_slot_registration_semester_mode(self):
-        self.hs_record.validation = 2
-        self.hs_record.save()
-
-        # Recreate a calendar in semester mode
-        Calendar.objects.all().delete()
-
-        calendar = Calendar.objects.create(
-            label="Calendrier2",
-            calendar_mode=Calendar.CALENDAR_MODE[1][0],
-            semester1_start_date=self.today - timedelta(days=10),
-            semester1_end_date=self.today + timedelta(days=10),
-            semester1_registration_start_date=self.today - timedelta(days=9),
-            semester2_start_date=self.today + timedelta(days=11),
-            semester2_end_date=self.today + timedelta(days=31),
-            semester2_registration_start_date=self.today + timedelta(days=11),
-            nb_authorized_immersion_per_semester=3,
-        )
-
-        self.hs_record.allowed_first_semester_registrations = 3
-        self.hs_record.allowed_second_semester_registrations = 3
-        self.hs_record.save()
-
-        self.assertEqual(
-            self.highschool_user.remaining_registrations_count(),
-            {'semester1': 1, 'semester2': 3, 'annually': 2}
-        )
-
-        client = Client()
-        client.login(username=self.highschool_user.username, password='pass')
-
-        # Should work
-        data = {
-            'slot_id': self.slot3.id,
-            'student_id': self.highschool_user.id
-        }
-
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
-        self.assertEqual(
-            self.highschool_user.remaining_registrations_count(),
-            {'semester1': 0, 'semester2': 3, 'annually': 2}
-        )
-        self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
-
-        # Fail : no more registration allowed
-        data['slot_id'] = self.slot2.id
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("""You have no more remaining registration available, """
-                         """you should cancel an immersion or contact immersion service""", content['msg'])
-
-        # As a structure manager
-        client.login(username=self.ref_str.username, password='pass')
-        data['slot_id'] = self.slot2.id
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("This student has no more remaining slots to register to", content['msg'])
 
     def test_ajax_get_duplicates(self):
         self.hs_record.duplicates = "[%s]" % self.hs_record2.id

@@ -286,7 +286,7 @@ class CoreViewsTestCase(TestCase):
             registration_start_date=cls.today + datetime.timedelta(days=2),
             immersion_start_date=cls.today + datetime.timedelta(days=5),
             immersion_end_date=cls.today + datetime.timedelta(days=10),
-            allowed_immersion=4
+            allowed_immersions=4
         )
 
         cls.university_year = UniversityYear.objects.create(

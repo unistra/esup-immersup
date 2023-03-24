@@ -16,9 +16,9 @@ from ..mails.variables_parser import parser
 
 from immersionlyceens.apps.core.models import (
     UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
-    Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment, HigherEducationInstitution,
-    PendingUserGroup
+    Building, CourseType, Training, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
+    CancelType, HighSchoolLevel, StudentLevel, Period, PostBachelorLevel, Establishment,
+    HigherEducationInstitution, PendingUserGroup
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -120,12 +120,12 @@ class MailsTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(cls.ref_str)
 
-        cls.calendar = Calendar.objects.create(
-            calendar_mode=Calendar.CALENDAR_MODE[0][0],
-            year_start_date=cls.today - datetime.timedelta(days=10),
-            year_end_date=cls.today + datetime.timedelta(days=10),
-            year_nb_authorized_immersion=4,
-            year_registration_start_date=cls.today - datetime.timedelta(days=9)
+        cls.period1 = Period.objects.create(
+            label='period 1',
+            immersion_start_date=cls.today - datetime.timedelta(days=9),
+            immersion_end_date=cls.today + datetime.timedelta(days=10),
+            registration_start_date=cls.today - datetime.timedelta(days=10),
+            allowed_immersions=4,
         )
         cls.vac = Vacation.objects.create(
             label="vac",

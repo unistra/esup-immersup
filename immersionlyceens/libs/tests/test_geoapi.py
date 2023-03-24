@@ -13,7 +13,7 @@ from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.utils.translation import pgettext, gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Calendar, Campus, CancelType, Course,
+    AccompanyingDocument, Building, Campus, CancelType, Course,
     CourseType, GeneralSettings, HighSchool, Immersion, ImmersionUser,
     MailTemplate, MailTemplateVars, Slot, Structure, Training, TrainingDomain,
     TrainingSubdomain, UserCourseAlert, Vacation,

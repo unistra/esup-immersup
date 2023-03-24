@@ -560,9 +560,6 @@ class ImmersionUserTestCase(TestCase):
             birth_date=timezone.now(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
         )
 
         # Check that the link between the student record and Establishment is good (same object)
@@ -620,10 +617,7 @@ class ImmersionUserTestCase(TestCase):
             uai_code=institution.uai_code,
             birth_date=self.today - timedelta(days=8000),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
         )
 
         structure = Structure.objects.create(

@@ -8,10 +8,10 @@ from django.contrib.auth.models import Group
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from immersionlyceens.apps.core.models import (
-    BachelorMention, Building, Calendar, Campus, Course, CourseType,
+    BachelorMention, Building, Campus, Course, CourseType,
     Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, ImmersionUserGroup,
-    PendingUserGroup, PostBachelorLevel, Slot, Structure, StudentLevel,
+    PendingUserGroup, Period, PostBachelorLevel, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear,
 )
 from immersionlyceens.apps.immersion.models import (
@@ -180,13 +180,12 @@ class ImmersionViewsTestCase(TestCase):
         )
         cls.slot.speakers.add(cls.speaker1)
 
-        cls.calendar = Calendar.objects.create(
-            label='my calendar',
-            calendar_mode='YEAR',
-            year_start_date=cls.today + datetime.timedelta(days=1),
-            year_end_date=cls.today + datetime.timedelta(days=100),
-            year_registration_start_date=cls.today + datetime.timedelta(days=2),
-            year_nb_authorized_immersion=4
+        cls.period1 = Period.objects.create(
+            label='Period 1',
+            immersion_start_date=cls.today + datetime.timedelta(days=2),
+            immersion_end_date=cls.today + datetime.timedelta(days=100),
+            registration_start_date=cls.today + datetime.timedelta(days=1),
+            allowed_immersions=4
         )
 
         cls.university_year = UniversityYear.objects.create(

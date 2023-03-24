@@ -29,10 +29,10 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, CertificateLogo, CertificateSignature,
+    CancelType, CertificateLogo, CertificateSignature,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
-    MailTemplate, PendingUserGroup, PostBachelorLevel, Slot, StudentLevel,
-    UniversityYear, UserCourseAlert, Period
+    MailTemplate, PendingUserGroup, Period, PostBachelorLevel, Slot,
+    StudentLevel, UniversityYear, UserCourseAlert
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required

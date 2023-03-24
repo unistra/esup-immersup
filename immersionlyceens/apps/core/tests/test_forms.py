@@ -412,7 +412,7 @@ class FormTestCase(TestCase):
             'campus': self.campus.id,
             'building': self.building.id,
             'room': 'room 1',
-            'date': self.today + datetime.timedelta(days=10),
+            'date': self.today + datetime.timedelta(days=21),
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -452,7 +452,7 @@ class FormTestCase(TestCase):
             'campus': self.campus.id,
             'building': self.building.id,
             'room': 'room 1',
-            'date': self.today + datetime.timedelta(days=10),
+            'date': self.today + datetime.timedelta(days=21),
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -653,12 +653,15 @@ class FormTestCase(TestCase):
 
         data["speakers"] = [self.speaker1.id]
 
-        # Fail : date not in calendar
+        # Fail : no period for the following date
         data["date"] = self.today + datetime.timedelta(days=101)
 
         form = VisitSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
+            form.errors["date"]
+        )
 
         data["date"] = self.today + datetime.timedelta(days=30)
 
@@ -880,7 +883,10 @@ class FormTestCase(TestCase):
 
         form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
+            form.errors["date"]
+        )
 
         # Fail : date in the past
         data["date"] = self.today - datetime.timedelta(days=1)

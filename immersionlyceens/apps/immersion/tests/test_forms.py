@@ -12,15 +12,13 @@ from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment, HigherEducationInstitution
+    HighSchool, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment, HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
-
 class MockRequest:
     pass
-
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -129,14 +127,6 @@ class FormTestCase(TestCase):
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe'
-        )
-        cls.calendar = Calendar.objects.create(
-            label='my calendar', 
-            calendar_mode='YEAR',
-            year_start_date=cls.today + datetime.timedelta(days=1),
-            year_end_date=cls.today + datetime.timedelta(days=100),
-            year_registration_start_date=cls.today + datetime.timedelta(days=2),
-            year_nb_authorized_immersion=4
         )
 
 
