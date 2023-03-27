@@ -26,6 +26,7 @@ from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from django.views import View
 from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
@@ -585,7 +586,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
     redirect_url: str = reverse('offer')
     record = None
     student = None
-    periods = Period.objects.all()
+    periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
     # Unused ?
     if student_id:
@@ -600,13 +601,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         record = student.get_high_school_student_record()
 
         if not record:
-            record = HighSchoolStudentRecord.objects.create(student=request.user)
-
-            # Default quotas
-            for period in periods:
-                HighSchoolStudentRecordQuota.objects.create(
-                    record=record, period=period, allowed_immersions=period.allowed_immersions
-                )
+            record = HighSchoolStudentRecord(student=request.user)
 
     elif record_id:
         try:
@@ -700,19 +695,24 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     )
 
             messages.success(request, _("Record successfully saved."))
+
+            for period in periods:
+                if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    HighSchoolStudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            formset = QuotaFormSet(request.POST, initial=[
+                quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=record)
+            ])
+
+            if formset.is_valid():
+                formset.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
-
-        # Quotas form save
-        formset = QuotaFormSet(request.POST, initial=[
-            quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=record)
-        ])
-
-        if formset.is_valid():
-            formset.save()
 
         if recordform.is_valid() and studentform.is_valid():
             return HttpResponseRedirect(redirect_url)
@@ -777,6 +777,7 @@ def student_record(request, student_id=None, record_id=None):
     record = None
     student = None
     no_record = False
+    periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
     # Unused ?
     if student_id:
@@ -803,13 +804,8 @@ def student_record(request, student_id=None, record_id=None):
             uai_code = uai_code.replace('{UAI}', '')
 
         if not record:
-            record = StudentRecord.objects.create(student=request.user, uai_code=uai_code)
+            record = StudentRecord(student=request.user, uai_code=uai_code)
 
-            # Default quotas
-            for period in Period.objects.all():
-                StudentRecordQuota.objects.create(
-                    record=record, period=period, allowed_immersions=period.allowed_immersions
-                )
         elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
             record.save()
@@ -863,19 +859,26 @@ def student_record(request, student_id=None, record_id=None):
         if recordform.is_valid():
             record = recordform.save()
             messages.success(request, _("Record successfully saved."))
+
+            # Quota form save
+            for period in periods:
+                if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    StudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            formset = QuotaFormSet(request.POST, initial=[
+                quota for quota in StudentRecordQuota.objects.filter(record=record)
+            ])
+
+            if formset.is_valid():
+                formset.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
 
-        # Quota form save
-        formset = QuotaFormSet(request.POST, initial=[
-            quota for quota in StudentRecordQuota.objects.filter(record=record)
-        ])
-
-        if formset.is_valid():
-            formset.save()
     else:
         request.session['back'] = request.headers.get('Referer')
         recordform = StudentRecordForm(request=request, instance=record)
@@ -1086,8 +1089,10 @@ class VisitorRecordView(FormView):
 
 
         # Stats for user deletion
-        today = datetime.today().date()
-        now = datetime.today().time()
+        today = timezone.localdate()
+        now = timezone.now()
+        periods = Period.objects.all()
+
         past_immersions = visitor.immersions.filter(
             Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
         ).count()
@@ -1145,6 +1150,7 @@ class VisitorRecordView(FormView):
         record_id: Optional[int] = self.kwargs.get("record_id")
         current_email: Optional[str] = None
         user: Optional[ImmersionUser] = None
+        periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
         if request.user.is_visitor():
             user = request.user
@@ -1159,7 +1165,7 @@ class VisitorRecordView(FormView):
         if user:
             current_email = user.email
 
-        # Quotas
+        # Quotas formset
         QuotaFormSet = forms.modelformset_factory(
             VisitorRecordQuota,
             extra=0,
@@ -1169,6 +1175,13 @@ class VisitorRecordView(FormView):
         if form.is_valid() and form_user.is_valid():
             record = form.save()
             saved_user = form_user.save()
+
+            # Default quotas
+            for period in periods:
+                if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
+                    VisitorRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
 
             formset = QuotaFormSet(request.POST, initial=[
                 quota for quota in VisitorRecordQuota.objects.filter(record=record)

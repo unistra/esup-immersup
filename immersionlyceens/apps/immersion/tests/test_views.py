@@ -652,9 +652,6 @@ class ImmersionViewsTestCase(TestCase):
             bachelor_type=1,
             visible_immersion_registrations=False,
             visible_email=False,
-            allowed_global_registrations=None,
-            allowed_first_semester_registrations=2,
-            allowed_second_semester_registrations=2,
             validation=2,
             duplicates="[5,6,4]"
         )
@@ -668,9 +665,6 @@ class ImmersionViewsTestCase(TestCase):
             bachelor_type=1,
             visible_immersion_registrations=False,
             visible_email=False,
-            allowed_global_registrations=None,
-            allowed_first_semester_registrations=2,
-            allowed_second_semester_registrations=2,
             validation=2,
             duplicates="[5,6,4]"
         )

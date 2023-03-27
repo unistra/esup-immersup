@@ -9,9 +9,7 @@ from unittest.mock import patch
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.template.defaultfilters import date as _date
@@ -29,7 +27,7 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, StudentRecord, VisitorRecord,
+    HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord, VisitorRecord,
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -489,6 +487,13 @@ class APITestCase(TestCase):
             visible_immersion_registrations=True,
             visible_email=True
         )
+
+        # Set custom quota for this student
+        HighSchoolStudentRecordQuota.objects.filter(
+            period=self.period,
+            record=self.hs_record,
+        ).update(allowed_immersions=2)
+
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
             highschool=self.high_school,
@@ -1902,8 +1907,6 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
-
-
         url = f"/api/get_slot_registrations/{self.slot.id}"
 
         response = self.client.get(url, request, **self.header)
@@ -2714,7 +2717,7 @@ class APITestCase(TestCase):
 
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
-            {self.period.pk: 3}
+            {self.period.pk: 1}
         )
 
         client = Client()
@@ -2733,7 +2736,7 @@ class APITestCase(TestCase):
         self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
-            {self.period.pk: 2}
+            {self.period.pk: 0}
         )
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
 
@@ -2746,7 +2749,7 @@ class APITestCase(TestCase):
         data['slot_id'] = self.slot2.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("""You have no more remaining registration available, """
+        self.assertEqual("""You have no more remaining registration available for this period, """
                          """you should cancel an immersion or contact immersion service""", content['msg'])
 
         # As a structure manager
@@ -2754,7 +2757,7 @@ class APITestCase(TestCase):
         data['slot_id'] = self.slot2.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("This student has no more remaining slots to register to", content['msg'])
+        self.assertEqual("This student has no more remaining slots to register to for this period", content['msg'])
 
         # reset immersions
         client.login(username=self.highschool_user.username, password='pass')
@@ -2780,11 +2783,12 @@ class APITestCase(TestCase):
         self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
 
         # Fail with highschool level Restrictions
-        response = client.post("/api/register",
-                               {'slot_id': self.highschool_level_restricted_slot.id},
-                               **self.header,
-                               follow=True
-                               )
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.highschool_level_restricted_slot.id},
+            **self.header,
+            follow=True
+        )
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
 

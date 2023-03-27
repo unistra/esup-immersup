@@ -205,6 +205,14 @@ class FormTestCase(TestCase):
             professional_bachelor_mention='My spe'
         )
 
+        cls.past_period = Period.objects.create(
+            label='Past period',
+            registration_start_date=cls.today - datetime.timedelta(days=12),
+            immersion_start_date=cls.today - datetime.timedelta(days=10),
+            immersion_end_date=cls.today - datetime.timedelta(days=8),
+            allowed_immersions=4
+        )
+
         cls.period1 = Period.objects.create(
             label = 'Period 1',
             registration_start_date = cls.today + datetime.timedelta(days=10),
@@ -499,7 +507,7 @@ class FormTestCase(TestCase):
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn(
-            "No available period found for slot date '%s', please create one first" % i_date,
+            "No available period found for slot date '%s', please create one first" % i_date.strftime("%Y-%m-%d"),
             form.errors["date"]
         )
 
@@ -878,7 +886,7 @@ class FormTestCase(TestCase):
 
         data["speakers"] = [self.speaker1]
 
-        # Fail : date not in calendar
+        # Fail : date not in periods limit
         data["date"] = self.today + datetime.timedelta(days=101)
 
         form = OffOfferEventSlotForm(data=data, request=request)
@@ -889,7 +897,7 @@ class FormTestCase(TestCase):
         )
 
         # Fail : date in the past
-        data["date"] = self.today - datetime.timedelta(days=1)
+        data["date"] = self.today - datetime.timedelta(days=10)
 
         form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())

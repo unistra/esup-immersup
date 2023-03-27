@@ -261,7 +261,7 @@ class CoreViewsTestCase(TestCase):
         cls.course_type = CourseType.objects.create(label='CM')
         cls.slot = Slot.objects.create(
             course=cls.course, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 1', date=cls.today,
+            building=cls.building, room='room 1', date=cls.today + datetime.timedelta(days=5),
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
         cls.slot.speakers.add(cls.speaker1),
@@ -269,23 +269,32 @@ class CoreViewsTestCase(TestCase):
         # Add another slot : structure referent shouldn't have access to this one
         cls.slot2 = Slot.objects.create(
             course=cls.course2, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 12', date=cls.today,
+            building=cls.building, room='room 12', date=cls.today + datetime.timedelta(days=5),
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
         cls.slot2.speakers.add(cls.speaker2)
 
         cls.slot3 = Slot.objects.create(
             course=cls.course2, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 12', date=cls.today + datetime.timedelta(days=1),
+            building=cls.building, room='room 12', date=cls.today + datetime.timedelta(days=6),
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
         cls.slot3.speakers.add(cls.speaker2)
+
+        # Periods
+        cls.period_past = Period.objects.create(
+            label="Past period",
+            immersion_start_date=cls.today - datetime.timedelta(days=10),
+            immersion_end_date=cls.today - datetime.timedelta(days=8),
+            registration_start_date=cls.today - datetime.timedelta(days=12),
+            allowed_immersions=4
+        )
 
         cls.period1 = Period.objects.create(
             label='Period 1',
             registration_start_date=cls.today + datetime.timedelta(days=2),
             immersion_start_date=cls.today + datetime.timedelta(days=5),
-            immersion_end_date=cls.today + datetime.timedelta(days=10),
+            immersion_end_date=cls.today + datetime.timedelta(days=40),
             allowed_immersions=4
         )
 
@@ -407,13 +416,13 @@ class CoreViewsTestCase(TestCase):
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
-        # Fail with date outside of period dates
-        date = self.today + datetime.timedelta(days=15)
+        # Fail with date outside of period dates (end of period : d+40)
+        date = self.today + datetime.timedelta(days=60)
         data["date"] = date.strftime("%Y-%m-%d")
         response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn(
-            "No available period found for slot date '%s', please create one first" % date,
+            "No available period found for slot date &#x27;%s&#x27;, please create one first" % date.strftime("%Y-%m-%d"),
             response.content.decode('utf-8')
         )
 
@@ -459,7 +468,7 @@ class CoreViewsTestCase(TestCase):
             'building': self.building.id,
             'face_to_face': True,
             'room': "S40",
-            'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
+            'date': (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d"),
             'start_time': "16:00",
             'end_time': "18:00",
             'speakers': [self.speaker1.id],
@@ -513,13 +522,13 @@ class CoreViewsTestCase(TestCase):
             'building': self.building.id,
             'face_to_face': True,
             'room': "REPEAT_TEST",
-            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
-            'repeat': (self.today + datetime.timedelta(days=29)).strftime("%Y-%m-%d"),
+            'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
+            'repeat': (self.today + datetime.timedelta(days=33)).strftime("%Y-%m-%d"),
             'slot_dates[]': [
-                (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
-                (self.today + datetime.timedelta(days=15)).strftime("%d/%m/%Y"),
-                (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
-                (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=19)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
             ],
             'start_time': "12:00",
             'end_time': "14:00",
@@ -541,7 +550,7 @@ class CoreViewsTestCase(TestCase):
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
         self.assertEqual(slots.count(), 3)
-        d = self.today + datetime.timedelta(days=1)
+        d = self.today + datetime.timedelta(days=5)
         for slot in slots:
             self.assertEqual(slot.date, d.date())
             self.assertEqual(slot.speakers.all().count(), 2)
@@ -552,9 +561,9 @@ class CoreViewsTestCase(TestCase):
         Slot.objects.filter(room="REPEAT_TEST").delete()
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
         data['slot_dates[]'] = [
-            (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
-            (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
-            (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
         ]
 
         response = self.client.post("/core/slot", data, follow=True)
@@ -564,8 +573,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(slots.count(), 2)
 
         dates = [
-            self.today + datetime.timedelta(days=1),
-            self.today + datetime.timedelta(days=8),
+            self.today + datetime.timedelta(days=5),
+            self.today + datetime.timedelta(days=12),
         ]
         dates_idx = 0
         for slot in slots:
@@ -622,7 +631,7 @@ class CoreViewsTestCase(TestCase):
             'building': self.slot.building.id,
             'face_to_face': True,
             'room': "New room",
-            'date': (self.slot.date + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'date': (self.slot.date + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
             'start_time': "13:30",
             'end_time': "15:30",
             'speakers': [self.speaker1.id],
@@ -648,7 +657,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(slot.end_time, datetime.time(15, 30))
         self.assertEqual(slot.n_places, 20)
         self.assertEqual(slot.additional_information, "New data")
-        self.assertEqual(slot.date, (self.slot.date + datetime.timedelta(days=1)).date())
+        self.assertEqual(slot.date, (self.slot.date + datetime.timedelta(days=5)).date())
 
         self.assertIn("Course slot \"%s\" updated." % slot, response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
@@ -1160,8 +1169,10 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/students_presence", follow=True)
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(response.context['min_date'], self.today.strftime("%Y-%m-%d"))
-        self.assertEqual(response.context['max_date'], (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
+        # first slot date
+        self.assertEqual(response.context['min_date'], self.slot.date.strftime("%Y-%m-%d"))
+        # last slot date
+        self.assertEqual(response.context['max_date'], self.slot3.date.strftime("%Y-%m-%d"))
 
 
     def test_duplicated_accounts(self):
@@ -1295,17 +1306,17 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
         # Invalid date (not between period dates)
-        date = self.today + datetime.timedelta(days=15)
+        date = self.today + datetime.timedelta(days=60)
         data["date"] = date.strftime("%Y-%m-%d")
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            "No available period found for slot date '%s', please create one first" % date,
+            "No available period found for slot date &#x27;%s&#x27;, please create one first" % date.strftime("%Y-%m-%d"),
             response.content.decode('utf-8')
         )
 
         # With a valid date, but speakers are still missing
-        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d")
         del(data["speakers"])
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertIn("Required fields are not filled in", response.content.decode('utf-8'))
@@ -1344,7 +1355,7 @@ class CoreViewsTestCase(TestCase):
             "is_removable": True
         }]))
 
-        # Create an immersion to test mail notification
+        # Create an immersion, then update the slot to test mail notification
         Immersion.objects.create(
             student=self.highschool_user,
             slot=slot,
@@ -1356,7 +1367,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': False,
             'url': "http://www.whatever.com",
             'published': True,
-            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'date': (self.today + datetime.timedelta(days=7)).strftime("%Y-%m-%d"),
             'start_time': "10:00",
             'end_time': "12:00",
             'n_places': 10,
@@ -1496,7 +1507,7 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/off_offer_event_slot", follow=True)
         self.assertEqual(response.status_code, 200)
 
-        date = self.today + datetime.timedelta(days=15)
+        date = self.today + datetime.timedelta(days=60)
 
         data = {
             'event': event.id,
@@ -1518,18 +1529,18 @@ class CoreViewsTestCase(TestCase):
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            "No available period found for slot date '%s', please create one first" % date,
+            "No available period found for slot date &#x27;%s&#x27;, please create one first" % date.strftime("%Y-%m-%d"),
             response.content.decode('utf-8')
         )
 
         # Date in the past
-        data["date"] = (self.today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        data["date"] = (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d")
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
         # With a valid date, but speakers are still missing
-        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d")
         del(data['speakers'])
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
         self.assertIn("Required fields are not filled in", response.content.decode('utf-8'))
@@ -1569,7 +1580,7 @@ class CoreViewsTestCase(TestCase):
             "is_removable": True
         }]))
 
-        # Create an immersion to test mail notification
+        # Create an immersion, then update the slot to test mail notification
         Immersion.objects.create(
             student=self.highschool_user,
             slot=slot,
@@ -1581,7 +1592,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': False,
             'url': "http://www.whatever.com",
             'published': True,
-            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'date': (self.today + datetime.timedelta(days=7)).strftime("%Y-%m-%d"),
             'start_time': "10:00",
             'end_time': "12:00",
             'n_places': 10,
