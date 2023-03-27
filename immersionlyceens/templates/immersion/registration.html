@@ -163,6 +163,14 @@
 </section>
 <script>
 $(document).ready(function() {
+    $("#view_button1").focusout(function(){
+        $("#{{ form.password1.id_for_label }}").attr("type", "password");
+
+    })
+    $("#view_button2").focusout(function(){
+        $("#{{ form.password2.id_for_label }}").attr("type", "password");
+
+    })
     $("#view_button1").bind("mousedown touchstart keydown", function() {
             $("#{{ form.password1.id_for_label }}").attr("type", "text");
         }), $("#view_button1").bind("mouseup touchend keyup", function() {
@@ -170,7 +178,7 @@ $(document).ready(function() {
         }), $("#view_button2").bind("mousedown touchstart keydown", function() {
             $("#{{ form.password2.id_for_label }}").attr("type", "text");
         }), $("#view_button2").bind("mouseup touchend keyup", function() {
-            $("#{{ form.password2.id_for_label }}").attr("type", "password")
+            $("#{{ form.password2.id_for_label }}").attr("type", "password");
         })
     });
 </script>
