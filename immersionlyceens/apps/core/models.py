@@ -59,6 +59,30 @@ def get_file_path(instance, filename,):
         .replace(' ', '_')
     )
 
+def validate_slot_date(date: datetime.date):
+    """
+    :param date: the slot date to validate
+    :return: Raises ValidationError Exception or nothing
+    """
+    # Period
+    try:
+        period = Period.from_date(date)
+    except Period.MultipleObjectsReturned:
+        raise ValidationError(
+            _("Multiple periods found for date '%s' : please check your periods settings") % date.strftime("%Y-%m-%d")
+        )
+
+    if not period:
+        raise ValidationError(
+            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
+        )
+
+    # Past
+    if date < timezone.localdate():
+        raise ValidationError(
+            _("You can't set a date in the past")
+        )
+
 
 class HigherEducationInstitution(models.Model):
     """
@@ -2217,7 +2241,7 @@ class Slot(models.Model):
     )
     room = models.CharField(_("Room"), max_length=128, blank=True, null=True)
 
-    date = models.DateField(_('Date'), blank=True, null=True)
+    date = models.DateField(_('Date'), blank=True, null=True, validators=[validate_slot_date])
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
     end_time = models.TimeField(_('End time'), blank=True, null=True)
 

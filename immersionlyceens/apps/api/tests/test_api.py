@@ -303,12 +303,20 @@ class APITestCase(TestCase):
 
         cls.cancel_type = CancelType.objects.create(label='Hello world')
 
+        cls.past_period = Period.objects.create(
+            label="Past Period",
+            registration_start_date=cls.today - timedelta(days=10),
+            immersion_start_date=cls.today - timedelta(days=9),
+            immersion_end_date=cls.today,
+            allowed_immersions = 4,
+        )
+
         cls.period = Period.objects.create(
             label="Period 1",
-            immersion_start_date=cls.today - timedelta(days=9),
-            immersion_end_date=cls.today + timedelta(days=10),
-            registration_start_date=cls.today - timedelta(days=10),
-            allowed_immersions = 4,
+            registration_start_date=cls.today + timedelta(days=1),
+            immersion_start_date=cls.today + timedelta(days=2),
+            immersion_end_date=cls.today + timedelta(days=20),
+            allowed_immersions=4,
         )
 
         cls.vac = Vacation.objects.create(
@@ -374,7 +382,7 @@ class APITestCase(TestCase):
             campus=self.campus,
             building=self.building,
             room='room 2',
-            date=self.today + timedelta(days=1),
+            date=self.today + timedelta(days=3),
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -386,7 +394,7 @@ class APITestCase(TestCase):
             campus=self.campus,
             building=self.building,
             room='room 2',
-            date=self.today + timedelta(days=2),
+            date=self.today + timedelta(days=3),
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -408,7 +416,7 @@ class APITestCase(TestCase):
             campus=self.campus,
             building=self.building,
             room='room 2',
-            date=self.today + timedelta(days=1),
+            date=self.today + timedelta(days=3),
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=0,
@@ -432,7 +440,7 @@ class APITestCase(TestCase):
             campus=self.campus,
             building=self.building,
             room='room 2',
-            date=self.today + timedelta(days=1),
+            date=self.today + timedelta(days=2),
             registration_limit_delay=48,
             cancellation_limit_delay=48,
             start_time=time(12, 0),
@@ -446,7 +454,7 @@ class APITestCase(TestCase):
             campus=self.campus,
             building=self.building,
             room='room 2',
-            date=self.today + timedelta(days=1),
+            date=self.today + timedelta(days=2),
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -490,9 +498,14 @@ class APITestCase(TestCase):
 
         # Set custom quota for this student
         HighSchoolStudentRecordQuota.objects.filter(
-            period=self.period,
             record=self.hs_record,
+            period=self.past_period
         ).update(allowed_immersions=2)
+
+        HighSchoolStudentRecordQuota.objects.filter(
+            record=self.hs_record,
+            period=self.period
+        ).update(allowed_immersions=1)
 
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
@@ -735,6 +748,7 @@ class APITestCase(TestCase):
         add_permission = Permission.objects.get(codename='add_slot')
         url = reverse("slot_list")
 
+        # This date is inside a valid period
         date = (self.today + timedelta(days=10)).strftime("%Y-%m-%d")
         speaker = self.course.speakers.first()
 
@@ -846,7 +860,6 @@ class APITestCase(TestCase):
 
         response = self.api_client_token.post(url, data2)
         result = json.loads(response.content.decode('utf-8'))
-
         self.assertEqual(["end_time can't be set before or equal to start_time"], result['error']['end_time'])
 
         # Bad speaker choice (not linked to self.course)
@@ -858,6 +871,20 @@ class APITestCase(TestCase):
             [f"Speaker '{self.operator_user}' is not linked to course '{self.course}'"],
             result['error']['speakers']
         )
+
+        # Test bad date/period
+        new_date = self.today + timedelta(days=30)
+        data["date"] = new_date.strftime("%Y-%m-%d")
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(
+            ["No available period found for slot date '%s', please create one first" % data["date"]],
+            result['error']['date']
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(Slot.objects.filter(date=new_date, course=self.course.pk).exists())
 
     def test_API_get_student_records(self):
         self.client.login(username='ref_etab', password='pass')
@@ -2717,7 +2744,10 @@ class APITestCase(TestCase):
 
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
-            {self.period.pk: 1}
+            {
+                self.past_period.pk: 1,
+                self.period.pk: 1,
+            }
         )
 
         client = Client()
@@ -2736,7 +2766,10 @@ class APITestCase(TestCase):
         self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
-            {self.period.pk: 0}
+            {
+                self.past_period.pk: 1,
+                self.period.pk: 0,
+            }
         )
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
 

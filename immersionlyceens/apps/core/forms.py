@@ -299,29 +299,6 @@ class SlotForm(forms.ModelForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            # Period check
-            try:
-                period = Period.from_date(date=_date)
-            except Period.MultipleObjectsReturned:
-                raise forms.ValidationError(
-                    _("Multiple periods found for date '%s' : please check your periods settings") % _date
-                )
-
-            if not period:
-                raise forms.ValidationError(
-                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
-                )
-
-            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
-                raise forms.ValidationError(
-                    {'date': _("Slot date must be between period immersion start and end dates")}
-                )
-
-            if _date < timezone.localdate():
-                raise forms.ValidationError(
-                    {'date': _("You can't set a date in the past")}
-                )
-
             if _date == timezone.localdate() and start_time <= timezone.now().time():
                 raise forms.ValidationError(
                     {'start_time': _("Slot is set for today : please enter a valid start_time")}
