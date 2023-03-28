@@ -14,7 +14,6 @@ import logging
 import os
 import re
 import uuid
-import pytz
 from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
@@ -45,8 +44,6 @@ from .managers import (
 
 #from ordered_model.models import OrderedModel
 
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -60,6 +57,30 @@ def get_file_path(instance, filename,):
         .lower()
         .replace(' ', '_')
     )
+
+def validate_slot_date(date: datetime.date):
+    """
+    :param date: the slot date to validate
+    :return: Raises ValidationError Exception or nothing
+    """
+    # Period
+    try:
+        period = Period.from_date(date)
+    except Period.MultipleObjectsReturned:
+        raise ValidationError(
+            _("Multiple periods found for date '%s' : please check your periods settings") % date.strftime("%Y-%m-%d")
+        )
+
+    if not period:
+        raise ValidationError(
+            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
+        )
+
+    # Past
+    if date < timezone.localdate():
+        raise ValidationError(
+            _("You can't set a date in the past")
+        )
 
 
 class HigherEducationInstitution(models.Model):
@@ -580,31 +601,14 @@ class ImmersionUser(AbstractUser):
 
     def remaining_registrations_count(self):
         """
-        Based on the calendar mode and the current immersions registrations,
-        returns a dictionnary with remaining registrations count for
-        both semesters and year
-
-        If there's no calendar or the current user is not a student, return 0
-        for each period
+        Returns a dictionary with remaining registrations count for each period
+        If the current user is not a student, return 0 for each period
         """
-        current_semester_1_regs = 0
-        current_semester_2_regs = 0
-        current_year_regs = 0
+        from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordQuota, StudentRecordQuota, \
+            VisitorRecordQuota
+
         record = None
-
-        remaining = {
-            'semester1': 0,
-            'semester2': 0,
-            'annually': 0,
-        }
-
-        calendar = None
-
-        # No calendar : no registration
-        try:
-            calendar = Calendar.objects.first()
-        except Exception:
-            return remaining
+        remaining = { period.pk: 0 for period in Period.objects.all() }
 
         # Not a student or no record yet : no registration
         if self.is_high_school_student():
@@ -617,50 +621,34 @@ class ImmersionUser(AbstractUser):
         if not record or not record.is_valid():
             return remaining
 
-        if calendar.calendar_mode == 'SEMESTER':
-            if not calendar.semester1_start_date or not calendar.semester1_end_date:
-                current_semester_1_regs = 0
-            else:
-                current_semester_1_regs = self.immersions.filter(
-                    slot__date__gte=calendar.semester1_start_date,
-                    slot__date__lte=calendar.semester1_end_date,
-                    cancellation_type__isnull=True,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True,
-                ).count()
+        for period in Period.objects.all():
+            registrations = self.immersions.filter(
+                slot__date__gte=period.immersion_start_date,
+                slot__date__lte=period.immersion_end_date,
+                cancellation_type__isnull=True,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+            ).count()
 
-            if not calendar.semester2_start_date or not calendar.semester2_end_date:
-                current_semester_2_regs = 0
-            else:
-                current_semester_2_regs = self.immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date,
-                    slot__date__lte=calendar.semester2_end_date,
-                    cancellation_type__isnull=True,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True,
-                ).count()
-        else:
-            if not calendar.year_start_date or not calendar.year_end_date:
-                current_year_regs = 0
-            else:
-                current_year_regs = self.immersions.filter(
-                    slot__date__gte=calendar.year_start_date,
-                    slot__date__lte=calendar.year_end_date,
-                    cancellation_type__isnull=True,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True,
-                ).count()
+            # Default period quota or student record quota
+            # FIXME : what if custom_quota.allowed_immersions < period.allowed_immersions ?
+            try:
+                custom_quota = record.quota.get(period=period)
+                allowed_immersions = custom_quota.allowed_immersions
+            except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
+                    VisitorRecordQuota.DoesNotExist) as e:
+                logger.debug("%s : record not found" % self)
+                allowed_immersions = period.allowed_immersions
 
-        return {
-            'semester1': (record.allowed_first_semester_registrations or 0) - current_semester_1_regs,
-            'semester2': (record.allowed_second_semester_registrations or 0) - current_semester_2_regs,
-            'annually': (record.allowed_global_registrations or 0) - current_year_regs,
-        }
+            remaining[period.pk] = allowed_immersions - registrations
 
-    def set_increment_registrations_(self, type):
+        return remaining
+
+    def set_increment_registrations_(self, period):
+        from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordQuota, StudentRecordQuota, \
+            VisitorRecordQuota
         """
-        Updates student registrations remaining based on type parameter
-        type values are annual/semester1/semester2
+        Updates student remaining registrations based on period
         """
         record = None
 
@@ -674,22 +662,23 @@ class ImmersionUser(AbstractUser):
         if not record or not record.is_valid():
             return
 
-        if type == 'annual':
-            record.allowed_global_registrations += 1
+        try:
+            quota = record.quota.get(period=period)
+            quota.allowed_immersions += 1
+            quota.save()
+        except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
+                VisitorRecordQuota.DoesNotExist) as e:
+            # Not found : something to do ?
+            pass
 
-        elif type == 'semester1':
-            record.allowed_first_semester_registrations += 1
+        return
 
-        elif type == 'semester2':
-            record.allowed_second_semester_registrations += 1
-        else:
-            return
-
-        record.save()
 
     def can_register_slot(self, slot=None):
         """
-        Slot registration check : validate only User vs Slot restrictions here, NOT slot registration delay
+        Slot registration check : validate only User vs Slot restrictions here,
+        - NOT slot registration delay
+        - NOT registrations quotas
         """
         errors = []
 
@@ -1217,6 +1206,7 @@ class UniversityYear(models.Model):
     end_date = models.DateField(_("End date"))
     registration_start_date = models.DateField(_("Registration date"))
     purge_date = models.DateField(_("Purge date"), null=True)
+    global_evaluation_date = models.DateField(_("Global evaluation date"), null=True, blank=True)
 
     @classmethod
     def get_active(cls):
@@ -1312,7 +1302,7 @@ class Vacation(models.Model):
 
 
     def date_is_between(self, _date):
-        return self.start_date <= _date and _date <= self.end_date
+        return self.start_date <= _date <= self.end_date
 
 
     @classmethod
@@ -1351,108 +1341,6 @@ class Vacation(models.Model):
         ordering = ['label', ]
 
 
-class Calendar(models.Model):
-    """
-    Semesters or annual dates for current university year
-    """
-
-    CALENDAR_MODE = [
-        ('YEAR', _('Year')),
-        ('SEMESTER', _('Semester')),
-    ]
-
-    label = models.CharField(_("Label"), max_length=256, unique=True)
-    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
-
-    year_start_date = models.DateField(_("Year start date"), null=True, blank=True)
-    year_end_date = models.DateField(_("Year end date"), null=True, blank=True)
-    year_registration_start_date = models.DateField(_("Year start registration date"), null=True, blank=True)
-    year_nb_authorized_immersion = models.PositiveIntegerField(_("Number of authorized immersions per year"), default=4)
-
-    semester1_start_date = models.DateField(_("Semester 1 start date"), null=True, blank=True)
-    semester1_end_date = models.DateField(_("Semester 1 end date"), null=True, blank=True)
-    semester1_registration_start_date = models.DateField(_("Semester 1 start registration date"), null=True, blank=True)
-    semester2_start_date = models.DateField(_("Semester 2 start date"), null=True, blank=True)
-    semester2_end_date = models.DateField(_("Semester 2 end date"), null=True, blank=True)
-    semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
-    nb_authorized_immersion_per_semester = models.PositiveIntegerField(
-        _("Number of authorized immersions per semester"), default=2
-    )
-
-    global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
-
-
-    def __str__(self):
-        """str"""
-        return self.label
-
-
-    def validate_unique(self, exclude=None):
-        """Validate unique"""
-        try:
-            super().validate_unique()
-        except ValidationError as e:
-            raise ValidationError(_('A calendar with this label already exists'))
-
-
-    def date_is_between(self, _date):
-        if self.calendar_mode == 'YEAR':
-            if not self.year_start_date or not self.year_end_date:
-                return False
-
-            return self.year_start_date <= _date and _date <= self.year_end_date
-        else:
-            if not all([
-                self.semester1_start_date,
-                self.semester1_end_date,
-                self.semester2_start_date,
-                self.semester2_end_date
-            ]):
-                return False
-
-            return (self.semester1_start_date <= _date <= self.semester1_end_date) or (
-                self.semester2_start_date <= _date <= self.semester2_end_date
-            )
-
-
-    def which_semester(self, _date):
-        if self.calendar_mode == 'SEMESTER':
-            if self.semester1_start_date and self.semester1_end_date:
-                if self.semester1_start_date <= _date <= self.semester1_end_date:
-                    return 1
-
-            if self.semester2_start_date and self.semester2_end_date:
-                if self.semester2_start_date <= _date <= self.semester2_end_date:
-                    return 2
-
-        return None
-
-
-    def get_limit_dates(self, _date):
-        sem = self.which_semester(_date)
-        if sem == 1:
-            return {
-                'start': self.semester1_start_date,
-                'end': self.semester1_end_date,
-            }
-        elif sem == 2:
-            return {
-                'start': self.semester2_start_date,
-                'end': self.semester2_end_date,
-            }
-        else:
-            return {
-                'start': self.year_start_date,
-                'end': self.year_end_date,
-            }
-
-    class Meta:
-        """Meta class"""
-        verbose_name = _('Calendar')
-        verbose_name_plural = _('Calendars')
-        ordering = ['label', ]
-
-
 class Period(models.Model):
     """
     Period class. Replaces the semesters
@@ -1465,6 +1353,7 @@ class Period(models.Model):
         _('Allowed immersions per student'), null=False, blank=False, default=1
     )
 
+    @classmethod
     def from_date(cls, date:datetime.date):
         """
         :param date: the date.
@@ -1472,7 +1361,7 @@ class Period(models.Model):
         """
 
         try:
-            return Period.objects.get(start_date__lte=date, end_date__gte=date)
+            return Period.objects.get(immersion_start_date__lte=date, immersion_end_date__gte=date)
         except Period.DoesNotExist:
             return None
         except Period.MultipleObjectsReturned as e:
@@ -2352,7 +2241,7 @@ class Slot(models.Model):
     )
     room = models.CharField(_("Room"), max_length=128, blank=True, null=True)
 
-    date = models.DateField(_('Date'), blank=True, null=True)
+    date = models.DateField(_('Date'), blank=True, null=True, validators=[validate_slot_date])
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
     end_time = models.TimeField(_('End time'), blank=True, null=True)
 

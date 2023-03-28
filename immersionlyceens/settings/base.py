@@ -497,7 +497,6 @@ ADMIN_MODELS_ORDER = {
         'CancelType',
         'Holiday',
         'Vacation',
-        'Calendar',
         'Period',
         'MailTemplate',
     ],

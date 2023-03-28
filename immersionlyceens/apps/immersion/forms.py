@@ -5,10 +5,11 @@ from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
     BachelorMention, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
-    ImmersionUser, PostBachelorLevel, StudentLevel,
+    ImmersionUser, Period, PostBachelorLevel, StudentLevel,
 )
 
-from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
+from .models import HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota, \
+    VisitorRecord, VisitorRecordQuota
 
 
 class LoginForm(forms.Form):
@@ -207,6 +208,37 @@ class NewPassForm(UserCreationForm):
         fields = ('password1', 'password2')
 
 
+class HighSchoolStudentRecordQuotaForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["record"].widget = forms.HiddenInput()
+        self.fields["period"].widget = forms.HiddenInput()
+
+        if self.instance and hasattr(self.instance, "period"):
+            self.period_label = '%s' % self.instance.period
+
+    class Meta:
+        model = HighSchoolStudentRecordQuota
+        fields = ('record', 'period', 'allowed_immersions', 'id', )
+
+
+class StudentRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
+    """
+    Same form as HighSchoolStudentRecordQuotaForm but for Students
+    """
+    class Meta:
+        model = StudentRecordQuota
+        fields = ('record', 'period', 'allowed_immersions', 'id', )
+
+class VisitorRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
+    """
+    Same form as HighSchoolStudentRecordQuotaForm but for Visitors
+    """
+    class Meta:
+        model = VisitorRecordQuota
+        fields = ('record', 'period', 'allowed_immersions', 'id', )
+
+
 class HighSchoolStudentRecordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
@@ -222,9 +254,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
         self.fields["student"].widget = forms.HiddenInput()
         self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
-        # self.fields['professional_bachelor_mention'].widget.attrs['class'] = 'form-control'
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
-        # self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
         self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
         self.fields['general_bachelor_teachings'] = forms.ModelMultipleChoiceField(
@@ -241,14 +271,26 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or not is_hs_manager_or_master:
-            del self.fields['allowed_global_registrations']
-            del self.fields['allowed_first_semester_registrations']
-            del self.fields['allowed_second_semester_registrations']
+        if self.request or is_hs_manager_or_master:
+            QuotaFormSet = forms.modelformset_factory(
+                HighSchoolStudentRecordQuota,
+                extra=0,
+                form=HighSchoolStudentRecordQuotaForm
+            )
 
+            self.quota_formset = QuotaFormSet(
+                queryset=HighSchoolStudentRecordQuota.objects
+                    .filter(record=self.instance)
+                    .order_by("period__immersion_start_date"),
+                initial=[
+                    quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=self.instance)
+                ]
+            )
+        else:
             if self.instance and self.instance.validation == 2:
                 for field in ["highschool", "birth_date", "class_name", "level"]:
                     self.fields[field].disabled = True
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -301,8 +343,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
-                  'allowed_global_registrations', 'allowed_first_semester_registrations',
-                  'allowed_second_semester_registrations']
+                  ]
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
@@ -330,22 +371,31 @@ class StudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or (
-            not self.request.user.is_establishment_manager() and
-            not self.request.user.is_master_establishment_manager() and
-            not self.request.user.is_operator()
-        ):
-            del self.fields['allowed_global_registrations']
-            del self.fields['allowed_first_semester_registrations']
-            del self.fields['allowed_second_semester_registrations']
+        valid_users = [
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ]
+
+        if self.request or not any(valid_users):
+            QuotaFormSet = forms.modelformset_factory(
+                StudentRecordQuota,
+                extra=0,
+                form=StudentRecordQuotaForm
+            )
+
+            self.quota_formset = QuotaFormSet(
+                queryset=StudentRecordQuota.objects
+                .filter(record=self.instance)
+                .order_by("period__immersion_start_date"),
+                initial=[
+                    quota for quota in StudentRecordQuota.objects.filter(record=self.instance)
+                ]
+            )
 
     class Meta:
         model = StudentRecord
-        fields = ['birth_date', 'phone', 'uai_code', 'level',
-                  'origin_bachelor_type', 'current_diploma', 'student',
-                  'allowed_global_registrations', 'allowed_first_semester_registrations',
-                  'allowed_second_semester_registrations']
-
+        fields = ['birth_date', 'phone', 'uai_code', 'level', 'origin_bachelor_type', 'current_diploma', 'student']
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
         }
@@ -389,11 +439,8 @@ class VisitorRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        fields: List[str] = [
-            "phone", "allowed_first_semester_registrations",
-            "allowed_second_semester_registrations", "allowed_global_registrations",
-            "motivation"
-        ]
+        fields: List[str] = ["phone", "motivation"]
+
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
         for field_name in ["identity_document", "civil_liability_insurance", "parental_auth_document"]:
@@ -408,19 +455,27 @@ class VisitorRecordForm(forms.ModelForm):
 
         if is_hs_manager_or_master:
             self.fields["birth_date"].disabled = False
-        else:
-            for field_name in (
-                   "allowed_first_semester_registrations",
-                   "allowed_second_semester_registrations",
-                   "allowed_global_registrations"):
-                self.fields[field_name].disabled = True
 
+        if self.request or is_hs_manager_or_master:
+            QuotaFormSet = forms.modelformset_factory(
+                VisitorRecordQuota,
+                extra=0,
+                form=VisitorRecordQuotaForm
+            )
+
+            self.quota_formset = QuotaFormSet(
+                queryset=VisitorRecordQuota.objects
+                .filter(record=self.instance)
+                .order_by("period__immersion_start_date"),
+                initial=[
+                    quota for quota in VisitorRecordQuota.objects.filter(record=self.instance)
+                ]
+            )
     class Meta:
         model = VisitorRecord
         fields = [
             'id', 'birth_date', 'phone', 'visitor', 'motivation', 'identity_document', 'civil_liability_insurance',
-            'parental_auth_document', 'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
-            'allowed_global_registrations',
+            'parental_auth_document'
         ]
 
         widgets = {

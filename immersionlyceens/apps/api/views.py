@@ -36,10 +36,10 @@ from django.views import View
 from immersionlyceens.libs.api.accounts import AccountAPI
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, Campus, CancelType, Course, Establishment,
+    Building, Campus, CancelType, Course, Establishment,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
     ImmersionUser, ImmersionUserGroup, MailTemplate, MailTemplateVars,
-    OffOfferEvent, PublicDocument, Slot, Structure, Training, TrainingDomain,
+    OffOfferEvent, Period, PublicDocument, Slot, Structure, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
@@ -545,7 +545,14 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-def ajax_check_date_between_vacation(request):
+def validate_slot_date(request):
+    """
+    Check if a date:
+      - is in a vacation period
+      - belongs to a valid immersions period
+    :param request: the request.
+    :return: a dict with data about the date
+    """
     response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
@@ -577,10 +584,21 @@ def ajax_check_date_between_vacation(request):
         if is_sunday:
             details.append(_("Sunday"))
 
+        # Period
+        try:
+            period = Period.from_date(formated_date)
+            if not period:
+                details.append(_("Outside valid period"))
+        except Period.MultipleObjectsReturned:
+            response['msg'] = gettext('Configuration error, please check your immersions periods dates')
+            return JsonResponse(response, safe=False)
+
+
         response['data'] = {
             'date': _date,
             'is_between': is_vacation or is_holiday or is_sunday,
-            'details': details
+            'details': details,
+            'valid_period': period is not None,
         }
     else:
         response['msg'] = gettext('Error: A date is required')
@@ -829,9 +847,6 @@ def ajax_get_immersions(request, user_id=None):
     slot_type = request.GET.get('slot_type') or None
     immersion_type = request.GET.get('immersion_type') or None
     user = request.user
-    calendar = None
-    slot_semester = None
-    remainings = {}
     response = {'msg': '', 'data': []}
 
     if not user_id:
@@ -851,18 +866,13 @@ def ajax_get_immersions(request, user_id=None):
         response['msg'] = gettext("Error : invalid user id")
         return JsonResponse(response, safe=False)
 
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    today = datetime.datetime.today().date()
-    now = datetime.datetime.today().time()
+    today = timezone.localdate()
+    now = timezone.now()
 
     try:
         student = ImmersionUser.objects.get(pk=user_id)
-        remainings['1'], remainings['2'], remaining_annually = student.remaining_registrations_count()
+        remaining_registrations = student.remaining_registrations_count()
     except ImmersionUser.DoesNotExist:
         response['msg'] = gettext("Error : no such user")
         return JsonResponse(response, safe=False)
@@ -919,9 +929,6 @@ def ajax_get_immersions(request, user_id=None):
         structure = slot.get_structure()
         campus = slot.campus.label if slot.campus else ""
         building = slot.building.label if slot.building else ""
-
-        if calendar.calendar_mode == 'SEMESTER':
-            slot_semester = calendar.which_semester(immersion.slot.date)
 
         slot_datetime = datetime.datetime.strptime(
             "%s:%s:%s %s:%s"
@@ -998,8 +1005,14 @@ def ajax_get_immersions(request, user_id=None):
         if immersion.cancellation_type:
             immersion_data['cancellation_type'] = immersion.cancellation_type.label
 
-            if slot_datetime > datetime.datetime.today() and slot.available_seats() > 0:
-                if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
+            # Check user quota for this period
+            if slot.registration_limit_date > now and slot.available_seats() > 0:
+                try:
+                    period = Period.from_date(date=slot.date)
+                except Period.MultipleObjectsReturned:
+                    raise
+
+                if period and remaining_registrations[period.pk] > 0:
                     immersion_data['can_register'] = True
 
         for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
@@ -1205,9 +1218,9 @@ def ajax_slot_registration(request):
     feedback = request.POST.get('feedback', True)
     # Should we force registering ?
     # warning js boolean not python one
-    force = request.POST.get('force', False)
+    force = request.POST.get('force', False) == "true"
     structure = request.POST.get('structure', False)
-    calendar, slot, student = None, None, None
+    slot, student = None, None
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
     visit_or_off_offer = False
@@ -1220,16 +1233,11 @@ def ajax_slot_registration(request):
         user.is_operator()]
     )
 
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        response = {'error': True, 'msg': _("Invalid calendar : cannot register")}
-        return JsonResponse(response, safe=False)
-
     if student_id:
         try:
             student = ImmersionUser.objects.get(pk=student_id)
         except ImmersionUser.DoesNotExist:
+            # FIXME ?
             pass
     else:
         student = user
@@ -1314,7 +1322,7 @@ def ajax_slot_registration(request):
 
     if not can_register_slot or passed_registration_date:
         if can_force_reg:
-            if not force == 'true':
+            if not force:
                 if not can_register_slot:
                     return JsonResponse({
                         'error': True,
@@ -1352,130 +1360,54 @@ def ajax_slot_registration(request):
 
         response = {'error': True, 'msg': msg}
     else:
-        remaining_regs_count = student.remaining_registrations_count()
+        remaining_registrations = student.remaining_registrations_count()
         can_register = False
 
-        # TODO : this has to be factorized somewhere ...
-        if calendar and calendar.calendar_mode == 'YEAR':
-            if calendar.year_registration_start_date <= today <= calendar.year_end_date:
-                # remaining regs ok
-                if remaining_regs_count['annually'] > 0 or visit_or_off_offer:
-                    can_register = True
-                # alert user he can force registering
-                elif can_force_reg and not force == 'true':
-                    return JsonResponse({
-                        'error': True,
-                        'msg': 'force_update',
-                        'reason': 'registrations'
-                    }, safe=False)
-                # force registering
-                elif force == 'true':
-                    can_register = True
-                    if slot.is_course():
-                        student.set_increment_registrations_(type='annual')
-                # student request & no more remaining registration count
-                elif (user.is_high_school_student() or user.is_student() or user.is_visitor())\
-                        and remaining_regs_count['annually'] <= 0:
-                    response = {
-                        'error': True,
-                        'msg': _(
-                            "You have no more remaining registration available, you should cancel an immersion or contact immersion service"
-                        ),
-                    }
-                    return JsonResponse(response, safe=False)
-                # ref str request & no more remaining registration count for student
-                elif (user.is_structure_manager() or user.is_high_school_manager())\
-                        and remaining_regs_count['annually'] <= 0:
-                    response = {
-                        'error': True,
-                        'msg': _("This student has no more remaining slots to register to"),
-                    }
-                    return JsonResponse(response, safe=False)
+        try:
+            period = Period.from_date(slot.date)
+            available_registrations = remaining_registrations.get(period.pk, 0)
+        except Period.MultipleObjectsReturned as e:
+            raise Exception(_("Multiple periods found for slot %s : please check periods settings") % slot)
 
-        # semester mode
-        elif calendar:
-            # Semester 1
-            if calendar.which_semester(today) == 1:
-                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date:
-                    # remaining regs ok
-                    if remaining_regs_count['semester1'] > 0 or visit_or_off_offer:
-                        can_register = True
-                    # alert user he can force registering (js boolean)
-                    elif can_force_reg and not force == 'true':
-                        return JsonResponse({
-                            'error': True,
-                            'msg': 'force_update',
-                            'reason': 'registrations'
-                        }, safe=False)
-                    # force registering (js boolean)
-                    elif force == 'true':
-                        can_register = True
-                        if slot.is_course():
-                            student.set_increment_registrations_(type='semester1')
-                    # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor())\
-                            and remaining_regs_count['semester1'] <= 0:
-                        response = {
-                            'error': True,
-                            'msg': _(
-                                "You have no more remaining registration available, you should cancel an immersion or contact immersion service"
-                            ),
-                        }
-                        return JsonResponse(response, safe=False)
-                    # ref str request & no more remaining registration count for student
-                    elif (user.is_structure_manager() or user.is_high_school_manager())\
-                            and remaining_regs_count['semester1'] <= 0:
-                        response = {
-                            'error': True,
-                            'msg': _("This student has no more remaining slots to register to"),
-                        }
-                        return JsonResponse(response, safe=False)
-
-            # Semester 2
-            elif calendar.which_semester(today) == 2:
-                if calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date:
-                    # remaining regs ok
-                    if remaining_regs_count['semester2'] > 0 or visit_or_off_offer:
-                        can_register = True
-                    # alert user he can force registering (js boolean)
-                    elif can_force_reg and not force == 'true':
-                        return JsonResponse({
-                            'error': True,
-                            'msg': 'force_update',
-                            'reason': 'registrations'
-                        }, safe=False)
-                    # force registering (js boolean)
-                    elif force == 'true':
-                        can_register = True
-                        if slot.is_course():
-                            student.set_increment_registrations_(type='semester2')
-                    # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor())\
-                            and remaining_regs_count['semester2'] <= 0:
-                        response = {
-                            'error': True,
-                            'msg': _(
-                                "You have no more remaining registration available, you should cancel an immersion or contact immersion service"
-                            ),
-                        }
-                        return JsonResponse(response, safe=False)
-                    # ref str request & no more remaining registration count for student
-                    elif (user.is_structure_manager() or user.is_high_school_manager())\
-                            and remaining_regs_count['semester2'] <= 0:
-                        response = {
-                            'error': True,
-                            'msg': _("This student has no more remaining slots to register to"),
-                        }
-                        return JsonResponse(response, safe=False)
+        if visit_or_off_offer or available_registrations > 0:
+            can_register = True
+        elif can_force_reg and not force:
+            return JsonResponse({
+                'error': True,
+                'msg': 'force_update',
+                'reason': 'registrations'
+            }, safe=False)
+        elif force:
+            can_register = True
+            if slot.is_course():
+                # Get slot period
+                period = Period.from_date(slot.date)
+                student.set_increment_registrations_(period=period)
+        elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and available_registrations <= 0:
+            response = {
+                'error': True,
+                'msg': _(
+                    """You have no more remaining registration available for this period, """
+                    """you should cancel an immersion or contact immersion service"""
+                ),
+            }
+            return JsonResponse(response, safe=False)
+        elif (user.is_structure_manager() or user.is_high_school_manager()) \
+                and available_registrations <= 0:
+            response = {
+                'error': True,
+                'msg': _("This student has no more remaining slots to register to for this period"),
+            }
+            return JsonResponse(response, safe=False)
 
         if can_register:
-            # Cancellation exists re-register
+            # Cancelled immersion exists : re-register
             if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
                 student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
                     cancellation_type=None, attendance_status=0
                 )
-            # No data exists register
             else:
+                # New registration
                 Immersion.objects.create(
                     student=student, slot=slot, cancellation_type=None, attendance_status=0,
                 )

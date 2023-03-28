@@ -177,14 +177,6 @@
 },
 {
     "model": "contenttypes.contenttype",
-    "pk": 23,
-    "fields": {
-        "app_label": "core",
-        "model": "calendar"
-    }
-},
-{
-    "model": "contenttypes.contenttype",
     "pk": 24,
     "fields": {
         "app_label": "core",

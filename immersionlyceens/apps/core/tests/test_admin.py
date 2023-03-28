@@ -14,28 +14,28 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
 from ..admin import (
-    CalendarAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
+    CampusAdmin, CustomAdminSite, CustomUserAdmin,
     EstablishmentAdmin, StructureAdmin, TrainingAdmin, PeriodAdmin
 )
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm,
     CampusForm, CancelTypeForm, CourseTypeForm, CustomThemeFileForm,
     EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
     HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
     ImmersupFileForm, InformationTextForm, MailTemplateForm,
-    PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-    PeriodForm
+    PeriodForm, PublicDocumentForm, PublicTypeForm, StructureForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    AccompanyingDocument, BachelorMention, Building, Campus,
     CancelType, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
     ImmersupFile, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation, Period
+    Period, PublicDocument, PublicType, Structure, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation
 )
 
 
@@ -1117,7 +1117,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Start date greater than end date", form.errors["__all__"])
+        self.assertIn("Start date must be set before end date", form.errors["__all__"])
         self.assertFalse(Vacation.objects.filter(label=data['label']).exists())
 
         # Fail : vacation before university year
@@ -1128,7 +1128,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Vacation start date must set between university year dates", form.errors["__all__"])
+        self.assertIn("Vacation start date must be set between university year dates", form.errors["__all__"])
 
         # Fail : vacation after university year
         data = {
@@ -1138,7 +1138,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Vacation end date must set between university year dates", form.errors["__all__"])
+        self.assertIn("Vacation end date must be set between university year dates", form.errors["__all__"])
 
         # Fails : overlapping vacation dates
         university_year.end_date += datetime.timedelta(days=100)
@@ -1265,354 +1265,6 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
-
-
-    def test_calendar_creation__year_mode(self):
-        """
-        Test public type mention creation with group rights
-        """
-        now = self.today
-        UniversityYear.objects.create(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=10),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        )
-        calendar_data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=15),
-            'year_end_date': now + datetime.timedelta(days=50),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        # Failures (invalid users)
-        request.user = self.ref_str_user
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertFalse(form.is_valid())
-
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-        request.user = self.ref_etab_user
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-        # Fail : invalid start date
-        request.user = self.ref_master_etab_user
-
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=5),
-            'year_end_date': now + datetime.timedelta(days=50),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Start date must be set between university year dates", form.errors["__all__"])
-
-        # Fail : invalid end date
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=15),
-            'year_end_date': now + datetime.timedelta(days=1000),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("End date must set be between university year dates", form.errors["__all__"])
-
-        # Fail : start > end
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=50),
-            'year_end_date': now + datetime.timedelta(days=15),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Start date greater than end date", form.errors["__all__"])
-
-
-        ###########
-        # Success #
-        ###########
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-        # As an operator
-        Calendar.objects.all().delete()
-        request.user = self.operator_user
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-
-    def test_calendar_creation__semester_mode(self):
-        """
-        Test public type mention creation with group rights
-        """
-        now = self.today
-        UniversityYear.objects.create(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        )
-        calendar_data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=5),
-            'semester1_end_date': now + datetime.timedelta(days=20),
-            'semester1_start_date': now + datetime.timedelta(days=6),
-            'semester2_start_date': now + datetime.timedelta(days=25),
-            'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=26),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        # Failures (invalid users)
-        request.user = self.ref_str_user
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertFalse(form.is_valid())
-
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-        request.user = self.ref_etab_user
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-        # Fail : semester 1 : missing dates
-        request.user = self.ref_master_etab_user
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=5),
-            'semester1_start_date': now + datetime.timedelta(days=21),
-            'semester1_end_date': None,
-            'semester2_start_date': now + datetime.timedelta(days=25),
-            'semester2_end_date': None,
-            'semester2_registration_start_date': now + datetime.timedelta(days=26),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Semester mode requires all dates to be filled in", form.errors["__all__"])
-
-        # Fail : semester 1 : start date > end date
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=5),
-            'semester1_start_date': now + datetime.timedelta(days=21),
-            'semester1_end_date': now + datetime.timedelta(days=20),
-            'semester2_start_date': now + datetime.timedelta(days=25),
-            'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=26),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Semester 1 start date greater than semester 1 end date", form.errors["__all__"])
-
-        # Fail : semester 1 end date > semester 2 start date
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=5),
-            'semester1_start_date': now + datetime.timedelta(days=5),
-            'semester1_end_date': now + datetime.timedelta(days=30),
-            'semester2_start_date': now + datetime.timedelta(days=25),
-            'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=26),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Semester 1 ends after the beginning of semester 2", form.errors["__all__"])
-
-        # Fail : semester 2 : start date > end date
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=5),
-            'semester1_start_date': now + datetime.timedelta(days=5),
-            'semester1_end_date': now + datetime.timedelta(days=20),
-            'semester2_start_date': now + datetime.timedelta(days=60),
-            'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=26),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Semester 2 start date greater than semester 2 end date", form.errors["__all__"])
-
-        # Fail : registration date < university year dates
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=-1),
-            'semester1_start_date': now + datetime.timedelta(days=5),
-            'semester1_end_date': now + datetime.timedelta(days=20),
-            'semester2_start_date': now + datetime.timedelta(days=60),
-            'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=26),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "semester 1 start registration date must set between university year dates",
-            form.errors["__all__"]
-        )
-
-        # Fail : semester 2 registration date < university year dates
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=6),
-            'semester1_start_date': now + datetime.timedelta(days=5),
-            'semester1_end_date': now + datetime.timedelta(days=20),
-            'semester2_start_date': now + datetime.timedelta(days=60),
-            'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=-1),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'nb_authorized_immersion_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "semester 2 start registration date must set between university year dates",
-            form.errors["__all__"]
-        )
-
-        ###########
-        # Success #
-        ###########
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-        # As an operator
-        Calendar.objects.all().delete()
-        request.user = self.operator_user
-        form = CalendarForm(data=calendar_data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
-
-    def test_calendar_admin(self):
-        """
-        Test calendar admin rights
-        """
-        adminsite = CustomAdminSite(name='Repositories')
-        calendar_admin = CalendarAdmin(admin_site=adminsite, model=Calendar)
-
-        success_user_list = [self.ref_master_etab_user, self.superuser, self.operator_user]
-        fail_user_list = [self.ref_etab_user, self.ref_str_user, self.ref_lyc_user]
-
-        # Creation rights : ok for these users, and only if no calendar exists yet
-        for user in success_user_list:
-            request.user = user
-            self.assertTrue(calendar_admin.has_add_permission(request=request))
-
-        # Bad user : fail
-        for user in fail_user_list:
-            request.user = user
-            self.assertFalse(calendar_admin.has_add_permission(request=request))
-
-        # deletion : superuser only
-        success_user_list = [self.superuser, ]
-        fail_user_list = [
-            self.ref_master_etab_user,
-            self.operator_user,
-            self.ref_etab_user,
-            self.ref_str_user,
-            self.ref_lyc_user
-        ]
-
-        request.user = self.superuser
-        self.assertTrue(calendar_admin.has_delete_permission(request=request))
-
-        for user in fail_user_list:
-            request.user = user
-            self.assertFalse(calendar_admin.has_delete_permission(request=request))
-
-        # Readonly fields
-        calendar = Calendar.objects.create(
-            label='my calendar',
-            calendar_mode='YEAR',
-            year_start_date=self.today - datetime.timedelta(days=10),
-            year_end_date=self.today + datetime.timedelta(days=10),
-            year_registration_start_date=self.today + datetime.timedelta(days=2),
-            year_nb_authorized_immersion=4
-        )
-
-        university_year = UniversityYear.objects.create(
-            label='2020-2021',
-            start_date=self.today - datetime.timedelta(days=365),
-            end_date=self.today + datetime.timedelta(days=20),
-            registration_start_date=self.today - datetime.timedelta(days=1),
-            active=True,
-        )
-
-        request.user = self.superuser
-        self.assertEqual(calendar_admin.get_readonly_fields(request=request, obj=calendar), [])
-
-        for user in fail_user_list:
-            request.user = user
-            self.assertEqual(
-                sorted(calendar_admin.get_readonly_fields(request=request, obj=calendar)),
-                ['calendar_mode', 'label', 'nb_authorized_immersion_per_semester', 'semester1_end_date',
-                 'semester1_registration_start_date', 'semester1_start_date', 'semester2_end_date',
-                 'semester2_registration_start_date', 'semester2_start_date', 'year_end_date',
-                 'year_nb_authorized_immersion', 'year_registration_start_date', 'year_start_date']
-            )
-
-        # Creation with an existing calendar : no more allowed
-        for user in success_user_list + fail_user_list:
-            request.user = user
-            self.assertFalse(calendar_admin.has_add_permission(request=request))
 
 
     def test_period_admin(self):

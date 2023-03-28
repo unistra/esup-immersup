@@ -11,8 +11,8 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Count
 
 from ...models import (
-    Calendar, Course, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
-    UniversityYear, UserCourseAlert, Vacation, Visit,
+    Course, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
+    Period, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,12 +59,12 @@ class Command(BaseCommand):
         else:
             logger.info(_("No account to delete"))
 
-        # Delete calendar, vacations and holidays
-        deleted = Calendar.objects.all().delete()
+        # Delete periods, vacations and holidays
+        deleted = Period.objects.all().delete()
         if deleted[0]:
-            logger.info(_('{} calendar(s) deleted').format(deleted[0]))
+            logger.info(_('{} period(s) deleted').format(deleted[0]))
         else:
-            logger.info(_("No calendar to delete"))
+            logger.info(_("No period to delete"))
 
         deleted = Holiday.objects.all().delete()
         if deleted[0]:

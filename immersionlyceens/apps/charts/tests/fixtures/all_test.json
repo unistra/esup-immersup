@@ -1367,23 +1367,14 @@
     }
   },
   {
-    "model": "core.calendar",
-    "pk": 4,
+    "model": "core.period",
+    "pk": 1,
     "fields": {
-      "label": "Ann\u00e9e 2020/2021",
-      "calendar_mode": "SEMESTER",
-      "year_start_date": null,
-      "year_end_date": null,
-      "year_registration_start_date": null,
-      "year_nb_authorized_immersion": 4,
-      "semester1_start_date": "2020-03-05",
-      "semester1_end_date": "2020-12-31",
-      "semester1_registration_start_date": "2020-03-01",
-      "semester2_start_date": "2021-02-01",
-      "semester2_end_date": "2021-05-15",
-      "semester2_registration_start_date": "2020-12-01",
-      "nb_authorized_immersion_per_semester": 5,
-      "global_evaluation_date": "2021-05-20"
+      "label": "Period 1",
+      "allowed_immersions": 4,
+      "immersion_start_date": "2020-03-05",
+      "immersion_end_date": "2020-12-31",
+      "registration_start_date": "2020-03-01"
     }
   },
   {
@@ -9791,9 +9782,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": false,
       "visible_email": false,
-      "allowed_global_registrations": null,
-      "allowed_first_semester_registrations": 6,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -9820,9 +9808,6 @@
       "current_diploma": "BTSA1 - management et gestion",
       "visible_immersion_registrations": true,
       "visible_email": true,
-      "allowed_global_registrations": null,
-      "allowed_first_semester_registrations": 7,
-      "allowed_second_semester_registrations": 7,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": []
@@ -9846,9 +9831,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": false,
       "visible_email": false,
-      "allowed_global_registrations": null,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -9876,9 +9858,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": false,
       "visible_email": false,
-      "allowed_global_registrations": null,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": []
@@ -9902,9 +9881,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": false,
       "visible_email": false,
-      "allowed_global_registrations": null,
-      "allowed_first_semester_registrations": 9,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -9932,9 +9908,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": false,
       "visible_email": false,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -9962,9 +9935,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": true,
       "visible_email": false,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 3,
-      "allowed_second_semester_registrations": 2,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -9992,9 +9962,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": true,
       "visible_email": true,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -10022,9 +9989,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": true,
       "visible_email": false,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -10052,9 +10016,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": false,
       "visible_email": false,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": []
@@ -10078,9 +10039,6 @@
       "current_diploma": null,
       "visible_immersion_registrations": true,
       "visible_email": false,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5,
       "validation": 2,
       "duplicates": null,
       "general_bachelor_teachings": [
@@ -10100,10 +10058,7 @@
       "phone": null,
       "level": 1,
       "origin_bachelor_type": 1,
-      "current_diploma": null,
-      "allowed_global_registrations": 4,
-      "allowed_first_semester_registrations": 5,
-      "allowed_second_semester_registrations": 5
+      "current_diploma": null
     }
   }
 ]

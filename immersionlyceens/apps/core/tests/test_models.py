@@ -11,12 +11,12 @@ from immersionlyceens.apps.immersion.models import (
 )
 
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    AccompanyingDocument, BachelorMention, Building, Campus,
     CancelType, Course, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot,
-    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    Holiday, ImmersionUser, ImmersupFile, Period, PublicDocument, PublicType,
+    Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
     UniversityYear, Vacation,
 )
 
@@ -200,48 +200,6 @@ class TestVacationCase(TestCase):
 
         self.assertTrue(Vacation.date_is_inside_a_vacation(now + timedelta(days=2)))
         self.assertFalse(Vacation.date_is_inside_a_vacation(now + timedelta(days=999)))
-
-
-class TestCalendarCase(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.today = timezone.now()
-
-    def test_calendar_str(self):
-        label = "Calendar"
-        o = Calendar.objects.create(
-            label=label,
-            year_start_date=self.today,
-            year_end_date=self.today + timedelta(days=2),
-            year_registration_start_date=self.today + timedelta(days=1),
-            year_nb_authorized_immersion=4,
-        )
-
-        self.assertEqual(str(o), label)
-
-    def test_calendar__date_is_between(self):
-        o = Calendar.objects.create(
-            label='Calendar',
-            year_start_date=self.today + timedelta(days=1),
-            year_end_date=self.today + timedelta(days=3),
-            year_registration_start_date=self.today + timedelta(days=1),
-            year_nb_authorized_immersion=4,
-        )
-
-        # inside
-        # start < date < end
-        self.assertTrue(o.date_is_between(self.today + timedelta(days=2)))
-        # start = date
-        self.assertTrue(o.date_is_between(self.today + timedelta(days=1)))
-        # end = date
-        self.assertTrue(o.date_is_between(self.today + timedelta(days=3)))
-
-        # date < start < end
-        self.assertFalse(o.date_is_between(self.today + timedelta(days=-99)))
-
-        # start < end < date
-        self.assertFalse(o.date_is_between(self.today + timedelta(days=99)))
-
 
 class TestPublicDocumentCase(TestCase):
     def test_public_document_str(self):
@@ -602,9 +560,6 @@ class ImmersionUserTestCase(TestCase):
             birth_date=timezone.now(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
         )
 
         # Check that the link between the student record and Establishment is good (same object)
@@ -662,20 +617,9 @@ class ImmersionUserTestCase(TestCase):
             uai_code=institution.uai_code,
             birth_date=self.today - timedelta(days=8000),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
         )
 
-        calendar = Calendar.objects.create(
-            label="Calendrier1",
-            calendar_mode=Calendar.CALENDAR_MODE[0][0],
-            year_start_date=self.today - timedelta(days=10),
-            year_end_date=self.today + timedelta(days=10),
-            year_nb_authorized_immersion=4,
-            year_registration_start_date=self.today - timedelta(days=9)
-        )
         structure = Structure.objects.create(
             label="test structure",
             code="STR",

@@ -105,62 +105,41 @@
           <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
         </div>
 
-        {% if calendar.calendar_mode == "YEAR" %}
-          <div class="form-group row align-items-center">
-            {% if record_form.allowed_global_registrations %}
+        {% if record_form.quota_formset and not request.user.is_student %}
+          {{ record_form.quota_formset.management_form }}
+          {% for quota_form in record_form.quota_formset %}
+            {{ quota_form.id }}
+            {{ quota_form.record }}
+            {{ quota_form.period }}
+            <div class="form-group row align-items-center">
               <label class="col-sm-9 col-form-label">
-                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+                {{ quota_form.period_label }} - {% trans 'allowed immersions' %} :
               </label>
-              <div class="col-sm-2">{{ record_form.allowed_global_registrations }}</div>
-            {% elif no_record %}
+              <div class="col-sm-1 col-form-label">
+                {{ quota_form.allowed_immersions }}
+              </div>
+            </div>
+          {% endfor %}
+        {% elif record_form.instance.highschool %}
+          {% for quota in record.quota.all %}
+            <div class="form-group row align-items-center">
               <label class="col-sm-9 col-form-label">
-                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+                {{ quota.period }} - {% trans 'immersions quota' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ record.allowed_global_registrations }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually registrations realized (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number }} / {{ record.allowed_global_registrations }}</div>
-            {% endif %}
-          </div>
+              <div class="col-sm-1 col-form-label">
+                {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+              </div>
+            </div>
+          {% endfor %}
         {% else %}
-          <div class="form-group row align-items-center">
-            {% if record_form.allowed_first_semester_registrations %}
+          {% for quota in record.quota.all %}
+            <div class="form-group row align-items-center">
               <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
+                {{ quota.period }} - {% trans 'allowed immersions' %} :
               </label>
-              <div class="col-sm-2">{{ record_form.allowed_first_semester_registrations }}</div>
-            {% elif no_record %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ record.allowed_first_semester_registrations | default:'' }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for first semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations|default:'' }}</div>
-            {% endif %}
-          </div>
-          <div class="form-group row align-items-center">
-            {% if record_form.allowed_second_semester_registrations %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-2">{{ record_form.allowed_second_semester_registrations }}</div>
-            {% elif no_record %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ record.allowed_second_semester_registrations| default:'' }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations| default:'' }}</div>
-            {% endif %}
-          </div>
+              <div class="col-sm-1 col-form-label">{{ quota.allowed_immersions }}</div>
+            </div>
+          {% endfor %}
         {% endif %}
       </div>
     </div>

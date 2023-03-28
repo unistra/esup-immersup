@@ -793,42 +793,6 @@
 },
 {
     "model": "auth.permission",
-    "pk": 89,
-    "fields": {
-        "name": "Can add Calendrier",
-        "content_type": 23,
-        "codename": "add_calendar"
-    }
-},
-{
-    "model": "auth.permission",
-    "pk": 90,
-    "fields": {
-        "name": "Can change Calendrier",
-        "content_type": 23,
-        "codename": "change_calendar"
-    }
-},
-{
-    "model": "auth.permission",
-    "pk": 91,
-    "fields": {
-        "name": "Can delete Calendrier",
-        "content_type": 23,
-        "codename": "delete_calendar"
-    }
-},
-{
-    "model": "auth.permission",
-    "pk": 92,
-    "fields": {
-        "name": "Can view Calendrier",
-        "content_type": 23,
-        "codename": "view_calendar"
-    }
-},
-{
-    "model": "auth.permission",
     "pk": 93,
     "fields": {
         "name": "Can add Férié",

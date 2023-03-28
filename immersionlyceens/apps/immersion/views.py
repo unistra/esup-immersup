@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
 
+from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (
@@ -25,13 +26,14 @@ from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from django.views import View
 from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, CertificateLogo, CertificateSignature,
+    CancelType, CertificateLogo, CertificateSignature,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
-    MailTemplate, PendingUserGroup, PostBachelorLevel, Slot, StudentLevel,
-    UniversityYear, UserCourseAlert,
+    MailTemplate, PendingUserGroup, Period, PostBachelorLevel, Slot,
+    StudentLevel, UniversityYear, UserCourseAlert
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -41,11 +43,13 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm, NewPassForm,
-    RegistrationForm, StudentForm, StudentRecordForm, VisitorForm,
-    VisitorRecordForm,
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm,
+    LoginForm, NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, StudentRecordQuotaForm,
+    VisitorForm, VisitorRecordForm, VisitorRecordQuotaForm
 )
-from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
+from .models import (HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord,
+    StudentRecordQuota, VisitorRecord, VisitorRecordQuota
+)
 
 logger = logging.getLogger(__name__)
 
@@ -582,12 +586,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
     redirect_url: str = reverse('offer')
     record = None
     student = None
-    calendar = None
-
-    calendars = Calendar.objects.all()
-
-    if calendars:
-        calendar = calendars.first()
+    periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
     # Unused ?
     if student_id:
@@ -602,17 +601,21 @@ def high_school_student_record(request, student_id=None, record_id=None):
         record = student.get_high_school_student_record()
 
         if not record:
-            record = HighSchoolStudentRecord(
-                student=request.user,
-                allowed_global_registrations=calendar.year_nb_authorized_immersion,
-                allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-            )
+            record = HighSchoolStudentRecord(student=request.user)
+
     elif record_id:
         try:
             record = HighSchoolStudentRecord.objects.get(pk=record_id)
             student = record.student
+
+            # Default quotas
+            for period in periods:
+                if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    HighSchoolStudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
         except HighSchoolStudentRecord.DoesNotExist:
+            # ?
             pass
 
     if request.method == 'POST' and request.POST.get('submit'):
@@ -633,6 +636,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, instance=student, request=request)
+
+        # Quotas formset
+        QuotaFormSet = forms.modelformset_factory(
+            HighSchoolStudentRecordQuota,
+            extra=0,
+            form=HighSchoolStudentRecordQuotaForm
+        )
 
         if studentform.is_valid():
             student = studentform.save()
@@ -685,6 +695,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     )
 
             messages.success(request, _("Record successfully saved."))
+
+            for period in periods:
+                if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    HighSchoolStudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            formset = QuotaFormSet(request.POST, initial=[
+                quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=record)
+            ])
+
+            if formset.is_valid():
+                formset.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
@@ -712,30 +735,18 @@ def high_school_student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
-    immersion_number = None
-    immersions = student.immersions.filter(
+    # Count immersion registrations for each period
+    immersions_count = {}
+    for period in periods:
+        immersions_count[period.pk] = student.immersions.filter(
+                slot__date__gte=period.immersion_start_date,
+                slot__date__lte=period.immersion_end_date,
                 slot__event__isnull=True,
                 slot__visit__isnull=True,
                 cancellation_type__isnull=True
-    )
-
-    if calendar.calendar_mode == "YEAR":
-        immersion_number = immersions.count()
-    else:
-        if calendar.semester1_end_date and calendar.semester2_start_date:
-            immersion_number = {
-                "semester_1": immersions.filter(
-                    slot__date__lte=calendar.semester1_end_date
-                ).count(),
-                "semester_2": immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date
-                ).count(),
-            }
-        else:
-            immersion_number = 0
+        ).count()
 
     context = {
-        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
         'student': student,
@@ -749,7 +760,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 'requires_bachelor_speciality': l.requires_bachelor_speciality
             } for l in HighSchoolLevel.objects.all()}
         ),
-        'immersion_number': immersion_number
+        'immersions_count': immersions_count,
+        'periods': Period.objects.order_by('registration_start_date')
     }
 
     return render(request, template_name, context)
@@ -764,12 +776,8 @@ def student_record(request, student_id=None, record_id=None):
     template_name: str = 'immersion/student_record.html'
     record = None
     student = None
-    calendar = None
     no_record = False
-
-    calendars = Calendar.objects.all()
-    if calendars:
-        calendar = calendars.first()
+    periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
     # Unused ?
     if student_id:
@@ -796,13 +804,8 @@ def student_record(request, student_id=None, record_id=None):
             uai_code = uai_code.replace('{UAI}', '')
 
         if not record:
-            record = StudentRecord(
-                student=request.user,
-                uai_code=uai_code,
-                allowed_global_registrations=calendar.year_nb_authorized_immersion,
-                allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-            )
+            record = StudentRecord(student=request.user, uai_code=uai_code)
+
         elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
             record.save()
@@ -827,6 +830,13 @@ def student_record(request, student_id=None, record_id=None):
         recordform = StudentRecordForm(request.POST, instance=record, request=request)
         studentform = StudentForm(request.POST, request=request, instance=student)
 
+        # Quotas formset
+        QuotaFormSet = forms.modelformset_factory(
+            StudentRecordQuota,
+            extra=0,
+            form=StudentRecordQuotaForm
+        )
+
         if studentform.is_valid():
             student = studentform.save()
 
@@ -848,13 +858,27 @@ def student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             record = recordform.save()
-
             messages.success(request, _("Record successfully saved."))
+
+            # Quota form save
+            for period in periods:
+                if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    StudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            formset = QuotaFormSet(request.POST, initial=[
+                quota for quota in StudentRecordQuota.objects.filter(record=record)
+            ])
+
+            if formset.is_valid():
+                formset.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
+
     else:
         request.session['back'] = request.headers.get('Referer')
         recordform = StudentRecordForm(request=request, instance=record)
@@ -872,30 +896,19 @@ def student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
-    immersion_number = None
-    immersions = student.immersions.filter(
-                slot__event__isnull=True,
-                slot__visit__isnull=True,
-                cancellation_type__isnull=True,
-    )
-    if calendar.calendar_mode == "YEAR":
-        immersion_number = immersions.count()
-    else:
-        if calendar.semester1_end_date and calendar.semester2_start_date:
-            immersion_number = {
-                "semester_1": immersions.filter(
-                    slot__date__lte=calendar.semester1_end_date
-                ).count(),
-                "semester_2": immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date
-                ).count(),
-            }
-        else:
-            immersion_number = 0
+    # Count immersion registrations for each period
+    immersions_count = {}
+    for period in periods:
+        immersions_count[period.pk] = student.immersions.filter(
+            slot__date__gte=period.immersion_start_date,
+            slot__date__lte=period.immersion_end_date,
+            slot__event__isnull=True,
+            slot__visit__isnull=True,
+            cancellation_type__isnull=True
+        ).count()
 
     context = {
         'no_record': no_record,
-        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
         'record': record,
@@ -903,7 +916,7 @@ def student_record(request, student_id=None, record_id=None):
         'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
-        'immersion_number': immersion_number,
+        'immersions_count': immersions_count,
     }
 
     return render(request, template_name, context)
@@ -1047,18 +1060,13 @@ class VisitorRecordView(FormView):
         user_form: Optional[VisitorForm] = None
         visitor: Optional[ImmersionUser] = None
         record: Optional[VisitorRecordForm] = None
-        hash_change_permission = any([
+        has_change_permission = any([
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
             self.request.user.is_operator()
         ])
 
         self.request.session['back'] = self.request.headers.get('Referer')
-
-        calendars: QuerySet = Calendar.objects.all()
-        calendar: Optional[Calendar] = None
-        if calendars:
-            calendar = calendars.first()
 
         if self.request.user.is_visitor():
             visitor = self.request.user
@@ -1081,8 +1089,10 @@ class VisitorRecordView(FormView):
 
 
         # Stats for user deletion
-        today = datetime.today().date()
-        now = datetime.today().time()
+        today = timezone.localdate()
+        now = timezone.now()
+        periods = Period.objects.all()
+
         past_immersions = visitor.immersions.filter(
             Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
         ).count()
@@ -1090,38 +1100,29 @@ class VisitorRecordView(FormView):
             Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
         ).count()
 
-        immersion_number = None
-        immersions = visitor.immersions.filter(
-            slot__event__isnull=True,
-            slot__visit__isnull=True,
-            cancellation_type__isnull=True
-        )
-        if calendar.calendar_mode == "YEAR":
-            immersion_number = immersions.count()
-        else:
-            if calendar.semester1_end_date and calendar.semester2_start_date:
-                immersion_number = {
-                    "semester_1": immersions.filter(
-                        slot__date__lte=calendar.semester1_end_date
-                    ).count(),
-                    "semester_2": immersions.filter(
-                        slot__date__gte=calendar.semester2_start_date
-                    ).count(),
-                }
-            else:
-                immersion_number = 0
+        # Count immersion registrations for each period
+        immersions_count = {}
+        for period in periods:
+            immersions_count[period.pk] = visitor.immersions.filter(
+                slot__date__gte=period.immersion_start_date,
+                slot__date__lte=period.immersion_end_date,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+                cancellation_type__isnull=True
+            ).count()
 
         if record:
             context.update({"record": record})  # for modal nuke purpose
+
         context.update({
-            "past_immersions": past_immersions, "future_immersions": future_immersions,
+            "past_immersions": past_immersions,
+            "future_immersions": future_immersions,
             "visitor": visitor,
             "student": visitor,  # visitor = student for modal nuke purpose
             "user_form": user_form,
             "back_url": self.request.session.get("back"),
-            "calendar": calendar,
-            "can_change": hash_change_permission,  # can change number of allowed positions
-            "immersion_number": immersion_number,
+            "can_change": has_change_permission,  # can change number of allowed positions
+            "immersions_count": immersions_count,
         })
         return context
 
@@ -1149,6 +1150,7 @@ class VisitorRecordView(FormView):
         record_id: Optional[int] = self.kwargs.get("record_id")
         current_email: Optional[str] = None
         user: Optional[ImmersionUser] = None
+        periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
         if request.user.is_visitor():
             user = request.user
@@ -1163,9 +1165,30 @@ class VisitorRecordView(FormView):
         if user:
             current_email = user.email
 
+        # Quotas formset
+        QuotaFormSet = forms.modelformset_factory(
+            VisitorRecordQuota,
+            extra=0,
+            form=VisitorRecordQuotaForm
+        )
+
         if form.is_valid() and form_user.is_valid():
-            form.save()
+            record = form.save()
             saved_user = form_user.save()
+
+            # Default quotas
+            for period in periods:
+                if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
+                    VisitorRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            formset = QuotaFormSet(request.POST, initial=[
+                quota for quota in VisitorRecordQuota.objects.filter(record=record)
+            ])
+
+            if formset.is_valid():
+                formset.save()
 
             if current_email != saved_user.email:
                 self.email_changed(saved_user)
