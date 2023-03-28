@@ -1206,6 +1206,7 @@ class UniversityYear(models.Model):
     end_date = models.DateField(_("End date"))
     registration_start_date = models.DateField(_("Registration date"))
     purge_date = models.DateField(_("Purge date"), null=True)
+    global_evaluation_date = models.DateField(_("Global evaluation date"), null=True, blank=True)
 
     @classmethod
     def get_active(cls):

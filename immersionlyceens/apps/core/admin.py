@@ -1142,6 +1142,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         'start_date',
         'end_date',
         'purge_date',
+        'global_evaluation_date',
         'active',
     )
     list_filter = ('active',)
@@ -1183,7 +1184,8 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             if obj.start_date <= datetime.today().date() <= obj.end_date:
                 messages.warning(
                     request,
-                    _("""This university year can't be deleted """ """because university year has already started"""),
+                    _("""This university year can't be deleted """
+                      """because university year has already started"""),
                 )
                 return False
             elif obj.purge_date is not None:
