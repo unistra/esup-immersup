@@ -441,8 +441,8 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=2),
-            registration_limit_delay=48,
-            cancellation_limit_delay=48,
+            registration_limit_delay=72,
+            cancellation_limit_delay=72,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -2169,12 +2169,12 @@ class APITestCase(TestCase):
         """
 
 
-    def test_API_ajax_check_date_between_vacation(self):
+    def test_API_validate_slot_date(self):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
         # No date
-        url = f"/api/check_vacations"
+        url = f"/api/validate_slot_date"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2182,7 +2182,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], {})
 
         # Bad date format
-        url = f"/api/check_vacations?date=failure"
+        url = f"/api/validate_slot_date?date=failure"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2190,7 +2190,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], {})
 
         # dmY format
-        url = f"/api/check_vacations?date=01/01/2010"
+        url = f"/api/validate_slot_date?date=01/01/2010"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2205,7 +2205,7 @@ class APITestCase(TestCase):
         if d.weekday() == 6:
             d = self.today + timedelta(days=1)
         dd = _date(d, 'Y/m/d')
-        url = f"/api/check_vacations?date={dd}"
+        url = f"/api/validate_slot_date?date={dd}"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2215,6 +2215,7 @@ class APITestCase(TestCase):
         self.assertIsInstance(content['data']['is_between'], bool)
         self.assertEqual(content['data']['is_between'], True)
 
+        # TODO: add 'valid_period' test
 
     def test_API_ajax_delete_account(self):
         request.user = self.ref_etab_user

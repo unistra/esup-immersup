@@ -11,7 +11,7 @@ urlpatterns = [
     path('cancel_alert', views.ajax_cancel_alert, name='cancel_alert'),
     path('cancel_registration', views.ajax_cancel_registration, name='CancelRegistration'),
 
-    path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
+    path('validate_slot_date', views.validate_slot_date, name='ValidateSlotDate'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 
     path('get_available_documents/', views.ajax_get_documents, name='get_available_documents'),

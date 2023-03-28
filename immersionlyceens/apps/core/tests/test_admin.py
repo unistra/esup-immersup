@@ -1117,7 +1117,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Start date greater than end date", form.errors["__all__"])
+        self.assertIn("Start date must be set before end date", form.errors["__all__"])
         self.assertFalse(Vacation.objects.filter(label=data['label']).exists())
 
         # Fail : vacation before university year
@@ -1128,7 +1128,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Vacation start date must set between university year dates", form.errors["__all__"])
+        self.assertIn("Vacation start date must be set between university year dates", form.errors["__all__"])
 
         # Fail : vacation after university year
         data = {
@@ -1138,7 +1138,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Vacation end date must set between university year dates", form.errors["__all__"])
+        self.assertIn("Vacation end date must be set between university year dates", form.errors["__all__"])
 
         # Fails : overlapping vacation dates
         university_year.end_date += datetime.timedelta(days=100)

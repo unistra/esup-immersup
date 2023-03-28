@@ -510,9 +510,23 @@ class CoreViewsTestCase(TestCase):
         """
         # As ref_etab user
         self.client.login(username='ref_etab', password='pass')
-
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
 
+        # Create another period and extend the university year dates
+        year = UniversityYear.get_active()
+        year.end_date = self.today + datetime.timedelta(days=90)
+        year.save()
+
+        period = Period.objects.create(
+            label="Next period",
+            registration_start_date=self.today + datetime.timedelta(days=50),
+            immersion_start_date=self.today + datetime.timedelta(days=55),
+            immersion_end_date=self.today + datetime.timedelta(days=65),
+            allowed_immersions=4
+        )
+
+        # These slots days will be kept : +12, 19, 26, 33, 40, 61
+        # Not created : 47, 54, 68
         data = {
             'structure': self.structure.id,
             'training': self.training.id,
@@ -529,6 +543,11 @@ class CoreViewsTestCase(TestCase):
                 (self.today + datetime.timedelta(days=19)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=40)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=47)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=54)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=61)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=68)).strftime("%d/%m/%Y"),
             ],
             'start_time': "12:00",
             'end_time': "14:00",
@@ -543,38 +562,50 @@ class CoreViewsTestCase(TestCase):
             'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('order').first().pk],
             'save': 1
         }
-        # All dates have been selected : initial slot created + 4 copies
-        # But ... the university year ends 20 days later, so only d+8 and d+15 will be created
+        # All dates have been selected : initial slot created + 6 copie, 3 won't be created
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 3)
-        d = self.today + datetime.timedelta(days=5)
-        for slot in slots:
-            self.assertEqual(slot.date, d.date())
-            self.assertEqual(slot.speakers.all().count(), 2)
-            d += datetime.timedelta(days=7)
+        self.assertEqual(slots.count(), 7)
 
-        # Delete slots and do it again with an unchecked dates (d+15)
-        # The last 2 dates shouldn't exist
+        delta = 5 # initial slot day
+        while delta < 75:
+            d = self.today + datetime.timedelta(days=delta)
+            if delta in [5, 12, 19, 26, 33, 40, 61]:
+                slot = Slot.objects.get(room="REPEAT_TEST", date=d)
+                self.assertEqual(slot.speakers.all().count(), 2)
+            else:
+                self.assertFalse(Slot.objects.filter(room="REPEAT_TEST", date=d))
+
+            delta += 7
+
+        # Delete slots and do it again with unchecked dates (d+19 and d+40)
+        # The following dates will be kept : 12, 26, 33, 61
         Slot.objects.filter(room="REPEAT_TEST").delete()
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
         data['slot_dates[]'] = [
             (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=47)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=54)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=61)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=68)).strftime("%d/%m/%Y"),
         ]
 
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 2)
+        self.assertEqual(slots.count(), 5)
 
         dates = [
             self.today + datetime.timedelta(days=5),
             self.today + datetime.timedelta(days=12),
+            self.today + datetime.timedelta(days=26),
+            self.today + datetime.timedelta(days=33),
+            self.today + datetime.timedelta(days=61)
         ]
         dates_idx = 0
         for slot in slots:

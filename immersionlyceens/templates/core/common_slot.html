@@ -1204,7 +1204,7 @@
 
   function check_date(date=$('#id_date').val(), dialog=true, callback) {
     return $.ajax({
-      url: '/api/check_vacations',
+      url: '/api/validate_slot_date',
       data: {
         date: date,
       },
@@ -1243,32 +1243,39 @@
     if(first_date && end_date) {
       for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
         let checked = 'checked'
-        if(Array.isArray(slot_dates) && slot_dates.indexOf(d.toLocaleDateString()) == -1) {
+        let string_date = d.toLocaleDateString()
+
+        if(Array.isArray(slot_dates) && slot_dates.indexOf(string_date) == -1) {
           checked = ''
         }
 
         $("#id_days_div").append(
           "<div class='form-group row align-items-center'>" +
-          "  <div class='col-md-1'>" +
-          "   <input type='checkbox' name='slot_dates[]' value='" + d.toLocaleDateString() + "' " + checked+ ">" +
+          "  <div class='col-sm-1'>" +
+          "   <input id='date_" + string_date + "' type='checkbox' name='slot_dates[]' value='" + string_date + "' " + checked+ ">" +
           "  </div>" +
-          "  <div class='col-md-3'>" + d.toLocaleDateString() + "</div>" +
-          "  <div class='col-md-4' id='id_vacation_" + d.toLocaleDateString() + "'></div>" +
+          "  <label for='date_" + string_date + "' class='col-form-label col-sm-3'>" + string_date + "</label>" +
+          "  <div class='col-sm-6' id='id_details_" + string_date + "'></div>" +
           "</div>"
         )
 
-        check_date(d.toLocaleDateString(), false).then(response => {
-          let vacation_text = ""
-          let id = "id_vacation_" + response.data.date
+        check_date(string_date, false).then(response => {
+          let details_text = ""
+          let id = `id_details_${response.data.date}`
 
-          if(response.data.is_between === true) {
+          if(response.data.is_between === true || response.data.valid_period === false) {
             response.data.details.forEach(detail => {
-              vacation_text += vacation_text !== "" ? "<br>" : ""
-              vacation_text += detail
+              details_text += details_text !== "" ? "<br>" : ""
+              details_text += detail
             })
           }
 
-          $(document.getElementById(id)).html(vacation_text)
+          $(document.getElementById(id)).html(details_text)
+
+          if(response.data.valid_period === false) {
+            document.getElementById('date_'+string_date).checked = false
+            document.getElementById('date_'+string_date).disabled = true
+          }
         })
       }
     }

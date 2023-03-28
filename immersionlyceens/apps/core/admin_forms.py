@@ -666,23 +666,23 @@ class VacationForm(forms.ModelForm):
             raise forms.ValidationError(_("You don't have the required privileges"))
 
         # existence if an active university year
-        univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+        try:
+            univ_year = UniversityYear.get_active()
+        except Exception as e:
+            raise
+
+        if not univ_year:
             raise forms.ValidationError(_("You have to set an university year"))
-        univ_year = univ_years[0]
 
         if start_date and end_date:
             if start_date >= end_date:
-                raise forms.ValidationError(_("Start date greater than end date"))
+                raise forms.ValidationError(_("Start date must be set before end date"))
 
             if start_date < univ_year.start_date or start_date > univ_year.end_date:
-                raise forms.ValidationError(_("Vacation start date must set between university year dates"))
+                raise forms.ValidationError(_("Vacation start date must be set between university year dates"))
 
             if end_date < univ_year.start_date or end_date >= univ_year.end_date:
-                raise forms.ValidationError(_("Vacation end date must set between university year dates"))
-
-            if start_date < now:
-                raise forms.ValidationError(_("Vacation start date must be set in the future"))
+                raise forms.ValidationError(_("Vacation end date must be set between university year dates"))
 
             if not user.is_superuser:
                 if user.is_operator() and now > univ_year.start_date:

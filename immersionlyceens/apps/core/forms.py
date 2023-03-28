@@ -325,6 +325,7 @@ class SlotForm(forms.ModelForm):
 
         if self.data.get("repeat"):
             new_dates = self.data.getlist("slot_dates[]")
+
             try:
                 university_year = UniversityYear.objects.get(active=True)
                 new_slot_template = Slot.objects.get(pk=instance.pk)
@@ -337,7 +338,9 @@ class SlotForm(forms.ModelForm):
 
                 for new_date in new_dates:
                     parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
-                    if parsed_date <= university_year.end_date:
+                    period = Period.from_date(parsed_date)
+
+                    if parsed_date <= university_year.end_date and period:
                         new_slot_template.pk = None
                         new_slot_template.date = parsed_date
                         new_slot_template.save()
@@ -348,6 +351,8 @@ class SlotForm(forms.ModelForm):
                         new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
                         new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
                         messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+            except Period.MultipleObjectsReturned:
+                raise
             except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
                 pass
 

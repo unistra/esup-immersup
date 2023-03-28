@@ -545,7 +545,14 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-def ajax_check_date_between_vacation(request):
+def validate_slot_date(request):
+    """
+    Check if a date:
+      - is in a vacation period
+      - belongs to a valid immersions period
+    :param request: the request.
+    :return: a dict with data about the date
+    """
     response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
@@ -577,10 +584,21 @@ def ajax_check_date_between_vacation(request):
         if is_sunday:
             details.append(_("Sunday"))
 
+        # Period
+        try:
+            period = Period.from_date(formated_date)
+            if not period:
+                details.append(_("Outside valid period"))
+        except Period.MultipleObjectsReturned:
+            response['msg'] = gettext('Configuration error, please check your immersions periods dates')
+            return JsonResponse(response, safe=False)
+
+
         response['data'] = {
             'date': _date,
             'is_between': is_vacation or is_holiday or is_sunday,
-            'details': details
+            'details': details,
+            'valid_period': period is not None,
         }
     else:
         response['msg'] = gettext('Error: A date is required')

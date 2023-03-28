@@ -14,7 +14,6 @@ import logging
 import os
 import re
 import uuid
-import pytz
 from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
@@ -1302,7 +1301,7 @@ class Vacation(models.Model):
 
 
     def date_is_between(self, _date):
-        return self.start_date <= _date and _date <= self.end_date
+        return self.start_date <= _date <= self.end_date
 
 
     @classmethod
