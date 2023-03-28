@@ -7,20 +7,15 @@ import importlib
 import json
 import logging
 import time
-from rest_framework import generics, status, serializers
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from functools import reduce
+from functools import reduce, wraps
 from itertools import permutations
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
@@ -33,7 +28,11 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
-from immersionlyceens.libs.api.accounts import AccountAPI
+from faker import Faker
+from rest_framework import generics, serializers, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from immersionlyceens.apps.core.models import (
     Building, Campus, CancelType, Course, Establishment,
@@ -43,8 +42,9 @@ from immersionlyceens.apps.core.models import (
     TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
-    HighSchoolLevelSerializer, OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer,
+    EstablishmentSerializer, HighSchoolLevelSerializer, HighSchoolSerializer,
+    OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
     TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
@@ -54,16 +54,40 @@ from immersionlyceens.apps.immersion.models import (
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request,
 )
+from immersionlyceens.libs.api.accounts import AccountAPI
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
-from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
-    IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions,
-    IsSpeakerPermissions, HighSchoolReadOnlyPermissions, SpeakersReadOnlyPermissions, IsStudentPermissions,
-    IsVisitorPermissions, IsHighSchoolStudentPermissions
+from .permissions import (
+    CustomDjangoModelPermissions, HighSchoolReadOnlyPermissions,
+    IsEstablishmentManagerPermissions, IsHighSchoolStudentPermissions,
+    IsMasterEstablishmentManagerPermissions, IsRefLycPermissions,
+    IsSpeakerPermissions, IsStructureManagerPermissions, IsStudentPermissions,
+    IsTecPermissions, IsVisitorPermissions, SpeakersReadOnlyPermissions,
 )
 
 logger = logging.getLogger(__name__)
+
+def timer(func):
+    """helper function to estimate view execution time"""
+
+    @wraps(func)  # used for copying func metadata
+    def wrapper(*args, **kwargs):
+        # record start time
+        start = time.time()
+
+        # func execution
+        result = func(*args, **kwargs)
+
+        duration = (time.time() - start) * 1000
+        # output execution time to console
+        print('view {} takes {:.2f} ms'.format(
+            func.__name__,
+            duration
+            ))
+        return result
+    return wrapper
+
 
 
 @is_ajax_request
@@ -2442,6 +2466,7 @@ def get_csv_highschool(request):
     return response
 
 
+@timer
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_anonymous(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
@@ -3136,6 +3161,118 @@ def get_csv_anonymous(request):
                             registrant_profile,
                             institution,
                             level,
+                        ]
+                    )
+
+    if t == 'registration':
+
+        label = _('anonymous_registrations')
+
+        header = [
+            _('anonymous identity'),
+            _('registrant profile'),
+            _('student level'),
+            _('origin institution'),
+            _("Origin bachelor type"),
+            _('establishment'),
+            _('slot type'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('label'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('attendance status'),
+            _('additional information'),
+        ]
+
+        if request.user.is_establishment_manager():
+
+            filters[
+                'slot__course__structure__in'
+            ] = request.user.establishment.structures.all()
+
+        content = []
+
+        immersions = Immersion.objects.prefetch_related('slot','student').filter(
+            cancellation_type__isnull=True, slot__published=True, **filters
+        )
+
+        faker = Faker(settings.LANGUAGE_CODE)
+        Faker.seed(4321)
+        fake_names = {i:faker.name() for i in immersions.values_list('student__id',flat=True)}
+
+        if immersions.count() > 0:
+            for imm in immersions:
+                institution = ''
+                level = ''
+                training_label = ''
+                record = None
+
+                if imm.slot.is_course():
+                    domain = [
+                            sub.training_domain.label
+                            for sub in imm.slot.course.training.training_subdomains.all()
+                    ]
+                    sub_domain = [
+                            sub.label
+                            for sub in imm.slot.course.training.training_subdomains.all()
+                    ]
+                    training_label = imm.slot.course.training.label
+
+                if imm.student.is_student():
+                    registrant_profile = _('Student')
+                    record = imm.student.get_student_record()
+                    uai_code, institution = record.home_institution()
+                    institution = institution.label if institution else uai_code
+                    level = record.level.label if record.level else ''
+
+                elif imm.student.is_high_school_student():
+                    registrant_profile = _('High school student')
+                    record = imm.student.get_high_school_student_record()
+                    institution = record.highschool.label
+                    level = record.level.label if record.level else ''
+
+                elif imm.student.is_visitor():
+                    registrant_profile = _('Visitor')
+                    record = imm.student.get_visitor_record()
+
+                if record:
+                    structure = imm.slot.get_structure()
+                    highschool = imm.slot.get_highschool()
+                    establishment = imm.slot.get_establishment()
+
+                    if not establishment and highschool:
+                        establishment=f'{highschool.label} - {highschool.city}'
+
+                    if structure:
+                        managed_by = structure.label
+
+                    content.append(
+                        [
+                            fake_names[imm.student.id],
+                            registrant_profile,
+                            level,
+                            institution,
+                            record.get_origin_bachelor_type_display(),
+                            establishment if establishment else highschool,
+                            imm.slot.get_type(),
+                            infield_separator.join(domain) if domain else '',
+                            infield_separator.join(sub_domain) if sub_domain else '',
+                            training_label if training_label else '',
+                            imm.slot.get_label(),
+                            _date(imm.slot.date, 'd/m/Y'),
+                            imm.slot.start_time.strftime('%H:%M'),
+                            imm.slot.end_time.strftime('%H:%M'),
+                            imm.slot.campus.label if imm.slot.campus else None,
+                            imm.slot.building.label if imm.slot.building else None,
+                            imm.slot.room if imm.slot.face_to_face else _('Remote'),
+                            imm.get_attendance_status(),
+                            imm.slot.additional_information,
                         ]
                     )
 
