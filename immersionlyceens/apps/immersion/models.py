@@ -99,9 +99,10 @@ class HighSchoolStudentRecord(models.Model):
         related_name="high_school_student_record"
     )
 
-    origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
-                                                    default=1, null=True, blank=True,
-                                                    choices=POST_BACHELOR_ORIGIN_TYPES)
+    origin_bachelor_type = models.SmallIntegerField(
+        _("Origin bachelor type"), default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES
+    )
+
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 
@@ -275,7 +276,6 @@ class StudentRecord(models.Model):
     uai_code = models.CharField(_("Home institution code"), blank=False, null=False, max_length=256)
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
-    # level = models.SmallIntegerField(_("Level"), default=1, blank=False, null=False, choices=LEVELS)
 
     level = models.ForeignKey(
         core_models.StudentLevel,
@@ -286,8 +286,18 @@ class StudentRecord(models.Model):
         related_name="student_record"
     )
 
-    origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
-                                                    default=1, null=False, blank=False, choices=BACHELOR_TYPES)
+    institution = models.ForeignKey(
+        core_models.HigherEducationInstitution,
+        verbose_name=_("Home institution"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="student_records"
+    )
+
+    origin_bachelor_type = models.SmallIntegerField(
+        _("Origin bachelor type"), default=1, null=False, blank=False, choices=BACHELOR_TYPES
+    )
 
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)

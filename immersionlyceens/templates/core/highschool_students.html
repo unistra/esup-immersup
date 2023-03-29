@@ -92,6 +92,7 @@
   const is_ref_etab_maitre = "{{ request.user.is_master_establishment_manager }}" === "True";
   const is_ref_tec = "{{ request.user.is_operator }}" === "True";
   const is_ref_lyc = "{{ request.user.is_high_school_manager }}" === "True";
+  const date_format = { year: 'numeric', month: 'long', day: 'numeric' };
   let order = [[0, "asc"],];
 
   function open_modal(student_id) {
@@ -126,27 +127,78 @@
     },
     'columns': [
     {% if can_show_users_without_record %}
-    { "data": "student_type" },
+    { "data": "user_type" },
     {% endif %}
-    { "data": "name",
+    { "data": "last_name",
       "render": function(data, type, row) {
-        if((is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc) && row.record_link !== '') {
-          return "<a href='"+row.record_link+"'>"+data+"</a>";
+        let name = `${row.last_name} ${row.first_name}`
+
+        if(type === "sort") {
+          return name.toLowerCase()
         }
-        else {
-          return data;
+
+        if(type === "display" && (is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc)) {
+          if (row.high_school_record_id) {
+            return `<a href='/immersion/hs_record/${row.high_school_record_id}'>${name}</a>`;
+          } else if (row.student_record_id) {
+            return `<a href='/immersion/student_record/${row.student_record_id}'>${name}</a>`;
+          } else if (row.visitor_record_id) {
+            return `<a href='/immersion/visitor_record/${row.visitor_record_id}'>${name}</a>`;
+          }
         }
+        return name;
       }
     },
-    { "data": "birthdate" },
+    { "data": "birth_date",
+      "render": function(data, type, row) {
+        if (data && type === "display") {
+          let date = new Date(data.replace(/(\d{4})-(\d{2})-(\d{2})/, "$2/$3/$1"))
+          return date.toLocaleDateString(undefined, date_format)
+        }
+
+        return data
+      }
+    },
     {% if can_show_users_without_record %}
-    { "data": "institution" },
+    { "data": "institution",
+      "render": function(data, type, row) {
+        if (row.student_record_id && data === null) {
+          return row.uai_code
+        }
+        return data
+      }
+    },
     {% endif %}
     { "data": "level" },
-    { "data": "class" },
-    { "data": "bachelor" },
+    { "data": "class_name" },
+    { "data": "bachelor",
+      "render": function(data, type, row) {
+        if(row.student_record_id) {
+          return row.student_origin_bachelor
+        }
+
+        if(row.is_post_bachelor && row.high_school_record_id) {
+          return row.hs_origin_bachelor
+        }
+
+        return data
+      }
+    },
     {% if can_show_users_without_record %}
-    { "data": "post_bachelor_level" },
+    { "data": "post_bachelor_level",
+      "render": function(data, type, row) {
+        if (row.high_school_record_id && row.is_post_bachelor) {
+          let txt = row.level
+
+          if (data) {
+            txt += ` - ${data}`
+          }
+
+          return txt
+        }
+        return data
+      }
+    },
     {% endif %}
     { "data": "registered",
       "render": function(data, type, row) {

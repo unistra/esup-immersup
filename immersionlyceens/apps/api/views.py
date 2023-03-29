@@ -23,7 +23,8 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
-from django.db.models import Q, QuerySet
+from django.db.models import Case, CharField, Count, DateField, F, Func, Q, QuerySet, Value, When
+from django.db.models.functions import Greatest, Coalesce
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -1581,13 +1582,40 @@ def ajax_get_highschool_students(request):
         highschool_id = request.user.highschool.id
 
     if highschool_id:
-        students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+        students = ImmersionUser.objects.prefetch_related(
+            'high_school_student_record', 'high_school_student_record__highschool',
+            'high_school_student_record__post_bachelor_level', 'immersions', 'groups'
+        ).filter(
             validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id
         )
     else:
         students = ImmersionUser.objects.prefetch_related(
-            'high_school_student_record', 'student_record', 'visitor_record', 'immersions'
+            'high_school_student_record__level', 'high_school_student_record__highschool',
+            'high_school_student_record__post_bachelor_level', 'student_record__level',
+            'student_record__institution', 'visitor_record', 'immersions', 'groups'
         ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
+
+    # Bachelor cases/when
+    bachelor_choices = dict(HighSchoolStudentRecord._meta.get_field('bachelor_type').flatchoices)
+    bachelor_whens = [
+        When(high_school_student_record__bachelor_type=k, then=Value(str(v))) for k, v in bachelor_choices.items()
+    ]
+
+    student_origin_bachelor_choices = dict(StudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
+    student_origin_bachelor_whens = [
+        When(
+            student_record__origin_bachelor_type=k,
+            then=Value(str(v))
+        ) for k, v in student_origin_bachelor_choices.items()
+    ]
+
+    hs_origin_bachelor_choices = dict(HighSchoolStudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
+    hs_origin_bachelor_whens = [
+        When(
+            high_school_student_record__origin_bachelor_type=k,
+            then=Value(str(v))
+        ) for k, v in hs_origin_bachelor_choices.items()
+    ]
 
     if no_record_filter:
         students = students.filter(
@@ -1596,67 +1624,53 @@ def ajax_get_highschool_students(request):
             visitor_record__isnull=True
         )
     else:
-        students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(visitor_record__isnull=False))
+        students = students.filter(
+            Q(high_school_student_record__isnull=False) |
+            Q(student_record__isnull=False) |
+            Q(visitor_record__isnull=False)
+        )
 
-    for student in students:
-        record = None
-        student_type = _('Unknown')
-        link = ''
-        try:
-            if student.is_high_school_student():
-                record = student.get_high_school_student_record()
-                if record:
-                    link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
-                student_type = pgettext("person type", "High school student")
-            elif student.is_student():
-                record = student.get_student_record()
-                if record:
-                    link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
-                student_type = pgettext("person type", "Student")
-            elif student.is_visitor():
-                record = student.get_visitor_record()
-                if record:
-                    link = reverse('immersion:visitor_record_by_id', kwargs={'record_id': record.id})
-                student_type = pgettext("person type", "Visitor")
+    students = students.annotate(
+        high_school_record_id=F('high_school_student_record__id'),
+        student_record_id=F('student_record__id'),
+        visitor_record_id=F('visitor_record__id'),
+        user_type=Case(
+            When(
+                high_school_student_record__isnull=False,
+                then=Value(pgettext("person type", "High school student"))
+            ),
+            When(student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
+            When(visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
+            default=Value(gettext("Unknown"))
+        ),
+        level=Coalesce(
+            F('high_school_student_record__level__label'),
+            F('student_record__level__label')
+        ),
+        birth_date=Coalesce(
+            F('student_record__birth_date'),
+            F('high_school_student_record__birth_date'),
+            F('visitor_record__birth_date')
+        ),
+        class_name=F('high_school_student_record__class_name'),
+        institution=Coalesce(
+            F('high_school_student_record__highschool__label'),
+            F('student_record__institution__label'),
+        ),
+        uai_code=F('student_record__uai_code'),
+        high_school_student_level=F('high_school_student_record__level__label'),
+        post_bachelor_level=Coalesce(
+            F('student_record__current_diploma'),
+            F('high_school_student_record__post_bachelor_level__label')
+        ),
+        is_post_bachelor=F('high_school_student_record__level__is_post_bachelor'),
+        student_origin_bachelor=Case(*student_origin_bachelor_whens, output_field=CharField()),
+        hs_origin_bachelor=Case(*hs_origin_bachelor_whens, output_field=CharField()),
+        bachelor=Case(*bachelor_whens, output_field=CharField()),
+        registered=Count(F('immersions'))
+    ).values()
 
-        except Exception:
-            pass
-
-        student_data = {
-            'id': student.pk,
-            'name': f"{student.last_name} {student.first_name}",
-            'birthdate': date_format(record.birth_date) if record else '-',
-            'institution': '',
-            'level': record.level.label if record and "level" in dir(record) and record.level else '-',
-            'bachelor': '',
-            'post_bachelor_level': '',
-            'class': '',
-            'registered': student.immersions.exists(),
-            'record_link': link,
-            'student_type': student_type,
-        }
-
-        if record:
-            if student.is_high_school_student():
-                student_data['class'] = record.class_name
-                student_data['institution'] = record.highschool.label
-
-                if record.level.is_post_bachelor:
-                    student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                    student_data['post_bachelor_level'] = record.level.label
-
-                    if record.post_bachelor_level:
-                        student_data['post_bachelor_level'] += f" - {record.post_bachelor_level.label}"
-                else:
-                    student_data['bachelor'] = record.get_bachelor_type_display()
-
-            elif student.is_student():
-                uai_code, institution = record.home_institution()
-                student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                student_data['institution'] = institution.label if institution else uai_code
-                student_data['post_bachelor_level'] = record.current_diploma
-
-        response['data'].append(student_data.copy())
+    response['data'] = [l for l in students]
 
     return JsonResponse(response, safe=False)
 

@@ -2104,16 +2104,12 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 1)
         h = content['data'][0]
         self.assertEqual(self.highschool_user3.id, h['id'])
-        self.assertEqual(
-            f'{self.highschool_user3.last_name} {self.highschool_user3.first_name}',
-            h['name']
-        )
-        fields = ('birthdate', 'level')
-        empty_fields = ('institution', 'bachelor', 'post_bachelor_level', 'class')
-        for field in fields:
-            self.assertEqual('-', h[field])
+        self.assertEqual(self.highschool_user3.last_name, h['last_name'])
+        self.assertEqual(self.highschool_user3.first_name, h['first_name'])
+        empty_fields = ('birth_date', 'level', 'institution', 'bachelor', 'post_bachelor_level', 'class_name')
+
         for field in empty_fields:
-            self.assertEqual('', h[field])
+            self.assertEqual(None, h[field])
 
         # As a high school manager
         url = "/api/get_highschool_students/"
@@ -2146,10 +2142,10 @@ class APITestCase(TestCase):
         for h in content['data']:
             if h['level'] in [l.label for l in HighSchoolLevel.objects.filter(is_post_bachelor=True)]:
                 self.assertEqual(
-                    f"{self.hs_record.level} - {self.hs_record.post_bachelor_level.label}",
+                    f"{self.hs_record.post_bachelor_level.label}",
                     h['post_bachelor_level']
                 )
-                self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
+                self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['hs_origin_bachelor'])
                 one = True
                 break
         self.assertTrue(one)
