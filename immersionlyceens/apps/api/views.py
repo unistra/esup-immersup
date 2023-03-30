@@ -7,24 +7,22 @@ import importlib
 import json
 import logging
 import time
-from rest_framework import generics, status, serializers
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from functools import reduce
+from functools import reduce, wraps
 from itertools import permutations
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
-from django.db.models import Case, CharField, Count, DateField, F, Func, Q, QuerySet, Value, When
-from django.db.models.functions import Greatest, Coalesce
+from django.db.models import (
+    Case, CharField, Count, DateField, ExpressionWrapper, F, Func, Q, QuerySet,
+    Value, When,
+)
+from django.db.models.functions import Coalesce, Greatest
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -34,18 +32,24 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
-from immersionlyceens.libs.api.accounts import AccountAPI
+from faker import Faker
+from rest_framework import generics, serializers, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from immersionlyceens.apps.core.models import (
-    Building, Campus, CancelType, Course, Establishment,
-    GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
-    ImmersionUser, ImmersionUserGroup, MailTemplate, MailTemplateVars,
-    OffOfferEvent, Period, PublicDocument, Slot, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
+    Building, Campus, CancelType, Course, Establishment, GeneralSettings,
+    HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday,
+    Immersion, ImmersionUser, ImmersionUserGroup, MailTemplate,
+    MailTemplateVars, OffOfferEvent, Period, PublicDocument, Slot, Structure,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
-    HighSchoolLevelSerializer, OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer,
+    EstablishmentSerializer, HighSchoolLevelSerializer, HighSchoolSerializer,
+    OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
     TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
@@ -55,16 +59,40 @@ from immersionlyceens.apps.immersion.models import (
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request,
 )
+from immersionlyceens.libs.api.accounts import AccountAPI
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
-from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
-    IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions,
-    IsSpeakerPermissions, HighSchoolReadOnlyPermissions, SpeakersReadOnlyPermissions, IsStudentPermissions,
-    IsVisitorPermissions, IsHighSchoolStudentPermissions
+from .permissions import (
+    CustomDjangoModelPermissions, HighSchoolReadOnlyPermissions,
+    IsEstablishmentManagerPermissions, IsHighSchoolStudentPermissions,
+    IsMasterEstablishmentManagerPermissions, IsRefLycPermissions,
+    IsSpeakerPermissions, IsStructureManagerPermissions, IsStudentPermissions,
+    IsTecPermissions, IsVisitorPermissions, SpeakersReadOnlyPermissions,
 )
 
 logger = logging.getLogger(__name__)
+
+def timer(func):
+    """helper function to estimate view execution time"""
+
+    @wraps(func)  # used for copying func metadata
+    def wrapper(*args, **kwargs):
+        # record start time
+        start = time.time()
+
+        # func execution
+        result = func(*args, **kwargs)
+
+        duration = (time.time() - start) * 1000
+        # output execution time to console
+        print('view {} takes {:.2f} ms'.format(
+            func.__name__,
+            duration
+            ))
+        return result
+    return wrapper
+
 
 
 @is_ajax_request
@@ -2352,8 +2380,7 @@ def get_csv_structures(request):
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
     writer = csv.writer(response)
     writer.writerow(header)
-    for row in content:
-        writer.writerow(row)
+    writer.writerows(content)
 
     return response
 
@@ -2447,12 +2474,12 @@ def get_csv_highschool(request):
 
     writer = csv.writer(response)
     writer.writerow(header)
-    for row in content:
-        writer.writerow(row)
+    writer.writerows(content)
 
     return response
 
 
+@timer
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_anonymous(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
@@ -2460,7 +2487,7 @@ def get_csv_anonymous(request):
     infield_separator = '|'
     t = request.GET.get('type')
     filters = {}
-
+    Q_filters = Q()
     if not t:
         raise Http404
 
@@ -2525,7 +2552,10 @@ def get_csv_anonymous(request):
 
         content = []
 
-        slots = Slot.objects.filter(published=True, course__isnull=False, **filters)
+        slots = Slot.objects.prefetch_related(
+            'speakers' , 'course__training__training_subdomains'
+        ).filter(**filters, published=True, course__isnull=False)
+
         for slot in slots:
             managed_by = ''
             registrant_profile = ''
@@ -2539,10 +2569,36 @@ def get_csv_anonymous(request):
             if structure:
                 managed_by = structure.label
 
-            immersions = Immersion.objects.prefetch_related('slot').filter(
+            slot_date = _date(slot.date, 'd/m/Y')
+            slot_start_time = slot.start_time.strftime('%H:%M')
+            slot_end_time = slot.end_time.strftime('%H:%M')
+            slot_speakers = infield_separator.join(
+                f'{s.last_name} {s.first_name}'
+                for s in slot.speakers.all().order_by(
+                    'last_name', 'first_name'
+                )
+            )
+            slot_training_domains = infield_separator.join(
+                [
+                    sub.training_domain.label
+                    for sub in slot.course.training.training_subdomains.all()
+                ]
+            )
+            slot_training_subdomains = infield_separator.join(
+                [
+                    sub.label
+                    for sub in slot.course.training.training_subdomains.all()
+                ]
+            )
+
+            immersions = Immersion.objects.prefetch_related('slot', 'student').filter(
                 slot=slot, cancellation_type__isnull=True
             )
-            if immersions.count() > 0:
+            slot_registered_students = immersions.count()
+
+            slot_registered_students = 0
+
+            if slot_registered_students > 0:
                 for imm in immersions:
                     institution = ''
                     level = ''
@@ -2551,17 +2607,16 @@ def get_csv_anonymous(request):
                     if imm.student.is_student():
                         try:
                             registrant_profile = _('Student')
-                            record = StudentRecord.objects.get(student=imm.student)
-                            institution = record.institution.label if record.institution else record.uai_code
+                            record = imm.student.get_student_record()
+                            uai_code, institution = record.home_institution()
+                            institution = institution.label if institution else uai_code
                             level = record.level.label if record.level else ''
                         except StudentRecord.DoesNotExist:
                             pass
                     elif imm.student.is_high_school_student():
                         try:
                             registrant_profile = _('High school student')
-                            record = HighSchoolStudentRecord.objects.get(
-                                student=imm.student
-                            )
+                            record = imm.student.get_high_school_student_record()
                             institution = record.highschool.label
                             level = record.level.label if record.level else ''
                         except HighSchoolStudentRecord.DoesNotExist:
@@ -2569,7 +2624,7 @@ def get_csv_anonymous(request):
                     elif imm.student.is_visitor():
                         try:
                             registrant_profile = _('Visitor')
-                            record = VisitorRecord.objects.get(visitor=imm.student)
+                            record = imm.student.get_visitor_record()
                         except VisitorRecord.DoesNotExist:
                             pass
 
@@ -2582,34 +2637,19 @@ def get_csv_anonymous(request):
                                 [
                                     establishment,
                                     managed_by,
-                                    infield_separator.join(
-                                        [
-                                            sub.training_domain.label
-                                            for sub in slot.course.training.training_subdomains.all()
-                                        ]
-                                    ),
-                                    infield_separator.join(
-                                        [
-                                            sub.label
-                                            for sub in slot.course.training.training_subdomains.all()
-                                        ]
-                                    ),
+                                    slot_training_domains,
+                                    slot_training_subdomains,
                                     slot.course.training.label,
                                     slot.course.label,
                                     slot.course_type.label,
-                                    _date(slot.date, 'd/m/Y'),
-                                    slot.start_time.strftime('%H:%M'),
-                                    slot.end_time.strftime('%H:%M'),
+                                    slot_date,
+                                    slot_start_time,
+                                    slot_end_time,
                                     slot.campus.label if slot.campus else None,
                                     slot.building.label if slot.building else None,
                                     slot.room if slot.face_to_face else _('Remote'),
-                                    infield_separator.join(
-                                        f'{s.last_name} {s.first_name}'
-                                        for s in slot.speakers.all().order_by(
-                                            'last_name', 'first_name'
-                                        )
-                                    ),
-                                    slot.registered_students(),
+                                    slot_speakers,
+                                    slot_registered_students,
                                     slot.n_places,
                                     slot.additional_information,
                                     registrant_profile,
@@ -2623,34 +2663,19 @@ def get_csv_anonymous(request):
                             content.append(
                                 [
                                     managed_by,
-                                    infield_separator.join(
-                                        [
-                                            sub.training_domain.label
-                                            for sub in slot.course.training.training_subdomains.all()
-                                        ]
-                                    ),
-                                    infield_separator.join(
-                                        [
-                                            sub.label
-                                            for sub in slot.course.training.training_subdomains.all()
-                                        ]
-                                    ),
+                                    slot_training_domains,
+                                    slot_training_subdomains,
                                     slot.course.training.label,
                                     slot.course.label,
                                     slot.course_type.label,
-                                    _date(slot.date, 'd/m/Y'),
-                                    slot.start_time.strftime('%H:%M'),
-                                    slot.end_time.strftime('%H:%M'),
+                                    slot_date,
+                                    slot_start_time,
+                                    slot_end_time,
                                     slot.campus.label if slot.campus else None,
                                     slot.building.label if slot.building else None,
                                     slot.room if slot.face_to_face else _('Remote'),
-                                    infield_separator.join(
-                                        f'{s.last_name} {s.first_name}'
-                                        for s in slot.speakers.all().order_by(
-                                            'last_name', 'first_name'
-                                        )
-                                    ),
-                                    slot.registered_students(),
+                                    slot_speakers,
+                                    slot_registered_students,
                                     slot.n_places,
                                     slot.additional_information,
                                     registrant_profile,
@@ -2669,34 +2694,19 @@ def get_csv_anonymous(request):
                         [
                             establishment,
                             managed_by,
-                            infield_separator.join(
-                                [
-                                    sub.training_domain.label
-                                    for sub in slot.course.training.training_subdomains.all()
-                                ]
-                            ),
-                            infield_separator.join(
-                                [
-                                    sub.label
-                                    for sub in slot.course.training.training_subdomains.all()
-                                ]
-                            ),
+                            slot_training_domains,
+                            slot_training_subdomains,
                             slot.course.training.label,
                             slot.course.label,
                             slot.course_type.label,
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
+                            slot_date,
+                            slot_start_time,
+                            slot_end_time,
                             slot.campus.label if slot.campus else None,
                             slot.building.label if slot.building else None,
                             slot.room if slot.face_to_face else _('Remote'),
-                            infield_separator.join(
-                                f'{s.last_name} {s.first_name}'
-                                for s in slot.speakers.all().order_by(
-                                    'last_name', 'first_name'
-                                )
-                            ),
-                            slot.registered_students(),
+                            slot_speakers,
+                            slot_registered_students,
                             slot.n_places,
                             slot.additional_information,
                             registrant_profile,
@@ -2706,34 +2716,19 @@ def get_csv_anonymous(request):
                     content.append(
                         [
                             managed_by,
-                            infield_separator.join(
-                                [
-                                    sub.training_domain.label
-                                    for sub in slot.course.training.training_subdomains.all()
-                                ]
-                            ),
-                            infield_separator.join(
-                                [
-                                    sub.label
-                                    for sub in slot.course.training.training_subdomains.all()
-                                ]
-                            ),
+                            slot_training_domains,
+                            slot_training_subdomains,
                             slot.course.training.label,
                             slot.course.label,
                             slot.course_type.label,
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
+                            slot_date,
+                            slot_start_time,
+                            slot_end_time,
                             slot.campus.label if slot.campus else None,
                             slot.building.label if slot.building else None,
                             slot.room if slot.face_to_face else _('Remote'),
-                            infield_separator.join(
-                                f'{s.last_name} {s.first_name}'
-                                for s in slot.speakers.all().order_by(
-                                    'last_name', 'first_name'
-                                )
-                            ),
-                            slot.registered_students(),
+                            slot_speakers,
+                            slot_registered_students,
                             slot.n_places,
                             slot.additional_information,
                             registrant_profile,
@@ -2762,7 +2757,6 @@ def get_csv_anonymous(request):
                 _('student level'),
                 _('attendance status'),
             ]
-            slots = Slot.objects.filter(published=True, visit__isnull=False)
 
         elif request.user.is_establishment_manager():
 
@@ -2785,7 +2779,8 @@ def get_csv_anonymous(request):
             Q_filters = Q(visit__establishment=request.user.establishment) | Q(
                 visit__structure__in=request.user.establishment.structures.all()
             )
-            slots = Slot.objects.filter(Q_filters, published=True, visit__isnull=False)
+
+        slots = Slot.objects.filter(Q_filters, published=True, visit__isnull=False)
 
         content = []
 
@@ -2793,10 +2788,21 @@ def get_csv_anonymous(request):
             structure = slot.get_structure()
             establishment = slot.get_establishment()
             highschool = slot.get_highschool()
+            slot_date = _date(slot.date, 'd/m/Y')
+            slot_start_time = slot.start_time.strftime('%H:%M')
+            slot_end_time = slot.end_time.strftime('%H:%M')
+            slot_speakers = infield_separator.join(
+                f'{s.last_name} {s.first_name}'
+                for s in slot.speakers.all().order_by(
+                    'last_name', 'first_name'
+                )
+            )
             immersions = Immersion.objects.prefetch_related('slot').filter(
                 slot=slot, cancellation_type__isnull=True
             )
-            if immersions.count() > 0:
+            slot_registered_students = immersions.count()
+
+            if slot_registered_students > 0:
                 for imm in immersions:
                     institution = ''
                     level = ''
@@ -2831,16 +2837,11 @@ def get_csv_anonymous(request):
                                     highschool,
                                     slot.visit.purpose,
                                     slot.room if slot.face_to_face else _('Remote'),
-                                    _date(slot.date, 'd/m/Y'),
-                                    slot.start_time.strftime('%H:%M'),
-                                    slot.end_time.strftime('%H:%M'),
-                                    infield_separator.join(
-                                        f'{s.last_name} {s.first_name}'
-                                        for s in slot.speakers.all().order_by(
-                                            'last_name', 'first_name'
-                                        )
-                                    ),
-                                    slot.registered_students(),
+                                    slot_date,
+                                    slot_start_time,
+                                    slot_end_time,
+                                    slot_speakers,
+                                    slot_registered_students,
                                     slot.n_places,
                                     slot.additional_information,
                                     level,
@@ -2855,16 +2856,11 @@ def get_csv_anonymous(request):
                                     highschool,
                                     slot.visit.purpose,
                                     slot.room if slot.face_to_face else _('Remote'),
-                                    _date(slot.date, 'd/m/Y'),
-                                    slot.start_time.strftime('%H:%M'),
-                                    slot.end_time.strftime('%H:%M'),
-                                    infield_separator.join(
-                                        f'{s.last_name} {s.first_name}'
-                                        for s in slot.speakers.all().order_by(
-                                            'last_name', 'first_name'
-                                        )
-                                    ),
-                                    slot.registered_students(),
+                                    slot_date,
+                                    slot_start_time,
+                                    slot_end_time,
+                                    slot_speakers,
+                                    slot_registered_students,
                                     slot.n_places,
                                     slot.additional_information,
                                     level,
@@ -2884,16 +2880,11 @@ def get_csv_anonymous(request):
                             highschool,
                             slot.visit.purpose,
                             slot.room if slot.face_to_face else _('Remote'),
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
-                            infield_separator.join(
-                                f'{s.last_name} {s.first_name}'
-                                for s in slot.speakers.all().order_by(
-                                    'last_name', 'first_name'
-                                )
-                            ),
-                            slot.registered_students(),
+                            slot_date,
+                            slot_start_time,
+                            slot_end_time,
+                            slot_speakers,
+                            slot_registered_students,
                             slot.n_places,
                             slot.additional_information,
                         ]
@@ -2906,16 +2897,11 @@ def get_csv_anonymous(request):
                             highschool,
                             slot.visit.purpose,
                             slot.room if slot.face_to_face else _('Remote'),
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
-                            infield_separator.join(
-                                f'{s.last_name} {s.first_name}'
-                                for s in slot.speakers.all().order_by(
-                                    'last_name', 'first_name'
-                                )
-                            ),
-                            slot.registered_students(),
+                            slot_date,
+                            slot_start_time,
+                            slot_end_time,
+                            slot_speakers,
+                            slot_registered_students,
                             slot.n_places,
                             slot.additional_information,
                         ]
@@ -2949,8 +2935,6 @@ def get_csv_anonymous(request):
                 _('attendance status'),
             ]
 
-            slots = Slot.objects.filter(published=True, event__isnull=False)
-
         elif request.user.is_establishment_manager():
 
             header = [
@@ -2977,10 +2961,10 @@ def get_csv_anonymous(request):
                 'event__establishment'
             ] = request.user.establishment
 
-            # Q_filters = Q(event__establishment=request.user.establishment) | Q(
-            #     event__structure__in=request.user.establishment.structures.all()
-            # )
-            slots = Slot.objects.filter(**filters, published=True, event__isnull=False)
+        slots = Slot.objects.prefetch_related(
+            'immersions','speakers','event', 'event__establishment', 'event__structure',
+            'event__highschool'
+        ).filter(**filters, published=True, event__isnull=False)
 
         content = []
 
@@ -2991,28 +2975,40 @@ def get_csv_anonymous(request):
             structure = slot.get_structure()
             establishment = slot.get_establishment()
             highschool = slot.get_highschool()
+            slot_date = _date(slot.date, 'd/m/Y')
+            slot_start_time = slot.start_time.strftime('%H:%M')
+            slot_end_time = slot.end_time.strftime('%H:%M')
+            slot_speakers = infield_separator.join(
+                f'{s.last_name} {s.first_name}'
+                for s in slot.speakers.all().order_by(
+                    'last_name', 'first_name'
+                )
+            )
 
-            immersions = Immersion.objects.prefetch_related('slot').filter(
+            immersions = Immersion.objects.prefetch_related(
+                'slot','student'
+            ).filter(
                 slot=slot, cancellation_type__isnull=True
             )
-            if immersions.count() > 0:
+            slot_registered_students = immersions.count()
+
+            if slot_registered_students > 0:
                 for imm in immersions:
                     record = None
 
                     if imm.student.is_student():
                         try:
                             registrant_profile = _('Student')
-                            record = StudentRecord.objects.get(student=imm.student)
-                            institution = record.institution.label if record.institution else record.uai_code
+                            record = imm.student.get_student_record()
+                            uai_code, institution = record.home_institution()
+                            institution = institution.label if institution else uai_code
                             level = record.level.label if record.level else ''
                         except StudentRecord.DoesNotExist:
                             pass
                     elif imm.student.is_high_school_student():
                         try:
                             registrant_profile = _('High school student')
-                            record = HighSchoolStudentRecord.objects.get(
-                                student=imm.student
-                            )
+                            record = imm.student.get_high_school_student_record()
                             institution = record.highschool.label
                             level = record.level.label if record.level else ''
                         except HighSchoolStudentRecord.DoesNotExist:
@@ -3020,9 +3016,7 @@ def get_csv_anonymous(request):
                     elif imm.student.is_visitor():
                         try:
                             registrant_profile = _('Visitor')
-                            record = VisitorRecord.objects.get(visitor=imm.student)
-                            # institution = record.highschool.label
-                            # level = record.level.label if record.level else ''
+                            record = imm.student.get_visitor_record()
                         except VisitorRecord.DoesNotExist:
                             pass
 
@@ -3041,16 +3035,11 @@ def get_csv_anonymous(request):
                                     slot.campus,
                                     slot.building,
                                     slot.room if slot.face_to_face else _('Remote'),
-                                    _date(slot.date, 'd/m/Y'),
-                                    slot.start_time.strftime('%H:%M'),
-                                    slot.end_time.strftime('%H:%M'),
-                                    infield_separator.join(
-                                        f'{s.last_name} {s.first_name}'
-                                        for s in slot.speakers.all().order_by(
-                                            'last_name', 'first_name'
-                                        )
-                                    ),
-                                    slot.registered_students(),
+                                    slot_date,
+                                    slot_start_time,
+                                    slot_end_time,
+                                    slot_speakers,
+                                    slot_registered_students,
                                     slot.n_places,
                                     slot.additional_information,
                                     registrant_profile,
@@ -3069,16 +3058,11 @@ def get_csv_anonymous(request):
                                     slot.campus,
                                     slot.building,
                                     slot.room if slot.face_to_face else _('Remote'),
-                                    _date(slot.date, 'd/m/Y'),
-                                    slot.start_time.strftime('%H:%M'),
-                                    slot.end_time.strftime('%H:%M'),
-                                    infield_separator.join(
-                                        f'{s.last_name} {s.first_name}'
-                                        for s in slot.speakers.all().order_by(
-                                            'last_name', 'first_name'
-                                        )
-                                    ),
-                                    slot.registered_students(),
+                                    slot_date,
+                                    slot_start_time,
+                                    slot_end_time,
+                                    slot_speakers,
+                                    slot_registered_students,
                                     slot.n_places,
                                     slot.additional_information,
                                     registrant_profile,
@@ -3102,16 +3086,11 @@ def get_csv_anonymous(request):
                             slot.campus,
                             slot.building,
                             slot.room if slot.face_to_face else _('Remote'),
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
-                            infield_separator.join(
-                                f'{s.last_name} {s.first_name}'
-                                for s in slot.speakers.all().order_by(
-                                    'last_name', 'first_name'
-                                )
-                            ),
-                            slot.registered_students(),
+                            slot_date,
+                            slot_start_time,
+                            slot_end_time,
+                            slot_speakers,
+                            slot_registered_students,
                             slot.n_places,
                             slot.additional_information,
                             registrant_profile,
@@ -3129,16 +3108,11 @@ def get_csv_anonymous(request):
                             slot.campus,
                             slot.building,
                             slot.room if slot.face_to_face else _('Remote'),
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
-                            infield_separator.join(
-                                f'{s.last_name} {s.first_name}'
-                                for s in slot.speakers.all().order_by(
-                                    'last_name', 'first_name'
-                                )
-                            ),
-                            slot.registered_students(),
+                            slot_date,
+                            slot_start_time,
+                            slot_end_time,
+                            slot_speakers,
+                            slot_registered_students,
                             slot.n_places,
                             slot.additional_information,
                             registrant_profile,
@@ -3147,12 +3121,159 @@ def get_csv_anonymous(request):
                         ]
                     )
 
+    if t == 'registration':
+
+        label = _('anonymous_registrations')
+
+        header = [
+            _('anonymous identity'),
+            _('registrant profile'),
+            _('student level'),
+            _('origin institution'),
+            _("Origin bachelor type"),
+            _('establishment'),
+            _('slot type'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('label'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('attendance status'),
+            _('additional information'),
+        ]
+
+        if request.user.is_establishment_manager():
+
+            filters[
+                'slot__course__structure__in'
+            ] = request.user.establishment.structures.all()
+
+        content = []
+
+        immersions = Immersion.objects.prefetch_related(
+            'slot','student','slot__event__establishment', 'slot__event__structure',
+            'slot__event__highschool', 'slot__speakers', 'slot__visit__establishment'
+            'slot__visit__structure', 'slot__visit__highschool', 'slot__course__structure',
+            'slot__course__highschool', 'student__visitor_record', 'student__student_record',
+            'student__high_school_student_record',
+            'high_school_student_record__level', 'high_school_student_record__highschool',
+            'high_school_student_record__level', 'high_school_student_record__highschool',
+            'student_record__institution', 'visitor_record',
+        ).filter(
+            cancellation_type__isnull=True, slot__published=True, **filters
+        )
+
+        faker = Faker(settings.LANGUAGE_CODE)
+        Faker.seed(4321)
+        fake_names = {i:faker.name() for i in immersions.values_list('student__id',flat=True)}
+        fake_names_whens = [
+            When(
+                student__id=k,
+                then=Value(fake_names[k])
+            ) for k,v in fake_names.items()
+        ]
+
+        student_origin_bachelor_choices = dict(StudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
+        student_origin_bachelor_whens = [
+            When(
+                student__student_record__origin_bachelor_type=k,
+                then=Value(str(v))
+            ) for k, v in student_origin_bachelor_choices.items()
+        ]
+
+        hs_origin_bachelor_choices = dict(HighSchoolStudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
+        hs_origin_bachelor_whens = [
+            When(
+                student__high_school_student_record__origin_bachelor_type=k,
+                then=Value(str(v))
+            ) for k, v in hs_origin_bachelor_choices.items()
+        ]
+
+        attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
+        attendance_status_whens = [
+            When(
+                attendance_status=k,
+                then=Value(str(v))
+            ) for k, v in attendance_status_choices.items()
+        ]
+
+        content = immersions.annotate(
+            fake_name=Case(*fake_names_whens, output_field=CharField()),
+            type=Case(
+                When(
+                    student__high_school_student_record__isnull=False,
+                    then=Value(pgettext("person type", "High school student"))
+                ),
+                When(student__student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
+                When(student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
+                default=Value(gettext("Unknown"))
+            ),
+            level=Coalesce(
+                F('student__high_school_student_record__level__label'),
+                F('student__student_record__level__label')
+            ),
+            institution=Coalesce(
+                F('student__high_school_student_record__highschool__label'),
+                F('student__student_record__institution__label'),
+                F('student__student_record__uai_code'),
+
+            ),
+            origin_bachelor_type=Coalesce(
+                Case(*student_origin_bachelor_whens, output_field=CharField()),
+                Case(*hs_origin_bachelor_whens, output_field=CharField()),
+            ),
+            establishment=Coalesce(
+                F('slot__course__structure__establishment__label'),
+                F('slot__visit__establishment__label'),
+                F('slot__event__establishment__label'),
+            ),
+            slot_type=Case(
+                When(slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
+                When(slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
+                When(slot__event__isnull=False, then=Value(pgettext("person type", "Visitor"))),
+            ),
+            domains=(
+                F('slot__course__training__training_subdomains__training_domain__label')
+            ),
+            subdomains=(
+                F('slot__course__training__training_subdomains__label')
+            ),
+            training_label=F('slot__course__training__label'),
+            slot_label=Coalesce(
+                F('slot__course__label'),
+                F('slot__visit__purpose'),
+                F('slot__event__label'),
+            ),
+            slot_date=ExpressionWrapper(
+                Func(F('slot__date'), Value('DD-MM-YYYY'), function='to_char'), output_field=CharField()
+            ),
+            slot_start_time=F('slot__start_time'),
+            slot_end_time=F('slot__end_time'),
+            slot_campus_label=F('slot__campus__label'),
+            slot_building=F('slot__building__label'),
+            slot_room=Case(
+                When(slot__face_to_face=True,then=F('slot__room')),
+                When(slot__face_to_face=False, then=Value(gettext('Remote'))),
+            ),
+            attendance=Case(*attendance_status_whens, output_field=CharField()),
+            informations=F('slot__additional_information')
+
+        ).values_list(
+            'fake_name', 'type', 'level', 'institution', 'origin_bachelor_type', 'establishment',
+            'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date',
+            'slot_start_time', 'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room',
+            'attendance', 'informations'
+        )
+
     response['Content-Disposition'] = f'attachment; filename={label}_{today}.csv'
     writer = csv.writer(response)
     writer.writerow(header)
-    for row in content:
-        writer.writerow(row)
-
+    writer.writerows(content)
     return response
 
 
@@ -4549,5 +4670,6 @@ class AnnualPurgeAPI(View):
         response["time"] = round(time.thread_time() - command_time, 3)
 
         return JsonResponse(response)
+
 
 
