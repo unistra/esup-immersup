@@ -7,7 +7,7 @@ import importlib
 import json
 import logging
 import time
-from functools import reduce, wraps
+from functools import reduce
 from itertools import permutations
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -57,7 +57,7 @@ from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
 from immersionlyceens.decorators import (
-    groups_required, is_ajax_request, is_post_request,
+    groups_required, is_ajax_request, is_post_request, timer,
 )
 from immersionlyceens.libs.api.accounts import AccountAPI
 from immersionlyceens.libs.mails.utils import send_email
@@ -72,27 +72,6 @@ from .permissions import (
 )
 
 logger = logging.getLogger(__name__)
-
-def timer(func):
-    """helper function to estimate view execution time"""
-
-    @wraps(func)  # used for copying func metadata
-    def wrapper(*args, **kwargs):
-        # record start time
-        start = time.time()
-
-        # func execution
-        result = func(*args, **kwargs)
-
-        duration = (time.time() - start) * 1000
-        # output execution time to console
-        print('view {} takes {:.2f} ms'.format(
-            func.__name__,
-            duration
-            ))
-        return result
-    return wrapper
-
 
 
 @is_ajax_request
