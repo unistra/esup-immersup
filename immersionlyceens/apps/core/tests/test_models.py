@@ -721,8 +721,9 @@ class CourseTestCase(TestCase):
 
 class GeneralSettingsTestCase(TestCase):
     def test_str_general_settings(self):
-        g = GeneralSettings.objects.create(setting="MySetting", parameters=[{'my_setting': 'myvalue'}])
+        g = GeneralSettings.objects.create(setting="MySetting", parameters={'value': 'myvalue'})
         self.assertEqual(str(g), 'MySetting')
+        self.assertEqual(g.parameters["value"], 'myvalue')
 
 
 class CustomThemeFileTestCase(TestCase):

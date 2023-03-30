@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.messages import get_messages
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
@@ -2088,14 +2089,59 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # Wrong format for setting parameters
-        data = {"setting": "DUMMY_PARAMETER", "parameters": \
-            {"type": "wrong type", "missing_value": "value", "description": "dummy wrong format setting"}}
+        data = {
+            "setting": "DUMMY_PARAMETER",
+            "parameters": {
+                "type": "wrong type",
+                "missing_value": "value",
+                "description": "dummy wrong format setting"
+            }
+        }
 
         form = GeneralSettingsForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
 
         self.assertIn(error, form.errors['parameters'][0])
+
+        # High school agreement / without agreement : cannot be both set to False
+        # True by default
+        w_agreement = GeneralSettings.objects.get(setting='ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT')
+        self.assertTrue(w_agreement.parameters["value"])
+        # False by default
+        wo_agreement = GeneralSettings.objects.get(setting='ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT')
+        self.assertFalse(wo_agreement.parameters["value"])
+
+        # Try to save with both settings set to False:
+        err_message = """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """\
+                      """cannot be both set to False """
+        data = {
+            "id": w_agreement.id,
+            "setting": "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "Whatever"
+            }
+        }
+
+        form = GeneralSettingsForm(data=data, instance=w_agreement, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(err_message, form.errors['__all__'])
+
+        # Reverse values, then test again
+        wo_agreement.parameters["value"] = True
+        wo_agreement.save()
+        w_agreement.parameters["value"] = False
+        w_agreement.save()
+
+        data.update({
+            "id": wo_agreement.id,
+            "setting": "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT",
+        })
+        form = GeneralSettingsForm(data=data, instance=wo_agreement, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(err_message, form.errors['__all__'])
 
 
 def test_custom_theme_file_creation(self):

@@ -1518,23 +1518,58 @@ class GeneralSettingsForm(forms.ModelForm):
         except AttributeError:
             pass
 
-        if self.cleaned_data['setting']=='ACTIVATE_STUDENTS' \
-            and not self.cleaned_data['parameters']['value']:
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        # Settings that can't be deactivated because users already exist
+        if cleaned_data['setting']=='ACTIVATE_STUDENTS' \
+            and not cleaned_data['parameters']['value']:
 
             if ImmersionUser.objects.filter(groups__name='ETU').first():
                 raise forms.ValidationError(
                     _("Students users exist you can't deactivate students"))
 
-        if self.cleaned_data['setting']=='ACTIVATE_VISITORS' \
-            and not self.cleaned_data['parameters']['value']:
+        if cleaned_data['setting']=='ACTIVATE_VISITORS' \
+            and not cleaned_data['parameters']['value']:
 
             if ImmersionUser.objects.filter(groups__name='VIS').first():
                 raise forms.ValidationError(
                     _("Visitors users exist you can't deactivate visitors"))
 
+        # Check that at least one of these parameter is True
+        if cleaned_data['setting'] in [
+            'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT', 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT'
+        ]:
+            # Value to save
+            setting_name = cleaned_data['setting']
+            value = cleaned_data['parameters']['value']
 
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
+            try:
+                w_agreement = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+                w_agreement_v = w_agreement.parameters['value']
+            except (GeneralSettings.DoesNotExist, KeyError):
+                raise ValidationError(
+                    _("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT general setting is missing or incorrect. Please fix.")
+                )
+
+            try:
+                without_agreement = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+                without_agreement_v = without_agreement.parameters['value']
+            except (GeneralSettings.DoesNotExist, KeyError):
+                raise ValidationError(
+                    _("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT general setting is missing or incorrect. Please fix.")
+                )
+
+            raise_conditions = [
+                setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and not without_agreement_v,
+                setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and not w_agreement_v,
+            ]
+
+            if any(raise_conditions):
+                raise ValidationError(_(
+                    """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """ 
+                    """cannot be both set to False """)
+                )
 
         return cleaned_data
 
