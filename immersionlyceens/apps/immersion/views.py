@@ -791,6 +791,7 @@ def student_record(request, student_id=None, record_id=None):
         student = request.user
         record = student.get_student_record()
         uai_code = None
+        institution = None
 
         no_record = record is None
 
@@ -802,12 +803,18 @@ def student_record(request, student_id=None, record_id=None):
 
         if uai_code and uai_code.startswith('{UAI}'):
             uai_code = uai_code.replace('{UAI}', '')
+            try:
+                institution = HigherEducationInstitution.objects.get(uai_code__iexact=uai_code)
+            except HigherEducationInstitution.DoesNotExist:
+                # Just warn the admins with a nice Sentry error :)
+                logger.error("UAI codes update required : unknown uai_code : %s", uai_code)
 
         if not record:
-            record = StudentRecord(student=request.user, uai_code=uai_code)
+            record = StudentRecord(student=request.user, uai_code=uai_code, institution=institution)
 
         elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
+            record.institution = institution
             record.save()
     elif record_id:
         try:

@@ -522,6 +522,7 @@ class APITestCase(TestCase):
         self.student_record = StudentRecord.objects.create(
             student=self.student,
             uai_code='0673021V',  # Université de Strasbourg
+            institution=HigherEducationInstitution.objects.get(uai_code__iexact='0673021V'),
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
@@ -529,6 +530,7 @@ class APITestCase(TestCase):
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
             uai_code='0597065J',  # Université de Lille
+            institution=HigherEducationInstitution.objects.get(uai_code__iexact='0597065J'),
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]

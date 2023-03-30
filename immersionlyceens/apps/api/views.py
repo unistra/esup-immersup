@@ -1109,8 +1109,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 record = immersion.student.get_student_record()
 
                 if record:
-                    uai_code, institution = record.home_institution()
-                    immersion_data['school'] = institution.label if institution else uai_code
+                    immersion_data['school'] = record.institution.label if record.institution else record.uai_code
                     immersion_data['level'] = record.level.label
 
             elif immersion.student.is_visitor():
@@ -1541,14 +1540,12 @@ def ajax_get_available_students(request, slot_id):
                         student_data['level'] += f" - {record.post_bachelor_level.label}"
 
             elif student.is_student():
-                uai_code, institution = record.home_institution()
                 student_data['profile'] = pgettext("person type", "Student")
-                student_data['school'] = institution.label if institution else uai_code
+                student_data['school'] = record.institution.label if record.institution else record.uai_code
                 student_data['level'] = record.level.label if record.level else ""
 
             elif student.is_visitor():
                 student_data['profile'] = pgettext("person type", "Visitor")
-
 
             response['data'].append(student_data.copy())
 
@@ -2555,8 +2552,7 @@ def get_csv_anonymous(request):
                         try:
                             registrant_profile = _('Student')
                             record = StudentRecord.objects.get(student=imm.student)
-                            uai_code, institution = record.home_institution()
-                            institution = institution.label if institution else uai_code
+                            institution = record.institution.label if record.institution else record.uai_code
                             level = record.level.label if record.level else ''
                         except StudentRecord.DoesNotExist:
                             pass
@@ -2809,8 +2805,7 @@ def get_csv_anonymous(request):
                     if imm.student.is_student():
                         try:
                             record = StudentRecord.objects.get(student=imm.student)
-                            uai_code, institution = record.home_institution()
-                            institution = institution.label if institution else uai_code
+                            institution = record.institution.label if record.institution else record.uai_code
                             level = record.level.label if record.level else ''
                         except StudentRecord.DoesNotExist:
                             pass
@@ -3008,8 +3003,7 @@ def get_csv_anonymous(request):
                         try:
                             registrant_profile = _('Student')
                             record = StudentRecord.objects.get(student=imm.student)
-                            uai_code, institution = record.home_institution()
-                            institution = institution.label if institution else uai_code
+                            institution = record.institution.label if record.institution else record.uai_code
                             level = record.level.label if record.level else ''
                         except StudentRecord.DoesNotExist:
                             pass
@@ -3278,8 +3272,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             record = immersion.student.get_student_record()
             student_profile = _('Student')
             if record:
-                uai_code, institution = record.home_institution()
-                institution = institution.label if institution else uai_code
+                institution = record.institution.label if record.institution else record.uai_code
         elif immersion.student.is_visitor():
             record = immersion.student.get_visitor_record()
             student_profile = _('Visitor')

@@ -309,8 +309,7 @@ class Parser:
                 elif registration.student.is_student():
                     record = registration.student.get_student_record()
                     if record:
-                        uai_code, institution = record.home_institution()
-                        institution_label = institution.label if institution else uai_code
+                        institution_label = record.institution.label if record.institution else record.uai_code
 
                 registered_students.append(
                     f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
@@ -404,8 +403,7 @@ class Parser:
                 record = user.get_student_record()
 
                 if record:
-                    uai_code, institution = record.home_institution()
-                    institution_label = institution.label if institution else uai_code
+                    institution_label = record.institution.label if record.institution else record.uai_code
 
                     # TODO: maybe instead of lycee use a home_institution tpl var ???
                     context.update({

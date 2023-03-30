@@ -395,7 +395,8 @@ class StudentRecordForm(forms.ModelForm):
 
     class Meta:
         model = StudentRecord
-        fields = ['birth_date', 'phone', 'uai_code', 'level', 'origin_bachelor_type', 'current_diploma', 'student']
+        fields = ['birth_date', 'phone', 'uai_code', 'level', 'origin_bachelor_type', 'current_diploma',
+                  'student']
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
         }

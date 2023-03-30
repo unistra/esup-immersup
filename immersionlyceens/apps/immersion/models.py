@@ -315,11 +315,20 @@ class StudentRecord(models.Model):
         Get home institution if we can find a matching code, else return the code
         Returns (label, object) if found, (code, None) if not
         """
+
+        # For compatibility
+        if self.institution:
+            return self.institution.label, self.institution
+        else:
+            return self.uai_code, None
+
+        """
         try:
-            inst = core_models.HigherEducationInstitution.objects.get(uai_code=self.uai_code)
+            inst = core_models.HigherEducationInstitution.objects.get(uai_code__iexact=self.uai_code)
             return inst.label, inst
         except core_models.HigherEducationInstitution.DoesNotExist:
             return self.uai_code, None
+        """
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

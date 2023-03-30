@@ -289,8 +289,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return ''
         elif obj.is_student():
             record = obj.get_student_record()
-            if record and record.home_institution():
-                return record.home_institution()[0]
+            if record and record.institution:
+                return record.institution.uai_code
         elif obj.is_structure_manager():
             if obj.highschool:
                 return obj.highschool
