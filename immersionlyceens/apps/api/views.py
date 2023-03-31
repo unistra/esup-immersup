@@ -2459,7 +2459,6 @@ def get_csv_highschool(request):
     return response
 
 
-@timer
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_anonymous(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
