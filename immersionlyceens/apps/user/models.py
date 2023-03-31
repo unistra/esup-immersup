@@ -2,6 +2,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
+
 from immersionlyceens.apps.core.models import ImmersionUser, ImmersionUserGroup
 
 
@@ -73,7 +74,7 @@ class StructureManager(ImmersionUser):
     class Meta:
         app_label = 'user'
         verbose_name = _('Structure manager')
-        verbose_name_plural = _('Stucture managers')
+        verbose_name_plural = _('Structure managers')
         proxy = True
 
 
