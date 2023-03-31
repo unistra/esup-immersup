@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-31 07:25+0200\n"
+"POT-Creation-Date: 2023-03-31 08:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -836,7 +836,7 @@ msgstr "Etudiant(e) déjà inscrit(e) à ce créneau"
 #, python-format
 msgid "Multiple periods found for slot %s : please check periods settings"
 msgstr ""
-"Plusieurs périodes trouvées pour ce créneau. Merci de vérifier les dates des "
+"Plusieurs périodes trouvées pour ce créneau %s. Merci de vérifier les dates des "
 "périodes."
 
 #: immersionlyceens/apps/api/views.py:1397
