@@ -280,7 +280,7 @@ class FormTestCase(TestCase):
         data.update({
             "registration_start_date": self.today + datetime.timedelta(days=2),
             "immersion_start_date": self.today + datetime.timedelta(days=8),
-            "immersion_end_date": self.today + datetime.timedelta(days=15),
+            "immersion_end_date": self.today + datetime.timedelta(days=21),
         })
         form = PeriodForm(data=data, request=request)
         self.assertFalse(form.is_valid())
