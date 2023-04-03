@@ -2563,11 +2563,13 @@ def get_csv_anonymous(request):
         content = slots.annotate(
             establishment=F('course__structure__establishment__label'),
             structure=F('course__structure__label'),
-            domains=(
-                Count(F('course__training__training_subdomains__training_domain__label'))
+            domains=StringAgg(
+                F('course__training__training_subdomains__training_domain__label'),
+                 '|', default=Value(''), output_field=CharField(), distinct=True
             ),
-            subdomains=(
-                Count(F('course__training__training_subdomains__label'))
+            subdomains=StringAgg(
+                F('course__training__training_subdomains__label'),
+                 '|', default=Value(''), output_field=CharField(), distinct=True
             ),
             training_label=F('course__training__label'),
             course_label=F('course__label'),
