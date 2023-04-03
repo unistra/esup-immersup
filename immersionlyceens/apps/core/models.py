@@ -1368,7 +1368,9 @@ class Period(models.Model):
             raise Exception(_("Configuration error : some periods overlap")) from e
 
     def __str__(self):
-        return f"Period '{self.label}' : {self.immersion_start_date} - {self.immersion_end_date}"
+        return _("Period '%s' : %s - %s") % (
+            self.label, date_format(self.immersion_start_date), date_format(self.immersion_end_date)
+        )
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
