@@ -264,8 +264,8 @@ class FormTestCase(TestCase):
 
         # Fail : start date overlaps an existing period
         data.update({
-            "registration_start_date": self.today + datetime.timedelta(days=30),
-            "immersion_start_date": self.today + datetime.timedelta(days=50),
+            "registration_start_date": self.today + datetime.timedelta(days=25),
+            "immersion_start_date": self.today + datetime.timedelta(days=35),
             "immersion_end_date": self.today + datetime.timedelta(days=60),
         })
 
@@ -363,7 +363,7 @@ class FormTestCase(TestCase):
         # test 1: exact same label
         data.update({
             "label": "Period 1",
-            "registration_start_date": self.today + datetime.timedelta(days=50),
+            "registration_start_date": self.today + datetime.timedelta(days=35),
             "immersion_start_date": self.today + datetime.timedelta(days=60),
             "immersion_end_date": self.today + datetime.timedelta(days=70),
         })

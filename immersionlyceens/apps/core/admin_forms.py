@@ -777,7 +777,6 @@ class PeriodForm(forms.ModelForm):
         periods_qs = Period.objects.filter(
                 Q(registration_start_date__lte=end_date, immersion_end_date__gte=end_date)
                |Q(registration_start_date__lte=start_date, immersion_end_date__gte=start_date)
-               |Q(registration_start_date__lte=registration_start_date, immersion_end_date__gte=registration_start_date)
             ).exclude(**excludes)
 
         if periods_qs.exists():
