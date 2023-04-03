@@ -1217,7 +1217,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         'label', 'registration_start_date', 'immersion_start_date', 'immersion_end_date', 'allowed_immersions'
     )
     search_fields = ('label',)
-    order = ('registration_start_date', )
+    order = ('immersion_start_date', )
 
     def get_readonly_fields(self, request, obj=None):
         today = timezone.localdate()
@@ -1380,14 +1380,16 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         year_condition = [
             uy.start_date > today,
             today < uy.end_date,
-            obj.registration_start_date > today,
+            obj.immersion_start_date > today,
         ]
 
         slots_exist = Slot.objects.filter(
-            date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
+            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
         ).exists()
 
         can_update = not slots_exist and any(year_condition)
+
+        print(obj)
 
         if not can_update:
             messages.warning(
