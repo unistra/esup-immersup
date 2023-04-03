@@ -20,8 +20,8 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import (
-    Case, CharField, Count, DateField, ExpressionWrapper, F, Func, Q, QuerySet,
-    Value, When,
+    Case, CharField, Count, DateField, ExpressionWrapper, F, Func, OuterRef, Q,
+    QuerySet, Subquery, Value, When,
 )
 from django.db.models.functions import Coalesce, Concat, Greatest
 from django.http import Http404, HttpResponse, JsonResponse
@@ -73,7 +73,6 @@ from .permissions import (
 )
 
 logger = logging.getLogger(__name__)
-
 
 @is_ajax_request
 @groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR", "REF-LYC", 'REF-TEC')
@@ -2470,6 +2469,20 @@ def get_csv_anonymous(request):
     if not t:
         raise Http404
 
+
+    registered_students_count= Immersion.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True) \
+                                .order_by().annotate(
+                                    count=Func(F('id'), function='Count')
+                                ).values('count')
+
+    attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
+    attendance_status_whens = [
+        When(
+            immersions__attendance_status=k,
+            then=Value(str(v))
+        ) for k, v in attendance_status_choices.items()
+    ]
+
     if t == 'course':
 
         label = _('anonymous_courses')
@@ -2552,16 +2565,11 @@ def get_csv_anonymous(request):
             'student__high_school_student_record', 'course__training__training_subdomains'
         ).filter(**filters, published=True, course__isnull=False, immersions__cancellation_type__isnull=True)
 
-        attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
-        attendance_status_whens = [
-            When(
-                immersions__attendance_status=k,
-                then=Value(str(v))
-            ) for k, v in attendance_status_choices.items()
-        ]
-
         content = slots.annotate(
-            establishment=F('course__structure__establishment__label'),
+            establishment=Coalesce(
+                F('course__structure__establishment__label'),
+                Concat(F('course__highschool__label'), Value(' - '), F('course__highschool__city'), output_field=CharField())
+            ),
             structure=F('course__structure__label'),
             domains=StringAgg(
                 F('course__training__training_subdomains__training_domain__label'),
@@ -2575,7 +2583,7 @@ def get_csv_anonymous(request):
             course_label=F('course__label'),
             slot_course_type=F('course_type__label'),
             slot_date=ExpressionWrapper(
-                Func(F('date'), Value('DD-MM-YYYY'), function='to_char'), output_field=CharField()
+                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
             slot_start_time=F('start_time'),
             slot_end_time=F('end_time'),
@@ -2589,7 +2597,7 @@ def get_csv_anonymous(request):
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
                  '|', default=Value(''), output_field=CharField(), distinct=True
             ),
-            registered=Count('immersions'),
+            registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
             registrant_profile=Case(
@@ -2672,9 +2680,6 @@ def get_csv_anonymous(request):
                 visit__structure__in=request.user.establishment.structures.all()
             )
 
-        slots = Slot.objects.filter(Q_filters, published=True, visit__isnull=False,
-                                   immersions__cancellation_type__isnull=True)
-
         content = []
 
         slots = Slot.objects.prefetch_related(
@@ -2682,15 +2687,6 @@ def get_csv_anonymous(request):
             'visit__highschool', 'student__visitor_record', 'student__student_record',
             'student__high_school_student_record',
         ).filter(Q_filters, published=True, visit__isnull=False, immersions__cancellation_type__isnull=True)
-
-
-        attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
-        attendance_status_whens = [
-            When(
-                immersions__attendance_status=k,
-                then=Value(str(v))
-            ) for k, v in attendance_status_choices.items()
-        ]
 
         content = slots.annotate(
             establishment=F('visit__establishment__label'),
@@ -2702,7 +2698,7 @@ def get_csv_anonymous(request):
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
-                Func(F('date'), Value('DD-MM-YYYY'), function='to_char'), output_field=CharField()
+                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
             slot_start_time=F('start_time'),
             slot_end_time=F('end_time'),
@@ -2710,7 +2706,7 @@ def get_csv_anonymous(request):
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
                  '|', default=Value(''), output_field=CharField(), distinct=True
             ),
-            registered=Count('immersions'),
+            registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
             level=Coalesce(
@@ -2796,16 +2792,11 @@ def get_csv_anonymous(request):
             'student__high_school_student_record',
         ).filter(**filters, published=True, event__isnull=False, immersions__cancellation_type__isnull=True)
 
-        attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
-        attendance_status_whens = [
-            When(
-                immersions__attendance_status=k,
-                then=Value(str(v))
-            ) for k, v in attendance_status_choices.items()
-        ]
-
         content = slots.annotate(
-            establishment=F('event__establishment__label'),
+            establishment=Coalesce(
+                F('event__establishment__label'),
+                Concat(F('event__highschool__label'), Value(' - '), F('event__highschool__city'), output_field=CharField())
+            ),
             structure=F('event__structure__label'),
             type=F('event__event_type__label'),
             label=F('event__label'),
@@ -2817,7 +2808,7 @@ def get_csv_anonymous(request):
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
-                Func(F('date'), Value('DD-MM-YYYY'), function='to_char'), output_field=CharField()
+                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
             slot_start_time=F('start_time'),
             slot_end_time=F('end_time'),
@@ -2825,7 +2816,7 @@ def get_csv_anonymous(request):
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
                  '|', default=Value(''), output_field=CharField(), distinct=True
             ),
-            registered=Count('immersions'),
+            registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
             registrant_profile=Case(
@@ -2980,7 +2971,7 @@ def get_csv_anonymous(request):
                 F('slot__event__label'),
             ),
             slot_date=ExpressionWrapper(
-                Func(F('slot__date'), Value('DD-MM-YYYY'), function='to_char'), output_field=CharField()
+                Func(F('slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
             slot_start_time=F('slot__start_time'),
             slot_end_time=F('slot__end_time'),
