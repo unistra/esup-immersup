@@ -184,7 +184,7 @@ class HighschoolConventionFilter(admin.SimpleListFilter):
 
 
     def queryset(self, request, queryset):
-        if self.value() == 'active' or self.value() is None:
+        if self.value() == 'active':
             return queryset.filter(
                 convention_start_date__lte=datetime.now().date(),
                 convention_end_date__gte=datetime.now().date()
@@ -194,8 +194,9 @@ class HighschoolConventionFilter(admin.SimpleListFilter):
                 convention_start_date__lt=datetime.now().date(),
                 convention_end_date__lt=datetime.now().date()
             )
-        elif self.value() == 'all':
+        elif self.value() == 'all' or self.value() is None:
             return queryset
+
         elif self.value() == 'none':
             return queryset.filter(
                 Q(convention_start_date__isnull=True, convention_end_date__isnull=True,)
@@ -1397,28 +1398,63 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'email',
         'head_teacher_name',
         'referents_list',
-        'convention_start_date',
-        'convention_end_date',
-        'postbac_immersion',
+        'with_convention',
+        'custom_convention_dates',
+        'active',
+        'custom_postbac_immersion',
         'signed_charter',
     )
     list_filter = (
+        'active',
         'postbac_immersion',
+        'with_convention',
         ('country', DropdownFilter),
         ('city', DropdownFilter),
         HighschoolConventionFilter,
     )
 
+    # Keep the list here to maintain order even when some fields are readonly
+    fields = (
+        'active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
+        'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
+        'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
+        'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'certificate_footer'
+    )
+
+    @admin.display(description=_('Postbac immersions'), boolean=True)
+    def custom_postbac_immersion(self, obj):
+        return obj.postbac_immersion
+
+    @admin.display(description=_('Convention'))
+    def custom_convention_dates(self, obj):
+        if obj.convention_start_date and obj.convention_end_date:
+            return format_html("<br />".join(
+                [_("From %s") % obj.convention_start_date, _("to %s") % str(obj.convention_end_date)]
+            ))
+
+        return ""
+
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name')
 
     def referents_list(self, obj):
-        return [
+        return format_html("<br />".join([
             f"{user.last_name} {user.first_name}"
-            for user in obj.users.filter(groups__name='REF-LYC').order_by('last_name', 'first_name')
-        ]
+            for user in obj.users.prefetch_related("groups")\
+                .filter(groups__name='REF-LYC')\
+                .order_by('last_name', 'first_name')
+        ]))
 
     referents_list.short_description = _('Referents')
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+        if obj:
+            if obj.student_records.exists():
+                fields.append('active')
+
+        return fields
 
     def get_actions(self, request):
         # Disable delete

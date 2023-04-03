@@ -20,7 +20,7 @@ from immersionlyceens.apps.immersion.models import (
 
 from ..models import (
     BachelorMention, Building, Campus, Course, CourseType,
-    Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
+    Establishment, GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
     OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
@@ -64,6 +64,7 @@ class CoreViewsTestCase(TestCase):
         )
 
         cls.high_school = HighSchool.objects.create(
+            active=True,
             label='HS1',
             address='here',
             country='FR',
@@ -73,6 +74,7 @@ class CoreViewsTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
+            with_convention=True,
             convention_start_date=cls.today - datetime.timedelta(days=10),
             convention_end_date=cls.today + datetime.timedelta(days=10),
             postbac_immersion=True,
@@ -80,6 +82,7 @@ class CoreViewsTestCase(TestCase):
         )
 
         cls.high_school2 = HighSchool.objects.create(
+            active=True,
             label='HS2',
             address='here',
             department=67,
@@ -89,6 +92,7 @@ class CoreViewsTestCase(TestCase):
             phone_number='0123456789',
             email='d@e.fr',
             head_teacher_name='M. A B',
+            with_convention=True,
             convention_start_date=cls.today - datetime.timedelta(days=10),
             convention_end_date=cls.today + datetime.timedelta(days=10),
             postbac_immersion=False,

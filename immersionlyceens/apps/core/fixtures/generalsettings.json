@@ -201,5 +201,41 @@
           "description": "Nombre d'heures, avant le début d'un créneau, fixant la limite après laquelle l'annulation n'est plus possible."
       }
   }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 22,
+    "fields": {
+        "setting": "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT",
+        "parameters": {
+            "type": "boolean",
+            "value": true,
+            "description": "Activation des lycées conventionnés"
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 23,
+    "fields": {
+        "setting": "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT",
+        "parameters": {
+            "type": "boolean",
+            "value": false,
+            "description": "Activation des lycées non conventionnés"
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 24,
+    "fields": {
+        "setting": "REQUEST_FOR_STUDENT_AGREEMENT",
+        "parameters": {
+            "type": "boolean",
+            "value": true,
+            "description": "Demander l'accord des lycéens pour que leur lycée puisse voir leurs immersions"
+        }
+    }
 }
 ]

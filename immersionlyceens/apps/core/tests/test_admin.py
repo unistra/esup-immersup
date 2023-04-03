@@ -95,6 +95,7 @@ class AdminFormsTestCase(TestCase):
         )
 
         cls.high_school = HighSchool.objects.create(
+            active=True,
             label='HS1',
             address='here',
             country='FR',
@@ -106,9 +107,13 @@ class AdminFormsTestCase(TestCase):
             head_teacher_name='M. A B',
             postbac_immersion=True,
             signed_charter=True,
+            with_convention=True,
+            convention_start_date=cls.today - datetime.timedelta(days=50),
+            convention_end_date=cls.today + datetime.timedelta(days=100)
         )
 
         cls.high_school_2 = HighSchool.objects.create(
+            active=True,
             label='HS2',
             address='here',
             country='FR',
@@ -120,6 +125,9 @@ class AdminFormsTestCase(TestCase):
             head_teacher_name='M. C D',
             postbac_immersion=False,
             signed_charter=True,
+            with_convention=True,
+            convention_start_date=cls.today - datetime.timedelta(days=50),
+            convention_end_date=cls.today + datetime.timedelta(days=100)
         )
 
         cls.ref_master_etab_user = get_user_model().objects.create_user(
@@ -959,6 +967,7 @@ class AdminFormsTestCase(TestCase):
         """
 
         data = {
+            'active': True,
             'label': 'Santo Domingo',
             'country': 'FR',
             'address': 'rue Larry Kubiac',
@@ -971,6 +980,7 @@ class AdminFormsTestCase(TestCase):
             'fax': '+3397654321',
             'email': 'santodomingo@santodomingo.edu',
             'head_teacher_name': 'Madame Musso Grace',
+            'with_convention': True,
             'convention_start_date': self.today,
             'convention_end_date': '',
             'postbac_immersion': True,
@@ -1001,8 +1011,25 @@ class AdminFormsTestCase(TestCase):
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(HighSchool.objects.filter(label=data['label']).exists())
 
-        # Success
+        # Missing convention end date
         request.user = self.ref_master_etab_user
+        form = HighSchoolForm(data=data, request=request)
+        form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
+        form.fields['zip_code'].choices = [('68100', '68100')]
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Both convention dates are required if 'convention' is checked",
+            form.errors["convention_start_date"]
+        )
+        self.assertIn(
+            "Both convention dates are required if 'convention' is checked",
+            form.errors["convention_end_date"]
+        )
+
+        # Success
+        data.update({
+            'convention_end_date':self.today + datetime.timedelta(days=200)
+        })
 
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
@@ -1011,6 +1038,12 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
 
+        # Check a few fields
+        highschool = HighSchool.objects.get(label=data['label'])
+        self.assertTrue(highschool.with_convention)
+        self.assertTrue(highschool.active)
+
+        # As an operator
         request.user = self.operator_user
 
         data['label'] = 'Another high school'
