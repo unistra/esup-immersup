@@ -198,8 +198,8 @@
                                       <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
                                       <div id="feedback_{{slot.pk}}" ></div>
                                     {% endif %}
-                                    <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span>
                                   {% endif %}
+                                  <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span>
                                 {% else %}
                                     <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                 {% endif %}
