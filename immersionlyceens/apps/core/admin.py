@@ -1256,6 +1256,16 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return list(set(fields))
 
+    def has_view_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
     def has_add_permission(self, request):
         uy = None
 
