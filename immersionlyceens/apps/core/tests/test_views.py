@@ -11,6 +11,10 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
+
+from rest_framework import status
+
 from immersionlyceens.apps.immersion.forms import (
     HighSchoolStudentRecordManagerForm,
 )
@@ -39,7 +43,7 @@ class CoreViewsTestCase(TestCase):
         Test data for Core app tests
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
-        cls.today = datetime.datetime.today()
+        cls.today = timezone.localdate()
 
         cls.master_establishment = Establishment.objects.create(
             code='ETA1',
@@ -304,9 +308,9 @@ class CoreViewsTestCase(TestCase):
 
         cls.university_year = UniversityYear.objects.create(
             label='2020-2021',
-            start_date=cls.today.date() - datetime.timedelta(days=365),
-            end_date=cls.today.date() + datetime.timedelta(days=20),
-            registration_start_date=cls.today.date() - datetime.timedelta(days=1),
+            start_date=cls.today - datetime.timedelta(days=365),
+            end_date=cls.today + datetime.timedelta(days=20),
+            registration_start_date=cls.today - datetime.timedelta(days=1),
             active=True,
         )
 
@@ -613,7 +617,7 @@ class CoreViewsTestCase(TestCase):
         ]
         dates_idx = 0
         for slot in slots:
-            self.assertEqual(slot.date, dates[dates_idx].date())
+            self.assertEqual(slot.date, dates[dates_idx])
             self.assertEqual(slot.speakers.all().count(), 2)
             self.assertEqual(
                 list(slot.allowed_establishments.order_by('id').values_list('id', flat=True)),
@@ -692,7 +696,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(slot.end_time, datetime.time(15, 30))
         self.assertEqual(slot.n_places, 20)
         self.assertEqual(slot.additional_information, "New data")
-        self.assertEqual(slot.date, (self.slot.date + datetime.timedelta(days=5)).date())
+        self.assertEqual(slot.date, (self.slot.date + datetime.timedelta(days=5)))
 
         self.assertIn("Course slot \"%s\" updated." % slot, response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
@@ -748,7 +752,7 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
 
         # with invalid year dates
-        self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
+        self.university_year.start_date = self.today + datetime.timedelta(days=1)
         self.university_year.save()
 
         response = self.client.get("/core/courses_list")
@@ -759,7 +763,7 @@ class CoreViewsTestCase(TestCase):
 
         # With valid dates
         response = self.client.get("/core/courses_list")
-        self.university_year.start_date = self.today.date() - datetime.timedelta(days=365)
+        self.university_year.start_date = self.today - datetime.timedelta(days=365)
         self.university_year.save()
         response = self.client.get("/core/courses_list")
         self.assertTrue(response.context["can_update_courses"])
@@ -784,7 +788,7 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
 
         # with invalid year dates
-        self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
+        self.university_year.start_date = self.today + datetime.timedelta(days=1)
         self.university_year.save()
 
         response = self.client.get("/core/course")
@@ -793,7 +797,7 @@ class CoreViewsTestCase(TestCase):
 
         # With valid dates
         response = self.client.get("/core/course")
-        self.university_year.start_date = self.today.date() - datetime.timedelta(days=365)
+        self.university_year.start_date = self.today - datetime.timedelta(days=365)
         self.university_year.save()
         response = self.client.get("/core/course")
         self.assertTrue(response.context["can_update_courses"])
@@ -962,6 +966,7 @@ class CoreViewsTestCase(TestCase):
         # Should work
         response = self.client.get("/core/high_school/%s" % self.high_school.id, follow=True)
         self.assertIn("My high school - %s" % self.high_school.label, response.content.decode('utf-8'))
+        self.assertTrue(self.high_school.with_convention)
 
         # Update
         data = {
@@ -978,7 +983,22 @@ class CoreViewsTestCase(TestCase):
         }
 
         response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes').exists())
+
+        # These settings can't be updated here
+        data.update({
+            'with_convention': False,
+            'convention_start_date': '2023-04-02',
+            'convention_end_date': '2023-06-30',
+        })
+
+        response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.high_school.refresh_from_db()
+        self.assertTrue(self.high_school.with_convention)
+        self.assertEqual(self.high_school.convention_start_date, self.today - datetime.timedelta(days=10))
+        self.assertTrue(self.high_school.convention_end_date, self.today + datetime.timedelta(days=10))
 
 
     def test_my_high_school_speakers(self):
@@ -1082,7 +1102,7 @@ class CoreViewsTestCase(TestCase):
         hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
-            birth_date=datetime.datetime.today(),
+            birth_date=self.today,
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere S 3',
@@ -1093,7 +1113,7 @@ class CoreViewsTestCase(TestCase):
         hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
             highschool=self.high_school2,
-            birth_date=datetime.datetime.today(),
+            birth_date=self.today,
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere T3',
