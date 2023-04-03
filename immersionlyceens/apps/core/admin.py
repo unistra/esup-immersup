@@ -1327,11 +1327,11 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         year_condition = [
             uy.start_date > today,
             today < uy.end_date,
-            obj.registration_start_date > today,
+            obj.immersion_start_date > today,
         ]
 
         slots_exist = Slot.objects.filter(
-            date__gte=obj.registration_start_date, date__lte=obj.immersion_end_date
+            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
         ).exists()
 
         can_delete = not slots_exist and any(year_condition)
@@ -1388,8 +1388,6 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         ).exists()
 
         can_update = not slots_exist and any(year_condition)
-
-        print(obj)
 
         if not can_update:
             messages.warning(
