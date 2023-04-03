@@ -2963,11 +2963,13 @@ def get_csv_anonymous(request):
                 When(slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
                 When(slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
             ),
-            domains=(
-                F('slot__course__training__training_subdomains__training_domain__label')
+            domains=StringAgg(
+                F('slot__course__training__training_subdomains__training_domain__label'),
+                 '|', default=Value(''), output_field=CharField(), distinct=True
             ),
-            subdomains=(
-                F('slot__course__training__training_subdomains__label')
+            subdomains=StringAgg(
+                F('slot__course__training__training_subdomains__label'),
+                 '|', default=Value(''), output_field=CharField(), distinct=True
             ),
             training_label=F('slot__course__training__label'),
             slot_label=Coalesce(
