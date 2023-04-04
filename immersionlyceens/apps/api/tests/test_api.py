@@ -1336,10 +1336,12 @@ class APITestCase(TestCase):
             _('building'),
             _('meeting place'),
             _('attendance status'),
+            _('additional information')
         ]
 
         n = 0
         for row in content:
+            # header check
             if n == 0:
                 for h in headers:
                     self.assertIn(h, row)
@@ -1350,18 +1352,66 @@ class APITestCase(TestCase):
                 self.assertEqual(self.hs_record.level.label, row[3])
                 self.assertEqual(self.hs_record.class_name, row[4])
                 self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
-                self.assertIn('', row[6])
-                self.assertIn('', row[7])
+                self.assertEqual(self.establishment.label, row[6])
+                self.assertEqual('Course', row[7])
                 self.assertIn(self.t_domain.label, row[8].split('|'))
                 self.assertIn(self.t_sub_domain.label, row[9].split('|'))
                 self.assertIn(self.training.label, row[10])
                 self.assertIn(self.course.label, row[11])
-                self.assertIn('', row[12])
-                self.assertIn('', row[13])
-                self.assertIn('', row[14])
+                self.assertEqual(_date(self.past_slot.date, 'd/m/Y'), row[12])
+                self.assertEqual(self.past_slot.start_time.strftime("%H:%M:%S"), row[13])
+                self.assertEqual(self.past_slot.end_time.strftime("%H:%M:%S"), row[14])
+                self.assertEqual(self.past_slot.campus.label, row[15])
+                self.assertEqual(self.past_slot.building.label, row[16])
+                self.assertEqual(self.past_slot.room, row[17])
+                self.assertEqual(self.immersion3.get_attendance_status_display(), row[18])
+                self.assertEqual(self.past_slot.additional_information, row[19])
+
+            elif n == 2:
+                self.assertEqual(self.hs_record.student.last_name, row[0])
+                self.assertEqual(self.hs_record.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(self.hs_record.level.label, row[3])
+                self.assertEqual(self.hs_record.class_name, row[4])
+                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
+                self.assertEqual(self.establishment.label, row[6])
+                self.assertIn('Course', row[7])
+                self.assertIn(self.t_domain.label, row[8].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[9].split('|'))
+                self.assertIn(self.training.label, row[10])
+                self.assertEqual(self.course.label, row[11])
+                self.assertIn(_date(self.slot.date, 'd/m/Y'), row[12])
+                self.assertIn(self.slot.start_time.strftime("%H:%M:%S"), row[13])
+                self.assertIn(self.slot.end_time.strftime("%H:%M:%S"), row[14])
+                self.assertEqual(self.slot.campus.label, row[15])
+                self.assertEqual(self.slot.building.label, row[16])
+                self.assertEqual(self.slot.room, row[17])
+                self.assertEqual(self.immersion.get_attendance_status_display(), row[18])
+                self.assertEqual(self.slot.additional_information, row[19])
+
+            elif n == 3:
+                self.assertEqual(self.hs_record2.student.last_name, row[0])
+                self.assertEqual(self.hs_record2.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record2.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(self.hs_record2.level.label, row[3])
+                self.assertEqual(self.hs_record2.class_name, row[4])
+                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record2.bachelor_type - 1][1], row[5])
+                self.assertEqual('', row[6])
+                self.assertEqual('', row[7])
+                self.assertEqual('', row[8])
+                self.assertEqual('', row[9])
+                self.assertEqual('', row[10])
+                self.assertEqual('', row[11])
+                self.assertEqual('', row[12])
+                self.assertEqual('', row[13])
+                self.assertEqual('', row[14])
+                self.assertEqual('', row[15])
+                self.assertEqual('', row[16])
+                self.assertEqual('', row[17])
+                self.assertEqual('', row[18])
+                self.assertEqual('', row[19])
 
             n += 1
-
 
     def test_API_get_csv_structures(self):
         # No type specified
