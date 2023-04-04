@@ -602,23 +602,6 @@ def speaker(request, id=None):
     return render(request, 'core/speaker.html', context)
 
 
-# @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-# def my_students(request):
-#     highschool = None
-#
-#     try:
-#         highschool = request.user.highschool
-#     except Exception:
-#         pass
-#
-#     context = {
-#         'highschool': highschool,
-#         'is_establishment_manager': request.user.is_establishment_manager(),
-#     }
-#
-#     return render(request, 'core/highschool_students.html', context)
-
-
 @method_decorator(groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
 class MyStudents(generic.TemplateView):
     template_name: str = "core/highschool_students.html"

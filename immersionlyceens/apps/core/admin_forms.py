@@ -716,10 +716,17 @@ class PeriodForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        if self.instance:
+        if self.instance and self.instance.pk:
             # Lock start date update if in the past
             if self.instance.id and self.instance.immersion_start_date < timezone.localdate():
-                 self.fields["immersion_start_date"].disabled = True
+                 self.fields["immersion_start_date"] = forms.DateField(disabled=True)
+
+            # If registrations have already begun, lock the immersions quota value
+            if self.instance.registration_start_date >= timezone.localdate():
+                # self.fields["allowed_immersions"].widget.attrs['readonly'] = 'readonly'
+                self.fields["allowed_immersions"] = forms.IntegerField(disabled=True)
+                self.fields["allowed_immersions"].help_text = _("Registrations have begun, this field can't be updated")
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -789,7 +796,7 @@ class PeriodForm(forms.ModelForm):
 
     class Meta:
         model = Period
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ImmersionUserCreationForm(UserCreationForm):

@@ -586,7 +586,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
     redirect_url: str = reverse('offer')
     record = None
     student = None
-    periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
+    periods = Period.objects.filter(
+        immersion_end_date__gte=timezone.localdate()
+    )
 
     # Unused ?
     if student_id:
@@ -607,16 +609,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
         try:
             record = HighSchoolStudentRecord.objects.get(pk=record_id)
             student = record.student
-
-            # Default quotas
-            for period in periods:
-                if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
-                    HighSchoolStudentRecordQuota.objects.create(
-                        record=record, period=period, allowed_immersions=period.allowed_immersions
-                    )
         except HighSchoolStudentRecord.DoesNotExist:
-            # ?
+            # Record not created yet.
             pass
+
+    # Custom quotas objects for already started periods (check registration date)
+    # The record must exist
+    if record.pk:
+        for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+            if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
+                HighSchoolStudentRecordQuota.objects.create(
+                    record=record, period=period, allowed_immersions=period.allowed_immersions
+                )
+
 
     if request.method == 'POST' and request.POST.get('submit'):
         student_id = request.POST.get('student', None)
@@ -696,7 +701,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
             messages.success(request, _("Record successfully saved."))
 
-            for period in periods:
+            for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+                # For newly created records
                 if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
                     HighSchoolStudentRecordQuota.objects.create(
                         record=record, period=period, allowed_immersions=period.allowed_immersions
@@ -761,7 +767,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             } for l in HighSchoolLevel.objects.all()}
         ),
         'immersions_count': immersions_count,
-        'periods': Period.objects.order_by('registration_start_date')
+        'periods': Period.objects.order_by('immersion_start_date')
     }
 
     return render(request, template_name, context)
@@ -823,6 +829,15 @@ def student_record(request, student_id=None, record_id=None):
         except StudentRecord.DoesNotExist:
             pass
 
+    # Custom quotas objects for already started periods (check registration date)
+    # The record must exist
+    if record.pk:
+        for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+            if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
+                StudentRecordQuota.objects.create(
+                    record=record, period=period, allowed_immersions=period.allowed_immersions
+                )
+
     if request.method == 'POST':
         student_id = request.POST.get('student', None)
         if not student and student_id:
@@ -867,8 +882,8 @@ def student_record(request, student_id=None, record_id=None):
             record = recordform.save()
             messages.success(request, _("Record successfully saved."))
 
-            # Quota form save
-            for period in periods:
+            # Quota creation for newly created records
+            for period in periods.filter(registration_start_date__lte=timezone.localdate()):
                 if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
                     StudentRecordQuota.objects.create(
                         record=record, period=period, allowed_immersions=period.allowed_immersions
@@ -1072,6 +1087,10 @@ class VisitorRecordView(FormView):
             self.request.user.is_master_establishment_manager(),
             self.request.user.is_operator()
         ])
+        periods = Period.objects.filter(
+            registration_start_date__lte=timezone.localdate(),
+            immersion_end_date__gte=timezone.localdate()
+        )
 
         self.request.session['back'] = self.request.headers.get('Referer')
 
@@ -1094,6 +1113,14 @@ class VisitorRecordView(FormView):
             else:
                 user_form = VisitorForm(instance=visitor, request=self.request)
 
+        # Custom quotas objects for already started periods (check registration date)
+        # The record must exist
+        if record.pk:
+            for period in periods:
+                if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
+                    VisitorRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
 
         # Stats for user deletion
         today = timezone.localdate()
@@ -1183,8 +1210,8 @@ class VisitorRecordView(FormView):
             record = form.save()
             saved_user = form_user.save()
 
-            # Default quotas
-            for period in periods:
+            # Default quotas for newly created records
+            for period in periods.filter(registration_start_date__lte=timezone.localdate()):
                 if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
                     VisitorRecordQuota.objects.create(
                         record=record, period=period, allowed_immersions=period.allowed_immersions

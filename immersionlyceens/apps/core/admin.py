@@ -1293,7 +1293,6 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_delete_permission(self, request, obj=None):
-        uy = None
         today = timezone.localdate()
 
         if not obj:
@@ -1346,8 +1345,11 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_change_permission(self, request, obj=None):
-        uy = None
         today = timezone.localdate()
+        self.details = {
+            'ERROR': set(),
+            'WARNING': set()
+        }
 
         if not obj:
             return False
@@ -1359,20 +1361,20 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         ]
 
         if not any(valid_users):
-            messages.warning(request, _("You are not allowed to update periods"))
+            self.details['WARNING'].add(_("You are not allowed to update periods"))
             return False
 
         try:
             uy = UniversityYear.get_active()
         except Exception as e:
-            messages.error(
-                request, _("Multiple active years found. Please check your university years settings."),
+            self.details['ERROR'].add(
+                _("Multiple active years found. Please check your university years settings.")
             )
             return False
 
         if not uy:
-            messages.error(
-                request, _("Active year not found. Please check your university years settings."),
+            self.details['ERROR'].add(
+                _("Active year not found. Please check your university years settings.")
             )
             return False
 
@@ -1390,12 +1392,31 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         can_update = not slots_exist and any(year_condition)
 
         if not can_update:
-            messages.warning(
-                request,
+            self.details['WARNING'].add(
                 _("This period has slots or has already begun, it can't be updated")
             )
 
         return can_update
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+
+        # set error and warning messages
+        try:
+            obj = Period.objects.get(pk=object_id)
+        except Period.DoesNotExist:
+            obj = None
+
+        self.has_change_permission(request, obj=obj)
+
+        if hasattr(self, "details") and isinstance(self.details, dict):
+            for level, message_set in  self.details.items():
+                for message in message_set:
+                    self.message_user(request, message, getattr(messages, level))
+
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context,
+        )
 
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
