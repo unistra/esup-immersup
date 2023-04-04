@@ -7,3 +7,4 @@ omit =
     manage.py
     immersionlyceens/views.py
     venv/**
+    */tests/*
