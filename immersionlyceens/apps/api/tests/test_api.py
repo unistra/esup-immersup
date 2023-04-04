@@ -1401,20 +1401,20 @@ class APITestCase(TestCase):
                 for h in headers:
                     self.assertIn(h, row)
             elif n == 1:
-                self.assertIn(str(self.structure), row[0].split('|'))
+                self.assertIn(self.structure.label, row[0])
                 self.assertIn(self.t_domain.label, row[1].split('|'))
                 self.assertIn(self.t_sub_domain.label, row[2].split('|'))
                 self.assertIn(self.training.label, row[3])
                 self.assertIn(self.course.label, row[4])
                 self.assertIn(self.course_type.label, row[5])
-                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[6])
+                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[6])
                 self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
                 self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
                 self.assertIn(self.past_slot.campus.label, row[9])
                 self.assertIn(self.past_slot.building.label, row[10])
                 self.assertEqual(self.past_slot.room, row[11])
                 self.assertIn(
-                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    f'{self.speaker1.last_name} {self.speaker1.first_name}',
                     row[12].split('|')
                 ),
                 self.assertEqual(str(self.past_slot.registered_students()), row[13])
@@ -1452,20 +1452,20 @@ class APITestCase(TestCase):
                 for h in headers:
                     self.assertIn(h, row)
             elif n == 1:
-                self.assertEqual(str(self.structure), row[0])
+                self.assertEqual(self.structure.label, row[0])
                 self.assertIn(self.t_domain.label, row[1].split('|'))
                 self.assertIn(self.t_sub_domain.label, row[2].split('|'))
                 self.assertIn(self.training.label, row[3])
                 self.assertIn(self.course.label, row[4])
                 self.assertIn(self.course_type.label, row[5])
-                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[6])
+                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[6])
                 self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
                 self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
                 self.assertIn(self.past_slot.campus.label, row[9])
                 self.assertIn(self.past_slot.building.label, row[10])
                 self.assertEqual(self.past_slot.room, row[11])
                 self.assertIn(
-                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    f'{self.speaker1.last_name} {self.speaker1.first_name}',
                     row[12].split('|')
                 ),
                 self.assertEqual(str(self.past_slot.registered_students()), row[13])
@@ -1504,21 +1504,21 @@ class APITestCase(TestCase):
                 for h in headers:
                     self.assertIn(h, row)
             elif n == 1:
-                self.assertEqual(str(self.establishment), row[0])
-                self.assertEqual(str(self.structure), row[1])
+                self.assertEqual(self.establishment.label, row[0])
+                self.assertEqual(self.structure.label, row[1])
                 self.assertIn(self.t_domain.label, row[2].split('|'))
                 self.assertIn(self.t_sub_domain.label, row[3].split('|'))
                 self.assertIn(self.training.label, row[4])
                 self.assertIn(self.course.label, row[5])
                 self.assertIn(self.course_type.label, row[6])
-                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[7])
+                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[7])
                 self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[8])
                 self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[9])
                 self.assertIn(self.past_slot.campus.label, row[10])
                 self.assertIn(self.past_slot.building.label, row[11])
                 self.assertEqual(self.past_slot.room, row[12])
                 self.assertIn(
-                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    f'{self.speaker1.last_name} {self.speaker1.first_name}',
                     row[13].split('|')
                 ),
                 self.assertEqual(str(self.past_slot.registered_students()), row[14])

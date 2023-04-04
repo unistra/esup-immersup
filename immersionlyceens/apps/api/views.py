@@ -1814,6 +1814,12 @@ def get_csv_structures(request):
     if not t:
         raise Http404
 
+    registered_students_count= Immersion.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True) \
+                                .order_by().annotate(
+                                    count=Func(F('id'), function='Count')
+                                ).values('count')
+
+    # Export courses
     if t == 'course':
 
         label = _('courses')
@@ -1838,6 +1844,13 @@ def get_csv_structures(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
+            ]
+
+            fields = [
+                'establishment', 'structure', 'domains', 'subdomains', 'training_label',
+                'course_label', 'slot_course_type', 'slot_date', 'slot_start_time', 'slot_end_time',
+                'slot_campus', 'slot_building', 'slot_room', 'slot_speakers', 'registered',
+                'slot_n_places', 'info'
             ]
 
         elif request.user.is_establishment_manager():
@@ -1866,6 +1879,12 @@ def get_csv_structures(request):
             ] = request.user.establishment.structures.all()
 
 
+            fields = [
+                'structure', 'domains', 'subdomains', 'training_label',
+                'course_label', 'slot_course_type', 'slot_date', 'slot_start_time', 'slot_end_time',
+                'slot_campus', 'slot_building', 'slot_room', 'slot_speakers', 'registered',
+                'slot_n_places', 'info'
+            ]
 
         elif request.user.is_high_school_manager():
 
@@ -1888,7 +1907,13 @@ def get_csv_structures(request):
                 'course__highschool'
             ] = request.user.highschool
 
-        if request.user.is_structure_manager():
+            fields = [
+                'domains', 'subdomains', 'training_label', 'course_label', 'slot_course_type',
+                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_campus', 'slot_building',
+                'slot_room', 'slot_speakers', 'registered', 'slot_n_places', 'info'
+            ]
+
+        elif request.user.is_structure_manager():
             header = [
                 _('structure'),
                 _('training domain'),
@@ -1911,107 +1936,63 @@ def get_csv_structures(request):
                 'course__structure__in'
             ] = structures
 
+            fields = [
+                'structure', 'domains', 'subdomains', 'training_label', 'course_label',
+                'slot_course_type', 'slot_date', 'slot_start_time', 'slot_end_time',
+                'slot_campus', 'slot_building', 'slot_room', 'slot_speakers', 'registered',
+                'slot_n_places', 'info'
+            ]
 
-        slots = Slot.objects.filter(**filters, course__isnull=False, published=True).order_by('date', 'start_time')
+        slots = Slot.objects.prefetch_related(
+            'immersions','speakers','course', 'course__establishment', 'course__structure',
+            'course__highschool', 'course__training__training_subdomains'
+        ).filter(**filters, published=True, course__isnull=False, immersions__cancellation_type__isnull=True
+        ).order_by('date', 'start_time')
 
-        for slot in slots:
+        content = slots.annotate(
+            establishment=Coalesce(
+                F('course__structure__establishment__label'),
+                Concat(F('course__highschool__label'),
+                       Value(' - '),
+                       F('course__highschool__city'),
+                       output_field=CharField()
+                    )
+            ),
+            structure=F('course__structure__label'),
+            domains=StringAgg(
+                F('course__training__training_subdomains__training_domain__label'),
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            subdomains=StringAgg(
+                F('course__training__training_subdomains__label'),
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            training_label=F('course__training__label'),
+            course_label=F('course__label'),
+            slot_course_type=F('course_type__label'),
+            slot_date=ExpressionWrapper(
+                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            slot_start_time=F('start_time'),
+            slot_end_time=F('end_time'),
+            slot_campus=F('campus__label'),
+            slot_building=F('building__label'),
+            slot_room=Case(
+                When(face_to_face=True,then=F('room')),
+                When(face_to_face=False, then=Value(gettext('Remote'))),
+            ),
+            slot_speakers=StringAgg(
+                Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            registered=Subquery(registered_students_count),
+            slot_n_places=F('n_places'),
+            info=(F('additional_information')),
+        ).values_list(
+            *fields
+        )
 
-            structure = slot.get_structure()
-            highschool = slot.get_highschool()
-            establishment = slot.get_establishment()
-
-            if request.user.is_master_establishment_manager() or request.user.is_operator():
-
-                line = [
-                    establishment if establishment else highschool,
-                    structure,
-                    infield_separator.join(
-                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                    ),
-                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                    slot.course.training.label,
-                    slot.course.label,
-                    slot.course_type.label,
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    slot.campus.label if slot.campus else '',
-                    slot.building.label if slot.building else '',
-                    slot.room if slot.face_to_face else _('Remote'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            elif request.user.is_establishment_manager():
-
-                line = [
-                    structure,
-                    infield_separator.join(
-                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                    ),
-                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                    slot.course.training.label,
-                    slot.course.label,
-                    slot.course_type.label,
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    slot.campus.label if slot.campus else '',
-                    slot.building.label if slot.building else '',
-                    slot.room if slot.face_to_face else _('Remote'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            elif request.user.is_structure_manager():
-
-                line = [
-                    structure,
-                    infield_separator.join(
-                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                    ),
-                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                    slot.course.training.label,
-                    slot.course.label,
-                    slot.course_type.label,
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    slot.campus.label if slot.campus else '',
-                    slot.building.label if slot.building else '',
-                    slot.room if slot.face_to_face else _('Remote'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            elif request.user.is_high_school_manager():
-
-                line = [
-                    infield_separator.join(
-                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                    ),
-                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                    slot.course.training.label,
-                    slot.course.label,
-                    slot.course_type.label,
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    slot.room if slot.face_to_face else _('Remote'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            content.append(line.copy())
-
+    # Export visits
     if t == 'visit':
 
         label = _('visits')
@@ -2033,6 +2014,12 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
+            fields = [
+                'establishment', 'structure', 'highschool', 'purpose', 'meeting_place',
+                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
+                'registered', 'slot_n_places', 'info'
+            ]
+
         elif request.user.is_establishment_manager():
 
             header = [
@@ -2049,10 +2036,14 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
+            fields = [
+                'structure', 'highschool', 'purpose', 'meeting_place', 'slot_date', 'slot_start_time',
+                'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info'
+            ]
+
             Q_filters = Q(visit__establishment=request.user.establishment) | Q(
                 visit__structure__in=request.user.establishment.structures.all()
             )
-
 
         elif request.user.is_structure_manager():
 
@@ -2070,86 +2061,48 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
-        if request.user.is_structure_manager():
+            fields = [
+                'structure', 'highschool', 'purpose', 'meeting_place', 'slot_date', 'slot_start_time',
+                'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info'
+            ]
+
             filters[
                 'visit__structure__in'
             ] = structures
 
+        slots = Slot.objects.prefetch_related(
+            'immersions','speakers','visit', 'visit__establishment', 'visit__structure',
+            'visit__highschool'
+        ).filter(
+            Q_filters, **filters, published=True, visit__isnull=False, immersions__cancellation_type__isnull=True
+        ).order_by('date', 'start_time')
 
-        slots = Slot.objects.filter(Q_filters, **filters, visit__isnull=False, published=True).order_by('date', 'start_time')
+        content = slots.annotate(
+            establishment=F('visit__establishment__label'),
+            structure=F('visit__structure__label'),
+            highschool=F('visit__highschool__label'),
+            purpose=F('visit__purpose'),
+            meeting_place=Case(
+                When(face_to_face=True,then=F('room')),
+                When(face_to_face=False, then=Value(gettext('Remote'))),
+            ),
+            slot_date=ExpressionWrapper(
+                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            slot_start_time=F('start_time'),
+            slot_end_time=F('end_time'),
+            slot_speakers=StringAgg(
+                Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            registered=Subquery(registered_students_count),
+            slot_n_places=F('n_places'),
+            info=(F('additional_information')),
+        ).values_list(
+            *fields
+        )
 
-        for slot in slots:
-
-            structure = slot.get_structure()
-            highschool = slot.get_highschool()
-            establishment = slot.get_establishment()
-
-            if request.user.is_master_establishment_manager() or request.user.is_operator():
-
-                line = [
-                    establishment,
-                    structure,
-                    highschool,
-                    slot.visit.purpose,
-                    slot.room if slot.face_to_face else _('Remote'),
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            elif request.user.is_establishment_manager():
-
-                line = [
-                    structure,
-                    highschool,
-                    slot.visit.purpose,
-                    slot.room if slot.face_to_face else _('Remote'),
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            elif request.user.is_high_school_manager():
-
-                line = [
-                    highschool,
-                    slot.visit.purpose,
-                    slot.room if slot.face_to_face else _('Remote'),
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            elif request.user.is_structure_manager():
-
-                line = [
-                    structure,
-                    highschool,
-                    slot.visit.purpose,
-                    slot.room if slot.face_to_face else _('Remote'),
-                    _date(slot.date, 'l d/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-
-            content.append(line.copy())
-
+    # Export events
     if t == 'event':
 
         label = _('events')
@@ -2175,6 +2128,12 @@ def get_csv_structures(request):
 
             ]
 
+            fields = [
+                'establishment', 'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building',
+                'slot_room', 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
+                'registered', 'slot_n_places', 'info'
+            ]
+
         elif request.user.is_establishment_manager():
 
             header = [
@@ -2198,7 +2157,11 @@ def get_csv_structures(request):
                 event__structure__in=request.user.establishment.structures.all()
             )
 
-
+            fields = [
+                'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building',
+                'slot_room', 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
+                'registered', 'slot_n_places', 'info'
+            ]
 
         elif request.user.is_structure_manager():
 
@@ -2223,6 +2186,11 @@ def get_csv_structures(request):
                 'event__structure__in'
             ] = structures
 
+            fields = [
+                'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building',
+                'slot_room', 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
+                'registered', 'slot_n_places', 'info'
+            ]
 
         elif request.user.is_high_school_manager():
 
@@ -2244,118 +2212,49 @@ def get_csv_structures(request):
                 'event__highschool'
             ] = request.user.highschool
 
-        slots = Slot.objects.filter(Q_filters, **filters, published=True, event__isnull=False).order_by('date', 'start_time')
+            fields = [
+                'type', 'label', 'desc', 'slot_room', 'slot_date', 'slot_start_time',
+                'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info'
+            ]
 
-        content = []
+        slots = Slot.objects.prefetch_related(
+            'immersions','speakers','event', 'event__establishment', 'event__structure',
+            'event__highschool'
+        ).filter(Q_filters, **filters, published=True, event__isnull=False, immersions__cancellation_type__isnull=True
+        ).order_by('date', 'start_time')
 
-        for slot in slots:
+        content = slots.annotate(
+            establishment=Coalesce(
+                F('event__establishment__label'),
+                Concat(F('event__highschool__label'), Value(' - '), F('event__highschool__city'), output_field=CharField())
+            ),
+            structure=F('event__structure__label'),
+            type=F('event__event_type__label'),
+            label=F('event__label'),
+            desc=F('event__description'),
+            slot_campus=F('campus__label'),
+            slot_building=F('building__label'),
+            slot_room=Case(
+                When(face_to_face=True,then=F('room')),
+                When(face_to_face=False, then=Value(gettext('Remote'))),
+            ),
+            slot_date=ExpressionWrapper(
+                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            slot_start_time=F('start_time'),
+            slot_end_time=F('end_time'),
+            slot_speakers=StringAgg(
+                Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            registered=Subquery(registered_students_count),
+            slot_n_places=F('n_places'),
+            info=(F('additional_information')),
+        ).values_list(
+            *fields
+        )
 
-            structure = slot.get_structure()
-            highschool = slot.get_highschool()
-            establishment = slot.get_establishment()
-
-            if (
-                request.user.is_master_establishment_manager()
-                or request.user.is_operator()
-            ):
-                content.append(
-                    [
-                        establishment if establishment else highschool,
-                        structure,
-                        slot.event.event_type,
-                        slot.event.label,
-                        slot.event.description,
-                        slot.campus.label if slot.campus else '',
-                        slot.building.label if slot.building else '',
-                        slot.room if slot.face_to_face else _('Remote'),
-                        _date(slot.date, 'd/m/Y'),
-                        slot.start_time.strftime('%H:%M'),
-                        slot.end_time.strftime('%H:%M'),
-                        infield_separator.join(
-                            f'{s.last_name} {s.first_name}'
-                            for s in slot.speakers.all().order_by(
-                                'last_name', 'first_name'
-                            )
-                        ),
-                        slot.registered_students(),
-                        slot.n_places,
-                        slot.additional_information,
-                    ]
-                )
-
-            elif request.user.is_establishment_manager():
-                content.append(
-                    [
-                        structure,
-                        slot.event.event_type,
-                        slot.event.label,
-                        slot.event.description,
-                        slot.campus.label if slot.campus else '',
-                        slot.building.label if slot.building else '',
-                        slot.room if slot.face_to_face else _('Remote'),
-                        _date(slot.date, 'd/m/Y'),
-                        slot.start_time.strftime('%H:%M'),
-                        slot.end_time.strftime('%H:%M'),
-                        infield_separator.join(
-                            f'{s.last_name} {s.first_name}'
-                            for s in slot.speakers.all().order_by(
-                                'last_name', 'first_name'
-                            )
-                        ),
-                        slot.registered_students(),
-                        slot.n_places,
-                        slot.additional_information,
-                    ]
-                )
-
-            elif request.user.is_structure_manager():
-                content.append(
-                    [
-                        structure,
-                        slot.event.event_type,
-                        slot.event.label,
-                        slot.event.description,
-                        slot.campus.label if slot.campus else '',
-                        slot.building.label if slot.building else '',
-                        slot.room if slot.face_to_face else _('Remote'),
-                        _date(slot.date, 'd/m/Y'),
-                        slot.start_time.strftime('%H:%M'),
-                        slot.end_time.strftime('%H:%M'),
-                        infield_separator.join(
-                            f'{s.last_name} {s.first_name}'
-                            for s in slot.speakers.all().order_by(
-                                'last_name', 'first_name'
-                            )
-                        ),
-                        slot.registered_students(),
-                        slot.n_places,
-                        slot.additional_information,
-                    ]
-                )
-
-
-            elif request.user.is_high_school_manager():
-                content.append(
-                    [
-                        slot.event.event_type,
-                        slot.event.label,
-                        slot.event.description,
-                        slot.room if slot.face_to_face else _('Remote'),
-                        _date(slot.date, 'd/m/Y'),
-                        slot.start_time.strftime('%H:%M'),
-                        slot.end_time.strftime('%H:%M'),
-                        infield_separator.join(
-                            f'{s.last_name} {s.first_name}'
-                            for s in slot.speakers.all().order_by(
-                                'last_name', 'first_name'
-                            )
-                        ),
-                        slot.registered_students(),
-                        slot.n_places,
-                        slot.additional_information,
-                    ]
-                )
-
+    # Forge CSV file
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
     writer = csv.writer(response)
     writer.writerow(header)
@@ -2469,7 +2368,6 @@ def get_csv_anonymous(request):
     if not t:
         raise Http404
 
-
     registered_students_count= Immersion.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True) \
                                 .order_by().annotate(
                                     count=Func(F('id'), function='Count')
@@ -2483,6 +2381,7 @@ def get_csv_anonymous(request):
         ) for k, v in attendance_status_choices.items()
     ]
 
+    # Export courses
     if t == 'course':
 
         label = _('anonymous_courses')
@@ -2573,11 +2472,11 @@ def get_csv_anonymous(request):
             structure=F('course__structure__label'),
             domains=StringAgg(
                 F('course__training__training_subdomains__training_domain__label'),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             subdomains=StringAgg(
                 F('course__training__training_subdomains__label'),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             training_label=F('course__training__label'),
             course_label=F('course__label'),
@@ -2595,7 +2494,7 @@ def get_csv_anonymous(request):
             ),
             slot_speakers=StringAgg(
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
@@ -2623,6 +2522,7 @@ def get_csv_anonymous(request):
             *fields
         )
 
+    # Export visits
     if t == 'visit':
 
         label = _('anonymous_visits')
@@ -2704,7 +2604,7 @@ def get_csv_anonymous(request):
             slot_end_time=F('end_time'),
             slot_speakers=StringAgg(
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
@@ -2718,6 +2618,7 @@ def get_csv_anonymous(request):
             *fields
         )
 
+    # Export events
     if t == 'event':
 
         label = _('anonymous_events')
@@ -2814,7 +2715,7 @@ def get_csv_anonymous(request):
             slot_end_time=F('end_time'),
             slot_speakers=StringAgg(
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
@@ -2842,6 +2743,7 @@ def get_csv_anonymous(request):
             *fields
         )
 
+    # Export registrations
     if t == 'registration':
 
         label = _('anonymous_registrations')
@@ -2958,11 +2860,11 @@ def get_csv_anonymous(request):
             ),
             domains=StringAgg(
                 F('slot__course__training__training_subdomains__training_domain__label'),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             subdomains=StringAgg(
                 F('slot__course__training__training_subdomains__label'),
-                 '|', default=Value(''), output_field=CharField(), distinct=True
+                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
             ),
             training_label=F('slot__course__training__label'),
             slot_label=Coalesce(
@@ -2991,6 +2893,7 @@ def get_csv_anonymous(request):
             'attendance', 'informations'
         )
 
+    # Forge csv
     response['Content-Disposition'] = f'attachment; filename={label}_{today}.csv'
     writer = csv.writer(response)
     writer.writerow(header)
