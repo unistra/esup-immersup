@@ -2267,7 +2267,7 @@ def get_csv_structures(request):
 def get_csv_highschool(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    hs = HighSchool.objects.get(id=request.user.highschool.id)
+    hs = request.user.highschool
     h_name = hs.label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
     infield_separator = '|'
@@ -2291,65 +2291,89 @@ def get_csv_highschool(request):
         _('building'),
         _('meeting place'),
         _('attendance status'),
+        _('additional information')
     ]
-    content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=hs.id) \
-        .order_by('student__last_name', 'student__first_name')
-    for hs in hs_records:
-        immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
-        if immersions.count() > 0:
-            for imm in immersions:
-                if imm.slot.is_course():
-                    slot_type = _('Course')
-                    label = imm.slot.course.label
-                elif imm.slot.is_event():
-                    slot_type = _('Event')
-                    label = imm.slot.event.label
-                elif imm.slot.is_visit():
-                    slot_type = _('Visit')
-                    label = imm.slot.visit.purpose
 
-                content.append(
-                    [
-                        hs.student.last_name,
-                        hs.student.first_name,
-                        _date(hs.birth_date, 'd/m/Y'),
-                        hs.level.label if hs.level else '',
-                        hs.class_name,
-                        HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
-                        imm.slot.get_establishment(),
-                        slot_type,
-                        infield_separator.join(
-                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()] \
-                                if slot_type == _('Course') else ''
-                        ),
-                        infield_separator.join(
-                            [s.label for s in imm.slot.course.training.training_subdomains.all()] \
-                                if slot_type == _('Course') else ''
-                        ),
-                        imm.slot.course.training.label if slot_type == _('Course') else '',
-                        label,
-                        _date(imm.slot.date, 'd/m/Y'),
-                        imm.slot.start_time.strftime('%H:%M'),
-                        imm.slot.end_time.strftime('%H:%M'),
-                        imm.slot.campus.label if imm.slot.campus else None,
-                        imm.slot.building.label if imm.slot.building else None,
-                        imm.slot.room if imm.slot.face_to_face else _('Remote'),
-                        imm.get_attendance_status(),
-                    ]
-                )
-        else:
-            content.append(
-                [
-                    hs.student.last_name,
-                    hs.student.first_name,
-                    _date(hs.birth_date, 'd/m/Y'),
-                    hs.level.label if hs.level else '',
-                    hs.class_name,
-                    HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1] if hs.bachelor_type else '',
-                ]
-            )
+    Q_filters = Q(immersions__cancellation_type__isnull=True)
 
+    students = ImmersionUser.objects.prefetch_related(
+            'high_school_student_record__level', 'high_school_student_record__highschool',
+            'immersions', 'immersions__slot'
+        ).filter(
+            Q_filters,
+            groups__name='LYC',
+            high_school_student_record__highschool__id=hs.id,
+        ).order_by('last_name', 'first_name')
+
+    bachelor_type_choices = dict(HighSchoolStudentRecord._meta.get_field('bachelor_type').flatchoices)
+    bachelor_type_whens = [
+        When(
+            high_school_student_record__bachelor_type=k,
+            then=Value(str(v))
+        ) for k, v in bachelor_type_choices.items()
+    ]
+
+    attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
+    attendance_status_whens = [
+        When(
+            immersions__attendance_status=k,
+            then=Value(str(v))
+        ) for k, v in attendance_status_choices.items()
+    ]
+
+    content = students.annotate(
+        student_last_name=F('last_name'),
+        student_first_name=F('first_name'),
+        student_birth_date=ExpressionWrapper(
+            Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+        ),
+        student_bachelor_type=Case(*bachelor_type_whens, output_field=CharField()),
+        slot_establishment=Coalesce(
+            F('immersions__slot__course__structure__establishment__label'),
+            F('immersions__slot__visit__establishment__label'),
+            F('immersions__slot__event__establishment__label'),
+        ),
+        slot_type=Case(
+            When(immersions__slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
+            When(immersions__slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
+            When(immersions__slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
+            When(immersions__isnull=False, then=Value("")),
+        ),
+        domains=StringAgg(
+            F('immersions__slot__course__training__training_subdomains__training_domain__label'),
+             infield_separator, default=Value(''), output_field=CharField(), distinct=True
+        ),
+        subdomains=StringAgg(
+            F('immersions__slot__course__training__training_subdomains__label'),
+             infield_separator, default=Value(''), output_field=CharField(), distinct=True
+        ),
+        training_label=F('immersions__slot__course__training__label'),
+        slot_label=Coalesce(
+            F('immersions__slot__course__label'),
+            F('immersions__slot__visit__purpose'),
+            F('immersions__slot__event__label'),
+        ),
+        slot_date=ExpressionWrapper(
+            Func(F('immersions__slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+        ),
+        slot_start_time=F('immersions__slot__start_time'),
+        slot_end_time=F('immersions__slot__end_time'),
+        slot_campus_label=F('immersions__slot__campus__label'),
+        slot_building=F('immersions__slot__building__label'),
+        slot_room=Case(
+            When(immersions__slot__face_to_face=True,then=F('immersions__slot__room')),
+            When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
+        ),
+        attendance=Case(*attendance_status_whens, output_field=CharField()),
+        informations=F('immersions__slot__additional_information')
+    ).values_list(
+        'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
+        'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
+        'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
+        'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations'
+    )
+
+    # Forge csv file and return it
     writer = csv.writer(response)
     writer.writerow(header)
     writer.writerows(content)
