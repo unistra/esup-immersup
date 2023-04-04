@@ -734,11 +734,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
     now = datetime.today().time()
 
     past_immersions = student.immersions.filter(
-        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
+        cancellation_type__isnull=True
     ).count()
 
     future_immersions = student.immersions.filter(
-        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
+        cancellation_type__isnull=True
     ).count()
 
     # Count immersion registrations for each period
@@ -767,7 +769,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             } for l in HighSchoolLevel.objects.all()}
         ),
         'immersions_count': immersions_count,
-        'periods': Period.objects.order_by('immersion_start_date')
+        'future_periods': Period.objects.filter(registration_start_date__gte=today).order_by('immersion_start_date')
     }
 
     return render(request, template_name, context)
@@ -939,6 +941,7 @@ def student_record(request, student_id=None, record_id=None):
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
         'immersions_count': immersions_count,
+        'future_periods': Period.objects.filter(registration_start_date__gte=today).order_by('immersion_start_date')
     }
 
     return render(request, template_name, context)
@@ -1157,6 +1160,7 @@ class VisitorRecordView(FormView):
             "back_url": self.request.session.get("back"),
             "can_change": has_change_permission,  # can change number of allowed positions
             "immersions_count": immersions_count,
+            'future_periods': Period.objects.filter(registration_start_date__gte=today).order_by('immersion_start_date')
         })
         return context
 

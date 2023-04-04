@@ -217,6 +217,9 @@ class HighSchoolStudentRecordQuotaForm(forms.ModelForm):
         if self.instance and hasattr(self.instance, "period"):
             self.period_label = '%s' % self.instance.period
 
+            # Do not allow a lower quota value
+            self.fields['allowed_immersions'].widget.attrs['min'] = self.instance.allowed_immersions
+
     class Meta:
         model = HighSchoolStudentRecordQuota
         fields = ('record', 'period', 'allowed_immersions', 'id', )

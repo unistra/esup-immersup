@@ -104,7 +104,11 @@
           <div class="col-sm-3">{{ record_form.current_diploma }}</div>
           <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
         </div>
-
+      </div>
+      <div class="card-header text-white bg-secondary">
+        {% trans "Immersions periods" %}
+      </div>
+      <div class="card-body">
         {% if record_form.quota_formset and not request.user.is_student %}
           {{ record_form.quota_formset.management_form }}
           {% for quota_form in record_form.quota_formset %}
@@ -120,7 +124,7 @@
               </div>
             </div>
           {% endfor %}
-        {% elif record_form.instance.highschool %}
+        {% else %}
           {% for quota in record.quota.all %}
             <div class="form-group row align-items-center">
               <label class="col-sm-9 col-form-label">
@@ -131,16 +135,20 @@
               </div>
             </div>
           {% endfor %}
-        {% else %}
-          {% for quota in record.quota.all %}
-            <div class="form-group row align-items-center">
-              <label class="col-sm-9 col-form-label">
-                {{ quota.period }} - {% trans 'allowed immersions' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ quota.allowed_immersions }}</div>
-            </div>
-          {% endfor %}
         {% endif %}
+
+        {% comment %}
+          Display future periods as readonly (no form to update the student custom quota)
+        {% endcomment %}
+
+        {% for period in future_periods %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-9 col-form-label">
+              {{ period }} - {% trans 'allowed immersions' %} :
+            </label>
+            <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+          </div>
+        {% endfor %}
       </div>
     </div>
     <div class="row mt-4">

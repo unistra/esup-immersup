@@ -497,15 +497,17 @@ class APITestCase(TestCase):
         )
 
         # Set custom quota for this student
-        HighSchoolStudentRecordQuota.objects.filter(
+        HighSchoolStudentRecordQuota.objects.create(
             record=self.hs_record,
-            period=self.past_period
-        ).update(allowed_immersions=2)
+            period=self.past_period,
+            allowed_immersions=2,
+        )
 
-        HighSchoolStudentRecordQuota.objects.filter(
+        HighSchoolStudentRecordQuota.objects.create(
             record=self.hs_record,
-            period=self.period
-        ).update(allowed_immersions=1)
+            period=self.period,
+            allowed_immersions=1
+        )
 
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
@@ -2740,6 +2742,7 @@ class APITestCase(TestCase):
         self.hs_record.validation = 2
         self.hs_record.save()
 
+        # Delete a previously created immersion
         self.immersion3.delete()
 
         self.assertEqual(

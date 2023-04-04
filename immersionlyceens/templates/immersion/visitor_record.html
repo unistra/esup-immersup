@@ -73,7 +73,6 @@
         {% trans "supporting documents" %}
       </div>
       <div class="card-body">
-
         <div class="form-group row align-center">
           <label for="id_motivation" class="col-sm-3 col-md-4 col-form-label">
             {{ form.motivation.label }}* :
@@ -105,7 +104,11 @@
           </div>
           <div class="col-sm-3 col-md-2">{{ form.parental_auth_document.errors }}</div>
         </div>
-
+      </div>
+      <div class="card-header text-white bg-secondary">
+        {% trans "Immersions periods" %}
+      </div>
+      <div class="card-body">
         {% if form.quota_formset and can_change %}
           {{ form.quota_formset.management_form }}
           {% for quota_form in form.quota_formset %}
@@ -121,7 +124,7 @@
               </div>
             </div>
           {% endfor %}
-        {% elif form.instance.visitor %}
+        {% else %}
           {% for quota in record.quota.all %}
             <div class="form-group row align-items-center">
               <label class="col-sm-9 col-form-label">
@@ -132,16 +135,20 @@
               </div>
             </div>
           {% endfor %}
-        {% else %}
-          {% for quota in record.quota.all %}
-            <div class="form-group row align-items-center">
-              <label class="col-sm-9 col-form-label">
-                {{ quota.period }} - {% trans 'allowed immersions' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ quota.allowed_immersions }}</div>
-            </div>
-          {% endfor %}
         {% endif %}
+
+        {% comment %}
+          Display future periods as readonly (no form to update the visitor custom quota)
+        {% endcomment %}
+
+        {% for period in future_periods %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-9 col-form-label">
+              {{ period }} - {% trans 'allowed immersions' %} :
+            </label>
+            <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+          </div>
+        {% endfor %}
       </div>
     </div>
     <div class="row mt-4">

@@ -1394,7 +1394,7 @@ class Period(models.Model):
     class Meta:
         verbose_name = _('Period')
         verbose_name_plural = _('Periods')
-        ordering = ['registration_start_date', ]
+        ordering = ['immersion_start_date', ]
 
 
 class Course(models.Model):

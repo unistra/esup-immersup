@@ -202,13 +202,6 @@ class HighSchoolStudentRecord(models.Model):
 
         self.save()
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        for period in Period.objects.all():
-            if not HighSchoolStudentRecordQuota.objects.filter(period=period, record=self).exists():
-                HighSchoolStudentRecordQuota.objects.create(
-                    period=period, record=self, allowed_immersions=period.allowed_immersions
-                )
 
     def is_valid(self):
         return self.validation == 2
@@ -322,21 +315,6 @@ class StudentRecord(models.Model):
         else:
             return self.uai_code, None
 
-        """
-        try:
-            inst = core_models.HigherEducationInstitution.objects.get(uai_code__iexact=self.uai_code)
-            return inst.label, inst
-        except core_models.HigherEducationInstitution.DoesNotExist:
-            return self.uai_code, None
-        """
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        for period in Period.objects.all():
-            if not StudentRecordQuota.objects.filter(period=period, record=self).exists():
-                StudentRecordQuota.objects.create(
-                    period=period, record=self, allowed_immersions=period.allowed_immersions
-                )
 
     class Meta:
         verbose_name = _('Student record')
@@ -409,13 +387,6 @@ class VisitorRecord(models.Model):
         self.civil_liability_insurance.storage.delete(self.civil_liability_insurance.name)
         super().delete(using, keep_parents)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        for period in Period.objects.all():
-            if not VisitorRecordQuota.objects.filter(period=period, record=self).exists():
-                VisitorRecordQuota.objects.create(
-                    period=period, record=self, allowed_immersions=period.allowed_immersions
-                )
 
     def is_valid(self):
         return self.validation == 2
