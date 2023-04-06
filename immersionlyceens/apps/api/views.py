@@ -3320,7 +3320,7 @@ class StructureList(generics.ListCreateAPIView):
     serializer_class = StructureSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
-    permission_classes = [CustomDjangoModelPermissions]
+    permission_classes = [CustomDjangoModelPermissions|IsStructureManagerPermissions|IsEstablishmentManagerPermissions]
 
     def get_queryset(self):
         queryset = Structure.activated.order_by('code', 'label')
