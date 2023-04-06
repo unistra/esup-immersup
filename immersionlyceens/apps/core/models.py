@@ -224,6 +224,7 @@ class HighSchool(models.Model):
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
+
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     logo = models.ImageField(
@@ -243,6 +244,8 @@ class HighSchool(models.Model):
     signed_charter = models.BooleanField(_("Signed charter"), default=False)
     certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=True)
+    with_convention = models.BooleanField(_("Has a convention"), default=True)
 
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
@@ -2554,6 +2557,15 @@ class GeneralSettings(models.Model):
         default=dict,
         validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
     )
+
+    @classmethod
+    def get_setting(cls, name:str):
+        try:
+            return cls.objects.get(setting__iexact=name).parameters["value"]
+        except (cls.DoesNotExist, KeyError) as e:
+            raise Exception(
+                _("General setting '%s' is missing or incorrect. Please check your settings.") % name
+            ) from e
 
     def __str__(self) -> str:
         return str(self.setting)

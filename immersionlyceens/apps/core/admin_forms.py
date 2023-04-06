@@ -14,7 +14,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.db.models import Count, Q
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext, gettext_lazy as _
 from django.utils import timezone
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
@@ -1153,6 +1153,7 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
         if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
             city_choices = [
                 ('', '---------'),
@@ -1198,6 +1199,35 @@ class HighSchoolForm(forms.ModelForm):
                 self.fields[field].help_text = \
                     _("This field is available when 'Offer post-bachelor immersions is enabled")
 
+        # General settings dependant field
+        try:
+            w_agreement = GeneralSettings.get_setting(name="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+            wo_agreement = GeneralSettings.get_setting(name="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+        except Exception as e:
+            raise forms.ValidationError(str(e)) from e
+
+        # Both activated : option can be updated, else it's locked (XOR)
+        if self.fields.get("with_convention"):
+            self.fields["with_convention"].disabled = w_agreement ^ wo_agreement
+
+            if self.fields["with_convention"].disabled:
+                self.fields["with_convention"].initial = w_agreement
+                self.fields["with_convention"].widget.attrs['checked'] = w_agreement
+
+                self.fields["with_convention"].help_text = pgettext(
+                    "convention",
+                    """Always %s : this option cannot be changed due to high school agreements """
+                    """options in general settings""") % w_agreement
+
+                if w_agreement:
+                    # field disabled and conventions activated : make convention dates required
+                    self.fields['convention_start_date'].required = True
+                    self.fields['convention_end_date'].required = True
+                else:
+                    # field disabled and conventions deactivated : disabled convention dates
+                    self.fields['convention_start_date'].disabled = True
+                    self.fields['convention_end_date'].disabled = True
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -1219,11 +1249,35 @@ class HighSchoolForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
+        # General settings dependant field
+        try:
+            w_agreement = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+            wo_agreement = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+        except Exception as e:
+            raise forms.ValidationError() from e
+
+        if w_agreement ^ wo_agreement:
+            cleaned_data["with_convention"] = w_agreement
+
+        if not cleaned_data["with_convention"]:
+            cleaned_data["convention_start_date"] = None
+            cleaned_data["convention_end_date"] = None
+        elif cleaned_data.get('convention_start_date') or cleaned_data.get("convention_end_date"):
+            if not cleaned_data["convention_start_date"] or not cleaned_data["convention_end_date"]:
+                raise forms.ValidationError({
+                    'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
+                    'convention_end_date': _("Both convention dates are required if 'convention' is checked")
+                })
+
         return cleaned_data
 
     class Meta:
         model = HighSchool
-        fields = '__all__'
+        fields = ('active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
+                  'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
+                  'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
+                  'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+                  'certificate_footer')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
             'certificate_header': SummernoteWidget(),
