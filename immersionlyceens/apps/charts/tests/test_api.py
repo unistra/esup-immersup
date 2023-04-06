@@ -19,7 +19,7 @@ class ChartsAPITestCase(TestCase):
     """Tests for API"""
 
     # This file contains a complete set of users, slots, etc
-    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'group',
+    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'group', 'generalsettings',
         'immersionlyceens/apps/charts/tests/fixtures/all_test.json',
     ]
 

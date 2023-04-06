@@ -161,6 +161,15 @@
             <div class="col-sm-3 col-md-2">{{ record_form.current_diploma.errors }}</div>
           </div>
         </div>
+        {% if request_student_consent %}
+        <div id="id_div_allow_high_school_consultation" class="form-group row align-items-center">
+          <label for="id_allow_high_school_consultation" class="col-sm-9 col-form-label">
+            {% trans 'Allow my high school to view my immersions and attendance certificates ?' %}
+          </label>
+          <div class="col-sm-2">{{ record_form.allow_high_school_consultation }}</div>
+          <div class="col-sm-1">{{ record_form.allow_high_school_consultation.errors }}</div>
+        </div>
+        {% endif %}
         <div class="form-group row align-items-center">
           <label for="id_visible_immersion_registrations" class="col-sm-9 col-form-label">
             {% trans 'Make the current immersion registrations visible ?' %}
@@ -243,6 +252,8 @@
   }
 
   $(document).ready(function() {
+    let high_school_with_convention;
+
     $(function () {
       $(".datepicker").datepicker({
         changeMonth: true,
@@ -285,6 +296,30 @@
       }
     }
 
+    function toggle_student_consent_field() {
+      let high_school_id = $('#id_highschool option:selected').val();
+
+      if(is_set(high_school_id)) {
+        $.ajax({
+          url: `/api/highschool/${high_school_id}`,
+          type: 'GET',
+          data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (obj) {
+            high_school_with_convention = obj.with_convention === true
+
+            if(high_school_with_convention === false) {
+              $("#id_div_allow_high_school_consultation").hide()
+            }
+            else {
+              $("#id_div_allow_high_school_consultation").show()
+            }
+          }
+        })
+      }
+    }
+
     $('#id_level').change(function() {
       let level = $('#id_level option:selected').val();
       let b_type = $('#id_bachelor_type option:selected').val();
@@ -298,12 +333,19 @@
       switch_bachelor_type_options(b_type, level);
     });
 
+    //
+    $('#id_highschool').change(function() {
+      toggle_student_consent_field();
+    });
+
     // Init
     let level = $('#id_level option:selected').val();
     switch_bachelor_data(level);
 
     let b_type = $('#id_bachelor_type option:selected').val();
     switch_bachelor_type_options(b_type, level);
+
+    toggle_student_consent_field();
   });
 </script>
 {% endblock %}

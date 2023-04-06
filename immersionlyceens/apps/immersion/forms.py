@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    BachelorMention, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    BachelorMention, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     ImmersionUser, Period, PostBachelorLevel, StudentLevel,
 )
 
@@ -256,7 +256,10 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         is_hs_manager_or_master: bool = any(valid_groups)
 
         self.fields["student"].widget = forms.HiddenInput()
-        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
+
+        # HighSchool choices : depends on conventions general settings:
+        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label')
+
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
         self.fields['current_diploma'].widget.attrs['size'] = 80
         self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
@@ -269,7 +272,9 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['post_bachelor_level'].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
 
         # CSS
-        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings', 'birth_date']
+        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings', 'birth_date',
+            'allow_high_school_consultation'
+        ]
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
@@ -346,7 +351,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
-                  ]
+                  'allow_high_school_consultation']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

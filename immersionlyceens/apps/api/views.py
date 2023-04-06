@@ -36,6 +36,7 @@ from django.views import View
 from faker import Faker
 from rest_framework import generics, serializers, status
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -3506,6 +3507,17 @@ class HighSchoolList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
+
+
+class HighSchoolDetail(generics.RetrieveAPIView):
+    """
+    High school detail
+    """
+    serializer_class = HighSchoolSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [IsAuthenticated] # not enough ?
+    lookup_fields = ['id']
+    queryset = HighSchool.objects.all()
 
 
 class CourseList(generics.ListCreateAPIView):

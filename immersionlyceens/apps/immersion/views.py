@@ -42,6 +42,8 @@ from immersionlyceens.libs.utils import check_active_year, get_general_setting
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
+from immersionlyceens.apps.core.models import GeneralSettings
+
 from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm,
     LoginForm, NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, StudentRecordQuotaForm,
@@ -769,6 +771,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             } for l in HighSchoolLevel.objects.all()}
         ),
         'immersions_count': immersions_count,
+        'request_student_consent': GeneralSettings.get_setting('REQUEST_FOR_STUDENT_AGREEMENT'),
         'future_periods': Period.objects.filter(registration_start_date__gte=today).order_by('immersion_start_date')
     }
 

@@ -114,6 +114,9 @@ class HighSchoolStudentRecord(models.Model):
     visible_email = models.BooleanField(
         _("Allow students from my school to see my email address"), default=False)
 
+    allow_high_school_consultation = models.BooleanField(
+        _("Allow my high school to view my immersions and attendance certificates"), default=False)
+
     allowed_immersions = models.ManyToManyField(Period, through='HighSchoolStudentRecordQuota')
 
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
