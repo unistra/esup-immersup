@@ -46,8 +46,21 @@ class HighSchoolAgreedManager(models.Manager):
 
         # Convention General Settings
         today = timezone.localdate()
-        hs_w_convention = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
-        hs_wo_convention = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+        #hs_w_convention = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+        #hs_wo_convention = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+
+        try:
+            w_convention = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+            hs_w_convention = w_convention.parameters.get("value", True)
+        except GeneralSettings.DoesNotExist:
+            hs_w_convention = True
+
+        try:
+            wo_convention = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+            hs_wo_convention = wo_convention.parameters.get("value", False)
+        except GeneralSettings.DoesNotExist:
+            hs_wo_convention = False
+
         highschool_filters = {'active': True}
 
         date_filters = {
