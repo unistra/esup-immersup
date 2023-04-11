@@ -380,5 +380,13 @@
             100
         ]
     }
+},
+{
+    "model": "auth.group",
+    "pk": 11,
+    "fields": {
+        "name": "CONS-STR",
+        "permissions": []
+    }
 }
 ]
