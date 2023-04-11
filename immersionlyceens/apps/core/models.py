@@ -368,6 +368,7 @@ class ImmersionUser(AbstractUser):
         'INTER': 'speaker',
         'SRV-JUR': 'legal_department_staff',
         'VIS': 'visitor',
+        'CONS-STR': 'structure_consultant',
     }
 
     def __init__(self, *args, **kwargs):
@@ -461,7 +462,8 @@ class ImmersionUser(AbstractUser):
             return True
         elif self.is_speaker() and self.highschool:
             return True
-        elif self.is_structure_manager() or self.is_establishment_manager() or self.is_legal_department_staff() or self.is_speaker():
+        elif self.is_structure_manager() or self.is_establishment_manager() \
+            or self.is_legal_department_staff() or self.is_speaker() or self.is_structure_consultant():
             if self.establishment is not None and self.establishment.data_source_plugin is None:
                 return True
         return False
@@ -607,8 +609,10 @@ class ImmersionUser(AbstractUser):
         Returns a dictionary with remaining registrations count for each period
         If the current user is not a student, return 0 for each period
         """
-        from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordQuota, StudentRecordQuota, \
-            VisitorRecordQuota
+        from immersionlyceens.apps.immersion.models import (
+            HighSchoolStudentRecordQuota, StudentRecordQuota,
+            VisitorRecordQuota,
+        )
 
         record = None
         remaining = { period.pk: 0 for period in Period.objects.all() }
@@ -648,8 +652,10 @@ class ImmersionUser(AbstractUser):
         return remaining
 
     def set_increment_registrations_(self, period):
-        from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordQuota, StudentRecordQuota, \
-            VisitorRecordQuota
+        from immersionlyceens.apps.immersion.models import (
+            HighSchoolStudentRecordQuota, StudentRecordQuota,
+            VisitorRecordQuota,
+        )
         """
         Updates student remaining registrations based on period
         """

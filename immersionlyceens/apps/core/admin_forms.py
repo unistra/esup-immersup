@@ -14,8 +14,8 @@ from django.core.files.uploadedfile import UploadedFile
 from django.db.models import Count, Q
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import pgettext, gettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _, pgettext
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from immersionlyceens.apps.immersion.models import (
@@ -24,13 +24,13 @@ from immersionlyceens.apps.immersion.models import (
 
 from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Campus,
-    CancelType, CertificateLogo, CertificateSignature, CourseType,
-    CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
-    FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    HighSchoolLevel, Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile,
-    InformationText, MailTemplate, MailTemplateVars, OffOfferEventType,
-    Period, PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
+    AccompanyingDocument, BachelorMention, Building, Campus, CancelType,
+    CertificateLogo, CertificateSignature, CourseType, CustomThemeFile,
+    Establishment, EvaluationFormLink, EvaluationType, FaqEntry,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
+    Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
+    MailTemplate, MailTemplateVars, OffOfferEventType, Period,
+    PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
@@ -290,7 +290,7 @@ class TrainingForm(forms.ModelForm):
                 .order_by('city', 'label')
 
     @staticmethod
-    def clean_highscool_or_structure(cleaned_data: Dict[str, Any]):
+    def clean_highschool_or_structure(cleaned_data: Dict[str, Any]):
         high_school = cleaned_data.get("highschool")
         struct = cleaned_data.get("structures")
 
@@ -320,7 +320,7 @@ class TrainingForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        self.clean_highscool_or_structure(cleaned_data)
+        self.clean_highschool_or_structure(cleaned_data)
         # Check label uniqueness within the same establishment
         excludes = {}
         if self.instance:
@@ -1019,8 +1019,13 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self._errors['structures'] = self.error_class([msg])
                 del cleaned_data["structures"]
 
-            if structures.count() and not groups.filter(name='REF-STR').exists():
-                msg = _("The group 'REF-STR' is mandatory when you add a structure")
+            if groups.filter(name='CONS-STR').exists() and not structures.count():
+                msg = _("This field is mandatory for a user belonging to 'REF-CONS' group")
+                self._errors['structures'] = self.error_class([msg])
+                del cleaned_data["structures"]
+
+            if structures.count() and not groups.filter(name__in=('REF-STR', 'CONS-STR')).exists():
+                msg = _("The group 'REF-STR' or 'CONS-STR' is mandatory when you add a structure")
                 if not self._errors.get("groups"):
                     self._errors["groups"] = forms.utils.ErrorList()
                 self._errors['groups'].append(self.error_class([msg]))
@@ -1032,7 +1037,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                     del cleaned_data["highschool"]
                 elif highschool.postbac_immersion:
                     cleaned_data['is_staff'] = True
-
 
             if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
                 msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
@@ -1627,7 +1631,7 @@ class GeneralSettingsForm(forms.ModelForm):
 
             if any(raise_conditions):
                 raise ValidationError(_(
-                    """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """ 
+                    """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """
                     """cannot be both set to False """)
                 )
 
