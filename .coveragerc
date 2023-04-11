@@ -6,5 +6,6 @@ omit =
     **/settings/**
     manage.py
     immersionlyceens/views.py
+    immersionlyceens/urls.py
     venv/**
     */tests/*
