@@ -99,8 +99,24 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-          { "data": "city" },
-          { "data": "label"},
+          { "data": "city",
+            "render": function (data, type, row) {
+              if(type === 'filter' || type === 'sort') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
+          { "data": "label",
+            "render": function (data, type, row) {
+              if(type === 'filter' || type === 'sort') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
       ],
       "columnDefs": [
         {
@@ -108,9 +124,11 @@
           "targets": "_all"
         },
       ],
+
     });
     $('#search_highschool').keyup( function() {
-         dt.search($(this).val()).draw();
+         let search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+         dt.search(search_value).draw();
      } );
   });
 </script>

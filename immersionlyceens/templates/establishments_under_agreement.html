@@ -98,9 +98,25 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-          { "data": "city" },
-          { "data": "label"},
-          { "data": "email"},
+        { "data": "city",
+          "render": function (data, type, row) {
+            if(type === 'filter' || type === 'sort') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return data
+           }
+        },
+        { "data": "label",
+          "render": function (data, type, row) {
+            if(type === 'filter' || type === 'sort') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return data
+          }
+        },
+        { "data": "email" },
       ],
       "columnDefs": [
         {
@@ -110,8 +126,9 @@
       ],
     });
     $('#search_establishment').keyup( function() {
-         dt.search($(this).val()).draw();
-     } );
+       let search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+       dt.search(search_value).draw();
+     });
   });
 </script>
 {% endblock %}

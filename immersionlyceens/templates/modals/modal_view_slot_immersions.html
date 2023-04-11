@@ -227,8 +227,24 @@ dtr = $('#students_list').DataTable({
      }
     },
     {"data": "profile"},
-    {"data": "school"},
-    {"data": "city"},
+    { "data": "school",
+      "render": function (data, type, row) {
+        if(type === 'sort') {
+          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        return data
+      }
+    },
+    {"data": "city",
+      "render": function (data, type, row) {
+        if(type === 'sort') {
+          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        return data
+      }
+    },
     {"data": "level"},
     {"data": "attendance",
      "render": function(data, type, row) {
