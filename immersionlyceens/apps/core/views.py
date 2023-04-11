@@ -9,7 +9,6 @@ import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
-from hijack import signals
 
 import requests
 from django.conf import settings
@@ -24,6 +23,8 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
+from hijack import signals
+
 from immersionlyceens.decorators import groups_required
 
 from .admin_forms import (
@@ -134,7 +135,7 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE', 'REF-LYC', 'CONS-STR')
 def courses_list(request):
     if request.user.is_high_school_manager() and request.user.highschool \
         and not request.user.highschool.postbac_immersion:
@@ -153,7 +154,7 @@ def courses_list(request):
     elif request.user.is_establishment_manager():
         allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
         allowed_strs = request.user.get_authorized_structures()
-    elif request.user.is_structure_manager():
+    elif request.user.is_structure_manager() or request.user.is_structure_consultant():
         allowed_strs = request.user.get_authorized_structures()
     elif request.user.is_high_school_manager():
         allowed_highschools = HighSchool.objects.filter(pk=request.user.highschool.id)
@@ -176,13 +177,14 @@ def courses_list(request):
     # Check if we can add/update courses
     try:
         active_year = UniversityYear.objects.get(active=True)
-        can_update_courses = active_year.date_is_between(datetime.today().date())
+        can_update_courses = active_year.date_is_between(datetime.today().date()) \
+            and not request.user.is_structure_consultant()
     except UniversityYear.DoesNotExist:
         pass
     except UniversityYear.MultipleObjectsReturned:
         pass
 
-    if not can_update_courses:
+    if not can_update_courses and not request.user.is_structure_consultant():
         messages.warning(
             request,
             _(

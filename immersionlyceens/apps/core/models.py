@@ -585,7 +585,7 @@ class ImmersionUser(AbstractUser):
             return Structure.activated.all()
         if self.is_establishment_manager() and self.establishment:
             return Structure.activated.filter(establishment=self.establishment)
-        if self.is_structure_manager():
+        if self.is_structure_manager() or self.is_structure_consultant:
             return self.structures.all()
 
         return Structure.objects.none()
