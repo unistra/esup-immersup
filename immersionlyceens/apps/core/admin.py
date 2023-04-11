@@ -20,26 +20,26 @@ from rest_framework.authtoken.models import TokenProxy
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm,
-    CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CampusForm,
+    CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
     CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
     EvaluationFormLinkForm, EvaluationTypeForm, FaqEntryAdminForm,
     GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
     HighSchoolLevelForm, HolidayForm, ImmersionUserChangeForm,
     ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
-    MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
-    PostBachelorLevelForm, PublicDocumentForm, PublicTypeForm,
-    StructureForm, StudentLevelForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    MailTemplateForm, OffOfferEventTypeForm, PeriodForm, PostBachelorLevelForm,
+    PublicDocumentForm, PublicTypeForm, StructureForm, StudentLevelForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Campus, CancelType, CertificateLogo, CertificateSignature,
-    Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
-    EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
-    ImmersupFile, InformationText, MailTemplate, OffOfferEventType,
-    Period, PostBachelorLevel, PublicDocument, PublicType, Slot, Structure,
+    AccompanyingDocument, AnnualStatistics, BachelorMention, Building, Campus,
+    CancelType, CertificateLogo, CertificateSignature, Course, CourseType,
+    CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
+    FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
+    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
+    InformationText, MailTemplate, OffOfferEventType, Period,
+    PostBachelorLevel, PublicDocument, PublicType, Slot, Structure,
     StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
     Vacation,
 )
@@ -292,7 +292,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             record = obj.get_student_record()
             if record and record.institution:
                 return record.institution.uai_code
-        elif obj.is_structure_manager():
+        elif obj.is_structure_manager() or obj.is_structure_consultant():
             if obj.highschool:
                 return obj.highschool
             elif obj.establishment:

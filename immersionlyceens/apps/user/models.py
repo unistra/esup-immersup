@@ -93,3 +93,11 @@ class UserGroup(ImmersionUserGroup):
         verbose_name_plural = _('User groups')
         ordering = ['pk', ]
         proxy = True
+
+
+class StructureConsultant(ImmersionUser):
+    class Meta:
+        app_label = 'user'
+        verbose_name = _('Structure consultant')
+        verbose_name_plural = _('Structure consultants')
+        proxy = True
