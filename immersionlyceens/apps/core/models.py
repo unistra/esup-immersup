@@ -521,7 +521,8 @@ class ImmersionUser(AbstractUser):
             redirect_url = "/immersion/login/ref-lyc"
         elif self.is_speaker() and self.highschool is not None:
             redirect_url = "/immersion/login/speaker"
-        elif self.is_speaker() or self.is_establishment_manager() or self.is_structure_manager() or self.is_legal_department_staff():
+        elif self.is_speaker() or self.is_establishment_manager() or self.is_structure_manager() \
+             or self.is_structure_consultant() or self.is_legal_department_staff():
             if self.establishment is not None and self.establishment.data_source_plugin is None:
                 redirect_url = "/immersion/login/speaker"
         return redirect_url
