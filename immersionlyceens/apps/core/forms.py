@@ -128,7 +128,7 @@ class SlotForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
     structure = forms.ModelChoiceField(queryset=Structure.objects.all(), required=False)
     training = forms.ModelChoiceField(queryset=Training.objects.all(), required=False)
-    highschool = forms.ModelChoiceField(queryset=HighSchool.agreed.filter(postbac_immersion=True), required=False)
+    highschool = forms.ModelChoiceField(queryset=HighSchool.objects.all(), required=False)
     repeat = forms.DateField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -159,6 +159,7 @@ class SlotForm(forms.ModelForm):
             self.request.user.is_structure_manager()
         ])
 
+        self.fields["highschool"].queryset = HighSchool.agreed.filter(postbac_immersion=True)
         self.fields["allowed_highschools"].queryset = HighSchool.agreed.order_by('city', 'label')
         self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
         self.fields["allowed_student_levels"].queryset = StudentLevel.objects.filter(active=True).order_by('order')
