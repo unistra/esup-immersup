@@ -263,7 +263,6 @@ class APITestCase(TestCase):
             first_name='student2',
             last_name='STUDENT2',
         )
-
         cls.visitor_user = get_user_model().objects.create_user(
             username='visitor666',
             password='pass',
@@ -271,7 +270,14 @@ class APITestCase(TestCase):
             first_name='visitor666',
             last_name='VISITOR666',
         )
-
+        cls.cons_str = get_user_model().objects.create_user(
+            username='cons_str',
+            password='pass',
+            email='cons_str@no-reply.com',
+            first_name='cons_str',
+            last_name='cons_str',
+            establishment=cls.establishment,
+        )
         cls.api_user = get_user_model().objects.create_user(
             username='api',
             password='pass',
@@ -297,9 +303,12 @@ class APITestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(cls.ref_lyc)
         Group.objects.get(name='VIS').user_set.add(cls.visitor)
         Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab3_user)
+        Group.objects.get(name='CONS-STR').user_set.add(cls.cons_str)
 
         cls.ref_str.structures.add(cls.structure)
         cls.ref_str2.structures.add(cls.structure2)
+        cls.cons_str.structures.add(cls.structure)
+        cls.cons_str.structures.add(cls.structure2)
 
         cls.cancel_type = CancelType.objects.create(label='Hello world')
 
@@ -4377,6 +4386,22 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
         """
+
+        self.client.login(username='cons_str', password='pass')
+        request.user = self.cons_str
+
+        url = f"/api/courses/?training__structures={self.structure.id}"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content), 1)
+        c = content[0]
+        self.assertEqual(c['id'], self.course.id)
+        self.assertEqual(c['published'], self.course.published)
+        self.assertEqual(c['training']['label'], self.course.training.label)
+        self.assertEqual(c['label'], self.course.label)
+        self.assertEqual(c['structure']['code'], self.course.structure.code)
+        self.assertEqual(c['structure']['id'], self.course.structure.id)
 
 
     @patch('immersionlyceens.libs.api.accounts.ldap.ldap3.Connection.__init__', side_effect=mocked_ldap_connection)
