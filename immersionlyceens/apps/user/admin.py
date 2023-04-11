@@ -6,6 +6,7 @@ from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
 from hijack.contrib.admin import HijackUserAdminMixin
+
 from immersionlyceens.apps.core.admin import (
     ActivationFilter, AdminWithRequest, CustomUserAdmin, HighschoolListFilter,
 )
@@ -18,7 +19,7 @@ from immersionlyceens.apps.immersion.models import (
 from .models import (
     EstablishmentManager, HighSchoolManager, HighSchoolStudent,
     LegalDepartmentStaff, MasterEstablishmentManager, Operator, Speaker,
-    StructureManager, Student, UserGroup, Visitor,
+    StructureConsultant, StructureManager, Student, UserGroup, Visitor,
 )
 
 
@@ -395,6 +396,41 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
     get_immersionusers.allow_tags = True
 
 
+class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
+    list_display = [
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'get_establishment',
+        'get_structure',
+        'last_login',
+    ]
+
+    list_filter = (
+        ('establishment', RelatedDropdownFilter),
+        ('structures', RelatedDropdownFilter),
+    )
+
+    def get_queryset(self, request):
+        filter = {}
+        Q_filter = Q()
+
+        if request.user.is_high_school_manager() and request.user.highschool:
+            filter = {'highschool' : 'request.user.highschool'}
+
+        if request.user.is_establishment_manager() and not request.user.is_superuser:
+            es = request.user.establishment
+            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+
+        return ImmersionUser.objects.filter(Q_filter,
+                                            groups__name='CONS-STR',
+                                            **filter).order_by('last_name', 'first_name')
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+
 admin.site.register(HighSchoolStudent, HighschoolStudentAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Visitor, VisitorAdmin)
@@ -406,3 +442,4 @@ admin.site.register(StructureManager, StructureManagerAdmin)
 admin.site.register(HighSchoolManager, HighSchoolManagerAdmin)
 admin.site.register(LegalDepartmentStaff, LegalDepartmentStaffAdmin)
 admin.site.register(UserGroup, ImmersionUserGroupAdmin)
+admin.site.register(StructureConsultant, StructureConsultantAdmin)

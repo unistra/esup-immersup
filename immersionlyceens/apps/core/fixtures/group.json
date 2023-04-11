@@ -67,5 +67,12 @@
     "fields": {
       "name": "REF-TEC"
     }
-  }
+  },
+  {
+    "model": "auth.group",
+    "pk": 11,
+    "fields": {
+      "name": "CONS-STR"
+    }
+  }  
 ]
