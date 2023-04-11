@@ -379,8 +379,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU'])|Q(structures__establishment=es)|Q(establishment=es)
-            )
+                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU', 'CONS-STR'])|Q(structures__establishment=es)|Q(establishment=es)
+            ).distinct()
 
         if request.user.is_high_school_manager():
             return qs.filter(groups__name__in=['INTER'], highschool=request.user.highschool)
