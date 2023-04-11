@@ -73,7 +73,7 @@
             </div>
           </div>
         {% endif %}
-        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator or request.user.is_structure_consultant %}
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="strs">{% trans 'Select a structure' %} :</label>
@@ -101,7 +101,9 @@
             <th class="align-top">{% trans 'Published slots' %} </th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
+            {% if not request.user.is_structure_consultant %}
             <th></th>
+            {% endif %}
           </tr>
         </thead>
         <tfoot>
@@ -114,7 +116,9 @@
             <td></td>
             <td></td>
             <td></td>
+            {% if not request.user.is_structure_consultant %}
             <td></td>
+            {% endif %}
           </tr>
         </tfoot>
         </table>
@@ -398,6 +402,7 @@
             }
           },
           { "data": "alerts_count" },
+          {% if not request.user.is_structure_consultant %}
           { "data": "",
             "render": function (data, type, row) {
               let icons = ""
@@ -445,15 +450,21 @@
               }
               return icons;
             },
-          },
+        },
+        {% endif %}
       ],
-      columnDefs: [{
+      columnDefs: [
+      {
         defaultContent: "",
         targets: "_all"
-      }, {
+      },
+      {% if not request.user.is_structure_consultant %}
+      {
         orderable: false,
         targets: [8]
-      }],
+      }
+      {% endif %}
+      ],
 
       initComplete: function () {
         var api = this.api();

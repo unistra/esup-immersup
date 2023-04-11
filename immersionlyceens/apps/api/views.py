@@ -69,8 +69,9 @@ from .permissions import (
     CustomDjangoModelPermissions, HighSchoolReadOnlyPermissions,
     IsEstablishmentManagerPermissions, IsHighSchoolStudentPermissions,
     IsMasterEstablishmentManagerPermissions, IsRefLycPermissions,
-    IsSpeakerPermissions, IsStructureManagerPermissions, IsStudentPermissions,
-    IsTecPermissions, IsVisitorPermissions, SpeakersReadOnlyPermissions,
+    IsSpeakerPermissions, IsStructureConsultantPermissions,
+    IsStructureManagerPermissions, IsStudentPermissions, IsTecPermissions,
+    IsVisitorPermissions, SpeakersReadOnlyPermissions,
 )
 
 logger = logging.getLogger(__name__)
@@ -3529,7 +3530,8 @@ class CourseList(generics.ListCreateAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [
         IsMasterEstablishmentManagerPermissions | IsEstablishmentManagerPermissions | IsStructureManagerPermissions |
-        IsTecPermissions | IsRefLycPermissions | IsSpeakerPermissions | CustomDjangoModelPermissions
+        IsTecPermissions | IsRefLycPermissions | IsSpeakerPermissions | CustomDjangoModelPermissions |
+        IsStructureConsultantPermissions
     ]
     filterset_fields = [
         'training', 'structure', 'highschool', 'published', 'training__structures', 'training__highschool'
@@ -3648,6 +3650,7 @@ class CourseList(generics.ListCreateAPIView):
                 self.user.is_master_establishment_manager(),
                 self.user.is_establishment_manager(),
                 self.user.is_structure_manager(),
+                self.user.is_structure_consultant(),
                 self.user.is_operator()
             ])
         ]
@@ -3662,7 +3665,7 @@ class CourseList(generics.ListCreateAPIView):
         ).filter(**self.filters).order_by('label')
 
         if not self.user.is_superuser:
-            if self.user.is_structure_manager():
+            if self.user.is_structure_manager() or self.user.is_structure_consultant():
                 return queryset.filter(structure__in=self.user.structures.all()).order_by('label')
             if self.user.is_establishment_manager() and self.user.establishment:
                 return Course.objects.filter(structure__in=self.user.establishment.structures.all()).order_by('label')
@@ -3707,8 +3710,9 @@ class CourseDetail(generics.RetrieveDestroyAPIView):
     """
     serializer_class = CourseSerializer
     permission_classes = [
-        IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|IsStructureManagerPermissions|
-        IsTecPermissions|IsRefLycPermissions|IsSpeakerPermissions|CustomDjangoModelPermissions
+        IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|
+        IsStructureManagerPermissions|IsTecPermissions|IsRefLycPermissions|
+        IsSpeakerPermissions|CustomDjangoModelPermissions|IsStructureConsultantPermissions
     ]
 
     def __init__(self, *args, **kwargs):
@@ -3738,6 +3742,7 @@ class CourseDetail(generics.RetrieveDestroyAPIView):
                 self.user.is_master_establishment_manager(),
                 self.user.is_establishment_manager(),
                 self.user.is_structure_manager(),
+                self.user.is_structure_consultant(),
                 self.user.is_operator()
             ])
         ]
