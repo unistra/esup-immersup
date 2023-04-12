@@ -42,8 +42,8 @@ DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 ########################
 USE_CAS = True
 
-CAS_SERVER_URL = 'https://cas-dev.unistra.fr/cas/'
-CAS_LOGOUT_REQUEST_ALLOWED = ('cas-dev.unistra.fr', 'cas-dev.unistra.fr')
+CAS_SERVER_URL = 'https://cas6-dev.unistra.fr/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas6-dev.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = False
 
 ############################

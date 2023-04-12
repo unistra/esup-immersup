@@ -24,13 +24,13 @@ from immersionlyceens.apps.immersion.models import (
 
 from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Campus, CancelType,
-    CertificateLogo, CertificateSignature, CourseType, CustomThemeFile,
-    Establishment, EvaluationFormLink, EvaluationType, FaqEntry,
+    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
+    Campus, CancelType, CertificateLogo, CertificateSignature, CourseType,
+    CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType, FaqEntry,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
-    PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
+    PostBachelorLevel, Profile, PublicDocument, PublicType, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
@@ -1520,6 +1520,53 @@ class PublicDocumentForm(forms.ModelForm):
         fields = '__all__'
 
 
+class AttestationDocumentForm(forms.ModelForm):
+    """
+    Attestation document form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_document(self):
+        template = self.cleaned_data['template']
+        if template and isinstance(template, UploadedFile):
+            # See settings content types allowed
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+
+            if template.content_type in allowed_content_type:
+                if template.size > int(settings.MAX_UPLOAD_SIZE):
+                    raise forms.ValidationError(
+                        _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
+                            'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                            'current_size': filesizeformat(template.size),
+                        }
+                    )
+            else:
+                raise forms.ValidationError(_('File type is not allowed'))
+        return template
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = AttestationDocument
+        fields = '__all__'
+
+
 class EvaluationTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -1886,3 +1933,17 @@ class FaqEntryAdminForm(forms.ModelForm):
         model = FaqEntry
         fields = '__all__'
         widgets = {'answer': SummernoteWidget,}
+
+
+class ProfileForm(forms.ModelForm):
+    """
+    User Profiles form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Profile
+        fields = '__all__'
