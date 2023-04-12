@@ -938,7 +938,7 @@ class TrainingUpdate(generic.UpdateView):
 
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class CourseSlotList(generic.TemplateView):
     template_name = "core/courses_slots_list.html"
 
@@ -988,7 +988,7 @@ class CourseSlotList(generic.TemplateView):
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
                 context["establishment_id"] = self.request.user.establishment.id
 
-            if self.request.user.is_structure_manager():
+            if self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id

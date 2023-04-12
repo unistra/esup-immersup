@@ -25,9 +25,11 @@
 {% endblock %}
 
 {% block card_title %}
+{% if not request.user.is_structure_consultant %}
 <div>
-  <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
+    <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block trainings_filter %}

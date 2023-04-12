@@ -1,4 +1,5 @@
 function init_datatable() {
+  show_duplicate_btn = typeof show_duplicate_btn !== 'undefined' ? show_duplicate_btn : true;
   dt = $('#slots_list').DataTable({
     ajax: {
       url: '/api/slots',
@@ -194,10 +195,12 @@ function init_datatable() {
         },
         { data: 'id',
           render: function(data, type, row) {
-            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
-              let element =
-            '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
-            '         title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
+            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me ){
+              let element = ""
+              if ( show_duplicate_btn ) {
+                element += '<a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
+                           'title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
+              }
 
               if(row.is_past === false) {
                 element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="' + modify_text + '"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
