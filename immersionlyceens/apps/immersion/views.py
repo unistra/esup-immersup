@@ -23,34 +23,35 @@ from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
 from django.views import View
 from django.views.generic import FormView, TemplateView
+from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
+
 from immersionlyceens.apps.core.models import (
-    CancelType, CertificateLogo, CertificateSignature,
+    CancelType, CertificateLogo, CertificateSignature, GeneralSettings,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
     MailTemplate, PendingUserGroup, Period, PostBachelorLevel, Slot,
-    StudentLevel, UniversityYear, UserCourseAlert
+    StudentLevel, UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
-
-from immersionlyceens.apps.core.models import GeneralSettings
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm,
-    LoginForm, NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, StudentRecordQuotaForm,
-    VisitorForm, VisitorRecordForm, VisitorRecordQuotaForm
+    HighSchoolStudentForm, HighSchoolStudentRecordForm,
+    HighSchoolStudentRecordQuotaForm, LoginForm, NewPassForm, RegistrationForm,
+    StudentForm, StudentRecordForm, StudentRecordQuotaForm, VisitorForm,
+    VisitorRecordForm, VisitorRecordQuotaForm,
 )
-from .models import (HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord,
-    StudentRecordQuota, VisitorRecord, VisitorRecordQuota
+from .models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord,
+    StudentRecordQuota, VisitorRecord, VisitorRecordQuota,
 )
 
 logger = logging.getLogger(__name__)
@@ -1024,7 +1025,7 @@ def immersion_attestation_download(request, immersion_id):
 
 
 @login_required
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'INTER', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'INTER', 'REF-TEC', 'REF-LYC', 'CONS-STR')
 def immersion_attendance_students_list_download(request, slot_id):
     """
     Attendance students list pdf download
