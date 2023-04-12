@@ -998,7 +998,7 @@ def ajax_get_immersions(request, user_id=None):
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
             'cancellable': timezone.now() <= slot.cancellation_limit_date,
-            'cancellation_limit_date': date_format(slot.cancellation_limit_date, "j F - G\hi"),
+            'cancellation_limit_date': slot.cancellation_limit_date,
             'cancellation_type': '',
             'slot_id': slot.id,
             'free_seats': 0,

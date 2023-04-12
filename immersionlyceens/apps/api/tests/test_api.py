@@ -13,8 +13,9 @@ from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _, pgettext
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
@@ -1939,6 +1940,53 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         i = content['data'][0]
+
+        """
+        This doesn't work yet because of cancellation_limit_date comparison
+        
+        self.assertEqual(content['data'][0], {
+            'id': self.immersion.id,
+            'type': 'course',
+            'translated_type': 'Course',
+            'label': 'course 1',
+            'establishment': 'Etablissement 1',
+            'highschool': '',
+            'structure': 'test structure',
+            'meeting_place': 'Le portique <br> room 1',
+            'campus': 'Esplanade',
+            'building': 'Le portique',
+            'room': 'room 1',
+            'establishments': 'Etablissement 1',
+            'course': {
+                'label': 'course 1',
+                'training': 'test training',
+                'type': 'CM',
+                'type_full': ''
+            },
+            'event': {},
+            'visit': {},
+            'datetime': datetime.combine(
+                self.immersion.slot.date,
+                self.immersion.slot.start_time
+            ).strftime("%Y-%m-%dT%H:%M:%S"),
+            'date': date_format(self.immersion.slot.date),
+            'start_time': self.immersion.slot.start_time.strftime("%-Hh%M"),
+            'end_time': self.immersion.slot.end_time.strftime("%-Hh%M"),
+            'speakers': ['HER speak'],
+            'info': 'Hello there!',
+            'attendance': 'Not entered',
+            'attendance_status': 0,
+            'cancellable': True,
+            'cancellation_limit_date': self.immersion.slot.cancellation_limit_date,
+            'cancellation_type': '',
+            'slot_id': self.immersion.slot.id,
+            'free_seats': 18,
+            'can_register': False,
+            'face_to_face': True,
+            'time_type': 'future'
+        })
+
+        """
         self.assertEqual(self.immersion.id, i['id'])
         self.assertEqual(self.immersion.slot.course.training.label, i['course']['training'])
         self.assertEqual(self.immersion.slot.course.label, i['course']['label'])
@@ -1954,6 +2002,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
         self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
         self.assertEqual(self.immersion.slot.id, i['slot_id'])
+
 
         # Get past immersions
         self.slot.date = self.today - timedelta(days=2)

@@ -253,7 +253,18 @@
                 msg += "<br>"
             }
 
-            msg += `{% trans 'Cancellation limit' %} : ${row.cancellation_limit_date}`
+            // put this somewhere else
+            const options = {
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "numeric",
+            };
+
+            let date_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
+            let cancellation_date = new Date(row.cancellation_limit_date).toLocaleString(date_locale, options)
+
+            msg += `{% trans 'Cancellation limit' %} : ${cancellation_date}`
 
             return msg;
           }
