@@ -209,8 +209,9 @@ function init_datatable() {
       },
       { data: 'id',
         render: function(data, type, row) {
+          let element = ''
           if (row['can_update_event_slot']) {
-            let element =
+            element +=
               '    <a href="/core/off_offer_event_slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
               '    title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
@@ -220,7 +221,8 @@ function init_datatable() {
             if(row.n_register === 0 && row.is_past === false) {
               element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="' + delete_text + '"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
             }
-
+          }
+          if (row['can_update_attendances']) {
             if(row.attendances_value === 1) {
               element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+","+row.face_to_face+")\" title=\"" + attendances_text + "\">" +
                          "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
@@ -231,13 +233,9 @@ function init_datatable() {
                          "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
                          "</button>";
             }
-
-            element += "</div>";
-
-            return element;
-          } else {
-            return '';
           }
+          element += "</div>";
+          return element;
         }
       },
     ],

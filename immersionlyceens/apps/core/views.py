@@ -944,7 +944,7 @@ class CourseSlotList(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["can_update"] = True #FixMe
+        context["can_update"] = True # FixMe
         context["slot_mode"] = "course"
         context["contact_form"] = ContactForm()
         context["cancel_types"] = CancelType.objects.filter(active=True)
@@ -1833,13 +1833,13 @@ class VisitSlotUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class OffOfferEventsList(generic.TemplateView):
     template_name = "core/off_offer_events_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["can_update"] = True #FixMe
+        context["can_update"] = True # FixMe
 
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by("city", "label")
         context["establishments"] = Establishment.activated.all()
@@ -1851,12 +1851,12 @@ class OffOfferEventsList(generic.TemplateView):
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["establishments"] = context["establishments"].filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
                 context["establishment_id"] = self.request.user.establishment.id
 
-            if self.request.user.is_structure_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+            if self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
+                context["establishments"] = context["establishments"].filter(pk=self.request.user.establishment.id)
                 context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
 
@@ -2047,7 +2047,7 @@ class OffOfferEventUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class OffOfferEventSlotList(generic.TemplateView):
     template_name = "core/off_offer_events_slots_list.html"
 
@@ -2115,7 +2115,7 @@ class OffOfferEventSlotList(generic.TemplateView):
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
                 context["establishment_id"] = self.request.user.establishment.id
 
-            if self.request.user.is_structure_manager():
+            if self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
@@ -2337,7 +2337,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
                 self.form = self.form_class(request=self.request)
 
         context["slot_mode"] = "event"
-        context["can_update"] = True  # FixMe
+        context["can_update"] = True # FixMe
         return context
 
 

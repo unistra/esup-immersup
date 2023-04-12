@@ -25,9 +25,11 @@
 {% endblock %}
 
 {% block card_title %}
+{% if not request.user.is_structure_consultant %}
 <div>
-  <a href="{% url 'add_off_offer_event_slot' %}" class="btn btn-secondary" title="{% trans 'Add an event slot' %}">{% trans 'New event slot' %}</a>
+    <a href="{% url 'add_off_offer_event_slot' %}" class="btn btn-secondary" title="{% trans 'Add an event slot' %}">{% trans 'New event slot' %}</a>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block table_definition %}

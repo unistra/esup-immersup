@@ -269,6 +269,7 @@ def slots(request):
             user.is_establishment_manager(),
             user.is_high_school_manager() and visits,
             user.is_structure_manager(),
+            user.is_structure_consultant(),
             user.is_operator()
         ])
     ]
@@ -351,7 +352,7 @@ def slots(request):
 
         user_filter_key = "course__training__structures__in"
 
-    if not user.is_superuser and user.is_structure_manager():
+    if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
         user_filter = {
             user_filter_key: user.structures.all()
         }
@@ -3332,7 +3333,7 @@ class StructureList(generics.ListCreateAPIView):
         user = self.request.user
 
         if not user.is_superuser:
-            if user.is_structure_manager():
+            if user.is_structure_manager() or user.is_structure_consultant():
                 return user.structures.order_by('code', 'label')
             if user.is_establishment_manager() and user.establishment:
                 return user.establishment.structures.order_by('code', 'label')
@@ -3990,7 +3991,8 @@ class OffOfferEventList(generics.ListAPIView):
                 user.is_master_establishment_manager(),
                 user.is_establishment_manager(),
                 user.is_structure_manager(),
-                user.is_operator()
+                user.is_operator(),
+                user.is_structure_consultant(),
             ])
         ]
 
@@ -4003,7 +4005,7 @@ class OffOfferEventList(generics.ListAPIView):
                 queryset = OffOfferEvent.objects.filter(
                     Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
                     .distinct()
-            elif user.is_structure_manager():
+            elif user.is_structure_manager() or user.is_structure_consultant():
                 queryset = queryset.filter(structure__in=user.structures.all())
 
         return queryset.order_by('establishment', 'structure', 'highschool', 'label')
