@@ -51,7 +51,7 @@
           </form>
         </div>
         {% if not user_slots %}
-          {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager %}
+          {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
             <div class="row">
               {% if slot_mode != "visit" %}
                 {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
@@ -90,7 +90,7 @@
                   </div>
                 </div>
               {% endif %}
-              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
+              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator or request.user.is_structure_consultant %}
                 <div class="col-md-5" id="id_div_structures">
                   <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
                     <label for="id_structure">{% trans 'Select a structure' %} :</label>
@@ -170,6 +170,9 @@
   let remote_event_text = "{% trans 'Remote event' %}"
   let establishments_txt = "{% trans 'Establishments' %}"
   let levels_txt = "{% trans 'Levels' %}"
+  {% if request.user.is_structure_consultant %}
+  let show_duplicate_btn = false
+  {% endif %}
 
   let deleteDialog = $("#delete-dialog-form").dialog({
     autoOpen: false,

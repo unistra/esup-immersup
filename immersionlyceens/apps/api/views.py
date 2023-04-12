@@ -208,7 +208,7 @@ def ajax_get_documents(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER', 'REF-TEC', 'CONS-STR')
 def slots(request):
     """
     Get slots list according to GET parameters
@@ -402,6 +402,7 @@ def slots(request):
             user.is_operator(),
             user.is_establishment_manager() and establishment == user_establishment,
             slot.published and (
+                    (user.is_structure_consultant() and structure in allowed_structures) or
                     (user.is_structure_manager() and structure in allowed_structures) or
                     ((slot.course or slot.event) and user.is_high_school_manager()
                      and highschool and highschool == user_highschool
@@ -1078,8 +1079,9 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC', 'CONS-STR')
 def ajax_get_slot_registrations(request, slot_id):
+    #TODO: should be optimized to avoid loops on queryset
     slot = None
     response = {'msg': '', 'data': []}
 
@@ -1131,7 +1133,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'CONS-STR')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -1189,6 +1191,7 @@ def ajax_set_attendance(request):
                 user.is_structure_manager() and slot_structure in allowed_structures,
                 user.is_speaker() and user in immersion.slot.speakers.all(),
                 user.is_high_school_manager() and slot_highschool and user.highschool == slot_highschool,
+                user.is_structure_consultant() and slot_structure in allowed_structures,
             ]
 
             if any(valid_conditions):
@@ -3322,7 +3325,7 @@ class StructureList(generics.ListCreateAPIView):
     serializer_class = StructureSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
-    permission_classes = [CustomDjangoModelPermissions|IsStructureManagerPermissions|IsEstablishmentManagerPermissions]
+    permission_classes = [CustomDjangoModelPermissions|IsStructureManagerPermissions|IsStructureConsultantPermissions|IsEstablishmentManagerPermissions]
 
     def get_queryset(self):
         queryset = Structure.activated.order_by('code', 'label')
@@ -3353,7 +3356,7 @@ class TrainingList(generics.ListCreateAPIView):
     serializer_class = TrainingSerializer
     permission_classes = [
         IsRefLycPermissions|IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|
-        IsStructureManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions
+        IsStructureManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions|IsStructureConsultantPermissions
     ]
     filterset_fields = ['structures', 'highschool', ]
 
