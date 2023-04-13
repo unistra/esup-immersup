@@ -13,6 +13,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
 {% trans "Student profiles" %}
@@ -183,8 +184,7 @@
 var t1, t2;
 var dts = {};
 var vdialog, rdialog;
-const dates_options = { dateStyle: 'long', timeStyle: 'medium' };
-const date_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
+var date_options = { dateStyle: 'long', timeStyle: 'medium' };
 
 $(document).ready(function () {
     function getCookie(name) {
@@ -312,7 +312,7 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {
-                    return new Date(data).toLocaleString(date_locale, dates_options)
+                    return formatDate(data, date_options);
                 }
                 },
                 {data: 'id', render: function(data) {
@@ -369,7 +369,7 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {
-                    return new Date(data).toLocaleString(date_locale, dates_options)
+                    return formatDate(data, date_options);
                 }
                 },
                 {data: 'id', render: function(data) {
@@ -421,7 +421,7 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {
-                    return new Date(data).toLocaleString(date_locale, dates_options)
+                    return formatDate(data, date_options);
                 }
                 },
                 {data: 'id', render: function(data) {
