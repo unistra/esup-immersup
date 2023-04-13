@@ -1705,6 +1705,15 @@ def ajax_send_email(request):
 
     immersions = Immersion.objects.filter(slot_id=slot_id, cancellation_type__isnull=True)
 
+    if immersions:
+        # Add slot label, date and time to email's subject
+        s = immersions.first().slot
+        slot_label = s.get_label()
+        date = date_format(s.date, format='l d F Y', use_l10n=True)
+        start_time = s.start_time.isoformat(timespec='minutes')
+        end_time = s.end_time.isoformat(timespec='minutes')
+        subject = f"{slot_label} : {date} ({start_time}-{end_time}) - {subject}"
+
     for immersion in immersions:
         recipient = immersion.student.email
         try:
