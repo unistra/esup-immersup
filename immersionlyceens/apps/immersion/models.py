@@ -125,6 +125,8 @@ class HighSchoolStudentRecord(models.Model):
 
     creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
+    validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
+
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
