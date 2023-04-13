@@ -7,6 +7,7 @@ import unittest
 from datetime import datetime, time, timedelta
 from unittest.mock import patch
 
+from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.template.defaultfilters import date as _date
@@ -605,6 +606,7 @@ class APITestCase(TestCase):
 
         self.api_token = Token.objects.create(user=self.api_user)
         self.api_client_token = Client(HTTP_AUTHORIZATION=f" Token {self.api_token.key}")
+
 
     def test_API_get_documents(self):
         url = "/api/get_available_documents/"
@@ -1943,7 +1945,7 @@ class APITestCase(TestCase):
 
         """
         This doesn't work yet because of cancellation_limit_date comparison
-        
+        """
         self.assertEqual(content['data'][0], {
             'id': self.immersion.id,
             'type': 'course',
@@ -1977,7 +1979,10 @@ class APITestCase(TestCase):
             'attendance': 'Not entered',
             'attendance_status': 0,
             'cancellable': True,
-            'cancellation_limit_date': self.immersion.slot.cancellation_limit_date,
+            'cancellation_limit_date': json.dumps(
+                self.immersion.slot.cancellation_limit_date.astimezone(timezone.utc),
+                cls=DjangoJSONEncoder
+            ).strip('"'),
             'cancellation_type': '',
             'slot_id': self.immersion.slot.id,
             'free_seats': 18,
@@ -1985,24 +1990,6 @@ class APITestCase(TestCase):
             'face_to_face': True,
             'time_type': 'future'
         })
-
-        """
-        self.assertEqual(self.immersion.id, i['id'])
-        self.assertEqual(self.immersion.slot.course.training.label, i['course']['training'])
-        self.assertEqual(self.immersion.slot.course.label, i['course']['label'])
-        self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
-        self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
-        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
-        self.assertEqual(self.immersion.slot.building.label, i['building'])
-        self.assertEqual(self.immersion.slot.room, i['room'])
-        self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
-        self.assertEqual(self.immersion.slot.end_time.strftime("%-Hh%M"), i['end_time'])
-        self.assertEqual(self.immersion.slot.additional_information, i['info'])
-        self.assertEqual(self.immersion.get_attendance_status_display(), i['attendance'])
-        self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
-        self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
-        self.assertEqual(self.immersion.slot.id, i['slot_id'])
-
 
         # Get past immersions
         self.slot.date = self.today - timedelta(days=2)

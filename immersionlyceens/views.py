@@ -279,8 +279,10 @@ def offer_subdomain(request, subdomain_id):
                     slot.can_register = False
                     slot.cancelled = False
                     slot.opening_soon = False
-                    slot.passed_registration_limit_date = slot.registration_limit_date < timezone.now()
-                    slot.passed_cancellation_limit_date = slot.cancellation_limit_date < timezone.now()
+                    slot.passed_registration_limit_date = \
+                        slot.registration_limit_date < timezone.now() if slot.registration_limit_date else False
+                    slot.passed_cancellation_limit_date = \
+                        slot.cancellation_limit_date < timezone.now() if slot.cancellation_limit_date else False
 
                     remaining_period_registrations = 0
 

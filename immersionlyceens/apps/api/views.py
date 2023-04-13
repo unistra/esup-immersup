@@ -997,7 +997,7 @@ def ajax_get_immersions(request, user_id=None):
             'info': slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
-            'cancellable': timezone.now() <= slot.cancellation_limit_date,
+            'cancellable': timezone.now() <= slot.cancellation_limit_date if slot.cancellation_limit_date else True,
             'cancellation_limit_date': slot.cancellation_limit_date,
             'cancellation_type': '',
             'slot_id': slot.id,
@@ -1006,9 +1006,9 @@ def ajax_get_immersions(request, user_id=None):
             'face_to_face': slot.face_to_face,
         }
 
-        if slot.date < today or (slot.date == today and slot.start_time < now):
+        if slot.date < today or (slot.date == today and slot.start_time < now.time()):
             immersion_data['time_type'] = "past"
-        elif slot.date > today or slot.start_time > now:
+        elif slot.date > today or slot.start_time > now.time():
             immersion_data['time_type'] = "future"
 
         if slot.n_places:
