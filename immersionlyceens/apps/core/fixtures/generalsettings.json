@@ -237,5 +237,17 @@
             "description": "Demander l'accord des lycéens pour que leur lycée puisse voir leurs immersions"
         }
     }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 25,
+    "fields": {
+        "setting": "ATTESTATION_DOCUMENT_DEPOSIT_DELAY",
+        "parameters": {
+            "type": "integer",
+            "value": 30,
+            "description": "Délai (en jours) à partir duquel un lycéen ou un visiteur peut redéposer une pièce justificative valide."
+        }
+    }
 }
 ]
