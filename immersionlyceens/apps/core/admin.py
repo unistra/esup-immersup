@@ -1653,9 +1653,14 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     ordering = ('order',)
     sortable_by = ('order',)
 
+    def changelist_view(self, request, extra_context=None):
+        # access the request object when in the list view
+        self.request = request
+        return super().changelist_view(request, extra_context=extra_context)
+
     def file_url(self, obj):
         if obj.template:
-            url = request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
+            url = self.request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
             return format_html(f'<a href="{url}">{url}</a>')
 
         return ""
