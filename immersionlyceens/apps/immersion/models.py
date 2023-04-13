@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext, gettext_lazy as _
+
 from immersionlyceens.apps.core import models as core_models
 from immersionlyceens.apps.core.models import Period, get_file_path
 
@@ -106,8 +107,6 @@ class HighSchoolStudentRecord(models.Model):
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 
-    # ===
-
     visible_immersion_registrations = models.BooleanField(
         _("Allow students from my school to see my registrations"), default=False)
 
@@ -123,6 +122,9 @@ class HighSchoolStudentRecord(models.Model):
 
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
     solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
+
+    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
+    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
@@ -300,6 +302,9 @@ class StudentRecord(models.Model):
 
     allowed_immersions = models.ManyToManyField(Period, through='StudentRecordQuota')
 
+    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
+    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
+
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
 
@@ -345,7 +350,6 @@ class VisitorRecord(models.Model):
     )
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
-
     motivation = models.TextField(_("Motivation"), null=False, blank=False)
     identity_document = models.FileField(
         _("Identity document"),
@@ -380,9 +384,11 @@ class VisitorRecord(models.Model):
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )
-
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
     allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
+
+    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
+    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
 
     def delete(self, using=None, keep_parents=False):
         """Delete the visitor record and attachments"""
