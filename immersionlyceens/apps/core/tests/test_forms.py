@@ -15,8 +15,8 @@ from django.test import Client, RequestFactory, TestCase
 
 from ...immersion.models import HighSchoolStudentRecord
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm,
-    CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
+    AccompanyingDocumentForm, AttestationDocumentForm, BachelorMentionForm,
+    BuildingForm, CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
     EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
     HighSchoolForm, HolidayForm, PeriodForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, TrainingDomainForm, TrainingSubdomainForm,
@@ -27,13 +27,13 @@ from ..forms import (
     OffOfferEventSlotForm, SlotForm, VisitForm, VisitSlotForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Campus,
-    CancelType, Course, CourseType, Establishment, EvaluationFormLink,
+    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
+    Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
     Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
-    PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, Visit,
-    HigherEducationInstitution
+    Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Visit, HigherEducationInstitution
 )
 
 request_factory = RequestFactory()
@@ -935,3 +935,50 @@ class FormTestCase(TestCase):
         slot = Slot.objects.get(event=event)
         self.assertEqual(slot.speakers.count(), 1)
         self.assertEqual(slot.speakers.first(), self.speaker1)
+
+
+    def test_attestation_document_form(self):
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        document = AttestationDocument.objects.create(label="Test", active=True)
+        lyc_w_conv_profile = Profile.objects.get(code="LYC_W_CONV")
+        lyc_wo_conv_profile = Profile.objects.get(code="LYC_WO_CONV")
+
+        data = {
+            "id": document.id,
+            "order": document.order,
+            "label": "New label",
+            "active": True,
+            "profiles": [lyc_w_conv_profile.pk, ]
+        }
+
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(AttestationDocument.objects.filter(label='New label').exists())
+        self.assertFalse(AttestationDocument.objects.filter(label='Test').exists())
+
+        document.refresh_from_db()
+
+        # Should fail because ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT is disabled
+        data["profiles"] = [lyc_w_conv_profile.pk, lyc_wo_conv_profile.pk]
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        form.is_valid()
+
+        self.assertIn(
+            "Select a valid choice. %s is not one of the available choices." % lyc_wo_conv_profile.pk,
+            form.errors["profiles"]
+        )
+
+        self.assertFalse(form.is_valid())
+
+        # No profile
+        data["profiles"] = []
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        form.is_valid()
+
+        self.assertIn("At least one profile is required", form.errors["__all__"])
+
+        self.assertFalse(form.is_valid())

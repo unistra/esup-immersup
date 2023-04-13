@@ -1529,6 +1529,18 @@ class AttestationDocumentForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        # amend default queryset
+        default_queryset = self.fields["profiles"].queryset
+        excludes = { 'code__in': [] }
+
+        if not GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT"):
+            excludes["code__in"].append("LYC_W_CONV")
+
+        if not GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT"):
+            excludes["code__in"].append("LYC_WO_CONV")
+
+        self.fields["profiles"].queryset = default_queryset.exclude(**excludes)
+
     def clean_document(self):
         template = self.cleaned_data['template']
         if template and isinstance(template, UploadedFile):
@@ -1559,6 +1571,9 @@ class AttestationDocumentForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        if not cleaned_data.get("profiles", None):
+            raise forms.ValidationError(_("At least one profile is required"))
 
         return cleaned_data
 

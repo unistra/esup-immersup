@@ -2181,7 +2181,7 @@ class AttestationDocument(models.Model):
     """
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-    order = models.PositiveSmallIntegerField(_("Order"), blank=False, null=True, unique=True,
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True, unique=True,
         default=partial(get_object_default_order, 'AttestationDocument')
     )
     for_minors = models.BooleanField(_("For minors"), default=True)
@@ -2206,6 +2206,9 @@ class AttestationDocument(models.Model):
         blank=True,
         limit_choices_to={'code__in': ["LYC_W_CONV", "LYC_WO_CONV", "VIS"]}
     )
+
+    objects = models.Manager() # default manager
+    activated = ActiveManager() # manager for active elements only
 
     def __str__(self):
         """str"""

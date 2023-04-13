@@ -4,7 +4,6 @@ from django.db import migrations, models
 import functools
 import immersionlyceens.apps.core.models
 
-
 class Migration(migrations.Migration):
 
     dependencies = [

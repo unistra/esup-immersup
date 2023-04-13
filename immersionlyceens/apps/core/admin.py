@@ -1647,28 +1647,29 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     form = AttestationDocumentForm
     search_fields = ('label',)
     list_filter = ('active', 'mandatory', 'for_minors', 'requires_validity_date')
+    list_display = ('label', 'order', 'file_url', 'active', 'mandatory', 'for_minors', 'requires_validity_date')
+    list_display_links = ('label', )
     filter_horizontal = ('profiles',)
     ordering = ('order',)
     sortable_by = ('order',)
 
+    def file_url(self, obj):
+        if obj.template:
+            url = request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
+            return format_html(f'<a href="{url}">{url}</a>')
 
-    def get_list_display(self, request):
-        def file_url(obj):
-            if obj.template:
-                url = request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
-                return format_html(f'<a href="{url}">{url}</a>')
+        return ""
 
-            return ""
+    file_url.short_description = _('Address')
 
-        file_url.short_description = _('Address')
+    def has_add_permission(self, request):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
 
-        return ('id', 'order', 'label', file_url, 'active', 'mandatory', 'for_minors', 'requires_validity_date')
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_master_establishment_manager() or request.user.is_operator():
-            return True
-
-        return False
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
