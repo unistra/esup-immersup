@@ -650,6 +650,7 @@ def ajax_get_student_records(request):
                 'birth_date': _date(record.birth_date, "j/m/Y"),
                 'level': record.level.label if record.level else None,
                 'class_name': record.class_name,
+                'creation_date': record.creation_date,
             } for record in records.order_by('student__last_name', 'student__first_name')]
         else:
             response['msg'] = gettext("Error: No high school selected")

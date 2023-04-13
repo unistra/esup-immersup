@@ -86,11 +86,13 @@
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="level_filter_to_validate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
+                    <th id="creation_date_filter_to_validate">{% trans "Record creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -119,11 +121,13 @@
                     <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
                     <th id="level_filter_validated">{% trans "Level" %}</th>
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
+                    <th id="creation_date_filter_validated">{% trans "Record creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -152,11 +156,13 @@
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
+                    <th id="creation_date_filter_rejected">{% trans "Record creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -177,6 +183,8 @@
 var t1, t2;
 var dts = {};
 var vdialog, rdialog;
+const dates_options = { dateStyle: 'long', timeStyle: 'medium' };
+const date_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
 
 $(document).ready(function () {
     function getCookie(name) {
@@ -303,6 +311,10 @@ $(document).ready(function () {
                 {data: 'birth_date',},
                 {data: 'level',},
                 {data: 'class_name',},
+                {data: 'creation_date', render: function(data) {
+                    return new Date(data).toLocaleString(date_locale, dates_options)
+                }
+                },
                 {data: 'id', render: function(data) {
                         let element = '';
                         element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
@@ -356,6 +368,10 @@ $(document).ready(function () {
                 {data: 'birth_date',},
                 {data: 'level',},
                 {data: 'class_name',},
+                {data: 'creation_date', render: function(data) {
+                    return new Date(data).toLocaleString(date_locale, dates_options)
+                }
+                },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
                             'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
@@ -404,6 +420,10 @@ $(document).ready(function () {
                 {data: 'birth_date',},
                 {data: 'level',},
                 {data: 'class_name',},
+                {data: 'creation_date', render: function(data) {
+                    return new Date(data).toLocaleString(date_locale, dates_options)
+                }
+                },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
                             'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
@@ -459,6 +479,13 @@ $(document).ready(function () {
                 column_number: 4,
                 filter_default_label: '',
                 filter_container_id: 'class_name_filter_' + name,
+                style_class: 'form-control form-control-sm',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 5,
+                filter_default_label: '',
+                filter_container_id: 'creation_date_filter_' + name,
                 style_class: 'form-control form-control-sm',
                 filter_reset_button_text: false,
             },
