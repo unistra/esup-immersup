@@ -87,7 +87,7 @@
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="level_filter_to_validate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
-                    <th id="creation_date_filter_to_validate">{% trans "Creation date" %}</th>
+                    <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -122,7 +122,7 @@
                     <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
                     <th id="level_filter_validated">{% trans "Level" %}</th>
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
-                    <th id="validation_date_filter_validated">{% trans "Validation date" %}</th>
+                    <th id="date_filter_validated">{% trans "Validation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -157,7 +157,7 @@
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
-                    <th id="creation_date_filter_rejected">{% trans "Creation date" %}</th>
+                    <th id="date_filter_rejected">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -485,7 +485,7 @@ $(document).ready(function () {
             {
                 column_number: 5,
                 filter_default_label: '',
-                filter_container_id: 'creation_date_filter_' + name,
+                filter_container_id: 'date_filter_' + name,
                 style_class: 'form-control form-control-sm',
                 filter_reset_button_text: false,
             },

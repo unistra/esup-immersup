@@ -3101,6 +3101,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
             'establishment': establishment.label if establishment else '',
             'structure': structure.label if structure else '',
+            'registration_date': immersion.registration_date,
         }
 
         response['data'].append(immersion_data.copy())
