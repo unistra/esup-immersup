@@ -574,12 +574,6 @@ class LinkView(View):
 
 
 @login_required
-def home(request):
-    context = {}
-    return render(request, 'immersion/home.html', context)
-
-
-@login_required
 @groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC', 'REF-TEC', 'REF-LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
@@ -726,7 +720,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         if recordform.is_valid() and studentform.is_valid():
             return HttpResponseRedirect(redirect_url)
     else:
-        request.session['back'] = request.headers.get('Referer')
+        # TODO: maybe not useful could be removed
+        #request.session['back'] = request.headers.get('Referer')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
 
@@ -762,7 +757,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'record_form': recordform,
         'student': student,
         'record': record,
-        'back_url': request.session.get('back'),
+        # TODO: maybe not useful could be removed
+        #'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
         'high_school_levels': json.dumps(
