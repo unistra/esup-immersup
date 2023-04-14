@@ -1,5 +1,7 @@
 function init_datatable() {
-  show_duplicate_btn = typeof show_duplicate_btn !== 'undefined' ? show_duplicate_btn : true;
+  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
+  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
+  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
   dt = $('#slots_list').DataTable({
     ajax: {
       url: '/api/slots',
@@ -195,17 +197,17 @@ function init_datatable() {
         },
         { data: 'id',
           render: function(data, type, row) {
+            let element = ""
             if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me ){
-              let element = ""
               if ( show_duplicate_btn ) {
                 element += '<a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
                            'title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
               }
 
-              if(row.is_past === false) {
+              if(row.is_past === false && show_modify_btn) {
                 element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="' + modify_text + '"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
               }
-              if(row.n_register === 0 && row.is_past === false) {
+              if(row.n_register === 0 && row.is_past === false && show_delete_btn) {
                 element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="' + delete_text + '"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
               }
 
@@ -222,10 +224,8 @@ function init_datatable() {
 
               element += "</div>";
 
-              return element;
-            } else {
-              return '';
             }
+            return element;
           }
         },
     ],

@@ -135,6 +135,7 @@
   var slot_places = 0;
   let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   let is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
+  let is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
 
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
@@ -171,7 +172,7 @@
   let establishments_txt = "{% trans 'Establishments' %}"
   let levels_txt = "{% trans 'Levels' %}"
   {% if request.user.is_structure_consultant %}
-  let show_duplicate_btn = false
+  let show_modify_btn = show_delete_btn = show_duplicate_btn = false
   {% endif %}
 
   let deleteDialog = $("#delete-dialog-form").dialog({
