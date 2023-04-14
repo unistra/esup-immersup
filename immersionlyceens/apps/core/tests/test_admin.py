@@ -7,36 +7,35 @@ from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.messages import get_messages
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
 from ..admin import (
-    CampusAdmin, CustomAdminSite, CustomUserAdmin,
-    EstablishmentAdmin, StructureAdmin, TrainingAdmin, PeriodAdmin
+    CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin,
+    PeriodAdmin, StructureAdmin, TrainingAdmin,
 )
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm,
-    CampusForm, CancelTypeForm, CourseTypeForm, CustomThemeFileForm,
-    EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
-    ImmersupFileForm, InformationTextForm, MailTemplateForm,
-    PeriodForm, PublicDocumentForm, PublicTypeForm, StructureForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CampusForm,
+    CancelTypeForm, CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
+    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
+    GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
+    MailTemplateForm, PeriodForm, PublicDocumentForm, PublicTypeForm,
+    StructureForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
     UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Campus,
-    CancelType, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
+    AccompanyingDocument, BachelorMention, Building, Campus, CancelType,
+    CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
-    ImmersupFile, InformationText, MailTemplate, MailTemplateVars,
-    Period, PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation
+    ImmersupFile, InformationText, MailTemplate, MailTemplateVars, Period,
+    PublicDocument, PublicType, Structure, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -2133,7 +2132,7 @@ class AdminFormsTestCase(TestCase):
 
         form = GeneralSettingsForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
+        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string', 'integer']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
 
         self.assertIn(error, form.errors['parameters'][0])
 
