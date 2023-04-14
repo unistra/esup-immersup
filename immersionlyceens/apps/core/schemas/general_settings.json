@@ -12,7 +12,8 @@
     "value": {
       "type": [
         "boolean",
-        "string"
+        "string",
+        "integer"
       ],
       "minLength": 1
     }
