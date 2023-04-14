@@ -1990,7 +1990,10 @@ class APITestCase(TestCase):
             'can_register': False,
             'face_to_face': True,
             'time_type': 'future',
-            'registration_date': self.immersion.registration_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            'registration_date': json.dumps(
+                self.immersion.registration_date.astimezone(timezone.utc),
+                cls=DjangoJSONEncoder
+            ).strip('"'),
             'cancellation_date': "",
         })
 
