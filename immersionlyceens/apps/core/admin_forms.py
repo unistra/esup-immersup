@@ -1254,24 +1254,26 @@ class HighSchoolForm(forms.ModelForm):
             raise forms.ValidationError(_("You don't have the required privileges"))
 
         # General settings dependant field
-        try:
-            w_agreement = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
-            wo_agreement = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
-        except Exception as e:
-            raise forms.ValidationError() from e
+        if "with_convention" in cleaned_data:
+            #TODO : rewrite clean() in MyHighSchoolForm
+            try:
+                w_agreement = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+                wo_agreement = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+            except Exception as e:
+                raise forms.ValidationError() from e
 
-        if w_agreement ^ wo_agreement:
-            cleaned_data["with_convention"] = w_agreement
+            if w_agreement ^ wo_agreement:
+                cleaned_data["with_convention"] = w_agreement
 
-        if not cleaned_data["with_convention"]:
-            cleaned_data["convention_start_date"] = None
-            cleaned_data["convention_end_date"] = None
-        elif not cleaned_data.get("convention_start_date") or not cleaned_data.get("convention_end_date"):
-            if 'convention_start_date' in self.fields and 'convention_end_date' in self.fields:
-                raise forms.ValidationError({
-                    'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
-                    'convention_end_date': _("Both convention dates are required if 'convention' is checked")
-               })
+            if not cleaned_data["with_convention"]:
+                cleaned_data["convention_start_date"] = None
+                cleaned_data["convention_end_date"] = None
+            elif not cleaned_data.get("convention_start_date") or not cleaned_data.get("convention_end_date"):
+                if 'convention_start_date' in self.fields and 'convention_end_date' in self.fields:
+                    raise forms.ValidationError({
+                        'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
+                        'convention_end_date': _("Both convention dates are required if 'convention' is checked")
+                   })
 
         return cleaned_data
 
