@@ -71,7 +71,9 @@ if ($(this).val() != 'FR') {
 $(document).on('change', 'input#id_with_convention', function() {
   // Disable convention date fields and datepickers when 'with_convention' is unchecked
   $('#id_convention_start_date').prop("disabled", !$(this).is(':checked'))
+  $('#id_convention_start_date').prop("required", $(this).is(':checked'))
   $('#id_convention_end_date').prop("disabled", !$(this).is(':checked'))
+  $('#id_convention_end_date').prop("required", $(this).is(':checked'))
 
    // Hide date fields
   $('.field-convention_start_date').toggle($(this).is(':checked') === true)
