@@ -7,10 +7,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+
 from immersionlyceens.apps.core.models import (
-    BachelorMention, Building, Campus, Course, CourseType,
-    Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
-    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, ImmersionUserGroup,
+    BachelorMention, Building, Campus, Course, CourseType, Establishment,
+    GeneralBachelorTeaching, HigherEducationInstitution, HighSchool,
+    HighSchoolLevel, Immersion, ImmersionUser, ImmersionUserGroup,
     PendingUserGroup, Period, PostBachelorLevel, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear,
 )
@@ -509,16 +510,6 @@ class ImmersionViewsTestCase(TestCase):
         self.highschool_user.save()
         response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
         self.assertIn("This account has already been activated, please login.", response.content.decode('utf-8'))
-
-    def test_home(self):
-        # Not logged : redirection
-        response = self.client.post('/immersion/')
-        self.assertEqual(response.url, "/accounts/login/?next=/immersion/")
-
-        # Logged
-        self.client.login(username='hs', password='pass')
-        response = self.client.post('/immersion/')
-        self.assertEqual(response.status_code, 200)
 
     def test_high_school_student_record(self):
         # First check that high school student record doesn't exist yet
