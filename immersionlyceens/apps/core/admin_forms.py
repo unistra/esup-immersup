@@ -1266,12 +1266,12 @@ class HighSchoolForm(forms.ModelForm):
         if not cleaned_data["with_convention"]:
             cleaned_data["convention_start_date"] = None
             cleaned_data["convention_end_date"] = None
-        elif cleaned_data.get('convention_start_date') or cleaned_data.get("convention_end_date"):
-            if not cleaned_data["convention_start_date"] or not cleaned_data["convention_end_date"]:
+        elif not cleaned_data.get("convention_start_date") or not cleaned_data.get("convention_end_date"):
+            if 'convention_start_date' in self.fields and 'convention_end_date' in self.fields:
                 raise forms.ValidationError({
                     'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
                     'convention_end_date': _("Both convention dates are required if 'convention' is checked")
-                })
+               })
 
         return cleaned_data
 
