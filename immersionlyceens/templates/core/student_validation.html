@@ -87,7 +87,7 @@
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="level_filter_to_validate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
-                    <th id="creation_date_filter_to_validate">{% trans "Record creation date" %}</th>
+                    <th id="creation_date_filter_to_validate">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -122,7 +122,7 @@
                     <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
                     <th id="level_filter_validated">{% trans "Level" %}</th>
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
-                    <th id="creation_date_filter_validated">{% trans "Record creation date" %}</th>
+                    <th id="validation_date_filter_validated">{% trans "Validation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -157,7 +157,7 @@
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
-                    <th id="creation_date_filter_rejected">{% trans "Record creation date" %}</th>
+                    <th id="creation_date_filter_rejected">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -289,7 +289,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "POST",
-                url: "/api/get_student_records/",
+                url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'TO_VALIDATE';
                     d.high_school_id = $('#id_high_school').val();
@@ -346,7 +346,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "POST",
-                url: "/api/get_student_records/",
+                url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'VALIDATED';
                     d.high_school_id = $('#id_high_school').val();
@@ -368,7 +368,7 @@ $(document).ready(function () {
                 {data: 'birth_date',},
                 {data: 'level',},
                 {data: 'class_name',},
-                {data: 'creation_date', render: function(data) {
+                {data: 'validation_date', render: function(data) {
                     return formatDate(data, date_options);
                 }
                 },
@@ -398,7 +398,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "POST",
-                url: "/api/get_student_records/",
+                url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'REJECTED';
                     d.high_school_id = $('#id_high_school').val();

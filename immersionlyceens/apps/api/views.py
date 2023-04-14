@@ -651,6 +651,7 @@ def ajax_get_student_records(request):
                 'level': record.level.label if record.level else None,
                 'class_name': record.class_name,
                 'creation_date': record.creation_date,
+                'validation_date': record.validation_date,
             } for record in records.order_by('student__last_name', 'student__first_name')]
         else:
             response['msg'] = gettext("Error: No high school selected")
@@ -691,6 +692,7 @@ def ajax_validate_reject_student(request, validate):
                 # 2 => VALIDATED
                 # 3 => REJECTED
                 record.validation = 2 if validate else 3
+                record.validation_date = datetime.datetime.now() if validate else None
                 record.save()
                 if validate:
                     record.student.send_message(request, 'CPT_MIN_VALIDE')
