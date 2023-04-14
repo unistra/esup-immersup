@@ -693,6 +693,7 @@ def ajax_validate_reject_student(request, validate):
                 # 3 => REJECTED
                 record.validation = 2 if validate else 3
                 record.validation_date = datetime.datetime.now() if validate else None
+                record.rejected_date = None if validate else datetime.datetime.now()
                 record.save()
                 if validate:
                     record.student.send_message(request, 'CPT_MIN_VALIDE')
@@ -1111,6 +1112,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 'city': '',
                 'attendance': immersion.get_attendance_status_display(),
                 'attendance_status': immersion.attendance_status,
+                'registration_date': immersion.registration_date,
             }
 
             if immersion.student.is_high_school_student():

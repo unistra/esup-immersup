@@ -7,16 +7,16 @@ import unittest
 from datetime import datetime, time, timedelta
 from unittest.mock import patch
 
-from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.core.serializers.json import DjangoJSONEncoder
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _, pgettext
-from rest_framework import status, serializers
+from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
@@ -1946,6 +1946,7 @@ class APITestCase(TestCase):
         """
         This doesn't work yet because of cancellation_limit_date comparison
         """
+        self.maxDiff = None
         self.assertEqual(content['data'][0], {
             'id': self.immersion.id,
             'type': 'course',
@@ -1988,7 +1989,9 @@ class APITestCase(TestCase):
             'free_seats': 18,
             'can_register': False,
             'face_to_face': True,
-            'time_type': 'future'
+            'time_type': 'future',
+            'registration_date': self.immersion.registration_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            'cancellation_date': "",
         })
 
         # Get past immersions
