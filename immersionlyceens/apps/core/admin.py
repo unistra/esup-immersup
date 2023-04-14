@@ -1725,6 +1725,8 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
             return _('boolean')
         elif obj.parameters['type'] == 'text':
             return _('text')
+        elif obj.parameters['type'] == 'integer':
+            return _('integer')
         else:
             #TODO: hope to have localized type in i18n files ?
             return _(obj.parameters['type'])
