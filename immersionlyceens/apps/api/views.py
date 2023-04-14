@@ -835,6 +835,7 @@ def ajax_cancel_registration(request):
 
             cancellation_reason = CancelType.objects.get(pk=reason_id)
             immersion.cancellation_type = cancellation_reason
+            immersion.cancellation_date = datetime.datetime.now()
             immersion.save()
             immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
@@ -1007,6 +1008,8 @@ def ajax_get_immersions(request, user_id=None):
             'free_seats': 0,
             'can_register': False,
             'face_to_face': slot.face_to_face,
+            'registration_date': immersion.registration_date,
+            'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
         }
 
         if slot.date < today or (slot.date == today and slot.start_time < now.time()):
@@ -1420,7 +1423,7 @@ def ajax_slot_registration(request):
             # Cancelled immersion exists : re-register
             if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
                 student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
-                    cancellation_type=None, attendance_status=0
+                    cancellation_type=None, attendance_status=0, cancellation_date=None
                 )
             else:
                 # New registration

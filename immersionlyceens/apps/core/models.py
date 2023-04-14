@@ -2543,7 +2543,7 @@ class Immersion(models.Model):
     survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
 
     registration_date = models.DateTimeField(_("Registration date"), auto_now_add=True)
-    cancellation_date = models.DateTimeField(_("Registration date"), null=True, blank=True)
+    cancellation_date = models.DateTimeField(_("Cancellation date"), null=True, blank=True)
 
     def get_attendance_status(self) -> str:
         """
