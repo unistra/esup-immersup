@@ -101,9 +101,7 @@
             <th class="align-top">{% trans 'Published slots' %} </th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
-            {% if not request.user.is_structure_consultant %}
             <th></th>
-            {% endif %}
           </tr>
         </thead>
         <tfoot>
@@ -116,9 +114,7 @@
             <td></td>
             <td></td>
             <td></td>
-            {% if not request.user.is_structure_consultant %}
             <td></td>
-            {% endif %}
           </tr>
         </tfoot>
         </table>
@@ -137,6 +133,7 @@
   var delete_text = "{% trans 'Delete' %}";
   var conformDialog;
   var tableConfig;
+  var is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
@@ -170,37 +167,6 @@
       }
     });
   }
-
-  $('#establishments').change( function() {
-    current_establishment_id = $('#establishments option:selected').val();
-    current_structure_id = ""
-
-    dt.clear().draw()
-
-    if (current_establishment_id !== "") {
-        set_structures(current_establishment_id);
-    }
-    else {
-        empty_structures()
-    }
-  });
-
-  // Reload the table when structure changes in selectbox
-  $('#strs').change( function() {
-    current_structure_id = $('#strs option:selected').val()
-    load_courses("structure", current_structure_id)
-  });
-
-  $('#highschools').change( function() {
-    current_highschool_id = $('#highschools option:selected').val();
-
-    if (current_highschool_id !== "") {
-        empty_structures()
-        $('#establishments').val("");
-    }
-
-    load_courses("highschool", current_highschool_id)
-  });
 
   function empty_structures() {
       let options = '<option value="">---------</option>'
@@ -243,57 +209,32 @@
     dt.clear().draw()
 
     let url;
-
-    if(key === 'highschool') {
-      if(is_set(value)) {
-        url = `/api/courses/?training__highschool=${value}`
-      }
-      current_highschool_id = value
+    if (key === 'highschool') {
+        if(is_set(value)) {
+            url = `/api/courses/?training__highschool=${value}`
+        }
+        current_highschool_id = value
     }
-    else if(key === 'structure') {
-      if(is_set(value)) {
-        url = `/api/courses/?training__structures=${value}`
-      }
-      current_structure_id = value
+    else if (key === 'structure') {
+        if(is_set(value)) {
+            url = `/api/courses/?training__structures=${value}`
+        }
+        current_structure_id = value
     }
 
     if(is_set(url)) {
-      tableConfig.ajax = {
-        "url": url,
-        "dataSrc": function (json) {
-          if (json !== undefined) {
-            return json
-          }
+      $.ajax({
+        url: url,
+        success: function (data) {
+          dt.rows.add(data).draw();
         },
-      };
-
-      dt.destroy();
-      dt = $('#courses_table').DataTable( tableConfig );
+      });
     }
   }
 
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
-
-    if(current_highschool_id === 'None' || current_highschool_id === "") {
-      current_highschool_id = $("#highschools").val()
-    }
-
-    if(current_establishment_id === 'None' || current_establishment_id === "") {
-      current_establishment_id = $("#establishments").val()
-    }
-    else {
-        $("#establishments").val(current_establishment_id)
-    }
-
-    if(current_structure_id === 'None' || current_structure_id === "") {
-      current_structure_id = $("#strs").val()
-    }
-
-    if(current_establishment_id) {
-        set_structures(current_establishment_id)
-    }
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
@@ -402,7 +343,6 @@
             }
           },
           { "data": "alerts_count" },
-          {% if not request.user.is_structure_consultant %}
           { "data": "",
             "render": function (data, type, row) {
               let icons = ""
@@ -427,43 +367,44 @@
                 }
 
                 // direct link to new slot form
-                icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
-                         "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                         "</a>\n";
+                if(!is_structure_consultant) {
+
+                    icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
+                        "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                        "</a>\n";
 
 
-                icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                         "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                         "</a>\n";
+                    icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                        "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                        "</a>\n";
 
-                if(updatable === "True") {
-                  icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                      "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
-                      "</a>\n";
+                    if(updatable === "True") {
+                        icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                            "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
+                            "</a>\n";
+                    }
+
+                    if(row.can_delete) {
+                      icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
+                               "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                               "</button>";
+                    }
                 }
 
-                if(row.can_delete) {
-                  icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
-                           "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                           "</button>";
-                }
               }
               return icons;
             },
         },
-        {% endif %}
       ],
       columnDefs: [
       {
         defaultContent: "",
         targets: "_all"
       },
-      {% if not request.user.is_structure_consultant %}
       {
         orderable: false,
         targets: [8]
       }
-      {% endif %}
       ],
 
       initComplete: function () {
@@ -547,6 +488,61 @@
         filter_reset_button_text: false,
       },
     ]);
+
+    if(current_highschool_id === 'None' || current_highschool_id === "") {
+        current_highschool_id = $("#highschools").val()
+      }
+
+    if(current_establishment_id === 'None' || current_establishment_id === "") {
+        current_establishment_id = $("#establishments").val()
+    }
+    else {
+        $("#establishments").val(current_establishment_id)
+    }
+
+    if(current_structure_id === 'None' || current_structure_id === "") {
+        current_structure_id = $("#strs").val()
+    }
+
+    if(current_establishment_id) {
+        set_structures(current_establishment_id)
+    }
+
+    $('#establishments').change( function() {
+        current_establishment_id = $('#establishments option:selected').val();
+        current_structure_id = ""
+
+        dt.clear().draw()
+
+        if (current_establishment_id !== "") {
+            set_structures(current_establishment_id);
+        }
+        else {
+            empty_structures()
+        }
+      });
+
+    // Reload the table when structure changes in selectbox
+    $('#strs').change( function() {
+        current_structure_id = $('#strs option:selected').val()
+        load_courses("structure", current_structure_id)
+    });
+
+    $('#highschools').change( function() {
+        current_highschool_id = $('#highschools option:selected').val();
+
+        if (current_highschool_id !== "") {
+            empty_structures()
+            $('#establishments').val("");
+        }
+
+        load_courses("highschool", current_highschool_id)
+    });
+
+    if(!is_set(current_establishment_id) && !is_set(current_highschool_id) && is_set(current_structure_id)) {
+        $('#strs').trigger('change');
+    }
+
   });
 </script>
 {% endblock %}
