@@ -13,6 +13,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
 {% trans "Visitor profiles" %}
@@ -62,11 +63,13 @@
                     <th id="first_name_filter_to_validate">{% trans "First name" %}</th>
                     <th id="last_name_filter_to_validate">{% trans "Last name" %}</th>
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
+                    <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -91,11 +94,13 @@
                     <th id="first_name_filter_validated">{% trans "First name" %}</th>
                     <th id="last_name_filter_validated">{% trans "Last name" %}</th>
                     <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
+                    <th id="date_filter_validated">{% trans "Validation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -120,11 +125,13 @@
                     <th id="first_name_filter_rejected">{% trans "First name" %}</th>
                     <th id="last_name_filter_rejected">{% trans "Last name" %}</th>
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
+                    <th id="date_filter_rejected">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -272,6 +279,10 @@ $(document).ready(function () {
                         return element;
                     }
                 },
+                {data: 'creation_date', render: function(data) {
+                        return formatDate(data, date_options);
+                    }
+                },
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -310,6 +321,10 @@ $(document).ready(function () {
                 }},
                 {data: 'last_name',},
                 {data: 'birth_date',},
+                {data: 'validation_date', render: function(data) {
+                        return formatDate(data, date_options);
+                    }
+                },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
                             'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
@@ -352,6 +367,10 @@ $(document).ready(function () {
                 }},
                 {data: 'last_name',},
                 {data: 'birth_date',},
+                {data: 'creation_date', render: function(data) {
+                        return formatDate(data, date_options);
+                    }
+                },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
                             'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
@@ -394,6 +413,13 @@ $(document).ready(function () {
                 filter_type: 'text',
                 filter_container_id: 'birthdate_filter_' + name,
                 style_class: 'form-control form-control-sm ',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 3,
+                filter_default_label: '',
+                filter_container_id: 'date_filter_' + name,
+                style_class: 'form-control form-control-sm',
                 filter_reset_button_text: false,
             },
         ]);
