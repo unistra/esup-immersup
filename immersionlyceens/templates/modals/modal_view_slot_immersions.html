@@ -274,7 +274,7 @@ dtr = $('#students_list').DataTable({
     },
     {"data": "registration_date",
      "render": function(data) {
-        return formatDate(data);
+        return data ? formatDate(data) : "";
      }
     }
   ],

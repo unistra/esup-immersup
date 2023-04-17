@@ -432,28 +432,28 @@
             return txt;
           },
         },
-        { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
-          },
-        },
         { "data": "cancellation_type",
           "render": function(data, type, row) {
             var msg = data;
 
             if(row.can_register) {
-              msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+                msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
             if(row.free_seats === 0) {
-              msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+                msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
             return msg;
           }
         },
-      ],
-      "columnDefs": [
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          },
+        }
+    ],
+    "columnDefs": [
         {
           "defaultContent": "",
           "targets": "_all",
@@ -690,11 +690,6 @@
             return txt;
           },
         },
-        { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
-          }
-        },
         { "data": "cancellation_type",
           "render": function(data, type, row) {
             var msg = data;
@@ -708,6 +703,11 @@
             }
 
             return msg;
+          }
+        },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
           }
         },
       ],
@@ -926,11 +926,6 @@
             return txt;
           },
         },
-        { "data": "cancellation_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
-          }
-        },
         { "data": "cancellation_type",
           "render": function(data, type, row) {
             var msg = data;
@@ -944,6 +939,11 @@
             }
 
             return msg;
+          }
+        },
+        { "data": "cancellation_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
           }
         },
       ],

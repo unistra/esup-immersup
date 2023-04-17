@@ -312,7 +312,7 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {
-                        return formatDate(data, date_options);
+                        return data ? formatDate(data, date_options) : "";
                     }
                 },
                 {data: 'id', render: function(data) {
@@ -369,8 +369,8 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'validation_date', render: function(data) {
-                    return formatDate(data, date_options);
-                }
+                        return data ? formatDate(data, date_options) : "";
+                    }
                 },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
@@ -421,8 +421,8 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {
-                    return formatDate(data, date_options);
-                }
+                        return data ? formatDate(data, date_options) : "";
+                    }
                 },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +

@@ -280,7 +280,7 @@ $(document).ready(function () {
                     }
                 },
                 {data: 'creation_date', render: function(data) {
-                        return formatDate(data, date_options);
+                        return data ? formatDate(data, date_options) : "";
                     }
                 },
             ],
@@ -368,7 +368,7 @@ $(document).ready(function () {
                 {data: 'last_name',},
                 {data: 'birth_date',},
                 {data: 'creation_date', render: function(data) {
-                        return formatDate(data, date_options);
+                        return data ? formatDate(data, date_options) : "";
                     }
                 },
                 {data: 'id', render: function(data) {

@@ -234,6 +234,7 @@
         {% trans "Status" %}
       </div>
       <div class="card-body">
+        {% if record.creation_date %}
         <div class="form-group row align-items-center">
             <label class="col-sm-2 col-form-label">
               {% trans 'Record creation date' %} :
@@ -242,6 +243,7 @@
               {{ record.creation_date }}
             </div>
         </div>
+        {% endif %}
         <div class="form-group row align-items-center">
             <label for="class_name" class="col-sm-2 col-form-label">{% trans "Validation" %} :</label>
             <div class="form-group  col-sm-4">

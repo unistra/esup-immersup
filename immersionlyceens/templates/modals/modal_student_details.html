@@ -28,10 +28,14 @@
                   <th>{% trans 'Additional info' %}</th>
                   <th>{% trans 'Cancellation type' %}</th>
                   <th>{% trans 'Attendance' %}</th>
+                  <th>{% trans "Date of registration" %}</th>
+                  <th>{% trans "Date of cancellation" %}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -147,6 +151,16 @@ dtr = $('#immersions_table').DataTable({
                   "</a>";
         }
         return msg;
+      }
+    },
+    { "data": "registration_date",
+      "render": function(data) {
+        return data ? formatDate(data) : "";
+      }
+    },
+    { "data": "cancellation_date",
+      "render": function(data) {
+        return data ? formatDate(data) : "";
       }
     },
   ],
