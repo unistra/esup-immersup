@@ -29,7 +29,7 @@
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
 <div class="container" style="padding-top:20px; width:70%;">
-  <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
+  <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ record_form.student }}
         {{ record_form.id }}
@@ -185,51 +185,82 @@
           <div class="col-sm-1 ">{{ record_form.visible_email.errors }}</div>
         </div>
       </div>
-      <div class="card-header text-white bg-secondary">
-        {% trans "Immersions periods" %}
-      </div>
-      <div class="card-body">
-        {% if record_form.quota_formset and not request.user.is_high_school_student %}
-          {{ record_form.quota_formset.management_form }}
-          {% for quota_form in record_form.quota_formset %}
-            {{ quota_form.id }}
-            {{ quota_form.record }}
-            {{ quota_form.period }}
+      {% if document_formset|length %}
+        <div class="card-header text-white bg-secondary">
+          {% trans "Attestations" %}
+        </div>
+        <div class="card-body">
+          {{ document_formset.management_form }}
+          {% for document_form in document_formset %}
+            {{ document_form.non_field_errors }}
+            {{ document_form.id }}
+            {{ document_form.record }}
+            {{ document_form.attestation }}
             <div class="form-group row align-items-center">
-              <label class="col-sm-9 col-form-label">
-                {{ quota_form.period_label }} - {% trans 'allowed immersions' %} :
+              <label class="col-sm-3 col-md-4 col-form-label">
+                {{ document_form.attestation_label }} :
               </label>
-              <div class="col-sm-1 col-form-label">
-                {{ quota_form.allowed_immersions }}
-              </div>
+              <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
+              <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
-          {% endfor %}
-        {% else %}
-          {% for quota in record.quota.all %}
-            <div class="form-group row align-items-center">
-              <label class="col-sm-9 col-form-label">
-                {{ quota.period }} - {% trans 'immersions quota' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">
-                {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+            {% if document_form.instance.requires_validity_date %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</label>
+                <div class="col-sm-3 col-md-4">{{ document_form.validity_date }}</div>
+                <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
               </div>
-            </div>
+            {% endif %}
           {% endfor %}
-        {% endif %}
-
-        {% comment %}
-          Display future periods as readonly (no form to update the student custom quota)
-        {% endcomment %}
-
-        {% for period in future_periods %}
-          <div class="form-group row align-items-center">
-            <label class="col-sm-9 col-form-label">
-              {{ period }} - {% trans 'allowed immersions' %} :
-            </label>
-            <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+        </div>
+      {% endif %}
+      {% if future_periods or quota_formset and not request.user.is_high_school_student %}
+          <div class="card-header text-white bg-secondary">
+            {% trans "Immersions periods" %}
           </div>
-        {% endfor %}
-      </div>
+          <div class="card-body">
+            {% if quota_formset and not request.user.is_high_school_student %}
+              {{ quota_formset.management_form }}
+              {% for quota_form in quota_formset %}
+                {{ quota_form.non_field_errors }}
+                {{ quota_form.id }}
+                {{ quota_form.record }}
+                {{ quota_form.period }}
+                <div class="form-group row align-items-center">
+                  <label class="col-sm-9 col-form-label">
+                    {{ quota_form.period_label }} - {% trans 'allowed immersions' %} :
+                  </label>
+                  <div class="col-sm-1 col-form-label">
+                    {{ quota_form.allowed_immersions }}
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              {% for quota in record.quota.all %}
+                <div class="form-group row align-items-center">
+                  <label class="col-sm-9 col-form-label">
+                    {{ quota.period }} - {% trans 'immersions quota' %} :
+                  </label>
+                  <div class="col-sm-1 col-form-label">
+                    {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+                  </div>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            {% comment %}
+              Display future periods as readonly (no form to update the student custom quota)
+            {% endcomment %}
+
+            {% for period in future_periods %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-9 col-form-label">
+                  {{ period }} - {% trans 'allowed immersions' %} :
+                </label>
+                <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+              </div>
+            {% endfor %}
+          </div>
+      {% endif %}
     </div>
     <div class="row mt-4">
         <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
@@ -255,7 +286,13 @@
     let high_school_with_convention;
 
     $(function () {
-      $(".datepicker").datepicker({
+      $("[id$=validity_date]").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        yearRange: "2023:2040",
+      });
+
+      $("#id_birth_date").datepicker({
         changeMonth: true,
         changeYear: true,
         yearRange: "1990:2010",

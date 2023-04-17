@@ -1647,7 +1647,8 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     form = AttestationDocumentForm
     search_fields = ('label',)
     list_filter = ('active', 'mandatory', 'for_minors', 'requires_validity_date')
-    list_display = ('label', 'order', 'file_url', 'active', 'mandatory', 'for_minors', 'requires_validity_date')
+    list_display = ('label', 'order', 'profile_list', 'file_url', 'active', 'mandatory', 'for_minors',
+                    'requires_validity_date')
     list_display_links = ('label', )
     filter_horizontal = ('profiles',)
     ordering = ('order',)
@@ -1658,6 +1659,9 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
         self.request = request
         return super().changelist_view(request, extra_context=extra_context)
 
+    def profile_list(self, obj):
+        return format_html("<br>".join([p.code for p in obj.profiles.all()]))
+
     def file_url(self, obj):
         if obj.template:
             url = self.request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
@@ -1665,6 +1669,7 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
 
         return ""
 
+    profile_list.short_description = _('Profiles')
     file_url.short_description = _('Address')
 
     def has_add_permission(self, request):

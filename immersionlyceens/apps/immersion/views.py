@@ -42,15 +42,17 @@ from immersionlyceens.libs.utils import check_active_year, get_general_setting
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
-from immersionlyceens.apps.core.models import GeneralSettings
+from immersionlyceens.apps.core.models import GeneralSettings, AttestationDocument
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm,
-    LoginForm, NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, StudentRecordQuotaForm,
-    VisitorForm, VisitorRecordForm, VisitorRecordQuotaForm
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, HighSchoolStudentRecordDocumentForm,
+    HighSchoolStudentRecordQuotaForm, LoginForm, NewPassForm, RegistrationForm, StudentForm,
+    StudentRecordForm, StudentRecordQuotaForm, VisitorForm, VisitorRecordForm,
+    VisitorRecordDocumentForm, VisitorRecordQuotaForm
 )
-from .models import (HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord,
-    StudentRecordQuota, VisitorRecord, VisitorRecordQuota
+from .models import (HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
+    HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota, VisitorRecord,
+    VisitorRecordDocument, VisitorRecordQuota
 )
 
 logger = logging.getLogger(__name__)
@@ -585,12 +587,38 @@ def high_school_student_record(request, student_id=None, record_id=None):
     High school student record
     """
     template_name: str = 'immersion/hs_record.html'
-    redirect_url: str = reverse('offer')
+    redirect_url: str = reverse('immersion:hs_record')
     record = None
     student = None
+    create_documents = False
+    no_quota_formset = False
+
+    student_form_valid = False
+    record_form_valid = False
+    next = False
+    quota_form_valid = False
+    document_form_valid = False
+
     periods = Period.objects.filter(
         immersion_end_date__gte=timezone.localdate()
     )
+
+    # Formsets
+    QuotaFormset = forms.modelformset_factory(
+        HighSchoolStudentRecordQuota,
+        extra=0,
+        form=HighSchoolStudentRecordQuotaForm
+    )
+
+    DocumentFormset = forms.modelformset_factory(
+        HighSchoolStudentRecordDocument,
+        extra=0,
+        form=HighSchoolStudentRecordDocumentForm
+    )
+
+    # Default forms
+    quota_formset = QuotaFormset(prefix="quotas")
+    document_formset = DocumentFormset(prefix="documents")
 
     # Unused ?
     if student_id:
@@ -623,6 +651,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 HighSchoolStudentRecordQuota.objects.create(
                     record=record, period=period, allowed_immersions=period.allowed_immersions
                 )
+    else:
+        create_documents = True
 
 
     if request.method == 'POST' and request.POST.get('submit'):
@@ -644,14 +674,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, instance=student, request=request)
 
-        # Quotas formset
-        QuotaFormSet = forms.modelformset_factory(
-            HighSchoolStudentRecordQuota,
-            extra=0,
-            form=HighSchoolStudentRecordQuotaForm
-        )
-
         if studentform.is_valid():
+            student_form_valid = True
             student = studentform.save()
 
             if current_email != student.email:
@@ -676,6 +700,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
+            record_form_valid = True
             record = recordform.save()
 
             if current_highschool and current_highschool != record.highschool.id:
@@ -710,24 +735,93 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            formset = QuotaFormSet(request.POST, initial=[
-                quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=record)
-            ])
+            # Quota for non-student user
+            if not request.user.is_high_school_student():
+                quota_formset = QuotaFormset(
+                    request.POST,
+                    initial=[quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=record)],
+                    prefix="quotas"
+                )
 
-            if formset.is_valid():
-                formset.save()
+                if quota_formset.is_valid():
+                    quota_form_valid = True
+                    quota_formset.save()
+                else:
+                    messages.error(request, _("You have errors in immersions quota section"))
+            else:
+                no_quota_formset = True
+
+            # Documents formset
+            if create_documents:
+                today = timezone.localdate()
+                student_age = today.year - record.birth_date.year\
+                              - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
+
+                attestation_filters = {
+                    'for_minors': student_age < 18,
+                    'profiles__code': "LYC_W_CONV" if record.highschool.with_convention else "LYC_WO_CONV"
+                }
+
+                attestations = AttestationDocument.activated.filter(**attestation_filters)
+
+                if attestations.exists():
+                    next = True
+                    for attestation in attestations:
+                        HighSchoolStudentRecordDocument.objects.create(
+                            record=record,
+                            attestation=attestation,
+                            for_minors=attestation.for_minors,
+                            mandatory=attestation.mandatory,
+                            requires_validity_date=attestation.requires_validity_date,
+                        )
+            else:
+                document_formset = DocumentFormset(
+                    request.POST,
+                    request.FILES,
+                    initial=[d for d in HighSchoolStudentRecordDocument.objects.filter(record=record)],
+                    prefix="documents"
+                )
+
+                if document_formset.is_valid():
+                    document_form_valid = True
+                    document_formset.save()
+                else:
+                    messages.error(request, _("You have errors in Attestations section"))
+                    for form in document_formset.forms:
+                        if form.is_valid():
+                            form.save()
+
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
 
-        if recordform.is_valid() and studentform.is_valid():
+        if all([
+            recordform.is_valid(), studentform.is_valid(), (no_quota_formset or quota_formset_valid), document_form_valid]
+        ):
+            if next and request.user.is_high_school_student():
+                messages.warning(
+                    request, _("Please fill all the required attestation documents below")
+                )
+
             return HttpResponseRedirect(redirect_url)
     else:
         request.session['back'] = request.headers.get('Referer')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
+        quota_formset = QuotaFormset(
+            prefix="quotas",
+            initial = [
+                quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=record) if record
+            ],
+        )
+        document_formset = DocumentFormset(
+            prefix="documents",
+            initial = [
+                document for document in HighSchoolStudentRecordDocument.objects.filter(record=record) if record
+            ],
+        )
 
         messages.info(request, _("Current record status : %s") % record.get_validation_display())
 
@@ -759,6 +853,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
     context = {
         'student_form': studentform,
         'record_form': recordform,
+        'quota_formset': quota_formset,
+        'document_formset': document_formset,
         'student': student,
         'record': record,
         'back_url': request.session.get('back'),
@@ -789,6 +885,13 @@ def student_record(request, student_id=None, record_id=None):
     student = None
     no_record = False
     periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
+
+    # Quotas formset
+    QuotaFormset = forms.modelformset_factory(
+        StudentRecordQuota,
+        extra=0,
+        form=StudentRecordQuotaForm
+    )
 
     # Unused ?
     if student_id:
@@ -857,13 +960,6 @@ def student_record(request, student_id=None, record_id=None):
         recordform = StudentRecordForm(request.POST, instance=record, request=request)
         studentform = StudentForm(request.POST, request=request, instance=student)
 
-        # Quotas formset
-        QuotaFormSet = forms.modelformset_factory(
-            StudentRecordQuota,
-            extra=0,
-            form=StudentRecordQuotaForm
-        )
-
         if studentform.is_valid():
             student = studentform.save()
 
@@ -894,12 +990,14 @@ def student_record(request, student_id=None, record_id=None):
                         record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            formset = QuotaFormSet(request.POST, initial=[
-                quota for quota in StudentRecordQuota.objects.filter(record=record)
-            ])
+            quota_formset = QuotaFormset(
+                request.POST,
+                initial=[quota for quota in StudentRecordQuota.objects.filter(record=record)],
+                prefix="quotas"
+            )
 
-            if formset.is_valid():
-                formset.save()
+            if quota_formset.is_valid():
+                quota_formset.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
@@ -1207,7 +1305,7 @@ class VisitorRecordView(FormView):
             current_email = user.email
 
         # Quotas formset
-        QuotaFormSet = forms.modelformset_factory(
+        QuotaFormset = forms.modelformset_factory(
             VisitorRecordQuota,
             extra=0,
             form=VisitorRecordQuotaForm
@@ -1224,12 +1322,14 @@ class VisitorRecordView(FormView):
                         record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            formset = QuotaFormSet(request.POST, initial=[
-                quota for quota in VisitorRecordQuota.objects.filter(record=record)
-            ])
+            quota_formset = QuotaFormset(
+                request.POST,
+                initial=[quota for quota in VisitorRecordQuota.objects.filter(record=record)],
+                prefix="quotas"
+            )
 
-            if formset.is_valid():
-                formset.save()
+            if quota_formset.is_valid():
+                quota_formset.save()
 
             if current_email != saved_user.email:
                 self.email_changed(saved_user)

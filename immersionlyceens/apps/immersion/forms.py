@@ -8,8 +8,11 @@ from immersionlyceens.apps.core.models import (
     ImmersionUser, Period, PostBachelorLevel, StudentLevel,
 )
 
-from .models import HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota, \
-    VisitorRecord, VisitorRecordQuota
+from .models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordQuota, HighSchoolStudentRecordDocument,
+    StudentRecord, StudentRecordQuota, VisitorRecord, VisitorRecordDocument,
+    VisitorRecordQuota
+)
 
 
 class LoginForm(forms.Form):
@@ -233,6 +236,7 @@ class StudentRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
         model = StudentRecordQuota
         fields = ('record', 'period', 'allowed_immersions', 'id', )
 
+
 class VisitorRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
     """
     Same form as HighSchoolStudentRecordQuotaForm but for Visitors
@@ -240,6 +244,45 @@ class VisitorRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
     class Meta:
         model = VisitorRecordQuota
         fields = ('record', 'period', 'allowed_immersions', 'id', )
+
+
+class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["record"].widget = forms.HiddenInput()
+        self.fields["attestation"].widget = forms.HiddenInput()
+        self.fields["document"].widget.attrs["class"] = "form-control-file"
+
+        if self.instance and hasattr(self.instance, "attestation"):
+            self.attestation_label = '%s' % self.instance.attestation
+
+            if self.instance.requires_validity_date:
+                self.fields["validity_date"].required = True
+            else:
+                self.fields["validity_date"].widget = forms.HiddenInput()
+
+    class Meta:
+        model = HighSchoolStudentRecordDocument
+        fields = ('id', 'record', 'attestation', 'document', 'validity_date', )
+
+        widgets = {
+            'validity_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
+        }
+
+        localized_fields = ('validity_date',)
+
+
+class VisitorRecordDocumentForm(HighSchoolStudentRecordDocumentForm):
+    """
+    Reuse HighSchoolStudentRecordDocumentForm
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = VisitorRecordDocument
+        fields = ('id', 'record', 'attestation', 'document', 'validity_date', )
 
 
 class HighSchoolStudentRecordForm(forms.ModelForm):
@@ -279,9 +322,11 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
+        """
+        # Quota formsets
         if self.request or is_hs_manager_or_master:
             QuotaFormSet = forms.modelformset_factory(
-                HighSchoolStudentRecordQuota,
+                model=HighSchoolStudentRecordQuota,
                 extra=0,
                 form=HighSchoolStudentRecordQuotaForm
             )
@@ -292,12 +337,31 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                     .order_by("period__immersion_start_date"),
                 initial=[
                     quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=self.instance)
-                ]
+                ],
+                prefix="quotas"
             )
         else:
             if self.instance and self.instance.validation == 2:
                 for field in ["highschool", "birth_date", "class_name", "level"]:
                     self.fields[field].disabled = True
+
+        # Documents formsets
+        DocumentFormSet = forms.modelformset_factory(
+            model=HighSchoolStudentRecordDocument,
+            extra=0,
+            form=HighSchoolStudentRecordDocumentForm
+        )
+
+        self.document_formset = DocumentFormSet(
+            queryset=HighSchoolStudentRecordDocument.objects
+                .filter(record=self.instance)
+                .order_by("attestation__order"),
+            initial=[
+                attestation for attestation in HighSchoolStudentRecordDocument.objects.filter(record=self.instance)
+            ],
+            prefix="documents"
+        )
+        """
 
 
     def clean(self):
@@ -398,7 +462,8 @@ class StudentRecordForm(forms.ModelForm):
                 .order_by("period__immersion_start_date"),
                 initial=[
                     quota for quota in StudentRecordQuota.objects.filter(record=self.instance)
-                ]
+                ],
+                prefix="quotas"
             )
 
     class Meta:
@@ -474,12 +539,31 @@ class VisitorRecordForm(forms.ModelForm):
 
             self.quota_formset = QuotaFormSet(
                 queryset=VisitorRecordQuota.objects
-                .filter(record=self.instance)
-                .order_by("period__immersion_start_date"),
+                    .filter(record=self.instance)
+                    .order_by("period__immersion_start_date"),
                 initial=[
                     quota for quota in VisitorRecordQuota.objects.filter(record=self.instance)
-                ]
+                ],
+                prefix="quotas"
             )
+
+        # Documents formsets
+        DocumentFormSet = forms.modelformset_factory(
+            VisitorRecordDocument,
+            extra=0,
+            form=VisitorRecordDocumentForm
+        )
+
+        self.document_formset = DocumentFormSet(
+            queryset=VisitorRecordDocument.objects
+                .filter(record=self.instance)
+                .order_by("attestation__order"),
+            initial=[
+                attestation for attestation in VisitorRecordDocument.objects.filter(record=self.instance)
+            ],
+            prefix="documents"
+        )
+
     class Meta:
         model = VisitorRecord
         fields = [
