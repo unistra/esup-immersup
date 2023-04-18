@@ -165,8 +165,9 @@
         </div>
         {% endif %}
         <div class="form-group row align-items-center">
-            <label for="class_name" class="col-sm-2 col-form-label">{% trans "Validation" %} :</label>
-            <div class="form-group  col-sm-4">
+            <label for="class_name" class="col-sm-2 col-form-label">{% if record %}{% trans "Validation" %} :{% else %}{% trans "Visitor record" %} :{% endif %}</label>
+            <div class="form-group col-sm-4 col-form-label">
+                <h6>
                 {% if record.validation == 1 %}
                 <span class="badge badge-pill badge-warning" id="recordStatus">
                 {% trans "Waiting validation" %}
@@ -176,8 +177,12 @@
                 {% elif record.validation == 3 %}
                 <span class="badge badge-pill badge-danger" id="recordStatus">
                 {% trans "Rejected" %}
+                {% else %}
+                <span class="badge badge-pill badge-light" id="recordStatus">
+                {% trans "In the process of being created" %}
                 {% endif %}
                 </span>
+                </h6>
             </div>
         </div>
         {% if record.validation_date %}

@@ -185,6 +185,7 @@ var t1, t2;
 var dts = {};
 var vdialog, rdialog;
 var date_options = { dateStyle: 'long', timeStyle: 'medium' };
+var birth_date_options = { dateStyle: 'short' };
 
 $(document).ready(function () {
     function getCookie(name) {
@@ -308,7 +309,10 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date',render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {
@@ -365,7 +369,10 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date',render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'validation_date', render: function(data) {
@@ -417,7 +424,10 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date',render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'creation_date', render: function(data) {

@@ -150,6 +150,8 @@
 var t1, t2;
 var dts = {};
 var vdialog, rdialog;
+var date_options = { dateStyle: 'long', timeStyle: 'medium' };
+var birth_date_options = { dateStyle: 'short' };
 
 $(document).ready(function () {
     function getCookie(name) {
@@ -254,7 +256,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "GET",
-                url: "/api/visitor/records/to_validate",
+                url: "{% url 'visitors_records' 'to_validate' %}",
                 dataSrc: function(json) {
                     if (json['data'] != undefined) {
                         return json['data'];
@@ -269,7 +271,14 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date', render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
+                {data: 'creation_date', render: function(data) {
+                        return data ? formatDate(data, date_options) : "";
+                    }
+                },
                 {data: 'id', render: function(data) {
                         let element = '';
                         element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
@@ -277,10 +286,6 @@ $(document).ready(function () {
                         element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
                             'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
                         return element;
-                    }
-                },
-                {data: 'creation_date', render: function(data) {
-                        return data ? formatDate(data, date_options) : "";
                     }
                 },
             ],
@@ -305,7 +310,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "GET",
-                url: "/api/visitor/records/validated",
+                url: "{% url 'visitors_records' 'validated' %}",
                 dataSrc: function(json) {
                     if (json['data'] != undefined) {
                         return json['data'];
@@ -320,9 +325,12 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date', render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'validation_date', render: function(data) {
-                        return formatDate(data, date_options);
+                        return data ? formatDate(data, date_options) : "";
                     }
                 },
                 {data: 'id', render: function(data) {
@@ -351,7 +359,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "GET",
-                url: "/api/visitor/records/rejected",
+                url: "{% url 'visitors_records' 'rejected' %}",
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
                         return json['data'];
@@ -366,7 +374,10 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date', render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'creation_date', render: function(data) {
                         return data ? formatDate(data, date_options) : "";
                     }

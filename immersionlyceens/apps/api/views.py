@@ -647,7 +647,7 @@ def ajax_get_student_records(request):
                 'id': record.id,
                 'first_name': record.student.first_name,
                 'last_name': record.student.last_name,
-                'birth_date': _date(record.birth_date, "j/m/Y"),
+                'birth_date': record.birth_date,
                 'level': record.level.label if record.level else None,
                 'class_name': record.class_name,
                 'creation_date': record.creation_date,
@@ -4133,7 +4133,9 @@ class VisitorRecordValidation(View):
                     "id": record.id,
                     "first_name": record.visitor.first_name,
                     "last_name": record.visitor.last_name,
-                    "birth_date": _date(record.birth_date, 'd/m/Y'),
+                    "birth_date": record.birth_date,
+                    "creation_date": record.creation_date,
+                    "rejected_date": record.rejected_date
                 })
         else:
             data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")

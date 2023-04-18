@@ -1118,7 +1118,7 @@ class VisitorRecordView(FormView):
 
         # Custom quotas objects for already started periods (check registration date)
         # The record must exist
-        if record.pk:
+        if record and record.pk:
             for period in periods:
                 if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
                     VisitorRecordQuota.objects.create(
