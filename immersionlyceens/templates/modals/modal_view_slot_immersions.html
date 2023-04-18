@@ -15,20 +15,21 @@
         <div class="row">
           <div class="col">
             <div class="table-responsive">
-              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;>
+              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
               <thead>
                 <tr>
                   <th></th>
-                  <th>{% trans 'Lastname' %}</th>
-                  <th>{% trans 'Firstname' %}</th>
-                  <th>{% trans 'Profile' %}</th>
-                  <th>{% trans 'High-school / Home institution' %}</th>
-                  <th>{% trans 'City' %}</th>
-                  <th>{% trans 'Level' %}</th>
-                  <th>{% trans 'Attendances' %}</th>
+                  <th scope="col">{% trans 'Lastname' %}</th>
+                  <th scope="col">{% trans 'Firstname' %}</th>
+                  <th scope="col">{% trans 'Profile' %}</th>
+                  <th scope="col">{% trans 'High-school / Home institution' %}</th>
+                  <th scope="col">{% trans 'City' %}</th>
+                  <th scope="col">{% trans 'Level' %}</th>
+                  <th scope="col">{% trans 'Attendances' %}</th>
+                  <th scope="col">{% trans 'Date of registration' %}</th>
                 </tr>
                 <tr id="id_attendances">
-                  <th colspan='7'></th>
+                  <th colspan='8'></th>
                   <th>
                     <div id="id_update_attendances" style="display:none">
                       <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
@@ -269,8 +270,13 @@ dtr = $('#students_list').DataTable({
         else {
          return data;
         }
-     }
+     },
     },
+    {"data": "registration_date",
+     "render": function(data) {
+        return data ? formatDate(data) : "";
+     }
+    }
   ],
   "columnDefs": [
     {

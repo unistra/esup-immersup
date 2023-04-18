@@ -233,6 +233,11 @@
           },
         },
         { "data": "info" },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          }
+        },
         { "data": "",
           "render": function(data, type, row) {
             let msg = "";
@@ -261,10 +266,9 @@
               minute: "numeric",
             };
 
-            let date_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
-            let cancellation_date = new Date(row.cancellation_limit_date).toLocaleString(date_locale, options)
+            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
 
-            msg += `{% trans 'Cancellation limit' %} : ${cancellation_date}`
+            msg += `{% trans 'Cancellation limit' %} : ${cancellation_limit_date}`
 
             return msg;
           }
@@ -277,7 +281,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": [8,9],
+          "orderable": false, "targets": [8,10],
         },
       ],
     });
@@ -349,6 +353,11 @@
                   "</a>";
             }
             return msg;
+          }
+        },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
           }
         },
         { "data": "" }
@@ -428,18 +437,23 @@
             var msg = data;
 
             if(row.can_register) {
-              msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+                msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
             if(row.free_seats === 0) {
-              msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+                msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
             return msg;
           }
         },
-      ],
-      "columnDefs": [
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          },
+        }
+    ],
+    "columnDefs": [
         {
           "defaultContent": "",
           "targets": "_all",
@@ -497,6 +511,11 @@
         },
         { "data": "speakers"},
         { "data": "info" },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          }
+        },
         { "data": "",
           "render": function(data, type, row) {
             if(is_highschool_student === true) {
@@ -597,6 +616,11 @@
             return msg;
           }
         },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          }
+        },
         { "data": "" }
       ],
       "columnDefs": [
@@ -681,6 +705,11 @@
             return msg;
           }
         },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          }
+        },
       ],
       "columnDefs": [
         {
@@ -734,6 +763,11 @@
         },
         { "data": "speakers"},
         { "data": "info" },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          }
+        },
         { "data": "",
           "render": function(data, type, row) {
             var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal(" + row.id +")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
@@ -824,6 +858,11 @@
             return msg;
           }
         },
+        { "data": "registration_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
+          }
+        },
         { "data": "" }
       ],
       "columnDefs": [
@@ -900,6 +939,11 @@
             }
 
             return msg;
+          }
+        },
+        { "data": "cancellation_date",
+          "render": function(data) {
+            return data ? formatDate(data) : "";
           }
         },
       ],

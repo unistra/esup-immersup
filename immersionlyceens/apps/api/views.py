@@ -647,9 +647,11 @@ def ajax_get_student_records(request):
                 'id': record.id,
                 'first_name': record.student.first_name,
                 'last_name': record.student.last_name,
-                'birth_date': _date(record.birth_date, "j/m/Y"),
+                'birth_date': record.birth_date,
                 'level': record.level.label if record.level else None,
                 'class_name': record.class_name,
+                'creation_date': record.creation_date,
+                'validation_date': record.validation_date,
             } for record in records.order_by('student__last_name', 'student__first_name')]
         else:
             response['msg'] = gettext("Error: No high school selected")
@@ -690,6 +692,8 @@ def ajax_validate_reject_student(request, validate):
                 # 2 => VALIDATED
                 # 3 => REJECTED
                 record.validation = 2 if validate else 3
+                record.validation_date = datetime.datetime.now() if validate else None
+                record.rejected_date = None if validate else datetime.datetime.now()
                 record.save()
                 if validate:
                     record.student.send_message(request, 'CPT_MIN_VALIDE')
@@ -832,6 +836,7 @@ def ajax_cancel_registration(request):
 
             cancellation_reason = CancelType.objects.get(pk=reason_id)
             immersion.cancellation_type = cancellation_reason
+            immersion.cancellation_date = datetime.datetime.now()
             immersion.save()
             immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
@@ -1004,6 +1009,8 @@ def ajax_get_immersions(request, user_id=None):
             'free_seats': 0,
             'can_register': False,
             'face_to_face': slot.face_to_face,
+            'registration_date': immersion.registration_date,
+            'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
         }
 
         if slot.date < today or (slot.date == today and slot.start_time < now.time()):
@@ -1105,6 +1112,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 'city': '',
                 'attendance': immersion.get_attendance_status_display(),
                 'attendance_status': immersion.attendance_status,
+                'registration_date': immersion.registration_date,
             }
 
             if immersion.student.is_high_school_student():
@@ -1417,7 +1425,7 @@ def ajax_slot_registration(request):
             # Cancelled immersion exists : re-register
             if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
                 student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
-                    cancellation_type=None, attendance_status=0
+                    cancellation_type=None, attendance_status=0, cancellation_date=None
                 )
             else:
                 # New registration
@@ -3095,6 +3103,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
             'establishment': establishment.label if establishment else '',
             'structure': structure.label if structure else '',
+            'registration_date': immersion.registration_date,
         }
 
         response['data'].append(immersion_data.copy())
@@ -4124,7 +4133,9 @@ class VisitorRecordValidation(View):
                     "id": record.id,
                     "first_name": record.visitor.first_name,
                     "last_name": record.visitor.last_name,
-                    "birth_date": _date(record.birth_date, 'd/m/Y'),
+                    "birth_date": record.birth_date,
+                    "creation_date": record.creation_date,
+                    "rejected_date": record.rejected_date
                 })
         else:
             data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")

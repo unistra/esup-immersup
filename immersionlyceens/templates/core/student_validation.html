@@ -13,6 +13,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
 {% trans "Student profiles" %}
@@ -86,11 +87,13 @@
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="level_filter_to_validate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
+                    <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -119,11 +122,13 @@
                     <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
                     <th id="level_filter_validated">{% trans "Level" %}</th>
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
+                    <th id="date_filter_validated">{% trans "Validation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -152,11 +157,13 @@
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
+                    <th id="date_filter_rejected">{% trans "Creation date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -177,6 +184,8 @@
 var t1, t2;
 var dts = {};
 var vdialog, rdialog;
+var date_options = { dateStyle: 'long', timeStyle: 'medium' };
+var birth_date_options = { dateStyle: 'short' };
 
 $(document).ready(function () {
     function getCookie(name) {
@@ -281,7 +290,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "POST",
-                url: "/api/get_student_records/",
+                url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'TO_VALIDATE';
                     d.high_school_id = $('#id_high_school').val();
@@ -300,9 +309,16 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date',render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'level',},
                 {data: 'class_name',},
+                {data: 'creation_date', render: function(data) {
+                        return data ? formatDate(data, date_options) : "";
+                    }
+                },
                 {data: 'id', render: function(data) {
                         let element = '';
                         element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
@@ -334,7 +350,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "POST",
-                url: "/api/get_student_records/",
+                url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'VALIDATED';
                     d.high_school_id = $('#id_high_school').val();
@@ -353,9 +369,16 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date',render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'level',},
                 {data: 'class_name',},
+                {data: 'validation_date', render: function(data) {
+                        return data ? formatDate(data, date_options) : "";
+                    }
+                },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
                             'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
@@ -382,7 +405,7 @@ $(document).ready(function () {
             search: true,
             ajax: {
                 type: "POST",
-                url: "/api/get_student_records/",
+                url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'REJECTED';
                     d.high_school_id = $('#id_high_school').val();
@@ -401,9 +424,16 @@ $(document).ready(function () {
                     return elem;
                 }},
                 {data: 'last_name',},
-                {data: 'birth_date',},
+                {data: 'birth_date',render: function(data) {
+                        return data ? formatDate(data, birth_date_options) : "";
+                    }
+                },
                 {data: 'level',},
                 {data: 'class_name',},
+                {data: 'creation_date', render: function(data) {
+                        return data ? formatDate(data, date_options) : "";
+                    }
+                },
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
                             'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
@@ -459,6 +489,13 @@ $(document).ready(function () {
                 column_number: 4,
                 filter_default_label: '',
                 filter_container_id: 'class_name_filter_' + name,
+                style_class: 'form-control form-control-sm',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 5,
+                filter_default_label: '',
+                filter_container_id: 'date_filter_' + name,
                 style_class: 'form-control form-control-sm',
                 filter_reset_button_text: false,
             },

@@ -13,6 +13,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
   {% if can_show_users_without_record %}
@@ -114,7 +115,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_highschool_students",
+        url: "{% url 'get_highschool_students' %}",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data'];

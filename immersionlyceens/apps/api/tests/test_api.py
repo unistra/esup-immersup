@@ -7,16 +7,16 @@ import unittest
 from datetime import datetime, time, timedelta
 from unittest.mock import patch
 
-from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.core.serializers.json import DjangoJSONEncoder
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _, pgettext
-from rest_framework import status, serializers
+from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
@@ -1946,6 +1946,7 @@ class APITestCase(TestCase):
         """
         This doesn't work yet because of cancellation_limit_date comparison
         """
+        self.maxDiff = None
         self.assertEqual(content['data'][0], {
             'id': self.immersion.id,
             'type': 'course',
@@ -1988,7 +1989,12 @@ class APITestCase(TestCase):
             'free_seats': 18,
             'can_register': False,
             'face_to_face': True,
-            'time_type': 'future'
+            'time_type': 'future',
+            'registration_date': json.dumps(
+                self.immersion.registration_date.astimezone(timezone.utc),
+                cls=DjangoJSONEncoder
+            ).strip('"'),
+            'cancellation_date': "",
         })
 
         # Get past immersions
@@ -3699,7 +3705,7 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
     def test_API__get_visitor_records__validated(self):
         self.visitor_record.validation = 2
@@ -3725,7 +3731,7 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
     def test_API__get_visitor_records__rejected(self):
         self.visitor_record.validation = 3
@@ -3751,7 +3757,7 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
     def test_API_visitor_record_operation__wrong_operation(self):
         client = Client()

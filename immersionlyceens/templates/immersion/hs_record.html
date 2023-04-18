@@ -230,6 +230,47 @@
           </div>
         {% endfor %}
       </div>
+      <div class="card-header text-white bg-secondary">
+        {% trans "Status" %}
+      </div>
+      <div class="card-body">
+        {% if record.creation_date %}
+        <div class="form-group row align-items-center">
+            <label class="col-sm-2 col-form-label">
+              {% trans 'Record creation date' %} :
+            </label>
+            <div class="col-sm-4 col-form-label">
+              {{ record.creation_date }}
+            </div>
+        </div>
+        {% endif %}
+        <div class="form-group row align-items-center">
+            <label for="class_name" class="col-sm-2 col-form-label">{% trans "Validation" %} :</label>
+            <div class="form-group  col-sm-4">
+                {% if record.validation == 1 %}
+                <span class="badge badge-pill badge-warning" id="recordStatus">
+                {% trans "Waiting validation" %}
+                {% elif record.validation == 2 %}
+                <span class="badge badge-pill badge-success" id="recordStatus">
+                {% trans "Validated" %}
+                {% elif record.validation == 3 %}
+                <span class="badge badge-pill badge-danger" id="recordStatus">
+                {% trans "Rejected" %}
+                {% endif %}
+                </span>
+            </div>
+        </div>
+        {% if record.validation_date %}
+        <div class="form-group row align-items-center">
+            <label class="col-sm-2 col-form-label">
+                {% trans 'Record validation date' %} :
+            </label>
+            <div class="col-sm-8 col-form-label">
+                {{ record.validation_date }}
+            </div>
+        </div>
+        </div>
+       {% endif %}
     </div>
     <div class="row mt-4">
         <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">

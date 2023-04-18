@@ -13,9 +13,10 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
-{% trans "My slots" %}
+{% trans "Students by date" %}
 {% endblock %}
 
 {% block content %}
@@ -52,6 +53,7 @@
             <th id="building_filter" class="align-top">{% trans 'Building' %}</th>
             {% endif %}
               <th id="meeting_place_filter" class="align-top">{% trans 'Meeting place' %}</th>
+              <th id="registration_date_filter" class="align-top>">{% trans "Date of registration" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -68,6 +70,7 @@
               <td></td>
               <td></td>
               {% endif %}
+              <td></td>
               <td></td>
               <td></td>
             </tr>
@@ -117,7 +120,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_students_presence",
+        url: "{% url 'ajax_get_student_presence' %}",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data'];
@@ -156,11 +159,16 @@
           return txt;
         }
       },
-    {% if not request.user.is_high_school_manager %}
-    { "data": "campus" },
-    { "data": "building" },
-    {% endif %}
-    { "data": "meeting_place" },
+      {% if not request.user.is_high_school_manager %}
+      { "data": "campus" },
+      { "data": "building" },
+      {% endif %}
+      { "data": "meeting_place" },
+      { "data": "registration_date",
+        "render": function(data) {
+          return data ? formatDate(data) : "";
+      }
+      },
   ],
     "columnDefs": [
       {
@@ -241,6 +249,13 @@
     filter_container_id: "meeting_place_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
+
+  },{
+    column_number: 10,
+    filter_default_label: "",
+    filter_container_id: "registration_date_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
   }
   {% elif request.user.is_high_school_manager %}
   {
@@ -279,6 +294,12 @@
     column_number: 5,
     filter_default_label: "",
     filter_container_id: "meeting_place_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 6,
+    filter_default_label: "",
+    filter_container_id: "registration_date_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   }
@@ -337,6 +358,12 @@
         column_number: 8,
         filter_default_label: "",
         filter_container_id: "meeting_place_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },{
+        column_number: 9,
+        filter_default_label: "",
+        filter_container_id: "registration_date_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     }
