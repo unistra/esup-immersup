@@ -4143,17 +4143,15 @@ class VisitorRecordRejectValidate(View):
 
         try:
             record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+
+            if delete_attachments:
+                for attestation in record.attestation.all():
+                    attestation.delete()
+
         except VisitorRecord.DoesNotExist:
             data["msg"] = f"Error - No record with id: {record_id}."
             return JsonResponse(data)
 
-        if delete_attachments:
-            try:
-                record.identity_document.storage.delete(record.identity_document.name)
-                record.identity_document.delete()
-            except Exception as e:
-                # no document to delete
-                pass
         record.validation = validation_value
         record.save()
         record.visitor.send_message(self.request, validation_email_template)

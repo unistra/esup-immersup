@@ -185,13 +185,12 @@
           <div class="col-sm-1 ">{{ record_form.visible_email.errors }}</div>
         </div>
       </div>
-      {% if document_formset|length %}
+      {% if document_forms|length %}
         <div class="card-header text-white bg-secondary">
           {% trans "Attestations" %}
         </div>
         <div class="card-body">
-          {{ document_formset.management_form }}
-          {% for document_form in document_formset %}
+          {% for document_form in document_forms %}
             {{ document_form.non_field_errors }}
             {{ document_form.id }}
             {{ document_form.record }}
@@ -210,17 +209,19 @@
                 <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
               </div>
             {% endif %}
+            {% if not forloop.last %}
+              <hr class="mt-2 mb-3"/>
+            {% endif %}
           {% endfor %}
         </div>
       {% endif %}
-      {% if future_periods or quota_formset and not request.user.is_high_school_student %}
+      {% if future_periods or quota_forms|length and not request.user.is_high_school_student %}
           <div class="card-header text-white bg-secondary">
             {% trans "Immersions periods" %}
           </div>
           <div class="card-body">
-            {% if quota_formset and not request.user.is_high_school_student %}
-              {{ quota_formset.management_form }}
-              {% for quota_form in quota_formset %}
+            {% if quota_forms|length and not request.user.is_high_school_student %}
+              {% for quota_form in quota_forms %}
                 {{ quota_form.non_field_errors }}
                 {{ quota_form.id }}
                 {{ quota_form.record }}
@@ -263,7 +264,11 @@
       {% endif %}
     </div>
     <div class="row mt-4">
-        <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
+        <input type="submit"
+               class="btn btn-secondary btn-sm ml-4"
+               name="submit"
+               value="{% if record.id %}{% trans 'Submit' %}{% else %}{% trans 'Next' %}{% endif %}"
+        >
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
 
       {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}

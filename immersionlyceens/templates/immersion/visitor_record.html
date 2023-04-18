@@ -23,11 +23,11 @@
 <div class="container-fluid" style="padding-top:20px; width:70%;">
 
   <form class="" role="form" action="/immersion/visitor_record{% if form.instance and can_change %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+    {% csrf_token %}
     <input id="id_visitor" type="hidden" name="visitor" value="{{ visitor.id }}"/>
+    {{ form.id }}
+    {{ user_form.id }}
 
-        {{ form.id }}
-        {{ user_form.id }}
     <div class="card">
       <div class="card-header text-white bg-secondary">
         {% trans "Please fill this form to complete the personal record" %}
@@ -80,76 +80,84 @@
           <div class="col-sm-6 col-md-6">{{ form.motivation }}</div>
           <div class="col-sm-3 col-md-2">{{ form.motivation.errors }}</div>
         </div>
-        <div class="form-group row align-center">
-          <label for="id_identity_document" class="col-sm-3 col-md-4 col-form-label">
-            {{ form.identity_document.label }}* :
-          </label>
-          <div class="col-sm-6 col-md-6">{{ form.identity_document }}</div>
-          <div class="col-sm-3 col-md-2">{{ form.identity_document.errors }}</div>
-        </div>
-        <div class="form-group row align-center">
-          <label for="id_civil_liability_insurance" class="col-sm-3 col-md-4 col-form-label">
-            {{ form.civil_liability_insurance.label }}* :
-          </label>
-          <div class="col-sm-6 col-md-6">{{ form.civil_liability_insurance }}</div>
-          <div class="col-sm-3 col-md-2">{{ form.civil_liability_insurance.errors }}</div>
-        </div>
-        <div class="form-group row align-center">
-          <label for="id_parental_auth_document" class="col-sm-3 col-md-4 col-form-label">
-            {{ form.parental_auth_document.label }} <span id="id_minor">({% trans 'if minor' %}*)</span> :
-          </label>
-          <div class="col-sm-6 col-md-6">
-            {{ form.parental_auth_document }}
-            <a target='_blank' href="{% url 'immersup_file' file_code='AUTORISATION_PARENTALE' %}">{% trans 'Get template here' %}</a>
-          </div>
-          <div class="col-sm-3 col-md-2">{{ form.parental_auth_document.errors }}</div>
-        </div>
       </div>
-      <div class="card-header text-white bg-secondary">
-        {% trans "Immersions periods" %}
-      </div>
-      <div class="card-body">
-        {% if form.quota_formset and can_change %}
-          {{ form.quota_formset.management_form }}
-          {% for quota_form in form.quota_formset %}
-            {{ quota_form.id }}
-            {{ quota_form.record }}
-            {{ quota_form.period }}
+      {% if document_forms|length %}
+        <div class="card-header text-white bg-secondary">
+          {% trans "Attestations" %}
+        </div>
+        <div class="card-body">
+          {% for document_form in document_forms %}
+            {{ document_form.non_field_errors }}
+            {{ document_form.id }}
+            {{ document_form.record }}
+            {{ document_form.attestation }}
             <div class="form-group row align-items-center">
-              <label class="col-sm-9 col-form-label">
-                {{ quota_form.period_label }} - {% trans 'allowed immersions' %} :
+              <label class="col-sm-3 col-md-4 col-form-label">
+                {{ document_form.attestation_label }} :
               </label>
-              <div class="col-sm-1 col-form-label">
-                {{ quota_form.allowed_immersions }}
-              </div>
+              <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
+              <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
-          {% endfor %}
-        {% else %}
-          {% for quota in record.quota.all %}
-            <div class="form-group row align-items-center">
-              <label class="col-sm-9 col-form-label">
-                {{ quota.period }} - {% trans 'immersions quota' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">
-                {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+            {% if document_form.instance.requires_validity_date %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</label>
+                <div class="col-sm-3 col-md-4">{{ document_form.validity_date }}</div>
+                <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
               </div>
-            </div>
+            {% endif %}
+            {% if not forloop.last %}
+              <hr class="mt-2 mb-3"/>
+            {% endif %}
           {% endfor %}
-        {% endif %}
-
-        {% comment %}
-          Display future periods as readonly (no form to update the visitor custom quota)
-        {% endcomment %}
-
-        {% for period in future_periods %}
-          <div class="form-group row align-items-center">
-            <label class="col-sm-9 col-form-label">
-              {{ period }} - {% trans 'allowed immersions' %} :
-            </label>
-            <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+        </div>
+      {% endif %}
+      {% if future_periods or quota_forms|length and can_change %}
+          <div class="card-header text-white bg-secondary">
+            {% trans "Immersions periods" %}
           </div>
-        {% endfor %}
-      </div>
+          <div class="card-body">
+            {% if quota_forms|length and can_change %}
+              {% for quota_form in quota_forms %}
+                {{ quota_form.non_field_errors }}
+                {{ quota_form.id }}
+                {{ quota_form.record }}
+                {{ quota_form.period }}
+                <div class="form-group row align-items-center">
+                  <label class="col-sm-9 col-form-label">
+                    {{ quota_form.period_label }} - {% trans 'allowed immersions' %} :
+                  </label>
+                  <div class="col-sm-1 col-form-label">
+                    {{ quota_form.allowed_immersions }}
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              {% for quota in record.quota.all %}
+                <div class="form-group row align-items-center">
+                  <label class="col-sm-9 col-form-label">
+                    {{ quota.period }} - {% trans 'immersions quota' %} :
+                  </label>
+                  <div class="col-sm-1 col-form-label">
+                    {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+                  </div>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            {% comment %}
+              Display future periods as readonly (no form to update the student custom quota)
+            {% endcomment %}
+
+            {% for period in future_periods %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-9 col-form-label">
+                  {{ period }} - {% trans 'allowed immersions' %} :
+                </label>
+                <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+              </div>
+            {% endfor %}
+          </div>
+      {% endif %}
     </div>
     <div class="row mt-4">
       <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
@@ -163,19 +171,13 @@
 
 <script>
 
-
-// function open_modal(record_id) {
-//   current_student_id = record_id;
-//   $('#modal_student_details').modal('show');
-// }
-
 var age = 0;
-var has_parental_auth_document = "{{ record.parental_auth_document }}" !== "";
 
 function open_modal() {
   $('#modal_nuke_account').modal('show');
 }
 
+// Move this somewhere else
 function user_age() {
     let birthdate = $('#id_birth_date').datepicker('getDate')
 
@@ -188,41 +190,20 @@ function user_age() {
     return age;
 }
 
-function update_minor_warning() {
-  if(Number.isInteger(age)) {
-    if(age >= 18) {
-      $('#id_minor').hide()
-      $('#id_parental_auth_document').removeAttr("required")
-    }
-    else if (has_parental_auth_document === false) {
-      $('#id_minor').show()
-      $('#id_parental_auth_document').prop("required", true)
-    }
-  }
-  else if (has_parental_auth_document === false) {
-    $('#id_minor').show()
-    $('#id_parental_auth_document').prop("required", true)
-  }
-}
+$(function () {
+  $("[id$=validity_date]").datepicker({
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "2023:2040",
+  });
 
-(() => {
-    $(".datepicker").datepicker({
-        changeMonth: true,
-        changeYear: true,
-        yearRange: "1970:2010",
-        defaultDate: "01/01/2003",
-    })
-})()
-
-$(document).ready(function() {
-  age = user_age()
-  update_minor_warning()
-
-  $('#id_birth_date').change(function () {
-    age = user_age()
-    update_minor_warning()
-  })
-})
+  $("#id_birth_date").datepicker({
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1970:2010",
+    defaultDate: "01/01/2003",
+  });
+});
 
 </script>
 {% endblock %}

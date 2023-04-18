@@ -352,39 +352,6 @@ class VisitorRecord(models.Model):
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
 
     motivation = models.TextField(_("Motivation"), null=False, blank=False)
-    identity_document = models.FileField(
-        _("Identity document"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-    parental_auth_document = models.FileField(
-        _("Parental authorization"),
-        upload_to=get_file_path,
-        blank=True,
-        null=True,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-    civil_liability_insurance = models.FileField(
-        _("Civil liability insurance"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
 
     attestation_documents = models.ManyToManyField(
         core_models.AttestationDocument,
@@ -393,13 +360,6 @@ class VisitorRecord(models.Model):
 
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
     allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
-
-    def delete(self, using=None, keep_parents=False):
-        """Delete the visitor record and attachments"""
-        self.identity_document.storage.delete(self.identity_document.name)
-        self.civil_liability_insurance.storage.delete(self.civil_liability_insurance.name)
-        super().delete(using, keep_parents)
-
 
     def is_valid(self):
         return self.validation == 2
@@ -558,6 +518,16 @@ class VisitorRecordDocument(models.Model):
 
     def __str__(self):
         return f"{self.record} / {self.attestation}"
+
+    def delete(self, *args, **kwargs):
+        try:
+            self.document.storage.delete(self.document.name)
+        except Exception as e:
+            # no file to delete
+            pass
+
+        return super().delete(*args, **kwargs)
+
 
     class Meta:
         verbose_name = _('Visitor record / Attestation document')
