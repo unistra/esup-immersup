@@ -1278,8 +1278,9 @@ class VisitorRecordView(FormView):
         if self.request.user.is_visitor():
             visitor = self.request.user
             record = visitor.get_visitor_record()
-            if record:
-                messages.info(self.request, _("Your record status : %s") % record.get_validation_display())
+            if not record:
+                record = VisitorRecord(visitor=visitor)
+
             user_form = VisitorForm(request=self.request, instance=visitor)
         elif record_id:
             try:
@@ -1287,6 +1288,7 @@ class VisitorRecordView(FormView):
             except VisitorRecord.DoesNotExist:
                 messages.error(self.request, _("Invalid visitor record id"))
                 raise Http404
+
             visitor = record.visitor
             form_kwargs = self.get_form_kwargs()
 
@@ -1297,7 +1299,7 @@ class VisitorRecordView(FormView):
 
         # Custom quotas objects for already started periods (check registration date)
         # The record must exist
-        if record and record.pk:
+        if record.pk:
             for period in periods:
                 if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
                     VisitorRecordQuota.objects.create(
@@ -1327,7 +1329,7 @@ class VisitorRecordView(FormView):
                 cancellation_type__isnull=True
             ).count()
 
-        if record:
+        if record.pk:
             context.update({"record": record})  # for modal nuke purpose
 
             # Extra forms for quotas and documents
@@ -1346,6 +1348,15 @@ class VisitorRecordView(FormView):
                     prefix=f"document_{document.attestation.id}"
                 )
                 document_forms.append(document_form)
+
+        # Record status
+        if self.request.user.is_visitor():
+            msg = _("Your record status : %s") % record.get_validation_display()
+        else:
+            msg = _("Current record status : %s") % record.get_validation_display()
+
+        messages.info(self.request, msg)
+
 
         # Periods to display
         period_filter = {'registration_start_date__gte': today} if record and record.pk \
@@ -1518,13 +1529,14 @@ class VisitorRecordView(FormView):
                     )
 
                 return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
         else:
             for form_ in (form, form_user):
                 for err_field, err_list in form_.errors.get_json_data().items():
                     for error in err_list:
                         if error.get("message"):
                             messages.error(self.request, error.get("message"))
-                            print(f'err: {error.get("message")} ==> {form_.__class__}')
 
             return self.form_invalid(form)
 

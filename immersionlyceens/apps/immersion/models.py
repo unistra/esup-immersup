@@ -360,7 +360,7 @@ class VisitorRecord(models.Model):
         through="VisitorRecordDocument"
     )
 
-    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+    validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
     allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
 
     def is_valid(self):

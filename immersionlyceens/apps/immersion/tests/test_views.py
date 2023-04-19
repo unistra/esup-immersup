@@ -116,6 +116,19 @@ class ImmersionViewsTestCase(TestCase):
         cls.student_user.set_password('pass')
         cls.student_user.save()
 
+        # Visitor
+        cls.visitor_user = get_user_model().objects.create_user(
+            username='visitor',
+            password='pass',
+            email='visitor@no-reply.com',
+            first_name='vis',
+            last_name='itor',
+            validation_string='another_string',
+        )
+
+        cls.visitor_user.set_password('pass')
+        cls.visitor_user.save()
+
         cls.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
@@ -156,6 +169,7 @@ class ImmersionViewsTestCase(TestCase):
         Group.objects.get(name='INTER').user_set.add(cls.speaker2)
         Group.objects.get(name='LYC').user_set.add(cls.highschool_user)
         Group.objects.get(name='LYC').user_set.add(cls.highschool_user2)
+        Group.objects.get(name='VIS').user_set.add(cls.visitor_user)
         Group.objects.get(name='ETU').user_set.add(cls.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
         Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
@@ -228,7 +242,7 @@ class ImmersionViewsTestCase(TestCase):
             mandatory=True,
             active=True,
             for_minors=False,
-            requires_validity_date=False
+            requires_validity_date=True
         )
 
         cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
@@ -639,6 +653,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Test get route as ref_etab user
         self.client.login(username='ref_etab', password='pass')
+
         response = self.client.get('/immersion/hs_record/%s' % record.id)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
@@ -648,7 +663,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Success
         record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
-        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        response = self.client.post('/immersion/hs_record/%s' % record.id, record_data, follow=True)
         self.assertNotIn("You have errors in Attestations section", response.content.decode('utf-8'))
 
 
@@ -841,3 +856,99 @@ class ImmersionViewsTestCase(TestCase):
 
         self.assertIn("Your accounts have been linked", response.content.decode('utf8'))
         self.assertEqual(self.speaker1.linked_users(), [self.speaker1, self.speaker2])
+
+    def test_visitor_record(self):
+        # First check that visitor record doesn't exist yet
+        self.assertFalse(VisitorRecord.objects.filter(visitor=self.visitor_user).exists())
+        self.assertFalse(VisitorRecordDocument.objects.exists())
+
+        self.client.login(username='visitor', password='pass')
+        response = self.client.get('/immersion/visitor_record')
+
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        record_data = {
+            "visitor": self.visitor_user.id,
+            "last_name": "",
+            "first_name": self.visitor_user.first_name,
+            "email": self.visitor_user.email,
+            "birth_date": "",
+            "phone": "0388010101",
+            "motivation": "I'm very motivated.",
+            "submit": 1,
+        }
+
+        # Missing fields
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        self.assertIn("This field is required", response.content.decode('utf-8'))
+
+        # All fields
+        record_data["last_name"] = self.visitor_user.last_name
+        # 20 years (= above 18)
+        record_data["birth_date"] = (self.today - datetime.timedelta(days=7300)).strftime("%Y-%m-%d")
+
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        self.assertTrue(VisitorRecord.objects.filter(visitor=self.visitor_user).exists())
+
+        self.assertIn("Record saved. Please fill all the required attestation documents below.",
+            response.content.decode('utf-8'))
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
+
+        record = self.visitor_user.get_visitor_record()
+
+        # Check attestations objects (only 1 -> attestation_2)
+        documents = VisitorRecordDocument.objects.filter(record=record)
+
+        self.assertEqual(documents.count(), 1)
+        self.assertEqual(documents.first().attestation, self.attestation_2)
+
+        document = documents.first()
+
+        # repost without attestations
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Add missing file, fields, and repost
+        fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
+        prefix = f"document_{self.attestation_2.pk}"
+
+        record_data.update({
+            f"{prefix}-record": document.record.pk,
+            f"{prefix}-attestation": document.attestation.pk,
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
+        })
+
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        content = response.content.decode('utf-8')
+
+        self.assertIn("Your record status : To validate", response.content.decode('utf-8'))
+        document.refresh_from_db()
+        self.assertNotEqual(document.document, None)
+        self.assertIsNone(document.validity_date)
+
+        del (record_data[f"{prefix}-document"]) # no more needed
+
+        # Test get route as ref_etab user
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get('/immersion/visitor_record/%s' % record.id)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        # Post - missing required validity date
+        response = self.client.post('/immersion/visitor_record/%s' % record.id, record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Success
+        record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+        response = self.client.post('/immersion/visitor_record/%s' % record.id, record_data, follow=True)
+        self.assertNotIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Back to the visitor for a last test
+        self.client.login(username='visitor', password='pass')
+
+        # Post with another email
+        record_data["email"] = "another_visitor@email.com"
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+
+        self.visitor_user.refresh_from_db()
+        self.assertNotEqual(self.visitor_user.validation_string, None)
