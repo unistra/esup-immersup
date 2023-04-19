@@ -1489,7 +1489,7 @@ class VisitorRecordView(FormView):
                     )
 
                     if document_form.is_valid():
-                        document_form.save()
+                        document = document_form.save()
                     else:
                         document_form_valid = False
 

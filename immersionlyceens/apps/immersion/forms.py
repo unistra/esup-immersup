@@ -277,7 +277,6 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
             else:
                 self.fields["validity_date"].widget = forms.HiddenInput()
 
-
     class Meta:
         model = HighSchoolStudentRecordDocument
         fields = ('id', 'record', 'attestation', 'document', 'validity_date', )

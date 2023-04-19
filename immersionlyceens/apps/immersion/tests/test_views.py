@@ -626,8 +626,6 @@ class ImmersionViewsTestCase(TestCase):
             f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
         })
 
-        # f"{prefix}-validity_date": (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
-
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
         content = response.content.decode('utf-8')
 
@@ -635,9 +633,29 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("Your record status : To validate", response.content.decode('utf-8'))
         document.refresh_from_db()
         self.assertNotEqual(document.document, None)
+        self.assertIsNone(document.validity_date)
 
-        # Post with another email - Do not repost the attestation file
-        del(record_data[f"{prefix}-document"])
+        del (record_data[f"{prefix}-document"]) # no more needed
+
+        # Test get route as ref_etab user
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get('/immersion/hs_record/%s' % record.id)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        # Post - missing validity date
+        response = self.client.post('/immersion/hs_record/%s' % record.id, record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Success
+        record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        self.assertNotIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+
+        # Back to the high school student for more tests
+        self.client.login(username='hs', password='pass')
+
+        # Post with another email
         record_data["email"] = "another@email.com"
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
 
@@ -645,7 +663,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertNotEqual(self.highschool_user.validation_string, None)
 
         # Assume the record has been rejected, then repost with another high school (validation should be set to 1)
-        record = HighSchoolStudentRecord.objects.get(student=self.highschool_user)
+        record.refresh_from_db()
         self.assertEqual(record.validation, 1)
         record.validation = 3 # Rejected
         record.save()
@@ -653,7 +671,7 @@ class ImmersionViewsTestCase(TestCase):
         record_data["highschool"] = self.high_school2.id
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
 
-        record = HighSchoolStudentRecord.objects.get(student=self.highschool_user)
+        record.refresh_from_db()
         self.assertEqual(record.highschool.id, self.high_school2.id)
         self.assertEqual(record.validation, 1)
 
@@ -674,11 +692,6 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
         self.assertIn("A record already exists with this identity, please contact the establishment referent.",
             response.content.decode('utf-8'))
-
-        # Test get route as ref_etab user
-        self.client.login(username='ref_etab', password='pass')
-        response = self.client.get('/immersion/hs_record/%s' % record.id)
-        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
 
     def test_immersions(self):
