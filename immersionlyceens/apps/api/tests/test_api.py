@@ -548,7 +548,8 @@ class APITestCase(TestCase):
         )
         self.visitor_record = VisitorRecord.objects.create(
             visitor=self.visitor,
-            birth_date=datetime.today()
+            birth_date=datetime.today(),
+            validation=1,
         )
 
         self.slot4 = Slot.objects.create(
