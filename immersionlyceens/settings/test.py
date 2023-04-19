@@ -12,7 +12,7 @@ from .base import *
 # Debug configuration #
 #######################
 
-DEBUG = True
+DEBUG = False
 
 
 ##########################
@@ -130,3 +130,4 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 # true to use unistra theme (fake boolean ftw)
 UNISTRA = '{{ use_unistra_theme }}'
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
