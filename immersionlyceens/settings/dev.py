@@ -138,3 +138,4 @@ STAGE = 'Dev'
 
 # Use Unistra theme & css
 UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
