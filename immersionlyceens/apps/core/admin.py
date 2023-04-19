@@ -17,7 +17,9 @@ from django_summernote.admin import SummernoteModelAdmin
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
 
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, VisitorRecordDocument,
+)
 
 from .admin_forms import (
     AccompanyingDocumentForm, AttestationDocumentForm,
@@ -546,6 +548,10 @@ class ProfileAdmin(AdminWithRequest, admin.ModelAdmin):
         return request.user.is_superuser or request.user.is_operator()
 
     def has_delete_permission(self, request, obj=None):
+        if AttestationDocument.objects.filter(profiles=obj).exists():
+            messages.warning(request, _("This profile can't be deleted because it is used by an attestation document"))
+            return False
+
         return request.user.is_superuser or request.user.is_operator()
 
 
@@ -1679,6 +1685,13 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
         return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     def has_delete_permission(self, request, obj=None):
+        hs_records = HighSchoolStudentRecordDocument.objects.filter(attestation=obj)
+        visitor_records = VisitorRecordDocument.objects.filter(attestation=obj)
+
+        if hs_records.exists() or visitor_records.exists():
+            messages.warning(request, _("This attestation can't be deleted because it is used by some records"))
+            return False
+
         return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     class Media:

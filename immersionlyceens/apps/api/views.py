@@ -626,33 +626,35 @@ def ajax_get_student_records(request):
     response = {'data': [], 'msg': ''}
 
     # @@@
-    action = request.POST.get('action')
+    action = request.POST.get('action', '').upper()
     hs_id = request.POST.get('high_school_id')
-    actions = ['TO_VALIDATE', 'VALIDATED', 'REJECTED']
+    actions = {
+        'TO_VALIDATE': 1,
+        'VALIDATED': 2,
+        'REJECTED': 3
+    }
 
-    if action and action.upper() in actions:
-        if hs_id:
-            action = action.upper()
-            records = []
-            if action == 'TO_VALIDATE':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=1,)  # TO VALIDATE
-            elif action == 'VALIDATED':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=2,)  # VALIDATED
-            elif action == 'REJECTED':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3,)  # REJECTED
-
-            response['data'] = [{
-                'id': record.id,
-                'first_name': record.student.first_name,
-                'last_name': record.student.last_name,
-                'birth_date': _date(record.birth_date, "j/m/Y"),
-                'level': record.level.label if record.level else None,
-                'class_name': record.class_name,
-            } for record in records.order_by('student__last_name', 'student__first_name')]
-        else:
-            response['msg'] = gettext("Error: No high school selected")
-    else:
+    if not action in actions.keys():
         response['msg'] = gettext("Error: No action selected for AJAX request")
+        return JsonResponse(response, safe=False)
+
+    if not hs_id:
+        response['msg'] = gettext("Error: No high school selected")
+        return JsonResponse(response, safe=False)
+
+    records = HighSchoolStudentRecord.objects.filter(
+        highschool_id=hs_id,
+        validation=actions[action]
+    ).annotate(
+        user_first_name=F("student__first_name"),
+        user_last_name=F("student__last_name"),
+        record_level=F("level__label"),
+        formated_birth_date=ExpressionWrapper(
+            Func(F('birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+        ),
+    ).values("id", "user_first_name", "user_last_name", "formated_birth_date", "record_level", "class_name")
+
+    response['data'] = list(records)
 
     return JsonResponse(response, safe=False)
 

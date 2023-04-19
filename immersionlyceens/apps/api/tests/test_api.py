@@ -928,17 +928,17 @@ class APITestCase(TestCase):
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 1)
 
         hs_record = content['data'][0]
         self.assertEqual(hs_record['id'], self.hs_record.id)
-        self.assertEqual(hs_record['first_name'], self.hs_record.student.first_name)
-        self.assertEqual(hs_record['last_name'], self.hs_record.student.last_name)
-        self.assertEqual(hs_record['level'], self.hs_record.level.label)
+        self.assertEqual(hs_record['user_first_name'], self.hs_record.student.first_name)
+        self.assertEqual(hs_record['user_last_name'], self.hs_record.student.last_name)
+        self.assertEqual(hs_record['record_level'], self.hs_record.level.label)
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
 
         # Validated
-        self.hs_record.validation = 2  # validate
+        self.hs_record.validation = 2  # valid
         self.hs_record.save()
         data = {
             'action': 'VALIDATED',

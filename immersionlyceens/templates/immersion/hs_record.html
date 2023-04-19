@@ -202,11 +202,19 @@
               <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
               <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
-            {% if document_form.instance.requires_validity_date %}
+            {% if document_form.instance.requires_validity_date and document_form.validity_required %}
               <div class="form-group row align-items-center">
                 <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</label>
                 <div class="col-sm-3 col-md-4">{{ document_form.validity_date }}</div>
                 <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
+              </div>
+            {% endif %}
+            {% if document_form.attestation_template %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Template' %}</label>
+                <div class="col-sm-3 col-md-4">
+                  <a target='_blank' href="{{ document_form.attestation_template }}">{% trans 'Get document template' %}</a>
+                </div>
               </div>
             {% endif %}
             {% if not forloop.last %}

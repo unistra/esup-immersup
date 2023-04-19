@@ -31,6 +31,7 @@ class HighSchoolStudentRecord(models.Model):
     )
 
     VALIDATION_STATUS = [
+        (0, _('To complete')),
         (1, _('To validate')),
         (2, _('Validated')),
         (3, _('Rejected'))
@@ -124,7 +125,7 @@ class HighSchoolStudentRecord(models.Model):
 
     allowed_immersions = models.ManyToManyField(Period, through='HighSchoolStudentRecordQuota')
 
-    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+    validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
 
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
     solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
@@ -334,6 +335,7 @@ class VisitorRecord(models.Model):
     Visitor record class, linked to ImmersionUsers accounts
     """
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
+        (0, _('To complete')),
         (1, _('To validate')),
         (2, _('Validated')),
         (3, _('Rejected'))

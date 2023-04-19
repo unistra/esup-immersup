@@ -252,17 +252,31 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
+        self.attestation_label = None
+        self.attestation_template = None
+
         self.fields["record"].widget = forms.HiddenInput()
         self.fields["attestation"].widget = forms.HiddenInput()
         self.fields["document"].widget.attrs["class"] = "form-control-file"
 
         if self.instance and hasattr(self.instance, "attestation"):
+            self.validity_required = False
             self.attestation_label = '%s' % self.instance.attestation
+            self.attestation_template = self.instance.attestation.template
 
-            if self.instance.requires_validity_date:
+            # Validity date is only required for managers
+            conditions = [
+                not self.request.user.is_high_school_student(),
+                not self.request.user.is_visitor(),
+                self.instance.requires_validity_date
+            ]
+
+            if all(conditions):
+                self.validity_required = True
                 self.fields["validity_date"].required = True
             else:
                 self.fields["validity_date"].widget = forms.HiddenInput()
+
 
     class Meta:
         model = HighSchoolStudentRecordDocument

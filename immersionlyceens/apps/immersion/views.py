@@ -671,8 +671,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, _("Cannot send email : %s") % msg)
                     else:
                         messages.warning(
-                            request,
-                            _(
+                            request, _(
                                 """You have updated the email."""
                                 """<br>Warning : the new email is also the new login."""
                                 """<br>A new activation email has been sent."""
@@ -688,15 +687,17 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             record = recordform.save()
-
             messages.success(request, _("Record successfully saved."))
 
             if current_highschool and current_highschool != record.highschool.id:
-                record.validation = 1
-                record.save()
-                messages.info(request, _("You have changed the high school, your record needs a new validation"))
+                # New record validation is needed
+                if record.validation > 1:
+                    messages.info(
+                        request,
+                        _("You have changed the high school, your record needs a new validation")
+                    )
 
-                # Update needed
+                # Documents update needed
                 create_documents = True
 
             # Look for duplicated records
@@ -763,9 +764,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         hsrd.delete()
 
                 if attestations.exists():
-                    next = True
+                    creations = 0
                     for attestation in attestations:
-                        HighSchoolStudentRecordDocument.objects.update_or_create(
+                        obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
                             record=record, attestation=attestation,
                             defaults={
                                 'for_minors': attestation.for_minors,
@@ -773,6 +774,21 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 'requires_validity_date': attestation.requires_validity_date,
                             }
                         )
+
+                        creations += 1 if created else 0
+
+                    if creations:
+                        next = True
+                        # Documents have to be filled -> status = 0
+                        record.validation = 0
+                    else:
+                        record.validation = 1
+                else:
+                    # No attestation
+                    record.validation = 1
+
+                record.save()
+
             else:
                 document_form_valid = True
 
@@ -794,6 +810,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                 if not document_form_valid:
                     messages.error(request, _("You have errors in Attestations section"))
+                else:
+                    record.validation = 1
+                    record.save()
 
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
@@ -840,7 +859,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
             )
             document_forms.append(document_form)
 
-        messages.info(request, _("Current record status : %s") % record.get_validation_display())
+        if request.user.is_high_school_student():
+            messages.info(request, _("Your record status : %s") % record.get_validation_display())
+        else:
+            messages.info(request, _("Current record status : %s") % record.get_validation_display())
 
     # Stats for user deletion
     today = datetime.today().date()
@@ -1257,7 +1279,7 @@ class VisitorRecordView(FormView):
             visitor = self.request.user
             record = visitor.get_visitor_record()
             if record:
-                messages.info(self.request, _("Current record status : %s") % record.get_validation_display())
+                messages.info(self.request, _("Your record status : %s") % record.get_validation_display())
             user_form = VisitorForm(request=self.request, instance=visitor)
         elif record_id:
             try:
@@ -1449,6 +1471,11 @@ class VisitorRecordView(FormView):
                             mandatory=attestation.mandatory,
                             requires_validity_date=attestation.requires_validity_date,
                         )
+                    record.validation = 0
+                else:
+                    record.validation = 1
+
+                record.save()
             else:
                 document_form_valid = True
 
@@ -1470,6 +1497,9 @@ class VisitorRecordView(FormView):
 
                 if not document_form_valid:
                     messages.error(request, _("You have errors in Attestations section"))
+                else:
+                    record.validation = 1
+                    record.save()
 
             if current_email != saved_user.email:
                 self.email_changed(saved_user)

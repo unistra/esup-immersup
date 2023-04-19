@@ -295,23 +295,25 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, type, row) {
-                    let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
-                    return elem;
-                }},
-                {data: 'last_name',},
-                {data: 'birth_date',},
-                {data: 'level',},
-                {data: 'class_name',},
-                {data: 'id', render: function(data) {
-                        let element = '';
-                        element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
-                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
-                        element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
-                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
-                        return element;
-                    }
-                },
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/core/hs_record_manager/${row['id']}">${data}</a>`;
+                }
+              },
+              { data: 'user_last_name', },
+              { data: 'formated_birth_date',},
+              { data: 'record_level',},
+              { data: 'class_name',},
+              { data: 'id',
+                render: function(data) {
+                  let element = '';
+                  element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
+                      'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                  element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                      'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
+                  return element;
+                }
+              },
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -348,19 +350,21 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, type, row) {
-                    let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
-                    return elem;
-                }},
-                {data: 'last_name',},
-                {data: 'birth_date',},
-                {data: 'level',},
-                {data: 'class_name',},
-                {data: 'id', render: function(data) {
-                        return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
-                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
-                    }
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/core/hs_record_manager/${row['id']}">${data}</a>`;
                 }
+              },
+              { data: 'user_last_name',},
+              { data: 'formated_birth_date',},
+              { data: 'record_level',},
+              { data: 'class_name',},
+              { data: 'id',
+                render: function(data) {
+                  return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                         'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
+                }
+              }
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -396,19 +400,21 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, type, row) {
-                    let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
-                    return elem;
-                }},
-                {data: 'last_name',},
-                {data: 'birth_date',},
-                {data: 'level',},
-                {data: 'class_name',},
-                {data: 'id', render: function(data) {
-                        return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
-                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
-                    }
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/core/hs_record_manager/${row['id']}">${data}</a>`;
                 }
+              },
+              { data: 'user_last_name',},
+              { data: 'formated_birth_date',},
+              { data: 'record_level',},
+              { data: 'class_name',},
+              { data: 'id',
+                render: function(data) {
+                  return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
+                         'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                }
+              }
             ],
             columnDefs: [{
                 defaultContent: '',
