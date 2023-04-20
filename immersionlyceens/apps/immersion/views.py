@@ -1392,7 +1392,7 @@ class VisitorRecordView(FormView):
         try:
             msg = user.send_message(self.request, "CPT_MIN_CHANGE_MAIL")
             if msg:
-                messages.error(request, _("Cannot send email : %s") % msg)
+                messages.error(self.request, _("Cannot send email : %s") % msg)
             else:
                 messages.warning(
                     self.request,
