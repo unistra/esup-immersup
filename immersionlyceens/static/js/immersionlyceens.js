@@ -67,11 +67,3 @@ function is_set(obj) {
 function formatDate(date, date_options = dates_options, date_locale = dates_locale) {
   return new Date(date).toLocaleString(date_locale, date_options)
 }
-
-/**
- * Attempt to create a dummy function just to modifiy a js static file
- */
-
-function helloWorld() {
-  console.log('Hello world!');
-}
