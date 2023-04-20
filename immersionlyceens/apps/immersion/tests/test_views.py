@@ -320,7 +320,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Account creation
         response = self.client.post('/shib/', data={'submit':1}, request=request, **header, follow=True)
-        self.assertIn("Account created. Please look at your emails for the activation procedure.",
+        self.assertIn("Account created. Please check your emails for the activation procedure.",
             response.content.decode('utf-8'))
 
         try:
@@ -420,7 +420,7 @@ class ImmersionViewsTestCase(TestCase):
         data['password2'] = "Is this password long enough ?"
 
         response = self.client.post('/immersion/register', data, follow=True)
-        self.assertIn("Account created. Please look at your emails for the activation procedure.",
+        self.assertIn("Account created. Please check your emails for the activation procedure.",
             response.content.decode('utf-8'))
 
         # Check some attributes
