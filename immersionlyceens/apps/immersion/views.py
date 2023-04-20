@@ -295,7 +295,7 @@ def register(request, profile=None):
             except Exception as e:
                 logger.exception("Cannot send activation message : %s", e)
 
-            messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
+            messages.success(request, _("Account created. Please check your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
         # Not used anymore using form.errors displaying instead
         # else:
