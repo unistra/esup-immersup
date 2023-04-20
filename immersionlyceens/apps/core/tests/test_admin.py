@@ -15,8 +15,8 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
 from ..admin import (
-    CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin,
-    PeriodAdmin, StructureAdmin, TrainingAdmin,
+    AttestationDocumentAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
+    EstablishmentAdmin, PeriodAdmin, StructureAdmin, TrainingAdmin,
 )
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CampusForm,
@@ -29,9 +29,9 @@ from ..admin_forms import (
     UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Campus, CancelType,
-    CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
+    Campus, CancelType, CourseType, CustomThemeFile, Establishment,
+    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
     ImmersupFile, InformationText, MailTemplate, MailTemplateVars, Period,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
@@ -2176,7 +2176,7 @@ class AdminFormsTestCase(TestCase):
         self.assertIn(err_message, form.errors['__all__'])
 
 
-def test_custom_theme_file_creation(self):
+    def test_custom_theme_file_creation(self):
         """
         Test custom theme file creation with group rights
         """
@@ -2219,3 +2219,28 @@ def test_custom_theme_file_creation(self):
         form = CustomThemeFileForm(data=data2, files=file3, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("A favicon already exists", form.errors["__all__"])
+
+
+    def test_attestation_document_admin(self):
+        adminsite = CustomAdminSite(name='Repositories')
+        attestation_admin = AttestationDocumentAdmin(admin_site=adminsite, model=AttestationDocument)
+
+        document = AttestationDocument.objects.create(label="Test", active=True)
+
+        # --------------------------------------
+        # As superuser, master establishment manager or operator
+        # --------------------------------------
+        for user in [self.superuser, self.ref_master_etab_user, self.operator_user]:
+            request.user = user
+            # All should be True
+            self.assertTrue(attestation_admin.has_add_permission(request=request))
+            self.assertTrue(attestation_admin.has_delete_permission(request=request, obj=document))
+            self.assertTrue(attestation_admin.has_change_permission(request=request, obj=document))
+
+        # Other users:
+        for user in [self.ref_etab_user, self.ref_lyc_user, self.ref_str_user]:
+            request.user = user
+            # All should be False
+            self.assertFalse(attestation_admin.has_add_permission(request=request))
+            self.assertFalse(attestation_admin.has_delete_permission(request=request, obj=document))
+            self.assertFalse(attestation_admin.has_change_permission(request=request, obj=document))

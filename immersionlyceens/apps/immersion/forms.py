@@ -8,8 +8,11 @@ from immersionlyceens.apps.core.models import (
     ImmersionUser, Period, PostBachelorLevel, StudentLevel,
 )
 
-from .models import HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota, \
-    VisitorRecord, VisitorRecordQuota
+from .models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordQuota, HighSchoolStudentRecordDocument,
+    StudentRecord, StudentRecordQuota, VisitorRecord, VisitorRecordDocument,
+    VisitorRecordQuota
+)
 
 
 class LoginForm(forms.Form):
@@ -210,6 +213,7 @@ class NewPassForm(UserCreationForm):
 
 class HighSchoolStudentRecordQuotaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         self.fields["record"].widget = forms.HiddenInput()
         self.fields["period"].widget = forms.HiddenInput()
@@ -233,6 +237,7 @@ class StudentRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
         model = StudentRecordQuota
         fields = ('record', 'period', 'allowed_immersions', 'id', )
 
+
 class VisitorRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
     """
     Same form as HighSchoolStudentRecordQuotaForm but for Visitors
@@ -240,6 +245,56 @@ class VisitorRecordQuotaForm(HighSchoolStudentRecordQuotaForm):
     class Meta:
         model = VisitorRecordQuota
         fields = ('record', 'period', 'allowed_immersions', 'id', )
+
+
+class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        self.attestation_label = None
+        self.attestation_template = None
+
+        self.fields["record"].widget = forms.HiddenInput()
+        self.fields["attestation"].widget = forms.HiddenInput()
+        self.fields["document"].widget.attrs["class"] = "form-control-file"
+
+        if self.instance and hasattr(self.instance, "attestation"):
+            self.validity_required = False
+            self.attestation_label = '%s' % self.instance.attestation
+            self.attestation_template = self.instance.attestation.template
+
+            # Validity date is only required for managers
+            conditions = [
+                not self.request.user.is_high_school_student(),
+                not self.request.user.is_visitor(),
+                self.instance.requires_validity_date
+            ]
+
+            if all(conditions):
+                self.validity_required = True
+                self.fields["validity_date"].required = True
+            else:
+                self.fields["validity_date"].widget = forms.HiddenInput()
+
+    class Meta:
+        model = HighSchoolStudentRecordDocument
+        fields = ('id', 'record', 'attestation', 'document', 'validity_date', )
+
+        widgets = {
+            'validity_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
+        }
+
+        localized_fields = ('validity_date',)
+
+
+class VisitorRecordDocumentForm(HighSchoolStudentRecordDocumentForm):
+    """
+    Reuse HighSchoolStudentRecordDocumentForm
+    """
+    class Meta:
+        model = VisitorRecordDocument
+        fields = ('id', 'record', 'attestation', 'document', 'validity_date', )
 
 
 class HighSchoolStudentRecordForm(forms.ModelForm):
@@ -278,26 +333,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
-
-        if self.request or is_hs_manager_or_master:
-            QuotaFormSet = forms.modelformset_factory(
-                HighSchoolStudentRecordQuota,
-                extra=0,
-                form=HighSchoolStudentRecordQuotaForm
-            )
-
-            self.quota_formset = QuotaFormSet(
-                queryset=HighSchoolStudentRecordQuota.objects
-                    .filter(record=self.instance)
-                    .order_by("period__immersion_start_date"),
-                initial=[
-                    quota for quota in HighSchoolStudentRecordQuota.objects.filter(record=self.instance)
-                ]
-            )
-        else:
-            if self.instance and self.instance.validation == 2:
-                for field in ["highschool", "birth_date", "class_name", "level"]:
-                    self.fields[field].disabled = True
 
 
     def clean(self):
@@ -385,22 +420,6 @@ class StudentRecordForm(forms.ModelForm):
             self.request.user.is_operator()
         ]
 
-        if self.request or not any(valid_users):
-            QuotaFormSet = forms.modelformset_factory(
-                StudentRecordQuota,
-                extra=0,
-                form=StudentRecordQuotaForm
-            )
-
-            self.quota_formset = QuotaFormSet(
-                queryset=StudentRecordQuota.objects
-                .filter(record=self.instance)
-                .order_by("period__immersion_start_date"),
-                initial=[
-                    quota for quota in StudentRecordQuota.objects.filter(record=self.instance)
-                ]
-            )
-
     class Meta:
         model = StudentRecord
         fields = ['birth_date', 'phone', 'uai_code', 'level', 'origin_bachelor_type', 'current_diploma',
@@ -434,7 +453,7 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
 class VisitorRecordForm(forms.ModelForm):
 
     validation_disabled_fields: Tuple[str, ...] = (
-        "birth_date", "motivation", "identity_document", "parental_auth_document", "civil_liability_insurance",
+        "birth_date", "motivation",
     )
 
     def has_change_permission(self):
@@ -452,8 +471,6 @@ class VisitorRecordForm(forms.ModelForm):
 
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
-        for field_name in ["identity_document", "civil_liability_insurance", "parental_auth_document"]:
-            self.fields[field_name].widget.attrs["class"] = "form-control-file"
 
         is_hs_manager_or_master: bool = self.has_change_permission()
         self.fields["visitor"].widget = forms.HiddenInput()
@@ -465,27 +482,10 @@ class VisitorRecordForm(forms.ModelForm):
         if is_hs_manager_or_master:
             self.fields["birth_date"].disabled = False
 
-        if self.request or is_hs_manager_or_master:
-            QuotaFormSet = forms.modelformset_factory(
-                VisitorRecordQuota,
-                extra=0,
-                form=VisitorRecordQuotaForm
-            )
 
-            self.quota_formset = QuotaFormSet(
-                queryset=VisitorRecordQuota.objects
-                .filter(record=self.instance)
-                .order_by("period__immersion_start_date"),
-                initial=[
-                    quota for quota in VisitorRecordQuota.objects.filter(record=self.instance)
-                ]
-            )
     class Meta:
         model = VisitorRecord
-        fields = [
-            'id', 'birth_date', 'phone', 'visitor', 'motivation', 'identity_document', 'civil_liability_insurance',
-            'parental_auth_document'
-        ]
+        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

@@ -21,9 +21,9 @@ from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Course, Establishment, FaqEntry,HighSchool, ImmersupFile,
-    InformationText, Period, PublicDocument, PublicType, Slot, Training,
-    TrainingSubdomain, UserCourseAlert, Visit,
+    AccompanyingDocument, AttestationDocument, Course, Establishment,
+    FaqEntry, HighSchool, ImmersupFile, InformationText, Period, PublicDocument,
+    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
@@ -196,6 +196,20 @@ def serve_public_document(request, public_document_id):
             return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
         else:
             return redirect(doc.document.url)
+
+    except Exception:
+        return HttpResponseNotFound()
+
+
+def serve_attestation_document(request, attestation_document_id):
+    """Serve attestation documents files"""
+    try:
+        doc = get_object_or_404(AttestationDocument, pk=attestation_document_id)
+        if isinstance(default_storage, S3Boto3Storage):
+            response = requests.get(doc.template.url, stream=True)
+            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
+        else:
+            return redirect(doc.template.url)
 
     except Exception:
         return HttpResponseNotFound()

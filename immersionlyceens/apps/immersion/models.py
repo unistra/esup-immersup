@@ -32,6 +32,7 @@ class HighSchoolStudentRecord(models.Model):
     )
 
     VALIDATION_STATUS = [
+        (0, _('To complete')),
         (1, _('To validate')),
         (2, _('Validated')),
         (3, _('Rejected'))
@@ -107,6 +108,11 @@ class HighSchoolStudentRecord(models.Model):
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 
+    attestation_documents = models.ManyToManyField(
+        core_models.AttestationDocument,
+        through="HighSchoolStudentRecordDocument"
+    )
+
     visible_immersion_registrations = models.BooleanField(
         _("Allow students from my school to see my registrations"), default=False)
 
@@ -118,7 +124,7 @@ class HighSchoolStudentRecord(models.Model):
 
     allowed_immersions = models.ManyToManyField(Period, through='HighSchoolStudentRecordQuota')
 
-    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+    validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
 
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
     solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
@@ -337,6 +343,7 @@ class VisitorRecord(models.Model):
     Visitor record class, linked to ImmersionUsers accounts
     """
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
+        (0, _('To complete')),
         (1, _('To validate')),
         (2, _('Validated')),
         (3, _('Rejected'))
@@ -354,52 +361,18 @@ class VisitorRecord(models.Model):
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     motivation = models.TextField(_("Motivation"), null=False, blank=False)
-    identity_document = models.FileField(
-        _("Identity document"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
+
+    attestation_documents = models.ManyToManyField(
+        core_models.AttestationDocument,
+        through="VisitorRecordDocument"
     )
-    parental_auth_document = models.FileField(
-        _("Parental authorization"),
-        upload_to=get_file_path,
-        blank=True,
-        null=True,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-    civil_liability_insurance = models.FileField(
-        _("Civil liability insurance"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+
+    validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
     allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
 
     creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
-
-    def delete(self, using=None, keep_parents=False):
-        """Delete the visitor record and attachments"""
-        self.identity_document.storage.delete(self.identity_document.name)
-        self.civil_liability_insurance.storage.delete(self.civil_liability_insurance.name)
-        super().delete(using, keep_parents)
-
 
     def is_valid(self):
         return self.validation == 2
@@ -482,5 +455,100 @@ class VisitorRecordQuota(models.Model):
                 fields=['record', 'period'],
                 deferrable=models.Deferrable.IMMEDIATE,
                 name='unique_visitor_record_period'
+            )
+        ]
+
+class HighSchoolStudentRecordDocument(models.Model):
+    """
+    M2M 'through' relation between high school student records and attestation documents
+    """
+    created = models.DateTimeField(_("Creation date"), auto_now_add=True)
+    last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
+    record = models.ForeignKey(HighSchoolStudentRecord, related_name="attestation", on_delete=models.CASCADE)
+    attestation = models.ForeignKey(core_models.AttestationDocument, on_delete=models.CASCADE)
+    document = models.FileField(
+        _("Document"),
+        upload_to=get_file_path,
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
+    validity_date = models.DateField(_("Valid until"), blank=True, null=True)
+
+    # The following fields are copied from AttestationDocument object on creation,
+    # and are not meant to be updated then
+    for_minors = models.BooleanField(_("For minors"), default=True)
+    mandatory = models.BooleanField(_("Mandatory"), default=True)
+    requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
+
+
+    def __str__(self):
+        return f"{self.record} / {self.attestation}"
+
+    class Meta:
+        verbose_name = _('High school student record / Attestation document')
+        verbose_name_plural = _('High school student record / Attestation documents')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['record', 'attestation'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_high_school_student_record_document'
+            )
+        ]
+
+
+class VisitorRecordDocument(models.Model):
+    """
+    M2M 'through' relation between visitor records and attestation documents
+    """
+    created = models.DateTimeField(_("Creation date"), auto_now_add=True)
+    last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
+    record = models.ForeignKey(VisitorRecord, related_name="attestation", on_delete=models.CASCADE)
+    attestation = models.ForeignKey(core_models.AttestationDocument, on_delete=models.CASCADE)
+    document = models.FileField(
+        _("Document"),
+        upload_to=get_file_path,
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
+    validity_date = models.DateField(_("Valid until"), blank=True, null=True)
+
+    # The following fields are copied from AttestationDocument object on creation,
+    # and are not meant to be updated then
+    for_minors = models.BooleanField(_("For minors"), default=True)
+    mandatory = models.BooleanField(_("Mandatory"), default=True)
+    requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
+
+
+    def __str__(self):
+        return f"{self.record} / {self.attestation}"
+
+    def delete(self, *args, **kwargs):
+        try:
+            self.document.storage.delete(self.document.name)
+        except Exception as e:
+            # no file to delete
+            pass
+
+        return super().delete(*args, **kwargs)
+
+
+    class Meta:
+        verbose_name = _('Visitor record / Attestation document')
+        verbose_name_plural = _('Visitor record / Attestation documents')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['record', 'attestation'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_visitor_record_document'
             )
         ]

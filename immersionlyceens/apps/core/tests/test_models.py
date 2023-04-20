@@ -11,7 +11,7 @@ from immersionlyceens.apps.immersion.models import (
 )
 
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Campus,
+    AccompanyingDocument, AttestationDocument, BachelorMention, Building, Campus,
     CancelType, Course, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
@@ -734,3 +734,27 @@ class CustomThemeFileTestCase(TestCase):
         }
         c = CustomThemeFile.objects.create(**data)
         self.assertEqual(str(c), "file : %s (%s)" % (c.file.name, c.type))
+
+
+class AttestationDocumentTestCase(TestCase):
+    def test_attestation_creation(self):
+        attestation = AttestationDocument.objects.create(
+            label='Test',
+            active=True
+        )
+
+        attestation2 = AttestationDocument.objects.create(
+            label='Test 2',
+            active=True
+        )
+
+        # Default values
+        self.assertTrue(attestation.active)
+        self.assertTrue(attestation.for_minors)
+        self.assertTrue(attestation.mandatory)
+        self.assertTrue(attestation.requires_validity_date)
+        self.assertEqual(attestation.order, 1) # Careful with this value if we add fixtures
+
+        # Order increase
+        self.assertEqual(attestation2.order, 2)
+

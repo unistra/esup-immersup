@@ -109,9 +109,8 @@
         {% trans "Immersions periods" %}
       </div>
       <div class="card-body">
-        {% if record_form.quota_formset and not request.user.is_student %}
-          {{ record_form.quota_formset.management_form }}
-          {% for quota_form in record_form.quota_formset %}
+        {% if quota_forms|length and not request.user.is_student %}
+          {% for quota_form in quota_forms %}
             {{ quota_form.id }}
             {{ quota_form.record }}
             {{ quota_form.period }}

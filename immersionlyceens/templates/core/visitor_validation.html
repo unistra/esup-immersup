@@ -154,39 +154,22 @@ var date_options = { dateStyle: 'long', timeStyle: 'medium' };
 var birth_date_options = { dateStyle: 'short' };
 
 $(document).ready(function () {
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
     $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-            }
+      beforeSend: function(xhr, settings) {
+        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+          xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
         }
+      }
     });
 
 
     $('#id_high_school').change(function(event){
-        let value = $(event.target).val();
-        if (value)
-        {
-            reload_to_validate();
-            reload_validate();
-            reload_rejected();
-        }
+      let value = $(event.target).val();
+      if (value) {
+        reload_to_validate();
+        reload_validate();
+        reload_rejected();
+      }
     });
 
     vdialog = $("#vdialog-form").dialog({
@@ -258,36 +241,40 @@ $(document).ready(function () {
                 type: "GET",
                 url: "{% url 'visitors_records' 'to_validate' %}",
                 dataSrc: function(json) {
-                    if (json['data'] != undefined) {
-                        return json['data'];
-                    }
+                  if (json['data'] !== undefined) {
+                    return json['data'];
+                  }
                 },
             },
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, type, row) {
-                    let elem = '<a href="/immersion/visitor_record/' + row['id'] + '">' + data + '</a>';
-                    return elem;
-                }},
-                {data: 'last_name',},
-                {data: 'birth_date', render: function(data) {
-                        return data ? formatDate(data, birth_date_options) : "";
-                    }
-                },
-                {data: 'creation_date', render: function(data) {
-                        return data ? formatDate(data, date_options) : "";
-                    }
-                },
-                {data: 'id', render: function(data) {
-                        let element = '';
-                        element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
-                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
-                        element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
-                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
-                        return element;
-                    }
-                },
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/immersion/visitor_record/${row['id']}">${data}</a>`;
+                }
+              },
+              { data: 'user_last_name', },
+              { data: 'birth_date',
+                render: function(data) {
+                  return data ? formatDate(data, birth_date_options) : "";
+                }
+              },
+              { data: 'creation_date',
+                render: function(data) {
+                  return data ? formatDate(data, date_options) : "";
+                }
+              },
+              { data: 'id',
+                  render: function(data) {
+                  let element = '';
+                  element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
+                             'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                  element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                             'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
+                  return element;
+                }
+              },
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -320,24 +307,28 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, type, row) {
-                    let elem = '<a href="/immersion/visitor_record/' + row['id'] + '">' + data + '</a>';
-                    return elem;
-                }},
-                {data: 'last_name',},
-                {data: 'birth_date', render: function(data) {
-                        return data ? formatDate(data, birth_date_options) : "";
-                    }
-                },
-                {data: 'validation_date', render: function(data) {
-                        return data ? formatDate(data, date_options) : "";
-                    }
-                },
-                {data: 'id', render: function(data) {
-                        return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
-                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
-                    }
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/immersion/visitor_record/${row['id']}">${data}</a>`;
                 }
+              },
+              { data: 'user_last_name', },
+              { data: 'birth_date',
+                render: function(data) {
+                  return data ? formatDate(data, birth_date_options) : "";
+                }
+              },
+              { data: 'validation_date',
+                render: function(data) {
+                  return data ? formatDate(data, date_options) : "";
+                }
+              },
+              { data: 'id',
+                render: function(data) {
+                  return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                         'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
+                }
+              }
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -369,24 +360,28 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, type, row) {
-                    let elem = '<a href="/immersion/visitor_record/' + row['id'] + '">' + data + '</a>';
-                    return elem;
-                }},
-                {data: 'last_name',},
-                {data: 'birth_date', render: function(data) {
-                        return data ? formatDate(data, birth_date_options) : "";
-                    }
-                },
-                {data: 'creation_date', render: function(data) {
-                        return data ? formatDate(data, date_options) : "";
-                    }
-                },
-                {data: 'id', render: function(data) {
-                        return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
-                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
-                    }
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/immersion/visitor_record/${row['id']}">${data}</a>`;
                 }
+              },
+              { data: 'user_last_name', },
+              { data: 'birth_date',
+                render: function(data) {
+                  return data ? formatDate(data, birth_date_options) : "";
+                }
+              },
+              { data: 'creation_date',
+                render: function(data) {
+                  return data ? formatDate(data, date_options) : "";
+                }
+              },
+              { data: 'id',
+                render: function(data) {
+                  return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
+                         'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                }
+              }
             ],
             columnDefs: [{
                 defaultContent: '',

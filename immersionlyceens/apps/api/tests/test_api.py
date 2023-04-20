@@ -550,7 +550,8 @@ class APITestCase(TestCase):
         )
         self.visitor_record = VisitorRecord.objects.create(
             visitor=self.visitor,
-            birth_date=datetime.today()
+            birth_date=datetime.today(),
+            validation=1,
         )
 
         self.slot4 = Slot.objects.create(
@@ -931,17 +932,17 @@ class APITestCase(TestCase):
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 1)
 
         hs_record = content['data'][0]
         self.assertEqual(hs_record['id'], self.hs_record.id)
-        self.assertEqual(hs_record['first_name'], self.hs_record.student.first_name)
-        self.assertEqual(hs_record['last_name'], self.hs_record.student.last_name)
-        self.assertEqual(hs_record['level'], self.hs_record.level.label)
+        self.assertEqual(hs_record['user_first_name'], self.hs_record.student.first_name)
+        self.assertEqual(hs_record['user_last_name'], self.hs_record.student.last_name)
+        self.assertEqual(hs_record['record_level'], self.hs_record.level.label)
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
 
         # Validated
-        self.hs_record.validation = 2  # validate
+        self.hs_record.validation = 2  # valid
         self.hs_record.save()
         data = {
             'action': 'VALIDATED',
@@ -3680,8 +3681,7 @@ class APITestCase(TestCase):
         self.assertIn("data", content)
         self.assertIn("msg", content)
         self.assertIsNone(content["data"])
-        self.assertIsInstance(content["msg"], str)
-        self.assertGreater(len(content["msg"]), 0)
+        self.assertEqual(content["msg"], "No operator given or wrong operator (to_validate, validated, rejected)")
 
     def test_API__get_visitor_records__to_validate(self):
         url = "/api/visitor/records/to_validate"
@@ -3692,19 +3692,15 @@ class APITestCase(TestCase):
         self.assertIn("data", content)
         self.assertIn("msg", content)
 
-        self.assertIsInstance(content["msg"], str)
-        self.assertEqual(len(content["msg"]), 0)
+        self.assertEqual(content["msg"], "")
 
         self.assertIsInstance(content["data"], list)
         data = content["data"]
         self.assertEqual(len(data), 1)
-        self.assertIsInstance(data[0], dict)
-        for field_name in ("id", "first_name", "last_name", "birth_date"):
-            self.assertIn(field_name, data[0])
 
         self.assertEqual(data[0]["id"], self.visitor_record.id)
-        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
-        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["user_first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["user_last_name"], self.visitor.last_name)
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
     def test_API__get_visitor_records__validated(self):
@@ -3718,19 +3714,15 @@ class APITestCase(TestCase):
         self.assertIn("data", content)
         self.assertIn("msg", content)
 
-        self.assertIsInstance(content["msg"], str)
-        self.assertEqual(len(content["msg"]), 0)
+        self.assertEqual(content["msg"], "")
 
         self.assertIsInstance(content["data"], list)
         data = content["data"]
         self.assertEqual(len(data), 1)
-        self.assertIsInstance(data[0], dict)
-        for field_name in ("id", "first_name", "last_name", "birth_date"):
-            self.assertIn(field_name, data[0])
 
         self.assertEqual(data[0]["id"], self.visitor_record.id)
-        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
-        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["user_first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["user_last_name"], self.visitor.last_name)
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
     def test_API__get_visitor_records__rejected(self):
@@ -3744,19 +3736,14 @@ class APITestCase(TestCase):
         self.assertIn("data", content)
         self.assertIn("msg", content)
 
-        self.assertIsInstance(content["msg"], str)
-        self.assertEqual(len(content["msg"]), 0)
-
+        self.assertEqual(content["msg"], "")
         self.assertIsInstance(content["data"], list)
         data = content["data"]
         self.assertEqual(len(data), 1)
-        self.assertIsInstance(data[0], dict)
-        for field_name in ("id", "first_name", "last_name", "birth_date"):
-            self.assertIn(field_name, data[0])
 
         self.assertEqual(data[0]["id"], self.visitor_record.id)
-        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
-        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["user_first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["user_last_name"], self.visitor.last_name)
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
     def test_API_visitor_record_operation__wrong_operation(self):
@@ -3770,7 +3757,7 @@ class APITestCase(TestCase):
         self.assertIn("msg", content)
         self.assertIn("data", content)
         self.assertIsNone(content["data"])
-        self.assertGreater(len(content["msg"]), 0)
+        self.assertEqual(content["msg"], "Error - Bad operation selected. Allowed: validate, reject")
 
         # no change
         record = VisitorRecord.objects.get(id=self.visitor_record.id)
@@ -3787,9 +3774,8 @@ class APITestCase(TestCase):
         self.assertIn("msg", content)
         self.assertIn("data", content)
         self.assertIsInstance(content["data"], dict)
-        self.assertEqual(len(content["msg"]), 0)
+        self.assertEqual(content["msg"], "")
 
-        self.assertIn("record_id", content["data"])
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
         # value changed
@@ -3807,9 +3793,8 @@ class APITestCase(TestCase):
         self.assertIn("msg", content)
         self.assertIn("data", content)
         self.assertIsInstance(content["data"], dict)
-        self.assertEqual(len(content["msg"]), 0)
+        self.assertEqual(content["msg"], "")
 
-        self.assertIn("record_id", content["data"])
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
         # value changed

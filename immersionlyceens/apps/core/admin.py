@@ -17,29 +17,31 @@ from django_summernote.admin import SummernoteModelAdmin
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
 
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, VisitorRecordDocument,
+)
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CampusForm,
-    CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
-    CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, FaqEntryAdminForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
-    HighSchoolLevelForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
-    MailTemplateForm, OffOfferEventTypeForm, PeriodForm, PostBachelorLevelForm,
-    PublicDocumentForm, PublicTypeForm, StructureForm, StudentLevelForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, AttestationDocumentForm,
+    BachelorMentionForm, BuildingForm, CampusForm, CancelTypeForm,
+    CertificateLogoForm, CertificateSignatureForm, CourseTypeForm,
+    CustomThemeFileForm, EstablishmentForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, FaqEntryAdminForm, GeneralBachelorTeachingForm,
+    GeneralSettingsForm, HighSchoolForm, HighSchoolLevelForm, HolidayForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
+    InformationTextForm, MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
+    PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
+    StructureForm, StudentLevelForm, TrainingDomainForm, TrainingForm,
+    TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, BachelorMention, Building, Campus,
-    CancelType, CertificateLogo, CertificateSignature, Course, CourseType,
-    CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
+    AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
+    Building, Campus, CancelType, CertificateLogo, CertificateSignature, Course,
+    CourseType, CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
     FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, Period,
-    PostBachelorLevel, PublicDocument, PublicType, Slot, Structure,
+    PostBachelorLevel, Profile, PublicDocument, PublicType, Slot, Structure,
     StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
     Vacation,
 )
@@ -530,6 +532,28 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             'js/immersion_user.min.js',
         )
         css = {'all': ('css/immersionlyceens.min.css',)}
+
+
+class ProfileAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ProfileForm
+    list_display = ('code', 'label', 'active')
+    list_filter = ('active',)
+    ordering = ('label',)
+    search_fields = ('label',)
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_delete_permission(self, request, obj=None):
+        if AttestationDocument.objects.filter(profiles=obj).exists():
+            messages.warning(request, _("This profile can't be deleted because it is used by an attestation document"))
+            return False
+
+        return request.user.is_superuser or request.user.is_operator()
+
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1625,6 +1649,55 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
+class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
+    form = AttestationDocumentForm
+    search_fields = ('label',)
+    list_filter = ('active', 'mandatory', 'for_minors', 'requires_validity_date')
+    list_display = ('label', 'order', 'profile_list', 'file_url', 'active', 'mandatory', 'for_minors',
+                    'requires_validity_date')
+    list_display_links = ('label', )
+    filter_horizontal = ('profiles',)
+    ordering = ('order',)
+    sortable_by = ('order',)
+
+    def changelist_view(self, request, extra_context=None):
+        # access the request object when in the list view
+        self.request = request
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def profile_list(self, obj):
+        return format_html("<br>".join([p.code for p in obj.profiles.all()]))
+
+    def file_url(self, obj):
+        if obj.template:
+            url = self.request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
+            return format_html(f'<a href="{url}">{url}</a>')
+
+        return ""
+
+    profile_list.short_description = _('Profiles')
+    file_url.short_description = _('Address')
+
+    def has_add_permission(self, request):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
+
+    def has_delete_permission(self, request, obj=None):
+        hs_records = HighSchoolStudentRecordDocument.objects.filter(attestation=obj)
+        visitor_records = VisitorRecordDocument.objects.filter(attestation=obj)
+
+        if hs_records.exists() or visitor_records.exists():
+            messages.warning(request, _("This attestation can't be deleted because it is used by some records"))
+            return False
+
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
+
+
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label', 'active')
@@ -2132,6 +2205,7 @@ admin.site.register(TokenProxy, TokenCustomAdmin)
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
@@ -2153,6 +2227,7 @@ admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
+admin.site.register(AttestationDocument, AttestationDocumentAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)

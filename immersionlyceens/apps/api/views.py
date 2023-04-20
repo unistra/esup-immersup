@@ -628,35 +628,33 @@ def ajax_get_student_records(request):
     response = {'data': [], 'msg': ''}
 
     # @@@
-    action = request.POST.get('action')
+    action = request.POST.get('action', '').upper()
     hs_id = request.POST.get('high_school_id')
-    actions = ['TO_VALIDATE', 'VALIDATED', 'REJECTED']
+    actions = {
+        'TO_VALIDATE': 1,
+        'VALIDATED': 2,
+        'REJECTED': 3
+    }
 
-    if action and action.upper() in actions:
-        if hs_id:
-            action = action.upper()
-            records = []
-            if action == 'TO_VALIDATE':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=1,)  # TO VALIDATE
-            elif action == 'VALIDATED':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=2,)  # VALIDATED
-            elif action == 'REJECTED':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3,)  # REJECTED
-
-            response['data'] = [{
-                'id': record.id,
-                'first_name': record.student.first_name,
-                'last_name': record.student.last_name,
-                'birth_date': record.birth_date,
-                'level': record.level.label if record.level else None,
-                'class_name': record.class_name,
-                'creation_date': record.creation_date,
-                'validation_date': record.validation_date,
-            } for record in records.order_by('student__last_name', 'student__first_name')]
-        else:
-            response['msg'] = gettext("Error: No high school selected")
-    else:
+    if not action in actions.keys():
         response['msg'] = gettext("Error: No action selected for AJAX request")
+        return JsonResponse(response, safe=False)
+
+    if not hs_id:
+        response['msg'] = gettext("Error: No high school selected")
+        return JsonResponse(response, safe=False)
+
+    records = HighSchoolStudentRecord.objects.filter(
+        highschool_id=hs_id,
+        validation=actions[action]
+    ).annotate(
+        user_first_name=F("student__first_name"),
+        user_last_name=F("student__last_name"),
+        record_level=F("level__label"),
+    ).values("id", "user_first_name", "user_last_name", "birth_date", "record_level",
+             "class_name", "creation_date", "rejected_date")
+
+    response['data'] = list(records)
 
     return JsonResponse(response, safe=False)
 
@@ -4116,29 +4114,27 @@ class VisitorRecordValidation(View):
     def get(self, request, *args, **kwargs):
         data: Dict[str, Any] = {"msg": "", "data": None}
 
-        operation: str = kwargs['operator']
+        operation: str = kwargs.get('operator', '').upper()
         visitor_records: Optional[QuerySet] = None
 
-        if operation == "to_validate":
-            visitor_records = VisitorRecord.objects.filter(validation=1)
-        elif operation == "validated":
-            visitor_records = VisitorRecord.objects.filter(validation=2)
-        elif operation == "rejected":
-            visitor_records = VisitorRecord.objects.filter(validation=3)
+        operations = {
+            'TO_VALIDATE': 1,
+            'VALIDATED': 2,
+            'REJECTED': 3
+        }
 
-        if visitor_records is not None:
-            data["data"] = []
-            for record in visitor_records:
-                data["data"].append({
-                    "id": record.id,
-                    "first_name": record.visitor.first_name,
-                    "last_name": record.visitor.last_name,
-                    "birth_date": record.birth_date,
-                    "creation_date": record.creation_date,
-                    "rejected_date": record.rejected_date
-                })
-        else:
+        if not operations.get(operation, None):
             data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")
+            return JsonResponse(data)
+
+        records = VisitorRecord.objects.filter(
+            validation=operations[operation]
+        ).annotate(
+            user_first_name=F("visitor__first_name"),
+            user_last_name=F("visitor__last_name"),
+        ).values("id", "user_first_name", "user_last_name", "birth_date", "creation_date", "rejected_date")
+
+        data['data'] = list(records)
 
         return JsonResponse(data)
 
@@ -4148,7 +4144,7 @@ class VisitorRecordRejectValidate(View):
     def post(self, request, *args, **kwargs):
         data: Dict[str, Any] = {"msg": "", "data": None}
 
-        # cant be none. No routes allowed for that
+        # can't be none. No routes allowed for that
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
         validation_value: int = 1
@@ -4168,17 +4164,15 @@ class VisitorRecordRejectValidate(View):
 
         try:
             record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+
+            if delete_attachments:
+                for attestation in record.attestation.all():
+                    attestation.delete()
+
         except VisitorRecord.DoesNotExist:
             data["msg"] = f"Error - No record with id: {record_id}."
             return JsonResponse(data)
 
-        if delete_attachments:
-            try:
-                record.identity_document.storage.delete(record.identity_document.name)
-                record.identity_document.delete()
-            except Exception as e:
-                # no document to delete
-                pass
         record.validation = validation_value
         record.save()
         record.visitor.send_message(self.request, validation_email_template)

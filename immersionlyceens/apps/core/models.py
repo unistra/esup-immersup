@@ -830,6 +830,24 @@ class PendingUserGroup(models.Model):
         ordering = ['pk', ]
 
 
+class Profile(models.Model):
+    """
+    User profiles
+    Has to be more precise than just groups
+    """
+    code = models.CharField(_("Code"), max_length=20, unique=True)
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self):
+        return f"{self.code} : {self.label}"
+
+    class Meta:
+        verbose_name = _('User profile')
+        verbose_name_plural = _('User profiles')
+        ordering = ['label', ]
+
+
 class TrainingDomain(models.Model):
     """
     Training domain class
@@ -2154,6 +2172,64 @@ class PublicDocument(models.Model):
         verbose_name = _('Public document')
         verbose_name_plural = _('Public documents')
         ordering = ['label', ]
+
+
+class AttestationDocument(models.Model):
+    """
+    AttestationDocument class
+    Documents users have to provide on their records
+    """
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True, unique=True,
+        default=partial(get_object_default_order, 'AttestationDocument')
+    )
+    for_minors = models.BooleanField(_("For minors"), default=True)
+    mandatory = models.BooleanField(_("Mandatory"), default=True)
+    requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
+    template = models.FileField(
+        _("Template"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
+
+    profiles = models.ManyToManyField(
+        Profile,
+        verbose_name=_("Profiles"),
+        related_name='attestations',
+        blank=True,
+        limit_choices_to={'code__in': ["LYC_W_CONV", "LYC_WO_CONV", "VIS"]}
+    )
+
+    objects = models.Manager() # default manager
+    activated = ActiveManager() # manager for active elements only
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('An attestation with this label already exists'))
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from document Filefield"""
+        self.template.storage.delete(self.template.name)
+        super().delete()
+
+    class Meta:
+        verbose_name = _('Attestation document')
+        verbose_name_plural = _('Attestation documents')
+        ordering = ['order', ]
 
 
 class EvaluationType(models.Model):

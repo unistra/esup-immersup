@@ -11,8 +11,8 @@ from .apps.core import views as core_views
 from .views import (
     accompanying, affiliated_highschools, charter_not_signed, faq, home,
     host_establishments, offer, offer_off_offer_events, offer_subdomain,
-    procedure, serve_accompanying_document, serve_immersup_file,
-    serve_public_document, visits_offer,
+    procedure, serve_accompanying_document, serve_attestation_document,
+    serve_immersup_file, serve_public_document, visits_offer,
 )
 
 admin.autodiscover()
@@ -34,6 +34,7 @@ urlpatterns = [
     path('core/', include('immersionlyceens.apps.core.urls')),
     path('dl/accdoc/<int:accompanying_document_id>', serve_accompanying_document, name='accompanying_document',),
     path('dl/pubdoc/<int:public_document_id>', serve_public_document, name='public_document',),
+    path('dl/attestation/<int:attestation_document_id>', serve_attestation_document, name='attestation_document',),
     path('dl/immersupfile/<str:file_code>', serve_immersup_file, name='immersup_file',),
     path('faq', faq, name='faq'),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
