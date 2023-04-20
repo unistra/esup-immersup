@@ -184,10 +184,12 @@ def shibbolethLogin(request, profile=None):
 
         try:
             msg = new_user.send_message(request, 'CPT_MIN_CREATE')
+            if msg:
+                messages.error(request, _("Cannot send email : %s") % msg)
         except Exception as e:
             logger.exception("Cannot send activation message : %s", e)
 
-        messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
+        messages.success(request, _("Account created. Please check your emails for the activation procedure."))
         return HttpResponseRedirect("/")
 
 
@@ -1009,9 +1011,13 @@ def student_record(request, student_id=None, record_id=None):
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
-                    messages.warning(
-                        request, _("""You have updated the email.""" """<br>A new activation email has been sent.""")
-                    )
+                    if msg:
+                        messages.error(request, _("Cannot send email : %s") % msg)
+                    else:
+                        messages.warning(
+                            request,
+                            _("""You have updated the email.""" """<br>A new activation email has been sent.""")
+                        )
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
 
@@ -1385,14 +1391,17 @@ class VisitorRecordView(FormView):
 
         try:
             msg = user.send_message(self.request, "CPT_MIN_CHANGE_MAIL")
-            messages.warning(
-                self.request,
-                _(
-                    """You have updated the email."""
-                    """<br>Warning : the new email is also the new login."""
-                    """<br>A new activation email has been sent."""
-                ),
-            )
+            if msg:
+                messages.error(request, _("Cannot send email : %s") % msg)
+            else:
+                messages.warning(
+                    self.request,
+                    _(
+                        """You have updated the email."""
+                        """<br>Warning : the new email is also the new login."""
+                        """<br>A new activation email has been sent."""
+                    ),
+                )
         except Exception as exc:
             logger.exception("Cannot send 'change mail' message : %s", exc)
 
