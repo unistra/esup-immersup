@@ -20,16 +20,16 @@ from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Campus, CancelType, Course, CourseType,
-    Establishment, GeneralSettings, HigherEducationInstitution, HighSchool,
-    HighSchoolLevel, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
-    OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel, Slot,
-    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    AccompanyingDocument, AttestationDocument, Building, Campus, CancelType,
+    Course, CourseType, Establishment, GeneralSettings, HigherEducationInstitution,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
+    MailTemplateVars, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
+    Profile, Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
     UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, HighSchoolStudentRecordQuota, StudentRecord,
-    VisitorRecord,
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, HighSchoolStudentRecordQuota,
+    StudentRecord, VisitorRecord, VisitorRecordDocument, VisitorRecordQuota
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -363,6 +363,29 @@ class APITestCase(TestCase):
         cls.campus = Campus.objects.create(label='Esplanade', establishment=cls.establishment)
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
+
+        # Attestations
+        cls.attestation_1 = AttestationDocument.objects.create(
+            label='Test label',
+            mandatory=True,
+            active=True,
+            for_minors=True,
+            requires_validity_date=True
+        )
+
+        cls.attestation_1.profiles.add(Profile.objects.get(code='LYC_W_CONV'))
+        cls.attestation_1.profiles.add(Profile.objects.get(code='LYC_WO_CONV'))
+        cls.attestation_1.profiles.add(Profile.objects.get(code='VIS'))
+
+        cls.attestation_2 = AttestationDocument.objects.create(
+            label='Test label 2',
+            mandatory=True,
+            active=True,
+            for_minors=False,
+            requires_validity_date=True
+        )
+
+        cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
 
     def setUp(self):
         self.client = Client()
@@ -924,6 +947,25 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "Error: No high school selected")
 
         # To validate - With high school id
+        # Add some attestations to the record, to check invalid_dates
+        HighSchoolStudentRecordDocument.objects.create(
+            record=self.hs_record,
+            attestation=self.attestation_1,
+            validity_date=None,
+            for_minors=self.attestation_1.for_minors,
+            mandatory=self.attestation_1.mandatory,
+            requires_validity_date=self.attestation_1.requires_validity_date,
+        )
+
+        HighSchoolStudentRecordDocument.objects.create(
+            record=self.hs_record,
+            attestation=self.attestation_2,
+            validity_date=None,
+            for_minors=self.attestation_2.for_minors,
+            mandatory=self.attestation_2.mandatory,
+            requires_validity_date=self.attestation_2.requires_validity_date,
+        )
+
         self.hs_record.validation = 1  # to validate
         self.hs_record.save()
         data = {
@@ -940,6 +982,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['user_last_name'], self.hs_record.student.last_name)
         self.assertEqual(hs_record['record_level'], self.hs_record.level.label)
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
+        self.assertEqual(hs_record['invalid_dates'], 2)
 
         # Validated
         self.hs_record.validation = 2  # valid
@@ -1022,12 +1065,32 @@ class APITestCase(TestCase):
     def test_API_ajax_get_validate_student__ok(self):
         self.hs_record.validation = 1  # TO_VALIDATE
         self.hs_record.save()
-        self.client.login(username='ref_etab', password='pass')
+        self.client.login(username=self.ref_etab_user.username, password='pass')
         url = "/api/validate_student/"
 
         data = {
             'student_record_id': self.hs_record.id
         }
+
+        # Fail : missing attestation date
+        document = HighSchoolStudentRecordDocument.objects.create(
+            record=self.hs_record,
+            attestation=self.attestation_1,
+            validity_date=None,
+            for_minors=self.attestation_1.for_minors,
+            mandatory=self.attestation_1.mandatory,
+            requires_validity_date=self.attestation_1.requires_validity_date,
+        )
+        response = self.client.post(url, data, **self.header)
+
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "Error: record has missing or invalid attestation dates")
+        self.hs_record.refresh_from_db()
+        self.assertEqual(self.hs_record.validation, 1)
+
+        # delete document and retry : Success
+        document.delete()
+
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
 
@@ -3685,6 +3748,17 @@ class APITestCase(TestCase):
 
     def test_API__get_visitor_records__to_validate(self):
         url = "/api/visitor/records/to_validate"
+
+        # Add empty attestations to check 'invalid_dates'
+        VisitorRecordDocument.objects.create(
+            record=self.visitor_record,
+            attestation=self.attestation_2,
+            validity_date=None,
+            for_minors=self.attestation_2.for_minors,
+            mandatory=self.attestation_2.mandatory,
+            requires_validity_date=self.attestation_2.requires_validity_date,
+        )
+
         response = self.client.get(url)
         content = json.loads(response.content.decode("utf-8"))
 
@@ -3701,7 +3775,9 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["user_first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["user_last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["invalid_dates"], 1)
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+
 
     def test_API__get_visitor_records__validated(self):
         self.visitor_record.validation = 2
@@ -3767,6 +3843,28 @@ class APITestCase(TestCase):
         client = Client()
         client.login(username='ref_master_etab', password='pass')
         url = f"/api/visitor/record/{self.visitor_record.id}/validate"
+
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, 1)
+
+        # Fail : missing attestation date
+        document = VisitorRecordDocument.objects.create(
+            record=self.visitor_record,
+            attestation=self.attestation_2,
+            validity_date=None,
+            for_minors=self.attestation_2.for_minors,
+            mandatory=self.attestation_2.mandatory,
+            requires_validity_date=self.attestation_2.requires_validity_date,
+        )
+        response = client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "Error: record has missing or invalid attestation dates")
+        record.refresh_from_db()
+        self.assertEqual(record.validation, 1)
+
+        # delete document and retry : Success
+        document.delete()
+
         response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
 
@@ -3779,7 +3877,7 @@ class APITestCase(TestCase):
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
         # value changed
-        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        record.refresh_from_db()
         self.assertEqual(record.validation, 2)
 
     def test_API_visitor_record_operation__reject(self):

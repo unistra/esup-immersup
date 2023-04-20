@@ -20,7 +20,7 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import (
-    Case, CharField, Count, DateField, ExpressionWrapper, F, Func, OuterRef, Q,
+    Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func, OuterRef, Q,
     QuerySet, Subquery, Value, When,
 )
 from django.db.models.functions import Coalesce, Concat, Greatest
@@ -56,8 +56,10 @@ from immersionlyceens.apps.core.serializers import (
     TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, StudentRecord, VisitorRecord,
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord, VisitorRecord,
+    VisitorRecordDocument
 )
+
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request, timer,
 )
@@ -622,7 +624,7 @@ def validate_slot_date(request):
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def ajax_get_student_records(request):
-    from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+    today = timezone.localdate()
 
     # high_school_validation
     response = {'data': [], 'msg': ''}
@@ -644,6 +646,16 @@ def ajax_get_student_records(request):
         response['msg'] = gettext("Error: No high school selected")
         return JsonResponse(response, safe=False)
 
+    attestations = HighSchoolStudentRecordDocument.objects\
+        .filter(
+            Q(validity_date__lte=today)|Q(validity_date__isnull=True),
+            record=OuterRef("pk"),
+            requires_validity_date=True,
+        ) \
+        .order_by()\
+        .annotate(count=Func(F('id'), function='Count'))\
+        .values('count')
+
     records = HighSchoolStudentRecord.objects.filter(
         highschool_id=hs_id,
         validation=actions[action]
@@ -651,8 +663,9 @@ def ajax_get_student_records(request):
         user_first_name=F("student__first_name"),
         user_last_name=F("student__last_name"),
         record_level=F("level__label"),
+        invalid_dates=Subquery(attestations),
     ).values("id", "user_first_name", "user_last_name", "birth_date", "record_level",
-             "class_name", "creation_date", "rejected_date")
+             "class_name", "creation_date", "rejected_date", "invalid_dates")
 
     response['data'] = list(records)
 
@@ -666,8 +679,7 @@ def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
     """
-    from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-
+    today = timezone.localdate()
     response = {'data': None, 'msg': ''}
 
     student_record_id = request.POST.get('student_record_id')
@@ -686,17 +698,33 @@ def ajax_validate_reject_student(request, validate):
 
         if hs:
             try:
-                record = HighSchoolStudentRecord.objects.get(id=student_record_id, highschool__in=hs)
+                record = HighSchoolStudentRecord.objects\
+                    .prefetch_related('attestation')\
+                    .get(id=student_record_id, highschool__in=hs)
+
+                # Check documents
+                attestations = record.attestation.filter(
+                    Q(validity_date__lte=today) | Q(validity_date__isnull=True),
+                    requires_validity_date=True,
+                )
+
+                if validate and attestations.exists():
+                    response['msg'] = "Error: record has missing or invalid attestation dates"
+                    return JsonResponse(response, safe=False)
+
                 # 2 => VALIDATED
                 # 3 => REJECTED
                 record.validation = 2 if validate else 3
-                record.validation_date = datetime.datetime.now() if validate else None
-                record.rejected_date = None if validate else datetime.datetime.now()
+                record.validation_date = timezone.now() if validate else None
+                record.rejected_date = None if validate else timezone.now()
                 record.save()
+
+                # Todo : test send_message return value
                 if validate:
                     record.student.send_message(request, 'CPT_MIN_VALIDE')
                 else:
                     record.student.send_message(request, 'CPT_MIN_REJET')
+
                 response['data'] = {'ok': True}
 
             except HighSchoolStudentRecord.DoesNotExist:
@@ -1835,10 +1863,13 @@ def get_csv_structures(request):
     if not t:
         raise Http404
 
-    registered_students_count= Immersion.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True) \
-                                .order_by().annotate(
-                                    count=Func(F('id'), function='Count')
-                                ).values('count')
+    registered_students_count= Immersion.objects\
+        .filter(slot=OuterRef("pk"), cancellation_type__isnull=True) \
+        .order_by() \
+        .annotate(
+            count=Func(F('id'), function='Count')
+        ) \
+        .values('count')
 
     # Export courses
     if t == 'course':
@@ -4112,10 +4143,13 @@ class HighSchoolLevelDetail(generics.RetrieveAPIView):
 
 class VisitorRecordValidation(View):
     def get(self, request, *args, **kwargs):
+        """
+        Return every visitor records with state = 'operator'
+        """
+        today = timezone.localdate()
         data: Dict[str, Any] = {"msg": "", "data": None}
 
         operation: str = kwargs.get('operator', '').upper()
-        visitor_records: Optional[QuerySet] = None
 
         operations = {
             'TO_VALIDATE': 1,
@@ -4127,12 +4161,24 @@ class VisitorRecordValidation(View):
             data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")
             return JsonResponse(data)
 
+        attestations = VisitorRecordDocument.objects \
+            .filter(
+                Q(validity_date__lte=today)|Q(validity_date__isnull=True),
+                record=OuterRef("pk"),
+                requires_validity_date=True,
+            ) \
+            .order_by() \
+            .annotate(count=Func(F('id'), function='Count')) \
+            .values('count')
+
         records = VisitorRecord.objects.filter(
             validation=operations[operation]
         ).annotate(
             user_first_name=F("visitor__first_name"),
             user_last_name=F("visitor__last_name"),
-        ).values("id", "user_first_name", "user_last_name", "birth_date", "creation_date", "rejected_date")
+            invalid_dates=Subquery(attestations),
+        ).values("id", "user_first_name", "user_last_name", "birth_date", "creation_date", "rejected_date",
+                 "invalid_dates")
 
         data['data'] = list(records)
 
@@ -4142,6 +4188,7 @@ class VisitorRecordValidation(View):
 @method_decorator(groups_required("REF-ETAB-MAITRE", "REF-TEC"), name="dispatch")
 class VisitorRecordRejectValidate(View):
     def post(self, request, *args, **kwargs):
+        today = timezone.localdate()
         data: Dict[str, Any] = {"msg": "", "data": None}
 
         # can't be none. No routes allowed for that
@@ -4163,7 +4210,17 @@ class VisitorRecordRejectValidate(View):
             return JsonResponse(data)
 
         try:
-            record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+            record: VisitorRecord = VisitorRecord.objects.prefetch_related('attestation').get(id=record_id)
+
+            # Check documents
+            attestations = record.attestation.filter(
+                Q(validity_date__lte=today) | Q(validity_date__isnull=True),
+                requires_validity_date=True,
+            )
+
+            if validation_value == 2 and attestations.exists():
+                data['msg'] = "Error: record has missing or invalid attestation dates"
+                return JsonResponse(data, safe=False)
 
             if delete_attachments:
                 for attestation in record.attestation.all():
