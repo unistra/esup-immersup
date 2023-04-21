@@ -202,10 +202,12 @@
               <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
               <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
+            {% if document_form.instance.deposit_date %}
             <div class="form-group row align-items-center">
               <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Deposit date' %}</label>
               <div class="col-sm-3 col-md-4">{{ document_form.instance.deposit_date }}</div>
             </div>
+            {% endif %}
             {% if document_form.instance.requires_validity_date %}
               {% if document_form.validity_required or document_form.validity_date.value %}
                 <div class="form-group row align-items-center">
@@ -218,6 +220,7 @@
                       {{ document_form.validity_date }}
                       {{ document_form.validity_date.value }}
                     </div>
+                    <div class="col-sm-4 col-md-4 warning">{{ document_form.renew_document }}</div>
                   {% endif %}
                 </div>
               {% endif %}

@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorMention, Building, Campus,
@@ -39,7 +40,7 @@ class ImmersionViewsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.today = datetime.datetime.today()
+        cls.today = timezone.localdate()
 
         cls.establishment = Establishment.objects.create(
             code='ETA1',
@@ -212,9 +213,9 @@ class ImmersionViewsTestCase(TestCase):
 
         cls.university_year = UniversityYear.objects.create(
             label='2020-2021',
-            start_date=cls.today.date() - datetime.timedelta(days=10),
-            end_date=cls.today.date() + datetime.timedelta(days=20),
-            registration_start_date=cls.today.date() - datetime.timedelta(days=1),
+            start_date=cls.today - datetime.timedelta(days=10),
+            end_date=cls.today + datetime.timedelta(days=20),
+            registration_start_date=cls.today - datetime.timedelta(days=1),
             active=True,
         )
 
@@ -256,7 +257,7 @@ class ImmersionViewsTestCase(TestCase):
 
 
     def test_login(self):
-        self.university_year.start_date = self.today.date() + datetime.timedelta(days=10)
+        self.university_year.start_date = self.today + datetime.timedelta(days=10)
         self.university_year.save()
 
         # This will fail (year not valid yet)
@@ -265,7 +266,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("""Sorry, the university year has not begun (or already over), you can't login yet.""",
             response.content.decode('utf-8'))
 
-        self.university_year.start_date = self.today.date() - datetime.timedelta(days=10)
+        self.university_year.start_date = self.today - datetime.timedelta(days=10)
         self.university_year.save()
 
         # This will fail (authentication error)
@@ -630,6 +631,8 @@ class ImmersionViewsTestCase(TestCase):
             f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
         })
 
+        fd.close()
+
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
         content = response.content.decode('utf-8')
 
@@ -639,7 +642,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertNotEqual(document.document, None)
         self.assertIsNone(document.validity_date)
 
-        del (record_data[f"{prefix}-document"]) # no more needed
+        del (record_data[f"{prefix}-document"]) # no more needed (yet)
 
         # Test get route as ref_etab user
         self.client.login(username='ref_etab', password='pass')
@@ -652,13 +655,54 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
 
         # Success
-        record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+        record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=10)).strftime("%Y-%m-%d")
         response = self.client.post('/immersion/hs_record/%s' % record.id, record_data, follow=True)
         self.assertNotIn("You have errors in Attestations section", response.content.decode('utf-8'))
 
-
         # Back to the high school student for more tests
         self.client.login(username='hs', password='pass')
+
+        # Validity date is 10 days ahead : if the record has been validated, the student
+        # should see a "renew this attestation" warning
+        record.refresh_from_db()
+        record.set_status("VALIDATED")
+        record.save()
+        response = self.client.get('/immersion/hs_record')
+        self.assertIn("Please renew this attestation", response.content.decode('utf-8'))
+
+        # He can renew it (even with the same file), the record should go back to "TO_VALIDATE" status
+        # Check that the validity date has been erased
+        # del(record_data[f"{prefix}-validity_date"])
+        fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
+        record_data.update({
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())]
+        })
+        fd.close()
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        self.assertIn(
+            "Thank you. Your record is awaiting validation from your high-school referent.",
+            response.content.decode("utf-8")
+        )
+        record.refresh_from_db()
+        document.refresh_from_db()
+        self.assertEqual(record.validation, record.STATUSES["TO_VALIDATE"])
+        self.assertNotEqual(document.document, None)
+        self.assertIsNone(document.validity_date) # New document : date is empty again
+
+        # This time, set the validity date beyond the renewal delay (30 days by default) => No change (field disabled)
+        record.set_status("VALIDATED")
+        record.save()
+        new_validity_date = self.today + datetime.timedelta(days=40)
+        document.validity_date = new_validity_date
+        document.save()
+        document.refresh_from_db()
+        record_data[f"{prefix}-validity_date"] = new_validity_date
+
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        record.refresh_from_db()
+        document.refresh_from_db()
+        self.assertEqual(document.validity_date, new_validity_date) # shouldn't have changed
+        del (record_data[f"{prefix}-document"]) # Clean
 
         # Post with another email
         record_data["email"] = "another@email.com"
@@ -667,10 +711,9 @@ class ImmersionViewsTestCase(TestCase):
         self.highschool_user.refresh_from_db()
         self.assertNotEqual(self.highschool_user.validation_string, None)
 
-        # Assume the record has been rejected, then repost with another high school (validation should be set to 1)
-        record.refresh_from_db()
-        self.assertEqual(record.validation, 1)
-        record.validation = 3 # Rejected
+        # Manually reject the record, then repost with another high school
+        # validation should be back to "TO_VALIDATE"
+        record.set_status("REJECTED")
         record.save()
 
         record_data["highschool"] = self.high_school2.id
@@ -815,7 +858,7 @@ class ImmersionViewsTestCase(TestCase):
 
         self.assertTrue(PendingUserGroup.objects.all().exists())
         pending_group = PendingUserGroup.objects.first()
-        self.assertEqual(pending_group.creation_date.date(), self.today.date())
+        self.assertEqual(pending_group.creation_date.date(), self.today)
         self.assertEqual(pending_group.immersionuser1, self.speaker1)
         self.assertEqual(pending_group.immersionuser2, self.speaker2)
 

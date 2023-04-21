@@ -31,6 +31,14 @@ class HighSchoolStudentRecord(models.Model):
         (4, _('DAEU'))
     )
 
+    STATUSES = {
+        "TO_COMPLETE": 0,
+        "TO_VALIDATE": 1,
+        "VALIDATED": 2,
+        "REJECTED": 3,
+    }
+
+    # Display values
     VALIDATION_STATUS = [
         (0, _('To complete')),
         (1, _('To validate')),
@@ -220,6 +228,16 @@ class HighSchoolStudentRecord(models.Model):
     def is_valid(self):
         return self.validation == 2
 
+    def set_status(self, status: str):
+        """
+        Update validation attribute
+        """
+        if isinstance(status, str) and status.upper() in self.STATUSES:
+            self.validation = self.STATUSES[status.upper()]
+            return True
+
+        return False
+
     @classmethod
     def get_duplicate_tuples(cls):
         dupes_list = []
@@ -342,6 +360,13 @@ class VisitorRecord(models.Model):
     """
     Visitor record class, linked to ImmersionUsers accounts
     """
+    STATUSES = {
+        "TO_COMPLETE": 0,
+        "TO_VALIDATE": 1,
+        "VALIDATED": 2,
+        "REJECTED": 3,
+    }
+
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
         (0, _('To complete')),
         (1, _('To validate')),
@@ -376,6 +401,16 @@ class VisitorRecord(models.Model):
 
     def is_valid(self):
         return self.validation == 2
+
+    def set_status(self, status: str):
+        """
+        Update validation attribute
+        """
+        if isinstance(status, str) and status.upper() in self.STATUSES:
+            self.validation = self.STATUSES[status.upper()]
+            return True
+
+        return False
 
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")
