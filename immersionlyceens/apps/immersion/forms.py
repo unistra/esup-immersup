@@ -264,6 +264,8 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
             self.attestation_label = '%s' % self.instance.attestation
             self.attestation_template = self.instance.attestation.template
 
+            self.fields["document"].required = self.instance.mandatory
+
             # Validity date is only required for managers
             conditions = [
                 not self.request.user.is_high_school_student(),

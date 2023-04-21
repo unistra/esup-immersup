@@ -804,7 +804,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     )
 
                     if document_form.is_valid():
-                        document_form.save()
+                        document = document_form.save()
+                        if document_form.has_changed() and 'document' in document_form.changed_data:
+                            document.deposit_date = timezone.now()
+                            document.save()
                     else:
                         document_form_valid = False
 
@@ -1512,6 +1515,9 @@ class VisitorRecordView(FormView):
 
                     if document_form.is_valid():
                         document = document_form.save()
+                        if document_form.has_changed() and 'document' in document_form.changed_data:
+                            document.deposit_date = timezone.now()
+                            document.save()
                     else:
                         document_form_valid = False
 

@@ -477,6 +477,7 @@ class HighSchoolStudentRecordDocument(models.Model):
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )
+    deposit_date = models.DateTimeField(_("Deposit date"), blank=True, null=True)
     validity_date = models.DateField(_("Valid until"), blank=True, null=True)
 
     # The following fields are copied from AttestationDocument object on creation,
@@ -520,6 +521,7 @@ class VisitorRecordDocument(models.Model):
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )
+    deposit_date = models.DateTimeField(_("Deposit date"), blank=True, null=True)
     validity_date = models.DateField(_("Valid until"), blank=True, null=True)
 
     # The following fields are copied from AttestationDocument object on creation,
