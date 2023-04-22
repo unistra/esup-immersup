@@ -327,8 +327,29 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
         ]
 
         if all(conditions):
+            # Locked
             self.add_error("document", _("You are not allowed to send a new file yet"))
             cleaned_data["validity_date"] = self.instance.validity_date
+        else:
+            # Looks good, now check if we have to make a backup of the old document
+            archive_conditions = [
+                self.instance and self.instance.record.validation == self.instance.record.STATUSES["VALIDATED"],
+                self.has_changed(),
+                "document" in self.changed_data,
+                self.can_renew
+            ]
+
+            if all(archive_conditions):
+                # Save the current instance in another object, with the 'archive' status
+                data_dict = self.instance.__dict__.copy()
+                data_dict.pop("_state", None)
+                data_dict.pop("id")
+                data_dict["archive"] = True
+
+                print(data_dict)
+
+                archived_instance = self.instance.__class__(**data_dict)
+                archived_instance.save()
 
         return cleaned_data
 

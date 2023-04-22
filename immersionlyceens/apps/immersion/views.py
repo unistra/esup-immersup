@@ -752,7 +752,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             else:
                 no_quota_form = True
 
-            # Documents formset
+            # Documents forms
             if create_documents:
                 no_document_form = True
                 today = timezone.localdate()
@@ -764,7 +764,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     'profiles__code': "LYC_W_CONV" if record.highschool.with_convention else "LYC_WO_CONV"
                 }
 
-                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record)
+                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False)
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
 
                 # Clean documents if school has changed
@@ -776,11 +776,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     creations = 0
                     for attestation in attestations:
                         obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
-                            record=record, attestation=attestation,
+                            record=record,
+                            attestation=attestation,
+                            archive=False,
                             defaults={
                                 'for_minors': attestation.for_minors,
                                 'mandatory': attestation.mandatory,
                                 'requires_validity_date': attestation.requires_validity_date,
+                                'archive': False
                             }
                         )
 
@@ -798,7 +801,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             else:
                 document_form_valid = True
 
-                for document in HighSchoolStudentRecordDocument.objects.filter(record=record):
+                for document in HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False):
                     document_form = HighSchoolStudentRecordDocumentForm(
                         request.POST,
                         request.FILES,
@@ -864,7 +867,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             quota_forms.append(quota_form)
 
         for document in HighSchoolStudentRecordDocument.objects\
-                .filter(record=record)\
+                .filter(record=record, archive=False)\
                 .order_by("attestation__order"):
             document_form = HighSchoolStudentRecordDocumentForm(
                 request=request,
@@ -1363,7 +1366,7 @@ class VisitorRecordView(FormView):
                 quota_forms.append(quota_form)
 
             for document in VisitorRecordDocument.objects\
-                    .filter(record=record)\
+                    .filter(record=record, archive=False)\
                     .order_by("attestation__order"):
                 document_form = VisitorRecordDocumentForm(
                     request=self.request,
@@ -1507,6 +1510,7 @@ class VisitorRecordView(FormView):
                             for_minors=attestation.for_minors,
                             mandatory=attestation.mandatory,
                             requires_validity_date=attestation.requires_validity_date,
+                            archive=False
                         )
                     record.set_status("TO_COMPLETE")
                 else:
@@ -1514,7 +1518,7 @@ class VisitorRecordView(FormView):
             else:
                 document_form_valid = True
 
-                for document in VisitorRecordDocument.objects.filter(record=record):
+                for document in VisitorRecordDocument.objects.filter(record=record, archive=False):
                     document_form = VisitorRecordDocumentForm(
                         request.POST,
                         request.FILES,

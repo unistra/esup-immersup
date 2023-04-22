@@ -4,6 +4,7 @@ from typing import Any, List, Tuple
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext, gettext_lazy as _
 
@@ -493,13 +494,12 @@ class VisitorRecordQuota(models.Model):
             )
         ]
 
-class HighSchoolStudentRecordDocument(models.Model):
+class RecordDocument(models.Model):
     """
-    M2M 'through' relation between high school student records and attestation documents
+    Abstract base Class for record documents
     """
     created = models.DateTimeField(_("Creation date"), auto_now_add=True)
     last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
-    record = models.ForeignKey(HighSchoolStudentRecord, related_name="attestation", on_delete=models.CASCADE)
     attestation = models.ForeignKey(core_models.AttestationDocument, on_delete=models.CASCADE)
     document = models.FileField(
         _("Document"),
@@ -514,57 +514,13 @@ class HighSchoolStudentRecordDocument(models.Model):
     )
     deposit_date = models.DateTimeField(_("Deposit date"), blank=True, null=True)
     validity_date = models.DateField(_("Valid until"), blank=True, null=True)
+    archive = models.BooleanField(_("Archive status"), default=False)
 
     # The following fields are copied from AttestationDocument object on creation,
     # and are not meant to be updated then
     for_minors = models.BooleanField(_("For minors"), default=True)
     mandatory = models.BooleanField(_("Mandatory"), default=True)
     requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
-
-
-    def __str__(self):
-        return f"{self.record} / {self.attestation}"
-
-    class Meta:
-        verbose_name = _('High school student record / Attestation document')
-        verbose_name_plural = _('High school student record / Attestation documents')
-        constraints = [
-            models.UniqueConstraint(
-                fields=['record', 'attestation'],
-                deferrable=models.Deferrable.IMMEDIATE,
-                name='unique_high_school_student_record_document'
-            )
-        ]
-
-
-class VisitorRecordDocument(models.Model):
-    """
-    M2M 'through' relation between visitor records and attestation documents
-    """
-    created = models.DateTimeField(_("Creation date"), auto_now_add=True)
-    last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
-    record = models.ForeignKey(VisitorRecord, related_name="attestation", on_delete=models.CASCADE)
-    attestation = models.ForeignKey(core_models.AttestationDocument, on_delete=models.CASCADE)
-    document = models.FileField(
-        _("Document"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-    deposit_date = models.DateTimeField(_("Deposit date"), blank=True, null=True)
-    validity_date = models.DateField(_("Valid until"), blank=True, null=True)
-
-    # The following fields are copied from AttestationDocument object on creation,
-    # and are not meant to be updated then
-    for_minors = models.BooleanField(_("For minors"), default=True)
-    mandatory = models.BooleanField(_("Mandatory"), default=True)
-    requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
-
 
     def __str__(self):
         return f"{self.record} / {self.attestation}"
@@ -578,14 +534,40 @@ class VisitorRecordDocument(models.Model):
 
         return super().delete(*args, **kwargs)
 
+    class Meta:
+        abstract = True
+
+class HighSchoolStudentRecordDocument(RecordDocument):
+    """
+    M2M 'through' relation between high school student records and attestation documents
+    """
+    record = models.ForeignKey(HighSchoolStudentRecord, related_name="attestation", on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('High school student record / Attestation document')
+        verbose_name_plural = _('High school student record / Attestation documents')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['record', 'attestation', 'archive'],
+                condition=Q(archive=False),
+                name='unique_high_school_student_record_document'
+            )
+        ]
+
+
+class VisitorRecordDocument(RecordDocument):
+    """
+    M2M 'through' relation between visitor records and attestation documents
+    """
+    record = models.ForeignKey(VisitorRecord, related_name="attestation", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Visitor record / Attestation document')
         verbose_name_plural = _('Visitor record / Attestation documents')
         constraints = [
             models.UniqueConstraint(
-                fields=['record', 'attestation'],
-                deferrable=models.Deferrable.IMMEDIATE,
+                fields=['record', 'attestation', 'archive'],
+                condition=Q(archive=False),
                 name='unique_visitor_record_document'
             )
         ]
