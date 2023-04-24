@@ -665,7 +665,8 @@ def ajax_get_student_records(request):
         record_level=F("level__label"),
         invalid_dates=Subquery(attestations),
     ).values("id", "user_first_name", "user_last_name", "birth_date", "record_level",
-             "class_name", "creation_date", "rejected_date", "invalid_dates")
+             "class_name", "creation_date", "validation_date", "rejected_date",
+             "invalid_dates")
 
     response['data'] = list(records)
 

@@ -157,7 +157,7 @@
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
-                    <th id="date_filter_rejected">{% trans "Creation date" %}</th>
+                    <th id="date_filter_rejected">{% trans "Rejection date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -383,7 +383,7 @@ $(document).ready(function () {
                 }
               },
               { data: 'user_last_name',},
-              { data: 'formated_birth_date',},
+              { data: 'birth_date',},
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'validation_date',
@@ -438,10 +438,10 @@ $(document).ready(function () {
                 }
               },
               { data: 'user_last_name',},
-              { data: 'formated_birth_date',},
+              { data: 'birth_date',},
               { data: 'record_level',},
               { data: 'class_name',},
-              { data: 'creation_date',
+              { data: 'rejected_date',
                 render: function(data) {
                   return data ? formatDate(data, date_options) : "";
                 }
