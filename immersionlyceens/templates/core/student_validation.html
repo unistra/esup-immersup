@@ -383,7 +383,11 @@ $(document).ready(function () {
                 }
               },
               { data: 'user_last_name',},
-              { data: 'birth_date',},
+              { data: 'birth_date',
+                render: function(data) {
+                  return data ? formatDate(data, birth_date_options) : "";
+                }
+              },
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'validation_date',
@@ -438,7 +442,11 @@ $(document).ready(function () {
                 }
               },
               { data: 'user_last_name',},
-              { data: 'birth_date',},
+              { data: 'birth_date',
+                render: function(data) {
+                  return data ? formatDate(data, birth_date_options) : "";
+                }
+              },
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'rejected_date',
