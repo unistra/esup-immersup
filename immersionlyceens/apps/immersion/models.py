@@ -372,6 +372,7 @@ class VisitorRecord(models.Model):
 
     creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
+    validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
 
     def is_valid(self):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-24 16:14+0200\n"
+"POT-Creation-Date: 2023-04-24 17:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4449,7 +4449,6 @@ msgstr "Liste des doublons résolus"
 #: immersionlyceens/apps/immersion/models.py:508
 #: immersionlyceens/templates/core/student_validation.html:91
 #: immersionlyceens/templates/core/visitor_validation.html:67
-#: immersionlyceens/templates/core/visitor_validation.html:129
 msgid "Creation date"
 msgstr "Date de création"
 
@@ -5181,7 +5180,7 @@ msgstr "Nom"
 #: immersionlyceens/templates/core/off_offer_events_list.html:303
 #: immersionlyceens/templates/core/student_validation.html:286
 #: immersionlyceens/templates/core/student_validation.html:359
-#: immersionlyceens/templates/core/student_validation.html:414
+#: immersionlyceens/templates/core/student_validation.html:418
 #: immersionlyceens/templates/core/students_presence.html:120
 #: immersionlyceens/templates/core/training/list.html:146
 #: immersionlyceens/templates/core/visitor_validation.html:235
@@ -6409,6 +6408,7 @@ msgid "Rejected student profiles"
 msgstr "Profils lycéens rejetés"
 
 #: immersionlyceens/templates/core/student_validation.html:161
+#: immersionlyceens/templates/core/visitor_validation.html:129
 msgid "Rejection date"
 msgstr "Date de rejet"
 
@@ -6418,14 +6418,14 @@ msgid "Some attestation dates are invalid"
 msgstr "Dates de justificatifs absentes ou passées"
 
 #: immersionlyceens/templates/core/student_validation.html:338
-#: immersionlyceens/templates/core/student_validation.html:453
+#: immersionlyceens/templates/core/student_validation.html:461
 #: immersionlyceens/templates/core/visitor_validation.html:281
 #: immersionlyceens/templates/core/visitor_validation.html:392
 msgid "Validate"
 msgstr "Valider"
 
 #: immersionlyceens/templates/core/student_validation.html:340
-#: immersionlyceens/templates/core/student_validation.html:398
+#: immersionlyceens/templates/core/student_validation.html:402
 #: immersionlyceens/templates/core/visitor_validation.html:283
 #: immersionlyceens/templates/core/visitor_validation.html:339
 msgid "Reject"

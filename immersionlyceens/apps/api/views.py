@@ -4178,8 +4178,8 @@ class VisitorRecordValidation(View):
             user_first_name=F("visitor__first_name"),
             user_last_name=F("visitor__last_name"),
             invalid_dates=Subquery(attestations),
-        ).values("id", "user_first_name", "user_last_name", "birth_date", "creation_date", "rejected_date",
-                 "invalid_dates")
+        ).values("id", "user_first_name", "user_last_name", "birth_date", "creation_date", "validation_date",
+                 "rejected_date", "invalid_dates")
 
         data['data'] = list(records)
 
@@ -4232,6 +4232,8 @@ class VisitorRecordRejectValidate(View):
             return JsonResponse(data)
 
         record.validation = validation_value
+        record.validation_date = timezone.now() if validation_value == 2 else None
+        record.rejected_date = timezone.now() if validation_value == 3 else None
         record.save()
         record.visitor.send_message(self.request, validation_email_template)
         data["data"] = {"record_id": record.id}

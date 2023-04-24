@@ -125,7 +125,7 @@
                     <th id="first_name_filter_rejected">{% trans "First name" %}</th>
                     <th id="last_name_filter_rejected">{% trans "Last name" %}</th>
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
-                    <th id="date_filter_rejected">{% trans "Creation date" %}</th>
+                    <th id="date_filter_rejected">{% trans "Rejection date" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -380,7 +380,7 @@ $(document).ready(function () {
                   return data ? formatDate(data, birth_date_options) : "";
                 }
               },
-              { data: 'creation_date',
+              { data: 'rejected_date',
                 render: function(data) {
                   return data ? formatDate(data, date_options) : "";
                 }
