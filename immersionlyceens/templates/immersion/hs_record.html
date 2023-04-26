@@ -294,16 +294,16 @@
         </div>
         {% endif %}
         <div class="form-group row align-items-center">
-          <label for="class_name" class="col-sm-2 col-form-label">{% trans "Validation" %} :</label>
+          <label class="col-sm-2 col-form-label">{% trans "Validation" %} :</label>
           <div class="form-group  col-sm-4">
             {% if record.validation == 1 %}
-              <span class="badge badge-pill badge-warning" id="recordStatus">
+              <span class="badge badge-pill badge-warning" id="record_status">
               {% trans "Waiting validation" %}
             {% elif record.validation == 2 %}
-              <span class="badge badge-pill badge-success" id="recordStatus">
+              <span class="badge badge-pill badge-success" id="record_status">
               {% trans "Validated" %}
             {% elif record.validation == 3 %}
-              <span class="badge badge-pill badge-danger" id="recordStatus">
+              <span class="badge badge-pill badge-danger" id="record_status">
               {% trans "Rejected" %}
             {% endif %}
             </span>
