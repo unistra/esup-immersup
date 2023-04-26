@@ -35,7 +35,7 @@
       <div class="card-body">
 
         <div class="form-group row">
-          <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
+          <label for="id_last_name" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Lastname' %}* :
           </label>
           <div class="col-sm-6 col-md-6">{{ user_form.last_name }}</div>
@@ -190,22 +190,22 @@
           </div>
         {% endif %}
         <div class="form-group row align-items-center">
-          <label for="class_name" class="col-sm-2 col-form-label">
+          <label class="col-sm-2 col-form-label">
             {% if record %}{% trans "Validation" %} :{% else %}{% trans "Visitor record" %} :{% endif %}
           </label>
           <div class="form-group col-sm-4 col-form-label">
             <h6>
               {% if record.validation == 1 %}
-                <span class="badge badge-pill badge-warning" id="recordStatus">
+                <span class="badge badge-pill badge-warning" id="record_status">
                 {% trans "Waiting validation" %}
               {% elif record.validation == 2 %}
-                <span class="badge badge-pill badge-success" id="recordStatus">
+                <span class="badge badge-pill badge-success" id="record_status">
                 {% trans "Validated" %}
               {% elif record.validation == 3 %}
-                <span class="badge badge-pill badge-danger" id="recordStatus">
+                <span class="badge badge-pill badge-danger" id="record_status">
                 {% trans "Rejected" %}
               {% else %}
-                <span class="badge badge-pill badge-light" id="recordStatus">
+                <span class="badge badge-pill badge-light" id="record_status">
                 {% trans "In the process of being created" %}
               {% endif %}
               </span>
