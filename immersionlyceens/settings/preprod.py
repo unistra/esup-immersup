@@ -131,5 +131,5 @@ USE_MATOMO = True
 MATOMO_URL = '{{ matomo_url }}'
 MATOMO_SITE_ID = '{{ matomo_site_id }}'
 
-# TODO: test this !
-# STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+# Use hash prefixed static files
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
