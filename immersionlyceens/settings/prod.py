@@ -128,3 +128,5 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 # Use Unistra theme & css
 UNISTRA = '{{ use_unistra_theme }}'
 
+# Use hash prefixed static files
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
