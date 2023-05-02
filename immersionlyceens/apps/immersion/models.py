@@ -37,6 +37,7 @@ class HighSchoolStudentRecord(models.Model):
         "TO_VALIDATE": 1,
         "VALIDATED": 2,
         "REJECTED": 3,
+        "TO_REVALIDATE": 4,
     }
 
     # Display values
@@ -44,7 +45,8 @@ class HighSchoolStudentRecord(models.Model):
         (0, _('To complete')),
         (1, _('To validate')),
         (2, _('Validated')),
-        (3, _('Rejected'))
+        (3, _('Rejected')),
+        (4, _('To revalidate'))
     ]
 
     student = models.OneToOneField(
@@ -366,13 +368,15 @@ class VisitorRecord(models.Model):
         "TO_VALIDATE": 1,
         "VALIDATED": 2,
         "REJECTED": 3,
+        "TO_REVALIDATE": 4,
     }
 
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
         (0, _('To complete')),
         (1, _('To validate')),
         (2, _('Validated')),
-        (3, _('Rejected'))
+        (3, _('Rejected')),
+        (4, _('To revalidate'))
     ]
     AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png"]
 

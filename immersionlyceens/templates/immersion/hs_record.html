@@ -229,7 +229,24 @@
               <div class="form-group row align-items-center">
                 <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Template' %}</label>
                 <div class="col-sm-3 col-md-4">
-                  <a target='_blank' href="{{ document_form.attestation_template }}">{% trans 'Get document template' %}</a>
+                  <a target='_blank' href="{{ document_form.attestation_template.url }}">{% trans 'Get document template' %}</a>
+                </div>
+              </div>
+            {% endif %}
+            {% if archives|keyvalue:document_form.instance.attestation.id %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Archives' %}</label>
+                <div class="col-sm-9 col-md-8">
+                  <ul class="filelinks">
+                  {% for archive in archives|keyvalue:document_form.instance.attestation.id %}
+                    <li class="sun sun-theme-light sun-full">
+                      <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block collapsed"></i>
+                      <a target='_blank' href="{{ archive.document.url }}" class="sun-row">
+                        {{ archive.document }} {% if archive.validity_date %}({{ archive.validity_date }}){% endif %}
+                      </a>
+                    </li>
+                  {% endfor %}
+                  </ul>
                 </div>
               </div>
             {% endif %}
@@ -312,6 +329,9 @@
             {% elif record.validation == 3 %}
               <span class="badge badge-pill badge-danger" id="recordStatus">
               {% trans "Rejected" %}
+            {% elif record.validation == 4 %}
+              <span class="badge badge-pill badge-warning" id="recordStatus">
+              {% trans "Waiting revalidation" %}
             {% endif %}
             </span>
           </div>

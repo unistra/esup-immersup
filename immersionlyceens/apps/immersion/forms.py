@@ -346,8 +346,6 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
                 data_dict.pop("id")
                 data_dict["archive"] = True
 
-                print(data_dict)
-
                 archived_instance = self.instance.__class__(**data_dict)
                 archived_instance.save()
 

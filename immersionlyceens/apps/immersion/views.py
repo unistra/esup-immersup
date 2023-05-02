@@ -1,6 +1,7 @@
 import json
 import logging
 import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
@@ -652,15 +653,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 messages.error(request, _("Invalid student id"))
                 return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
-        """
-        current_email = student.email
-
-        try:
-            current_highschool = record.highschool.id
-        except Exception:
-            current_highschool = None
-        """
-
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, instance=student, request=request)
 
@@ -816,7 +808,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                             document.deposit_date = timezone.now()
                             document.validity_date = None
                             document.save()
-                            record.set_status('TO_VALIDATE')
+                            if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
+                                record.set_status('TO_REVALIDATE')
+                            else:
+                                record.set_status('TO_VALIDATE')
                     else:
                         document_form_valid = False
 
@@ -909,6 +904,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
     # Periods to display
     period_filter = { 'registration_start_date__gte': today } if record.id else {'immersion_end_date__gte': today}
 
+    # Document archives
+    archives = defaultdict(list)
+    for archive in HighSchoolStudentRecordDocument.objects \
+                .filter(Q(validity_date__gte=today)|Q(validity_date__isnull=True), record=record, archive=True) \
+                .order_by("-validity_date"):
+        archives[archive.attestation.id].append(archive)
+
     context = {
         'student_form': studentform,
         'record_form': recordform,
@@ -928,7 +930,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         ),
         'immersions_count': immersions_count,
         'request_student_consent': GeneralSettings.get_setting('REQUEST_FOR_STUDENT_AGREEMENT'),
-        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date')
+        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+        'archives': archives
     }
 
     return render(request, template_name, context)
@@ -1383,10 +1386,16 @@ class VisitorRecordView(FormView):
 
         messages.info(self.request, msg)
 
-
         # Periods to display
         period_filter = {'registration_start_date__gte': today} if record and record.pk \
             else {'immersion_end_date__gte': today}
+
+        # Document archives
+        archives = defaultdict(list)
+        for archive in VisitorRecordDocument.objects \
+                .filter(Q(validity_date__gte=today) | Q(validity_date__isnull=True), record=record, archive=True) \
+                .order_by("-validity_date"):
+            archives[archive.attestation.id].append(archive)
 
         context.update({
             "past_immersions": past_immersions,
@@ -1399,7 +1408,8 @@ class VisitorRecordView(FormView):
             "back_url": self.request.session.get("back"),
             "can_change": has_change_permission,  # can change number of allowed positions
             "immersions_count": immersions_count,
-            'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date')
+            'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+            'archives': archives
         })
         return context
 
@@ -1533,7 +1543,10 @@ class VisitorRecordView(FormView):
                             document.deposit_date = timezone.now()
                             document.validity_date = None
                             document.save()
-                            record.set_status('TO_VALIDATE')
+                            if record.validation == VisitorRecord.STATUSES["VALIDATED"]:
+                                record.set_status('TO_REVALIDATE')
+                            else:
+                                record.set_status('TO_VALIDATE')
                     else:
                         document_form_valid = False
 
