@@ -18,11 +18,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='highschoolstudentrecord',
             name='validation',
-            field=models.SmallIntegerField(choices=[(0, 'To complete'), (1, 'To validate'), (2, 'Validated'), (3, 'Rejected')], default=0, verbose_name='Validation'),
+            field=models.SmallIntegerField(
+                choices=[(0, 'To complete'), (1, 'To validate'), (2, 'Validated'), (3, 'Rejected')], default=0,
+                verbose_name='Validation'),
         ),
         migrations.AlterField(
             model_name='visitorrecord',
             name='validation',
-            field=models.SmallIntegerField(choices=[(0, 'To complete'), (1, 'To validate'), (2, 'Validated'), (3, 'Rejected')], default=0, verbose_name='Validation'),
+            field=models.SmallIntegerField(
+                choices=[(0, 'To complete'), (1, 'To validate'), (2, 'Validated'), (3, 'Rejected')], default=0,
+                verbose_name='Validation'),
         ),
     ]

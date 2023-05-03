@@ -174,7 +174,7 @@
       "parameters": {
           "type": "boolean",
           "value": true,
-          "description": "Si le paramètre est à 'true', la pièce d'identité des visiteurs est supprimée après la validation de leur fiche."
+          "description": "Si le paramètre est à 'true', les justificatifs sans date de validité seront supprimés après la validation d'une fiche visiteur"
       }
   }
 },

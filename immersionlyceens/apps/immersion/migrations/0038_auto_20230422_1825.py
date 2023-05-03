@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('immersion', '0037_auto_20230421_1017'),
+        ('immersion', '0037_auto_20230424_1801'),
     ]
 
     operations = [
@@ -17,6 +17,16 @@ class Migration(migrations.Migration):
         migrations.RemoveConstraint(
             model_name='visitorrecorddocument',
             name='unique_visitor_record_document',
+        ),
+        migrations.AddField(
+            model_name='highschoolstudentrecorddocument',
+            name='deposit_date',
+            field=models.DateTimeField(blank=True, null=True, verbose_name='Deposit date'),
+        ),
+        migrations.AddField(
+            model_name='visitorrecorddocument',
+            name='deposit_date',
+            field=models.DateTimeField(blank=True, null=True, verbose_name='Deposit date'),
         ),
         migrations.AddField(
             model_name='highschoolstudentrecorddocument',
