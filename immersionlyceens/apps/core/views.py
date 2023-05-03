@@ -646,9 +646,6 @@ def student_validation(request, high_school_id=None):
         except HighSchool.DoesNotExist:
             messages.error(request, _("This high school id does not exist"))
             return redirect('/core/student_validation/')
-    else:
-        context['high_schools_w_convention'] = HighSchool.agreed.filter(with_convention=True).order_by('city')
-        context['high_schools_wo_convention'] = HighSchool.agreed.filter(with_convention=False).order_by('city')
 
     context["w_convention"] = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
     context["wo_convention"] = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")

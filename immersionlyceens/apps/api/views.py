@@ -634,12 +634,17 @@ def ajax_get_student_records(request):
     hs_id = request.POST.get('high_school_id')
     with_convention = request.POST.get('with_convention')
 
+    # TODO : get these values from HighSchoolStudentRecord class
     actions = {
         'TO_VALIDATE': 1,
         'VALIDATED': 2,
         'REJECTED': 3,
         'TO_REVALIDATE': 4,
     }
+
+    if not action in actions.keys():
+        response['msg'] = gettext("Error: No action selected for AJAX request")
+        return JsonResponse(response, safe=False)
 
     filter = {
         "validation": actions[action]
@@ -649,20 +654,14 @@ def ajax_get_student_records(request):
     try:
         hs_id = int(hs_id)
         filter['highschool_id'] = hs_id
-    except ValueError:
+    except (ValueError, TypeError):
         if hs_id != 'all':
             response['msg'] = gettext("Error: No high school selected")
             return JsonResponse(response, safe=False)
 
-    print(f"convention : {with_convention} ({type(with_convention)})")
-
     # Conventions
-    if with_convention in ["0", "1"]:
-        filter['highschool__with_convention'] = with_convention == 1
-
-    if not action in actions.keys():
-        response['msg'] = gettext("Error: No action selected for AJAX request")
-        return JsonResponse(response, safe=False)
+    if with_convention in [0, 1, "0", "1"]:
+        filter['highschool__with_convention'] = with_convention in (1, "1")
 
     if not hs_id:
         response['msg'] = gettext("Error: No high school selected")

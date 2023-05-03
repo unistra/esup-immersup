@@ -1069,13 +1069,10 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/student_validation/", follow=True)
         self.assertNotIn('high_school', response.context)
-        self.assertIn(self.high_school, response.context['high_schools'])
-        self.assertIn(self.high_school2, response.context['high_schools'])
 
         response = self.client.get("/core/student_validation/%s" % self.high_school.id, follow=True)
         self.assertIn('high_school', response.context)
         self.assertEqual(response.context['high_school'], self.high_school)
-        self.assertNotIn('high_schools', response.context)
 
         response = self.client.get("/core/student_validation/?hs_id=%s" % self.high_school.id, follow=True)
         self.assertIn('hs_id', response.context)
