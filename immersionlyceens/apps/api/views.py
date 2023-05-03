@@ -635,7 +635,8 @@ def ajax_get_student_records(request):
     actions = {
         'TO_VALIDATE': 1,
         'VALIDATED': 2,
-        'REJECTED': 3
+        'REJECTED': 3,
+        'TO_REVALIDATE': 4,
     }
 
     if not action in actions.keys():
@@ -649,6 +650,7 @@ def ajax_get_student_records(request):
     attestations = HighSchoolStudentRecordDocument.objects\
         .filter(
             Q(validity_date__lte=today)|Q(validity_date__isnull=True),
+            archive=False,
             record=OuterRef("pk"),
             requires_validity_date=True,
         ) \
@@ -705,11 +707,12 @@ def ajax_validate_reject_student(request, validate):
                 # Check documents
                 attestations = record.attestation.filter(
                     Q(validity_date__lte=today) | Q(validity_date__isnull=True),
+                    archive=False,
                     requires_validity_date=True,
                 )
 
                 if validate and attestations.exists():
-                    response['msg'] = "Error: record has missing or invalid attestation dates"
+                    response['msg'] = _("Error: record has missing or invalid attestation dates")
                     return JsonResponse(response, safe=False)
 
                 # 2 => VALIDATED
@@ -4154,16 +4157,18 @@ class VisitorRecordValidation(View):
         operations = {
             'TO_VALIDATE': 1,
             'VALIDATED': 2,
-            'REJECTED': 3
+            'REJECTED': 3,
+            'TO_REVALIDATE': 4,
         }
 
         if not operations.get(operation, None):
-            data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")
+            data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected, to_revalidate)")
             return JsonResponse(data)
 
         attestations = VisitorRecordDocument.objects \
             .filter(
                 Q(validity_date__lte=today)|Q(validity_date__isnull=True),
+                archive=False,
                 record=OuterRef("pk"),
                 requires_validity_date=True,
             ) \
@@ -4199,14 +4204,14 @@ class VisitorRecordRejectValidate(View):
         delete_attachments: bool = False
 
         if operation == "validate":
-            validation_value = 2
+            validation_value = VisitorRecord.STATUSES["VALIDATED"]
             validation_email_template = "CPT_MIN_VALIDE"
             delete_attachments = get_general_setting("DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION")
         elif operation == "reject":
-            validation_value = 3
+            validation_value = VisitorRecord.STATUSES["REJECTED"]
             validation_email_template = "CPT_MIN_REJET"
         else:
-            data["msg"] = "Error - Bad operation selected. Allowed: validate, reject"
+            data["msg"] = _("Error - Bad operation selected. Allowed: validate, reject")
             return JsonResponse(data)
 
         try:
@@ -4215,19 +4220,21 @@ class VisitorRecordRejectValidate(View):
             # Check documents
             attestations = record.attestation.filter(
                 Q(validity_date__lte=today) | Q(validity_date__isnull=True),
+                archive=False,
                 requires_validity_date=True,
             )
 
-            if validation_value == 2 and attestations.exists():
-                data['msg'] = "Error: record has missing or invalid attestation dates"
+            if validation_value == VisitorRecord.STATUSES["VALIDATED"] and attestations.exists():
+                data['msg'] = _("Error: record has missing or invalid attestation dates")
                 return JsonResponse(data, safe=False)
 
             if delete_attachments:
-                for attestation in record.attestation.all():
+                # Delete only attestations that does not require a validity date
+                for attestation in record.attestation.filter(requires_validity_date=False):
                     attestation.delete()
 
         except VisitorRecord.DoesNotExist:
-            data["msg"] = f"Error - No record with id: {record_id}."
+            data["msg"] = _("Error - record not found: %s") % record_id
             return JsonResponse(data)
 
         record.validation = validation_value

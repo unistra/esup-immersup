@@ -840,7 +840,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     messages.warning(
                         request, _("Record saved. Please fill all the required attestation documents below.")
                     )
-                elif record.validation == record.STATUSES["TO_VALIDATE"]:
+                elif record.validation in [record.STATUSES["TO_VALIDATE"], record.STATUSES["TO_REVALIDATE"]]:
                     messages.success(
                         request, _("Thank you. Your record is awaiting validation from your high-school referent.")
                     )

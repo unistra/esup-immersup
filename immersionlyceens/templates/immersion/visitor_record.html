@@ -123,7 +123,7 @@
                 </div>
               </div>
             {% endif %}
-            {% if archives|keyvalue:document_form.instance.attestation.id %}
+            {% if archives|keyvalue:document_form.instance.attestation.id and not request.user.is_visitor %}
               <div class="form-group row align-items-center">
                 <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Archives' %}</label>
                 <div class="col-sm-9 col-md-8">

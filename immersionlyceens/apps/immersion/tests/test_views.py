@@ -670,7 +670,7 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.get('/immersion/hs_record')
         self.assertIn("Please renew this attestation", response.content.decode('utf-8'))
 
-        # He can renew it (even with the same file), the record should go back to "TO_VALIDATE" status
+        # He can renew it (even with the same file), the record should have the new status to "TO_REVALIDATE"
         # Check that the validity date has been erased
         # del(record_data[f"{prefix}-validity_date"])
         fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
@@ -679,13 +679,14 @@ class ImmersionViewsTestCase(TestCase):
         })
         fd.close()
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
+
         self.assertIn(
             "Thank you. Your record is awaiting validation from your high-school referent.",
             response.content.decode("utf-8")
         )
         record.refresh_from_db()
         document.refresh_from_db()
-        self.assertEqual(record.validation, record.STATUSES["TO_VALIDATE"])
+        self.assertEqual(record.validation, record.STATUSES["TO_REVALIDATE"])
         self.assertNotEqual(document.document, None)
         self.assertIsNone(document.validity_date) # New document : date is empty again
 
