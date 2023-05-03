@@ -272,7 +272,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
             attestation_resend_delay = 0 # good default value ?
             if not self.request.user.is_high_school_student() and not self.request.user.is_visitor():
                 messages.error(
-                    request,
+                    self.request,
                     _("ATTESTATION_DOCUMENT_DEPOSIT_DELAY setting is missing, please check your configuration.")
                 )
 
