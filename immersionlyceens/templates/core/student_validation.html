@@ -24,13 +24,13 @@
 
   <div id="vdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
     <span>
-      {% trans 'Did you really want to validate this high school student?' %}
+      {% trans 'Do you really want to validate this high school student?' %}
     </span>
   </div>
 
   <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
     <span>
-      {% trans 'Did you really want to reject this high school student?' %}
+      {% trans 'Do you really want to reject this high school student?' %}
     </span>
   </div>
 
@@ -51,22 +51,17 @@
 
       {% if not high_school %}
       <div class="form-group row">
-        <label for="id_high_school" class="col-form-label col-sm-3">{% trans 'Select a high school' %}:</label>
-        <select name="high_school" id="id_high_school" class="form-control col-sm-3">
-            {% if hs_id %}
-                {% for hs in high_schools %}
-                    {% if hs.id == hs_id %}
-                        <option value="{{ hs.id }}" selected>{{ hs.city }}: {{ hs.label }}</option>
-                    {% else %}
-                        <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                {% for hs in high_schools %}
-                    <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
-                {% endfor %}
-            {% endif %}
-        </select>
+        <label for="id_high_school" class="col-form-label col-sm-2">{% trans 'High school filter' %}</label>
+        {% if w_convention and w_convention %}
+          <span class="col-form-label">{% trans 'Convention' %} : </span>
+          <select name="convention" id="id_convention" class="form-control col-sm-2 ml-1">
+            <option value="all">{% trans 'All' %}</option>
+            <option value="1">{% trans 'With convention' context "highschool_filter" %}</option>
+            <option value="0">{% trans 'Without convention' context "highschool_filter" %}</option>
+          </select>
+        {% endif %}
+
+        <select name="high_school" id="id_high_school" class="form-control col-sm-3 ml-2"></select>
       </div>
       {% else %}
         <input type="hidden" name="high_school" id="id_high_school" value="{{ high_school.id }}">
@@ -221,43 +216,92 @@ var dts = {};
 var vdialog, rdialog;
 var date_options = { dateStyle: 'long', timeStyle: 'medium' };
 var birth_date_options = { dateStyle: 'short' };
+var hs_id = "{{ hs_id }}";
+var w_convention = "{{ w_convention }}" === "True"
+var wo_convention = "{{ wo_convention }}" === "True"
+var convention = "all"
 
 $(document).ready(function () {
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
     $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-            }
+      beforeSend: function(xhr, settings) {
+        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+          xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
         }
+      }
     });
 
+    function set_high_school(convention) {
+      let data = {
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      }
+
+      if(convention !== "all") {
+        data['with_convention'] = convention === "1"
+      }
+
+      console.log(`convention : ${convention}`)
+
+      $.ajax({
+        url: "{% url 'highschool_list' %}",
+        type: 'GET',
+        data: data,
+        success: function (json) {
+          let options;
+
+          if(convention === "0") {
+            options = "<option value='all'>{% trans 'All' %}</option>"
+          }
+          else {
+            options = '<option value="">---------</option>'
+          }
+
+          for (let i = 0; i < json.length; i++) {
+            options += `<option value="${json[i]['id']}">${json[i]['city']}: ${json[i]['label']}</option>`
+          }
+          $('select#id_high_school').html(options)
+
+          if(is_set(hs_id)) {
+            $("#id_high_school").val(hs_id);
+          }
+          else {
+            let value = $("#id_high_school option:first").val()
+            $("#id_high_school").val(value);
+
+            if(value === "all") {
+              reload_to_revalidate();
+              reload_to_validate();
+              reload_validate();
+              reload_rejected();
+            }
+          }
+        }
+      })
+    }
+
+    $('#id_convention').change(function(event){
+      convention = $(event.target).val();
+      set_high_school(convention);
+    });
 
     $('#id_high_school').change(function(event){
         let value = $(event.target).val();
-        if (value)
-        {
-            reload_to_revalidate();
-            reload_to_validate();
-            reload_validate();
-            reload_rejected();
+
+        if (is_set(value)) {
+          reload_to_revalidate();
+          reload_to_validate();
+          reload_validate();
+          reload_rejected();
         }
     });
+
+    // Init : if only one sort of high school is activated, initialize the list
+    // both CAN'T be deactivated at the same time
+    if(w_convention ^ wo_convention) {
+      set_high_school(w_convention)
+    }
+    else if(w_convention && wo_convention) {
+      set_high_school('')
+    }
 
     vdialog = $("#vdialog-form").dialog({
       autoOpen: false,
@@ -330,6 +374,7 @@ $(document).ready(function () {
                 data: function (d) {
                     d.action = 'TO_REVALIDATE';
                     d.high_school_id = $('#id_high_school').val();
+                    d.with_convention = convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -402,6 +447,7 @@ $(document).ready(function () {
                 data: function (d) {
                     d.action = 'TO_VALIDATE';
                     d.high_school_id = $('#id_high_school').val();
+                    d.with_convention = convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -475,6 +521,7 @@ $(document).ready(function () {
                 data: function (d) {
                     d.action = 'VALIDATED';
                     d.high_school_id = $('#id_high_school').val();
+                    d.with_convention = convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -534,6 +581,7 @@ $(document).ready(function () {
                 data: function (d) {
                     d.action = 'REJECTED';
                     d.high_school_id = $('#id_high_school').val();
+                    d.with_convention = convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {

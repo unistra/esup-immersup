@@ -632,12 +632,33 @@ def ajax_get_student_records(request):
     # @@@
     action = request.POST.get('action', '').upper()
     hs_id = request.POST.get('high_school_id')
+    with_convention = request.POST.get('with_convention')
+
     actions = {
         'TO_VALIDATE': 1,
         'VALIDATED': 2,
         'REJECTED': 3,
         'TO_REVALIDATE': 4,
     }
+
+    filter = {
+        "validation": actions[action]
+    }
+
+    # Highschool : accept an int or 'all'
+    try:
+        hs_id = int(hs_id)
+        filter['highschool_id'] = hs_id
+    except ValueError:
+        if hs_id != 'all':
+            response['msg'] = gettext("Error: No high school selected")
+            return JsonResponse(response, safe=False)
+
+    print(f"convention : {with_convention} ({type(with_convention)})")
+
+    # Conventions
+    if with_convention in ["0", "1"]:
+        filter['highschool__with_convention'] = with_convention == 1
 
     if not action in actions.keys():
         response['msg'] = gettext("Error: No action selected for AJAX request")
@@ -658,17 +679,17 @@ def ajax_get_student_records(request):
         .annotate(count=Func(F('id'), function='Count'))\
         .values('count')
 
-    records = HighSchoolStudentRecord.objects.filter(
-        highschool_id=hs_id,
-        validation=actions[action]
-    ).annotate(
-        user_first_name=F("student__first_name"),
-        user_last_name=F("student__last_name"),
-        record_level=F("level__label"),
-        invalid_dates=Subquery(attestations),
-    ).values("id", "user_first_name", "user_last_name", "birth_date", "record_level",
-             "class_name", "creation_date", "validation_date", "rejected_date",
-             "invalid_dates")
+    records = HighSchoolStudentRecord.objects.prefetch_related('highschool')\
+        .filter(**filter)\
+        .annotate(
+            user_first_name=F("student__first_name"),
+            user_last_name=F("student__last_name"),
+            record_level=F("level__label"),
+            invalid_dates=Subquery(attestations),
+        ).values("id", "user_first_name", "user_last_name", "birth_date", "record_level",
+                 "class_name", "creation_date", "validation_date", "rejected_date",
+                 "invalid_dates", "highschool__city", "highschool__label",
+                 "highschool__with_convention")
 
     response['data'] = list(records)
 
@@ -3538,7 +3559,7 @@ class HighSchoolList(generics.ListCreateAPIView):
     serializer_class = HighSchoolSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [HighSchoolReadOnlyPermissions|CustomDjangoModelPermissions]
-    filterset_fields = ['postbac_immersion', 'signed_charter']
+    filterset_fields = ['postbac_immersion', 'signed_charter', 'with_convention']
 
     def __init__(self, *args, **kwargs):
         self.agreed = None
