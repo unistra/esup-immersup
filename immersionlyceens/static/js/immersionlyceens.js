@@ -1,6 +1,6 @@
 // default dates settings
-const dates_options = { dateStyle: 'long' };
-const dates_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
+var _dates_options = { dateStyle: 'long' };
+var _dates_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
 
 function getCookie(name) {
   var cookieValue = null
@@ -64,6 +64,6 @@ function is_set(obj) {
   return obj !== null && obj !== undefined && obj !== "" && obj !== "None"
 }
 
-function formatDate(date, date_options = dates_options, date_locale = dates_locale) {
+function formatDate(date, date_options = _dates_options, date_locale = _dates_locale) {
   return new Date(date).toLocaleString(date_locale, date_options)
 }
