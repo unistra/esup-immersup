@@ -689,13 +689,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record = recordform.save()
                 messages.success(request, _("Record successfully saved."))
 
-            # if current_highschool and current_highschool != record.highschool.id:
-            if 'highschool' in recordform.changed_data:
-                # New record validation is needed
-                if record.validation > 1:
+            # High school or birth date update : new validation required
+            if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
+                if record.validation in [2, 3]:
                     messages.info(
                         request,
-                        _("You have changed the high school, your record needs a new validation")
+                        _("You have updated some important fields, your record needs a new validation")
                     )
 
                 # Documents update needed
@@ -758,10 +757,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 if student_age >= 18:
                     attestation_filters['for_minors'] = False                   
 
-                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False)
+                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record)
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
 
-                # Clean documents if school has changed
+                # Clean documents if school has changed, including archives
                 for hsrd in current_documents:
                     if hsrd.attestation not in attestations:
                         hsrd.delete()
@@ -1475,7 +1474,18 @@ class VisitorRecordView(FormView):
                         record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            # Quota for non-student user
+            # birth date update : new validation required
+            if 'birth_date' in form.changed_data:
+                if record.validation in [2, 3]:
+                    messages.info(
+                        request,
+                        _("Your birth date have been updated, your record needs a new validation")
+                    )
+
+                # Documents update needed
+                create_documents = True
+
+            # Quota for non-visitor user
             if not request.user.is_visitor():
                 quota_form_valid = True
 
@@ -1513,7 +1523,13 @@ class VisitorRecordView(FormView):
                 if visitor_age >= 18:
                     attestation_filters['for_minors'] = False
 
+                current_documents = VisitorRecordDocument.objects.filter(record=record)
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
+
+                # Clean documents if school has changed, including archives
+                for vrd in current_documents:
+                    if vrd.attestation not in attestations:
+                        vrd.delete()
 
                 if attestations.exists():
                     next = True
