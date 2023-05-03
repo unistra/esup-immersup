@@ -259,7 +259,7 @@
           {% endfor %}
         </div>
       {% endif %}
-      {% if future_periods or quota_forms|length and not request.user.is_high_school_student %}
+      {% if future_periods or quota_forms|length and not request.user.is_high_school_student or record.quota.count %}
           <div class="card-header text-white bg-secondary">
             {% trans "Immersions periods" %}
           </div>
