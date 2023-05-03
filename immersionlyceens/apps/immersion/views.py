@@ -752,9 +752,11 @@ def high_school_student_record(request, student_id=None, record_id=None):
                               - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
 
                 attestation_filters = {
-                    'for_minors': student_age < 18,
                     'profiles__code': "LYC_W_CONV" if record.highschool.with_convention else "LYC_WO_CONV"
                 }
+                
+                if student_age >= 18:
+                    attestation_filters['for_minors'] = False                   
 
                 current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False)
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
@@ -1505,9 +1507,11 @@ class VisitorRecordView(FormView):
                               - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
 
                 attestation_filters = {
-                    'for_minors': visitor_age < 18,
                     'profiles__code': "VIS"
                 }
+                
+                if visitor_age >= 18:
+                    attestation_filters['for_minors'] = False
 
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
 
