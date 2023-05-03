@@ -50,6 +50,37 @@
       </div>
 
       <div>
+        <!-- TO REVALIDATE -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Visitor profiles to revalidate" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="to_revalidate" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_to_revalidate">{% trans "First name" %}</th>
+                    <th id="last_name_filter_to_revalidate">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_to_revalidate">{% trans "Birth date" %}</th>
+                    <th id="date_filter_to_revalidate">{% trans "Creation date" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- TO VALIDATE -->
         <div class="card mb-4">
           <div class="card-header text-white bg-secondary">
@@ -162,16 +193,6 @@ $(document).ready(function () {
       }
     });
 
-
-    $('#id_high_school').change(function(event){
-      let value = $(event.target).val();
-      if (value) {
-        reload_to_validate();
-        reload_validate();
-        reload_rejected();
-      }
-    });
-
     vdialog = $("#vdialog-form").dialog({
       autoOpen: false,
       closeOnEscape: false,
@@ -225,6 +246,72 @@ $(document).ready(function () {
         }
       ],
     });
+
+    function load_to_revalidate() {
+        dts['to_revalidate'] = $('#to_revalidate').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            // lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: false,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                type: "GET",
+                url: "{% url 'visitors_records' 'to_revalidate' %}",
+                dataSrc: function(json) {
+                  if (json['data'] !== undefined) {
+                    return json['data'];
+                  }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
+            columns: [
+              { data: 'user_first_name',
+                render: function(data, type, row) {
+                  return `<a href="/immersion/visitor_record/${row['id']}">${data}</a>`;
+                }
+              },
+              { data: 'user_last_name', },
+              { data: 'birth_date',
+                render: function(data) {
+                  return data ? formatDate(data, birth_date_options) : "";
+                }
+              },
+              { data: 'creation_date',
+                render: function(data) {
+                  return data ? formatDate(data, date_options) : "";
+                }
+              },
+              { data: 'id',
+                render: function(data, type, row) {
+                  let element = '';
+                  let disabled = '';
+                  let txt = '';
+
+                  if(row.invalid_dates > 0) {
+                    disabled = "disabled"
+                    txt = "<br>{% trans 'Some attestation dates are invalid' %}"
+                  }
+
+                  element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
+                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Renew validation" %}</button>`;
+                  element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
+                       onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
+
+                  return element + txt;
+                }
+              },
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }]
+        });
+    }
 
     function load_to_validate() {
         dts['to_validate'] = $('#to_validate').DataTable({
@@ -400,6 +487,7 @@ $(document).ready(function () {
     }
 
     // First load
+    load_to_revalidate();
     load_to_validate();
     load_validate();
     load_rejected();
@@ -441,7 +529,10 @@ $(document).ready(function () {
     }
 });
 
-
+function reload_to_revalidate() {
+    $('#to_revalidate').DataTable().clear();
+    $('#to_revalidate').DataTable().ajax.reload();
+}
 function reload_to_validate() {
     $('#to_validate').DataTable().clear();
     $('#to_validate').DataTable().ajax.reload();
@@ -461,6 +552,7 @@ function validate_student( student_record_id ) {
     success: function(data) {
         if (data !== undefined) {
 
+            reload_to_revalidate();
             reload_to_validate();
             reload_validate();
             reload_rejected();
@@ -506,6 +598,7 @@ function reject_student( student_record_id ) {
       success: function(data) {
           if (data !== undefined) {
 
+              reload_to_revalidate();
               reload_to_validate();
               reload_validate();
               reload_rejected();

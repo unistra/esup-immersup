@@ -1,6 +1,7 @@
 import json
 import logging
 import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
@@ -652,19 +653,15 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 messages.error(request, _("Invalid student id"))
                 return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
-        current_email = student.email
-        try:
-            current_highschool = record.highschool.id
-        except Exception:
-            current_highschool = None
-
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, instance=student, request=request)
 
         if studentform.is_valid():
-            student = studentform.save()
+            if studentform.has_changed():
+                student = studentform.save()
 
-            if current_email != student.email:
+            # if current_email != student.email:
+            if "email" in studentform.changed_data:
                 student.username = student.email
                 student.set_validation_string()
                 try:
@@ -688,10 +685,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
-            record = recordform.save()
-            messages.success(request, _("Record successfully saved."))
+            if recordform.has_changed():
+                record = recordform.save()
+                messages.success(request, _("Record successfully saved."))
 
-            if current_highschool and current_highschool != record.highschool.id:
+            # if current_highschool and current_highschool != record.highschool.id:
+            if 'highschool' in recordform.changed_data:
                 # New record validation is needed
                 if record.validation > 1:
                     messages.info(
@@ -745,7 +744,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             else:
                 no_quota_form = True
 
-            # Documents formset
+            # Documents forms
             if create_documents:
                 no_document_form = True
                 today = timezone.localdate()
@@ -757,7 +756,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     'profiles__code': "LYC_W_CONV" if record.highschool.with_convention else "LYC_WO_CONV"
                 }
 
-                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record)
+                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False)
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
 
                 # Clean documents if school has changed
@@ -769,11 +768,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     creations = 0
                     for attestation in attestations:
                         obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
-                            record=record, attestation=attestation,
+                            record=record,
+                            attestation=attestation,
+                            archive=False,
                             defaults={
                                 'for_minors': attestation.for_minors,
                                 'mandatory': attestation.mandatory,
                                 'requires_validity_date': attestation.requires_validity_date,
+                                'archive': False
                             }
                         )
 
@@ -782,19 +784,16 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     if creations:
                         next = True
                         # Documents have to be filled -> status = 0
-                        record.validation = 0
+                        record.set_status("TO_COMPLETE")
                     else:
-                        record.validation = 1
+                        record.set_status("TO_VALIDATE")
                 else:
                     # No attestation
-                    record.validation = 1
-
-                record.save()
-
+                    record.set_status("TO_VALIDATE")
             else:
                 document_form_valid = True
 
-                for document in HighSchoolStudentRecordDocument.objects.filter(record=record):
+                for document in HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False):
                     document_form = HighSchoolStudentRecordDocumentForm(
                         request.POST,
                         request.FILES,
@@ -804,7 +803,15 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     )
 
                     if document_form.is_valid():
-                        document_form.save()
+                        document = document_form.save()
+                        if document_form.has_changed() and 'document' in document_form.changed_data:
+                            document.deposit_date = timezone.now()
+                            document.validity_date = None
+                            document.save()
+                            if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
+                                record.set_status('TO_REVALIDATE')
+                            else:
+                                record.set_status('TO_VALIDATE')
                     else:
                         document_form_valid = False
 
@@ -812,10 +819,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                 if not document_form_valid:
                     messages.error(request, _("You have errors in Attestations section"))
-                else:
-                    record.validation = 1
-                    record.save()
 
+            record.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
@@ -835,7 +840,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     messages.warning(
                         request, _("Record saved. Please fill all the required attestation documents below.")
                     )
-                elif record.validation == 1:
+                elif record.validation in [record.STATUSES["TO_VALIDATE"], record.STATUSES["TO_REVALIDATE"]]:
                     messages.success(
                         request, _("Thank you. Your record is awaiting validation from your high-school referent.")
                     )
@@ -846,7 +851,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
         #request.session['back'] = request.headers.get('Referer')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
-        for quota in HighSchoolStudentRecordQuota.objects.filter(record=record):
+        for quota in HighSchoolStudentRecordQuota.objects\
+                .filter(record=record)\
+                .order_by("period__immersion_start_date"):
             quota_form = HighSchoolStudentRecordQuotaForm(
                 request=request,
                 instance=quota,
@@ -854,7 +861,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
             )
             quota_forms.append(quota_form)
 
-        for document in HighSchoolStudentRecordDocument.objects.filter(record=record):
+        for document in HighSchoolStudentRecordDocument.objects\
+                .filter(record=record, archive=False)\
+                .order_by("attestation__order"):
             document_form = HighSchoolStudentRecordDocumentForm(
                 request=request,
                 instance=document,
@@ -895,6 +904,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
     # Periods to display
     period_filter = { 'registration_start_date__gte': today } if record.id else {'immersion_end_date__gte': today}
 
+    # Document archives
+    archives = defaultdict(list)
+    for archive in HighSchoolStudentRecordDocument.objects \
+                .filter(Q(validity_date__gte=today)|Q(validity_date__isnull=True), record=record, archive=True) \
+                .order_by("-validity_date"):
+        archives[archive.attestation.id].append(archive)
+
     context = {
         'student_form': studentform,
         'record_form': recordform,
@@ -914,7 +930,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         ),
         'immersions_count': immersions_count,
         'request_student_consent': GeneralSettings.get_setting('REQUEST_FOR_STUDENT_AGREEMENT'),
-        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date')
+        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+        'archives': archives
     }
 
     return render(request, template_name, context)
@@ -1341,7 +1358,9 @@ class VisitorRecordView(FormView):
             context.update({"record": record})  # for modal nuke purpose
 
             # Extra forms for quotas and documents
-            for quota in VisitorRecordQuota.objects.filter(record=record):
+            for quota in VisitorRecordQuota.objects\
+                    .filter(record=record)\
+                    .order_by("period__immersion_start_date"):
                 quota_form = VisitorRecordQuotaForm(
                     request=self.request,
                     instance=quota,
@@ -1349,7 +1368,9 @@ class VisitorRecordView(FormView):
                 )
                 quota_forms.append(quota_form)
 
-            for document in VisitorRecordDocument.objects.filter(record=record):
+            for document in VisitorRecordDocument.objects\
+                    .filter(record=record, archive=False)\
+                    .order_by("attestation__order"):
                 document_form = VisitorRecordDocumentForm(
                     request=self.request,
                     instance=document,
@@ -1365,10 +1386,16 @@ class VisitorRecordView(FormView):
 
         messages.info(self.request, msg)
 
-
         # Periods to display
         period_filter = {'registration_start_date__gte': today} if record and record.pk \
             else {'immersion_end_date__gte': today}
+
+        # Document archives
+        archives = defaultdict(list)
+        for archive in VisitorRecordDocument.objects \
+                .filter(Q(validity_date__gte=today) | Q(validity_date__isnull=True), record=record, archive=True) \
+                .order_by("-validity_date"):
+            archives[archive.attestation.id].append(archive)
 
         context.update({
             "past_immersions": past_immersions,
@@ -1381,7 +1408,8 @@ class VisitorRecordView(FormView):
             "back_url": self.request.session.get("back"),
             "can_change": has_change_permission,  # can change number of allowed positions
             "immersions_count": immersions_count,
-            'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date')
+            'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+            'archives': archives
         })
         return context
 
@@ -1492,16 +1520,15 @@ class VisitorRecordView(FormView):
                             for_minors=attestation.for_minors,
                             mandatory=attestation.mandatory,
                             requires_validity_date=attestation.requires_validity_date,
+                            archive=False
                         )
-                    record.validation = 0
+                    record.set_status("TO_COMPLETE")
                 else:
-                    record.validation = 1
-
-                record.save()
+                    record.set_status("TO_VALIDATE")
             else:
                 document_form_valid = True
 
-                for document in VisitorRecordDocument.objects.filter(record=record):
+                for document in VisitorRecordDocument.objects.filter(record=record, archive=False):
                     document_form = VisitorRecordDocumentForm(
                         request.POST,
                         request.FILES,
@@ -1512,6 +1539,14 @@ class VisitorRecordView(FormView):
 
                     if document_form.is_valid():
                         document = document_form.save()
+                        if document_form.has_changed() and 'document' in document_form.changed_data:
+                            document.deposit_date = timezone.now()
+                            document.validity_date = None
+                            document.save()
+                            if record.validation == VisitorRecord.STATUSES["VALIDATED"]:
+                                record.set_status('TO_REVALIDATE')
+                            else:
+                                record.set_status('TO_VALIDATE')
                     else:
                         document_form_valid = False
 
@@ -1519,9 +1554,8 @@ class VisitorRecordView(FormView):
 
                 if not document_form_valid:
                     messages.error(request, _("You have errors in Attestations section"))
-                else:
-                    record.validation = 1
-                    record.save()
+
+            record.save()
 
             if current_email != saved_user.email:
                 self.email_changed(saved_user)

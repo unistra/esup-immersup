@@ -1,7 +1,10 @@
 from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime, timedelta
 
 from django import forms
+from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
     BachelorMention, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
@@ -254,15 +257,50 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
         self.attestation_label = None
         self.attestation_template = None
+        self.can_renew = True
+
+        self.renew_document = ""
 
         self.fields["record"].widget = forms.HiddenInput()
         self.fields["attestation"].widget = forms.HiddenInput()
         self.fields["document"].widget.attrs["class"] = "form-control-file"
 
+        try:
+            attestation_resend_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
+        except Exception as e:
+            # display error only for managers
+            attestation_resend_delay = 0 # good default value ?
+            if not self.request.user.is_high_school_student() and not self.request.user.is_visitor():
+                messages.error(
+                    request,
+                    _("ATTESTATION_DOCUMENT_DEPOSIT_DELAY setting is missing, please check your configuration.")
+                )
+
         if self.instance and hasattr(self.instance, "attestation"):
             self.validity_required = False
             self.attestation_label = '%s' % self.instance.attestation
             self.attestation_template = self.instance.attestation.template
+
+            self.fields["document"].required = self.instance.mandatory
+
+            # Lock document field if the record has been validated and (now() < (validity_date - delay))
+            if self.instance.validity_date is not None:
+                self.can_renew = self.instance.requires_validity_date and \
+                        timezone.localdate() > (self.instance.validity_date - timedelta(days=attestation_resend_delay))
+
+                lock_file_conditions = [
+                    self.request.user.is_high_school_student() or self.request.user.is_visitor(),
+                    self.instance.record.validation == 2 and (
+                        not self.instance.requires_validity_date or not self.can_renew
+                    )
+                ]
+
+                if all(lock_file_conditions):
+                    self.fields["document"].disabled = True
+
+                if self.can_renew:
+                    self.renew_document = _("Please renew this attestation")
+
 
             # Validity date is only required for managers
             conditions = [
@@ -276,6 +314,42 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
                 self.fields["validity_date"].required = True
             else:
                 self.fields["validity_date"].widget = forms.HiddenInput()
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Check if the user can post a new document
+        conditions = [
+            self.instance and self.instance.record.validation == self.instance.record.STATUSES["VALIDATED"],
+            self.has_changed(),
+            "document" in self.changed_data,
+            not self.can_renew,
+        ]
+
+        if all(conditions):
+            # Locked
+            self.add_error("document", _("You are not allowed to send a new file yet"))
+            cleaned_data["validity_date"] = self.instance.validity_date
+        else:
+            # Looks good, now check if we have to make a backup of the old document
+            archive_conditions = [
+                self.instance and self.instance.record.validation == self.instance.record.STATUSES["VALIDATED"],
+                self.has_changed(),
+                "document" in self.changed_data,
+                self.can_renew
+            ]
+
+            if all(archive_conditions):
+                # Save the current instance in another object, with the 'archive' status
+                data_dict = self.instance.__dict__.copy()
+                data_dict.pop("_state", None)
+                data_dict.pop("id")
+                data_dict["archive"] = True
+
+                archived_instance = self.instance.__class__(**data_dict)
+                archived_instance.save()
+
+        return cleaned_data
 
     class Meta:
         model = HighSchoolStudentRecordDocument

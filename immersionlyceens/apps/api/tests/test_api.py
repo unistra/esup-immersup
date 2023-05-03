@@ -3744,7 +3744,10 @@ class APITestCase(TestCase):
         self.assertIn("data", content)
         self.assertIn("msg", content)
         self.assertIsNone(content["data"])
-        self.assertEqual(content["msg"], "No operator given or wrong operator (to_validate, validated, rejected)")
+        self.assertEqual(
+            content["msg"],
+            "No operator given or wrong operator (to_validate, validated, rejected, to_revalidate)"
+        )
 
     def test_API__get_visitor_records__to_validate(self):
         url = "/api/visitor/records/to_validate"
@@ -3847,8 +3850,20 @@ class APITestCase(TestCase):
         record = VisitorRecord.objects.get(id=self.visitor_record.id)
         self.assertEqual(record.validation, 1)
 
-        # Fail : missing attestation date
+        # Add 2 documents :
+        # - first one has no validity date and will be deleted
+        # - the second requires a validity date and should be kept upon record validation
+
         document = VisitorRecordDocument.objects.create(
+            record=self.visitor_record,
+            attestation=self.attestation_1,
+            validity_date=None,
+            for_minors=self.attestation_1.for_minors,
+            mandatory=self.attestation_1.mandatory,
+            requires_validity_date=False,
+        )
+
+        document_2 = VisitorRecordDocument.objects.create(
             record=self.visitor_record,
             attestation=self.attestation_2,
             validity_date=None,
@@ -3856,29 +3871,34 @@ class APITestCase(TestCase):
             mandatory=self.attestation_2.mandatory,
             requires_validity_date=self.attestation_2.requires_validity_date,
         )
+
+        # Fail : missing validity date on 'document_2'
         response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content["msg"], "Error: record has missing or invalid attestation dates")
         record.refresh_from_db()
         self.assertEqual(record.validation, 1)
 
-        # delete document and retry : Success
-        document.delete()
+        # Add a date and retry : Success
+        document_2.validity_date = self.today + timedelta(days=2)
+        document_2.save()
 
         response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
-
-        self.assertIsInstance(content, dict)
-        self.assertIn("msg", content)
-        self.assertIn("data", content)
-        self.assertIsInstance(content["data"], dict)
         self.assertEqual(content["msg"], "")
-
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
         # value changed
         record.refresh_from_db()
-        self.assertEqual(record.validation, 2)
+        self.assertEqual(record.validation, VisitorRecord.STATUSES["VALIDATED"])
+
+        # Check documents
+        self.assertTrue(
+            VisitorRecordDocument.objects.filter(record=self.visitor_record, attestation=self.attestation_2).exists()
+        )
+        self.assertFalse(
+            VisitorRecordDocument.objects.filter(record=self.visitor_record, attestation=self.attestation_1).exists()
+        )
 
     def test_API_visitor_record_operation__reject(self):
         client = Client()
