@@ -196,10 +196,11 @@
             'data': data.data,
             'columns': data.columns,
             'searching': true,
+            {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
             'language': {
-              url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+              url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
             },
-
+            {% endif %}
             "columnDefs": [
               {
                 "defaultContent": "",

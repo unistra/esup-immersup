@@ -197,9 +197,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
@@ -309,9 +311,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
@@ -397,9 +401,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
@@ -486,9 +492,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
@@ -572,8 +580,9 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
       'columns': [
         { "data": "label",
@@ -658,8 +667,9 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
       'columns': [
         { "data": "label",
@@ -744,8 +754,9 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
       'columns': [
         { "data": "label" },
@@ -820,8 +831,9 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
       'columns': [
         { "data": "label" },
@@ -900,8 +912,9 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
       'columns': [
         { "data": "label" },

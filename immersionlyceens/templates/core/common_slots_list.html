@@ -17,7 +17,10 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
 <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
@@ -156,7 +159,11 @@
   managed_by_filter = decodeHTMLEntities(managed_by_filter)
 
   // datatables variables
-  let language_file = "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+  {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+  let language_file = "{% static 'js/vendor/i18n/fr-FR.json' %}"
+  {% else %}
+  let language_file = ""
+  {% endif %}
 
   // Common translations
   let duplicate_text = "{% trans 'Duplicate' %}"

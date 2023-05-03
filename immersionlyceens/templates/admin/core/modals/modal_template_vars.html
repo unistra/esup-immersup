@@ -42,9 +42,11 @@
     'searching': true,
     'paging': true,
     'ordering': true,
+    {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
     'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
     },
+    {% endif %}
     'columns': [
       {"data": "code",
        "render": function(data, type, row) {
