@@ -904,7 +904,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         ).count()
 
     # Periods to display
-    period_filter = { 'registration_start_date__gte': today } if record.id else {'immersion_end_date__gte': today}
+    period_filter = { 'registration_start_date__gt': today } if record.id else {'immersion_end_date__gte': today}
 
     # Document archives
     archives = defaultdict(list)
@@ -1123,7 +1123,7 @@ def student_record(request, student_id=None, record_id=None):
         ).count()
 
     # Periods to display
-    period_filter = {'registration_start_date__gte': today} if record.id \
+    period_filter = {'registration_start_date__gt': today} if record.id \
         else {'immersion_end_date__gte': today}
 
     context = {
@@ -1389,7 +1389,7 @@ class VisitorRecordView(FormView):
         messages.info(self.request, msg)
 
         # Periods to display
-        period_filter = {'registration_start_date__gte': today} if record and record.pk \
+        period_filter = {'registration_start_date__gt': today} if record and record.pk \
             else {'immersion_end_date__gte': today}
 
         # Document archives
