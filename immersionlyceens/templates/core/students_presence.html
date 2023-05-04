@@ -169,11 +169,15 @@
       {% endif %}
       { "data": "meeting_place" },
       { "data": "registration_date",
-        "render": function(data) {
-          return data ? formatDate(data) : "";
-      }
+        render: function(data, type, row) {
+          if (type !== 'sort') {
+            return data ? formatDate(data) : "";
+          }
+
+          return data
+        }
       },
-  ],
+    ],
     "columnDefs": [
       {
         "defaultContent": "",

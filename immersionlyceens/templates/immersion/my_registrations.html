@@ -236,8 +236,12 @@
         },
         { "data": "info" },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "",
@@ -360,8 +364,12 @@
           }
         },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "" }
@@ -454,9 +462,13 @@
           }
         },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
-          },
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
         }
     ],
     "columnDefs": [
@@ -520,18 +532,22 @@
         { "data": "speakers"},
         { "data": "info" },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "",
           "render": function(data, type, row) {
+            let msg = "";
+
             if(is_highschool_student === true) {
-              var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
-                        "<i class='fa fas fa-users fa-2x'></i>" +
-                        "</button>";
-            } else {
-              var msg = "";
+              msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+                    "<i class='fa fas fa-users fa-2x'></i>" +
+                    "</button>";
             }
 
             if(row.cancellable === true) {
@@ -627,8 +643,12 @@
           }
         },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "" }
@@ -718,8 +738,12 @@
           }
         },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
       ],
@@ -778,13 +802,17 @@
         { "data": "speakers"},
         { "data": "info" },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "",
           "render": function(data, type, row) {
-            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal(" + row.id +")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+            let msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal(" + row.id +")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
                       "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
@@ -875,8 +903,12 @@
           }
         },
         { "data": "registration_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "" }
@@ -960,8 +992,12 @@
           }
         },
         { "data": "cancellation_date",
-          "render": function(data) {
-            return data ? formatDate(data) : "";
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
       ],

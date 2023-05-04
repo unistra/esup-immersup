@@ -179,7 +179,7 @@ class HighSchoolStudentForm(forms.ModelForm):
         if self.instance:
             record = self.instance.get_high_school_student_record()
 
-            if record and record.validation == 2:
+            if record and record.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
                 self.fields["last_name"].disabled = True
                 self.fields["first_name"].disabled = True
 
@@ -408,6 +408,10 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
+        # Lock some fields if the record has already been validated
+        if self.instance and self.instance.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
+            for field in ["highschool", "birth_date", "level", "class_name"]:
+                self.fields[field].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()

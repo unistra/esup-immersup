@@ -638,7 +638,10 @@ def student_validation(request, high_school_id=None):
             return redirect('/')
 
     # student_validation
-    context = {}
+    context = {
+        'highschool_filter': request.session.get('highschool_filter'),
+        'convention_filter': request.session.get('convention_filter'),
+    }
 
     if high_school_id:
         try:

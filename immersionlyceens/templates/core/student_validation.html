@@ -53,16 +53,15 @@
 
       {% if not high_school %}
       <div class="form-group row">
-        <label for="id_high_school" class="col-form-label col-sm-2">{% trans 'High school filter' %}</label>
-        {% if w_convention and w_convention %}
-          <span class="col-form-label">{% trans 'Convention' %} : </span>
+        {% if w_convention and wo_convention %}
+          <label for="id_convention" class="col-form-label col-sm-1">{% trans 'Convention' %} : </label>
           <select name="convention" id="id_convention" class="form-control col-sm-2 ml-1">
             <option value="all">{% trans 'Both' %}</option>
             <option value="1">{% trans 'With convention' context "highschool_filter" %}</option>
             <option value="0">{% trans 'Without convention' context "highschool_filter" %}</option>
           </select>
         {% endif %}
-
+        <label for="id_high_school" class="col-form-label col-sm-1">{% trans 'High schools' %} :</label>
         <select name="high_school" id="id_high_school" class="form-control col-sm-3 ml-2"></select>
       </div>
       {% else %}
@@ -230,6 +229,8 @@ var hs_id = "{{ hs_id }}";
 var w_convention = "{{ w_convention }}" === "True"
 var wo_convention = "{{ wo_convention }}" === "True"
 var convention = "all"
+var convention_filter = "{{ request.session.convention_filter }}"
+var highschool_filter = "{{ request.session.highschool_filter }}"
 
 $(document).ready(function () {
     $.ajaxSetup({
@@ -246,7 +247,7 @@ $(document).ready(function () {
       }
 
       if(convention !== "all") {
-        data['with_convention'] = convention === "1"
+        data['with_convention'] = [true, '1'].includes(convention)
       }
 
       $.ajax({
@@ -255,8 +256,9 @@ $(document).ready(function () {
         data: data,
         success: function (json) {
           let options;
+          let selected_value;
 
-          if(convention === "0") {
+          if([false, "0"].includes(convention)) {
             options = "<option value='all'>{% trans 'All' %}</option>"
           }
           else {
@@ -268,43 +270,36 @@ $(document).ready(function () {
           }
           $('select#id_high_school').html(options)
 
-          if(is_set(hs_id)) {
-            console.log(`hs_id : ${hs_id}`)
-
-            $("#id_high_school").val(hs_id);
-
-            reload_to_revalidate();
-            reload_to_validate();
-            reload_validate();
-            reload_rejected();
+          if(is_set(highschool_filter) && $(`#id_high_school option[value='${highschool_filter}']`).length !== 0) {
+            selected_value = highschool_filter
+          }
+          else if (is_set(hs_id) && $(`#id_high_school option[value='${hs_id}']`).length !== 0) {
+            selected_value = hs_id
           }
           else {
-            let value = $("#id_high_school option:first").val()
-            $("#id_high_school").val(value);
-
-            if(value === "all") {
-              reload_to_revalidate();
-              reload_to_validate();
-              reload_validate();
-              reload_rejected();
-            }
-            else if(value === "") {
-              clear_to_revalidate();
-              clear_to_validate();
-              clear_validated();
-              clear_rejected();
-            }
+            selected_value = $("#id_high_school option:first").val()
           }
 
+          $("#id_high_school").val(selected_value);
 
-
-
+          if (selected_value === "") {
+            clear_to_revalidate();
+            clear_to_validate();
+            clear_validated();
+            clear_rejected();
+          }
+          else {
+            reload_to_revalidate();
+            reload_to_validate();
+            reload_validated();
+            reload_rejected();
+          }
         }
       })
     }
 
     $('#id_convention').change(function(event){
-      convention = $(event.target).val();
+      convention = $(event.target).val(); // 'all', '0' or '1'
       set_high_school(convention);
     });
 
@@ -314,7 +309,7 @@ $(document).ready(function () {
         if (is_set(value)) {
           reload_to_revalidate();
           reload_to_validate();
-          reload_validate();
+          reload_validated();
           reload_rejected();
         }
         else {
@@ -327,7 +322,11 @@ $(document).ready(function () {
 
     // Init : if only one sort of high school is activated, initialize the list
     // both CAN'T be deactivated at the same time
-    if(w_convention ^ wo_convention) {
+    if(is_set(convention_filter)) {
+      $('#id_convention').val(convention_filter)
+      set_high_school(convention_filter)
+    }
+    else if(w_convention ^ wo_convention) {
       set_high_school(w_convention)
     }
     else if(w_convention && wo_convention) {
@@ -391,7 +390,7 @@ $(document).ready(function () {
     function load_to_revalidate() {
         dts['to_revalidate'] = $('#to_revalidate').DataTable({
             processing: false,
-            order: [[0, 2, 3, 'asc']],
+            order: [[0, 'asc'], [2, 'asc'], [3, 'asc']],
             pageLength: 25,
             lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
             serverSide: false,
@@ -420,7 +419,11 @@ $(document).ready(function () {
             },
             {% endif %}
             columns: [
-              { data: 'highschool__label', },
+              { data: 'highschool__label',
+                render: function(data, type, row) {
+                  return `${row.highschool__city}: ${data}`
+                }
+              },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
                   return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
@@ -428,19 +431,31 @@ $(document).ready(function () {
               },
               { data: 'user_last_name',
                 render: function(data, type, row) {
-                  return `<a href="/immersion/hs_record/${row['id']}">${data} ${row.user_first_name}</a>`;
+                  if(type === 'display') {
+                    return `<a href="/immersion/hs_record/${row['id']}">${data.toUpperCase()} ${row.user_first_name}</a>`;
+                  }
+
+                  return `${data.toLowerCase()} ${row.user_first_name.toLowerCase()}`
                 }
               },
               { data: 'birth_date',
-                render: function(data) {
-                  return data ? formatDate(data, birth_date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, birth_date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'creation_date',
-                render: function(data) {
-                  return data ? formatDate(data, date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'id',
@@ -473,7 +488,7 @@ $(document).ready(function () {
     function load_to_validate() {
         dts['to_validate'] = $('#to_validate').DataTable({
             processing: false,
-            order: [[0, 2, 3, 'asc']],
+            order: [[0, 'asc'], [2, 'asc'], [3, 'asc']],
             pageLength: 25,
             lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
             serverSide: false,
@@ -502,7 +517,11 @@ $(document).ready(function () {
             },
             {% endif %}
             columns: [
-              { data: 'highschool__label', },
+              { data: 'highschool__label',
+                render: function(data, type, row) {
+                  return `${row.highschool__city}: ${data}`
+                }
+              },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
                   return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
@@ -510,19 +529,31 @@ $(document).ready(function () {
               },
               { data: 'user_last_name',
                 render: function(data, type, row) {
-                  return `<a href="/immersion/hs_record/${row['id']}">${data} ${row.user_first_name}</a>`;
+                  if(type === 'display') {
+                    return `<a href="/immersion/hs_record/${row['id']}">${data.toUpperCase()} ${row.user_first_name}</a>`;
+                  }
+
+                  return `${data.toLowerCase()} ${row.user_first_name.toLowerCase()}`
                 }
               },
               { data: 'birth_date',
-                render: function(data) {
-                  return data ? formatDate(data, birth_date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, birth_date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'creation_date',
-                render: function(data) {
-                  return data ? formatDate(data, date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'id',
@@ -552,11 +583,10 @@ $(document).ready(function () {
         });
     }
 
-
-    function load_validate () {
+    function load_validated () {
         dts['validated'] = $('#validated').DataTable({
             processing: false,
-            order: [[0, 2, 3, 'asc']],
+            order: [[0, 'asc'], [2, 'asc'], [3, 'asc']],
             pageLength: 25,
             lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
             serverSide: false,
@@ -585,7 +615,11 @@ $(document).ready(function () {
             },
             {% endif %}
             columns: [
-              { data: 'highschool__label', },
+              { data: 'highschool__label',
+                render: function(data, type, row) {
+                  return `${row.highschool__city}: ${data}`
+                }
+              },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
                   return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
@@ -593,19 +627,31 @@ $(document).ready(function () {
               },
               { data: 'user_last_name',
                 render: function(data, type, row) {
-                  return `<a href="/immersion/hs_record/${row['id']}">${data} ${row.user_first_name}</a>`;
+                  if(type === 'display') {
+                    return `<a href="/immersion/hs_record/${row['id']}">${data.toUpperCase()} ${row.user_first_name}</a>`;
+                  }
+
+                  return `${data.toLowerCase()} ${row.user_first_name.toLowerCase()}`
                 }
               },
               { data: 'birth_date',
-                render: function(data) {
-                  return data ? formatDate(data, birth_date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, birth_date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'validation_date',
-                render: function(data) {
-                  return data ? formatDate(data, date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'id',
@@ -625,7 +671,7 @@ $(document).ready(function () {
     function load_rejected () {
         dts['rejected'] = $('#rejected').DataTable({
             processing: false,
-            order: [[0, 2, 3, 'asc']],
+            order: [[0, 'asc'], [2, 'asc'], [3, 'asc']],
             pageLength: 25,
             lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
             serverSide: false,
@@ -654,7 +700,11 @@ $(document).ready(function () {
             },
             {% endif %}
             columns: [
-              { data: 'highschool__label', },
+              { data: 'highschool__label',
+                render: function(data, type, row) {
+                  return `${row.highschool__city}: ${data}`
+                }
+              },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
                   return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
@@ -662,19 +712,31 @@ $(document).ready(function () {
               },
               { data: 'user_last_name',
                 render: function(data, type, row) {
-                  return `<a href="/immersion/hs_record/${row['id']}">${data} ${row.user_first_name}</a>`;
+                  if(type === 'display') {
+                    return `<a href="/immersion/hs_record/${row['id']}">${data.toUpperCase()} ${row.user_first_name}</a>`;
+                  }
+
+                  return `${data.toLowerCase()} ${row.user_first_name.toLowerCase()}`
                 }
               },
               { data: 'birth_date',
-                render: function(data) {
-                  return data ? formatDate(data, birth_date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, birth_date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'record_level',},
               { data: 'class_name',},
               { data: 'rejected_date',
-                render: function(data) {
-                  return data ? formatDate(data, date_options) : "";
+                render: function(data, type, row) {
+                  if (type !== 'sort') {
+                    return data ? formatDate(data, date_options) : "";
+                  }
+
+                  return data
                 }
               },
               { data: 'id',
@@ -694,7 +756,7 @@ $(document).ready(function () {
     // First load
     load_to_revalidate();
     load_to_validate();
-    load_validate();
+    load_validated();
     load_rejected();
 
     for (const [name, dt] of Object.entries(dts)) {
@@ -746,6 +808,7 @@ $(document).ready(function () {
             {
                 column_number: 6,
                 filter_default_label: '',
+                filter_type: 'text',
                 filter_container_id: 'date_filter_' + name,
                 style_class: 'form-control form-control-sm',
                 filter_reset_button_text: false,
@@ -778,7 +841,7 @@ function reload_to_validate() {
     $('#to_validate').DataTable().clear();
     $('#to_validate').DataTable().ajax.reload();
 }
-function reload_validate() {
+function reload_validated() {
     $('#validated').DataTable().clear();
     $('#validated').DataTable().ajax.reload();
 }
@@ -798,7 +861,7 @@ function validate_student( student_record_id ) {
 
             reload_to_revalidate();
             reload_to_validate();
-            reload_validate();
+            reload_validated();
             reload_rejected();
 
             $('#validate_message').show();
@@ -847,7 +910,7 @@ function reject_student( student_record_id ) {
 
               reload_to_revalidate();
               reload_to_validate();
-              reload_validate();
+              reload_validated();
               reload_rejected();
 
               $('#reject_message').show();
@@ -865,7 +928,7 @@ function reject_student( student_record_id ) {
                   500,
                   function() {
                       elem.hide();
-                      reload_validate();
+                      reload_validated();
                   }
               );
 

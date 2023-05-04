@@ -849,8 +849,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
             return HttpResponseRedirect(reverse('immersion:modify_hs_record', kwargs={'record_id': record.id}))
     else:
-        # TODO: maybe not useful could be removed
-        #request.session['back'] = request.headers.get('Referer')
+        # Controls where to return
+        request.session['back'] = request.headers.get('Referer')
+
+        # Forms init
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
         for quota in HighSchoolStudentRecordQuota.objects\
@@ -920,8 +922,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'document_forms': document_forms,
         'student': student,
         'record': record,
-        # TODO: maybe not useful could be removed
-        #'back_url': request.session.get('back'),
+        'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
         'high_school_levels': json.dumps(
