@@ -9,8 +9,10 @@ from django.utils.translation import pgettext, gettext as _
 
 from requests import Request
 
-from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
-    MailTemplateVars, Slot, ImmersionUser, Course, Visit, OffOfferEvent)
+from immersionlyceens.apps.core.models import (
+    EvaluationFormLink, GeneralSettings, Immersion, UniversityYear, MailTemplateVars,
+    Slot, ImmersionUser, Course, Visit, OffOfferEvent
+)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
@@ -57,15 +59,22 @@ class ParserFaker:
 
     @classmethod
     def get_context(cls, request, user_is, slot_type, local_account, remote):
-        today: str = datetime.today().strftime("%d/%m/%Y")
-        cancellation_date: str = date_format(datetime.today() - timedelta(hours=24), "j F - G\hi")
+        today: datetime = timezone.localdate()
+        formatted_today: str = today.strftime("%d/%m/%Y")
+
+        cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
         slot_list: List[str] = [
-            f"* {today} (10h00 - 12h00) : Mon cours (TD)<br />Bâtiment principal, salle 1605<br /> -> {', '.join(speakers)}",
-            f"* {today} (12h00 - 14h00) : Mon cours 2 (CM)<br />Bâtiment secondaire, salle 309<br /> -> {', '.join(speakers)}",
-            f"* {today} (15h30 - 17h30) : Mon cours (TD)<br />Bâtiment principal, salle 170<br /> -> {', '.join(speakers)}",
+            f"* {formatted_today} (10h00 - 12h00) : Mon cours (TD)<br />Bâtiment principal, salle 1605<br /> -> {', '.join(speakers)}",
+            f"* {formatted_today} (12h00 - 14h00) : Mon cours 2 (CM)<br />Bâtiment secondaire, salle 309<br /> -> {', '.join(speakers)}",
+            f"* {formatted_today} (15h30 - 17h30) : Mon cours (TD)<br />Bâtiment principal, salle 170<br /> -> {', '.join(speakers)}",
+        ]
+
+        attestations: List[str] = [
+            "* Attestation d'assurance - %s" % date_format(today + timedelta(days=10), "j F Y"),
+            "* Autorisation parentale - %s" % date_format(today + timedelta(days=30), "j F Y")
         ]
 
         year = Parser.get_year()
@@ -91,6 +100,7 @@ class ParserFaker:
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
+            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br />".join(attestations))
         })
         context[user_is] = True
 
@@ -157,7 +167,7 @@ class ParserFaker:
                 "visite": {
                     "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
-                "date": cls.add_tooltip("creneau.date", today),
+                "date": cls.add_tooltip("creneau.date", formatted_today),
                 "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
                 "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
@@ -392,13 +402,25 @@ class Parser:
             }
 
             if user.is_high_school_student():
-                try:
+                record = user.get_high_school_student_record()
+
+                if record:
+                    attestations_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
+
+                    attestations = [f"* {a.attestation.label} - {date_format(a.validity_date, 'j F Y')}"
+                        for a in record.attestation.filter(
+                            archive=False,
+                            requires_validity_date=True,
+                            validity_date__lte=timezone.localdate() + timedelta(days=attestations_delay)
+                        )
+                    ]
+
                     context.update({
-                        "lycee": user.high_school_student_record.highschool.label,
-                        "datedenaissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
+                        "lycee": record.highschool.label,
+                        "datedenaissance": date_format(record.birth_date, 'd/m/Y'),
+                        "justificatifs_expires": format_html("<br>".join(attestations))
                     })
-                except HighSchoolStudentRecord.DoesNotExist:
-                    pass
+
             elif user.is_student():
                 record = user.get_student_record()
 
@@ -410,6 +432,24 @@ class Parser:
                         "lycee": institution_label,
                         "inscrit_datedenaissance": date_format(record.birth_date, 'd/m/Y')
                     })
+            elif user.is_visitor():
+                record = user.get_visitor_record()
+
+                if record:
+                    attestations_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
+
+                    attestations = [f"* {a.attestation.label} - {date_format(a.validity_date, 'j F Y')}"
+                        for a in record.attestation.filter(
+                            archive=False,
+                            requires_validity_date=True,
+                            validity_date__lte=timezone.localdate() + timedelta(days=attestations_delay)
+                        )
+                    ]
+
+                    context.update({
+                        "justificatifs_expires": format_html("<br>".join(attestations))
+                    })
+
             elif user.highschool:
                 context.update({"lycee": user.highschool.label})
 

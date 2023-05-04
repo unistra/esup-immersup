@@ -499,6 +499,7 @@ class VisitorRecordQuota(models.Model):
             )
         ]
 
+
 class RecordDocument(models.Model):
     """
     Abstract base Class for record documents
@@ -526,6 +527,7 @@ class RecordDocument(models.Model):
     for_minors = models.BooleanField(_("For minors"), default=True)
     mandatory = models.BooleanField(_("Mandatory"), default=True)
     requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
+    renewal_email_sent = models.BooleanField(_("Renewal warning email sent"), default=False)
 
     def __str__(self):
         return f"{self.record} / {self.attestation}"
@@ -541,6 +543,7 @@ class RecordDocument(models.Model):
 
     class Meta:
         abstract = True
+
 
 class HighSchoolStudentRecordDocument(RecordDocument):
     """
