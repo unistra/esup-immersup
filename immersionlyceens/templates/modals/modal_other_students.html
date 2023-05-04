@@ -57,7 +57,7 @@ dtr = $('#students_list').DataTable({
   'ajax': {
     url: "",
     dataSrc: function (json) {
-      if (json['data'] != undefined) {
+      if (json['data'] !== undefined) {
         return json['data'];
       }
     }
@@ -74,7 +74,7 @@ dtr = $('#students_list').DataTable({
     {"data": "name"},
     {"data": "email",
       "render": function(data) {
-        if(data=="") {
+        if(data === "") {
             return "<i class='fa fas fa-eye-slash'></i>";
         }
         else {

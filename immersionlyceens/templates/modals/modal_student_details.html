@@ -156,13 +156,21 @@ dtr = $('#immersions_table').DataTable({
       }
     },
     { "data": "registration_date",
-      "render": function(data) {
-        return data ? formatDate(data) : "";
+      render: function(data, type, row) {
+        if (type !== 'sort') {
+          return data ? formatDate(data) : "";
+        }
+
+        return data
       }
     },
     { "data": "cancellation_date",
-      "render": function(data) {
-        return data ? formatDate(data) : "";
+      render: function(data, type, row) {
+        if (type !== 'sort') {
+          return data ? formatDate(data) : "";
+        }
+
+        return data
       }
     },
   ],

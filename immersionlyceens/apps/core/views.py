@@ -36,9 +36,9 @@ from .forms import (
     StructureForm, TrainingFormHighSchool, VisitForm, VisitSlotForm,
 )
 from .models import (
-    Campus, CancelType, Course, Establishment, HighSchool, Holiday, Immersion,
-    ImmersionUser, InformationText, OffOfferEvent, Slot, Structure, Training,
-    UniversityYear, Visit,
+    Campus, CancelType, Course, Establishment, GeneralSettings, HighSchool,
+    Holiday, Immersion, ImmersionUser, InformationText, OffOfferEvent, Slot,
+    Structure, Training, UniversityYear, Visit,
 )
 
 logger = logging.getLogger(__name__)
@@ -638,7 +638,10 @@ def student_validation(request, high_school_id=None):
             return redirect('/')
 
     # student_validation
-    context = {}
+    context = {
+        'highschool_filter': request.session.get('highschool_filter'),
+        'convention_filter': request.session.get('convention_filter'),
+    }
 
     if high_school_id:
         try:
@@ -646,8 +649,9 @@ def student_validation(request, high_school_id=None):
         except HighSchool.DoesNotExist:
             messages.error(request, _("This high school id does not exist"))
             return redirect('/core/student_validation/')
-    else:
-        context['high_schools'] = HighSchool.agreed.order_by('city')
+
+    context["w_convention"] = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+    context["wo_convention"] = GeneralSettings.get_setting("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
 
     try:
         context['hs_id'] = int(request.GET.get('hs_id'))
@@ -660,44 +664,6 @@ def student_validation(request, high_school_id=None):
 @method_decorator(groups_required("REF-ETAB-MAITRE", "REF-TEC"), name="dispatch")
 class VisitorValidationView(generic.TemplateView):
     template_name = "core/visitor_validation.html"
-
-# @method_decorator(groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
-# class StudentValidationView(generic.TemplateView):
-#     template_name: str = "core/student_validation.html"
-#
-#     def get(self, request, *args, **kwargs):
-#         if request.user.is_high_school_manager() and request.user.highschool:
-#             try:
-#                 high_school_id = request.user.highschool.id
-#             except AttributeError:
-#                 messages.error(request, _("Your account is not bound to any high school"))
-#                 return redirect('/')
-#         return super().get(request, *args, **kwargs)
-#
-#     def get_context_data(self, **kwargs):
-#         context: Dict[str, Any] = super().get_context_data(**kwargs)
-#         high_school_id = self.kwargs.get("high_school_id", None)
-#         if self.request.user.is_high_school_manager() and self.request.user.highschool:
-#             try:
-#                 high_school_id = self.request.user.highschool.id
-#             except AttributeError:
-#                 pass
-#
-#         if high_school_id:
-#             try:
-#                 context['high_school'] = HighSchool.objects.get(id=high_school_id)
-#             except HighSchool.DoesNotExist:
-#                 messages.error(self.request, _("This high school id does not exist"))
-#                 return redirect('/core/student_validation/')
-#         else:
-#             context['high_schools'] = HighSchool.agreed.order_by('city')
-#
-#         try:
-#             context['hs_id'] = int(self.request.GET.get('hs_id'))
-#         except (ValueError, TypeError):
-#             pass
-#
-#         return context
 
 
 @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
