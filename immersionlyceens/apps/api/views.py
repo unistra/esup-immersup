@@ -671,9 +671,6 @@ def ajax_get_student_records(request):
     request.session["highschool_filter"] = hs_id
     request.session["convention_filter"] = with_convention
 
-    print(f"HS: {request.session['highschool_filter']} type : {type(request.session['highschool_filter'])}")
-    print(f"CONV: {request.session['convention_filter']} type : {type(request.session['convention_filter'])}")
-
     attestations = HighSchoolStudentRecordDocument.objects\
         .filter(
             Q(validity_date__lte=today)|Q(validity_date__isnull=True),
