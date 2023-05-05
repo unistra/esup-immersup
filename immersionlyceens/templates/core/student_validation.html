@@ -231,6 +231,7 @@ var wo_convention = "{{ wo_convention }}" === "True"
 var convention = "all"
 var convention_filter = "{{ request.session.convention_filter }}"
 var highschool_filter = "{{ request.session.highschool_filter }}"
+var referent_high_school = "{{ high_school.id }}"
 
 $(document).ready(function () {
     $.ajaxSetup({
@@ -320,17 +321,21 @@ $(document).ready(function () {
         }
     });
 
-    // Init : if only one sort of high school is activated, initialize the list
-    // both CAN'T be deactivated at the same time
-    if(is_set(convention_filter)) {
-      $('#id_convention').val(convention_filter)
-      set_high_school(convention_filter)
-    }
-    else if(w_convention ^ wo_convention) {
-      set_high_school(w_convention)
-    }
-    else if(w_convention && wo_convention) {
-      set_high_school('all')
+    // Init :
+    // if high_school is not set :
+    // - if only one sort of high school is activated, initialize the list
+    // - both CAN'T be deactivated at the same time
+    if(!is_set(referent_high_school)) {
+      if(is_set(convention_filter)) {
+        $('#id_convention').val(convention_filter)
+        set_high_school(convention_filter)
+      }
+      else if(w_convention ^ wo_convention) {
+        set_high_school(w_convention)
+      }
+      else if(w_convention && wo_convention) {
+        set_high_school('all')
+      }
     }
 
     vdialog = $("#vdialog-form").dialog({

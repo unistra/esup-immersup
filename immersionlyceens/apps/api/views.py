@@ -624,6 +624,9 @@ def validate_slot_date(request):
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def ajax_get_student_records(request):
+    """
+    Get high school student lists depending on their record status
+    """
     today = timezone.localdate()
 
     # high_school_validation
@@ -681,6 +684,8 @@ def ajax_get_student_records(request):
         .order_by()\
         .annotate(count=Func(F('id'), function='Count'))\
         .values('count')
+
+    print(filter)
 
     records = HighSchoolStudentRecord.objects.prefetch_related('highschool')\
         .filter(**filter)\
@@ -1739,7 +1744,14 @@ def ajax_get_highschool_students(request):
         student_origin_bachelor=Case(*student_origin_bachelor_whens, output_field=CharField()),
         hs_origin_bachelor=Case(*hs_origin_bachelor_whens, output_field=CharField()),
         bachelor=Case(*bachelor_whens, output_field=CharField()),
-        registered=Count(F('immersions'))
+        registered=Count(F('immersions')),
+        allow_high_school_consultation=Case(
+            When(
+                high_school_student_record__highschool__with_convention=True,
+                then=F('high_school_student_record__allow_high_school_consultation'),
+            ),
+            default=True
+        )
     ).values()
 
     response['data'] = [l for l in students]

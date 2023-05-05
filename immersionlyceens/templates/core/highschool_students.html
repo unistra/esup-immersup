@@ -96,7 +96,7 @@
   const is_ref_tec = "{{ request.user.is_operator }}" === "True";
   const is_ref_lyc = "{{ request.user.is_high_school_manager }}" === "True";
   const date_format = { year: 'numeric', month: 'long', day: 'numeric' };
-  let order = [[0, "asc"],];
+  let order = [[0, "asc"], [1, "asc"], ];
 
   function open_modal(student_id) {
     current_student_id = student_id;
@@ -136,7 +136,7 @@
     {% endif %}
     { "data": "last_name",
       "render": function(data, type, row) {
-        let name = `${row.last_name} ${row.first_name}`
+        let name = `${row.last_name.toUpperCase()} ${row.first_name}`
 
         if(type === "sort") {
           return name.toLowerCase()
@@ -208,10 +208,24 @@
     { "data": "registered",
       "render": function(data, type, row) {
         if(data) {
-          return "{% trans 'Yes' %} " +
-                  "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
-                  "<i class='fa fas fa-eye fa-2x'></i>" +
-                  "</button>";
+          if(type === "display") {
+            console.log(row.allow_high_school_consultation)
+          }
+
+          let txt = "{% trans 'Yes' %} "
+
+          if(row.allow_high_school_consultation) {
+            txt += "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
+                   "<i class='fa fas fa-eye fa-2x'></i>" +
+                   "</button>";
+          }
+          else {
+            txt += "<button class=\"btn btn-warning btn-sm ml-4\" title=\"{% trans 'Not allowed by the student' %}\">" +
+                   "<i class='fa fas fa-eye-slash fa-2x'></i>" +
+                   "</button>";
+          }
+
+          return txt
         }
         else {
           return "{% trans 'No' %}";
