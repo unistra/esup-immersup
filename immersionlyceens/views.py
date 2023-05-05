@@ -316,7 +316,8 @@ def offer_subdomain(request, subdomain_id):
 
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
-                    if remaining_period_registrations and (not slot.already_registered or slot.cancelled):
+                    # ignore "remaining_period_registrations > 0" ?
+                    if not slot.already_registered or slot.cancelled:
                         can_register, reasons = student.can_register_slot(slot)
 
                         if slot.available_seats() > 0 and can_register:
