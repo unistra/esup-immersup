@@ -11,7 +11,7 @@ def create_template(apps, schema_editor):
         "description": "Liste des justificatifs à renouveler lorsque la fin de validité approche"
     }
 
-    MailTemplateVars.objects.create(**template_var_data)
+    template_var = MailTemplateVars.objects.create(**template_var_data)
 
     template_data = {
         "code": "CPT_DEPOT_PIECE",
@@ -26,7 +26,8 @@ def create_template(apps, schema_editor):
         "active": True
     }
 
-    MailTemplate.objects.create(**template_data)
+    template = MailTemplate.objects.create(**template_data)
+    template.available_vars.add(template_var)
 
 class Migration(migrations.Migration):
 

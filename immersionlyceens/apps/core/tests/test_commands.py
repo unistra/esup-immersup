@@ -1,9 +1,10 @@
 """
-Mails tests
+Core commands tests
 """
 import datetime
 import uuid
 
+from django.core import mail, management
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
 from django.utils import timezone
@@ -13,27 +14,30 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 
 from immersionlyceens.libs.utils import get_general_setting
-from ..mails.variables_parser import parser
+from immersionlyceens.libs.mails.variables_parser import parser
 
 from immersionlyceens.apps.core.models import (
     AttestationDocument, UniversityYear, MailTemplate, Structure, Slot, Course,
     TrainingDomain, TrainingSubdomain, Campus, Building, CourseType, Training,
     Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType, CancelType,
     HighSchoolLevel, StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
-    HigherEducationInstitution, PendingUserGroup
+    HigherEducationInstitution, PendingUserGroup, GeneralSettings
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, HighSchoolStudentRecordDocument
 
-class MailsTestCase(TestCase):
-    """Mail templates tests"""
+class CommandsTestCase(TestCase):
+    """
+    Core app Management Commands tests
+    """
 
     fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
                 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):
-        cls.today = timezone.now()
+        cls.now = timezone.now()
+        cls.today = timezone.localdate()
 
         cls.establishment = Establishment.objects.create(
             code='ETA1',
@@ -69,7 +73,7 @@ class MailsTestCase(TestCase):
         )
 
         cls.highschool_user.set_validation_string()
-        cls.highschool_user.destruction_date = cls.today.date() + datetime.timedelta(days=settings.DESTRUCTION_DELAY)
+        cls.highschool_user.destruction_date = cls.today + datetime.timedelta(days=settings.DESTRUCTION_DELAY)
         cls.highschool_user.save()
 
         cls.speaker1 = get_user_model().objects.create_user(
@@ -110,9 +114,9 @@ class MailsTestCase(TestCase):
 
         cls.university_year = UniversityYear.objects.create(
             label='2020-2021',
-            start_date=cls.today.date() + datetime.timedelta(days=1),
-            end_date=cls.today.date() + datetime.timedelta(days=10),
-            registration_start_date=cls.today.date() + datetime.timedelta(days=1),
+            start_date=cls.today + datetime.timedelta(days=1),
+            end_date=cls.today + datetime.timedelta(days=10),
+            registration_start_date=cls.today + datetime.timedelta(days=1),
             active=True,
         )
 
@@ -178,7 +182,7 @@ class MailsTestCase(TestCase):
         cls.hs_record = HighSchoolStudentRecord.objects.create(
             student=cls.highschool_user,
             highschool=cls.high_school,
-            birth_date=datetime.datetime.today(),
+            birth_date=cls.today,
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
@@ -223,143 +227,48 @@ class MailsTestCase(TestCase):
             requires_validity_date=True
         )
 
+        cls.attestation_2.profiles.add(Profile.objects.get(code='LYC_W_CONV'))
         cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
 
+        # This attestation expires in 5 days
         cls.hs_record_document=HighSchoolStudentRecordDocument.objects.create(
             record=cls.hs_record,
             attestation=cls.attestation_1,
             mandatory=True,
             for_minors=False,
             requires_validity_date=True,
-            validity_date=cls.today.date() + datetime.timedelta(days=5)
+            validity_date=cls.today + datetime.timedelta(days=5)
+        )
+
+        # This one doesn't
+        cls.hs_record_document = HighSchoolStudentRecordDocument.objects.create(
+            record=cls.hs_record,
+            attestation=cls.attestation_2,
+            mandatory=True,
+            for_minors=False,
+            requires_validity_date=True,
+            validity_date=cls.today + datetime.timedelta(days=300)
         )
 
 
-    def test_variables(self):
-        # user : ${prenom} ${nom} ${jourDestructionCptMin} ${lienValidation} ${identifiant}
-        # university year : ${annee}
+    def test_send_attestation_expiration_warning(self):
+        """
+        Test attestation expiration warning message
+        """
+        expiration_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
+        expiration_date = self.today + datetime.timedelta(days=expiration_delay)
 
-        message_body = MailTemplate.objects.get(code='CPT_MIN_CREATE')
-        parsed_body = parser(message_body.body, user=self.highschool_user)
+        # Check statuses before command
+        for attestation in self.hs_record.attestation.all():
+            self.assertFalse(attestation.renewal_email_sent)
 
-        self.assertIn(self.highschool_user.first_name, parsed_body)
-        self.assertIn(self.highschool_user.last_name, parsed_body)
-        self.assertIn(self.highschool_user.validation_string, parsed_body)
-        self.assertIn(self.highschool_user.username, parsed_body)
-        self.assertIn(self.highschool_user.get_localized_destruction_date(), parsed_body)
-        self.assertIn(self.university_year.label, parsed_body)
+        # Send the reminders
+        management.call_command("send_attestation_expiration_warning", verbosity=0)
+        self.assertEqual(len(mail.outbox), 1)
 
-        # Slots
-        message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL')
-        parsed_body = parser(message_body.body, user=self.highschool_user, slot=self.slot)
-
-        self.assertIn(self.highschool_user.first_name, parsed_body)
-        self.assertIn(self.highschool_user.last_name, parsed_body)
-        self.assertIn(self.slot.building.label, parsed_body)
-        self.assertIn(self.slot.campus.label, parsed_body)
-        self.assertIn(self.slot.course.label, parsed_body)
-        self.assertIn(self.slot.course.training.label, parsed_body)
-        self.assertIn(date_format(self.slot.date), parsed_body)
-        self.assertIn(self.slot.additional_information, parsed_body)
-        self.assertIn(self.slot.room, parsed_body)
-        self.assertIn(self.slot.start_time.strftime("%-Hh%M"), parsed_body)
-        self.assertIn(self.slot.end_time.strftime("%-Hh%M"), parsed_body)
-
-        # Slots : registered users list
-        message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL_INT')
-        parsed_body = parser(message_body.body, user=self.speaker1, slot=self.slot)
-
-        self.assertIn(self.speaker1.first_name, parsed_body)
-        self.assertIn(self.speaker1.last_name, parsed_body)
-        self.assertIn(self.highschool_user.first_name, parsed_body)
-        self.assertIn(self.highschool_user.last_name, parsed_body)
-
-        # Slots : slot list
-        message_body = MailTemplate.objects.get(code='RAPPEL_STRUCTURE')
-        parsed_body = parser(message_body.body, user=self.ref_str, slot_list=[self.slot])
-        self.assertIn(self.slot.course.label, parsed_body)
-        self.assertIn(self.slot.course_type.label, parsed_body)
-        self.assertIn(self.slot.building.label, parsed_body)
-        self.assertIn(self.slot.room, parsed_body)
-        self.assertIn(self.speaker1.last_name, parsed_body)
-
-        # Slots : availability
-        message_body = MailTemplate.objects.get(code='ALERTE_DISPO')
-        parsed_body = parser(message_body.body, user=self.highschool_user, course=self.slot.course,
-                             slot_list=[self.slot])
-        self.assertIn(self.slot.course.label, parsed_body)
-
-        # Slots : evaluation
-        message_body = MailTemplate.objects.get(code='EVALUATION_CRENEAU')
-        parsed_body = parser(message_body.body, user=self.highschool_user, slot=self.slot)
-        self.assertIn(self.slot_eval_link.url, parsed_body)
-        self.assertIn(self.slot.course_type.full_label, parsed_body)
-
-        # self.assertIn(self.speaker1.last_name, parsed_body)
-
-        # highschool
-        message_body = MailTemplate.objects.get(code='CPT_AVALIDER_LYCEE')
-        parsed_body = parser(message_body.body, user=self.lyc_ref, slot=self.slot)
-
-        self.assertIn(self.lyc_ref.first_name, parsed_body)
-        self.assertIn(self.lyc_ref.last_name, parsed_body)
-        self.assertIn(self.high_school.label, parsed_body)
-        self.assertIn(get_general_setting("PLATFORM_URL"), parsed_body)
-
-        # high school referent account creation : check recovery string
-        self.lyc_ref.set_recovery_string()
-        message_body = MailTemplate.objects.get(code='CPT_CREATE')
-        parsed_body = parser(message_body.body, user=self.lyc_ref)
-        self.assertIn(self.lyc_ref.recovery_string, parsed_body)
-
-        # Global evaluation
-        message_body = MailTemplate.objects.get(code='EVALUATION_GLOBALE')
-        parsed_body = parser(message_body.body, user=self.highschool_user)
-        self.assertIn(self.global_eval_link.url, parsed_body)
-
-        # Slot cancellation
-        canceltype = CancelType.objects.all().first()
-        self.immersion.cancellation_type = canceltype
-        self.immersion.save()
-
-        message_body = MailTemplate.objects.get(code='IMMERSION_ANNUL')
-        parsed_body = parser(message_body.body, user=self.highschool_user, immersion=self.immersion)
-        self.assertIn(self.immersion.cancellation_type.label, parsed_body)
-
-        # Account links
-        pending = PendingUserGroup.objects.create(
-            immersionuser1=self.speaker1,
-            immersionuser2=self.speaker2,
-            validation_string=uuid.uuid4().hex
-        )
-
-        platform_url = get_general_setting("PLATFORM_URL")
-        url = reverse("immersion:link", kwargs={'hash': pending.validation_string})
-
-        message_body = MailTemplate.objects.get(code='CPT_FUSION')
-        parsed_body = parser(
-            message_body.body,
-            link_validation_string=pending.validation_string,
-            link_source_user=self.speaker1
-        )
-        self.assertIn(f"{self.speaker1.last_name} {self.speaker1.first_name}", parsed_body)
-        self.assertIn(f"{platform_url}{url}", parsed_body)
-
-        # Attestations renewal
-        message_body = MailTemplate.objects.get(code='CPT_DEPOT_PIECE')
-        parsed_body = parser(
-            message_body.body,
-            user=self.highschool_user
-        )
-        self.assertIn(self.attestation_1.label, parsed_body)
-
-
-    def test_condition(self):
-        message_body = "{% if prenom == 'Jean' %}Hello{% else %}World{% endif %}"
-        parsed_body = parser(message_body, user=self.highschool_user)
-
-        self.assertEqual("Hello", parsed_body)
-
-        self.highschool_user.first_name = "dsfgfd"
-        parsed_body = parser(message_body, user=self.highschool_user)
-        self.assertEqual("World", parsed_body)
+        # Check new statuses
+        for attestation in self.hs_record.attestation.all():
+            if attestation.validity_date <= expiration_date:
+                self.assertTrue(attestation.renewal_email_sent)
+            else:
+                self.assertFalse(attestation.renewal_email_sent)

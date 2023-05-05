@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from importlib import import_module
 
 from django.conf import settings
+from django.core.mail import EmailMessage
 from django.core.mail.message import sanitize_address
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -54,6 +55,15 @@ def send_email(address, subject, body, from_addr=None, reply_to=None):
     msg.attach(part2)
     try:
         mail_backend().send_message(msg)
+    except AttributeError:
+        # For unittests, use Django Email Backend
+        email = EmailMessage(
+            subject,
+            html,
+            settings.DEFAULT_FROM_EMAIL,
+            [sanitize_address(recipient, encoding)]
+        )
+        email.send()
     except Exception as e:
         logger.error(
             f"Cannot send message to {recipient} : unexpected error: {e} - {sys.exc_info()[0]}",
