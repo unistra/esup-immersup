@@ -17,10 +17,11 @@ from immersionlyceens.libs.utils import get_general_setting
 from immersionlyceens.libs.mails.variables_parser import parser
 
 from immersionlyceens.apps.core.models import (
-    AttestationDocument, UniversityYear, MailTemplate, Structure, Slot, Course,
-    TrainingDomain, TrainingSubdomain, Campus, Building, CourseType, Training,
-    Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType, CancelType,
-    HighSchoolLevel, StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
+    AttestationDocument, BachelorType, UniversityYear, MailTemplate,
+    Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
+    Building, CourseType, Training, Vacation, HighSchool, Immersion,
+    EvaluationFormLink, EvaluationType, CancelType, HighSchoolLevel,
+    StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
     HigherEducationInstitution, PendingUserGroup, GeneralSettings
 )
 
@@ -186,7 +187,7 @@ class CommandsTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
             visible_email=True,

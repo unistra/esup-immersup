@@ -27,8 +27,8 @@ from ..forms import (
     OffOfferEventSlotForm, SlotForm, VisitForm, VisitSlotForm,
 )
 from ..models import (
-    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
-    Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
     Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
@@ -201,7 +201,7 @@ class FormTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 

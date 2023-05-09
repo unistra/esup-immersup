@@ -685,8 +685,6 @@ def ajax_get_student_records(request):
         .annotate(count=Func(F('id'), function='Count'))\
         .values('count')
 
-    print(filter)
-
     records = HighSchoolStudentRecord.objects.prefetch_related('highschool')\
         .filter(**filter)\
         .annotate(
@@ -1660,39 +1658,23 @@ def ajax_get_highschool_students(request):
 
     if highschool_id:
         students = ImmersionUser.objects.prefetch_related(
-            'high_school_student_record', 'high_school_student_record__highschool',
-            'high_school_student_record__post_bachelor_level', 'immersions', 'groups'
+            'high_school_student_record__highschool',
+            'high_school_student_record__post_bachelor_level',
+            'high_school_student_record__bachelor_type',
+            'high_school_student_record__origin_bachelor_type',
+            'immersions', 'groups'
         ).filter(
             validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id
         )
     else:
         students = ImmersionUser.objects.prefetch_related(
             'high_school_student_record__level', 'high_school_student_record__highschool',
-            'high_school_student_record__post_bachelor_level', 'student_record__level',
-            'student_record__institution', 'visitor_record', 'immersions', 'groups'
+            'high_school_student_record__post_bachelor_level',
+            'high_school_student_record__origin_bachelor_type',
+            'student_record__level', 'student_record__institution',
+            'student_record__origin_bachelor_type', 'visitor_record',
+            'immersions', 'groups'
         ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
-
-    # Bachelor cases/when
-    bachelor_choices = dict(HighSchoolStudentRecord._meta.get_field('bachelor_type').flatchoices)
-    bachelor_whens = [
-        When(high_school_student_record__bachelor_type=k, then=Value(str(v))) for k, v in bachelor_choices.items()
-    ]
-
-    student_origin_bachelor_choices = dict(StudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
-    student_origin_bachelor_whens = [
-        When(
-            student_record__origin_bachelor_type=k,
-            then=Value(str(v))
-        ) for k, v in student_origin_bachelor_choices.items()
-    ]
-
-    hs_origin_bachelor_choices = dict(HighSchoolStudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
-    hs_origin_bachelor_whens = [
-        When(
-            high_school_student_record__origin_bachelor_type=k,
-            then=Value(str(v))
-        ) for k, v in hs_origin_bachelor_choices.items()
-    ]
 
     if no_record_filter:
         students = students.filter(
@@ -1741,9 +1723,9 @@ def ajax_get_highschool_students(request):
             F('high_school_student_record__post_bachelor_level__label')
         ),
         is_post_bachelor=F('high_school_student_record__level__is_post_bachelor'),
-        student_origin_bachelor=Case(*student_origin_bachelor_whens, output_field=CharField()),
-        hs_origin_bachelor=Case(*hs_origin_bachelor_whens, output_field=CharField()),
-        bachelor=Case(*bachelor_whens, output_field=CharField()),
+        student_origin_bachelor=F('student_record__origin_bachelor_type__label'),
+        hs_origin_bachelor=F('high_school_student_record__origin_bachelor_type__label'),
+        bachelor=F('high_school_student_record__bachelor_type__label'),
         registered=Count(F('immersions')),
         allow_high_school_consultation=Case(
             When(
@@ -2390,20 +2372,13 @@ def get_csv_highschool(request):
 
     students = ImmersionUser.objects.prefetch_related(
             'high_school_student_record__level', 'high_school_student_record__highschool',
-            'immersions', 'immersions__slot'
+            'high_school_student_record__bachelor_type__level', 'immersions',
+            'immersions__slot'
         ).filter(
             Q_filters,
             groups__name='LYC',
             high_school_student_record__highschool__id=hs.id,
         ).order_by('last_name', 'first_name')
-
-    bachelor_type_choices = dict(HighSchoolStudentRecord._meta.get_field('bachelor_type').flatchoices)
-    bachelor_type_whens = [
-        When(
-            high_school_student_record__bachelor_type=k,
-            then=Value(str(v))
-        ) for k, v in bachelor_type_choices.items()
-    ]
 
     attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
     attendance_status_whens = [
@@ -2419,7 +2394,7 @@ def get_csv_highschool(request):
         student_birth_date=ExpressionWrapper(
             Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
         ),
-        student_bachelor_type=Case(*bachelor_type_whens, output_field=CharField()),
+        student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
         slot_establishment=Coalesce(
             F('immersions__slot__course__structure__establishment__label'),
             F('immersions__slot__visit__establishment__label'),
@@ -2898,9 +2873,12 @@ def get_csv_anonymous(request):
             'slot','student','slot__event__establishment', 'slot__event__structure',
             'slot__event__highschool', 'slot__speakers', 'slot__visit__establishment'
             'slot__visit__structure', 'slot__visit__highschool', 'slot__course__structure',
-            'slot__course__highschool', 'student__visitor_record', 'student__student_record',
-            'student__high_school_student_record', 'high_school_student_record__level',
-            'high_school_student_record__highschool', 'student_record__institution', 'visitor_record',
+            'slot__course__highschool', 'student__visitor_record',
+            'student__student_record__origin_bachelor_type'
+            'student__student_record__institution',
+            'student__high_school_student_record__origin_bachelor_type',
+            'student__high_school_student_record__level',
+            'student__high_school_student_record__highschool',
         ).filter(
             cancellation_type__isnull=True, slot__published=True, **filters
         )
@@ -2913,22 +2891,6 @@ def get_csv_anonymous(request):
                 student__id=k,
                 then=Value(fake_names[k])
             ) for k,v in fake_names.items()
-        ]
-
-        student_origin_bachelor_choices = dict(StudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
-        student_origin_bachelor_whens = [
-            When(
-                student__student_record__origin_bachelor_type=k,
-                then=Value(str(v))
-            ) for k, v in student_origin_bachelor_choices.items()
-        ]
-
-        hs_origin_bachelor_choices = dict(HighSchoolStudentRecord._meta.get_field('origin_bachelor_type').flatchoices)
-        hs_origin_bachelor_whens = [
-            When(
-                student__high_school_student_record__origin_bachelor_type=k,
-                then=Value(str(v))
-            ) for k, v in hs_origin_bachelor_choices.items()
         ]
 
         attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
@@ -2961,8 +2923,8 @@ def get_csv_anonymous(request):
 
             ),
             origin_bachelor_type=Coalesce(
-                Case(*student_origin_bachelor_whens, output_field=CharField()),
-                Case(*hs_origin_bachelor_whens, output_field=CharField()),
+                F('student__student_record__origin_bachelor_type__label'),
+                F('student__high_school_student_record__origin_bachelor_type__label'),
             ),
             establishment=Coalesce(
                 F('slot__course__structure__establishment__label'),

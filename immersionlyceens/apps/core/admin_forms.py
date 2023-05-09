@@ -24,8 +24,8 @@ from immersionlyceens.apps.immersion.models import (
 
 from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
-    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
-    Campus, CancelType, CertificateLogo, CertificateSignature, CourseType,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, CertificateLogo, CertificateSignature, CourseType,
     CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType, FaqEntry,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
@@ -76,6 +76,10 @@ class BachelorMentionForm(TypeFormMixin):
         model = BachelorMention
         fields = '__all__'
 
+class BachelorTypeForm(TypeFormMixin):
+    class Meta:
+        model = BachelorType
+        fields = '__all__'
 
 class CampusForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

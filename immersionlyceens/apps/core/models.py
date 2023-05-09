@@ -692,8 +692,14 @@ class ImmersionUser(AbstractUser):
         """
         errors = []
 
+        slot_has_restrictions = any([
+            slot.establishments_restrictions,
+            slot.levels_restrictions,
+            slot.bachelors_restrictions
+        ])
+
         # Returns True if no restrictions are found
-        if not slot or not slot.establishments_restrictions and not slot.levels_restrictions:
+        if not slot or not slot_has_restrictions:
             return True, errors
 
         if self.is_high_school_student():
@@ -1073,6 +1079,33 @@ class BachelorMention(models.Model):
         verbose_name_plural = pgettext('tbs_plural', 'Technological bachelor series')
         ordering = ['label', ]
 
+
+class BachelorType(models.Model):
+    """
+    Bachelor type
+    """
+
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    pre_bachelor_level = models.BooleanField(_("Is pre-bachelor level"), default=False)
+    general = models.BooleanField(_("Is general type"), default=False)
+    technological = models.BooleanField(_("Is technological type"), default=False)
+    professional = models.BooleanField(_("Is professional type"), default=False)
+
+    def __str__(self):
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A bachelor type with this label already exists'))
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Bachelor type')
+        verbose_name_plural = _('Bachelor types')
+        ordering = ['label', ]
 
 class Building(models.Model):
     """
@@ -2352,6 +2385,11 @@ class Slot(models.Model):
         _("Use levels restrictions"), default=False, null=False, blank=True
     )
 
+    bachelors_restrictions = models.BooleanField(
+        _("Use bachelors restrictions"), default=False, null=False, blank=True
+    )
+
+    # Allowed establishments / high schools
     allowed_establishments = models.ManyToManyField(
         Establishment, verbose_name=_("Allowed establishments"), related_name='+', blank=True
     )
@@ -2360,7 +2398,7 @@ class Slot(models.Model):
         HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
     )
 
-    # new fields
+    # Allowed levels
     allowed_highschool_levels = models.ManyToManyField(
         HighSchoolLevel, verbose_name=_("Allowed high school levels"), related_name='+', blank=True
     )
@@ -2369,6 +2407,17 @@ class Slot(models.Model):
     )
     allowed_post_bachelor_levels = models.ManyToManyField(
         PostBachelorLevel, verbose_name=_("Allowed post bachelor levels"), related_name='+', blank=True
+    )
+
+    # Allowed bachelor types
+    allowed_bachelor_types = models.ManyToManyField(
+        BachelorType, verbose_name=_("Allowed bachelor types"), related_name='+', blank=True
+    )
+    allowed_bachelor_series = models.ManyToManyField(
+        BachelorMention, verbose_name=_("Allowed bachelor mentions"), related_name='+', blank=True
+    )
+    allowed_bachelor_teachings = models.ManyToManyField(
+        GeneralBachelorTeaching, verbose_name=_("Allowed bachelor teachings"), related_name='+', blank=True
     )
 
     registration_limit_delay = models.PositiveSmallIntegerField(

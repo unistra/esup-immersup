@@ -19,9 +19,9 @@ from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
-    Building, Campus, Course, CourseType, Establishment, HighSchool,
-    HighSchoolLevel, ImmersionUser, OffOfferEvent, OffOfferEventType,
-    Period, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
+    BachelorMention, BachelorType, Building, Campus, Course, CourseType, Establishment,
+    GeneralBachelorTeaching, HighSchool, HighSchoolLevel, ImmersionUser, OffOfferEvent,
+    OffOfferEventType, Period, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
     UniversityYear, Visit
 )
 
@@ -146,7 +146,8 @@ class SlotForm(forms.ModelForm):
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'registration_limit_delay', 'cancellation_limit_delay']:
+            'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_series',
+            'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # Disable autocomplete for date fields
@@ -161,9 +162,22 @@ class SlotForm(forms.ModelForm):
 
         self.fields["highschool"].queryset = HighSchool.agreed.filter(postbac_immersion=True)
         self.fields["allowed_highschools"].queryset = HighSchool.agreed.order_by('city', 'label')
-        self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
-        self.fields["allowed_student_levels"].queryset = StudentLevel.objects.filter(active=True).order_by('order')
-        self.fields["allowed_post_bachelor_levels"].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
+
+        # Level restrictions
+        self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects\
+            .filter(active=True).order_by('order')
+        self.fields["allowed_student_levels"].queryset = StudentLevel.objects\
+            .filter(active=True).order_by('order')
+        self.fields["allowed_post_bachelor_levels"].queryset = PostBachelorLevel.objects\
+            .filter(active=True).order_by('order')
+
+        # Bachelor restrictions
+        self.fields["allowed_bachelor_types"].queryset = BachelorType.objects\
+            .filter(active=True).order_by('label')
+        self.fields["allowed_bachelor_series"].queryset = BachelorMention.objects\
+                    .filter(active=True).order_by('label')
+        self.fields["allowed_bachelor_teachings"].queryset = GeneralBachelorTeaching.objects\
+                    .filter(active=True).order_by('label')
 
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)
@@ -236,20 +250,34 @@ class SlotForm(forms.ModelForm):
             self.fields["cancellation_limit_delay"].initial = 0
 
     def clean_restrictions(self, cleaned_data):
+        # Establishment resrtictions fields
         establishments_restrictions = cleaned_data.get('establishments_restrictions')
-        levels_restrictions = cleaned_data.get('levels_restrictions')
         allowed_establishments = cleaned_data.get('allowed_establishments')
         allowed_highschools = cleaned_data.get('allowed_highschools')
+
+        # Level restrictions fields
+        levels_restrictions = cleaned_data.get('levels_restrictions')
         allowed_highschool_levels = cleaned_data.get('allowed_highschool_levels')
         allowed_student_levels = cleaned_data.get('allowed_student_levels')
         allowed_post_bachelor_levels = cleaned_data.get('allowed_post_bachelor_levels')
 
+        # Bachelor types restrictions fields
+        bachelors_restrictions = cleaned_data.get('bachelors_restrictions')
+        allowed_bachelor_types = cleaned_data.get('allowed_bachelor_types')
+        allowed_bachelor_series = cleaned_data.get('allowed_bachelor_series')
+        allowed_bachelor_teachings = cleaned_data.get('allowed_bachelor_teachings')
+
+        # Controls
         if establishments_restrictions and not allowed_establishments and not allowed_highschools:
             cleaned_data["establishments_restrictions"] = False
 
         if levels_restrictions and not allowed_highschool_levels and not allowed_student_levels \
                 and not allowed_post_bachelor_levels:
             cleaned_data["levels_restrictions"] = False
+
+        if bachelors_restrictions and not any([
+            allowed_bachelor_types, allowed_bachelor_series, allowed_bachelor_teachings]):
+            cleaned_data["bachelors_restrictions"] = False
 
         return cleaned_data
 
@@ -336,6 +364,9 @@ class SlotForm(forms.ModelForm):
                 slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
                 slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
                 slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
+                slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
+                slot_allowed_bachelor_series = [l for l in new_slot_template.allowed_bachelor_series.all()]
+                slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
 
                 for new_date in new_dates:
                     parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
@@ -351,6 +382,10 @@ class SlotForm(forms.ModelForm):
                         new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
                         new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
                         new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
+                        new_slot_template.allowed_bachelor_types.add(*slot_allowed_bachelor_types)
+                        new_slot_template.allowed_bachelor_series.add(*slot_allowed_bachelor_series)
+                        new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
+
                         messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
             except Period.MultipleObjectsReturned:
                 raise
@@ -365,8 +400,9 @@ class SlotForm(forms.ModelForm):
         fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'event', 'training', 'course',
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
-            'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'speakers', 'repeat', 'registration_limit_delay',
+            'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+            'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
+            'allowed_bachelor_series', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
             'cancellation_limit_delay')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),

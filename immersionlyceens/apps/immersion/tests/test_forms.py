@@ -11,8 +11,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
-    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment, HigherEducationInstitution
+    BachelorType, Structure, TrainingDomain, TrainingSubdomain,
+    Training, Course, Building, CourseType, Slot, Campus,
+    HighSchool, HighSchoolLevel, PostBachelorLevel, StudentLevel,
+    Establishment, HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -125,7 +127,7 @@ class FormTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 

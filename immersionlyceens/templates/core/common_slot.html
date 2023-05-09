@@ -349,6 +349,7 @@
               {% trans 'Allowed high school levels' %}
             </label>
             {{ form.allowed_highschool_levels }}
+            {{ form.allowed_highschool_levels.errors }}
           </div>
           {% if slot_mode != "visit" %}
           <div class="col-sm-3">
@@ -356,20 +357,58 @@
               {% trans 'Allowed student levels' %}
             </label>
             {{ form.allowed_student_levels }}
+            {{ form.allowed_student_levels.errors }}
           </div>
           <div class="col-sm-3">
             <label for="id_allowed_post_bachelor_levels" class="col-form-label">
               {% trans 'Allowed post bachelor levels' %}
             </label>
             {{ form.allowed_post_bachelor_levels }}
+            {{ form.allowed_post_bachelor_levels.errors }}
           </div>
           {% endif %}
+        </div>
 
-          {% if form.allowed_establishments.errors %}
+        <div class="form-group row">
+          <label for="id_bachelors_restrictions" class="col-form-label col-sm-3">
+            {% trans 'Use bachelor type restrictions' %} ?
+          </label>
+          <div class="col-sm-6">
+            {{ form.bachelors_restrictions }}
+            <span id="bachelors_restrictions_hint">
+              <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+            </span>
+          </div>
+
+          {% if form.bachelors_restrictions.errors %}
             <div class="col-sm-3 alert alert-danger">
-              {{ form.allowed_establishments.errors }}
+              {{ form.bachelors_restrictions.errors }}
             </div>
           {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_allowed_bachelors">
+          <div class="col-sm-2 offset-sm-3">
+            <label for="id_allowed_bachelor_types" class="col-form-label">
+              {% trans 'Allowed bachelor types' %}
+            </label>
+            {{ form.allowed_bachelor_types }}
+            {{ form.allowed_bachelor_types.errors }}
+          </div>
+          <div class="col-sm-4">
+            <label for="id_allowed_bachelor_series" class="col-form-label">
+              {% trans 'Allowed bachelor series' %}
+            </label>
+            {{ form.allowed_bachelor_series }}
+            {{ form.allowed_bachelor_series.errors }}
+          </div>
+          <div class="col-sm-3">
+            <label for="id_allowed_bachelor_teachings" class="col-form-label">
+              {% trans 'Allowed bachelor teachings' %}
+            </label>
+            {{ form.allowed_bachelor_teachings }}
+            {{ form.allowed_bachelor_teachings.errors }}
+          </div>
         </div>
 
         <div class="form-group row">
@@ -1158,6 +1197,20 @@
     }
   }
 
+  function toggle_bachelors_restrictions() {
+    if ($('#id_bachelors_restrictions').prop('checked')) {
+      $('#id_div_allowed_bachelors').show()
+      $('#bachelors_restrictions_hint').show()
+    }
+    else {
+      $('#id_div_allowed_bachelors').hide()
+      $('#bachelors_restrictions_hint').hide()
+      $('#id_allowed_bachelor_types').find('option').prop('selected',false)
+      $('#id_allowed_bachelor_series').find('option').prop('selected',false)
+      $('#id_allowed_bachelor_teachings').find('option').prop('selected',false)
+    }
+  }
+
   function toggle_face_to_face() {
     if($('#id_face_to_face').is(':checked') || $('#id_face_to_face').val() === "1") {
       $("#id_div_room").show()
@@ -1618,6 +1671,9 @@ $(document).ready(function(){
 
   toggle_levels_restrictions();
   $('#id_levels_restrictions').on('change', function() { toggle_levels_restrictions() });
+
+  toggle_bachelors_restrictions();
+  $('#id_bachelors_restrictions').on('change', function() { toggle_bachelors_restrictions() });
 
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });

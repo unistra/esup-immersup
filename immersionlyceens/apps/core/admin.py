@@ -18,12 +18,13 @@ from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
 
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, VisitorRecordDocument,
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
+    VisitorRecordDocument,
 )
 
 from .admin_forms import (
-    AccompanyingDocumentForm, AttestationDocumentForm,
-    BachelorMentionForm, BuildingForm, CampusForm, CancelTypeForm,
+    AccompanyingDocumentForm, AttestationDocumentForm, BachelorMentionForm,
+    BachelorTypeForm, BuildingForm, CampusForm, CancelTypeForm,
     CertificateLogoForm, CertificateSignatureForm, CourseTypeForm,
     CustomThemeFileForm, EstablishmentForm, EvaluationFormLinkForm,
     EvaluationTypeForm, FaqEntryAdminForm, GeneralBachelorTeachingForm,
@@ -36,9 +37,9 @@ from .admin_forms import (
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
-    Building, Campus, CancelType, CertificateLogo, CertificateSignature, Course,
-    CourseType, CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
-    FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
+    BachelorType, Building, Campus, CancelType, CertificateLogo, CertificateSignature,
+    Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
+    EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, Slot, Structure,
@@ -734,6 +735,32 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
             'js/admin_building.min.js',
         )
 
+
+class BachelorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = BachelorTypeForm
+    list_display = ('label', 'pre_bachelor_level', 'active')
+    ordering = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+            return False
+
+        obj_in_use = any([
+            HighSchoolStudentRecord.objects.filter(Q(bachelor_type=obj) | Q(origin_bachelor_type=obj)).exists(),
+            StudentRecord.objects.filter(origin_bachelor_type=obj).exists(),
+        ])
+
+        if obj and obj_in_use:
+            messages.warning(
+                request,
+                _(
+                    """This bachelor type can't be deleted """
+                    """because it is used by a high school or student record"""
+                ),
+            )
+            return False
+
+        return True
 
 class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorMentionForm
@@ -2211,6 +2238,7 @@ admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
 admin.site.register(Establishment, EstablishmentAdmin)
 admin.site.register(Structure, StructureAdmin)
+admin.site.register(BachelorType, BachelorTypeAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)

@@ -485,6 +485,7 @@ ADMIN_MODELS_ORDER = {
         'Establishment',
         'HighSchool',
         'GeneralBachelorTeaching',
+        'BachelorType',
         'BachelorMention',
         'Campus',
         'Building',

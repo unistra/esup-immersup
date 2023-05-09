@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from immersionlyceens.apps.core.models import (
-    AttestationDocument, BachelorMention, Building, Campus,
+    AttestationDocument, BachelorMention, BachelorType, Building, Campus,
     Course, CourseType, Establishment, GeneralBachelorTeaching,
     HigherEducationInstitution, HighSchool, HighSchoolLevel,
     Immersion, ImmersionUser, ImmersionUserGroup, PendingUserGroup,
@@ -351,19 +351,21 @@ class ImmersionViewsTestCase(TestCase):
             "phone": "0388010101",
             "uai_code": "0673021V",
             "level": 1,
-            "origin_bachelor_type": 1,
+            "origin_bachelor_type": BachelorType.objects.get(label__iexact='général').pk,
             "current_diploma": "DUT 1ere année",
             "submit": 1,
         }
 
-        # Missing fields
+        # Missing fields (TODO : add details)
         response = self.client.post('/immersion/student_record', record_data, follow=True)
         self.assertIn("This field is required", response.content.decode('utf-8'))
 
         # All fields
-        record_data["last_name"] = new_user.last_name
-        record_data["birth_date"] = "1999-01-04"
-        record_data["current_diploma"] = "DUT 1ere année",
+        record_data.update({
+            "last_name": new_user.last_name,
+            "birth_date": "1999-01-04",
+            "current_diploma": "DUT 1ere année",
+        })
 
         response = self.client.post('/immersion/student_record', record_data, follow=True)
         self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
@@ -578,12 +580,12 @@ class ImmersionViewsTestCase(TestCase):
             "highschool": self.high_school.id,
             "level": 1,
             "class_name": "S10",
-            "bachelor_type": 1,
+            "bachelor_type": BachelorType.objects.get(label__iexact='général').pk,
             "general_bachelor_teachings": [GeneralBachelorTeaching.objects.first().id],
             "technological_bachelor_mention": "",
             "professional_bachelor_mention": "",
             "post_bachelor_level": "",
-            "origin_bachelor_type": 1,
+            "origin_bachelor_type": BachelorType.objects.get(label__iexact='général').pk,
             "current_diploma": "",
             "visible_immersion_registrations": 1,
             "visible_email": 1,
@@ -784,7 +786,7 @@ class ImmersionViewsTestCase(TestCase):
             birth_date="1990-02-19",
             level=HighSchoolLevel.objects.get(pk=1),
             class_name="S20",
-            bachelor_type=1,
+            bachelor_type=BachelorType.objects.get(label__iexact='général'),
             visible_immersion_registrations=False,
             visible_email=False,
             validation=2,
@@ -797,7 +799,7 @@ class ImmersionViewsTestCase(TestCase):
             birth_date="1990-02-19",
             level=HighSchoolLevel.objects.get(pk=1),
             class_name="S20",
-            bachelor_type=1,
+            bachelor_type=BachelorType.objects.get(label__iexact='général'),
             visible_immersion_registrations=False,
             visible_email=False,
             validation=2,

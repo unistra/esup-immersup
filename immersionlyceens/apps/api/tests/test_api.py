@@ -20,7 +20,7 @@ from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AttestationDocument, Building, Campus, CancelType,
+    AccompanyingDocument, AttestationDocument, BachelorType, Building, Campus, CancelType,
     Course, CourseType, Establishment, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
@@ -524,7 +524,7 @@ class APITestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=2),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
             visible_email=True
@@ -550,7 +550,7 @@ class APITestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=3),
             class_name='TS 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
             visible_email=True
@@ -561,7 +561,7 @@ class APITestCase(TestCase):
             institution=HigherEducationInstitution.objects.get(uai_code__iexact='0673021V'),
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général'),
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
@@ -569,7 +569,7 @@ class APITestCase(TestCase):
             institution=HigherEducationInstitution.objects.get(uai_code__iexact='0597065J'),
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
         )
         self.visitor_record = VisitorRecord.objects.create(
             visitor=self.visitor,
@@ -836,6 +836,7 @@ class APITestCase(TestCase):
             "face_to_face":True,
             "establishments_restrictions":False,
             "levels_restrictions":True,
+            "bachelors_restrictions":False,
             "course":self.course.pk,
             "course_type":self.course_type.pk,
             "visit":None,
@@ -848,6 +849,9 @@ class APITestCase(TestCase):
             "allowed_highschool_levels":[1],
             "allowed_student_levels":[],
             "allowed_post_bachelor_levels":[],
+            "allowed_bachelor_types":[],
+            "allowed_bachelor_series":[],
+            "allowed_bachelor_teachings":[],
             "registration_limit_delay":24,
             "cancellation_limit_delay":48,
             "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+02:00",
@@ -1427,7 +1431,7 @@ class APITestCase(TestCase):
                 self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
                 self.assertEqual(self.hs_record.level.label, row[3])
                 self.assertEqual(self.hs_record.class_name, row[4])
-                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
+                self.assertEqual(self.hs_record.bachelor_type.label, row[5])
                 self.assertEqual(self.establishment.label, row[6])
                 self.assertEqual('Course', row[7])
                 self.assertIn(self.t_domain.label, row[8].split('|'))
@@ -1449,7 +1453,7 @@ class APITestCase(TestCase):
                 self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
                 self.assertEqual(self.hs_record.level.label, row[3])
                 self.assertEqual(self.hs_record.class_name, row[4])
-                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
+                self.assertEqual(self.hs_record.bachelor_type.label, row[5])
                 self.assertEqual(self.establishment.label, row[6])
                 self.assertIn('Course', row[7])
                 self.assertIn(self.t_domain.label, row[8].split('|'))
@@ -1471,7 +1475,7 @@ class APITestCase(TestCase):
                 self.assertEqual(_date(self.hs_record2.birth_date, 'd/m/Y'), row[2])
                 self.assertEqual(self.hs_record2.level.label, row[3])
                 self.assertEqual(self.hs_record2.class_name, row[4])
-                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record2.bachelor_type - 1][1], row[5])
+                self.assertEqual(self.hs_record2.bachelor_type.label, row[5])
                 self.assertEqual('', row[6])
                 self.assertEqual('', row[7])
                 self.assertEqual('', row[8])
@@ -2349,7 +2353,7 @@ class APITestCase(TestCase):
         level = HighSchoolLevel.objects.filter(is_post_bachelor=True).first()
         post_bachelor_level = PostBachelorLevel.objects.first()
         self.hs_record.level = level
-        self.hs_record.origin_bachelor_type = 1
+        self.hs_record.origin_bachelor_type = BachelorType.objects.get(label__iexact='général')
         self.hs_record.post_bachelor_level = post_bachelor_level
         self.hs_record.save()
 
@@ -2366,7 +2370,7 @@ class APITestCase(TestCase):
                     f"{self.hs_record.post_bachelor_level.label}",
                     h['post_bachelor_level']
                 )
-                self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['hs_origin_bachelor'])
+                self.assertEqual(self.hs_record.origin_bachelor_type.label, h['hs_origin_bachelor'])
                 one = True
                 break
         self.assertTrue(one)

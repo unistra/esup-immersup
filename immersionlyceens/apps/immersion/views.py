@@ -34,7 +34,7 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    CancelType, CertificateLogo, CertificateSignature, GeneralSettings,
+    BachelorType, CancelType, CertificateLogo, CertificateSignature, GeneralSettings,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
     MailTemplate, PendingUserGroup, Period, PostBachelorLevel, Slot,
     StudentLevel, UniversityYear, UserCourseAlert,
@@ -929,6 +929,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 'is_post_bachelor': l.is_post_bachelor,
                 'requires_bachelor_speciality': l.requires_bachelor_speciality
             } for l in HighSchoolLevel.objects.all()}
+        ),
+        'bachelor_types': json.dumps(
+            {bt.id: {
+                'is_general': bt.general,
+                'is_technological': bt.technological,
+                'is_professional': bt.professional,
+            } for bt in BachelorType.objects.all()}
         ),
         'immersions_count': immersions_count,
         'request_student_consent': GeneralSettings.get_setting('REQUEST_FOR_STUDENT_AGREEMENT'),

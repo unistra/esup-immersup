@@ -11,9 +11,9 @@ from immersionlyceens.apps.immersion.models import (
 )
 
 from ..models import (
-    AccompanyingDocument, AttestationDocument, BachelorMention, Building, Campus,
-    CancelType, Course, CourseType, CustomThemeFile, Establishment,
-    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, Course, CourseType, CustomThemeFile,
+    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, ImmersupFile, Period, PublicDocument, PublicType,
     Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
@@ -559,7 +559,7 @@ class ImmersionUserTestCase(TestCase):
             uai_code=institution.uai_code,
             birth_date=timezone.now(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
         )
 
         # Check that the link between the student record and Establishment is good (same object)
@@ -582,7 +582,7 @@ class ImmersionUserTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 
@@ -617,7 +617,7 @@ class ImmersionUserTestCase(TestCase):
             uai_code=institution.uai_code,
             birth_date=self.today - timedelta(days=8000),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
         )
 
         structure = Structure.objects.create(

@@ -369,6 +369,7 @@
 <script>
   {% autoescape off %}
     let high_school_levels = is_set('{{ high_school_levels }}') ? JSON.parse('{{ high_school_levels }}') : Array()
+    let bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
   {% endautoescape %}
 
   function open_modal() {
@@ -405,7 +406,9 @@
     }
 
     function switch_bachelor_type_options(b_type, level) {
-      if(b_type == 1) {
+      const parsed_b_type = parseInt(b_type)
+
+      if(is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_general']) {
         if ( is_set(high_school_levels[level]) && high_school_levels[level]['requires_bachelor_speciality'] === true ) {
           $('#id_general_bachelor_data').show("slow");
         } else {
@@ -414,12 +417,12 @@
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').hide("slow");
       }
-      else if (b_type == 2) {
+      else if (is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_technological']) {
         $('#id_general_bachelor_data').hide("slow");
         $('#id_technological_bachelor_data').show("slow");
         $('#id_professional_bachelor_data').hide("slow");
       }
-      else if (b_type == 3) {
+      else if (is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_professional']) {
         $('#id_general_bachelor_data').hide("slow");
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').show("slow");

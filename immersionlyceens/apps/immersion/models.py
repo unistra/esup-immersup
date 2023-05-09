@@ -19,19 +19,6 @@ class HighSchoolStudentRecord(models.Model):
     High school student class, linked to ImmersionUsers accounts
     """
 
-    # Use gettext on the next one because strings HAS to be translated here
-    # in order to avoid sending lazy translation objects to JSON in charts API
-    BACHELOR_TYPES = [
-        (1, _('General')),
-        (2, _('Technological')),
-        (3, _('Professional'))
-    ]
-
-    POST_BACHELOR_ORIGIN_TYPES = BACHELOR_TYPES.copy()
-    POST_BACHELOR_ORIGIN_TYPES.append(
-        (4, _('DAEU'))
-    )
-
     STATUSES = {
         "TO_COMPLETE": 0,
         "TO_VALIDATE": 1,
@@ -82,7 +69,16 @@ class HighSchoolStudentRecord(models.Model):
     class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
 
     # For pre-bachelor levels
-    bachelor_type = models.SmallIntegerField(_("Bachelor type"), default=1, choices=BACHELOR_TYPES)
+    # bachelor_type = models.SmallIntegerField(_("Bachelor type"), default=1, choices=BACHELOR_TYPES)
+    bachelor_type = models.ForeignKey(
+        core_models.BachelorType,
+        verbose_name=_('Bachelor type'),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="student_records",
+        limit_choices_to={'pre_bachelor_level': True}
+    )
 
     general_bachelor_teachings = models.ManyToManyField(
         core_models.GeneralBachelorTeaching,
@@ -112,8 +108,17 @@ class HighSchoolStudentRecord(models.Model):
         related_name="high_school_student_record"
     )
 
-    origin_bachelor_type = models.SmallIntegerField(
-        _("Origin bachelor type"), default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES
+
+    #origin_bachelor_type = models.SmallIntegerField(
+    #    _("Origin bachelor type"), default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES
+    #)
+    origin_bachelor_type = models.ForeignKey(
+        core_models.BachelorType,
+        verbose_name=_('Origin bachelor type'),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+"
     )
 
     current_diploma = models.CharField(
@@ -285,13 +290,6 @@ class StudentRecord(models.Model):
     Student record class, linked to ImmersionUsers accounts
     """
 
-    BACHELOR_TYPES = [
-        (1, _('General')),
-        (2, _('Technological')),
-        (3, _('Professional')),
-        (4, _('DAEU'))
-    ]
-
     student = models.OneToOneField(
         core_models.ImmersionUser,
         verbose_name=_('Student'),
@@ -323,8 +321,13 @@ class StudentRecord(models.Model):
         related_name="student_records"
     )
 
-    origin_bachelor_type = models.SmallIntegerField(
-        _("Origin bachelor type"), default=1, null=False, blank=False, choices=BACHELOR_TYPES
+    origin_bachelor_type = models.ForeignKey(
+        core_models.BachelorType,
+        verbose_name=_('Bachelor type'),
+        null=False,
+        blank=False,
+        on_delete=models.PROTECT,
+        related_name="+"
     )
 
     current_diploma = models.CharField(

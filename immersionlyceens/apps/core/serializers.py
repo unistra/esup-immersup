@@ -499,7 +499,9 @@ class SlotSerializer(serializers.ModelSerializer):
         allowed_highschool_levels = data.get("allowed_highschool_levels")
         allowed_student_levels  = data.get("allowed_student_levels")
         allowed_post_bachelor_levels = data.get("allowed_post_bachelor_levels")
-
+        allowed_bachelor_types = data.get("allowed_bachelor_types")
+        allowed_bachelor_series = data.get("allowed_bachelor_series")
+        allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
         details = {}
 
         # Slot type
@@ -563,7 +565,13 @@ class SlotSerializer(serializers.ModelSerializer):
 
         # Restrictions
         # Common to courses, visits and events
-        data["levels_restrictions"] = any([allowed_highschool_levels, allowed_student_levels, allowed_post_bachelor_levels])
+        data["levels_restrictions"] = any([
+            allowed_highschool_levels, allowed_student_levels, allowed_post_bachelor_levels
+        ])
+
+        data["bachelors_restrictions"] = any([
+            allowed_bachelor_types, allowed_bachelor_series, allowed_bachelor_teachings
+        ])
 
         if course or event:
             data["establishments_restrictions"] = any([allowed_establishments, allowed_highschools])

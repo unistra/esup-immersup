@@ -23,7 +23,7 @@ from immersionlyceens.apps.immersion.models import (
 )
 
 from ..models import (
-    BachelorMention, Building, Campus, Course, CourseType,
+    BachelorMention, BachelorType, Building, Campus, Course, CourseType,
     Establishment, GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
     OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel, Slot,
@@ -1103,7 +1103,7 @@ class CoreViewsTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 
@@ -1114,7 +1114,7 @@ class CoreViewsTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere T3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 
