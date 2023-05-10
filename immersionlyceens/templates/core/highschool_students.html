@@ -208,10 +208,6 @@
     { "data": "registered",
       "render": function(data, type, row) {
         if(data) {
-          if(type === "display") {
-            console.log(row.allow_high_school_consultation)
-          }
-
           let txt = "{% trans 'Yes' %} "
 
           if(row.allow_high_school_consultation) {
