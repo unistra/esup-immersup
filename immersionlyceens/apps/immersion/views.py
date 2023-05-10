@@ -34,32 +34,28 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    BachelorType, CancelType, CertificateLogo, CertificateSignature, GeneralSettings,
-    HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
-    MailTemplate, PendingUserGroup, Period, PostBachelorLevel, Slot,
-    StudentLevel, UniversityYear, UserCourseAlert,
+    AttestationDocument, BachelorType, CancelType, CertificateLogo,
+    CertificateSignature, GeneralSettings, HigherEducationInstitution,
+    HighSchoolLevel, Immersion, ImmersionUser, MailTemplate, PendingUserGroup,
+    Period, PostBachelorLevel, Slot, StudentLevel, UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
-
-from immersionlyceens.apps.core.models import GeneralSettings, AttestationDocument
-
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, HighSchoolStudentRecordDocumentForm,
-    HighSchoolStudentRecordQuotaForm, LoginForm, NewPassForm, RegistrationForm, StudentForm,
-    StudentRecordForm, StudentRecordQuotaForm, VisitorForm, VisitorRecordForm,
-    VisitorRecordDocumentForm, VisitorRecordQuotaForm
+    HighSchoolStudentForm, HighSchoolStudentRecordDocumentForm,
+    HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm, LoginForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+    StudentRecordQuotaForm, VisitorForm, VisitorRecordDocumentForm,
+    VisitorRecordForm, VisitorRecordQuotaForm,
 )
-
 from .models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
     HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota,
-    VisitorRecord, VisitorRecordDocument, VisitorRecordQuota
+    VisitorRecord, VisitorRecordDocument, VisitorRecordQuota,
 )
 
 logger = logging.getLogger(__name__)
@@ -130,9 +126,9 @@ class CustomLoginView(FormView):
         ]
 
         if self.user.is_high_school_student():
-            return "/immersion" if self.user.get_high_school_student_record() else "/immersion/hs_record"
+            return reverse('home') if self.user.get_high_school_student_record() else "/immersion/hs_record"
         elif self.user.is_visitor():
-            return "/immersion" if self.user.get_visitor_record() else "/immersion/visitor_record"
+            return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
         elif any(go_home):
             return reverse('home')
         else:
@@ -753,9 +749,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 attestation_filters = {
                     'profiles__code': "LYC_W_CONV" if record.highschool.with_convention else "LYC_WO_CONV"
                 }
-                
+
                 if student_age >= 18:
-                    attestation_filters['for_minors'] = False                   
+                    attestation_filters['for_minors'] = False
 
                 current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record)
                 attestations = AttestationDocument.activated.filter(**attestation_filters)
@@ -1527,7 +1523,7 @@ class VisitorRecordView(FormView):
                 attestation_filters = {
                     'profiles__code': "VIS"
                 }
-                
+
                 if visitor_age >= 18:
                     attestation_filters['for_minors'] = False
 
