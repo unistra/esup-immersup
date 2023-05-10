@@ -36,9 +36,9 @@ from .forms import (
     StructureForm, TrainingFormHighSchool, VisitForm, VisitSlotForm,
 )
 from .models import (
-    Campus, CancelType, Course, Establishment, GeneralSettings, HighSchool,
-    Holiday, Immersion, ImmersionUser, InformationText, OffOfferEvent, Slot,
-    Structure, Training, UniversityYear, Visit,
+    BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
+    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, OffOfferEvent,
+    Slot, Structure, Training, UniversityYear, Visit,
 )
 
 logger = logging.getLogger(__name__)
@@ -1121,6 +1121,15 @@ class CourseSlot(generic.CreateView):
         if "training_id" not in context:
             context["training_id"] = self.request.session.get('current_training_id')
 
+        # Bachelor types for restrictions
+        context["bachelor_types"] = json.dumps({
+            bt.id: {
+                'is_general': bt.general,
+                'is_technological': bt.technological,
+                'is_professional': bt.professional,
+            } for bt in BachelorType.objects.filter(active=True)
+        })
+
         return context
 
     def get_form_kwargs(self):
@@ -1221,6 +1230,16 @@ class CourseSlotUpdate(generic.UpdateView):
 
         context["slot_mode"] = "course"
         context["can_update"] = True  # FixMe
+
+        # Bachelor types for restrictions
+        context["bachelor_types"] = json.dumps({
+            bt.id: {
+                'is_general': bt.general,
+                'is_technological': bt.technological,
+                'is_professional': bt.professional,
+            } for bt in BachelorType.objects.filter(active=True)
+        })
+
         return context
 
 
@@ -1658,6 +1677,16 @@ class VisitSlot(generic.CreateView):
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "visit"
+
+        # Bachelor types for restrictions
+        context["bachelor_types"] = json.dumps({
+            bt.id: {
+                'is_general': bt.general,
+                'is_technological': bt.technological,
+                'is_professional': bt.professional,
+            } for bt in BachelorType.objects.filter(active=True)
+        })
+
         return context
 
     def get_form_kwargs(self):
@@ -2226,6 +2255,16 @@ class OffOfferEventSlot(generic.CreateView):
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "event"
+
+        # Bachelor types for restrictions
+        context["bachelor_types"] = json.dumps({
+            bt.id: {
+                'is_general': bt.general,
+                'is_technological': bt.technological,
+                'is_professional': bt.professional,
+            } for bt in BachelorType.objects.filter(active=True)
+        })
+
         return context
 
     def get_form_kwargs(self):

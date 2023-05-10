@@ -395,14 +395,14 @@
             {{ form.allowed_bachelor_types }}
             {{ form.allowed_bachelor_types.errors }}
           </div>
-          <div class="col-sm-4">
+          <div class="col-sm-4" id="id_div_bachelor_series">
             <label for="id_allowed_bachelor_series" class="col-form-label">
               {% trans 'Allowed bachelor series' %}
             </label>
             {{ form.allowed_bachelor_series }}
             {{ form.allowed_bachelor_series.errors }}
           </div>
-          <div class="col-sm-3">
+          <div class="col-sm-3" id="id_div_bachelor_teachings">
             <label for="id_allowed_bachelor_teachings" class="col-form-label">
               {% trans 'Allowed bachelor teachings' %}
             </label>
@@ -492,6 +492,10 @@
 
   var slot_dates = "{{ slot_dates|safe }}"
   slot_dates = slot_dates !== "None" ? slot_dates.split(",") : undefined
+
+  {% autoescape off %}
+    var bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
+  {% endautoescape %}
 
   empty_speakers()
 
@@ -1211,6 +1215,40 @@
     }
   }
 
+  function toggle_bachelors_options(selected_types) {
+    let display_technological_series = false
+    let display_general_mentions = false
+
+    selected_types.forEach(e => {
+      if(is_set(bachelor_types[e])) {
+        if(bachelor_types[e]["is_general"]) {
+          display_general_mentions = true
+        }
+
+        if(bachelor_types[e]["is_technological"]) {
+          display_technological_series = true
+        }
+      }
+    })
+
+    if(display_technological_series) {
+      $('#id_div_bachelor_series').show()
+    }
+    else {
+      $('#id_div_bachelor_series').hide()
+      $('#id_allowed_bachelor_series').find('option').prop('selected',false)
+    }
+
+    if(display_general_mentions) {
+      $('#id_div_bachelor_teachings').show()
+    }
+    else {
+      $('#id_div_bachelor_teachings').hide()
+      $('#id_allowed_bachelor_teachings').find('option').prop('selected',false)
+    }
+  }
+
+
   function toggle_face_to_face() {
     if($('#id_face_to_face').is(':checked') || $('#id_face_to_face').val() === "1") {
       $("#id_div_room").show()
@@ -1674,6 +1712,17 @@ $(document).ready(function(){
 
   toggle_bachelors_restrictions();
   $('#id_bachelors_restrictions').on('change', function() { toggle_bachelors_restrictions() });
+
+  let selectedVals = Array.from(
+      $('#id_allowed_bachelor_types')[0].selectedOptions, option => option.value
+  );
+
+  toggle_bachelors_options(selectedVals);
+  $('#id_allowed_bachelor_types').on('change', function() {
+    const selectedVals = [...this.selectedOptions].map(o => o.value);
+    toggle_bachelors_options(selectedVals);
+  });
+
 
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
