@@ -265,15 +265,15 @@ function init_datatable() {
               txt += "- " + item + "\n"
             })
 
-            if(data.allowed_bachelor_series) {
-              txt += allowed_series_txt  + " :\n"
-              data.allowed_bachelor_series.forEach(item => {
+            if(data.allowed_bachelor_mentions) {
+              txt += allowed_mentions_txt  + " :\n"
+              data.allowed_bachelor_mentions.forEach(item => {
                 txt += "- " + item + "\n"
               })
             }
 
             if(data.allowed_bachelor_teachings) {
-              txt += allowed_mentions_txt  + " :\n"
+              txt += allowed_teachings_txt  + " :\n"
               data.allowed_bachelor_teachings.forEach(item => {
                 txt += "- " + item + "\n"
               })

@@ -146,7 +146,7 @@ class SlotForm(forms.ModelForm):
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_series',
+            'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
             'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
@@ -174,7 +174,7 @@ class SlotForm(forms.ModelForm):
         # Bachelor restrictions
         self.fields["allowed_bachelor_types"].queryset = BachelorType.objects\
             .filter(active=True).order_by('label')
-        self.fields["allowed_bachelor_series"].queryset = BachelorMention.objects\
+        self.fields["allowed_bachelor_mentions"].queryset = BachelorMention.objects\
                     .filter(active=True).order_by('label')
         self.fields["allowed_bachelor_teachings"].queryset = GeneralBachelorTeaching.objects\
                     .filter(active=True).order_by('label')
@@ -264,7 +264,7 @@ class SlotForm(forms.ModelForm):
         # Bachelor types restrictions fields
         bachelors_restrictions = cleaned_data.get('bachelors_restrictions')
         allowed_bachelor_types = cleaned_data.get('allowed_bachelor_types')
-        allowed_bachelor_series = cleaned_data.get('allowed_bachelor_series')
+        allowed_bachelor_mentions = cleaned_data.get('allowed_bachelor_mentions')
         allowed_bachelor_teachings = cleaned_data.get('allowed_bachelor_teachings')
 
         # Controls
@@ -276,7 +276,7 @@ class SlotForm(forms.ModelForm):
             cleaned_data["levels_restrictions"] = False
 
         if bachelors_restrictions and not any([
-            allowed_bachelor_types, allowed_bachelor_series, allowed_bachelor_teachings]):
+            allowed_bachelor_types, allowed_bachelor_mentions, allowed_bachelor_teachings]):
             cleaned_data["bachelors_restrictions"] = False
 
         return cleaned_data
@@ -365,7 +365,7 @@ class SlotForm(forms.ModelForm):
                 slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
                 slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
                 slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
-                slot_allowed_bachelor_series = [l for l in new_slot_template.allowed_bachelor_series.all()]
+                slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
                 slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
 
                 for new_date in new_dates:
@@ -383,7 +383,7 @@ class SlotForm(forms.ModelForm):
                         new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
                         new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
                         new_slot_template.allowed_bachelor_types.add(*slot_allowed_bachelor_types)
-                        new_slot_template.allowed_bachelor_series.add(*slot_allowed_bachelor_series)
+                        new_slot_template.allowed_bachelor_mentions.add(*slot_allowed_bachelor_mentions)
                         new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
 
                         messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
@@ -402,7 +402,7 @@ class SlotForm(forms.ModelForm):
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
             'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
             'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
-            'allowed_bachelor_series', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
+            'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
             'cancellation_limit_delay')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
