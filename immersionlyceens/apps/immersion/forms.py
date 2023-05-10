@@ -7,8 +7,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    BachelorMention, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
-    ImmersionUser, Period, PostBachelorLevel, StudentLevel,
+    BachelorMention, BachelorType, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, HighSchoolLevel, ImmersionUser, Period, PostBachelorLevel,
+    StudentLevel,
 )
 
 from .models import (
@@ -430,19 +431,19 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             .filter(active=True, is_post_bachelor=True)
 
         if level in need_bachelor_speciality:
-            if bachelor_type == 1:
+            if bachelor_type.general:
                 cleaned_data['technological_bachelor_mention'] = None
                 cleaned_data['professional_bachelor_mention'] = ""
                 if not general_bachelor_teachings:
                     raise forms.ValidationError(
                         _("Please choose one or more bachelor teachings"))
-            elif bachelor_type == 2:
+            elif bachelor_type.technological:
                 cleaned_data['general_bachelor_teachings'] = []
                 cleaned_data['professional_bachelor_mention'] = ""
                 if not technological_bachelor_mention:
                     raise forms.ValidationError(
                         _("Please choose a mention for your technological bachelor"))
-            elif bachelor_type == 3:
+            elif bachelor_type.professional:
                 cleaned_data['general_bachelor_teachings'] = []
                 cleaned_data['technological_bachelor_mention'] = None
                 if not professional_bachelor_mention:
