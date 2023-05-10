@@ -256,6 +256,30 @@ function init_datatable() {
             })
           }
 
+          if(data.bachelors_restrictions === true) {
+            if(txt) txt += "\n"
+
+            txt += bachelors_txt + " :\n"
+
+            data.allowed_bachelor_types.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            if(data.allowed_bachelor_series) {
+              txt += allowed_series_txt  + " :\n"
+              data.allowed_bachelor_series.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+            }
+
+            if(data.allowed_bachelor_teachings) {
+              txt += allowed_mentions_txt  + " :\n"
+              data.allowed_bachelor_teachings.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+            }
+          }
+
           if (txt) {
             return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
           } else {
