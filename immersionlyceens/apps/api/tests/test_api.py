@@ -20,16 +20,18 @@ from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AttestationDocument, BachelorType, Building, Campus, CancelType,
-    Course, CourseType, Establishment, GeneralSettings, HigherEducationInstitution,
-    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
-    Profile, Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UserCourseAlert, Vacation, Visit,
+    AccompanyingDocument, AttestationDocument, BachelorType, Building, Campus,
+    CancelType, Course, CourseType, Establishment, GeneralSettings,
+    HigherEducationInstitution, HighSchool, HighSchoolLevel, Immersion,
+    ImmersionUser, MailTemplate, MailTemplateVars, OffOfferEvent,
+    OffOfferEventType, Period, PostBachelorLevel, Profile, Slot, Structure,
+    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert,
+    Vacation, Visit,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, HighSchoolStudentRecordQuota,
-    StudentRecord, VisitorRecord, VisitorRecordDocument, VisitorRecordQuota
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
+    HighSchoolStudentRecordQuota, StudentRecord, VisitorRecord,
+    VisitorRecordDocument, VisitorRecordQuota,
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -2125,6 +2127,51 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
         self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
         self.assertEqual(self.immersion.slot.id, i['slot_id'])
+
+        ## Test High school manager user & hs student's allow hight school consultation  setting
+        request.user = self.ref_lyc
+        self.client.login(username='ref_lyc', password='pass')
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': self.highschool_user.id}),
+            {'immersion_type': 'cancelled'},
+            **self.header
+        )
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Error : user don't share his immersions with his highschool")
+
+        hs = self.highschool_user.get_high_school_student_record()
+        hs.allow_high_school_consultation = True
+        hs.save()
+
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': self.highschool_user.id}),
+            {'immersion_type': 'cancelled'},
+            **self.header
+        )
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "")
+        self.assertGreater(len(content['data']), 0)
+        i = content['data'][0]
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['course']['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course']['label'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['room'])
+        self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
+        self.assertEqual(self.immersion.slot.end_time.strftime("%-Hh%M"), i['end_time'])
+        self.assertEqual(self.immersion.slot.additional_information, i['info'])
+        self.assertEqual(self.immersion.get_attendance_status_display(), i['attendance'])
+        self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
+        self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
+        self.assertEqual(self.immersion.slot.id, i['slot_id'])
+
+        hs.allow_high_school_consultation = False
+        hs.save()
 
 
     def test_API_get_other_registrants(self):

@@ -20,8 +20,8 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import (
-    Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func, OuterRef, Q,
-    QuerySet, Subquery, Value, When,
+    Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
+    OuterRef, Q, QuerySet, Subquery, Value, When,
 )
 from django.db.models.functions import Coalesce, Concat, Greatest
 from django.http import Http404, HttpResponse, JsonResponse
@@ -56,10 +56,9 @@ from immersionlyceens.apps.core.serializers import (
     TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord, VisitorRecord,
-    VisitorRecordDocument
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
+    VisitorRecord, VisitorRecordDocument,
 )
-
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request, timer,
 )
@@ -953,6 +952,10 @@ def ajax_get_immersions(request, user_id=None):
         remaining_registrations = student.remaining_registrations_count()
     except ImmersionUser.DoesNotExist:
         response['msg'] = gettext("Error : no such user")
+        return JsonResponse(response, safe=False)
+
+    if user.is_high_school_manager() and not student.accept_to_share_immersions() and student.is_high_school_student():
+        response['msg'] = gettext("Error : user don't share his immersions with his highschool")
         return JsonResponse(response, safe=False)
 
     time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"

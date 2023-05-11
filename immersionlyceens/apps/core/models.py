@@ -782,6 +782,15 @@ class ImmersionUser(AbstractUser):
         return [user for group in self.usergroup.all() for user in group.immersionusers.all()]
 
 
+    def accept_to_share_immersions(self):
+        """
+        Get high school student decision to share his immersions data with his high school
+        :return: High school object if found, else None
+        """
+        record = self.get_high_school_student_record()
+        return record.allow_high_school_consultation if record else None
+
+
     class Meta:
         verbose_name = _('User')
         ordering = ['last_name', 'first_name', ]
