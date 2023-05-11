@@ -204,14 +204,14 @@ function init_datatable() {
             txt += "- " + item + "\n"
           })
 
-          if(data.allowed_bachelor_mentions) {
+          if(data.allowed_bachelor_mentions.length > 0) {
             txt += allowed_mentions_txt  + " :\n"
             data.allowed_bachelor_mentions.forEach(item => {
               txt += "- " + item + "\n"
             })
           }
 
-          if(data.allowed_bachelor_teachings) {
+          if(data.allowed_bachelor_teachings.length > 0) {
             txt += allowed_teachings_txt  + " :\n"
             data.allowed_bachelor_teachings.forEach(item => {
               txt += "- " + item + "\n"
