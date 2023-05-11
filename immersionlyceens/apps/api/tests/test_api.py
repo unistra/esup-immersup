@@ -1434,6 +1434,72 @@ class APITestCase(TestCase):
                 self.assertEqual(self.hs_record.level.label, row[3])
                 self.assertEqual(self.hs_record.class_name, row[4])
                 self.assertEqual(self.hs_record.bachelor_type.label, row[5])
+                self.assertEqual('', row[6])
+                self.assertEqual('', row[7])
+                self.assertEqual('', row[8])
+                self.assertEqual('', row[9])
+                self.assertEqual('', row[10])
+                self.assertEqual('', row[11])
+                self.assertEqual('', row[12])
+                self.assertEqual('', row[13])
+                self.assertEqual('', row[14])
+                self.assertEqual('', row[15])
+                self.assertEqual('', row[16])
+                self.assertEqual('', row[17])
+                self.assertEqual('', row[18])
+                self.assertEqual('', row[19])
+                self.assertEqual('No', row[20])
+                self.assertEqual('Yes', row[21])
+
+            elif n == 2:
+                self.assertEqual(self.hs_record2.student.last_name, row[0])
+                self.assertEqual(self.hs_record2.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record2.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(self.hs_record2.level.label, row[3])
+                self.assertEqual(self.hs_record2.class_name, row[4])
+                self.assertEqual(self.hs_record2.bachelor_type.label, row[5])
+                self.assertEqual('', row[6])
+                self.assertEqual('', row[7])
+                self.assertEqual('', row[8])
+                self.assertEqual('', row[9])
+                self.assertEqual('', row[10])
+                self.assertEqual('', row[11])
+                self.assertEqual('', row[12])
+                self.assertEqual('', row[13])
+                self.assertEqual('', row[14])
+                self.assertEqual('', row[15])
+                self.assertEqual('', row[16])
+                self.assertEqual('', row[17])
+                self.assertEqual('', row[18])
+                self.assertEqual('', row[19])
+                self.assertEqual('No', row[20])
+                self.assertEqual('Yes', row[21])
+
+            n += 1
+
+        self.hs_record.allow_high_school_consultation = True
+        self.hs_record.save()
+
+        self.hs_record2.allow_high_school_consultation = True
+        self.hs_record2.save()
+
+        response = self.client.get(url, request)
+
+        content = csv.reader(response.content.decode().split('\n'))
+
+        n = 0
+        for row in content:
+            # header check
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.hs_record.student.last_name, row[0])
+                self.assertEqual(self.hs_record.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(self.hs_record.level.label, row[3])
+                self.assertEqual(self.hs_record.class_name, row[4])
+                self.assertEqual(self.hs_record.bachelor_type.label, row[5])
                 self.assertEqual(self.establishment.label, row[6])
                 self.assertEqual('Course', row[7])
                 self.assertIn(self.t_domain.label, row[8].split('|'))
@@ -1448,6 +1514,8 @@ class APITestCase(TestCase):
                 self.assertEqual(self.past_slot.room, row[17])
                 self.assertEqual(self.immersion3.get_attendance_status_display(), row[18])
                 self.assertEqual(self.past_slot.additional_information, row[19])
+                self.assertEqual('Yes', row[20])
+                self.assertEqual('Yes', row[21])
 
             elif n == 2:
                 self.assertEqual(self.hs_record.student.last_name, row[0])
@@ -1470,6 +1538,8 @@ class APITestCase(TestCase):
                 self.assertEqual(self.slot.room, row[17])
                 self.assertEqual(self.immersion.get_attendance_status_display(), row[18])
                 self.assertEqual(self.slot.additional_information, row[19])
+                self.assertEqual('Yes', row[20])
+                self.assertEqual('Yes', row[21])
 
             elif n == 3:
                 self.assertEqual(self.hs_record2.student.last_name, row[0])
@@ -1492,8 +1562,16 @@ class APITestCase(TestCase):
                 self.assertEqual('', row[17])
                 self.assertEqual('', row[18])
                 self.assertEqual('', row[19])
+                self.assertEqual('Yes', row[20])
+                self.assertEqual('Yes', row[21])
 
             n += 1
+
+        self.hs_record.allow_high_school_consultation = False
+        self.hs_record.save()
+
+        self.hs_record2.allow_high_school_consultation = False
+        self.hs_record2.save()
 
     def test_API_get_csv_structures(self):
         # No type specified

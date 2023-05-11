@@ -8,7 +8,7 @@ import json
 import logging
 import time
 from functools import reduce
-from itertools import permutations
+from itertools import chain, permutations
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import django_filters.rest_framework
@@ -1990,8 +1990,8 @@ def get_csv_structures(request):
 
             fields = [
                 'domains', 'subdomains', 'training_label', 'course_label', 'slot_course_type',
-                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_campus', 'slot_building',
-                'slot_room', 'slot_speakers', 'registered', 'slot_n_places', 'info'
+                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_room', 'slot_speakers',
+                'registered', 'slot_n_places', 'info'
             ]
 
         elif request.user.is_structure_manager():
@@ -2372,14 +2372,16 @@ def get_csv_highschool(request):
         _('building'),
         _('meeting place'),
         _('attendance status'),
-        _('additional information')
+        _('additional information'),
+        _('high school consultancy agreement'),
+        _('registrations visibility agreement')
     ]
 
     Q_filters = Q(immersions__cancellation_type__isnull=True)
 
     students = ImmersionUser.objects.prefetch_related(
             'high_school_student_record__level', 'high_school_student_record__highschool',
-            'high_school_student_record__bachelor_type__level', 'immersions',
+            'high_school_student_record__bachelor_type', 'immersions',
             'immersions__slot'
         ).filter(
             Q_filters,
@@ -2395,7 +2397,7 @@ def get_csv_highschool(request):
         ) for k, v in attendance_status_choices.items()
     ]
 
-    content = students.annotate(
+    agreed_students = students.filter(high_school_student_record__allow_high_school_consultation=True).annotate(
         student_last_name=F('last_name'),
         student_first_name=F('first_name'),
         student_birth_date=ExpressionWrapper(
@@ -2439,18 +2441,64 @@ def get_csv_highschool(request):
             When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
         ),
         attendance=Case(*attendance_status_whens, output_field=CharField()),
-        informations=F('immersions__slot__additional_information')
+        informations=F('immersions__slot__additional_information'),
+        detail_consultancy=Case(
+            When(high_school_student_record__allow_high_school_consultation=True,then=Value(gettext('Yes'))),
+            When(high_school_student_record__allow_high_school_consultation=False,then=Value(gettext('No'))),
+        ),
+        detail_registrations=Case(
+            When(high_school_student_record__visible_immersion_registrations=True,then=Value(gettext('Yes'))),
+            When(high_school_student_record__visible_immersion_registrations=False,then=Value(gettext('No'))),
+        ),
     ).values_list(
         'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
         'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
         'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
-        'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations'
+        'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
+        'detail_consultancy', 'detail_registrations'
+    )
+
+    not_agreed_students = students.filter(high_school_student_record__allow_high_school_consultation=False).annotate(
+        student_last_name=F('last_name'),
+        student_first_name=F('first_name'),
+        student_birth_date=ExpressionWrapper(
+            Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+        ),
+        student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
+        slot_establishment=Value(''),
+        slot_type=Value(''),
+        domains=Value(''),
+        subdomains=Value(''),
+        training_label=Value(''),
+        slot_label=Value(''),
+        slot_date=Value(''),
+        slot_start_time=Value(''),
+        slot_end_time=Value(''),
+        slot_campus_label=Value(''),
+        slot_building=Value(''),
+        slot_room=Value(''),
+        attendance=Value(''),
+        informations=Value(''),
+        detail_consultancy=Case(
+            When(high_school_student_record__allow_high_school_consultation=True,then=Value(gettext('Yes'))),
+            When(high_school_student_record__allow_high_school_consultation=False,then=Value(gettext('No'))),
+        ),
+        detail_registrations=Case(
+            When(high_school_student_record__visible_immersion_registrations=True,then=Value(gettext('Yes'))),
+            When(high_school_student_record__visible_immersion_registrations=False,then=Value(gettext('No'))),
+        ),
+    ).values_list(
+        'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
+        'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
+        'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
+        'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
+        'detail_consultancy', 'detail_registrations'
     )
 
     # Forge csv file and return it
     writer = csv.writer(response)
     writer.writerow(header)
-    writer.writerows(content)
+    writer.writerows(list(chain(agreed_students, not_agreed_students.distinct())))
 
     return response
 
