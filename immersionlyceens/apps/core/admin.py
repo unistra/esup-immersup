@@ -2020,7 +2020,7 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = HighSchoolLevelForm
-    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'active')
+    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'requires_bachelor_speciality', 'active')
     ordering = ('order', )
     sortable_by = ('order', )
 
