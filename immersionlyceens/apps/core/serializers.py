@@ -500,7 +500,7 @@ class SlotSerializer(serializers.ModelSerializer):
         allowed_student_levels  = data.get("allowed_student_levels")
         allowed_post_bachelor_levels = data.get("allowed_post_bachelor_levels")
         allowed_bachelor_types = data.get("allowed_bachelor_types")
-        allowed_bachelor_series = data.get("allowed_bachelor_series")
+        allowed_bachelor_mentions = data.get("allowed_bachelor_mentions")
         allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
         details = {}
 
@@ -570,7 +570,7 @@ class SlotSerializer(serializers.ModelSerializer):
         ])
 
         data["bachelors_restrictions"] = any([
-            allowed_bachelor_types, allowed_bachelor_series, allowed_bachelor_teachings
+            allowed_bachelor_types, allowed_bachelor_mentions, allowed_bachelor_teachings
         ])
 
         if course or event:

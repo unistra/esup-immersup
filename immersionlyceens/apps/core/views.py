@@ -1060,7 +1060,7 @@ class CourseSlot(generic.CreateView):
                     'allowed_student_levels': slot.allowed_student_levels.all(),
                     'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels.all(),
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
-                    'allowed_bachelor_series': slot.allowed_bachelor_series.all(),
+                    'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
@@ -1071,7 +1071,7 @@ class CourseSlot(generic.CreateView):
                     # careful, some fields are lists
                     if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
                              'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
-                             'allowed_bachelor_series', 'allowed_bachelor_teachings', 'speakers']:
+                             'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers']:
                         initials[k] = data.getlist(k, initials[k])
                     else:
                         initials[k] = data.get(k, initials[k])
@@ -1644,7 +1644,7 @@ class VisitSlot(generic.CreateView):
                     'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
                     'bachelors_restrictions': slot.bachelors_restrictions,
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
-                    'allowed_bachelor_series': slot.allowed_bachelor_series.all(),
+                    'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
@@ -1653,7 +1653,7 @@ class VisitSlot(generic.CreateView):
                 data = self.request.POST
                 for k in initials.keys():
                     # careful, some fields are lists
-                    if k in ['allowed_highschool_levels', 'allowed_bachelor_types', 'allowed_bachelor_series',
+                    if k in ['allowed_highschool_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
                              'allowed_bachelor_teachings', 'speakers']:
                         initials[k] = data.getlist(k, initials[k])
                     else:
@@ -2221,7 +2221,7 @@ class OffOfferEventSlot(generic.CreateView):
                     'allowed_student_levels': slot.allowed_student_levels.all(),
                     'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels.all(),
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
-                    'allowed_bachelor_series': slot.allowed_bachelor_series.all(),
+                    'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
@@ -2232,7 +2232,7 @@ class OffOfferEventSlot(generic.CreateView):
                     # careful, some fields are lists
                     if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
                              'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
-                             'allowed_bachelor_series', 'allowed_bachelor_teachings', 'speakers']:
+                             'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers']:
                         initials[k] = data.getlist(k, initials[k])
                     else:
                         initials[k] = data.get(k, initials[k])

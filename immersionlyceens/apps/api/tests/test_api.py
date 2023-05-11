@@ -20,13 +20,13 @@ from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AttestationDocument, BachelorType, Building, Campus,
-    CancelType, Course, CourseType, Establishment, GeneralSettings,
-    HigherEducationInstitution, HighSchool, HighSchoolLevel, Immersion,
-    ImmersionUser, MailTemplate, MailTemplateVars, OffOfferEvent,
-    OffOfferEventType, Period, PostBachelorLevel, Profile, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert,
-    Vacation, Visit,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, Course, CourseType, Establishment,
+    GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
+    MailTemplateVars, OffOfferEvent, OffOfferEventType, Period,
+    PostBachelorLevel, Profile, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
@@ -111,6 +111,26 @@ class APITestCase(TestCase):
             label="test structure 3",
             code="STR3",
             establishment=cls.establishment3
+        )
+
+        cls.bachelor_mention = BachelorMention.objects.create(
+            label="s2tmd",
+            active=True
+        )
+
+        cls.bachelor_mention2 = BachelorMention.objects.create(
+            label="Anything",
+            active=True
+        )
+
+        cls.bachelor_teaching = GeneralBachelorTeaching.objects.create(
+            label="Série A",
+            active=True
+        )
+
+        cls.bachelor_teaching2 = GeneralBachelorTeaching.objects.create(
+            label="Whatever",
+            active=True
         )
 
         cls.high_school = HighSchool.objects.create(
@@ -519,6 +539,23 @@ class APITestCase(TestCase):
             self.highschool_restricted_level
         )
 
+        # Bachelor restricted slot
+        self.bachelor_restricted_slot = Slot.objects.create(
+            course=self.highschool_course,
+            course_type=self.course_type,
+            room='room 1',
+            date=self.today + timedelta(days=2),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="High school additional information",
+            bachelors_restrictions=True
+        )
+
+        self.bachelor_restricted_slot.allowed_bachelor_types.add(
+            BachelorType.objects.get(label__iexact='général')
+        )
+
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
@@ -852,7 +889,7 @@ class APITestCase(TestCase):
             "allowed_student_levels":[],
             "allowed_post_bachelor_levels":[],
             "allowed_bachelor_types":[],
-            "allowed_bachelor_series":[],
+            "allowed_bachelor_mentions":[],
             "allowed_bachelor_teachings":[],
             "registration_limit_delay":24,
             "cancellation_limit_delay":48,
@@ -3178,6 +3215,64 @@ class APITestCase(TestCase):
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to passed registration date", content['msg'])
+
+        # Fail with bachelor restrictions
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.bachelor_restricted_slot.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
+
+        # Fail with bachelor mentions restrictions
+        # 1/ Update high school record
+        self.hs_record.bachelor_type = BachelorType.objects.get(label__iexact='technologique')
+        self.hs_record.technological_bachelor_mention = self.bachelor_mention
+        self.hs_record.save()
+
+        # 2/ Update slot restrictions (bachelor type + a different bachelor mention)
+        self.bachelor_restricted_slot.allowed_bachelor_types.remove()
+        self.bachelor_restricted_slot.allowed_bachelor_types.add(
+            BachelorType.objects.get(label__iexact='technologique')
+        )
+        self.bachelor_restricted_slot.allowed_bachelor_mentions.add(self.bachelor_mention2)
+
+        # retry
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.bachelor_restricted_slot.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
+
+        # Fail with general bachelor teachings restrictions
+        # 1/ Update high school record
+        self.hs_record.bachelor_type = BachelorType.objects.get(label__iexact='général')
+        self.hs_record.technological_bachelor_mention = None
+        self.hs_record.general_bachelor_teachings.add(self.bachelor_teaching)
+        self.hs_record.save()
+
+        # 2/ Update slot restrictions (bachelor type + a different bachelor mention)
+        self.bachelor_restricted_slot.allowed_bachelor_types.remove()
+        self.bachelor_restricted_slot.allowed_bachelor_types.add(
+            BachelorType.objects.get(label__iexact='général')
+        )
+        self.bachelor_restricted_slot.allowed_bachelor_mentions.remove()
+        self.bachelor_restricted_slot.allowed_bachelor_teachings.add(self.bachelor_teaching2)
+
+        # retry
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.bachelor_restricted_slot.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 

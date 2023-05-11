@@ -720,10 +720,22 @@ class ImmersionUser(AbstractUser):
                     record.post_bachelor_level in slot.allowed_post_bachelor_levels.all()
             ]
 
+            bachelor_restrictions = [
+                slot.allowed_bachelor_types.exists() and record.bachelor_type in slot.allowed_bachelor_types.all(),
+                any([
+                    slot.allowed_bachelor_mentions.exists() and
+                    record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all(),
+                    slot.allowed_bachelor_teachings.exists() and
+                    record.general_bachelor_teachings in slot.allowed_bachelor_teachings.all(),
+                ])
+            ]
+
             if slot.establishments_restrictions and not all(high_school_conditions):
                 errors.append(_('High schools restrictions in effect'))
             if slot.levels_restrictions and not any(levels_conditions):
                 errors.append(_('High school or post bachelor levels restrictions in effect'))
+            if slot.bachelors_restrictions and not all(bachelor_restrictions):
+                errors.append(_('Bachelors restrictions in effect'))
 
             if errors:
                 return False, errors
@@ -753,6 +765,9 @@ class ImmersionUser(AbstractUser):
             if slot.levels_restrictions and not all(levels_conditions):
                 errors.append(_('Student levels restrictions in effect'))
 
+            if slot.bachelors_restrictions:
+                errors.append(_('Bachelors restrictions in effect'))
+
             if errors:
                 return False, errors
 
@@ -762,11 +777,15 @@ class ImmersionUser(AbstractUser):
 
             if not record or not record.is_valid():
                 errors.append(_("Visitor record not found or not valid"))
-                return False, errors
 
             # visitors can register to "open to all" slots
             if slot.levels_restrictions or slot.establishments_restrictions:
                 errors.append(_('Slot restrictions in effect'))
+
+            if slot.bachelors_restrictions:
+                errors.append(_('Bachelors restrictions in effect'))
+
+            if errors:
                 return False, errors
 
         return True, errors
@@ -2422,7 +2441,7 @@ class Slot(models.Model):
     allowed_bachelor_types = models.ManyToManyField(
         BachelorType, verbose_name=_("Allowed bachelor types"), related_name='+', blank=True
     )
-    allowed_bachelor_series = models.ManyToManyField(
+    allowed_bachelor_mentions = models.ManyToManyField(
         BachelorMention, verbose_name=_("Allowed bachelor mentions"), related_name='+', blank=True
     )
     allowed_bachelor_teachings = models.ManyToManyField(

@@ -68,8 +68,6 @@ class HighSchoolStudentRecord(models.Model):
 
     class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
 
-    # For pre-bachelor levels
-    # bachelor_type = models.SmallIntegerField(_("Bachelor type"), default=1, choices=BACHELOR_TYPES)
     bachelor_type = models.ForeignKey(
         core_models.BachelorType,
         verbose_name=_('Bachelor type'),
@@ -82,14 +80,14 @@ class HighSchoolStudentRecord(models.Model):
 
     general_bachelor_teachings = models.ManyToManyField(
         core_models.GeneralBachelorTeaching,
-        verbose_name=_("Structures"),
+        verbose_name=_("General bachelor teachings"),
         blank=True,
         related_name='student_records'
     )
 
     technological_bachelor_mention = models.ForeignKey(
         core_models.BachelorMention,
-        verbose_name=_('Technological bachelor series'),
+        verbose_name=_('Technological bachelor mention'),
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -108,10 +106,6 @@ class HighSchoolStudentRecord(models.Model):
         related_name="high_school_student_record"
     )
 
-
-    #origin_bachelor_type = models.SmallIntegerField(
-    #    _("Origin bachelor type"), default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES
-    #)
     origin_bachelor_type = models.ForeignKey(
         core_models.BachelorType,
         verbose_name=_('Origin bachelor type'),

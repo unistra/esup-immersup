@@ -738,7 +738,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class BachelorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorTypeForm
-    list_display = ('label', 'pre_bachelor_level', 'active')
+    list_display = ('label', 'pre_bachelor_level', 'general', 'professional', 'technological', 'active')
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
@@ -2020,7 +2020,7 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = HighSchoolLevelForm
-    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'active')
+    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'requires_bachelor_speciality', 'active')
     ordering = ('order', )
     sortable_by = ('order', )
 

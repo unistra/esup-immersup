@@ -395,12 +395,12 @@
             {{ form.allowed_bachelor_types }}
             {{ form.allowed_bachelor_types.errors }}
           </div>
-          <div class="col-sm-4" id="id_div_bachelor_series">
-            <label for="id_allowed_bachelor_series" class="col-form-label">
-              {% trans 'Allowed bachelor series' %}
+          <div class="col-sm-4" id="id_div_bachelor_mentions">
+            <label for="id_allowed_bachelor_mentions" class="col-form-label">
+              {% trans 'Allowed bachelor mentions' %}
             </label>
-            {{ form.allowed_bachelor_series }}
-            {{ form.allowed_bachelor_series.errors }}
+            {{ form.allowed_bachelor_mentions }}
+            {{ form.allowed_bachelor_mentions.errors }}
           </div>
           <div class="col-sm-3" id="id_div_bachelor_teachings">
             <label for="id_allowed_bachelor_teachings" class="col-form-label">
@@ -1210,36 +1210,36 @@
       $('#id_div_allowed_bachelors').hide()
       $('#bachelors_restrictions_hint').hide()
       $('#id_allowed_bachelor_types').find('option').prop('selected',false)
-      $('#id_allowed_bachelor_series').find('option').prop('selected',false)
+      $('#id_allowed_bachelor_mentions').find('option').prop('selected',false)
       $('#id_allowed_bachelor_teachings').find('option').prop('selected',false)
     }
   }
 
   function toggle_bachelors_options(selected_types) {
-    let display_technological_series = false
-    let display_general_mentions = false
+    let display_technological_mentions = false
+    let display_general_teachings = false
 
     selected_types.forEach(e => {
       if(is_set(bachelor_types[e])) {
         if(bachelor_types[e]["is_general"]) {
-          display_general_mentions = true
+          display_general_teachings = true
         }
 
         if(bachelor_types[e]["is_technological"]) {
-          display_technological_series = true
+          display_technological_mentions = true
         }
       }
     })
 
-    if(display_technological_series) {
-      $('#id_div_bachelor_series').show()
+    if(display_technological_mentions) {
+      $('#id_div_bachelor_mentions').show()
     }
     else {
-      $('#id_div_bachelor_series').hide()
-      $('#id_allowed_bachelor_series').find('option').prop('selected',false)
+      $('#id_div_bachelor_mentions').hide()
+      $('#id_allowed_bachelor_mentions').find('option').prop('selected',false)
     }
 
-    if(display_general_mentions) {
+    if(display_general_teachings) {
       $('#id_div_bachelor_teachings').show()
     }
     else {
