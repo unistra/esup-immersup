@@ -738,7 +738,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class BachelorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorTypeForm
-    list_display = ('label', 'pre_bachelor_level', 'active')
+    list_display = ('label', 'pre_bachelor_level', 'general', 'professional', 'technological', 'active')
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
