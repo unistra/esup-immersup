@@ -221,7 +221,7 @@ function init_datatable() {
             }
 
             if (levels_restrictions.length > 0) {
-              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + levels_restrictions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + allowed_mentions_txt + '</li>'
+              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + levels_restrictions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + levels_txt + '</li>'
             }
 
             if (bachelors_types.length > 0) {
