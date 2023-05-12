@@ -1654,7 +1654,7 @@ class GeneralSettingsForm(forms.ModelForm):
             raise forms.ValidationError(_("You don't have the required privileges"))
 
         # Settings that can't be deactivated because users already exist
-        if cleaned_data['setting']=='ACTIVATE_STUDENTS' \
+        if cleaned_data['setting'] == 'ACTIVATE_STUDENTS' \
             and not cleaned_data['parameters']['value']:
 
             if ImmersionUser.objects.filter(groups__name='ETU').first():
@@ -1702,6 +1702,22 @@ class GeneralSettingsForm(forms.ModelForm):
                     """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """
                     """cannot be both set to False """)
                 )
+
+        # ACTIVATE_TRAINING_QUOTAS value constraints
+        if cleaned_data['setting'] == 'ACTIVATE_TRAINING_QUOTAS':
+            dict_value = cleaned_data['parameters']['value']
+
+            if dict_value.get('activate', False):
+                try:
+                    default_quota = int(dict_value.get('default_quota'))
+                except (ValueError, TypeError):
+                    raise ValidationError(_("A default quota value is mandatory"))
+
+                if default_quota <= 0:
+                    raise ValidationError(_("The default quota value must be a positive integer > 0"))
+            else:
+                cleaned_data['parameters']['value']['activate'] = False
+                cleaned_data['parameters']['value']['default_quota'] = 2
 
         return cleaned_data
 

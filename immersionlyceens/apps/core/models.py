@@ -2245,7 +2245,7 @@ class AttestationDocument(models.Model):
     order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True, unique=True,
         default=partial(get_object_default_order, 'AttestationDocument')
     )
-    for_minors = models.BooleanField(_("For minors"), default=True)
+    for_minors = models.BooleanField(_("Attestation reserved for minors"), default=True)
     mandatory = models.BooleanField(_("Mandatory"), default=True)
     requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
     template = models.FileField(

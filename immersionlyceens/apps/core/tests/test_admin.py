@@ -2132,7 +2132,9 @@ class AdminFormsTestCase(TestCase):
 
         form = GeneralSettingsForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string', 'integer']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
+        # error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string', 'integer', 'object']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
+
+        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean',\n                                       'string',\n                                       'integer',\n                                       'object']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
 
         self.assertIn(error, form.errors['parameters'][0])
 
@@ -2175,6 +2177,54 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn(err_message, form.errors['__all__'])
 
+        # Training quotas
+        training_quotas = GeneralSettings.objects.get(setting='ACTIVATE_TRAINING_QUOTAS')
+        data = {
+            "id": training_quotas.id,
+            "setting": "ACTIVATE_TRAINING_QUOTAS",
+            "parameters": {
+                "type": "object",
+                "value": {
+                    "activate": True,
+                    "default_quota": ""
+                  },
+                "description": "Whatever"
+            }
+        }
+
+        form = GeneralSettingsForm(data=data, instance=training_quotas, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A default quota value is mandatory", form.errors['__all__'])
+
+        # Bad quota value
+        data["parameters"]["value"] = {
+            "activate": True,
+            "default_quota": -1
+        }
+
+        form = GeneralSettingsForm(data=data, instance=training_quotas, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("The default quota value must be a positive integer > 0", form.errors['__all__'])
+
+        # Valid
+        data["parameters"]["value"] = {
+            "activate": True,
+            "default_quota": 4
+        }
+
+        form = GeneralSettingsForm(data=data, instance=training_quotas, request=request)
+        self.assertTrue(form.is_valid())
+
+        # Also valid
+        data["parameters"]["value"] = {
+            "activate": False,
+            "default_quota": ""
+        }
+
+        form = GeneralSettingsForm(data=data, instance=training_quotas, request=request)
+        self.assertTrue(form.is_valid())
+        training_quotas.refresh_from_db()
+        self.assertEqual(training_quotas.parameters["value"]["default_quota"], 2)
 
     def test_custom_theme_file_creation(self):
         """

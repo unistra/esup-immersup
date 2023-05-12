@@ -13,7 +13,8 @@
       "type": [
         "boolean",
         "string",
-        "integer"
+        "integer",
+        "object"
       ],
       "minLength": 1
     }
