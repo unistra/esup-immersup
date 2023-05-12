@@ -2283,8 +2283,15 @@ class AttestationDocument(models.Model):
             raise ValidationError(_('An attestation with this label already exists'))
 
     def delete(self, using=None, keep_parents=False):
-        """Delete file uploaded from document Filefield"""
-        self.template.storage.delete(self.template.name)
+        """
+        Delete file uploaded from document Filefield if not empty
+        """
+        if bool(self.template):
+            try:
+                self.template.storage.delete(self.template.name)
+            except Exception as e:
+                logger.error(f"Cannot delete {self.template.name} : {e}")
+
         super().delete()
 
     class Meta:

@@ -530,11 +530,11 @@ class RecordDocument(models.Model):
         return f"{self.record} / {self.attestation}"
 
     def delete(self, *args, **kwargs):
-        try:
-            self.document.storage.delete(self.document.name)
-        except Exception as e:
-            # no file to delete
-            pass
+        if bool(self.document):
+            try:
+                self.document.storage.delete(self.document.name)
+            except Exception as e:
+                logger.error(f"Cannot delete {self.document.name} : {e}")
 
         return super().delete(*args, **kwargs)
 
