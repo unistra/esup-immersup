@@ -5836,7 +5836,7 @@ msgstr "Niveaux"
 
 #: immersionlyceens/templates/core/common_slots_list.html:182
 msgid "Allowed mentions"
-msgstr "Spécialités autorisées"
+msgstr "Mentions autorisées"
 
 #: immersionlyceens/templates/core/common_slots_list.html:183
 msgid "Allowed teachings"
