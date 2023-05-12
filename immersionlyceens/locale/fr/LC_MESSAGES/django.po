@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-11 17:14+0200\n"
+"POT-Creation-Date: 2023-05-12 11:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1853,10 +1853,10 @@ msgstr "Copier le lien du fichier"
 #: immersionlyceens/apps/core/admin_forms.py:1579
 #: immersionlyceens/apps/core/admin_forms.py:1607
 #: immersionlyceens/apps/core/admin_forms.py:1654
-#: immersionlyceens/apps/core/admin_forms.py:1745
-#: immersionlyceens/apps/core/admin_forms.py:1786
-#: immersionlyceens/apps/core/admin_forms.py:1828
-#: immersionlyceens/apps/core/admin_forms.py:1935
+#: immersionlyceens/apps/core/admin_forms.py:1761
+#: immersionlyceens/apps/core/admin_forms.py:1802
+#: immersionlyceens/apps/core/admin_forms.py:1844
+#: immersionlyceens/apps/core/admin_forms.py:1951
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -2210,10 +2210,10 @@ msgstr ""
 #: immersionlyceens/apps/core/admin_forms.py:1421
 #: immersionlyceens/apps/core/admin_forms.py:1506
 #: immersionlyceens/apps/core/admin_forms.py:1565
-#: immersionlyceens/apps/core/admin_forms.py:1729
-#: immersionlyceens/apps/core/admin_forms.py:1770
-#: immersionlyceens/apps/core/admin_forms.py:1812
-#: immersionlyceens/apps/core/admin_forms.py:1914
+#: immersionlyceens/apps/core/admin_forms.py:1745
+#: immersionlyceens/apps/core/admin_forms.py:1786
+#: immersionlyceens/apps/core/admin_forms.py:1828
+#: immersionlyceens/apps/core/admin_forms.py:1930
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
@@ -2262,16 +2262,24 @@ msgstr ""
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT ne peuvent pas être tous les deux "
 "désactivés."
 
-#: immersionlyceens/apps/core/admin_forms.py:1855
-#: immersionlyceens/apps/core/admin_forms.py:1873
+#: immersionlyceens/apps/core/admin_forms.py:1714
+msgid "A default quota value is mandatory"
+msgstr "La valeur du quota par défaut est obligatoire"
+
+#: immersionlyceens/apps/core/admin_forms.py:1717
+msgid "The default quota value must be a positive integer > 0"
+msgstr "La valeur du quota par défaut doit être un entier positif supérieur à 0"
+
+#: immersionlyceens/apps/core/admin_forms.py:1871
+#: immersionlyceens/apps/core/admin_forms.py:1889
 msgid "Field locked : a high school record uses this level"
 msgstr "Verrouillé : une fiche lycéen(ne) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1891
+#: immersionlyceens/apps/core/admin_forms.py:1907
 msgid "Field locked : a student record uses this level"
 msgstr "Verrouillé : une fiche étudiant(te) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1931
+#: immersionlyceens/apps/core/admin_forms.py:1947
 msgid "A favicon already exists"
 msgstr "Un favicon est déjà utilisé"
 
@@ -3566,9 +3574,8 @@ msgid "Public documents"
 msgstr "Documents publics"
 
 #: immersionlyceens/apps/core/models.py:2248
-#: immersionlyceens/apps/immersion/models.py:524
-msgid "For minors"
-msgstr "Pour mineur(e)s"
+msgid "Attestation reserved for minors"
+msgstr "Pièce réservée aux mineurs"
 
 #: immersionlyceens/apps/core/models.py:2249
 #: immersionlyceens/apps/immersion/models.py:525
@@ -4706,6 +4713,10 @@ msgstr "Valide jusqu'au"
 #: immersionlyceens/apps/immersion/models.py:520
 msgid "Archive status"
 msgstr "Statut archive"
+
+#: immersionlyceens/apps/immersion/models.py:524
+msgid "For minors"
+msgstr "Pour mineur(e)s"
 
 #: immersionlyceens/apps/immersion/models.py:527
 msgid "Renewal warning email sent"
