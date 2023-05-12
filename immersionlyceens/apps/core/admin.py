@@ -150,7 +150,13 @@ class HighschoolListFilter(admin.SimpleListFilter):
     template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
-        highschools = HighSchool.objects.all().order_by('city', 'label')
+        # Optional : filter high school list by agreement value (see high school student admin filters)
+        agreement_filter = {}
+
+        if request.GET.get("agreement") and request.GET.get("agreement") in ('True', 'False'):
+            agreement_filter['with_convention'] = request.GET.get("agreement") == 'True'
+
+        highschools = HighSchool.objects.filter(**agreement_filter).order_by('city', 'label')
         return [(h.id, f"{h.city} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):

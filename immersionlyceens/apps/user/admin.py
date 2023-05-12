@@ -43,6 +43,22 @@ class ValidRecordFilter(admin.SimpleListFilter):
             return queryset.exclude(q_filter)
         return queryset
 
+class AgreementHighSchoolFilter(admin.SimpleListFilter):
+    title = _('High school agreement')
+    parameter_name = 'agreement'
+
+    def lookups(self, request, model_admin):
+        return [('True', _('Yes')), ('False', _('No'))]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value in ('True', 'False'):
+            return queryset\
+                .prefetch_related("high_school_student_record__highschool")\
+                .filter(high_school_student_record__highschool__with_convention=(value == 'True'))
+
+        return queryset
+
 
 class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -61,6 +77,7 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_filter = (
         ActivationFilter,
         ValidRecordFilter,
+        AgreementHighSchoolFilter,
         HighschoolListFilter,
     )
 
