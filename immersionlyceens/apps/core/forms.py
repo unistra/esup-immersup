@@ -19,10 +19,10 @@ from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
-    BachelorMention, BachelorType, Building, Campus, Course, CourseType, Establishment,
-    GeneralBachelorTeaching, HighSchool, HighSchoolLevel, ImmersionUser, OffOfferEvent,
-    OffOfferEventType, Period, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
-    UniversityYear, Visit
+    BachelorMention, BachelorType, Building, Campus, Course, CourseType,
+    Establishment, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    ImmersionUser, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
+    Slot, Structure, StudentLevel, Training, UniversityYear, Visit,
 )
 
 
@@ -406,7 +406,7 @@ class SlotForm(forms.ModelForm):
             'cancellation_limit_delay')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
-            'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
+            'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200}),
             'room': forms.TextInput(attrs={'placeholder': _('Enter the room name')}),
             'date': forms.DateInput(
                 format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
