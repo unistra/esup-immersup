@@ -788,9 +788,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     # No attestation
                     record.set_status("TO_VALIDATE")
             else:
+                documents = HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False)
                 document_form_valid = True
 
-                for document in HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False):
+                for document in documents:
                     document_form = HighSchoolStudentRecordDocumentForm(
                         request.POST,
                         request.FILES,
@@ -816,6 +817,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                 if not document_form_valid:
                     messages.error(request, _("You have errors in Attestations section"))
+                elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
+                    record.set_status('TO_VALIDATE')
 
             record.save()
         else:
@@ -841,8 +844,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     messages.success(
                         request, _("Thank you. Your record is awaiting validation from your high-school referent.")
                     )
-
-            return HttpResponseRedirect(reverse('immersion:modify_hs_record', kwargs={'record_id': record.id}))
     else:
         # Controls where to return
         request.session['back'] = request.headers.get('Referer')
@@ -870,10 +871,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
             )
             document_forms.append(document_form)
 
-        if request.user.is_high_school_student():
-            messages.info(request, _("Your record status : %s") % record.get_validation_display())
-        else:
-            messages.info(request, _("Current record status : %s") % record.get_validation_display())
+    if request.user.is_high_school_student():
+        messages.info(request, _("Your record status : %s") % record.get_validation_display())
+    else:
+        messages.info(request, _("Current record status : %s") % record.get_validation_display())
 
     # Stats for user deletion
     today = datetime.today().date()
@@ -1101,7 +1102,6 @@ def student_record(request, student_id=None, record_id=None):
             )
             quota_forms.append(quota_form)
 
-
     # Stats for user deletion
     today = datetime.today().date()
     now = datetime.today().time()
@@ -1303,7 +1303,8 @@ class VisitorRecordView(FormView):
             immersion_end_date__gte=timezone.localdate()
         )
 
-        self.request.session['back'] = self.request.headers.get('Referer')
+        if reverse('immersion:visitor_record') not in self.request.headers.get('Referer', ""):
+            self.request.session['back'] = self.request.headers.get('Referer')
 
         if self.request.user.is_visitor():
             visitor = self.request.user
