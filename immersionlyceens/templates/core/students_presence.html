@@ -87,6 +87,12 @@
   var min_date = "{{ min_date }}";
   var max_date = "{{ max_date }}";
   var current_student_id;
+  var date_options = {
+      weekday: 'long',
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
+  };
 
   var alert1 = "{% blocktrans %}'From' date must be before 'Until' date'{% endblocktrans %}";
   var alert2 = "{% blocktrans %}'Until' date must be after 'From' date'{% endblocktrans %}";
@@ -142,17 +148,34 @@
     {% if not request.user.is_high_school_manager %}
       { "data": "structure"},
     {% endif %}
-      { "data": "datetime",
+      { "data": "date",
         "render": function(data, type, row) {
+          let date = formatDate(data, date_options)
+          let start_split = row.start_time.split(':')
+          let end_split = row.end_time.split(':')
+          let start = `${start_split[0]}h${start_split[1]}`
+          let end = `${end_split[0]}h${end_split[1]}`
+
+          // format date only for display and filter, not for sorting
           if(type === "display" || type === "filter") {
-            return row.date + " <br />" + row.time['start'] + " - " + row.time['end'];
+            return `${date}<br />${start} - ${end}`
           }
 
-          return data;
+          return `${data} ${start} ${end}`
         }
       },
       { "data": "student_profile"},
-      { "data": "name" },
+      { "data": "name",
+        "render": function(data, type, row) {
+          let name = `${row.last_name.toUpperCase()} ${row.first_name}`
+
+          if(type === "sort") {
+            return name.toLowerCase()
+          }
+
+          return name
+        }
+      },
       { "data": "institution" },
       { "data": "",
         "render": function(data, type, row) {

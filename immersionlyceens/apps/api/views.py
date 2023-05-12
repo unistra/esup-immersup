@@ -3137,62 +3137,68 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
 
         )
 
-    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(Q_filters, **filters, cancellation_type__isnull=True)
-
-    for immersion in immersions:
-        institution = ''
-
-        if immersion.student.is_high_school_student():
-            record = immersion.student.get_high_school_student_record()
-            student_profile = _('High school student')
-            institution = record.highschool.label if record else ''
-        elif immersion.student.get_student_record():
-            record = immersion.student.get_student_record()
-            student_profile = _('Student')
-            if record:
-                institution = record.institution.label if record.institution else record.uai_code
-        elif immersion.student.is_visitor():
-            record = immersion.student.get_visitor_record()
-            student_profile = _('Visitor')
-
-        establishment = immersion.slot.get_establishment()
-        structure = immersion.slot.get_structure()
-
-        if not establishment:
-            establishment = immersion.slot.get_highschool()
-
-        immersion_data = {
-            'id': immersion.pk,
-            'date': _date(immersion.slot.date, 'l d/m/Y'),
-            'time': {
-                'start': immersion.slot.start_time.strftime('%Hh%M') if immersion.slot.start_time else '',
-                'end': immersion.slot.end_time.strftime('%Hh%M') if immersion.slot.end_time else '',
-            },
-            'datetime': datetime.datetime.strptime(
-                "%s:%s:%s %s:%s"
-                % (
-                    immersion.slot.date.year,
-                    immersion.slot.date.month,
-                    immersion.slot.date.day,
-                    immersion.slot.start_time.hour,
-                    immersion.slot.start_time.minute,
+    immersions = Immersion.objects\
+        .prefetch_related(
+            'slot__campus', 'slot__building', 'slot__course__structure__establishment',
+            'slot__visit__establishment', 'slot__event__establishment', 'slot__course__structure',
+            'slot__visit__structure', 'slot__event__structure', 'student__high_school_student_record__highschool',
+            'student__student_record__institution', 'student__visitor_record',
+        )\
+        .filter(Q_filters, **filters, cancellation_type__isnull=True)\
+        .annotate(
+            date=F('slot__date'),
+            start_time=F('slot__start_time'),
+            end_time=F('slot__end_time'),
+            student_profile=Case(
+                When(
+                    student__high_school_student_record__isnull=False,
+                    then=Value(pgettext("person type", "High school student"))
                 ),
-                "%Y:%m:%d %H:%M",
-            ) if immersion.slot.date else None,
-            'student_profile': student_profile,
-            'name': f"{immersion.student.last_name} {immersion.student.first_name}",
-            'institution': institution,
-            'phone': record.phone if record and record.phone else '',
-            'email': immersion.student.email,
-            'campus': immersion.slot.campus.label if immersion.slot.campus else '',
-            'building': immersion.slot.building.label if immersion.slot.building else '',
-            'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
-            'establishment': establishment.label if establishment else '',
-            'structure': structure.label if structure else '',
-            'registration_date': immersion.registration_date,
-        }
+                When(student__student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
+                When(student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
+                default=Value(gettext("Unknown")),
+            ),
+            institution=Coalesce(
+                F('student__high_school_student_record__highschool__label'),
+                F('student__student_record__institution__label'),
+                F('student__student_record__uai_code'),
+                Value('')
+            ),
+            first_name=F('student__first_name'),
+            last_name=F('student__last_name'),
+            phone=Coalesce(
+                F('student__high_school_student_record__phone'),
+                F('student__student_record__phone'),
+                F('student__visitor_record__phone'),
+                Value('')
+            ),
+            email=F('student__email'),
+            campus=F('slot__campus__label'),
+            building=F('slot__building__label'),
+            meeting_place=Case(
+                When(
+                    slot__face_to_face=True,
+                    then=F('slot__room')
+                ),
+                default=Value(gettext('Remote')),
+            ),
+            establishment=Coalesce(
+                F('slot__course__structure__establishment__label'),
+                F('slot__visit__establishment__label'),
+                F('slot__event__establishment__label'),
+                F('slot__course__highschool__label'),
+                F('slot__visit__highschool__label'),
+                F('slot__event__highschool__label'),
+            ),
+            structure=Coalesce(
+                F('slot__course__structure__label'),
+                F('slot__visit__structure__label'),
+                F('slot__event__structure__label'),
+            )
+        )\
+        .values()
 
-        response['data'].append(immersion_data.copy())
+    response['data'] = [i for i in immersions]
 
     return JsonResponse(response, safe=False)
 
