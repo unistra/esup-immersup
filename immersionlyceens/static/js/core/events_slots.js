@@ -225,7 +225,7 @@ function init_datatable() {
           }
 
           if (txt) {
-            return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+            return '<span style="max-width: none;white-space: nowrap;" data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
           } else {
             return '';
           }
