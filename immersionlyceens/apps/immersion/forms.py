@@ -291,7 +291,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
                 lock_file_conditions = [
                     self.request.user.is_high_school_student() or self.request.user.is_visitor(),
-                    self.instance.record.validation == 2 and (
+                    self.instance.record.validation in (2, 4) and (
                         not self.instance.requires_validity_date or not self.can_renew
                     )
                 ]
@@ -302,22 +302,54 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
                 if self.can_renew:
                     self.renew_document = _("Please renew this attestation")
 
+            # Validity date is only required for managers and if the attestation is mandatory
+            is_student_or_visitor = any([
+                self.request.user.is_high_school_student(),
+                self.request.user.is_visitor()
+            ])
 
-            # Validity date is only required for managers
             conditions = [
-                not self.request.user.is_high_school_student(),
-                not self.request.user.is_visitor(),
-                self.instance.requires_validity_date
+                not is_student_or_visitor,
+                self.instance.requires_validity_date,
+                self.instance.mandatory
             ]
 
             if all(conditions):
+                # Managers, mandatory attestation with validity date required
                 self.validity_required = True
                 self.fields["validity_date"].required = True
-            else:
+            elif is_student_or_visitor:
+                # Student or visitor : hidden field
                 self.fields["validity_date"].widget = forms.HiddenInput()
+            elif self.instance.requires_validity_date and not self.instance.mandatory:
+                # Field will be displayed but not required if the attestation is not mandatory
+                self.validity_required = True
+                self.fields["validity_date"].widget.attrs["data-validity_required"] = "true"
 
     def clean(self):
         cleaned_data = super().clean()
+
+        mandatory = self.instance.mandatory
+        requires_validity_date = self.instance.requires_validity_date
+
+        validity_date = cleaned_data.get('validity_date')
+        document = cleaned_data.get('document')
+
+        if self.has_changed() and "validity_date" in self.changed_data:
+            if validity_date and validity_date < timezone.localdate():
+                print("error")
+                self.add_error("validity_date", _("The validity date can't be set in the past"))
+
+        # Check validity date when the attestation is optional but not the date
+        validity_date_conditions = all([
+            not mandatory,
+            requires_validity_date,
+            document != '',
+            not validity_date
+        ])
+
+        if validity_date_conditions:
+            self.add_error("validity_date", _("The validity date is required if the attestation is provided"))
 
         # Check if the user can post a new document
         conditions = [
@@ -417,8 +449,8 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        level = cleaned_data['level']
-        bachelor_type = cleaned_data['bachelor_type']
+        level = cleaned_data.get('level')
+        bachelor_type = cleaned_data.get('bachelor_type')
         general_bachelor_teachings = cleaned_data.get('general_bachelor_teachings', '')
         technological_bachelor_mention = cleaned_data.get('technological_bachelor_mention', '')
         professional_bachelor_mention = cleaned_data.get('professional_bachelor_mention', '')

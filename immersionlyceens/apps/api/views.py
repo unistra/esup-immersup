@@ -679,11 +679,12 @@ def ajax_get_student_records(request):
 
     attestations = HighSchoolStudentRecordDocument.objects\
         .filter(
-            Q(validity_date__lte=today)|Q(validity_date__isnull=True),
+            Q(validity_date__lt=today)|Q(validity_date__isnull=True),
             archive=False,
             record=OuterRef("pk"),
             requires_validity_date=True,
         ) \
+        .exclude(mandatory=False, document='')\
         .order_by()\
         .annotate(count=Func(F('id'), function='Count'))\
         .values('count')
@@ -737,10 +738,10 @@ def ajax_validate_reject_student(request, validate):
 
                 # Check documents
                 attestations = record.attestation.filter(
-                    Q(validity_date__lte=today) | Q(validity_date__isnull=True),
+                    Q(validity_date__lt=today) | Q(validity_date__isnull=True),
                     archive=False,
                     requires_validity_date=True,
-                )
+                ).exclude(mandatory=False, document='')
 
                 if validate and attestations.exists():
                     response['msg'] = _("Error: record has missing or invalid attestation dates")
@@ -748,7 +749,7 @@ def ajax_validate_reject_student(request, validate):
 
                 # 2 => VALIDATED
                 # 3 => REJECTED
-                record.validation = 2 if validate else 3
+                record.set_status("VALIDATED" if validate else "REJECTED")
                 record.validation_date = timezone.now() if validate else None
                 record.rejected_date = None if validate else timezone.now()
                 record.save()

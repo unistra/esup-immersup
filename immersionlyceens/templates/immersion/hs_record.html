@@ -383,6 +383,7 @@
       $("[id$=validity_date]").datepicker({
         changeMonth: true,
         changeYear: true,
+        minDate: new Date(),
         yearRange: "2023:2040",
       });
 
@@ -469,6 +470,17 @@
     //
     $('#id_highschool').change(function() {
       toggle_student_consent_field();
+    });
+
+    // special case when the file is not mandatory but it still requires a validity date if provided
+    $('[id$=-document]').change(function() {
+      let prefix_id = this.id.split("-")[0]
+      let validity_date_id = `${prefix_id}-validity_date`
+      let validity_required = $(`[id=${validity_date_id}]`).data("validity_required") === true
+
+      if(validity_required) {
+        $(`[id=${validity_date_id}]`).prop('required', this.files.length !== 0)
+      }
     });
 
     // Init

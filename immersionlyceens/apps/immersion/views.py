@@ -788,35 +788,44 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     # No attestation
                     record.set_status("TO_VALIDATE")
             else:
-                documents = HighSchoolStudentRecordDocument.objects.filter(record=record, archive=False)
+                documents = HighSchoolStudentRecordDocument.objects\
+                    .filter(record=record, archive=False)\
+                    .order_by("attestation__order")
+
                 document_form_valid = True
 
-                for document in documents:
-                    document_form = HighSchoolStudentRecordDocumentForm(
-                        request.POST,
-                        request.FILES,
-                        instance=document,
-                        request=request,
-                        prefix=f"document_{document.attestation.id}"
-                    )
+                if documents:
+                    for document in documents:
+                        document_form = HighSchoolStudentRecordDocumentForm(
+                            request.POST,
+                            request.FILES,
+                            instance=document,
+                            request=request,
+                            prefix=f"document_{document.attestation.id}"
+                        )
 
-                    if document_form.is_valid():
-                        document = document_form.save()
-                        if document_form.has_changed() and 'document' in document_form.changed_data:
-                            document.deposit_date = timezone.now()
-                            document.validity_date = None
-                            document.save()
-                            if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
-                                record.set_status('TO_REVALIDATE')
-                            else:
-                                record.set_status('TO_VALIDATE')
+                        if document_form.is_valid():
+                            document = document_form.save()
+                            if document_form.has_changed() and 'document' in document_form.changed_data:
+                                document.deposit_date = timezone.now()
+                                document.validity_date = None
+                                document.save()
+                                if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
+                                    record.set_status('TO_REVALIDATE')
+                                else:
+                                    record.set_status('TO_VALIDATE')
+                        else:
+                            document_form_valid = False
+
+                        document_forms.append(document_form)
+
+                    if not document_form_valid:
+                        messages.error(request, _("You have errors in Attestations section"))
                     else:
-                        document_form_valid = False
-
-                    document_forms.append(document_form)
-
-                if not document_form_valid:
-                    messages.error(request, _("You have errors in Attestations section"))
+                        if record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
+                            record.set_status('TO_VALIDATE')
+                        elif record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
+                            record.set_status('TO_REVALIDATE')
                 elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
                     record.set_status('TO_VALIDATE')
 
@@ -844,10 +853,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     messages.success(
                         request, _("Thank you. Your record is awaiting validation from your high-school referent.")
                     )
-    else:
-        # Controls where to return
-        request.session['back'] = request.headers.get('Referer')
 
+            return HttpResponseRedirect(reverse('immersion:modify_hs_record', kwargs={'record_id': record.id}))
+
+    else:
         # Forms init
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
@@ -875,6 +884,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
         messages.info(request, _("Your record status : %s") % record.get_validation_display())
     else:
         messages.info(request, _("Current record status : %s") % record.get_validation_display())
+
+    # Controls where to return
+    if reverse('immersion:hs_record') not in request.headers.get('Referer', ""):
+        request.session['back'] = request.headers.get('Referer')
 
     # Stats for user deletion
     today = datetime.today().date()
@@ -1091,7 +1104,6 @@ def student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
     else:
-        request.session['back'] = request.headers.get('Referer')
         recordform = StudentRecordForm(request=request, instance=record)
         studentform = StudentForm(request=request, instance=student)
         for quota in StudentRecordQuota.objects.filter(record=record):
@@ -1101,6 +1113,9 @@ def student_record(request, student_id=None, record_id=None):
                 prefix=f"quota_{quota.period.id}"
             )
             quota_forms.append(quota_form)
+
+    if reverse('immersion:student_record') not in request.headers.get('Referer', ""):
+        request.session['back'] = request.headers.get('Referer')
 
     # Stats for user deletion
     today = datetime.today().date()
