@@ -826,6 +826,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                             record.set_status('TO_VALIDATE')
                         elif record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
                             record.set_status('TO_REVALIDATE')
+
                 elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
                     record.set_status('TO_VALIDATE')
 
@@ -1552,48 +1553,75 @@ class VisitorRecordView(FormView):
                         vrd.delete()
 
                 if attestations.exists():
-                    next = True
+                    creations = 0
+
                     for attestation in attestations:
-                        VisitorRecordDocument.objects.create(
+                        obj, created = VisitorRecordDocument.objects.update_or_create(
                             record=record,
                             attestation=attestation,
-                            for_minors=attestation.for_minors,
-                            mandatory=attestation.mandatory,
-                            requires_validity_date=attestation.requires_validity_date,
-                            archive=False
+                            archive=False,
+                            defaults={
+                                'for_minors': attestation.for_minors,
+                                'mandatory': attestation.mandatory,
+                                'requires_validity_date': attestation.requires_validity_date,
+                                'archive': False
+                            }
                         )
-                    record.set_status("TO_COMPLETE")
+
+                        creations += 1 if created else 0
+
+                    if creations:
+                        next = True
+                        # Documents have to be filled -> status = 0
+                        record.set_status("TO_COMPLETE")
+                    else:
+                        record.set_status("TO_VALIDATE")
                 else:
+                    # No attestation
                     record.set_status("TO_VALIDATE")
             else:
+                documents = VisitorRecordDocument.objects \
+                    .filter(record=record, archive=False) \
+                    .order_by("attestation__order")
+
                 document_form_valid = True
 
-                for document in VisitorRecordDocument.objects.filter(record=record, archive=False):
-                    document_form = VisitorRecordDocumentForm(
-                        request.POST,
-                        request.FILES,
-                        instance=document,
-                        request=request,
-                        prefix=f"document_{document.attestation.id}"
-                    )
+                if documents:
+                    for document in documents:
+                        document_form = VisitorRecordDocumentForm(
+                            request.POST,
+                            request.FILES,
+                            instance=document,
+                            request=request,
+                            prefix=f"document_{document.attestation.id}"
+                        )
 
-                    if document_form.is_valid():
-                        document = document_form.save()
-                        if document_form.has_changed() and 'document' in document_form.changed_data:
-                            document.deposit_date = timezone.now()
-                            document.validity_date = None
-                            document.save()
-                            if record.validation == VisitorRecord.STATUSES["VALIDATED"]:
-                                record.set_status('TO_REVALIDATE')
-                            else:
-                                record.set_status('TO_VALIDATE')
+                        if document_form.is_valid():
+                            document = document_form.save()
+                            if document_form.has_changed() and 'document' in document_form.changed_data:
+                                document.deposit_date = timezone.now()
+                                document.validity_date = None
+                                document.save()
+                                if record.validation == VisitorRecord.STATUSES["VALIDATED"]:
+                                    record.set_status('TO_REVALIDATE')
+                                else:
+                                    record.set_status('TO_VALIDATE')
+                        else:
+                            print(f"attestation : {document.attestation}, errors : {document_form.errors}")
+                            document_form_valid = False
+
+                        document_forms.append(document_form)
+
+                    if not document_form_valid:
+                        messages.error(request, _("You have errors in Attestations section"))
                     else:
-                        document_form_valid = False
+                        if record.validation == VisitorRecord.STATUSES["TO_COMPLETE"]:
+                            record.set_status('TO_VALIDATE')
+                        elif record.validation == VisitorRecord.STATUSES["VALIDATED"]:
+                            record.set_status('TO_REVALIDATE')
 
-                    document_forms.append(document_form)
-
-                if not document_form_valid:
-                    messages.error(request, _("You have errors in Attestations section"))
+                elif record.validation == VisitorRecord.STATUSES["TO_COMPLETE"]:
+                    record.set_status('TO_VALIDATE')
 
             record.save()
 

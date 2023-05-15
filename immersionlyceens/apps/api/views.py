@@ -4228,14 +4228,16 @@ class VisitorRecordValidation(View):
 
         attestations = VisitorRecordDocument.objects \
             .filter(
-                Q(validity_date__lte=today)|Q(validity_date__isnull=True),
+                Q(validity_date__lt=today) | Q(validity_date__isnull=True),
                 archive=False,
                 record=OuterRef("pk"),
                 requires_validity_date=True,
             ) \
+            .exclude(mandatory=False, document='') \
             .order_by() \
             .annotate(count=Func(F('id'), function='Count')) \
             .values('count')
+
 
         records = VisitorRecord.objects.filter(
             validation=operations[operation]

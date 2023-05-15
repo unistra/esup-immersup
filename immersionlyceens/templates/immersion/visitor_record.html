@@ -202,7 +202,7 @@
       <div class="card-body">
         {% if record.creation_date %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-2 col-form-label">
+            <label class="col-sm-4 col-form-label">
               {% trans 'Record creation date' %} :
             </label>
             <div class="col-sm-4 col-form-label">
@@ -211,7 +211,7 @@
           </div>
         {% endif %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-2 col-form-label">
+          <label class="col-sm-4 col-form-label">
             {% if record %}{% trans "Validation" %} :{% else %}{% trans "Visitor record" %} :{% endif %}
           </label>
           <div class="form-group col-sm-4 col-form-label">
@@ -238,7 +238,7 @@
         </div>
         {% if record.validation_date %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-2 col-form-label">
+          <label class="col-sm-4 col-form-label">
             {% trans 'Record validation date' %} :
           </label>
           <div class="col-sm-8 col-form-label">
@@ -266,17 +266,18 @@ function open_modal() {
   $('#modal_nuke_account').modal('show');
 }
 
+
 // Move this somewhere else
 function user_age() {
-    let birthdate = $('#id_birth_date').datepicker('getDate')
+  let birthdate = $('#id_birth_date').datepicker('getDate')
 
-    var today = new Date();
-    var age = today.getFullYear() - birthdate.getFullYear();
-    var m = today.getMonth() - birthdate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
-        age--;
-    }
-    return age;
+  var today = new Date();
+  var age = today.getFullYear() - birthdate.getFullYear();
+  var m = today.getMonth() - birthdate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
+    age--;
+  }
+  return age;
 }
 
 $(function () {
@@ -293,6 +294,18 @@ $(function () {
     defaultDate: "01/01/2003",
   });
 });
+
+// special case when the file is not mandatory but it still requires a validity date if provided
+$('[id$=-document]').change(function() {
+  let prefix_id = this.id.split("-")[0]
+  let validity_date_id = `${prefix_id}-validity_date`
+  let validity_required = $(`[id=${validity_date_id}]`).data("validity_required") === true
+
+  if(validity_required) {
+    $(`[id=${validity_date_id}]`).prop('required', this.files.length !== 0)
+  }
+})
+
 
 </script>
 {% endblock %}

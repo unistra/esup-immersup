@@ -326,6 +326,9 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
                 self.validity_required = True
                 self.fields["validity_date"].widget.attrs["data-validity_required"] = "true"
 
+                if self.instance.document != "":
+                    self.fields["validity_date"].required = True
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -337,14 +340,14 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
         if self.has_changed() and "validity_date" in self.changed_data:
             if validity_date and validity_date < timezone.localdate():
-                print("error")
                 self.add_error("validity_date", _("The validity date can't be set in the past"))
 
         # Check validity date when the attestation is optional but not the date
         validity_date_conditions = all([
+            not self.request.user.is_high_school_student() and not self.request.user.is_visitor(),
             not mandatory,
             requires_validity_date,
-            document != '',
+            document is not None,
             not validity_date
         ])
 
