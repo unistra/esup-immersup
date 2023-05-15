@@ -58,7 +58,7 @@
             </button>
           </h5>
         </div>
-        <div class="collapse" id="visit{{h.grouper.pk}}"  aria-labelledby="#visit{{h.grouper.pk}}" data-parent="#accordion">
+        <div class="collapse" id="visit{{h.grouper.pk}}"  aria-labelledby="visit{{h.grouper.pk}}" data-parent="#accordion">
           <div class="card-body" >
             {% regroup h.list by visit.purpose as slots_list %}
             {% for slot in slots_list %}
@@ -109,8 +109,8 @@
                           {% endif %}
                             </ul>
                           </td>
-                          <td rowspan="2" width="25%">
-                          {% if s.establishments_restrictions or s.levels_restrictions %}
+                          <td rowspan="2" style="width: 25%">
+                          {% if s.establishments_restrictions or s.levels_restrictions or s.bachelors_restrictions%}
                             <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                             {% trans 'Restrictions' %} :
                             {% if s.allowed_establishments.all%}
@@ -155,8 +155,32 @@
                               {% endfor %}
                               </ul>
                             {% endif %}
+                            {% if s.allowed_bachelor_types.all %}
+                            <h6>{% trans "Allowed bachelor types" %} :</h6>
+                            <ul>
+                                {% for t in  s.get_allowed_bachelor_types %}
+                              <li>{{ t }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% if s.allowed_bachelor_mentions.all %}
+                            <h6>{% trans "Allowed bachelor mentions" %} :</h6>
+                            <ul>
+                                {% for m in  s.get_allowed_bachelor_mentions %}
+                              <li>{{ m }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% if s.allowed_bachelor_teachings.all %}
+                            <h6>{% trans "Allowed bachelor teachings" %} :</h6>
+                            <ul>
+                                {% for t in  s.get_allowed_bachelor_teachings %}
+                              <li>{{ t }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
                           {% endif %}
-                          {% if not s.establishments_restrictions and not s.levels_restrictions %}
+                          {% if not s.establishments_restrictions and not s.levels_restrictions and not s.bachelors_restrictions %}
                             <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                             {% trans "Slot open to all" %}
                           {% endif %}

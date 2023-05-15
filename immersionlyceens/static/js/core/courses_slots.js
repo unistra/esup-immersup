@@ -157,66 +157,86 @@ function init_datatable() {
         },
         { data: 'restrictions',
           render: function(data) {
-            let txt = ""
+            let establishment_restrictions = ""
+            let levels_restrictions = ""
+            let span_txt = ""
+            let bachelors_types = ""
+            let bachelors_mentions = ""
+            let bachelors_teachings = ""
 
             if(data.establishment_restrictions === true) {
-              txt += establishments_txt + " :\n"
+              establishment_restrictions += establishments_txt + " :\n"
               data.allowed_establishments.forEach(item => {
-                txt += "- " + item + "\n"
+                establishment_restrictions += "- " + item + "\n"
               })
 
               data.allowed_highschools.forEach(item => {
-                txt += "- " + item + "\n"
+                establishment_restrictions += "- " + item + "\n"
               })
             }
 
             if(data.levels_restrictions === true) {
-              if(txt) txt += "\n"
 
-              txt += levels_txt + " :\n"
+
+              levels_restrictions += levels_txt + " :\n"
 
               data.allowed_highschool_levels.forEach(item => {
-                txt += "- " + item + "\n"
+                levels_restrictions += "- " + item + "\n"
               })
 
               data.allowed_post_bachelor_levels.forEach(item => {
-                txt += "- " + item + "\n"
+                levels_restrictions += "- " + item + "\n"
               })
 
               data.allowed_student_levels.forEach(item => {
-                txt += "- " + item + "\n"
+                levels_restrictions += "- " + item + "\n"
               })
             }
 
             if(data.bachelors_restrictions === true) {
-              if(txt) txt += "\n"
-
-              txt += bachelors_txt + " :\n"
-
-              data.allowed_bachelor_types.forEach(item => {
-                txt += "- " + item + "\n"
-              })
+              if(data.allowed_bachelor_types.length >0){
+                bachelors_types += bachelors_txt + " :\n"
+                data.allowed_bachelor_types.forEach(item => {
+                  bachelors_types += "- " + item + "\n"
+                })
+              }
 
               if(data.allowed_bachelor_mentions.length > 0) {
-                txt += allowed_mentions_txt  + " :\n"
+                bachelors_mentions += "\n" + allowed_mentions_txt  + " :\n"
                 data.allowed_bachelor_mentions.forEach(item => {
-                  txt += "- " + item + "\n"
+                  bachelors_mentions += "- " + item + "\n"
                 })
               }
 
               if(data.allowed_bachelor_teachings.length > 0) {
-                txt += allowed_teachings_txt  + " :\n"
+                bachelors_teachings += "\n" + allowed_teachings_txt  + " :\n"
                 data.allowed_bachelor_teachings.forEach(item => {
-                  txt += "- " + item + "\n"
+                  bachelors_teachings += "- " + item + "\n"
                 })
               }
             }
 
-            if (txt) {
-              return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
-            } else {
-              return '';
+            if (establishment_restrictions.length > 0) {
+              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + establishment_restrictions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + establishments_txt + '</li>'
             }
+
+            if (levels_restrictions.length > 0) {
+              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + levels_restrictions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + levels_txt + '</li>'
+            }
+
+            if (bachelors_types.length > 0) {
+              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + bachelors_types + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + bachelors_txt + '</li>'
+            }
+
+            if (bachelors_mentions.length > 0) {
+              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + bachelors_mentions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + allowed_mentions_txt + '</li>'
+            }
+
+            if (bachelors_teachings.length > 0) {
+              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + bachelors_teachings + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + allowed_teachings_txt + '</li>'
+            }
+
+            return '<ul class="list-unstyled">' + span_txt + '<ul>'
           }
         },
         { data: 'id',

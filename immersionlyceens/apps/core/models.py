@@ -2349,7 +2349,6 @@ class EvaluationFormLink(models.Model):
         """str"""
         return f'{self.evaluation_type.label} : {self.url}'
 
-
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
@@ -2465,7 +2464,6 @@ class Slot(models.Model):
     registration_limit_date = models.DateTimeField(_('Registration limit'), blank=True, null=True)
     cancellation_limit_date = models.DateTimeField(_('Cancellation limit'), blank=True, null=True)
 
-
     def get_establishment(self):
         """
         Get the slot establishment depending on the slot type (visit, course, event)
@@ -2505,7 +2503,6 @@ class Slot(models.Model):
 
         return None
 
-
     def available_seats(self):
         """
         :return: number of available seats for instance slot
@@ -2514,14 +2511,12 @@ class Slot(models.Model):
         s = self.n_places - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
         return 0 if s < 0 else s
 
-
     def registered_students(self):
         """
         :return: number of registered students for instance slot
         """
         # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
-
 
     def clean(self):
         if [self.course, self.visit, self.event].count(None) != 2:
@@ -2555,11 +2550,26 @@ class Slot(models.Model):
     def get_allowed_highschool_levels(self):
         return [level.label for level in self.allowed_highschool_levels.all()]
 
+
     def get_allowed_students_levels(self):
         return [level.label for level in self.allowed_student_levels.all()]
 
+
     def get_allowed_post_bachelor_levels(self):
         return [level.label for level in self.allowed_post_bachelor_levels.all()]
+
+
+    def get_allowed_bachelor_types(self):
+        return [type.label for type in self.allowed_bachelor_types.all()]
+
+
+    def get_allowed_bachelor_mentions(self):
+        return [mention.label for mention in self.allowed_bachelor_mentions.all()]
+
+
+    def get_allowed_bachelor_teachings(self):
+        return [teach.label for teach in self.allowed_bachelor_teachings.all()]
+
 
     def get_label(self):
         """
