@@ -29,6 +29,20 @@ def create_template(apps, schema_editor):
     template = MailTemplate.objects.create(**template_data)
     template.available_vars.add(template_var)
 
+    # Add these existing vars to the new template
+    codes = [
+        "{{ annee }}", "{{ estetudiant }}", "{{ estlyceen }}", "{{ estvisiteur }}", "{{ nom }}",
+        "{{ prenom }}", "{{ urlPlateforme }}"
+    ]
+
+    for code in codes:
+        try:
+            template_var = MailTemplateVars.objects.get(code=code)
+            template.available_vars.add(template_var)
+        except MailTemplateVars.DoesNotExist:
+            print(f"Mail template var '{code}' not found")
+
+
 class Migration(migrations.Migration):
 
     dependencies = [

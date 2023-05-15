@@ -747,6 +747,14 @@ class BachelorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'pre_bachelor_level', 'general', 'professional', 'technological', 'active')
     ordering = ('label',)
 
+    def has_module_permission(self, request):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_master_establishment_manager() and not request.user.is_operator():
             return False
