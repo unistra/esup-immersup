@@ -126,7 +126,7 @@
                                 </ul>
                               </td>
                               <td style="width: 15%" rowspan="2">
-                              {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions%}
+                              {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                 <i class="fa fas fa-ban text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                 {% trans "Restrictions" %} :
                                 {% if slot.allowed_establishments.all%}
@@ -193,13 +193,13 @@
                                     {% endfor %}
                                 </ul>
                                 {% endif %}
-                              </td>
-                            {% endif %}
-                            {% if not slot.establishments_restrictions and not slot.levels_restrictions and not slot.bachelors_restrictions %}
+                                {% endif %}
+                                {% if not slot.establishments_restrictions and not slot.levels_restrictions and not slot.bachelors_restrictions %}
 
-                            <i class="fa fas fa-universal-access text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
-                            {% trans "Slot open to all" %}
-                            {% endif %}
+                                <i class="fa fas fa-universal-access text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                                {% trans "Slot open to all" %}
+                                {% endif %}
+                              </td>
                               <td>
                                 {% if slot.cancelled %}
                                     <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>

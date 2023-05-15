@@ -115,7 +115,7 @@
                               </ul>
                             </td>
                             <td rowspan="2" width="15%">
-                            {% if s.establishments_restrictions or s.levels_restrictions %}
+                            {% if s.establishments_restrictions or s.levels_restrictions or slot.bachelors_restrictions %}
                               <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                               {% trans "Restrictions" %} :
                               {% if s.allowed_establishments.all%}
@@ -145,12 +145,12 @@
                                 </ul>
                               {% endif %}
                               {% if s.allowed_student_levels.all %}
-                                <h6>{% trans "Allowed student levels" %} :</h6>
-                                <ul>
-                                {% for l in s.get_allowed_student_levels %}
-                                  <li>{{ l }}</li>
-                                {% endfor %}
-                                </ul>
+                              <h6>{% trans "Allowed student levels" %} :</h6>
+                              <ul>
+                                  {% for l in  s.get_allowed_students_levels %}
+                                <li>{{ l }}</li>
+                                  {% endfor %}
+                              </ul>
                               {% endif %}
                               {% if s.allowed_post_bachelor_levels.all %}
                                 <h6>{% trans "Allowed post bachelor levels" %} :</h6>
@@ -160,8 +160,32 @@
                                 {% endfor %}
                                 </ul>
                               {% endif %}
+                              {% if s.allowed_bachelor_types.all %}
+                              <h6>{% trans "Allowed bachelor types" %} :</h6>
+                              <ul>
+                                  {% for t in  s.get_allowed_bachelor_types %}
+                                <li>{{ t }}</li>
+                                  {% endfor %}
+                              </ul>
+                              {% endif %}
+                              {% if s.allowed_bachelor_mentions.all %}
+                              <h6>{% trans "Allowed bachelor mentions" %} :</h6>
+                              <ul>
+                                  {% for m in  s.get_allowed_bachelor_mentions %}
+                                <li>{{ m }}</li>
+                                  {% endfor %}
+                              </ul>
+                              {% endif %}
+                              {% if s.allowed_bachelor_teachings.all %}
+                              <h6>{% trans "Allowed bachelor teachings" %} :</h6>
+                              <ul>
+                                  {% for t in  s.get_allowed_bachelor_teachings %}
+                                <li>{{ t }}</li>
+                                  {% endfor %}
+                              </ul>
+                              {% endif %}
                             {% endif %}
-                            {% if not s.establishments_restrictions and not s.levels_restrictions %}
+                            {% if not s.establishments_restrictions and not s.levels_restrictions and not s.bachelors_restrictions %}
                               <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                               {% trans "Slot open to all" %}
                             {% endif %}
