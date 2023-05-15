@@ -80,7 +80,7 @@
                       <table class="table table-bordered">
                         <tbody>
                           <tr>
-                            <td width="15%">
+                            <td style="width: 15%">
                               <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
                               {{ s.date | date:"l d F Y"}}
                             </td>
@@ -101,7 +101,7 @@
                               {% trans 'Remote visit' %}
                               {% endif %}
                             </td>
-                            <td rowspan="2" width="15%">
+                            <td rowspan="2" style="width: 15%">
                               <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                               {% trans 'Speaker(s)' %} :
                               <ul>
@@ -114,7 +114,7 @@
                             {% endif %}
                               </ul>
                             </td>
-                            <td rowspan="2" width="15%">
+                            <td rowspan="2" style="width: 15%">
                             {% if s.establishments_restrictions or s.levels_restrictions or slot.bachelors_restrictions %}
                               <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                               {% trans "Restrictions" %} :
