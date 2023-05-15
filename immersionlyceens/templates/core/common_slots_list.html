@@ -100,7 +100,7 @@
                     <select id="id_structure" class="form-control">
                       <option value="">------------</option>
                       {% for structure in structures %}
-                        <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                        <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
                           {{ structure.code }} - {{ structure.label }}
                         </option>
                       {% endfor %}
