@@ -861,15 +861,23 @@ def high_school_student_record(request, student_id=None, record_id=None):
         # Forms init
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
-        for quota in HighSchoolStudentRecordQuota.objects\
-                .filter(record=record)\
-                .order_by("period__immersion_start_date"):
-            quota_form = HighSchoolStudentRecordQuotaForm(
-                request=request,
-                instance=quota,
-                prefix=f"quota_{quota.period.id}"
-            )
-            quota_forms.append(quota_form)
+
+        valid_users = any([
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator()
+        ])
+
+        if valid_users:
+            for quota in HighSchoolStudentRecordQuota.objects\
+                    .filter(record=record)\
+                    .order_by("period__immersion_start_date"):
+                quota_form = HighSchoolStudentRecordQuotaForm(
+                    request=request,
+                    instance=quota,
+                    prefix=f"quota_{quota.period.id}"
+                )
+                quota_forms.append(quota_form)
 
         for document in HighSchoolStudentRecordDocument.objects\
                 .filter(record=record, archive=False)\
