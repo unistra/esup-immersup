@@ -95,6 +95,7 @@
   const is_ref_etab_maitre = "{{ request.user.is_master_establishment_manager }}" === "True";
   const is_ref_tec = "{{ request.user.is_operator }}" === "True";
   const is_ref_lyc = "{{ request.user.is_high_school_manager }}" === "True";
+  const high_school_id = "{{ request.user.highschool.id }}";
   const date_format = { year: 'numeric', month: 'long', day: 'numeric' };
   let order = [[0, "asc"], [1, "asc"], ];
 
@@ -142,7 +143,9 @@
           return name.toLowerCase()
         }
 
-        if(type === "display" && (is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc)) {
+        if(type === "display" && (
+            is_ref_etab || is_ref_etab_maitre || is_ref_tec || (is_ref_lyc && parseInt(high_school_id) === row.high_school_id))
+        ) {
           if (row.high_school_record_id) {
             return `<a href='/immersion/hs_record/${row.high_school_record_id}'>${name}</a>`;
           } else if (row.student_record_id) {

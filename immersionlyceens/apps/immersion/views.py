@@ -600,6 +600,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
     quota_forms = []
     document_forms = []
 
+    from_page = request.headers.get('Referer', "")
+    user = request.user
+
+    # 'back' control if not from the same page (eg. POST)
+    if reverse('immersion:hs_record') not in from_page:
+        request.session['back'] = request.headers.get('Referer')
+
     periods = Period.objects.filter(
         immersion_end_date__gte=timezone.localdate()
     )
@@ -627,16 +634,23 @@ def high_school_student_record(request, student_id=None, record_id=None):
             # Record not created yet.
             pass
 
-    # Custom quotas objects for already started periods (check registration date)
-    # The record must exist
     if record and record.pk:
+        # Check user access for this record
+        if user.is_high_school_manager() and user.highschool != record.highschool:
+            if from_page:
+                return HttpResponseRedirect(from_page)
+            else:
+                return HttpResponseRedirect(reverse('home'))
+
+        # Custom quotas objects for already started periods (check registration date)
+        # The record must exist
         for period in periods.filter(registration_start_date__lte=timezone.localdate()):
             if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
                 HighSchoolStudentRecordQuota.objects.create(
                     record=record, period=period, allowed_immersions=period.allowed_immersions
                 )
     else:
-        # No record yet
+        # No record yet, we have to initialize attestations on first record save()
         create_documents = True
 
     if request.method == 'POST' and request.POST.get('submit'):
@@ -893,10 +907,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
         messages.info(request, _("Your record status : %s") % record.get_validation_display())
     else:
         messages.info(request, _("Current record status : %s") % record.get_validation_display())
-
-    # Controls where to return
-    if reverse('immersion:hs_record') not in request.headers.get('Referer', ""):
-        request.session['back'] = request.headers.get('Referer')
 
     # Stats for user deletion
     today = datetime.today().date()

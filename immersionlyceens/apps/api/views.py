@@ -1720,6 +1720,7 @@ def ajax_get_highschool_students(request):
             F('visitor_record__birth_date')
         ),
         class_name=F('high_school_student_record__class_name'),
+        high_school_id=F('high_school_student_record__highschool__id'),
         institution=Coalesce(
             F('high_school_student_record__highschool__label'),
             F('student_record__institution__label'),
