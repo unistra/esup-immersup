@@ -10,6 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
 
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorMention, BachelorType, Building, Campus,
@@ -154,6 +155,14 @@ class ImmersionViewsTestCase(TestCase):
             last_name='REF',
             highschool=cls.high_school,
         )
+        cls.lyc_ref2 = get_user_model().objects.create_user(
+            username='lycref2',
+            password='pass',
+            email='lycref2@no-reply.com',
+            first_name='lyc2',
+            last_name='REF2',
+            highschool=cls.high_school2,
+        )
         cls.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
@@ -162,6 +171,12 @@ class ImmersionViewsTestCase(TestCase):
             last_name='ref_etab',
             establishment=cls.establishment,
         )
+
+        cls.lyc_ref.set_password('pass')
+        cls.lyc_ref.save()
+
+        cls.lyc_ref2.set_password('pass')
+        cls.lyc_ref2.save()
 
         cls.ref_etab_user.set_password('pass')
         cls.ref_etab_user.save()
@@ -173,6 +188,7 @@ class ImmersionViewsTestCase(TestCase):
         Group.objects.get(name='VIS').user_set.add(cls.visitor_user)
         Group.objects.get(name='ETU').user_set.add(cls.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
+        Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref2)
         Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
 
         BachelorMention.objects.create(
@@ -744,6 +760,41 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("A record already exists with this identity, please contact the establishment referent.",
             response.content.decode('utf-8'))
 
+    def test_high_school_student_record_access(self):
+        """
+        Test high school student record access
+        """
+        hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=self.today,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere S 3',
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
+            professional_bachelor_mention='My spe'
+        )
+
+        # As a high school manager from the same high school : success
+        self.client.login(username=self.lyc_ref.username, password='pass')
+        response = self.client.get(f'/immersion/hs_record/{hs_record.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("High school student record", response.content.decode('utf-8'))
+        self.client.logout()
+
+        # As a high school manager from another high school : redirection
+        self.client.login(username=self.lyc_ref2.username, password='pass')
+        response = self.client.get(f'/immersion/hs_record/{hs_record.id}')
+
+        self.assertRedirects(
+            response,
+            reverse('home'),
+            status_code=status.HTTP_302_FOUND,
+            target_status_code=status.HTTP_200_OK,
+            msg_prefix='',
+            fetch_redirect_response=True
+        )
+
 
     def test_immersions(self):
         # Should redirect to login page
@@ -893,6 +944,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("Your accounts have been linked", response.content.decode('utf8'))
         self.assertEqual(self.speaker1.linked_users(), [self.speaker1, self.speaker2])
 
+
     def test_visitor_record(self):
         # First check that visitor record doesn't exist yet
         self.assertFalse(VisitorRecord.objects.filter(visitor=self.visitor_user).exists())
@@ -988,3 +1040,11 @@ class ImmersionViewsTestCase(TestCase):
 
         self.visitor_user.refresh_from_db()
         self.assertNotEqual(self.visitor_user.validation_string, None)
+
+        # Test access
+        # Fail
+        self.client.login(username=self.lyc_ref.username, password='pass')
+
+        response = self.client.get(f'/immersion/visitor_record/{record.id}')
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertNotIn("Visitor record", response.content.decode('utf-8'))

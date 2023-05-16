@@ -1625,7 +1625,6 @@ class VisitorRecordView(FormView):
                                 else:
                                     record.set_status('TO_VALIDATE')
                         else:
-                            print(f"attestation : {document.attestation}, errors : {document_form.errors}")
                             document_form_valid = False
 
                         document_forms.append(document_form)
