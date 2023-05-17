@@ -346,7 +346,7 @@ class APITestCase(TestCase):
 
         cls.period = Period.objects.create(
             label="Period 1",
-            registration_start_date=cls.today + timedelta(days=1),
+            registration_start_date=cls.today, # + timedelta(days=1),
             immersion_start_date=cls.today + timedelta(days=2),
             immersion_end_date=cls.today + timedelta(days=20),
             allowed_immersions=4,
@@ -3275,6 +3275,51 @@ class APITestCase(TestCase):
         )
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
+
+        # Test training quotas (slot2 and slot3 have the same training in the same period)
+        # reset immersions and raise period quota
+        self.highschool_user.immersions.all().delete()
+        HighSchoolStudentRecordQuota.objects.filter(
+            period=self.period,
+            record=self.hs_record
+        ).update(allowed_immersions=3)
+
+        Immersion.objects.create(student=self.highschool_user, slot=self.slot2)
+
+        training_quotas = GeneralSettings.objects.get(setting="ACTIVATE_TRAINING_QUOTAS")
+        training_quotas.parameters["value"] = {
+            'activate': False,
+            'default_quota': 1
+        }
+        training_quotas.save()
+
+        # Quota off : success
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.slot3.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
+
+        # Activate quota, delete slot3 registration and retry
+        Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).delete()
+        training_quotas.parameters['value']['activate'] = True
+        training_quotas.save()
+
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.slot3.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            """You have no more remaining registration available for this training and this period, """
+            """you should cancel an immersion or contact immersion service""",
+            content['msg']
+        )
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 

@@ -1492,8 +1492,11 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': msg}
             return JsonResponse(response, safe=False)
 
-        if visit_or_off_offer or (available_registrations > 0 and available_training_registrations is not None and
-                available_training_registrations>0):
+        if visit_or_off_offer:
+            can_register = True
+        elif available_registrations > 0 and available_training_registrations is None:
+            can_register = True
+        elif available_registrations > 0 and available_training_registrations > 0:
             can_register = True
         elif can_force_reg and not force:
             return JsonResponse({
