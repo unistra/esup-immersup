@@ -1,8 +1,11 @@
 {% load immersionlyceens_tags i18n static %}
 <!-- Modal students list for registering -->
 <div id="confirm-dialog-form" title="{% trans "Confirm registration" %}">
-  <span id="id_registrations">
-    {% trans 'Selected student has no remaining registration available, would you like to register anyway ?' %}
+  <span id="id_quota">
+    {% trans 'Selected student is off quota for this period, would you like to register anyway ?' %}
+  </span>
+  <span id="id_training_quota">
+    {% trans 'Selected student is off training quota for this period, would you like to register anyway ?' %}
   </span>
   <span id="id_restrictions">
     {% trans "Selected student doesn't match the slot restrictions, would you like to register anyway ?" %}
@@ -97,11 +100,11 @@ dtl = $('#register_students_list').DataTable({
   },
   {% endif %}
   'columns': [
-    {"data": "lastname"},
-    {"data": "firstname"},
+    {"data": "last_name"},
+    {"data": "first_name"},
     {"data": "profile"},
     {"data": "level"},
-    {"data": "class"},
+    {"data": "class_name"},
     {"data": "school"},
     {"data": "city"},
     {"data": "can_register",
@@ -112,7 +115,7 @@ dtl = $('#register_students_list').DataTable({
         else {
           let reasons = ""
           if(is_set(row.reasons)) {
-            reasons = row.reasons.join('\r\n')
+            reasons = row.reasons // row.reasons.join('\r\n')
           }
           return '<span data-toggle="tooltip" title="' + reasons + '"><i class="fa fas fa-ban fa-2x centered-icon"></i></span>'
         }
@@ -195,18 +198,27 @@ function register_student(student_id, slot_id, force=false) {
       success: function (json) {
         if(json['error']) {
           if (json['msg'] === 'force_update') {
-            if(json['reason'] === "registrations") {
-                $('#id_registrations').show()
+            if(json['reason'] === "quota") {
+                $('#id_quota').show()
+                $('#id_training_quota').hide()
+                $('#id_restrictions').hide()
+                $('#id_passed_registration_date').hide()
+            }
+            else if(json['reason'] === "training_quota") {
+                $('#id_quota').hide()
+                $('#id_training_quota').show()
                 $('#id_restrictions').hide()
                 $('#id_passed_registration_date').hide()
             }
             else if(json['reason'] === "restrictions") {
-                $('#id_registrations').hide()
+                $('#id_quota').hide()
+                $('#id_training_quota').hide()
                 $('#id_passed_registration_date').hide()
                 $('#id_restrictions').show()
             }
             else if(json['reason'] === "passed_registration_date") {
-                $('#id_registrations').hide()
+                $('#id_quota').hide()
+                $('#id_training_quota').hide()
                 $('#id_restrictions').hide()
                 $('#id_passed_registration_date').show()
             }

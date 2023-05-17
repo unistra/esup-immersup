@@ -780,11 +780,8 @@ class ImmersionUser(AbstractUser):
                 errors.append(_("Visitor record not found or not valid"))
 
             # visitors can register to "open to all" slots
-            if slot.levels_restrictions or slot.establishments_restrictions:
+            if any([slot.levels_restrictions, slot.establishments_restrictions, slot.bachelors_restrictions]):
                 errors.append(_('Slot restrictions in effect'))
-
-            if slot.bachelors_restrictions:
-                errors.append(_('Bachelors restrictions in effect'))
 
             if errors:
                 return False, errors

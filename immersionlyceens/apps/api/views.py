@@ -1496,13 +1496,22 @@ def ajax_slot_registration(request):
             can_register = True
         elif available_registrations > 0 and available_training_registrations is None:
             can_register = True
-        elif available_registrations > 0 and available_training_registrations > 0:
+        elif available_registrations > 0 and (
+                available_training_registrations is not None and available_training_registrations > 0
+            ):
             can_register = True
         elif can_force_reg and not force:
+            reason = ""
+
+            if available_registrations <= 0:
+                reason = "quota"
+            elif available_training_registrations is not None and available_training_registrations <= 0:
+                reason = "training_quota"
+
             return JsonResponse({
                 'error': True,
                 'msg': 'force_update',
-                'reason': 'registrations'
+                'reason': reason
             }, safe=False)
         elif force:
             can_register = True
@@ -1529,8 +1538,10 @@ def ajax_slot_registration(request):
             msg = None
 
             if available_registrations <= 0:
+                print("quota")
                 msg = _("This student is over quota for this period")
             elif available_training_registrations is not None and available_training_registrations <= 0:
+                print("training_quota")
                 msg = _("This student is over training quota for this period")
 
             if msg:
@@ -1591,10 +1602,24 @@ def ajax_get_available_students(request, slot_id):
         response['msg'] = _("Error : slot not found")
         return JsonResponse(response, safe=False)
 
+    valid_high_school_record = HighSchoolStudentRecord.STATUSES["VALIDATED"]
+    valid_visitor_record = VisitorRecord.STATUSES["VALIDATED"]
+
     # Secondary query needed in exclude : we need to see students who have cancelled their registration to
     # keep the possibility to readd them
     students = ImmersionUser.objects \
-        .filter(groups__name__in=['LYC', 'ETU', 'VIS'], validation_string__isnull=True) \
+        .prefetch_related(
+            "groups", "immersions", "high_school_student_record__highschool", "student_record__institution",
+            "high_school_student_record__level", "student_record__level",
+            "high_school_student_record__post_bachelor_level"
+        )\
+        .filter(
+            Q(high_school_student_record__isnull=False, high_school_student_record__validation=valid_high_school_record)
+            | Q(student_record__isnull=False)
+            | Q(visitor_record__isnull=False, visitor_record__validation=valid_visitor_record),
+            groups__name__in=['LYC', 'ETU', 'VIS'],
+            validation_string__isnull=True
+        ) \
         .exclude(immersions__in=(Immersion.objects.filter(slot__id=slot_id, cancellation_type__isnull=True)))
 
     # Visit slot : keep only high school students matching the slot's high school
@@ -1604,7 +1629,6 @@ def ajax_get_available_students(request, slot_id):
     # Restrictions :
     # Some users will only see a warning about restrictions not met (ref-etab, ref-etab-maitre, ref-tec)
     # Others won't even see the filtered participants in the list (ref-lyc, ref-str)
-    # if user.is_master_establishment_manager() or user.is_establishment_manager() or user.is_operator():
 
     if user.is_high_school_manager() or user.is_structure_manager():
         if slot.establishments_restrictions:
@@ -1639,6 +1663,111 @@ def ajax_get_available_students(request, slot_id):
                     Q(**{'%s' % f: value}) for f, value in levels_restrictions.items()])
                 )
 
+        if slot.bachelors_restrictions:
+            bachelor_type_filter = {}
+            bachelors_restrictions = {}
+
+            if slot.allowed_bachelor_types.exists():
+                bachelor_type_filter = {
+                    'high_school_student_record__bachelor_type__in' : slot.allowed_bachelor_types.all()
+                }
+
+            if slot.allowed_bachelor_mentions.exists():
+                bachelors_restrictions['high_school_student_record__bachelor_mention__in'] = \
+                    slot.allowed_bachelor_mentions.all()
+
+            if slot.allowed_bachelor_teachings.exists():
+                bachelors_restrictions['high_school_student_record__bachelor_teachings__in'] = \
+                    slot.allowed_bachelor_teachings.all()
+
+            if bachelor_type_filter and bachelors_restrictions:
+                students = students.filter(
+                    reduce(lambda x, y: x | y, [
+                        Q(**{'%s' % f: value}) for f, value in bachelors_restrictions.items()])
+                    **bachelor_type_filter
+                )
+
+    # Annotations
+    students = students.annotate(
+        school=Coalesce(
+            F('high_school_student_record__highschool__label'),
+            F('student_record__institution__label'),
+            Value(""),
+        ),
+        city=F('high_school_student_record__highschool__city'),
+        class_name=F('high_school_student_record__class_name'),
+        profile=Case(
+            When(
+                high_school_student_record__isnull=False,
+                then=Value(pgettext("person type", "High school student"))
+            ),
+            When(student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
+            When(visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
+            default=Value(gettext("Unknown"))
+        ),
+        level=Coalesce(
+            Case(
+                When(
+                    high_school_student_record__level__is_post_bachelor=True,
+                    then=Concat(
+                        F('high_school_student_record__level__label'),
+                        Value(' - '),
+                        F('high_school_student_record__post_bachelor_level__label')
+                    )
+                ),
+                default=F('high_school_student_record__level__label')
+            ),
+            F('student_record__level__label')
+        ),
+    )
+
+
+
+    # Add annotations if necessary
+    slot_has_restrictions = any([
+        slot.establishments_restrictions,
+        slot.levels_restrictions,
+        slot.bachelors_restrictions
+    ])
+
+    if slot_has_restrictions:
+        establishment_restrictions = slot.establishments_restrictions
+        levels_restrictions = slot.levels_restrictions
+        bachelors_restrictions = slot.bachelors_restrictions
+
+        allowed_highschool_levels = slot.allowed_highschool_levels
+        allowed_post_bachelor_levels = slot.allowed_post_bachelor_levels
+
+        visitor_reason = gettext('Slot restrictions in effect')
+
+        students = students.annotate(
+            can_register=Case(
+                When(
+                    visitor_record__isnull=False,
+                    then=Value(False)
+                ),
+                default=Value(True),
+            ),
+            reasons=Case(
+                When(
+                    visitor_record__isnull=False,
+                    then=Value(visitor_reason)
+                ),
+                default=Value("")
+            ),
+        )
+    else:
+        students = students.annotate(
+            can_register=Value(True),
+            reasons=Value(''),
+        )
+
+    students = students.values(
+        "id", "last_name", "first_name", "school", "city", "class_name", "profile",
+        "level", "can_register", "reasons"
+    )
+
+    """
     for student in students:
         record = None
 
@@ -1685,6 +1814,8 @@ def ajax_get_available_students(request, slot_id):
                 student_data['profile'] = pgettext("person type", "Visitor")
 
             response['data'].append(student_data.copy())
+    """
+    response['data'] = [s for s in students]
 
     return JsonResponse(response, safe=False)
 

@@ -820,13 +820,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                         if document_form.is_valid():
                             document = document_form.save()
+
                             if document_form.has_changed() and 'document' in document_form.changed_data:
                                 document.deposit_date = timezone.now()
                                 document.validity_date = None
                                 document.save()
                                 if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
                                     record.set_status('TO_REVALIDATE')
-                                else:
+                                elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
                                     record.set_status('TO_VALIDATE')
                         else:
                             document_form_valid = False
@@ -835,12 +836,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                     if not document_form_valid:
                         messages.error(request, _("You have errors in Attestations section"))
+
+                    """
                     else:
                         if record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
                             record.set_status('TO_VALIDATE')
                         elif record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
                             record.set_status('TO_REVALIDATE')
-
+                    """
                 elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
                     record.set_status('TO_VALIDATE')
 
