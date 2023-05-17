@@ -65,15 +65,14 @@ def validate_slot_date(date: datetime.date):
     """
     # Period
     try:
-        period = Period.from_date(date)
+        Period.from_date(date)
+    except Period.DoesNotExist:
+        raise ValidationError(
+            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
+        )
     except Period.MultipleObjectsReturned:
         raise ValidationError(
             _("Multiple periods found for date '%s' : please check your periods settings") % date.strftime("%Y-%m-%d")
-        )
-
-    if not period:
-        raise ValidationError(
-            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
         )
 
     # Past
@@ -609,6 +608,8 @@ class ImmersionUser(AbstractUser):
         """
         Returns a dictionary with remaining registrations count for each period
         If the current user is not a student, return 0 for each period
+
+        It does NOT check the training quota per period
         """
         from immersionlyceens.apps.immersion.models import (
             HighSchoolStudentRecordQuota, StudentRecordQuota,
@@ -1451,10 +1452,10 @@ class Period(models.Model):
 
         try:
             return Period.objects.get(immersion_start_date__lte=date, immersion_end_date__gte=date)
-        except Period.DoesNotExist:
-            return None
+        except Period.DoesNotExist as e:
+            raise # Exception(_("Period not found for date %s") % date) from e
         except Period.MultipleObjectsReturned as e:
-            raise Exception(_("Configuration error : some periods overlap")) from e
+            raise # Exception(_("Configuration error : some periods overlap")) from e
 
     def __str__(self):
         return _("Period '%s' : %s - %s") % (
@@ -2724,6 +2725,9 @@ class Immersion(models.Model):
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
+
+    def __str__(self):
+        return f"{self.student} - {self.slot}"
 
     class Meta:
         verbose_name = _('Immersion')

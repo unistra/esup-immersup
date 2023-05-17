@@ -3177,7 +3177,7 @@ class APITestCase(TestCase):
         data['slot_id'] = self.slot2.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("This student has no more remaining slots to register to for this period", content['msg'])
+        self.assertEqual("This student is over quota for this period", content['msg'])
 
         # reset immersions
         client.login(username=self.highschool_user.username, password='pass')

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
+
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
@@ -31,6 +32,9 @@
 {% authorized_groups request.user %}
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
+
+{% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as training_quotas %}
+
 <div class="container" style="padding-top:20px; width:70%;">
   <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
@@ -259,9 +263,10 @@
           {% endfor %}
         </div>
       {% endif %}
+
       {% if future_periods or quota_forms|length and not request.user.is_high_school_student or record.quota.count %}
           <div class="card-header text-white bg-secondary">
-            {% trans "Immersions periods" %}
+            {% trans "Immersions periods and quotas" %}
           </div>
           <div class="card-body">
             {% if quota_forms|length and not request.user.is_high_school_student %}
@@ -271,22 +276,32 @@
                 {{ quota_form.record }}
                 {{ quota_form.period }}
                 <div class="form-group row align-items-center">
-                  <label class="col-sm-9 col-form-label">
-                    {{ quota_form.period_label }} - {% trans 'allowed immersions' %} :
-                  </label>
+                  <div class="col-sm-5">
+                    <label class="col-form-label">
+                      {{ quota_form.period_label }}
+                    </label>
+                  </div>
+                  <div class="col-sm-2 col-form-label">
+                    {% trans 'allowed immersions' %} :
+                  </div>
                   <div class="col-sm-1 col-form-label">
                     {{ quota_form.allowed_immersions }}
                   </div>
                 </div>
               {% endfor %}
             {% else %}
-              {% for quota in record.quota.all %}
+              {% for quota in record.quota.all|dictsort:"period.immersion_start_date" %}
                 <div class="form-group row align-items-center">
-                  <label class="col-sm-9 col-form-label">
-                    {{ quota.period }} - {% trans 'immersions quota' %} :
-                  </label>
+                  <div class="col-sm-5">
+                    <label class="col-form-label">
+                      {{ quota.period }}
+                    </label>
+                  </div>
+                  <div class="col-sm-2 col-form-label">
+                    {% trans 'allowed immersions' %} :
+                  </div>
                   <div class="col-sm-1 col-form-label">
-                    {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+                    {{ immersions_count|keyvalue:quota.period.pk|default:"0" }} / {{ quota.allowed_immersions }}
                   </div>
                 </div>
               {% endfor %}
@@ -296,14 +311,28 @@
               Display future periods as readonly (no form to update the student custom quota)
             {% endcomment %}
 
-            {% for period in future_periods %}
+            {% for period in future_periods|dictsort:"immersion_start_date" %}
               <div class="form-group row align-items-center">
-                <label class="col-sm-9 col-form-label">
-                  {{ period }} - {% trans 'allowed immersions' %} :
-                </label>
+                <div class="col-sm-5">
+                  <label class="col-form-label">
+                    {{ period }}
+                  </label>
+                </div>
+                <div class="col-sm-2 col-form-label">
+                  {% trans 'allowed immersions' %} :
+                </div>
                 <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
               </div>
             {% endfor %}
+
+            {% if training_quotas.activate %}
+              <div class="form-group row align-items-center">
+                <div class="col-sm-7">
+                  <label class="col-form-label">{% trans 'Quota by training, for each period' %} :</label>
+                </div>
+                <div class="col-sm-1 col-form-label">{{ training_quotas.default_quota }}</div>
+              </div>
+            {% endif %}
           </div>
       {% endif %}
       <div class="card-header text-white bg-secondary">

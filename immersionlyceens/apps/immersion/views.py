@@ -1374,7 +1374,7 @@ class VisitorRecordView(FormView):
         # Stats for user deletion
         today = timezone.localdate()
         now = timezone.now()
-        periods = Period.objects.all()
+        all_periods = Period.objects.all()
 
         past_immersions = visitor.immersions.filter(
             Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
@@ -1385,7 +1385,7 @@ class VisitorRecordView(FormView):
 
         # Count immersion registrations for each period
         immersions_count = {}
-        for period in periods:
+        for period in all_periods:
             immersions_count[period.pk] = visitor.immersions.filter(
                 slot__date__gte=period.immersion_start_date,
                 slot__date__lte=period.immersion_end_date,
@@ -1446,7 +1446,7 @@ class VisitorRecordView(FormView):
             "quota_forms": quota_forms,
             "document_forms": document_forms,
             "back_url": self.request.session.get("back"),
-            "can_change": has_change_permission,  # can change number of allowed positions
+            "can_change": has_change_permission,  # can change number of allowed immersions
             "immersions_count": immersions_count,
             'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
             'archives': archives

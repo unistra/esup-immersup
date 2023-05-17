@@ -570,6 +570,7 @@ def validate_slot_date(request):
     :param request: the request.
     :return: a dict with data about the date
     """
+    period = None
     response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
@@ -604,12 +605,11 @@ def validate_slot_date(request):
         # Period
         try:
             period = Period.from_date(formated_date)
-            if not period:
-                details.append(_("Outside valid period"))
+        except Period.DoesNotExist as e:
+            details.append(_("Outside valid period"))
         except Period.MultipleObjectsReturned:
             response['msg'] = gettext('Configuration error, please check your immersions periods dates')
             return JsonResponse(response, safe=False)
-
 
         response['data'] = {
             'date': _date,
@@ -1093,6 +1093,8 @@ def ajax_get_immersions(request, user_id=None):
             if slot.registration_limit_date > now and slot.available_seats() > 0:
                 try:
                     period = Period.from_date(date=slot.date)
+                except Period.DoesNotExist as e:
+                    raise
                 except Period.MultipleObjectsReturned:
                     raise
 
@@ -1310,6 +1312,9 @@ def ajax_slot_registration(request):
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
     visit_or_off_offer = False
+    training_quota_active = False
+    training_quota_count = 0
+    available_training_registrations = None
 
     request.session.pop("last_registration_slot", None)
 
@@ -1449,13 +1454,46 @@ def ajax_slot_registration(request):
         remaining_registrations = student.remaining_registrations_count()
         can_register = False
 
+        # For courses slots only : training quotas ?
+        if not visit_or_off_offer:
+            try:
+                training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
+                training_quota_active = training_quota['activate']
+                training_quota_count = training_quota['default_quota']
+            except Exception as e:
+                msg = _(
+                    "ACTIVATE_TRAINING_QUOTAS parameter not found or incorrect : please check the platform settings"
+                )
+                response = {'error': True, 'msg': msg}
+                return JsonResponse(response, safe=False)
+
+        # Get period, available period registrations (quota) and the optional training quota
         try:
             period = Period.from_date(slot.date)
             available_registrations = remaining_registrations.get(period.pk, 0)
-        except Period.MultipleObjectsReturned as e:
-            raise Exception(_("Multiple periods found for slot %s : please check periods settings") % slot)
 
-        if visit_or_off_offer or available_registrations > 0:
+            # If training quota is active, check registrations for this period/training
+
+            if not visit_or_off_offer and training_quota_active:
+                training_regs_count = student.immersions\
+                    .filter(
+                        slot__date__gte=period.immersion_start_date,
+                        slot__date__lte=period.immersion_end_date,
+                        slot__course__training=slot.course.training
+                    ).count()
+
+                available_training_registrations = training_quota_count - training_regs_count
+        except Period.DoesNotExist as e:
+            msg = _("No period found for slot %s : please check periods settings") % slot
+            response = {'error': True, 'msg': msg}
+            return JsonResponse(response, safe=False)
+        except Period.MultipleObjectsReturned as e:
+            msg = _("Multiple periods found for slot %s : please check periods settings") % slot
+            response = {'error': True, 'msg': msg}
+            return JsonResponse(response, safe=False)
+
+        if visit_or_off_offer or (available_registrations > 0 and available_training_registrations is not None and
+                available_training_registrations>0):
             can_register = True
         elif can_force_reg and not force:
             return JsonResponse({
@@ -1466,25 +1504,35 @@ def ajax_slot_registration(request):
         elif force:
             can_register = True
             if slot.is_course():
-                # Get slot period
-                period = Period.from_date(slot.date)
                 student.set_increment_registrations_(period=period)
-        elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and available_registrations <= 0:
-            response = {
-                'error': True,
-                'msg': _(
+        elif user.is_high_school_student() or user.is_student() or user.is_visitor():
+            msg = None
+
+            if available_registrations <= 0:
+                msg = _(
                     """You have no more remaining registration available for this period, """
                     """you should cancel an immersion or contact immersion service"""
-                ),
-            }
-            return JsonResponse(response, safe=False)
-        elif (user.is_structure_manager() or user.is_high_school_manager()) \
-                and available_registrations <= 0:
-            response = {
-                'error': True,
-                'msg': _("This student has no more remaining slots to register to for this period"),
-            }
-            return JsonResponse(response, safe=False)
+                )
+            elif available_training_registrations is not None and available_training_registrations <= 0:
+                msg = _(
+                    """You have no more remaining registration available for this training and this period, """
+                    """you should cancel an immersion or contact immersion service"""
+                )
+
+            if msg:
+                response = { 'error': True, 'msg': msg }
+                return JsonResponse(response, safe=False)
+        elif user.is_structure_manager() or user.is_high_school_manager():
+            msg = None
+
+            if available_registrations <= 0:
+                msg = _("This student is over quota for this period")
+            elif available_training_registrations is not None and available_training_registrations <= 0:
+                msg = _("This student is over training quota for this period")
+
+            if msg:
+                response = { 'error': True, 'msg': msg }
+                return JsonResponse(response, safe=False)
 
         if can_register:
             # Cancelled immersion exists : re-register

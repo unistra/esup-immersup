@@ -298,14 +298,16 @@ def offer_subdomain(request, subdomain_id):
                     slot.passed_cancellation_limit_date = \
                         slot.cancellation_limit_date < timezone.now() if slot.cancellation_limit_date else False
 
+                    # FIXME: still used somewhere ?
                     remaining_period_registrations = 0
 
                     # get slot period (for dates)
                     try:
                         period = Period.from_date(date=slot.date)
-                        if period:
-                            remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
-                    except Period.MultipleObjectsReturned as e:
+                        remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
+                    except Period.DoesNotExist:
+                        raise
+                    except Period.MultipleObjectsReturned:
                         raise
 
                     # Already registered / cancelled ?
@@ -431,7 +433,12 @@ def visits_offer(request):
             if not visit.already_registered or visit.cancelled:
                 can_register, reasons = student.can_register_slot(visit)
 
-                period = Period.from_date(date=visit.date)
+                try:
+                    period = Period.from_date(date=visit.date)
+                except Period.MultipleObjectsReturned:
+                    raise
+                except Period.DoesNotExist:
+                    raise
 
                 if visit.available_seats() > 0 and can_register:
                     if period.registration_start_date <= today <= period.immersion_end_date \
@@ -519,7 +526,12 @@ def offer_off_offer_events(request):
                 # TODO: refactor !!!!
                 can_register, reasons = student.can_register_slot(event)
 
-                period = Period.from_date(date=event.date)
+                try:
+                    period = Period.from_date(date=event.date)
+                except Period.MultipleObjectsReturned:
+                    raise
+                except Period.DoesNotExist:
+                    raise
 
                 if event.available_seats() > 0 and can_register:
                     if period.registration_start_date <= today <= period.immersion_end_date \
