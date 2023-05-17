@@ -24,6 +24,7 @@ from django.db.models import (
     OuterRef, Q, QuerySet, Subquery, Value, When,
 )
 from django.db.models.functions import Coalesce, Concat, Greatest
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -472,7 +473,7 @@ def slots(request):
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            ) if slot.date else None,
+            ) if slot.date and slot.start_time else None,
             'date': _date(slot.date, 'l d/m/Y'),
             'time': {
                 'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
@@ -1611,7 +1612,9 @@ def ajax_get_available_students(request, slot_id):
         .prefetch_related(
             "groups", "immersions", "high_school_student_record__highschool", "student_record__institution",
             "high_school_student_record__level", "student_record__level",
-            "high_school_student_record__post_bachelor_level"
+            "high_school_student_record__post_bachelor_level", "high_school_student_record__bachelor_type",
+            "high_school_student_record__technological_bachelor_mention",
+
         )\
         .filter(
             Q(high_school_student_record__isnull=False, high_school_student_record__validation=valid_high_school_record)
@@ -1689,11 +1692,10 @@ def ajax_get_available_students(request, slot_id):
 
     # Annotations
     students = students.annotate(
-        school=Coalesce(
-            F('high_school_student_record__highschool__label'),
-            F('student_record__institution__label'),
-            Value(""),
-        ),
+        record_highschool_label=F('high_school_student_record__highschool__label'),
+        record_highschool_id=F('high_school_student_record__highschool__id'),
+        institution=F('student_record__institution__label'),
+        institution_uai_code=F('student_record__uai_code'),
         city=F('high_school_student_record__highschool__city'),
         class_name=F('high_school_student_record__class_name'),
         profile=Case(
@@ -1704,6 +1706,10 @@ def ajax_get_available_students(request, slot_id):
             When(student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
             When(visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
             default=Value(gettext("Unknown"))
+        ),
+        level_id=Coalesce(
+            F('high_school_student_record__level__id'),
+            F('student_record__level__id')
         ),
         level=Coalesce(
             Case(
@@ -1719,9 +1725,21 @@ def ajax_get_available_students(request, slot_id):
             ),
             F('student_record__level__label')
         ),
+        post_bachelor_level_id=F('high_school_student_record__post_bachelor_level__id'),
+        post_bachelor_level=F('high_school_student_record__post_bachelor_level__label'),
+        bachelor_type_id=F('high_school_student_record__bachelor_type__id'),
+        bachelor_type=F('high_school_student_record__bachelor_type__label'),
+        technological_bachelor_mention_id=F('high_school_student_record__technological_bachelor_mention__id'),
+        technological_bachelor_mention=F('high_school_student_record__technological_bachelor_mention__label'),
+        technological_general_bachelor_teachings_ids=ArrayAgg(
+            F('high_school_student_record__general_bachelor_teachings__id'),
+            ordering='high_school_student_record__general_bachelor_teachings__id'
+        ),
+        technological_general_bachelor_teachings_labels=ArrayAgg(
+            F('high_school_student_record__general_bachelor_teachings__label'),
+            ordering='high_school_student_record__general_bachelor_teachings__id'
+        )
     )
-
-
 
     # Add annotations if necessary
     slot_has_restrictions = any([
@@ -1763,8 +1781,10 @@ def ajax_get_available_students(request, slot_id):
         )
 
     students = students.values(
-        "id", "last_name", "first_name", "school", "city", "class_name", "profile",
-        "level", "can_register", "reasons"
+        "id", "last_name", "first_name", "record_highschool_label", "record_highschool_id", "city",
+        "class_name", "profile", "level", "level_id", "post_bachelor_level", "post_bachelor_level_id",
+        "bachelor_type_id", "bachelor_type", "technological_bachelor_mention_id", "technological_bachelor_mention",
+        "technological_general_bachelor_teachings_ids", "technological_general_bachelor_teachings_labels"
     )
 
     """
