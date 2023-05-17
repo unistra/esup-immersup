@@ -12,56 +12,56 @@
   </span>
 </div>
 <div class="modal fade" id="modal_register_students_list" tabindex="-1" role="dialog" aria-labelledby="modal_register_students_list_title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modal_register_students_list_title">{% trans 'Students' %}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-            <div id="register_feedback"></div>
-            <div class="row">
-                <div class="col">
-                    <div class="table-responsive">
-                      <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
-                          <thead>
-                              <tr>
-                                  <th>{% trans 'Last name' %}</th>
-                                  <th>{% trans 'First name' %}</th>
-                                  <th>{% trans 'Profile' %}</th>
-                                  <th>{% trans 'Level' %}</th>
-                                  <th>{% trans 'Class name' %}</th>
-                                  <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
-                                  <th>{% trans 'City' %}</th>
-                                  <th>{% trans 'Restrictions' %}</th>
-                                  <th></th>
-                              </tr>
-                          </thead>
-                          <tfoot>
-                              <tr>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                              </tr>
-                          </tfoot>
-                      </table>
-                    </div>
-                </div>
-            </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
-            </div>
+  <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_register_students_list_title">{% trans 'Students' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      <div id="register_feedback"></div>
+      <div class="row">
+        <div class="col">
+          <div class="table-responsive">
+            <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
+              <thead>
+                <tr>
+                  <th>{% trans 'Last name' %}</th>
+                  <th>{% trans 'First name' %}</th>
+                  <th>{% trans 'Profile' %}</th>
+                  <th>{% trans 'Level' %}</th>
+                  <th>{% trans 'Class name' %}</th>
+                  <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
+                  <th>{% trans 'City' %}</th>
+                  <th>{% trans 'Restrictions' %}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
     </div>
+  </div>
 </div>
 <script>
 function reload_register_students() {
@@ -162,9 +162,9 @@ let confirmDialog = $("#confirm-dialog-form").dialog({
         let force = $("#confirm-dialog-form").data('param').force
 
         register_student(
-            student_id=student_id,
-            slot_id=slot_id,
-            force=force
+          student_id=student_id,
+          slot_id=slot_id,
+          force=force
         );
 
         confirmDialog.dialog("close");
@@ -194,45 +194,45 @@ function register_student(student_id, slot_id, force=false) {
       },
       success: function (json) {
         if(json['error']) {
-            if (json['msg'] === 'force_update') {
-              if(json['reason'] === "registrations") {
-                  $('#id_registrations').show()
-                  $('#id_restrictions').hide()
-                  $('#id_passed_registration_date').hide()
-              }
-              else if(json['reason'] === "restrictions") {
-                  $('#id_registrations').hide()
-                  $('#id_passed_registration_date').hide()
-                  $('#id_restrictions').show()
-              }
-              else if(json['reason'] === "passed_registration_date") {
-                  $('#id_registrations').hide()
-                  $('#id_restrictions').hide()
-                  $('#id_passed_registration_date').show()
-              }
-
-              let data = {
-                  'student_id': student_id,
-                  'slot_id': slot_id,
-                  'reason': json['reason'],
-                  'force': true
-              }
-              confirmDialog.data('param', data).dialog('open');
-            } else {
-              $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-              setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-
-              dtr.ajax.reload();
-              dt.ajax.reload();
-              reload_register_students();
+          if (json['msg'] === 'force_update') {
+            if(json['reason'] === "registrations") {
+                $('#id_registrations').show()
+                $('#id_restrictions').hide()
+                $('#id_passed_registration_date').hide()
+            }
+            else if(json['reason'] === "restrictions") {
+                $('#id_registrations').hide()
+                $('#id_passed_registration_date').hide()
+                $('#id_restrictions').show()
+            }
+            else if(json['reason'] === "passed_registration_date") {
+                $('#id_registrations').hide()
+                $('#id_restrictions').hide()
+                $('#id_passed_registration_date').show()
             }
 
-        } else {
-            $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
+            let data = {
+                'student_id': student_id,
+                'slot_id': slot_id,
+                'reason': json['reason'],
+                'force': true
+            }
+            confirmDialog.data('param', data).dialog('open');
+          } else {
+            $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
             setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
             dtr.ajax.reload();
             dt.ajax.reload();
             reload_register_students();
+          }
+        }
+        else {
+          $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
+          setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          dtr.ajax.reload();
+          dt.ajax.reload();
+          reload_register_students();
         }
       },
       error: function(json) {
