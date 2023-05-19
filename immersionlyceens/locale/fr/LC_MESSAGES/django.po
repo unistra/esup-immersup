@@ -3042,6 +3042,7 @@ msgid "Visitor record not found or not valid"
 msgstr "Fiche visiteur non trouvée ou non validée"
 
 #: immersionlyceens/apps/core/models.py:784
+#: immersionlyceens/templates/modals/modal_register_students_list.html:203
 msgid "Slot restrictions in effect"
 msgstr "Restrictions sur le créneau en vigueur"
 
@@ -8000,10 +8001,6 @@ msgstr "Restrictions sur les spécialités du baccalauréat général"
 #: immersionlyceens/templates/modals/modal_register_students_list.html:184
 msgid "Establishment restrictions in effect"
 msgstr "Restrictions sur les établissements en vigueur"
-
-#: immersionlyceens/templates/modals/modal_register_students_list.html:203
-msgid "Slot restrictions in effect"
-msgstr "Restrictions sur le créneau en vigueur"
 
 #: immersionlyceens/templates/modals/modal_register_students_list.html:220
 msgid "Register person"
