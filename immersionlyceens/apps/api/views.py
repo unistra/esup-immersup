@@ -1549,10 +1549,8 @@ def ajax_slot_registration(request):
             msg = None
 
             if available_registrations <= 0:
-                print("quota")
                 msg = _("This student is over quota for this period")
             elif available_training_registrations is not None and available_training_registrations <= 0:
-                print("training_quota")
                 msg = _("This student is over training quota for this period")
 
             if msg:
