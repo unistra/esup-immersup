@@ -200,7 +200,7 @@ dtl = $('#register_students_list').DataTable({
          else if(row.profile_name === "visitor") {
            if(slot.establishments_restrictions || slot.levels_restrictions || slot.bachelors_restrictions) {
              can_register = false
-             reasons.push("{% trans 'Slot restrictions in effet' %}")
+             reasons.push("{% trans 'Slot restrictions in effect' %}")
            }
          }
 
