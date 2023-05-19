@@ -228,7 +228,7 @@ class HighSchoolStudentRecord(models.Model):
 
 
     def is_valid(self):
-        return self.validation == 2
+        return self.validation == self.STATUSES["VALIDATED"]
 
     def set_status(self, status: str):
         """
@@ -403,7 +403,7 @@ class VisitorRecord(models.Model):
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
 
     def is_valid(self):
-        return self.validation == 2
+        return self.validation == self.STATUSES["VALIDATED"]
 
     def set_status(self, status: str):
         """

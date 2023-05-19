@@ -1,8 +1,11 @@
 {% load immersionlyceens_tags i18n static %}
 <!-- Modal students list for registering -->
 <div id="confirm-dialog-form" title="{% trans "Confirm registration" %}">
-  <span id="id_registrations">
-    {% trans 'Selected student has no remaining registration available, would you like to register anyway ?' %}
+  <span id="id_quota">
+    {% trans 'Selected student is off quota for this period, would you like to register anyway ?' %}
+  </span>
+  <span id="id_training_quota">
+    {% trans 'Selected student is off training quota for this period, would you like to register anyway ?' %}
   </span>
   <span id="id_restrictions">
     {% trans "Selected student doesn't match the slot restrictions, would you like to register anyway ?" %}
@@ -12,58 +15,61 @@
   </span>
 </div>
 <div class="modal fade" id="modal_register_students_list" tabindex="-1" role="dialog" aria-labelledby="modal_register_students_list_title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modal_register_students_list_title">{% trans 'Students' %}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-            <div id="register_feedback"></div>
-            <div class="row">
-                <div class="col">
-                    <div class="table-responsive">
-                      <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
-                          <thead>
-                              <tr>
-                                  <th>{% trans 'Last name' %}</th>
-                                  <th>{% trans 'First name' %}</th>
-                                  <th>{% trans 'Profile' %}</th>
-                                  <th>{% trans 'Level' %}</th>
-                                  <th>{% trans 'Class name' %}</th>
-                                  <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
-                                  <th>{% trans 'City' %}</th>
-                                  <th>{% trans 'Restrictions' %}</th>
-                                  <th></th>
-                              </tr>
-                          </thead>
-                          <tfoot>
-                              <tr>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                              </tr>
-                          </tfoot>
-                      </table>
-                    </div>
-                </div>
-            </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
-            </div>
+  <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_register_students_list_title">{% trans 'Students' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      <div id="register_feedback"></div>
+      <div class="row">
+        <div class="col">
+          <div class="table-responsive">
+            <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
+              <thead>
+                <tr>
+                  <th>{% trans 'Last name' %}</th>
+                  <th>{% trans 'First name' %}</th>
+                  <th>{% trans 'Profile' %}</th>
+                  <th>{% trans 'Level' %}</th>
+                  <th>{% trans 'Class name' %}</th>
+                  <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
+                  <th>{% trans 'City' %}</th>
+                  <th>{% trans 'Restrictions' %}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
     </div>
+  </div>
 </div>
 <script>
+
+var slot;
+
 function reload_register_students() {
   // dtl.rows().remove().draw();
   dtl.ajax.url("/api/get_available_students/"+current_slot_id).load();
@@ -83,6 +89,7 @@ dtl = $('#register_students_list').DataTable({
   'ajax': {
     url: "",
     dataSrc: function (json) {
+      slot = json['slot'];
       if (json['data'] !== undefined) {
         return json['data'];
       }
@@ -97,26 +104,112 @@ dtl = $('#register_students_list').DataTable({
   },
   {% endif %}
   'columns': [
-    {"data": "lastname"},
-    {"data": "firstname"},
+    {"data": "last_name"},
+    {"data": "first_name"},
     {"data": "profile"},
     {"data": "level"},
-    {"data": "class"},
-    {"data": "school"},
-    {"data": "city"},
-    {"data": "can_register",
+    {"data": "class_name"},
+    {"data": "",
      render: function (data, type, row) {
-        if(data === true) {
-          return "<i class='fas fa fa-check fa-2x centered-icon' aria-hidden='true'></i>"
-        }
-        else {
-          let reasons = ""
-          if(is_set(row.reasons)) {
-            reasons = row.reasons.join('\r\n')
-          }
-          return '<span data-toggle="tooltip" title="' + reasons + '"><i class="fa fas fa-ban fa-2x centered-icon"></i></span>'
-        }
+       if(is_set(row.record_highschool_label)) {
+         return row.record_highschool_label
+       }
+       else if(is_set(row.institution)) {
+         return row.institution
+       }
+       else if(is_set(row.institution_uai_code)) {
+         return row.institution_uai_code
+       }
 
+       return ""
+     }
+    },
+    {"data": "city"},
+    {"data": "",
+     render: function (data, type, row) {
+       if(type !== 'display') {
+         return ""
+       }
+
+       if(is_set(slot)) {
+         let can_register = true // default
+         let reasons = Array()
+
+         // No restrictions
+         if(!slot.establishments_restrictions && !slot.levels_restrictions && !slot.bachelors_restrictions) {
+           return "<i class='fas fa fa-check fa-2x centered-icon' aria-hidden='true'></i>"
+         }
+
+         // Restrictions for each profile
+         if(row.profile_name === "highschool") {
+           // Highschool restrictions
+           if(slot.establishments_restrictions && slot.allowed_highschools.length && !slot.allowed_highschools.includes(row.record_highschool_id)) {
+             can_register = false
+             reasons.push("{% trans 'High schools restrictions in effect' %}")
+           }
+
+           // Levels restrictions
+           if(slot.levels_restrictions) {
+             if(!slot.allowed_highschool_levels.includes(row.level_id) && !slot.allowed_post_bachelor_levels.includes(row.post_bachelor_level_id)) {
+               can_register = false
+               reasons.push("{% trans 'High school or post bachelor levels restrictions in effect' %}")
+             }
+           }
+
+           // Bachelor restrictions
+           if(slot.bachelors_restrictions) {
+             if(!slot.allowed_bachelor_types.includes(row.bachelor_type_id)) {
+               can_register = false
+               reasons.push("{% trans 'Bachelor type restriction' %}")
+             }
+
+             if(slot.allowed_bachelor_mentions.length && !slot.allowed_bachelor_mentions.includes(row.technological_bachelor_mention_id)) {
+               can_register = false
+               reasons.push("{% trans 'Technological bachelor mentions restrictions' %}")
+             }
+
+             if(slot.allowed_bachelor_teachings.length) {
+               let intersection = row.general_bachelor_teachings_ids.filter(x => slot.allowed_bachelor_teachings.includes(x))
+               if(!intersection.length) {
+                 can_register = false
+                 reasons.push("{% trans 'General bachelor teachings restrictions' %}")
+               }
+             }
+           }
+         }
+         else if(row.profile_name === "student") {
+           // Establishment restrictions
+           if(slot.establishments_restrictions && slot.allowed_establishments.length && !slot.allowed_establishments.includes(row.institution_uai_code)) {
+             can_register = false
+             reasons.push("{% trans 'Establishment restrictions in effect' %}")
+           }
+
+           // Levels restrictions
+           if(slot.levels_restrictions) {
+             if(!slot.allowed_student_levels.includes(row.level_id)) {
+               can_register = false
+               reasons.push("{% trans 'Student levels restrictions in effect' %}")
+             }
+           }
+
+           if(slot.bachelors_restrictions) {
+             can_register = false
+             reasons.push("{% trans 'Bachelors restrictions in effect' %}")
+           }
+         }
+         else if(row.profile_name === "visitor") {
+           if(slot.establishments_restrictions || slot.levels_restrictions || slot.bachelors_restrictions) {
+             can_register = false
+             reasons.push("{% trans 'Slot restrictions in effet' %}")
+           }
+         }
+
+         if(!can_register) {
+           return `<span data-toggle="tooltip" title="${reasons.join('\r\n')}"><i class="fa fas fa-ban fa-2x centered-icon"></i></span>`
+         }
+
+         return "<i class='fas fa fa-check fa-2x centered-icon' aria-hidden='true'></i>"
+       }
      }
     },
     {"data": "id",
@@ -134,7 +227,8 @@ dtl = $('#register_students_list').DataTable({
     {
       "defaultContent": "",
       "targets": "_all"
-    }
+    },
+    { orderable: false, targets: [7, 8] }
   ],
 });
 
@@ -162,9 +256,9 @@ let confirmDialog = $("#confirm-dialog-form").dialog({
         let force = $("#confirm-dialog-form").data('param').force
 
         register_student(
-            student_id=student_id,
-            slot_id=slot_id,
-            force=force
+          student_id=student_id,
+          slot_id=slot_id,
+          force=force
         );
 
         confirmDialog.dialog("close");
@@ -194,45 +288,54 @@ function register_student(student_id, slot_id, force=false) {
       },
       success: function (json) {
         if(json['error']) {
-            if (json['msg'] === 'force_update') {
-              if(json['reason'] === "registrations") {
-                  $('#id_registrations').show()
-                  $('#id_restrictions').hide()
-                  $('#id_passed_registration_date').hide()
-              }
-              else if(json['reason'] === "restrictions") {
-                  $('#id_registrations').hide()
-                  $('#id_passed_registration_date').hide()
-                  $('#id_restrictions').show()
-              }
-              else if(json['reason'] === "passed_registration_date") {
-                  $('#id_registrations').hide()
-                  $('#id_restrictions').hide()
-                  $('#id_passed_registration_date').show()
-              }
-
-              let data = {
-                  'student_id': student_id,
-                  'slot_id': slot_id,
-                  'reason': json['reason'],
-                  'force': true
-              }
-              confirmDialog.data('param', data).dialog('open');
-            } else {
-              $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-              setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-
-              dtr.ajax.reload();
-              dt.ajax.reload();
-              reload_register_students();
+          if (json['msg'] === 'force_update') {
+            if(json['reason'] === "quota") {
+                $('#id_quota').show()
+                $('#id_training_quota').hide()
+                $('#id_restrictions').hide()
+                $('#id_passed_registration_date').hide()
+            }
+            else if(json['reason'] === "training_quota") {
+                $('#id_quota').hide()
+                $('#id_training_quota').show()
+                $('#id_restrictions').hide()
+                $('#id_passed_registration_date').hide()
+            }
+            else if(json['reason'] === "restrictions") {
+                $('#id_quota').hide()
+                $('#id_training_quota').hide()
+                $('#id_passed_registration_date').hide()
+                $('#id_restrictions').show()
+            }
+            else if(json['reason'] === "passed_registration_date") {
+                $('#id_quota').hide()
+                $('#id_training_quota').hide()
+                $('#id_restrictions').hide()
+                $('#id_passed_registration_date').show()
             }
 
-        } else {
-            $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
+            let data = {
+                'student_id': student_id,
+                'slot_id': slot_id,
+                'reason': json['reason'],
+                'force': true
+            }
+            confirmDialog.data('param', data).dialog('open');
+          } else {
+            $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
             setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
             dtr.ajax.reload();
             dt.ajax.reload();
             reload_register_students();
+          }
+        }
+        else {
+          $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
+          setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          dtr.ajax.reload();
+          dt.ajax.reload();
+          reload_register_students();
         }
       },
       error: function(json) {

@@ -468,7 +468,19 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         if not isinstance(bachelor_type, BachelorType):
             raise forms.ValidationError(_("Please choose a bachelor type"))
 
-        if not level.is_post_bachelor:
+        if level.is_post_bachelor:
+            cleaned_data['bachelor_type'] = None
+            cleaned_data['general_bachelor_teachings'] = []
+            cleaned_data['technological_bachelor_mention'] = None
+            cleaned_data['professional_bachelor_mention'] = ""
+            if not origin_bachelor_type:
+                raise forms.ValidationError(_("Please choose your origin bachelor type"))
+        else:
+            # Clear post-bachelor level values
+            cleaned_data['post_bachelor_level'] = None
+            cleaned_data['origin_bachelor_type'] = None
+            cleaned_data['current_diploma'] = ""
+
             if bachelor_type.general:
                 cleaned_data['technological_bachelor_mention'] = None
                 cleaned_data['professional_bachelor_mention'] = ""
@@ -490,12 +502,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                 cleaned_data['technological_bachelor_mention'] = None
                 if not professional_bachelor_mention:
                     raise forms.ValidationError(_("Please enter a mention for your professional bachelor"))
-        else:
-            cleaned_data['general_bachelor_teachings'] = []
-            cleaned_data['technological_bachelor_mention'] = None
-            cleaned_data['professional_bachelor_mention'] = ""
-            if not origin_bachelor_type:
-                raise forms.ValidationError(_("Please choose your origin bachelor type"))
 
 
         return cleaned_data

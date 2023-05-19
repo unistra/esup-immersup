@@ -358,6 +358,11 @@ class SlotForm(forms.ModelForm):
             try:
                 university_year = UniversityYear.objects.get(active=True)
                 new_slot_template = Slot.objects.get(pk=instance.pk)
+            except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
+                # Nothing to do here but we should never get there
+                pass
+            else:
+                # Store current slot related objects
                 slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
                 slot_allowed_establishments = [e for e in new_slot_template.allowed_establishments.all()]
                 slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
@@ -370,27 +375,31 @@ class SlotForm(forms.ModelForm):
 
                 for new_date in new_dates:
                     parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
-                    period = Period.from_date(parsed_date)
 
-                    if parsed_date <= university_year.end_date and period:
-                        new_slot_template.pk = None
-                        new_slot_template.date = parsed_date
-                        new_slot_template.save()
-                        new_slot_template.speakers.add(*slot_speakers)
-                        new_slot_template.allowed_establishments.add(*slot_allowed_establishments)
-                        new_slot_template.allowed_highschools.add(*slot_allowed_highschools)
-                        new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
-                        new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
-                        new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
-                        new_slot_template.allowed_bachelor_types.add(*slot_allowed_bachelor_types)
-                        new_slot_template.allowed_bachelor_mentions.add(*slot_allowed_bachelor_mentions)
-                        new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
+                    try:
+                        period = Period.from_date(parsed_date)
+                    except Period.DoesNotExist as e:
+                        # No period for this date : not an error, just ignore
+                        pass
+                    except Period.MultipleObjectsReturned:
+                        # THIS is always an error
+                        raise
+                    else:
+                        if parsed_date <= university_year.end_date:
+                            new_slot_template.pk = None
+                            new_slot_template.date = parsed_date
+                            new_slot_template.save()
+                            new_slot_template.speakers.add(*slot_speakers)
+                            new_slot_template.allowed_establishments.add(*slot_allowed_establishments)
+                            new_slot_template.allowed_highschools.add(*slot_allowed_highschools)
+                            new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
+                            new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
+                            new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
+                            new_slot_template.allowed_bachelor_types.add(*slot_allowed_bachelor_types)
+                            new_slot_template.allowed_bachelor_mentions.add(*slot_allowed_bachelor_mentions)
+                            new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
 
-                        messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
-            except Period.MultipleObjectsReturned:
-                raise
-            except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
-                pass
+                            messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
 
         return instance
 
@@ -482,9 +491,13 @@ class VisitSlotForm(SlotForm):
             # Period check
             try:
                 period = Period.from_date(date=_date)
+            except Period.DoesNotExist:
+                raise forms.ValidationError(
+                    _("No period found for date '%s' : please check periods settings") % _date
+                )
             except Period.MultipleObjectsReturned:
                 raise forms.ValidationError(
-                    _("Multiple periods found for date '%s' : please check your periods settings") % _date
+                    _("Multiple periods found for date '%s' : please check periods settings") % _date
                 )
 
             if not period:
@@ -607,9 +620,13 @@ class OffOfferEventSlotForm(SlotForm):
             # Period check
             try:
                 period = Period.from_date(date=_date)
+            except Period.DoesNotExist:
+                raise forms.ValidationError(
+                    _("No period found for date '%s' : please check periods settings") % _date
+                )
             except Period.MultipleObjectsReturned:
                 raise forms.ValidationError(
-                    _("Multiple periods found for date '%s' : please check your periods settings") % _date
+                    _("Multiple periods found for date '%s' : please check periods settings") % _date
                 )
 
             if not period:

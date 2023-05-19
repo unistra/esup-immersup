@@ -249,5 +249,20 @@
             "description": "Délai (en jours) à partir duquel un lycéen ou un visiteur peut redéposer une pièce justificative valide."
         }
     }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 26,
+    "fields": {
+        "setting": "ACTIVATE_TRAINING_QUOTAS",
+        "parameters": {
+            "type": "object",
+            "value": {
+              "activate": true,
+              "default_quota": 2
+            },
+            "description": "Appliquer des quotas d'immersions en fonction des formations liées aux créneaux"
+        }
+    }
 }
 ]

@@ -346,7 +346,7 @@ class APITestCase(TestCase):
 
         cls.period = Period.objects.create(
             label="Period 1",
-            registration_start_date=cls.today + timedelta(days=1),
+            registration_start_date=cls.today, # + timedelta(days=1),
             immersion_start_date=cls.today + timedelta(days=2),
             immersion_end_date=cls.today + timedelta(days=20),
             allowed_immersions=4,
@@ -2377,32 +2377,54 @@ class APITestCase(TestCase):
         stu = content['data'][1]
 
         # High school student
-        self.assertEqual(self.highschool_user2.id, hs['id'])
-        self.assertEqual(self.highschool_user2.first_name, hs['firstname'])
-        self.assertEqual(self.highschool_user2.last_name, hs['lastname'])
-        self.assertEqual(pgettext('person type', 'High school student'), hs['profile'])
-        self.assertEqual(self.hs_record2.highschool.label, hs['school'])
-        self.assertEqual('Terminale', hs['level'])
-        self.assertEqual(self.hs_record2.highschool.city, hs['city'])
-        self.assertEqual(self.hs_record2.class_name, hs['class'])
-        self.assertEqual(True, hs['can_register'])
-        self.assertEqual([], hs['reasons'])
+        self.assertEqual(hs, {
+            'id': self.highschool_user2.id,
+            'last_name': self.highschool_user2.last_name,
+            'first_name': self.highschool_user2.first_name,
+            'record_highschool_label': self.hs_record2.highschool.label,
+            'record_highschool_id': self.hs_record2.highschool.id,
+            'institution': None,
+            'institution_uai_code': None,
+            'city': self.hs_record2.highschool.city,
+            'class_name': self.hs_record2.class_name,
+            'profile': pgettext('person type', 'High school student'),
+            'profile_name': 'highschool',
+            'level_id': self.hs_record2.level.id,
+            'level': self.hs_record2.level.label,
+            'post_bachelor_level_id': None,
+            'post_bachelor_level': None,
+            'bachelor_type_id': self.hs_record2.bachelor_type.id,
+            'bachelor_type': self.hs_record2.bachelor_type.label,
+            'technological_bachelor_mention_id': None,
+            'technological_bachelor_mention': None,
+            'general_bachelor_teachings_ids': [None],
+            'general_bachelor_teachings_labels': [None]
+        })
 
         # Student
-        self.assertEqual(self.student2.id, stu['id'])
-        self.assertEqual(self.student2.first_name, stu['firstname'])
-        self.assertEqual(self.student2.last_name, stu['lastname'])
-        self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
-        self.assertEqual(
-            HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
-            stu['school']
-        )
-
-        self.assertEqual('Licence 1', stu['level'])
-        self.assertEqual('', stu['city'])
-        self.assertEqual('', stu['class'])
-        self.assertEqual(True, stu['can_register'])
-        self.assertEqual([], stu['reasons'])
+        self.assertEqual(stu, {
+            'id': self.student2.id,
+            'last_name': self.student2.last_name,
+            'first_name': self.student2.first_name,
+            'record_highschool_label': None,
+            'record_highschool_id': None,
+            'institution': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
+            'institution_uai_code': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).uai_code,
+            'city': None,
+            'class_name': None,
+            'profile': pgettext('person type', 'Student'),
+            'profile_name': 'student',
+            'level_id': self.student_record2.level.id,
+            'level': self.student_record2.level.label,
+            'post_bachelor_level_id': None,
+            'post_bachelor_level': None,
+            'bachelor_type_id': None,
+            'bachelor_type': None,
+            'technological_bachelor_mention_id': None,
+            'technological_bachelor_mention': None,
+            'general_bachelor_teachings_ids': [None],
+            'general_bachelor_teachings_labels': [None]
+        })
 
         # Unknown slot
         url = f"/api/get_available_students/99999"
@@ -2411,70 +2433,6 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], 'Error : slot not found')
-
-
-    def test_API_ajax_get_available_students_with_restrictions(self):
-        request.user = self.ref_etab_user
-        self.client.login(username='ref_etab', password='pass')
-
-        self.hs_record.validation = 2
-        self.hs_record.save()
-        self.hs_record2.validation = 2
-        self.hs_record2.save()
-
-        # Add a highschool restriction on self.slot
-        self.slot.establishments_restrictions = True
-        self.slot.allowed_highschools.add(self.high_school)
-        self.slot.levels_restrictions = True
-        h_levels = HighSchoolLevel.objects.all()
-        s_levels = StudentLevel.objects.all()
-        p_levels = PostBachelorLevel.objects.all()
-        self.slot.allowed_highschool_levels.add(*h_levels)
-        self.slot.allowed_student_levels.add(*s_levels)
-        self.slot.allowed_post_bachelor_levels.add(*p_levels)
-        self.slot.save()
-
-        url = f"/api/get_available_students/{self.slot.id}"
-
-        response = self.client.get(url, request, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], '')
-        self.assertEqual(len(content['data']), 2)
-
-        # Careful with the results order (last_name, first_name)
-        hs = content['data'][0]
-        stu = content['data'][1]
-
-        # =========================
-        # As a ref_etab_user, both students will be there, but with a reason for the university student
-        # =========================
-
-        # High school student
-        self.assertEqual(self.highschool_user2.id, hs['id'])
-        self.assertEqual(True, hs['can_register'])
-        self.assertEqual([], hs['reasons'])
-
-        # Student
-        self.assertEqual(self.student2.id, stu['id'])
-        self.assertEqual(False, stu['can_register'])
-        self.assertEqual(['Establishments restrictions in effect'], stu['reasons'])
-
-        # =========================
-        # As a structure referent, the university student won't be there
-        # =========================
-        request.user = self.ref_str
-        self.client.login(username='ref_str', password='pass')
-
-        response = self.client.get(url, request, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], '')
-        self.assertEqual(len(content['data']), 1)
-        hs = content['data'][0]
-        self.assertEqual(self.highschool_user2.id, hs['id'])
-        self.assertEqual(True, hs['can_register'])
-        self.assertEqual([], hs['reasons'])
 
 
     def test_API_ajax_get_highschool_students(self):
@@ -3177,7 +3135,7 @@ class APITestCase(TestCase):
         data['slot_id'] = self.slot2.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("This student has no more remaining slots to register to for this period", content['msg'])
+        self.assertEqual("This student is over quota for this period", content['msg'])
 
         # reset immersions
         client.login(username=self.highschool_user.username, password='pass')
@@ -3275,6 +3233,51 @@ class APITestCase(TestCase):
         )
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
+
+        # Test training quotas (slot2 and slot3 have the same training in the same period)
+        # reset immersions and raise period quota
+        self.highschool_user.immersions.all().delete()
+        HighSchoolStudentRecordQuota.objects.filter(
+            period=self.period,
+            record=self.hs_record
+        ).update(allowed_immersions=3)
+
+        Immersion.objects.create(student=self.highschool_user, slot=self.slot2)
+
+        training_quotas = GeneralSettings.objects.get(setting="ACTIVATE_TRAINING_QUOTAS")
+        training_quotas.parameters["value"] = {
+            'activate': False,
+            'default_quota': 1
+        }
+        training_quotas.save()
+
+        # Quota off : success
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.slot3.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
+
+        # Activate quota, delete slot3 registration and retry
+        Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).delete()
+        training_quotas.parameters['value']['activate'] = True
+        training_quotas.save()
+
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.slot3.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            """You have no more remaining registration available for this training and this period, """
+            """you should cancel an immersion or contact immersion service""",
+            content['msg']
+        )
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
