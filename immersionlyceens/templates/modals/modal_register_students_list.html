@@ -67,6 +67,9 @@
   </div>
 </div>
 <script>
+
+var slot;
+
 function reload_register_students() {
   // dtl.rows().remove().draw();
   dtl.ajax.url("/api/get_available_students/"+current_slot_id).load();
@@ -86,6 +89,7 @@ dtl = $('#register_students_list').DataTable({
   'ajax': {
     url: "",
     dataSrc: function (json) {
+      slot = json['slot'];
       if (json['data'] !== undefined) {
         return json['data'];
       }
@@ -121,19 +125,91 @@ dtl = $('#register_students_list').DataTable({
      }
     },
     {"data": "city"},
-    {"data": "can_register",
+    {"data": "",
      render: function (data, type, row) {
-        if(data === true) {
-          return "<i class='fas fa fa-check fa-2x centered-icon' aria-hidden='true'></i>"
-        }
-        else {
-          let reasons = ""
-          if(is_set(row.reasons)) {
-            reasons = row.reasons // row.reasons.join('\r\n')
-          }
-          return '<span data-toggle="tooltip" title="' + reasons + '"><i class="fa fas fa-ban fa-2x centered-icon"></i></span>'
-        }
+       if(type !== 'display') {
+         return ""
+       }
 
+       if(is_set(slot)) {
+         let can_register = true // default
+         let reasons = Array()
+
+         // No restrictions
+         if(!slot.establishments_restrictions && !slot.levels_restrictions && !slot.bachelors_restrictions) {
+           return "<i class='fas fa fa-check fa-2x centered-icon' aria-hidden='true'></i>"
+         }
+
+         // Restrictions for each profile
+         if(row.profile_name === "highschool") {
+           // Highschool restrictions
+           if(slot.establishments_restrictions && slot.allowed_highschools.length && !slot.allowed_highschools.includes(row.record_highschool_id)) {
+             can_register = false
+             reasons.push("{% trans 'High schools restrictions in effect' %}")
+           }
+
+           // Levels restrictions
+           if(slot.levels_restrictions) {
+             if(!slot.allowed_highschool_levels.includes(row.level_id) && !slot.allowed_post_bachelor_levels.includes(row.post_bachelor_level_id)) {
+               can_register = false
+               reasons.push("{% trans 'High school or post bachelor levels restrictions in effect' %}")
+             }
+           }
+
+           // Bachelor restrictions
+           if(slot.bachelors_restrictions) {
+             if(!slot.allowed_bachelor_types.includes(row.bachelor_type_id)) {
+               can_register = false
+               reasons.push("{% trans 'Bachelor type restriction' %}")
+             }
+
+             if(slot.allowed_bachelor_mentions.length && !slot.allowed_bachelor_mentions.includes(row.technological_bachelor_mention_id)) {
+               can_register = false
+               reasons.push("{% trans 'Technological bachelor mentions restrictions' %}")
+             }
+
+             if(slot.allowed_bachelor_teachings.length) {
+               let intersection = row.general_bachelor_teachings_ids.filter(x => slot.allowed_bachelor_teachings.includes(x))
+               if(!intersection.length) {
+                 can_register = false
+                 reasons.push("{% trans 'General bachelor teachings restrictions' %}")
+               }
+             }
+           }
+         }
+         else if(row.profile_name === "student") {
+           // Establishment restrictions
+           if(slot.establishments_restrictions && slot.allowed_establishments.length && !slot.allowed_establishments.includes(row.institution_uai_code)) {
+             can_register = false
+             reasons.push("{% trans 'Establishment restrictions in effect' %}")
+           }
+
+           // Levels restrictions
+           if(slot.levels_restrictions) {
+             if(!slot.allowed_student_levels.includes(row.level_id)) {
+               can_register = false
+               reasons.push("{% trans 'Student levels restrictions in effect' %}")
+             }
+           }
+
+           if(slot.bachelors_restrictions) {
+             can_register = false
+             reasons.push("{% trans 'Bachelors restrictions in effect' %}")
+           }
+         }
+         else if(row.profile_name === "visitor") {
+           if(slot.establishments_restrictions || slot.levels_restrictions || slot.bachelors_restrictions) {
+             can_register = false
+             reasons.push("{% trans 'Slot restrictions in effet' %}")
+           }
+         }
+
+         if(!can_register) {
+           return `<span data-toggle="tooltip" title="${reasons.join('\r\n')}"><i class="fa fas fa-ban fa-2x centered-icon"></i></span>`
+         }
+
+         return "<i class='fas fa fa-check fa-2x centered-icon' aria-hidden='true'></i>"
+       }
      }
     },
     {"data": "id",
@@ -151,7 +227,8 @@ dtl = $('#register_students_list').DataTable({
     {
       "defaultContent": "",
       "targets": "_all"
-    }
+    },
+    { orderable: false, targets: [7, 8] }
   ],
 });
 
