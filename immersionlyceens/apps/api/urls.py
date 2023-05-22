@@ -45,19 +45,14 @@ urlpatterns = [
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
-
     path('remove_link', views.remove_link, name='remove_link'),
 
     # DRF
     path('campuses/', views.CampusList.as_view(), name='campus_list'),
-
     path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
     path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_detail'),
-
     path('structures/', views.StructureList.as_view(), name='structure_list'),
-
     path('buildings/', views.BuildingList.as_view(), name='building_list'),
-
     path('trainingdomains/', views.TrainingDomainList.as_view(), name='training_domain_list'),
     path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
 
@@ -118,4 +113,7 @@ urlpatterns = [
 
     # Annual purge
     path("commands/annual_purge/", views.AnnualPurgeAPI.as_view(), name="annual_purge"),
+
+    # Structures Manager notifications settings update
+    path("update_structures_notifications/", views.ajax_update_structures_notifications, name="update_structures_notifications")
 ]

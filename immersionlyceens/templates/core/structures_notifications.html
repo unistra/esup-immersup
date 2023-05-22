@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block title %}
+{% trans "Structures notifications settings" %}
+{% endblock %}
+{% block head-javascript %}
+·<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+          <h1>{% trans 'Structures notifications settings' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Structures notifications settings" %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<div class="container">
+  <div class="card mt-4">
+    <div class="card-header text-white bg-secondary">
+        {% trans 'Settings for structures' %}
+    </div>
+    <div class="card-body">
+      <div class="col-sm-10">
+        <p class="card-text">Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Flammekueche knèkes rossbolla schneck choucroute un schwanz geburtstàg, Gal!</p>
+      {% for str in structures %}
+        <div id="structuresChk" class="form-check form-group row">
+          <label class="form-check-label col-sm-6" for="CheckStr{{ str.structure.pk }}">{{ str.structure.label }}</label>
+          <input id="checkedStructures" class="form-check-input col-sm-2" type="checkbox" value="{{ str.structure.pk }}" id="CheckStr{{ str.structure.pk }}" {% if str.checked %}checked{% endif %}/>
+        </div>
+      {% endfor %}
+
+      </div>
+      <button type="button" id="saveBtn" class="btn btn-primary mb-1 pull-right">{% trans "Save" %}</button>
+    </div>
+  </div>
+</div>
+<script>
+  $(function () {
+      var str = new Array();
+      $("#saveBtn").click(function () {
+          $("#structuresChk input[type=checkbox]:checked").each(function () {
+              str.push(this.value);
+          });
+
+          $.ajax({
+            url: '{% url 'update_structures_notifications' %}',
+            type: 'POST',
+            headers: {"X-CSRFToken": getCookie("csrftoken")},
+            data: { 'ids': JSON.stringify(str) },
+            //contentType: 'application/json',
+            success(data) {
+                console.log("Selected values: " + str.join(","));
+              },
+              error : function(e) {
+                obj = JSON.stringify(e)
+                console.log('Error : '+obj)
+              }
+          })
+
+      });
+  });
+</script>
+{% endblock %}

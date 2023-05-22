@@ -2990,3 +2990,21 @@ class FaqEntry(models.Model):
         verbose_name = _('Faq entry')
         verbose_name_plural = _('Faq entries')
         ordering = ['order']
+
+
+class RefStructuresNotificationsSettings(models.Model):
+    user = models.OneToOneField(
+        ImmersionUser,
+        verbose_name=_('Structure Manager'),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="ref_structure_notifications_settings"
+    )
+
+    structures = models.ManyToManyField(
+        Structure, verbose_name=_("Structures"), related_name='source_structures', blank=True
+    )
+
+    def __str__(self):
+        return f"{self.user} ({', '.join(self.structures.values_list('label', flat=True))})"
