@@ -28,6 +28,7 @@
     </nav>
   </div>
 </section>
+<div id="feedback" class="container"></div>
 <div class="container">
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
@@ -35,11 +36,15 @@
     </div>
     <div class="card-body">
       <div class="col-sm-10">
-        <p class="card-text">Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Flammekueche knèkes rossbolla schneck choucroute un schwanz geburtstàg, Gal!</p>
+        <p class="card-text">{% trans "Check structures if you want to receive the list of registrations for all the slots of your structure(s) at the same time as the speakers." %}</p>
+        <div id="checkAllToggle" class="form-check form-group row">
+          <label for="toggleCheck" class="form-check-label col-sm-6" >{% trans "Check all" %}</label>
+          <input type="checkbox" id="toggleAllInput" class="form-check-input col-sm-2" onClick="check_uncheck_checkbox(this.checked)">
+        </div>
       {% for str in structures %}
         <div id="structuresChk" class="form-check form-group row">
           <label class="form-check-label col-sm-6" for="CheckStr{{ str.structure.pk }}">{{ str.structure.label }}</label>
-          <input id="checkedStructures" class="form-check-input col-sm-2" type="checkbox" value="{{ str.structure.pk }}" id="CheckStr{{ str.structure.pk }}" {% if str.checked %}checked{% endif %}/>
+          <input class="form-check-input col-sm-2 structures-checkboxes" type="checkbox" value="{{ str.structure.pk }}" id="CheckStr{{ str.structure.pk }}" {% if str.checked %}checked{% endif %}/>
         </div>
       {% endfor %}
 
@@ -51,6 +56,7 @@
 <script>
   $(function () {
       var str = new Array();
+
       $("#saveBtn").click(function () {
           $("#structuresChk input[type=checkbox]:checked").each(function () {
               str.push(this.value);
@@ -61,17 +67,51 @@
             type: 'POST',
             headers: {"X-CSRFToken": getCookie("csrftoken")},
             data: { 'ids': JSON.stringify(str) },
-            //contentType: 'application/json',
-            success(data) {
-                console.log("Selected values: " + str.join(","));
-              },
-              error : function(e) {
-                obj = JSON.stringify(e)
-                console.log('Error : '+obj)
+            success: function (response) {
+              if(is_set(response.msg)) {
+                feedback.trigger("showFeedback", [[response.msg, "success"]]);
               }
+            },
+            error: function (response) {
+              feedback.trigger("showFeedback", [[response.msg, "danger"]])
+            }
           })
 
       });
+
   });
+
+  $(document).ready(function() {
+    initFeedback();
+    feedback = $("#feedback");
+  });
+
+  $('#structuresChk input[type=checkbox]').change(function() {
+    update_check_all_btn();
+  });
+
+  function check_uncheck_checkbox(isChecked) {
+    if(isChecked) {
+      $('#structuresChk input[type=checkbox]').each(function() {
+        this.checked = true;
+      });
+    } else {
+      $('#structuresChk input[type=checkbox]').each(function() {
+        this.checked = false;
+      });
+    }
+  }
+
+  function update_check_all_btn() {
+    if ($('#structuresChk input[type=checkbox]').not(':checked').length === 0) {
+      $('#checkAllToggle input[type=checkbox]').prop('checked', true);
+    } else {
+      $('#checkAllToggle input[type=checkbox]').prop('checked', false);
+    }
+  }
+
+  // On load launch update of checkAll checkbox
+  update_check_all_btn();
+
 </script>
 {% endblock %}

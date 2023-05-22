@@ -4496,15 +4496,15 @@ def ajax_update_structures_notifications(request):
     ids = json.loads(request.POST.get('ids', ''))
     structures = Structure.objects.filter(id__in=ids).values_list('id', flat=True)
 
+    settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
     if structures:
-        settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
-        settings.structures.add(*ids)
+        settings.structures.set(ids, clear=True)
     else:
         settings.delete()
 
     if settings:
-        response["success"] = gettext("Settings update")
+        response["msg"] = gettext("Settings updated")
     else:
-        response["errors"] = gettext("Nothing to do")
+        response["msg"] = gettext("Nothing to do")
 
     return JsonResponse(response, safe=False)

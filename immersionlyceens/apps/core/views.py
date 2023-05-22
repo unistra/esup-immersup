@@ -2464,16 +2464,17 @@ def structures_notifications(request, structure_code=None):
     Update structures managers notifications choices
     """
 
+    data = []
+    settings = None
     try:
-        data = []
         settings = RefStructuresNotificationsSettings.objects.get(user=request.user)
-        structures = Structure.objects.filter(referents=request.user).order_by('label')
+    except RefStructuresNotificationsSettings.DoesNotExist:
+        pass
 
-        for structure in structures:
-            data.append({'structure':structure, 'checked':(structure in settings.structures.all())})
+    structures = Structure.objects.filter(referents=request.user).order_by('label')
 
-    except Exception as e:
-        settings = None
+    for structure in structures:
+        data.append({'structure':structure, 'checked':(structure in settings.structures.all()) if settings else False})
 
     context = {
         'structures': data
