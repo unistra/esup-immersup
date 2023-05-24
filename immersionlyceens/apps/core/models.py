@@ -788,6 +788,7 @@ class ImmersionUser(AbstractUser):
 
         return True, errors
 
+
     def linked_users(self):
         """
         :return: a list of users linked to self (including self)
@@ -806,6 +807,17 @@ class ImmersionUser(AbstractUser):
         """
         record = self.get_high_school_student_record()
         return record.allow_high_school_consultation if record else None
+
+
+    def has_obsolete_attestations(self):
+        today = timezone.localdate()
+        record = self.get_high_school_student_record() or self.get_visitor_record()
+        return record.attestation.filter(
+            mandatory=True,
+            archive=False,
+            requires_validity_date=True,
+            validity_date__lt=today
+        ).exists()
 
 
     class Meta:
