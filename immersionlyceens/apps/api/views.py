@@ -695,7 +695,11 @@ def ajax_get_student_records(request):
             record=OuterRef("pk"),
             requires_validity_date=True,
         ) \
-        .exclude(mandatory=False, document='')\
+        .exclude(
+            Q(validity_date__isnull=True, document='')
+            | Q(validity_date__isnull=False),
+            mandatory=False
+        ) \
         .order_by()\
         .annotate(count=Func(F('id'), function='Count'))\
         .values('count')
@@ -4378,7 +4382,11 @@ class VisitorRecordValidation(View):
                 record=OuterRef("pk"),
                 requires_validity_date=True,
             ) \
-            .exclude(mandatory=False, document='') \
+            .exclude(
+                Q(validity_date__isnull=True, document='')
+                | Q(validity_date__isnull=False),
+                mandatory=False
+            ) \
             .order_by() \
             .annotate(count=Func(F('id'), function='Count')) \
             .values('count')
