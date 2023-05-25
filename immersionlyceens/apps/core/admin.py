@@ -1025,18 +1025,52 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
-    list_display = ('label', 'active')
+    list_display = ('code', 'label', 'active', 'system')
     ordering = ('label',)
 
-    def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
+    def has_change_permission(self, request, obj=None):
+        if not obj:
+            return any([
+                request.user.is_superuser,
+                request.user.is_master_establishment_manager(),
+                request.user.is_operator(),
+            ])
+        else:
+            # In use
+            if Immersion.objects.filter(cancellation_type=obj).exists():
+                messages.warning(
+                    request, _("This cancellation type can't be updated because it is used by some registrations"),
+                )
+                return False
+            # Protected
+            elif obj.system and not request.user.is_operator() and not request.user.is_superuser:
+                return False
+            # Not allowed
+            elif not request.user.is_master_establishment_manager() and not request.user.is_operator():
+                return False
 
-        if obj and Immersion.objects.filter(cancellation_type=obj).exists():
-            messages.warning(
-                request, _("This cancellation type can't be deleted because it is used by some registrations"),
-            )
-            return False
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        if not obj:
+            return any([
+                request.user.is_superuser,
+                request.user.is_master_establishment_manager(),
+                request.user.is_operator(),
+            ])
+        else:
+            # Protected types
+            if obj.system and not request.user.is_operator() and not request.user.is_superuser:
+                return False
+
+            if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+                return False
+
+            if Immersion.objects.filter(cancellation_type=obj).exists():
+                messages.warning(
+                    request, _("This cancellation type can't be deleted because it is used by some registrations"),
+                )
+                return False
 
         return True
 

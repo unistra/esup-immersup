@@ -1145,6 +1145,7 @@ class BachelorType(models.Model):
         verbose_name_plural = _('Bachelor types')
         ordering = ['label', ]
 
+
 class Building(models.Model):
     """
     Building class
@@ -1185,14 +1186,14 @@ class CancelType(models.Model):
     Cancel type
     """
 
+    code = models.CharField(_("Code"), max_length=8, null=True, blank=True, unique=True)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-
+    system = models.BooleanField(_("System reserved"), default=False)
 
     def __str__(self):
         """str"""
         return self.label
-
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
@@ -2715,7 +2716,7 @@ class Immersion(models.Model):
         verbose_name=_("Cancellation type"),
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="immersions",
     )
 

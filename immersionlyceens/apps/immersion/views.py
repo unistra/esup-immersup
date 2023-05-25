@@ -1189,7 +1189,10 @@ def registrations(request):
     Students : display to come, past and cancelled immersions/events/visits
     Also display the number of active alerts
     """
-    cancellation_reasons = CancelType.objects.filter(active=True).order_by('label')
+    cancellation_reasons = CancelType.objects.filter(
+        active=True,
+        system=False
+    ).order_by('label')
     alerts = UserCourseAlert.objects.filter(email=request.user.email)
     not_sent_alerts_cnt = alerts.filter(email_sent=False).count()
     sent_alerts_cnt = alerts.filter(email_sent=True).count()

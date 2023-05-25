@@ -1417,6 +1417,11 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': _("Cannot register slot due to visitor record state")}
             return JsonResponse(response, safe=False)
 
+    # Out of date mandatory attestations
+    if student.has_obsolete_attestations():
+        response = {'error': True, 'msg': _("Cannot register slot due to out of date attestations")}
+        return JsonResponse(response, safe=False)
+
     # Check if slot date is not passed
     if slot.date < today or (slot.date == today and today_time > slot.start_time):
         response = {'error': True, 'msg': _("Register to past slot is not possible")}
