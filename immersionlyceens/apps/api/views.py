@@ -4493,7 +4493,9 @@ class AnnualPurgeAPI(View):
 def ajax_update_structures_notifications(request):
 
     settings = response = {}
-    ids = json.loads(request.POST.get('ids', ''))
+    ids = request.POST.get('ids')
+    ids = json.loads(ids) if ids else ''
+
     structures = Structure.objects.filter(id__in=ids).values_list('id', flat=True)
 
     settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)

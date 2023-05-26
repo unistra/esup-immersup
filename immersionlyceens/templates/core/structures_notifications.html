@@ -36,20 +36,24 @@
     </div>
     <div class="card-body">
       <div class="col-sm-10">
-        <p class="card-text">{% trans "Check structures if you want to receive the list of registrations for all the slots of your structure(s) at the same time as the speakers." %}</p>
-        <div id="checkAllToggle" class="form-check form-group row">
-          <label for="toggleCheck" class="form-check-label col-sm-6" >{% trans "Check all" %}</label>
-          <input type="checkbox" id="toggleAllInput" class="form-check-input col-sm-2" onClick="check_uncheck_checkbox(this.checked)">
+          <p class="card-text">{% trans "Check structures if you want to receive the list of registrations for all the slots of your structure(s) at the same time as the speakers." %}</p>
+      {% if structures %}
+          <div id="checkAllToggle" class="form-check form-group row">
+            <label for="toggleCheck" class="form-check-label col-sm-6" >{% trans "Check all" %}</label>
+            <input type="checkbox" id="toggleAllInput" class="form-check-input col-sm-2" onClick="check_uncheck_checkbox(this.checked)">
         </div>
-      {% for str in structures %}
+          {% for str in structures %}
         <div id="structuresChk" class="form-check form-group row">
           <label class="form-check-label col-sm-6" for="CheckStr{{ str.structure.pk }}">{{ str.structure.label }}</label>
           <input class="form-check-input col-sm-2 structures-checkboxes" type="checkbox" value="{{ str.structure.pk }}" id="CheckStr{{ str.structure.pk }}" {% if str.checked %}checked{% endif %}/>
         </div>
-      {% endfor %}
+          {% endfor %}
 
+        <button type="button" id="saveBtn" class="btn btn-primary mb-1 pull-right">{% trans "Save" %}</button>
+      {% else %}
+        <p>{% trans "No structures available for your user." %}</p>
+      {% endif %}
       </div>
-      <button type="button" id="saveBtn" class="btn btn-primary mb-1 pull-right">{% trans "Save" %}</button>
     </div>
   </div>
 </div>
