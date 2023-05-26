@@ -285,6 +285,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
             self.fields["document"].required = self.instance.mandatory
 
             # Lock document field if the record has been validated and (now() < (validity_date - delay))
+            # or if the document has no validity date
             if self.instance.validity_date is not None:
                 self.can_renew = self.instance.requires_validity_date and \
                         timezone.localdate() > (self.instance.validity_date - timedelta(days=attestation_resend_delay))
@@ -301,6 +302,9 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
                 if self.can_renew:
                     self.renew_document = _("Please renew this attestation")
+            elif self.instance.record.validation in (2, 4) and not self.instance.requires_validity_date:
+                self.fields["document"].disabled = True
+
 
             # Validity date is only required for managers and if the attestation is mandatory
             is_student_or_visitor = any([
