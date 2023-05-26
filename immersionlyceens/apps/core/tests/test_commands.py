@@ -171,7 +171,19 @@ class CommandsTestCase(TestCase):
             campus=cls.campus,
             building=cls.building,
             room='room 2',
-            date=cls.today,
+            date=cls.today + datetime.timedelta(days=2),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
+        cls.slot3 = Slot.objects.create(
+            course=cls.course,
+            course_type=cls.course_type,
+            campus=cls.campus,
+            building=cls.building,
+            room='room 2',
+            date=cls.today + datetime.timedelta(days=35),
             start_time=datetime.time(12, 0),
             end_time=datetime.time(14, 0),
             n_places=20,
@@ -179,6 +191,7 @@ class CommandsTestCase(TestCase):
         )
         cls.slot.speakers.add(cls.speaker1),
         cls.slot2.speakers.add(cls.speaker1),
+        cls.slot3.speakers.add(cls.speaker1),
 
         cls.hs_record = HighSchoolStudentRecord.objects.create(
             student=cls.highschool_user,
@@ -194,9 +207,21 @@ class CommandsTestCase(TestCase):
             validation=1,
         )
 
+        # Today
         cls.immersion = Immersion.objects.create(
             student=cls.highschool_user,
             slot=cls.slot,
+        )
+        # Immersion in 2 days
+        cls.immersion2 = Immersion.objects.create(
+            student=cls.highschool_user,
+            slot=cls.slot2,
+        )
+
+        # in 35 days (beyond the auto-cancellation delay)
+        cls.immersion3 = Immersion.objects.create(
+            student=cls.highschool_user,
+            slot=cls.slot3,
         )
 
         cls.slot_eval_type = EvaluationType.objects.get(code='EVA_CRENEAU')
@@ -232,7 +257,7 @@ class CommandsTestCase(TestCase):
         cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
 
         # This attestation expires in 5 days
-        cls.hs_record_document=HighSchoolStudentRecordDocument.objects.create(
+        cls.hs_record_document = HighSchoolStudentRecordDocument.objects.create(
             record=cls.hs_record,
             attestation=cls.attestation_1,
             mandatory=True,
@@ -242,7 +267,7 @@ class CommandsTestCase(TestCase):
         )
 
         # This one doesn't
-        cls.hs_record_document = HighSchoolStudentRecordDocument.objects.create(
+        cls.hs_record_document2 = HighSchoolStudentRecordDocument.objects.create(
             record=cls.hs_record,
             attestation=cls.attestation_2,
             mandatory=True,
@@ -273,3 +298,34 @@ class CommandsTestCase(TestCase):
                 self.assertTrue(attestation.renewal_email_sent)
             else:
                 self.assertFalse(attestation.renewal_email_sent)
+
+    def test_auto_immersion_cancellation(self):
+        """
+        Test immersion cancellation when attestations are out of date
+        """
+        # 3 active immersions, none cancelled
+        self.assertEqual(
+            Immersion.objects.filter(student=self.highschool_user, cancellation_type__isnull=True).count(),
+            3
+        )
+        self.assertFalse(
+            Immersion.objects.filter(student=self.highschool_user, cancellation_type__isnull=False).exists()
+        )
+
+        # manually expires student attestations and run the command
+        self.hs_record.attestation.all().update(validity_date=self.today - datetime.timedelta(days=3))
+
+        management.call_command("auto_immersion_cancellation", verbosity=0)
+
+        # Result : 2 cancelled immersions, 1 remains active (beyond the cancellation delay)
+        self.assertEqual(
+            Immersion.objects.filter(student=self.highschool_user, cancellation_type__code="ATT").count(),
+            2
+        )
+        self.assertEqual(
+            Immersion.objects.filter(student=self.highschool_user, cancellation_type__isnull=True).count(),
+            1
+        )
+
+        # 2 Cancellation email sent
+        self.assertEqual(len(mail.outbox), 2)

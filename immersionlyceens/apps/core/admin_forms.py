@@ -146,6 +146,19 @@ class CampusForm(forms.ModelForm):
 
 
 class CancelTypeForm(TypeFormMixin):
+    def clean(self):
+        cleaned_data = super().clean()
+
+        system = cleaned_data.get("system", None)
+        code = cleaned_data.get("code", None)
+
+        if system is None:
+            cleaned_data["system"] = False
+        elif system is True and not code:
+            raise forms.ValidationError(_("A code is needed when 'system' is True"))
+
+        return cleaned_data
+
     class Meta:
         model = CancelType
         fields = '__all__'

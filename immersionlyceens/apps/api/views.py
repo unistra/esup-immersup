@@ -756,7 +756,11 @@ def ajax_validate_reject_student(request, validate):
                     Q(validity_date__lt=today) | Q(validity_date__isnull=True),
                     archive=False,
                     requires_validity_date=True,
-                ).exclude(mandatory=False, document='')
+                ).exclude(
+                    Q(validity_date__isnull=True, document='')
+                    | Q(validity_date__isnull=False),
+                    mandatory = False
+                )
 
                 if validate and attestations.exists():
                     response['msg'] = _("Error: record has missing or invalid attestation dates")
@@ -770,12 +774,13 @@ def ajax_validate_reject_student(request, validate):
                 record.save()
 
                 # Todo : test send_message return value
-                if validate:
-                    record.student.send_message(request, 'CPT_MIN_VALIDE')
-                else:
-                    record.student.send_message(request, 'CPT_MIN_REJET')
+                template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
+                ret = record.student.send_message(request, template)
 
-                response['data'] = {'ok': True}
+                if ret:
+                    response['msg'] = _("Record updated but notification not sent : %s") % ret
+                else:
+                    response['data'] = {'ok': True}
 
             except HighSchoolStudentRecord.DoesNotExist:
                 response['msg'] = "Error: No student record"
@@ -1416,6 +1421,11 @@ def ajax_slot_registration(request):
         if not record or not record.is_valid():
             response = {'error': True, 'msg': _("Cannot register slot due to visitor record state")}
             return JsonResponse(response, safe=False)
+
+    # Out of date mandatory attestations
+    if student.has_obsolete_attestations():
+        response = {'error': True, 'msg': _("Cannot register slot due to out of date attestations")}
+        return JsonResponse(response, safe=False)
 
     # Check if slot date is not passed
     if slot.date < today or (slot.date == today and today_time > slot.start_time):

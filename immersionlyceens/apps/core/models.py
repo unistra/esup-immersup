@@ -788,6 +788,7 @@ class ImmersionUser(AbstractUser):
 
         return True, errors
 
+
     def linked_users(self):
         """
         :return: a list of users linked to self (including self)
@@ -806,6 +807,17 @@ class ImmersionUser(AbstractUser):
         """
         record = self.get_high_school_student_record()
         return record.allow_high_school_consultation if record else None
+
+
+    def has_obsolete_attestations(self):
+        today = timezone.localdate()
+        record = self.get_high_school_student_record() or self.get_visitor_record()
+        return record.attestation.filter(
+            mandatory=True,
+            archive=False,
+            requires_validity_date=True,
+            validity_date__lt=today
+        ).exists()
 
 
     class Meta:
@@ -1133,6 +1145,7 @@ class BachelorType(models.Model):
         verbose_name_plural = _('Bachelor types')
         ordering = ['label', ]
 
+
 class Building(models.Model):
     """
     Building class
@@ -1173,14 +1186,14 @@ class CancelType(models.Model):
     Cancel type
     """
 
+    code = models.CharField(_("Code"), max_length=8, null=True, blank=True, unique=True)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-
+    system = models.BooleanField(_("System reserved"), default=False)
 
     def __str__(self):
         """str"""
         return self.label
-
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
@@ -2703,7 +2716,7 @@ class Immersion(models.Model):
         verbose_name=_("Cancellation type"),
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="immersions",
     )
 
