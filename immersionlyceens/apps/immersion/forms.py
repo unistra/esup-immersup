@@ -450,17 +450,17 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
         # This field is not displayed for managers
         valid_groups = any([
-            request.user.is_high_school_student(),
-            request.user.is_establishment_manager(),
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator(),
+            self.request.user.is_high_school_student(),
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator(),
         ])
 
         if not valid_groups:
             del self.fields['allow_high_school_consultation']
 
         # Lock some fields if the record has already been validated
-        if request.user.is_high_school_student():
+        if self.request.user.is_high_school_student():
             if self.instance and self.instance.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
                 for field in ["highschool", "birth_date", "level", "class_name"]:
                     self.fields[field].disabled = True
