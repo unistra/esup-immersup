@@ -302,8 +302,16 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
                 if self.can_renew:
                     self.renew_document = _("Please renew this attestation")
-            elif self.instance.record.validation in (2, 4) and not self.instance.requires_validity_date:
-                self.fields["document"].disabled = True
+            else:
+                # When validity date is not required : lock file as soon as the record is valid
+                lock_file_conditions = [
+                    self.request.user.is_high_school_student() or self.request.user.is_visitor(),
+                    self.instance.record.validation in (2, 4),
+                    not self.instance.requires_validity_date
+                ]
+
+                if all(lock_file_conditions):
+                    self.fields["document"].disabled = True
 
 
             # Validity date is only required for managers and if the attestation is mandatory
