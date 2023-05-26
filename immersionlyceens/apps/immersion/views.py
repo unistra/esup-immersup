@@ -603,6 +603,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
     from_page = request.headers.get('Referer', "")
     user = request.user
 
+    # Quota for non-student user
+    quota_allowed_groups = any([
+        user.is_establishment_manager(),
+        user.is_master_establishment_manager(),
+        user.is_operator()
+    ])
+
     # 'back' control if not from the same page (eg. POST)
     if reverse('immersion:hs_record') not in from_page:
         request.session['back'] = request.headers.get('Referer')
@@ -729,8 +736,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            # Quota for non-student user
-            if not request.user.is_high_school_student():
+            # Only for allowed groups (establishment managers and operators)
+            if quota_allowed_groups:
                 quota_form_valid = True
 
                 for quota in HighSchoolStudentRecordQuota.objects.filter(record=record):
@@ -837,13 +844,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     if not document_form_valid:
                         messages.error(request, _("You have errors in Attestations section"))
 
-                    """
-                    else:
-                        if record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
-                            record.set_status('TO_VALIDATE')
-                        elif record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
-                            record.set_status('TO_REVALIDATE')
-                    """
                 elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
                     record.set_status('TO_VALIDATE')
 

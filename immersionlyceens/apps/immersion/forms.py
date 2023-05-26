@@ -456,9 +456,10 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or not is_hs_manager_or_master:
+        # This field is not displayed for managers
+        if is_hs_manager_or_master:
             del self.fields['allow_high_school_consultation']
-
+        else:
             # Lock some fields if the record has already been validated
             if self.instance and self.instance.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
                 for field in ["highschool", "birth_date", "level", "class_name"]:
