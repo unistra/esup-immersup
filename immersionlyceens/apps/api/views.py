@@ -1771,6 +1771,7 @@ def ajax_get_available_students(request, slot_id):
         post_bachelor_level=F('high_school_student_record__post_bachelor_level__label'),
         bachelor_type_id=F('high_school_student_record__bachelor_type__id'),
         bachelor_type=F('high_school_student_record__bachelor_type__label'),
+        bachelor_type_is_professional=F('high_school_student_record__bachelor_type__professional'),
         technological_bachelor_mention_id=F('high_school_student_record__technological_bachelor_mention__id'),
         technological_bachelor_mention=F('high_school_student_record__technological_bachelor_mention__label'),
         general_bachelor_teachings_ids=ArrayAgg(
@@ -1788,7 +1789,7 @@ def ajax_get_available_students(request, slot_id):
         "institution_uai_code", "city", "class_name", "profile", "profile_name", "level", "level_id",
         "post_bachelor_level", "post_bachelor_level_id", "bachelor_type_id", "bachelor_type",
         "technological_bachelor_mention_id", "technological_bachelor_mention", "general_bachelor_teachings_ids",
-        "general_bachelor_teachings_labels"
+        "general_bachelor_teachings_labels", "bachelor_type_is_professional"
     )
 
     response['data'] = [s for s in students]

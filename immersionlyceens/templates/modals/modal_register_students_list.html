@@ -163,16 +163,19 @@ dtl = $('#register_students_list').DataTable({
                reasons.push("{% trans 'Bachelor type restriction' %}")
              }
 
-             if(slot.allowed_bachelor_mentions.length && !slot.allowed_bachelor_mentions.includes(row.technological_bachelor_mention_id)) {
-               can_register = false
-               reasons.push("{% trans 'Technological bachelor mentions restrictions' %}")
-             }
-
-             if(slot.allowed_bachelor_teachings.length) {
-               let intersection = row.general_bachelor_teachings_ids.filter(x => slot.allowed_bachelor_teachings.includes(x))
-               if(!intersection.length) {
+             // pro bachelors have no other restriction
+             if(!row.bachelor_type_is_professional) {
+               if(slot.allowed_bachelor_mentions.length && !slot.allowed_bachelor_mentions.includes(row.technological_bachelor_mention_id)) {
                  can_register = false
-                 reasons.push("{% trans 'General bachelor teachings restrictions' %}")
+                 reasons.push("{% trans 'Technological bachelor mentions restrictions' %}")
+               }
+
+               if(slot.allowed_bachelor_teachings.length) {
+                 let intersection = row.general_bachelor_teachings_ids.filter(x => slot.allowed_bachelor_teachings.includes(x))
+                 if(!intersection.length) {
+                   can_register = false
+                   reasons.push("{% trans 'General bachelor teachings restrictions' %}")
+                 }
                }
              }
            }
