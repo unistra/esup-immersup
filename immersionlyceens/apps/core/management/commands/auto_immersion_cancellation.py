@@ -58,7 +58,7 @@ class Command(BaseCommand):
             student__in=users,
             slot__date__gte=today,
             slot__date__lte=max_unsubscribe_date,
-            cancellation_type=None
+            cancellation_type__isnull=True
         )
 
         for immersion in immersions:

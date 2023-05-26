@@ -264,5 +264,17 @@
             "description": "Appliquer des quotas d'immersions en fonction des formations liées aux créneaux"
         }
     }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 27,
+    "fields": {
+        "setting": "AUTO_SLOT_UNSUBSCRIBE_DELAY",
+        "parameters": {
+            "type": "integer",
+            "value": 15,
+            "description": "Si un justificatif expire un jour J, les inscriptions aux créneaux dans le délai J+<valeur> seront annulées"
+        }
+    }
 }
 ]
