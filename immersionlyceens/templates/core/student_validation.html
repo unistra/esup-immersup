@@ -861,34 +861,50 @@ function validate_student( student_record_id ) {
     data: {
         student_record_id: student_record_id,
     },
-    success: function(data) {
-        if (data !== undefined) {
+    success: function(obj) {
+      if (is_set(obj.data)) {
+        reload_to_revalidate();
+        reload_to_validate();
+        reload_validated();
+        reload_rejected();
 
-            reload_to_revalidate();
-            reload_to_validate();
-            reload_validated();
-            reload_rejected();
+        $('#validate_message').show();
 
-            $('#validate_message').show();
-            if (t1) { clearTimeout(t1); }
-            t1 = setTimeout(function(){
-                    $('#validate_message').fadeOut(1000, function(){
-                        $('#validate_message').hide();
-                    });
-                },
-                {%  settings_get 'MESSAGES_TIMEOUT' %}
-            );
-        } else {
-            $('#fail_message').show();
-            setTimeout(function(){
-                $('#fail_message').fadeOut(
-                    1000,
-                    function() {
-                        $('#fail_message').hide();
-                    }
-                )
-            }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        if (t1) {
+          clearTimeout(t1);
         }
+
+        t1 = setTimeout(function() {
+            $('#validate_message').fadeOut(1000, function(){
+              $('#validate_message').hide();
+            });
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        );
+      }
+      else {
+        if(is_set(obj.msg)) {
+          $('#fail_message').html(obj.msg)
+        }
+        else {
+          $('#fail_message').html(
+            "{% trans 'An error occurred. The validation or rejection failed.' %}"
+          )
+        }
+
+        $('#fail_message').show();
+
+        setTimeout(function() {
+            $('#fail_message').fadeOut(
+              1000,
+              function() {
+                $('#fail_message').hide();
+              }
+            )
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        );
+      }
     },
     error: function() {
         $('#fail_message').show();
@@ -910,55 +926,71 @@ function reject_student( student_record_id ) {
       data: {
           student_record_id: student_record_id,
       },
-      success: function(data) {
-          if (data !== undefined) {
+      success: function(obj) {
+        if (is_set(obj.data)) {
+          reload_to_revalidate();
+          reload_to_validate();
+          reload_validated();
+          reload_rejected();
 
-              reload_to_revalidate();
-              reload_to_validate();
-              reload_validated();
-              reload_rejected();
+          $('#reject_message').show();
 
-              $('#reject_message').show();
-              if (t2) { clearTimeout(t2); }
-              t2 = setTimeout(function(){
-                      $('#reject_message').fadeOut(1000, function(){
-                          $('#reject_message').hide();
-                      });
-                  },
-                  {%  settings_get 'MESSAGES_TIMEOUT' %}
-              );
-
-              let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
-              elem.fadeOut(
-                  500,
-                  function() {
-                      elem.hide();
-                      reload_validated();
-                  }
-              );
-
-          } else {
-              $('#fail_message').show();
-              setTimeout(function(){
-                  $('#fail_message').fadeOut(
-                      1000,
-                      function() {
-                          $('#fail_message').hide();
-                      }
-                  )
-              }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          if (t2) {
+            clearTimeout(t2);
           }
+
+          t2 = setTimeout(function() {
+              $('#reject_message').fadeOut(1000, function() {
+                $('#reject_message').hide();
+              });
+            },
+            {%  settings_get 'MESSAGES_TIMEOUT' %}
+          );
+
+          let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
+          elem.fadeOut(
+            500,
+            function() {
+              elem.hide();
+              reload_validated();
+            }
+          );
+        }
+        else {
+          if(is_set(obj.msg)) {
+            $('#fail_message').html(obj.msg)
+          }
+          else {
+            $('#fail_message').html(
+              "{% trans 'An error occurred. The validation or rejection failed.' %}"
+            )
+          }
+
+          $('#fail_message').show();
+          setTimeout(function() {
+              $('#fail_message').fadeOut(
+                1000,
+                function() {
+                  $('#fail_message').hide();
+                }
+              )
+            },
+            {%  settings_get 'MESSAGES_TIMEOUT' %}
+          );
+        }
       },
       error: function() {
-          $('#fail_message').show();
-          setTimeout(function(){
-              $('#fail_message').fadeOut(
-                  1000,
-                  function() {
-                      $('#fail_message').hide();
-                  }
-              )
-          }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        $('#fail_message').show();
+        setTimeout(function() {
+            $('#fail_message').fadeOut(
+              1000,
+              function() {
+                $('#fail_message').hide();
+              }
+            )
+          },
+          {%  settings_get 'MESSAGES_TIMEOUT' %}
+        );
       }
   });
 }

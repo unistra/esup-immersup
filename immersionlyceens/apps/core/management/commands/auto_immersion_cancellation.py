@@ -54,11 +54,11 @@ class Command(BaseCommand):
             ).distinct()
 
         # Cancel immersions
-        immersions = Immersion.objects.filter(
+        immersions = Immersion.objects.prefetch_related("slot").filter(
             student__in=users,
-            date__gte=today,
-            date__lte=max_unsubscribe_date,
-            cancellation_reason=None
+            slot__date__gte=today,
+            slot__date__lte=max_unsubscribe_date,
+            cancellation_type=None
         )
 
         for immersion in immersions:
