@@ -1712,17 +1712,17 @@ def ajax_get_available_students(request, slot_id):
                 }
 
             if slot.allowed_bachelor_mentions.exists():
-                bachelors_restrictions['high_school_student_record__bachelor_mention__in'] = \
+                bachelors_restrictions['high_school_student_record__technological_bachelor_mention__in'] = \
                     slot.allowed_bachelor_mentions.all()
 
             if slot.allowed_bachelor_teachings.exists():
-                bachelors_restrictions['high_school_student_record__bachelor_teachings__in'] = \
+                bachelors_restrictions['high_school_student_record__general_bachelor_teachings__in'] = \
                     slot.allowed_bachelor_teachings.all()
 
             if bachelor_type_filter and bachelors_restrictions:
                 students = students.filter(
                     reduce(lambda x, y: x | y, [
-                        Q(**{'%s' % f: value}) for f, value in bachelors_restrictions.items()])
+                        Q(**{'%s' % f: value}) for f, value in bachelors_restrictions.items()]),
                     **bachelor_type_filter
                 )
 
