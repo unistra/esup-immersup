@@ -427,6 +427,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         valid_groups = [
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
+            self.request.user.is_high_school_manager(),
             self.request.user.is_operator()
         ]
 
