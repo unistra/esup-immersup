@@ -424,15 +424,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        valid_groups = [
-            self.request.user.is_establishment_manager(),
-            self.request.user.is_master_establishment_manager(),
-            self.request.user.is_high_school_manager(),
-            self.request.user.is_operator()
-        ]
-
-        is_hs_manager_or_master: bool = any(valid_groups)
-
         self.fields["student"].widget = forms.HiddenInput()
 
         # HighSchool choices : depends on conventions general settings:
@@ -458,10 +449,18 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
         # This field is not displayed for managers
-        if is_hs_manager_or_master:
+        valid_groups = any([
+            request.user.is_high_school_student(),
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+        ])
+
+        if not valid_groups:
             del self.fields['allow_high_school_consultation']
-        else:
-            # Lock some fields if the record has already been validated
+
+        # Lock some fields if the record has already been validated
+        if request.user.is_high_school_student():
             if self.instance and self.instance.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
                 for field in ["highschool", "birth_date", "level", "class_name"]:
                     self.fields[field].disabled = True
