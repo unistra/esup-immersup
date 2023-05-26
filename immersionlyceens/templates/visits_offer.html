@@ -60,17 +60,17 @@
         </div>
         <div class="collapse" id="visit{{h.grouper.pk}}"  aria-labelledby="visit{{h.grouper.pk}}" data-parent="#accordion">
           <div class="card-body" >
-            {% regroup h.list by visit.purpose as slots_list %}
-            {% for slot in slots_list %}
-              {% with forloop.counter as slot_i %}
-              <div id="event_label">
-                <div class="card-header">
-                  <h6 class="mb-5 mb-sm-0 more-less-title">
-                    <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Event' %}"></i>
-                      <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#slot{{slot_i}}" aria-expanded="false" aria-controls="slot{{slot_i}}">{{ slot.grouper }}</button>
-                  </h6>
-                </div>
+          {% regroup h.list by visit.purpose as slots_list %}
+          {% for slot in slots_list %}
+            {% with forloop.counter as slot_i %}
+            <div id="event_label">
+              <div class="card-header">
+                <h6 class="mb-5 mb-sm-0 more-less-title">
+                  <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Event' %}"></i>
+                  <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#slot{{slot_i}}" aria-expanded="false" aria-controls="slot{{slot_i}}">{{ slot.grouper }}</button>
+                </h6>
               </div>
+            </div>
             {% for s in slot.list %}
             <div class="collapse" id="slot{{slot_i}}">
               <div class="card">
@@ -116,44 +116,45 @@
                             {% if s.allowed_establishments.all%}
                             <h6>{% trans "Allowed establishments" %} :</h6>
                             <ul>
-                            {% for e in s.allowed_establishments.all %}
+                              {% for e in s.allowed_establishments.all %}
                             <li>{{ e.label }} - {{ e.city }}</li>
-                            {% endfor %}
+                              {% endfor %}
                             </ul>
                             {% endif %}
-                           {% if s.allowed_highschools.all%}
+                            {% if s.allowed_highschools.all%}
                             <h6>{% trans "Allowed highschools" %} :</h6>
                             <ul>
-                            {% for h in s.allowed_highschools.all %}
+                              {% for h in s.allowed_highschools.all %}
                             <li>{{ h.label }} - {{ h.city }}</li>
-                            {% endfor %}
+                              {% endfor %}
                             </ul>
                             {% endif %}
-                            {% endif %}
-                          {% if s.levels_restrictions %}
-                            {% if s.allowed_highschool_levels.all %}
-                              <h6>{% trans "Allowed highschool levels" %} :</h6>
-                              <ul>
-                              {% for l in  s.get_allowed_highschool_levels %}
-                                <li>{{ l }}</li>
-                              {% endfor %}
+
+                            {% if s.levels_restrictions %}
+                              {% if s.allowed_highschool_levels.all %}
+                            <h6>{% trans "Allowed highschool levels" %} :</h6>
+                            <ul>
+                                {% for l in  s.get_allowed_highschool_levels %}
+                              <li>{{ l }}</li>
+                                {% endfor %}
+                            </ul>
+                              {% endif %}
+                              {% if s.allowed_student_levels.all %}
+                            <h6>{% trans "Allowed student levels" %} :</h6>
+                            <ul>
+                                {% for l in  s.get_allowed_student_levels %}
+                              <li>{{ l }}</li>
+                                {% endfor %}
                               </ul>
-                            {% endif %}
-                            {% if s.allowed_student_levels.all %}
-                              <h6>{% trans "Allowed student levels" %} :</h6>
-                              <ul>
-                              {% for l in  s.get_allowed_student_levels %}
-                                <li>{{ l }}</li>
-                              {% endfor %}
-                              </ul>
-                            {% endif %}
-                            {% if s.allowed_post_bachelor_levels.all %}
-                              <h6>{% trans "Allowed post bachelor levels" %} :</h6>
-                              <ul>
-                              {% for l in  s.get_allowed_post_bachelor_levels %}
-                                <li>{{ l }}</li>
-                              {% endfor %}
-                              </ul>
+                              {% endif %}
+                              {% if s.allowed_post_bachelor_levels.all %}
+                            <h6>{% trans "Allowed post bachelor levels" %} :</h6>
+                            <ul>
+                                {% for l in  s.get_allowed_post_bachelor_levels %}
+                              <li>{{ l }}</li>
+                                {% endfor %}
+                            </ul>
+                              {% endif %}
                             {% endif %}
                             {% if s.allowed_bachelor_types.all %}
                             <h6>{% trans "Allowed bachelor types" %} :</h6>
