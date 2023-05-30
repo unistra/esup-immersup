@@ -4496,7 +4496,7 @@ def ajax_update_structures_notifications(request):
     ids = request.POST.get('ids')
     ids = json.loads(ids) if ids else ''
 
-    structures = Structure.objects.filter(id__in=ids).values_list('id', flat=True)
+    structures = request.user.get_authorized_structures().filter(id__in=ids).values_list('id', flat=True)
 
     settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
     if structures:
