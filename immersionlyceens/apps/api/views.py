@@ -3225,7 +3225,7 @@ def ajax_send_email_contact_us(request):
     # Ref-etab mail sending
     try:
         body = _('Mail sent by %s from contact form') % f'{firstname} {lastname} ({email})' + '<br><br>' + body
-        send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
+        send_email(recipient, subject, body, None, f'{firstname} {lastname} ({email})')
     except Exception as e:
         response['error'] = True
         response['msg'] += gettext("%s : error") % recipient

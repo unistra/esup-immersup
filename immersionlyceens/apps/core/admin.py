@@ -2240,6 +2240,7 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
              'all': ('fonts/fontawesome/4.7.0/css/font-awesome.min.css',)
         }
 
+
 class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
 
     form = FaqEntryAdminForm
@@ -2274,6 +2275,7 @@ class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
+
 
 class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ScheduledTaskForm

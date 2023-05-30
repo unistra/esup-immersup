@@ -3024,4 +3024,3 @@ class ScheduledTask(models.Model):
         verbose_name = _('Scheduled task')
         verbose_name_plural = _('Scheduled tasks')
         ordering = ['command_name', ]
-
