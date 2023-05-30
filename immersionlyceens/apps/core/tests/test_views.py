@@ -12,7 +12,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
-
 from rest_framework import status
 
 from immersionlyceens.apps.immersion.forms import (
@@ -24,11 +23,11 @@ from immersionlyceens.apps.immersion.models import (
 
 from ..models import (
     BachelorMention, BachelorType, Building, Campus, Course, CourseType,
-    Establishment, GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
-    HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
-    OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel, Slot,
-    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Visit,
+    Establishment, GeneralBachelorTeaching, GeneralSettings,
+    HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday,
+    Immersion, ImmersionUser, OffOfferEvent, OffOfferEventType, Period,
+    PostBachelorLevel, Slot, Structure, StudentLevel, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Visit,
 )
 
 request_factory = RequestFactory()
@@ -321,11 +320,11 @@ class CoreViewsTestCase(TestCase):
         )
 
         cls.event_type = OffOfferEventType.objects.create(label="Event type label")
-        
+
 
     def setUp(self):
         self.client = Client()
-        
+
 
     def test_import_holidays(self):
         self.assertFalse(Holiday.objects.all().exists())
@@ -1706,3 +1705,18 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn(f"value=\"{slot.event.highschool_id}\" selected>{slot.event.highschool}<", content)
         self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
+
+
+    def test_structures_notifications(self):
+        # Check user is not REF_STR
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get(reverse('structures_notifications'), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "home.html")
+
+        # ref_str user
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get(reverse('structures_notifications'), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/structures_notifications.html")
+

@@ -5134,4 +5134,22 @@ class APITestCase(TestCase):
         self.assertTrue(establishment.signed_charter)
 
 
+    def test_ajax_update_structures_notifications(self):
+        self.client.login(username=self.ref_str.username, password="pass")
+        url = reverse("update_structures_notifications")
+        response = self.client.post(url, **self.header)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "Settings updated")
+
+        response = self.client.post(url, { 'ids': []}, **self.header)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content["msg"], "Settings updated")
+
+        # FIXME: \O/
+        # response = self.client.post(url, { 'ids': self.establishment.pk}, **self.header)
+        # content = json.loads(response.content.decode("utf-8"))
+        # self.assertEqual(content["msg"], "Settings updated")
+
+
+
 

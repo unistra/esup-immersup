@@ -37,8 +37,9 @@ from .forms import (
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, OffOfferEvent,
-    Slot, Structure, Training, UniversityYear, Visit,
+    HighSchool, Holiday, Immersion, ImmersionUser, InformationText,
+    OffOfferEvent, RefStructuresNotificationsSettings, Slot, Structure,
+    Training, UniversityYear, Visit,
 )
 
 logger = logging.getLogger(__name__)
@@ -2455,3 +2456,28 @@ def charter(request):
     }
 
     return render(request, 'core/charter.html', context)
+
+
+@groups_required('REF-STR')
+def structures_notifications(request, structure_code=None):
+    """
+    Update structures managers notifications choices
+    """
+
+    data = []
+    settings = None
+    try:
+        settings = RefStructuresNotificationsSettings.objects.get(user=request.user)
+    except RefStructuresNotificationsSettings.DoesNotExist:
+        pass
+
+    structures = Structure.objects.filter(referents=request.user).order_by('label')
+
+    for structure in structures:
+        data.append({'structure':structure, 'checked':(structure in settings.structures.all()) if settings else False})
+
+    context = {
+        'structures': data
+    }
+
+    return render(request, 'core/structures_notifications.html', context)

@@ -45,9 +45,10 @@ from immersionlyceens.apps.core.models import (
     Building, Campus, CancelType, Course, Establishment, GeneralSettings,
     HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday,
     Immersion, ImmersionUser, ImmersionUserGroup, MailTemplate,
-    MailTemplateVars, OffOfferEvent, Period, PublicDocument, Slot, Structure,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit,
+    MailTemplateVars, OffOfferEvent, Period, PublicDocument,
+    RefStructuresNotificationsSettings, Slot, Structure, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, UserCourseAlert,
+    Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -4649,4 +4650,26 @@ class AnnualPurgeAPI(View):
         return JsonResponse(response)
 
 
+@is_ajax_request
+@is_post_request
+@groups_required("REF-STR")
+def ajax_update_structures_notifications(request):
 
+    settings = response = {}
+    ids = request.POST.get('ids')
+    ids = json.loads(ids) if ids else ''
+
+    structures = request.user.get_authorized_structures().filter(id__in=ids).values_list('id', flat=True)
+
+    settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
+    if structures:
+        settings.structures.set(ids, clear=True)
+    else:
+        settings.delete()
+
+    if settings:
+        response["msg"] = gettext("Settings updated")
+    else:
+        response["msg"] = gettext("Nothing to do")
+
+    return JsonResponse(response, safe=False)

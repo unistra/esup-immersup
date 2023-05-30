@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
 )
@@ -16,8 +17,8 @@ from ..models import (
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, ImmersupFile, Period, PublicDocument, PublicType,
-    Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    RefStructuresNotificationsSettings, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -758,3 +759,23 @@ class AttestationDocumentTestCase(TestCase):
         # Order increase
         self.assertEqual(attestation2.order, 2)
 
+class RefStructuresNotificationsSettingsTestCase(TestCase):
+    def test_str_ref_structures_notifications_settings(self):
+
+        r = get_user_model().objects.create_user(
+            username='ref_str',
+            password='pass',
+            email='immersion4@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
+            date_joined=timezone.now(),
+            establishment=Establishment.objects.first(),
+        )
+
+        s = Structure.objects.create(label='my structure', code='666')
+
+        n = RefStructuresNotificationsSettings.objects.create(
+            user = r
+        )
+        n.structures.add(s)
+        self.assertEqual(str(n), "%s (%s)" % (str(r), str(s.label)))

@@ -90,5 +90,6 @@ urlpatterns = [
          name='add_high_school_event_slot'),
     path('off_offer_event_slot/add/<int:establishment_id>/<str:structure_id>/<int:event_id>',
          views.OffOfferEventSlot.as_view(), name='add_establishment_event_slot'),
-    path('charter', views.charter, name='charter')
+    path('charter', views.charter, name='charter'),
+    path('structures_notifications', views.structures_notifications, name='structures_notifications'),
 ]
