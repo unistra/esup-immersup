@@ -18,11 +18,12 @@ from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.utils import get_general_setting
 
 from ...models import Structure, Immersion, ImmersionUser, Slot, Establishment, HighSchool
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 

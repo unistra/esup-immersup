@@ -14,10 +14,11 @@ from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting
 
 from ...models import Immersion, MailTemplate, Slot, UniversityYear
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 

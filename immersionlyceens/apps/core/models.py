@@ -3017,10 +3017,25 @@ class ScheduledTask(models.Model):
     saturday = models.BooleanField(_("Saturday"), blank=True, null=False, default=False)
     sunday = models.BooleanField(_("Sunday"), blank=True, null=False, default=False)
 
-    def __str__(self) -> str:
-        return str(self.command_name)
+    def __str__(self):
+        return self.command_name
 
     class Meta:
         verbose_name = _('Scheduled task')
         verbose_name_plural = _('Scheduled tasks')
-        ordering = ['command_name', ]
+
+class ScheduledTaskLog(models.Model):
+    """
+    Logs for Scheduled tasks
+    """
+    task = models.ForeignKey(ScheduledTask, verbose_name=_("Task"), on_delete=models.CASCADE,
+        blank=False, null=False, related_name='logs')
+
+    execution_date = models.DateTimeField(_("Date"), auto_now_add=True)
+    success = models.BooleanField(_("Success"), blank=True, null=True, default=True)
+    message = models.TextField(_('Message'), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Scheduled task log')
+        verbose_name_plural = _('Scheduled task logs')
+        ordering = ['-execution_date', ]

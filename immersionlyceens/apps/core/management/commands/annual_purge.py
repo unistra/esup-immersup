@@ -10,6 +10,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Count
 
+from . import Schedulable
+
 from ...models import (
     Course, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
     Period, UniversityYear, UserCourseAlert, Vacation, Visit,
@@ -17,7 +19,7 @@ from ...models import (
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 

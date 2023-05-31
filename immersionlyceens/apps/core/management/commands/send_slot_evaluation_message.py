@@ -11,10 +11,11 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from ...models import EvaluationFormLink, Immersion, Slot
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 

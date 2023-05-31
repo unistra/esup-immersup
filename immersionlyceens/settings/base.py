@@ -286,7 +286,6 @@ THIRD_PARTY_APPS = [
     'shibboleth',
     'django_countries',
     'drf_spectacular',
-    'django_cron',
 ]
 
 LOCAL_APPS = [
@@ -477,7 +476,7 @@ FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core', 'user', 'django_cron']
+ADMIN_APPS_ORDER = ['auth', 'core', 'user']
 
 ADMIN_MODELS_ORDER = {
     'core': [
@@ -514,10 +513,6 @@ ADMIN_MODELS_ORDER = {
         'StructureConsultant',
         'HighSchoolManager',
         'LegalDepartmentStaff',
-    ],
-    'django_cron': [
-        'CronJobLog',
-        'CronJobLock',
     ]
 }
 
@@ -556,13 +551,6 @@ SUMMERNOTE_CONFIG = {
         ],
     },
 }
-
-#########
-# CRONS #
-#########
-CRON_CLASSES = [
-    "immersionlyceens.apps.core.crons.CronTest",
-]
 
 
 ####################

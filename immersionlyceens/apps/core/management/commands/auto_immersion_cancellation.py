@@ -10,17 +10,19 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.conf import settings
-from ...models import Slot, Immersion
+from . import Schedulable
 
 from immersionlyceens.apps.core.models import CancelType, GeneralSettings, Immersion, ImmersionUser
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordDocument, VisitorRecordDocument
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 
     def handle(self, *args, **options):
         today = timezone.localdate()

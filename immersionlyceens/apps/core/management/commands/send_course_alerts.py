@@ -11,10 +11,11 @@ from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.mails.utils import send_email
 
 from ...models import Course, MailTemplate, UserCourseAlert
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 

@@ -8,12 +8,12 @@ from django.utils.translation import gettext_lazy as _
 
 from immersionlyceens.apps.core.models import ImmersionUser
 from immersionlyceens.libs.api.accounts import AccountAPI
-
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     def handle(self, *args, **options):
         """Delete users not present in ldap of establishments"""
 

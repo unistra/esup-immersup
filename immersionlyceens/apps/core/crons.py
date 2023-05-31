@@ -21,30 +21,21 @@ class CronBase(CronJobBase):
 
     def __init__(self, job_code:str, command_name:str):
         super().__init__()
-        schedule_params = {}
 
-        self.code = job_code
-        self.command_name = command_name.strip()
+        for task in ScheduledTask.objects.filter(active=True):
+            schedule_params = {}
+            run_on_days = []
 
-        if not self.command_name:
-            return
+            command_name = task.command_name
+            if task.time:
+                schedule_params['run_at_times'] = [task.time.strftime("%H:%M")]
 
-        try:
-            task = ScheduledTask.objects.get(command_name=self.command_name, active=True)
-        except ScheduledTask.DoesNotExist:
-            return
+            for week_day in range(0, 7):
+                if getattr(task, self.week_days[week_day]):
+                    run_on_days.append(week_day)
 
-        if task.time:
-            schedule_params['run_at_times'] = [task.time.strftime("%H:%M")]
-
-        run_on_days = []
-
-        for week_day in range(0, 7):
-            if getattr(task, self.week_days[week_day]):
-                run_on_days.append(week_day)
-
-        if run_on_days:
-            schedule_params['run_on_days'] = run_on_days
+            if run_on_days:
+                schedule_params['run_on_days'] = run_on_days
 
         if schedule_params:
             self.schedule = Schedule(**schedule_params)

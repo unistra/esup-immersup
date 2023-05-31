@@ -5,7 +5,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.core.management import get_commands
+from django.core.management import get_commands, load_command_class
 from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils import timezone
@@ -47,8 +47,8 @@ from .models import (
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
-    ScheduledTask, Slot, Structure, StudentLevel, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -2315,32 +2315,28 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
             return super().get_readonly_fields(request, obj) + ('command_name', 'description')
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_superuser:
-            return False
-
-        return True
+        return request.user.is_superuser
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser or request.user.is_operator():
-            return True
-
-        return False
+        return request.user.is_superuser or request.user.is_operator()
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-
-        return False
+        return request.user.is_superuser
 
     def formfield_for_dbfield(self, db_field, **kwargs):
-        request = kwargs.pop("request", None)
+        # request = kwargs.pop("request", None)
 
         if db_field.name == 'command_name':
             choices_dict = MultiValueDict()
             for command, app in get_commands().items():
                 # Populate select with immersionlyceens app's tasks commands only !
-                if (app.split('.')[0] == 'immersionlyceens' ):
-                    choices_dict.appendlist(app, command)
+                try:
+                    CommandClass = load_command_class(app, command)
+                    if CommandClass.is_schedulable():
+                        choices_dict.appendlist(app, command)
+                except AttributeError:
+                    # 'schedulable' is missing : nothing to do
+                    pass
 
             choices = []
             for key in choices_dict.keys():
@@ -2350,10 +2346,28 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
             choices.insert(0, ('', '---------'))
             kwargs['widget'] = forms.widgets.Select(choices=choices)
-            return db_field.formfield(**kwargs)
+            # return db_field.formfield(**kwargs)
 
-        kwargs['request'] = request
+        # kwargs['request'] = request
         return super().formfield_for_dbfield(db_field, **kwargs)
+
+
+class ScheduledTaskLogAdmin(admin.ModelAdmin):
+    list_display = ('task', 'execution_date', 'success', 'message')
+    ordering = ('-execution_date', )
+    list_filter = ('task', 'success')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
 
 
 admin.site.unregister(TokenProxy)
@@ -2400,3 +2414,4 @@ admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
 admin.site.register(ScheduledTask, ScheduledTaskAdmin)
+admin.site.register(ScheduledTaskLog, ScheduledTaskLogAdmin)

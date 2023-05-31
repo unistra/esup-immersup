@@ -9,10 +9,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
 from ...models import HighSchool, ImmersionUser
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, VisitorRecord
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 

@@ -14,10 +14,11 @@ from ...models import Slot, Immersion
 
 from immersionlyceens.apps.core.models import GeneralSettings, ImmersionUser
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordDocument, VisitorRecordDocument
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 
