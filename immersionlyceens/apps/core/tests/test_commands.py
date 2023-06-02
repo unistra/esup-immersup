@@ -22,7 +22,8 @@ from immersionlyceens.apps.core.models import (
     Building, CourseType, Training, Vacation, HighSchool, Immersion,
     EvaluationFormLink, EvaluationType, CancelType, HighSchoolLevel,
     StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
-    HigherEducationInstitution, PendingUserGroup, GeneralSettings
+    HigherEducationInstitution, PendingUserGroup, GeneralSettings,
+    ScheduledTask, ScheduledTaskLog
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, HighSchoolStudentRecordDocument
@@ -329,3 +330,108 @@ class CommandsTestCase(TestCase):
 
         # 2 Cancellation email sent
         self.assertEqual(len(mail.outbox), 2)
+
+    def test_cron_master(self):
+        """
+        Test Scheduled tasks
+        """
+        devnull = open("/dev/null", 'w+')
+
+        today = datetime.date.today()
+
+        self.assertFalse(ScheduledTaskLog.objects.exists())
+
+        # Inactive task
+        task = ScheduledTask.objects.create(
+            command_name='crontest',
+            description='whatever',
+            active=False,
+            date=None,
+            time=datetime.time(14, 0),
+            frequency=None
+        )
+        management.call_command("cron_master", time="1400", stdout=devnull)
+        self.assertFalse(ScheduledTaskLog.objects.exists())
+
+        # Active task but no selected days : still nothing
+        task.active=True
+        task.save()
+
+        management.call_command("cron_master", time="1400", stdout=devnull)
+        self.assertFalse(ScheduledTaskLog.objects.exists())
+
+        # =========================================
+        # With a specific date (tomorrow)
+        # =========================================
+        task.date = datetime.date.today() + datetime.timedelta(days=1)
+        task.save()
+
+        # Not today :
+        management.call_command(
+            "cron_master",
+            date=f"{str(today.month).zfill(2)}{str(today.day).zfill(2)}",
+            time="1400",
+            stdout=devnull
+        )
+        self.assertFalse(ScheduledTaskLog.objects.exists())
+
+        # Tomorrow : success
+        management.call_command(
+            "cron_master",
+            date=f"{str(task.date.month).zfill(2)}{str(task.date.day).zfill(2)}",
+            time="1400",
+            stdout=devnull
+        )
+
+        self.assertEqual(
+            ScheduledTaskLog.objects.filter(task=task, success=True, message="Cron test success").count(),
+            1
+        )
+
+        # =========================================
+        # With a day of the week
+        # =========================================
+        # First remove the previous date
+        task.date = None
+
+        week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        current_day = week_days[datetime.date.today().weekday()]
+
+        setattr(task, current_day, True)
+        task.save()
+
+        management.call_command("cron_master", time="1400", stdout=devnull)
+        self.assertEqual(
+            ScheduledTaskLog.objects.filter(task=task, success=True, message="Cron test success").count(),
+            2
+        )
+
+        # =========================================
+        # With a frequency
+        # =========================================
+        # clean logs
+        ScheduledTaskLog.objects.all().delete()
+        task.frequency = 2 # every 2 hours
+        task.save()
+
+        # Won't run before 'time' (14h00)
+        management.call_command("cron_master", time="1200", stdout=devnull)
+        self.assertFalse(ScheduledTaskLog.objects.exists())
+
+        # Will still run at 1400
+        management.call_command("cron_master", time="1400", stdout=devnull)
+        self.assertEqual(
+            ScheduledTaskLog.objects.filter(task=task, success=True, message="Cron test success").count(),
+            1
+        )
+
+        ScheduledTaskLog.objects.all().delete()
+
+        # and 5 more times, at 14h00, 16h00, 18h00, 20h00, 22h00:
+        for h in range(14, 23, 2):
+            management.call_command("cron_master", time=f"{h}00", stdout=devnull)
+
+        self.assertEqual(
+            ScheduledTaskLog.objects.filter(task=task, success=True, message="Cron test success").count(),
+            5
+        )

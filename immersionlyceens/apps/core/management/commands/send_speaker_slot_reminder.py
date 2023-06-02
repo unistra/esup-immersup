@@ -12,13 +12,16 @@ from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.utils import get_general_setting
 
 from ...models import Immersion, Slot
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
     def handle(self, *args, **options):
+        success = _("Send speaker slot reminder : success")
+        returns = []
         today = datetime.datetime.today().date()
         default_value = 4
 
@@ -44,5 +47,15 @@ class Command(BaseCommand):
 
         for slot in slots:
             for speaker in slot.speakers.all():
-                speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
+                msg = speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
+                if msg:
+                    returns.append(msg)
 
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+        logger.info(success)
+        return success

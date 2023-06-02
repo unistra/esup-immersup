@@ -9,10 +9,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
 
 from ...models import ImmersionUser
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 
@@ -24,6 +25,9 @@ class Command(BaseCommand):
             destruction_date__lt=today).delete()
 
         if deleted[0]:
-            logger.info(_('{} account(s) deleted').format(deleted[0]))
+            msg = _('%s account(s) deleted') % deleted[0]
         else:
-            logger.info(_("No account to delete"))
+            msg = _("No account to delete")
+
+        logger.info(msg)
+        return msg

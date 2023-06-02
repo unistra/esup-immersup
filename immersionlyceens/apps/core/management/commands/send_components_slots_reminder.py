@@ -14,18 +14,21 @@ from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.utils import get_general_setting
 
 from ...models import Structure, Immersion, Slot, Vacation
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
     def handle(self, *args, **options):
+        success = _("Send components slots reminder : success")
+        returns = []
         today = datetime.datetime.today().date()
 
         # The command has to be run on sunday (except for DEBUG mode)
         if not settings.DEBUG and not today.weekday() == 6:
-            return
+            return success
 
         default_value = 1
 
@@ -50,7 +53,7 @@ class Command(BaseCommand):
 
         # if tomorrow (today+1) is a vacation day, don't send any reminder
         if Vacation.date_is_inside_a_vacation(today + datetime.timedelta(days=1)):
-            return
+            return success
 
         # from monday in N weeks to sunday at then end of the Nth week
         slot_min_date = today + datetime.timedelta(days=1) + datetime.timedelta(weeks=weeks)
@@ -63,17 +66,18 @@ class Command(BaseCommand):
             slot_max_date = slot_min_date + datetime.timedelta(days=6)  # from monday to the next sunday
 
         logger.debug("%s - sending reminders for slots between %s and %s (N = %s week(s))",
-              today, slot_min_date, slot_max_date, weeks
+            today, slot_min_date, slot_max_date, weeks
         )
 
         for structure in structures:
             slot_list = [
-                s for s in Slot.objects.filter(
-                    Q(course__structure=structure)|Q(event__structure=structure)|Q(visit__structure=structure),
-                    date__gte=slot_min_date,
-                    date__lte=slot_max_date,
-                    published=True
-                ).order_by('date', 'start_time')
+                s for s in Slot.objects.prefetch_related("course__structure", "event__structure", "visit__structure")
+                    .filter(
+                        Q(course__structure=structure)|Q(event__structure=structure)|Q(visit__structure=structure),
+                        date__gte=slot_min_date,
+                        date__lte=slot_max_date,
+                        published=True
+                    ).order_by('date', 'start_time')
             ]
 
             logger.debug("======= Structure : %s", structure.label)
@@ -82,5 +86,16 @@ class Command(BaseCommand):
 
             if slot_list:
                 for referent in structure.referents.all():
-                    referent.send_message(None, 'RAPPEL_STRUCTURE', slot_list=slot_list)
+                    msg = referent.send_message(None, 'RAPPEL_STRUCTURE', slot_list=slot_list)
+                    if msg:
+                        msg = _("Cannot send components slot reminder to %s : %s") % (referent.email, msg)
+                        returns.append(msg)
 
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+        logger.info(success)
+        return success

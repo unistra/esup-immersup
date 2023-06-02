@@ -285,7 +285,7 @@ THIRD_PARTY_APPS = [
     'adminsortable2',
     'shibboleth',
     'django_countries',
-    'drf_spectacular'
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
@@ -513,7 +513,7 @@ ADMIN_MODELS_ORDER = {
         'StructureConsultant',
         'HighSchoolManager',
         'LegalDepartmentStaff',
-    ],
+    ]
 }
 
 # Define groups rights on others

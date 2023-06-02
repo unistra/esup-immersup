@@ -1,12 +1,14 @@
 from datetime import datetime
 
 from adminsortable2.admin import SortableAdminMixin
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
@@ -32,8 +34,8 @@ from .admin_forms import (
     ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
     InformationTextForm, MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
-    StructureForm, StudentLevelForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
@@ -42,9 +44,9 @@ from .models import (
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, PublicDocument, PublicType, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    PostBachelorLevel, Profile, PublicDocument, PublicType,
+    ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -2195,9 +2197,9 @@ class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
     def has_delete_permission(self, request, obj=None):
         return self.custom_has_something_permission(request, obj)
 
+
 class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
-
 
     def get_list_display(self, request):
         def copy_link_btn(obj):
@@ -2273,9 +2275,75 @@ class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
+class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ScheduledTaskForm
+    list_display = ('command_name', 'description', 'date', 'time', 'frequency', 'days', 'active')
+    ordering = ('command_name', 'time', )
+    list_filter = ('active', )
+
+    fieldsets = (
+        (None, {'fields': (
+            'command_name',
+            'description',
+            'active',
+            'date',
+            'time',
+            'frequency',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday')}
+         ),
+    )
+
+    def days(self, obj):
+        week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        days = ", ".join(filter(lambda day:getattr(obj, day) is True, week_days))
+
+        return days
+
+    def get_readonly_fields(self, request, obj=None):
+        user = request.user
+
+        if user.is_superuser:
+            return super().get_readonly_fields(request, obj)
+
+        if user.is_operator():
+            return super().get_readonly_fields(request, obj) + ('command_name', 'description')
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+class ScheduledTaskLogAdmin(admin.ModelAdmin):
+    list_display = ('task', 'execution_date', 'success', 'message')
+    ordering = ('-execution_date', )
+    list_filter = ('task', 'success')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
-
 
 admin.site = CustomAdminSite(name='Repositories')
 
@@ -2317,3 +2385,5 @@ admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
+admin.site.register(ScheduledTask, ScheduledTaskAdmin)
+admin.site.register(ScheduledTaskLog, ScheduledTaskLogAdmin)

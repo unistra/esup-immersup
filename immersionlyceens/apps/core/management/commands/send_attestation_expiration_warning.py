@@ -14,21 +14,25 @@ from ...models import Slot, Immersion
 
 from immersionlyceens.apps.core.models import GeneralSettings, ImmersionUser
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordDocument, VisitorRecordDocument
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 
     def handle(self, *args, **options):
+        success = _("Send attestation expiration warnings : success")
+        returns = []
         today = timezone.localdate()
 
         try:
             expiration_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
         except:
-            logger.error(_("ATTESTATION_DOCUMENT_DEPOSIT_DELAY setting is missing, please check your configuration."))
-            return
+            msg = _("ATTESTATION_DOCUMENT_DEPOSIT_DELAY setting is missing, please check your configuration.")
+            logger.error(msg)
+            raise CommandError(msg)
 
         expiration_date = today + datetime.timedelta(days=expiration_delay)
 
@@ -46,7 +50,7 @@ class Command(BaseCommand):
             msg = user.send_message(None, 'CPT_DEPOT_PIECE')
 
             if msg:
-                logger.error(
+                returns.append(
                     _("Error while sending CPT_DEPOT_PIECE email to student '%s' : %s") % (user.email, msg)
                 )
             else:
@@ -56,3 +60,13 @@ class Command(BaseCommand):
                 record.attestation\
                     .filter(validity_date__lte=expiration_date)\
                     .update(renewal_email_sent=True)
+
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+        logger.info(success)
+        return success
+
