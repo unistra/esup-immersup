@@ -21,6 +21,8 @@ class Command(BaseCommand):
     """
     """
     def handle(self, *args, **options):
+        success = _("Annual statistics : success")
+
         try:
             year = UniversityYear.objects.get(active=True)
         except UniversityYear.DoesNotExist:
@@ -154,3 +156,6 @@ class Command(BaseCommand):
             seats_count=Sum('n_places'))['seats_count'] or 0
 
         annual_stats.save()
+
+        logger.info(success)
+        return success

@@ -24,4 +24,3 @@ pillow==9.4.0
 lxml==4.9.1
 django-countries==7.3.2
 faker
-django-cron==0.6.0

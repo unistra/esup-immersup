@@ -20,6 +20,8 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
+        success = _("Send slot evaluation message : success")
+        returns = []
         today = datetime.datetime.today().date()
         now = datetime.datetime.now().time() # to filter on slot end_time
 
@@ -28,20 +30,36 @@ class Command(BaseCommand, Schedulable):
             eval_link = EvaluationFormLink.objects.get(evaluation_type__code='EVA_CRENEAU', active=True)
             logger.debug("Evaluation link found : %s" % eval_link)
         except EvaluationFormLink.DoesNotExist:
-            # template code ? it's a copy past ?
-            # logger.error("Cannot find an active evaluation link. Please check the Evaluation forms links in admin section.", template_code)
-            logger.error("Cannot find an active evaluation link. Please check the Evaluation forms links in admin section.")
-            return
+            msg = _("Cannot find an active evaluation link. Please check the Evaluation forms links in admin section.")
+            logger.error(msg)
+            raise CommandError(msg)
 
-        immersions = Immersion.objects.filter(
+        immersions = Immersion.objects.prefetch_related("slot").filter(
             Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
             cancellation_type__isnull = True,
             survey_email_sent = False
         )
 
         for immersion in immersions:
-            immersion.student.send_message(None, 'EVALUATION_CRENEAU', slot=immersion.slot, immersion=immersion)
-            immersion.survey_email_sent=True
-            immersion.save()
+            msg = immersion.student.send_message(None, 'EVALUATION_CRENEAU', slot=immersion.slot, immersion=immersion)
 
-            # Todo : gestion des erreurs d'envoi ?
+            # Keep mail errors
+            if msg:
+                returns.append(msg)
+            else:
+                immersion.survey_email_sent=True
+                immersion.save()
+
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+
+        logger.info(success)
+        return success
+
+
+
+

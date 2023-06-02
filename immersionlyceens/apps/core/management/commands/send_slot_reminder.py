@@ -20,6 +20,8 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
+        success = _("Send slot reminder : success")
+        returns = []
         today = datetime.datetime.today().date()
         default_value = 4
 
@@ -41,9 +43,24 @@ class Command(BaseCommand, Schedulable):
 
         slot_date = today + datetime.timedelta(days=days)
 
-        immersions = Immersion.objects.filter(
-            cancellation_type__isnull=True, slot__date=slot_date, slot__published=True)
+        immersions = Immersion.objects.prefetch_related("slot").filter(
+            cancellation_type__isnull=True,
+            slot__date=slot_date,
+            slot__published=True
+        )
 
         for immersion in immersions:
-            immersion.student.send_message(None, 'IMMERSION_RAPPEL', slot=immersion.slot, immersion=immersion)
-            # Todo : gestion des erreurs d'envoi ?
+            msg = immersion.student.send_message(None, 'IMMERSION_RAPPEL', slot=immersion.slot, immersion=immersion)
+
+            if msg:
+                returns.append(msg)
+
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+
+        logger.info(success)
+        return success

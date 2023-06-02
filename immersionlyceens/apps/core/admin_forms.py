@@ -11,10 +11,12 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
+from django.core.management import get_commands, load_command_class
 from django.db.models import Count, Q
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
+from django.utils.datastructures import MultiValueDict
 from django.utils.translation import gettext_lazy as _, pgettext
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
@@ -2003,6 +2005,48 @@ class ScheduledTaskForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        # Limit command choice to the schedulable ones
+
+        choices_dict = MultiValueDict()
+
+        for command, app in get_commands().items():
+            if app.startswith("immersionlyceens"):
+                try:
+                    CommandClass = load_command_class(app, command)
+                    if CommandClass.is_schedulable():
+                        choices_dict.appendlist(app, command)
+                except AttributeError:
+                    # 'is_schedulable' is missing : nothing to do
+                    pass
+
+        choices = []
+        for key in choices_dict.keys():
+            commands = choices_dict.getlist(key)
+            commands.sort()
+            choices.append([key, [[c, c] for c in commands]])
+
+        choices.insert(0, ('', '---------'))
+        self.fields["command_name"].widget = forms.widgets.Select(choices=choices)
+
+        # Other field options
+        self.fields["frequency"].help_text = _("If not empty, uses 'Execution time' field for the first execution")
+
+        # Time field : remove seconds
+        self.fields["time"].widget.format = "%H:%M"
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data["date"] and cleaned_data["frequency"]:
+            raise forms.ValidationError(_("Date and frequency can't be both set"))
+
+        # Input format can take seconds and microseconds : force clean them
+        if cleaned_data["time"]:
+            cleaned_data["time"] = cleaned_data["time"].replace(second=0, microsecond=0)
+
+        return cleaned_data
 
     class Meta:
         model = ScheduledTask

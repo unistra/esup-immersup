@@ -20,6 +20,8 @@ class Command(BaseCommand, Schedulable):
     """
     """
     def handle(self, *args, **options):
+        success = _("Send speaker slot reminder : success")
+        returns = []
         today = datetime.datetime.today().date()
         default_value = 4
 
@@ -45,5 +47,15 @@ class Command(BaseCommand, Schedulable):
 
         for slot in slots:
             for speaker in slot.speakers.all():
-                speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
+                msg = speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
+                if msg:
+                    returns.append(msg)
 
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+        logger.info(success)
+        return success

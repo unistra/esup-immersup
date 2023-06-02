@@ -25,23 +25,24 @@ class Command(BaseCommand, Schedulable):
 
 
     def handle(self, *args, **options):
+        success = _("Immersion cancellations : success")
         today = timezone.localdate()
         now = timezone.now()
 
         try:
             slot_unsubscribe_delay = int(GeneralSettings.get_setting("AUTO_SLOT_UNSUBSCRIBE_DELAY"))
         except:
-            logger.error(_("AUTO_SLOT_UNSUBSCRIBE_DELAY missing or invalid, please check your configuration."))
-            return
+            msg = _("AUTO_SLOT_UNSUBSCRIBE_DELAY missing or invalid, please check your configuration.")
+            logger.error(msg)
+            raise CommandError(msg)
 
         try:
             cancellation_reason = CancelType.objects.get(code='ATT', system=True)  # reserved cancellation type
         except CancelType.DoesNotExist:
-            logger.error(
-                _("""'ATT' system cancellation type (out of date attestation) is missing, """
+            msg = _("""'ATT' system cancellation type (out of date attestation) is missing, """
                   """please check your configuration""")
-            )
-            return
+            logger.error(msg)
+            raise CommandError(msg)
 
         max_unsubscribe_date = today + datetime.timedelta(days=slot_unsubscribe_delay)
 
@@ -68,3 +69,6 @@ class Command(BaseCommand, Schedulable):
             immersion.cancellation_date = now
             immersion.save()
             immersion.student.send_message(None, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+        logger.info(success)
+        return success

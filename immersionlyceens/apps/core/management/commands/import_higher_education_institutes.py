@@ -29,6 +29,8 @@ class Command(BaseCommand):
     """
     def handle(self, *args, **options):
         # pagination settings
+        success = _("Import higher education institutes : success")
+        returns = []
         rows = 50
         start = 0
         url = settings.INSTITUTES_URL % (rows, start)
@@ -37,8 +39,9 @@ class Command(BaseCommand):
             r = requests.get(url)
             json_data = r.json()
         except Exception as e:
-            logger.exception("Cannot get institutes from url %s", url)
-            return False
+            msg = _("Cannot get institutes from url %s") % url
+            logger.exception(msg)
+            raise CommandError(msg)
 
         current_institutes = {}
         current_institutes_objs = {}
@@ -58,7 +61,7 @@ class Command(BaseCommand):
                 json_uai = json_inst['fields'].get('uai', None)
 
                 if not json_uai:
-                    logger.error("Json error (code_uai) : %s", json_inst)
+                    returns.append(_("Json error (code_uai) : %s") % json_inst)
                     continue
 
                 key_list.append(json_uai)
@@ -75,7 +78,9 @@ class Command(BaseCommand):
                         current_institutes_objs[json_uai] = new_institute
                         created += 1
                     except Exception as e:
-                        logger.exception("Cannot create new institute from data : %s", new_data)
+                        msg = _("Cannot create new institute from data : %s") % new_data
+                        returns.append(msg)
+                        logger.exception(msg)
                 else: # update
                     if new_data != institute:
                         inst = current_institutes_objs[json_uai]
@@ -93,8 +98,9 @@ class Command(BaseCommand):
                 r = requests.get(url)
                 json_data = r.json()
             except Exception as e:
-                logger.exception("Cannot get institutes from url %s", url)
-                return False
+                msg = _("Cannot get institutes from url %s") % url
+                logger.exception(msg)
+                raise CommandError(msg)
 
         # Deletion
         current_keys = current_institutes.keys()
@@ -105,14 +111,20 @@ class Command(BaseCommand):
                 HigherEducationInstitution.objects.get(pk=uai_code).delete()
                 deleted += 1
             except HigherEducationInstitution.DoesNotExist:
-                logger.error("Cannot purge HigherEducationInstitution object with code %s", uai_code)
+                msg = _("Cannot purge HigherEducationInstitution object with code %s") % uai_code
+                logger.error(msg)
+                returns.append(msg)
 
-
-        logger.info("%s institutes created", created)
-        logger.info("%s institutes updated", updated)
-        logger.info("%s institutes not updated", not_updated)
-        logger.info("%s institutes deleted", deleted)
+        returns.append(_("%s institutes created") % created)
+        returns.append(_("%s institutes updated") % updated)
+        returns.append(_("%s institutes not updated") % not_updated)
+        returns.append(_("%s institutes deleted") % deleted)
 
         # remaining elements in current_institutes should be deleted from database
         if len(delete_keys) - deleted:
-            logger.info("%s institutes not deleted where they should have been", len(delete_keys) - deleted)
+            returns.append(_("%s institutes not deleted where they should have been") % (len(delete_keys) - deleted))
+
+        for line in returns:
+            logger.info(line)
+
+        return success

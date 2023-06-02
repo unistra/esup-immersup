@@ -25,6 +25,9 @@ class Command(BaseCommand, Schedulable):
             destruction_date__lt=today).delete()
 
         if deleted[0]:
-            logger.info(_('{} account(s) deleted').format(deleted[0]))
+            msg = _('%s account(s) deleted') % deleted[0]
         else:
-            logger.info(_("No account to delete"))
+            msg = _("No account to delete")
+
+        logger.info(msg)
+        return msg

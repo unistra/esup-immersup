@@ -5,11 +5,9 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.core.management import get_commands, load_command_class
 from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
@@ -2279,7 +2277,7 @@ class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
 
 class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ScheduledTaskForm
-    list_display = ('command_name', 'description', 'time', 'days', 'active')
+    list_display = ('command_name', 'description', 'date', 'time', 'frequency', 'days', 'active')
     ordering = ('command_name', 'time', )
     list_filter = ('active', )
 
@@ -2288,7 +2286,9 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
             'command_name',
             'description',
             'active',
+            'date',
             'time',
+            'frequency',
             'monday',
             'tuesday',
             'wednesday',
@@ -2322,34 +2322,6 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request, obj=None):
         return request.user.is_superuser
-
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        # request = kwargs.pop("request", None)
-
-        if db_field.name == 'command_name':
-            choices_dict = MultiValueDict()
-            for command, app in get_commands().items():
-                # Populate select with immersionlyceens app's tasks commands only !
-                try:
-                    CommandClass = load_command_class(app, command)
-                    if CommandClass.is_schedulable():
-                        choices_dict.appendlist(app, command)
-                except AttributeError:
-                    # 'schedulable' is missing : nothing to do
-                    pass
-
-            choices = []
-            for key in choices_dict.keys():
-                commands = choices_dict.getlist(key)
-                commands.sort()
-                choices.append([key, [[c, c] for c in commands]])
-
-            choices.insert(0, ('', '---------'))
-            kwargs['widget'] = forms.widgets.Select(choices=choices)
-            # return db_field.formfield(**kwargs)
-
-        # kwargs['request'] = request
-        return super().formfield_for_dbfield(db_field, **kwargs)
 
 
 class ScheduledTaskLogAdmin(admin.ModelAdmin):

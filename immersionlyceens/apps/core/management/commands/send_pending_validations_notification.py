@@ -18,6 +18,9 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
+        success = _("Send pending validations notification : success")
+        returns = []
+
         hs_to_validate = HighSchoolStudentRecord.STATUSES["TO_VALIDATE"]
         hs_to_revalidate = HighSchoolStudentRecord.STATUSES["TO_REVALIDATE"]
 
@@ -34,7 +37,9 @@ class Command(BaseCommand, Schedulable):
             referents = highschool.users.prefetch_related("groups").filter(groups__name='REF-LYC')
 
             for referent in referents:
-                referent.send_message(None, 'CPT_AVALIDER_LYCEE')
+                msg = referent.send_message(None, 'CPT_AVALIDER_LYCEE')
+                if msg:
+                    returns.append(msg)
 
 
         # Visitors and high school without conventions : send reminders to establishments managers
@@ -55,4 +60,16 @@ class Command(BaseCommand, Schedulable):
         if hs_records or visitor_records:
             manager_groups = ["REF-ETAB-MAITRE", "REF-ETAB"]
             for user in ImmersionUser.objects.prefetch_related("groups").filter(groups__name__in=manager_groups):
-                user.send_message(None, 'CPT_AVALIDER_REF_ETAB')
+                msg = user.send_message(None, 'CPT_AVALIDER_REF_ETAB')
+                if msg:
+                    returns.append(msg)
+
+        if returns:
+            for line in returns:
+                logger.error(line)
+
+            return "\n".join(returns)
+
+
+        logger.info(success)
+        return success

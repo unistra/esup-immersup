@@ -35,4 +35,7 @@ class Command(BaseCommand, Schedulable):
         n = ImmersionUser.objects.filter(username__in=username_list).delete()
         t = time.time() - t
 
-        logger.info(_("%s users deleted in %s seconds"), n[0], round(t, 3))
+        msg = _("%s users deleted in %s seconds"), n[0], round(t, 3)
+
+        logger.info(msg)
+        return msg

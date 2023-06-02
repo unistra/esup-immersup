@@ -36,44 +36,49 @@ class Command(BaseCommand, Schedulable):
             logger.error("Cannot write mailing list file %s : %s", mailing_list, e)
 
     def handle(self, *args, **options):
+        success = _("Generate mailing list subscriber files : success")
         all_filename = None
         output_dir = settings.MAILING_LIST_FILES_DIR
+        returns = []
+        msg = ""
 
         if not path.exists(output_dir):
             try:
                 mkdir(output_dir, mode=0o700)
             except Exception as e:
-                logger.error("Cannot create output directory %s : %s", output_dir, e)
-                return
+                msg = _("Cannot create output directory %s : %s") % (output_dir, e)
         elif not path.isdir(output_dir):
-            logger.error("'%s' exists but is not a directory", output_dir)
-            return
+            msg = _("'%s' exists but is not a directory") % output_dir
         elif not access(output_dir, W_OK):
-            logger.error("'%s' exists but is not writable", output_dir)
-            return
+            msg = _("'%s' exists but is not writable") % output_dir
+
+        # Exit
+        if msg:
+            logger.error(msg)
+            raise CommandError(msg)
 
         try:
             all_filename = get_general_setting('GLOBAL_MAILING_LIST')
         except (ValueError, NameError):
-            logger.error("'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)",
-                         output_dir)
-            sys.exit("GLOBAL_MAILING_LIST variable not configured properly in core General Settings")
+            msg = _("'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)") % output_dir
+            logger.error(msg)
+            raise CommandError(msg)
 
         # Global mailing list file : all students, hs students and visitors
         if all_filename:
             output_file = path.join(settings.MAILING_LIST_FILES_DIR, f"structure_{all_filename}")
             try:
                 with open(output_file, "w") as all_registered_fd:
-                    all_registered_fd.write('\n'.join([email for email in ImmersionUser.objects \
-                                                      .filter(Q(student_record__isnull=False)
-                                                              | Q(high_school_student_record__validation=2,
-                                                                  high_school_student_record__isnull=False) \
-                                                              | Q(visitor_record__validation=2,
-                                                                  visitor_record__isnull=False) \
-                                                              ) \
-                                                      .values_list('email', flat=True).distinct()]))
+                    all_registered_fd.write('\n'.join([email for email in ImmersionUser.objects.filter(
+                        Q(student_record__isnull=False)
+                      | Q(high_school_student_record__validation=2, high_school_student_record__isnull=False) \
+                      | Q(visitor_record__validation=2, visitor_record__isnull=False) \
+                        ) \
+                        .values_list('email', flat=True) \
+                        .distinct()]
+                    ))
             except Exception as e:
-                logger.error("Cannot write mailing list file %s : %s", all_filename, e)
+                returns.append(_("Cannot write mailing list file %s : %s") % (all_filename, e))
 
         # Structures mailing list files
         for structure in Structure.objects.filter(mailing_list__isnull=False):
@@ -86,7 +91,7 @@ class Command(BaseCommand, Schedulable):
                             .values_list('student__email', flat=True).distinct()])
                     )
             except Exception as e:
-                logger.error("Cannot write mailing list file %s : %s", structure.mailing_list, e)
+                returns.append(_("Cannot write mailing list file %s : %s") % (structure.mailing_list, e))
 
         # Establishment mailing list files
         for establishment in Establishment.objects.filter(mailing_list__isnull=False):
@@ -117,3 +122,9 @@ class Command(BaseCommand, Schedulable):
                 emails=mailing_list,
                 mailing_list=hs.mailing_list
             )
+
+        if returns:
+            raise CommandError("\n".join(returns))
+
+        logger.info(success)
+        return success
