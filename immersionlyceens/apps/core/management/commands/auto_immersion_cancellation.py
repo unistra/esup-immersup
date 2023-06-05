@@ -25,7 +25,7 @@ class Command(BaseCommand, Schedulable):
 
 
     def handle(self, *args, **options):
-        success = _("Immersion cancellations : success")
+        success = "%s : %s" % (_("Immersion cancellations"), _("success"))
         today = timezone.localdate()
         now = timezone.now()
 

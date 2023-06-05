@@ -22,7 +22,7 @@ class Command(BaseCommand, Schedulable):
     """
     """
     def handle(self, *args, **options):
-        success = _("Send components slots reminder : success")
+        success = "%s : %s" % (_("Send components slots reminder"), _("success"))
         returns = []
         today = datetime.datetime.today().date()
 

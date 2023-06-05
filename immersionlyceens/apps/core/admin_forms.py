@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.core.management import get_commands, load_command_class
 from django.db.models import Count, Q
-from django.forms.widgets import TextInput
+from django.forms.widgets import TextInput, TimeInput
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
@@ -2034,17 +2034,23 @@ class ScheduledTaskForm(forms.ModelForm):
 
         # Time field : remove seconds
         self.fields["time"].widget.format = "%H:%M"
+        self.fields["time"].help_text = _("Minutes will be rounded to force 5 min steps")
 
 
     def clean(self):
         cleaned_data = super().clean()
 
-        if cleaned_data["date"] and cleaned_data["frequency"]:
+        if cleaned_data.get("date") and cleaned_data.get("frequency"):
             raise forms.ValidationError(_("Date and frequency can't be both set"))
 
         # Input format can take seconds and microseconds : force clean them
-        if cleaned_data["time"]:
-            cleaned_data["time"] = cleaned_data["time"].replace(second=0, microsecond=0)
+        # + force 5 min steps to avoid running master cron every minute
+        if cleaned_data.get("time"):
+            cleaned_data["time"] = cleaned_data["time"].replace(
+                minute=cleaned_data["time"].minute - (cleaned_data["time"].minute % 5),
+                second=0,
+                microsecond=0
+            )
 
         return cleaned_data
 

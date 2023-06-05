@@ -20,7 +20,7 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
-        success = _("Send slot reminder : success")
+        success = "%s : %s" % (_("Send slot reminder"), _("success"))
         returns = []
         today = datetime.datetime.today().date()
         default_value = 4

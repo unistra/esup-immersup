@@ -20,7 +20,7 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
-        success = _("Send slot evaluation message : success")
+        success = "%s : %s" % (_("Send slot evaluation message"), _("success"))
         returns = []
         today = datetime.datetime.today().date()
         now = datetime.datetime.now().time() # to filter on slot end_time

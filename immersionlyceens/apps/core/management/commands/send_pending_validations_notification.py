@@ -18,7 +18,7 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
-        success = _("Send pending validations notification : success")
+        success = "%s : %s" % (_("Send pending validations notification"), _("success"))
         returns = []
 
         hs_to_validate = HighSchoolStudentRecord.STATUSES["TO_VALIDATE"]

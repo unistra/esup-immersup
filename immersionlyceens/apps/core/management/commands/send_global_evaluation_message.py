@@ -24,7 +24,7 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
-        success = _("Send global evaluation message : success")
+        success = "%s : %s" % (_("Send global evaluation message"), _("success"))
         template_code = 'EVALUATION_GLOBALE'
         today = timezone.localdate()
 
@@ -59,7 +59,7 @@ class Command(BaseCommand, Schedulable):
             template = MailTemplate.objects.get(code=template_code, active=True)
             logger.debug("Template found : %s" % template)
         except MailTemplate.DoesNotExist:
-            msg = _("Cannot find active template '%s'. Please check the Messages Templates in admin section.")\
+            msg = _("Cannot find an active template named '%s'. Please check the Messages Templates in admin section.")\
                   % template_code
             logger.error(msg)
             raise CommandError(msg)
@@ -72,7 +72,7 @@ class Command(BaseCommand, Schedulable):
             logger.debug("Message body : %s" % message_body)
             send_email(mailing_list_address, template.subject, message_body)
         except Exception as e:
-            msg = _("Cannot send email to mailing list : '%s'") % e
+            msg = _("Cannot send email to mailing list %s : '%s'") % (mailing_list_address, e)
             logger.error(msg)
             raise CommandError(msg)
 

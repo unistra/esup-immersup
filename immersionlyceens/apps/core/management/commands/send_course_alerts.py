@@ -20,7 +20,7 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
-        success = _("Send course alerts : success")
+        success = "%s : %s" % (_("Send course alerts"), _("success"))
         returns = []
         template_code = 'ALERTE_DISPO'
         courses_dict = {}

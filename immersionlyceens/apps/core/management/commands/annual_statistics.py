@@ -21,7 +21,7 @@ class Command(BaseCommand):
     """
     """
     def handle(self, *args, **options):
-        success = _("Annual statistics : success")
+        success = "%s : %s" % (_("Annual statistics"), _("success"))
 
         try:
             year = UniversityYear.objects.get(active=True)

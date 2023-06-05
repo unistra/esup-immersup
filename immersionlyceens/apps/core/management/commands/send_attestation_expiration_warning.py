@@ -23,7 +23,7 @@ class Command(BaseCommand, Schedulable):
     """
 
     def handle(self, *args, **options):
-        success = _("Send attestation expiration warnings : success")
+        success = "%s : %s" % (_("Send attestation expiration warnings"), _("success"))
         returns = []
         today = timezone.localdate()
 

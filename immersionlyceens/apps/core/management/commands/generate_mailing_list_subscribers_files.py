@@ -36,7 +36,7 @@ class Command(BaseCommand, Schedulable):
             logger.error("Cannot write mailing list file %s : %s", mailing_list, e)
 
     def handle(self, *args, **options):
-        success = _("Generate mailing list subscriber files : success")
+        success = "%s : %s" (_("Generate mailing list subscriber files"), _("success"))
         all_filename = None
         output_dir = settings.MAILING_LIST_FILES_DIR
         returns = []
@@ -91,7 +91,10 @@ class Command(BaseCommand, Schedulable):
                             .values_list('student__email', flat=True).distinct()])
                     )
             except Exception as e:
-                returns.append(_("Cannot write mailing list file %s : %s") % (structure.mailing_list, e))
+                returns.append(
+                    _("Cannot write structure mailing list file %(ml)s : %(error)s")
+                    % {'ml': structure.mailing_list, 'error': str(e) }
+                )
 
         # Establishment mailing list files
         for establishment in Establishment.objects.filter(mailing_list__isnull=False):

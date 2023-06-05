@@ -9,6 +9,7 @@ import sys
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from immersionlyceens.apps.core.models import HigherEducationInstitution
+from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class Command(BaseCommand):
     """
     def handle(self, *args, **options):
         # pagination settings
-        success = _("Import higher education institutes : success")
+        success = "%s : %s" % (_("Import higher education institutes"), _("success"))
         returns = []
         rows = 50
         start = 0
