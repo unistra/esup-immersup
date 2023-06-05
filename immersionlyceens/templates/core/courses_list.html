@@ -541,8 +541,8 @@
         load_courses("highschool", current_highschool_id)
     });
 
-    if(!is_set(current_establishment_id) && !is_set(current_highschool_id) && is_set(current_structure_id)) {
-        $('#strs').trigger('change');
+    if(is_set(current_establishment_id) && !is_set(current_highschool_id) && is_set(current_structure_id)) {
+      $('#strs').trigger('change');
     }
 
   });
