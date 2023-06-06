@@ -89,15 +89,46 @@ class CampusForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        if settings.USE_GEOAPI and (not self.is_bound or self.errors):
+            city_choices = [
+                ('', '---------'),
+            ]
+            zip_choices = [
+                ('', '---------'),
+            ]
+
+            department_choices = get_departments()
+
+            # if this test fails, it's probably an API error or timeout => switch to manual form
+            if department_choices:
+                # Put datas in choices fields if form instance
+                if self.instance.department:
+                    city_choices = get_cities(self.instance.department)
+
+                if self.instance.city:
+                    zip_choices = get_zipcodes(self.instance.department, self.instance.city)
+
+                # Put datas in choices fields if form data
+                if 'department' in self.data:
+                    city_choices = get_cities(self.data.get('department'))
+
+                if 'city' in self.data:
+                    zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
+
+                self.fields['department'] = forms.TypedChoiceField(
+                    label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+                )
+                self.fields['city'] = forms.TypedChoiceField(
+                    label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+                )
+                self.fields['zip_code'] = forms.TypedChoiceField(
+                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+                )
+
         if self.fields.get("establishment") and not self.request.user.is_superuser \
                 and self.request.user.is_establishment_manager():
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
 
-        try:
-            if self.instance.establishment.id:
-                self.fields["establishment"].disabled = True
-        except (AttributeError, Establishment.DoesNotExist):
-            pass
 
     def clean(self):
         cleaned_data = super().clean()
@@ -145,7 +176,7 @@ class CampusForm(forms.ModelForm):
 
     class Meta:
         model = Campus
-        fields = ('establishment', 'label', 'active')
+        fields = ('establishment', 'label', 'department', 'city', 'zip_code', 'active')
 
 
 class CancelTypeForm(TypeFormMixin):

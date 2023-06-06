@@ -263,7 +263,13 @@ class CoreViewsTestCase(TestCase):
         cls.course2 = Course.objects.create(label="course 2", training=cls.training3, structure=cls.structure2)
         cls.course2.speakers.add(cls.speaker2)
 
-        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.campus = Campus.objects.create(
+            label='Esplanade',
+            department='67',
+            zip_code='67000',
+            city='STRASBOURG',
+            active=True
+        )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
         cls.slot = Slot.objects.create(

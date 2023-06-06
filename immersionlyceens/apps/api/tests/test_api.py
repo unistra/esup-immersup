@@ -382,7 +382,14 @@ class APITestCase(TestCase):
         )
         cls.highschool_course.speakers.add(cls.highschool_speaker)
 
-        cls.campus = Campus.objects.create(label='Esplanade', establishment=cls.establishment)
+        cls.campus = Campus.objects.create(
+            label='Esplanade',
+            establishment=cls.establishment,
+            department='67',
+            zip_code='67000',
+            city='STRASBOURG',
+            active=True
+        )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
 
@@ -3404,7 +3411,10 @@ class APITestCase(TestCase):
         data = {
             "label": "Campus Test",
             "active": True,
-            "establishment": establishment.id
+            "establishment": establishment.id,
+            "department": '67',
+            "zip_code": '67000',
+            "city": 'STRASBOURG',
         }
 
         # Without permission
@@ -3435,11 +3445,17 @@ class APITestCase(TestCase):
         data = [{
             "label": "Campus test A",
             "active": True,
-            "establishment": establishment.id
+            "establishment": establishment.id,
+            "department": '67',
+            "zip_code": '67000',
+            "city": 'STRASBOURG',
         }, {
             "label": "Campus test B",
             "active": False,
-            "establishment": establishment.id
+            "establishment": establishment.id,
+            "department": '33',
+            "zip_code": '33000',
+            "city": 'BORDEAUX',
         }]
 
         response = self.api_client_token.post(url, json.dumps(data), content_type="application/json")

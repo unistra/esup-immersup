@@ -631,13 +631,25 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
-    list_display = ('label', 'establishment', 'active')
+    list_display = ('label', 'establishment', 'city', 'active')
     list_filter = (
         'active',
         ('establishment', RelatedDropdownFilter),
     )
     ordering = ('label',)
     search_fields = ('label',)
+
+    fieldsets = (
+        (None, {'fields': (
+            'establishment',
+            'label',
+            'active',
+            'department',
+            'city',
+            'zip_code',
+            )}
+        ),
+    )
 
     def get_actions(self, request):
         # Disable delete
@@ -648,6 +660,11 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         except KeyError:
             pass
         return actions
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.pk:
+            return ('establishment', ) + self.readonly_fields
+        return self.readonly_fields
 
     def get_queryset(self, request):
         # Other groups has no "Can view structure" permission
@@ -683,6 +700,13 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         return True
+
+    class Media:
+        if settings.USE_GEOAPI:
+            js = (
+                'js/jquery-3.4.1.slim.min.js',
+                'js/admin_campus.min.js',
+            )
 
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):

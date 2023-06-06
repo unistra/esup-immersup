@@ -26,7 +26,13 @@ class CampusTestCase(TestCase):
     fixtures = ['higher']
 
     def test_campus_model(self):
-        test_campus = Campus.objects.create(label='MyCampus')
+        test_campus = Campus.objects.create(
+            label='MyCampus',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True
+        )
         self.assertEqual(test_campus.active, True)
         self.assertEqual(str(test_campus), 'MyCampus (-)')
 
@@ -258,7 +264,13 @@ class TestSlotCase(TestCase):
         course = Course.objects.create(label='my super course', training=t, structure=c)
 
         # Campus
-        campus = Campus.objects.create(label='Campus Esplanade')
+        campus = Campus.objects.create(
+            label='Campus Esplanade',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True
+        )
 
         # Building
         building = Building.objects.create(label='Le portique', campus=campus)

@@ -1054,6 +1054,9 @@ class Campus(models.Model):
 
     label = models.CharField(_("Label"), max_length=255)
     active = models.BooleanField(_("Active"), default=True)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
         blank=False, null=True)
 

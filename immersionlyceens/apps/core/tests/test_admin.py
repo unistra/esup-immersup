@@ -342,18 +342,27 @@ class AdminFormsTestCase(TestCase):
         data_campus_1 = {
             'label': 'Test Campus',
             'active': True,
+            'department': '67',
+            'city': 'STRASBOURG',
+            'zip_code': '67000',
             'establishment': self.master_establishment
         }
 
         data_campus_2 = {
             'label': 'Test Campus',
             'active': True,
+            'department': '68',
+            'city': 'COLMAR',
+            'zip_code': '68000',
             'establishment': self.establishment
         }
 
         # Failures (invalid user)
         request.user = self.ref_str_user
         form = CampusForm(data=data_campus_2, request=request)
+        form.fields['city'].choices = [('COLMAR', 'COLMAR')]
+        form.fields['zip_code'].choices = [('68000', '68000')]
+
         self.assertFalse(form.is_valid())
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(Campus.objects.filter(label=data_campus_2['label']).exists())
@@ -361,6 +370,9 @@ class AdminFormsTestCase(TestCase):
         # Success
         request.user = self.ref_etab_user
         form = CampusForm(data=data_campus_2, request=request)
+        form.fields['city'].choices = [('COLMAR', 'COLMAR')]
+        form.fields['zip_code'].choices = [('68000', '68000')]
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Campus.objects.filter(label=data_campus_2['label']).exists())
@@ -369,6 +381,9 @@ class AdminFormsTestCase(TestCase):
         # Second campus (same label) in another establishment : success
         request.user = self.ref_master_etab_user
         form = CampusForm(data=data_campus_1, request=request)
+        form.fields['city'].choices = [('STRASBOURG', 'STRASBOURG')]
+        form.fields['zip_code'].choices = [('67000', '67000')]
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Campus.objects.filter(label=data_campus_1['label']).exists())
@@ -376,6 +391,9 @@ class AdminFormsTestCase(TestCase):
 
         # Second campus within the same establishment : fail
         form = CampusForm(data=data_campus_1, request=request)
+        form.fields['city'].choices = [('STRASBOURG', 'STRASBOURG')]
+        form.fields['zip_code'].choices = [('67000', '67000')]
+
         self.assertFalse(form.is_valid())
         self.assertIn(["A campus with this label already exists within the same establishment"], form.errors["label"])
         self.assertEqual(Campus.objects.filter(label=data_campus_1['label']).count(), 2)
@@ -384,10 +402,15 @@ class AdminFormsTestCase(TestCase):
         data_campus_3 = {
             'label': 'Test Campus operator',
             'active': True,
+            'department': '35',
+            'city': 'RENNES',
+            'zip_code': '35000',
             'establishment': self.master_establishment
         }
         request.user = self.operator_user
         form = CampusForm(data=data_campus_3, request=request)
+        form.fields['city'].choices = [('RENNES', 'RENNES')]
+        form.fields['zip_code'].choices = [('35000', '35000')]
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Campus.objects.filter(label=data_campus_3['label']).exists())
@@ -416,7 +439,14 @@ class AdminFormsTestCase(TestCase):
         adminsite = CustomAdminSite(name='Repositories')
         campus_admin = CampusAdmin(admin_site=adminsite, model=Campus)
 
-        testCampus = Campus.objects.create(label='testCampus', active=True, establishment=self.master_establishment)
+        testCampus = Campus.objects.create(
+            label='testCampus',
+            active=True,
+            department='54',
+            city='NANCY',
+            zip_code='54000',
+            establishment=self.master_establishment
+        )
 
         success_user_list = [self.operator_user, self.ref_master_etab_user, self.superuser]
         fail_user_list = [self.ref_etab_user, self.ref_str_user, self.ref_lyc_user]
@@ -443,7 +473,15 @@ class AdminFormsTestCase(TestCase):
         Test admin Campus creation with group rights
         """
 
-        testCampus = Campus.objects.create(label='testCampus', active=True, establishment=self.establishment)
+        testCampus = Campus.objects.create(
+            label='testCampus',
+            active=True,
+            department='14',
+            city='CAEN',
+            zip_code='14000',
+            establishment=self.establishment
+        )
+
         data = {
             'label': 'testBuilding',
             'campus': testCampus.pk,
