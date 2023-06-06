@@ -18,8 +18,8 @@ def create_template(apps, schema_editor):
                 """<p>Cordialement, </p><p>Le service en ligne d'immersions</p>""",
         "active": True
     }
-
-    template = MailTemplate.objects.create(**template_data)
+    if not MailTemplate.objects.filter(code="IMMERSION_RAPPEL_STR").exists():
+        template = MailTemplate.objects.create(**template_data)
 
     # Add these existing vars to the new template
     codes = [

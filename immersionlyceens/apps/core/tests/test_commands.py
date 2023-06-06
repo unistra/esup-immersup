@@ -4,28 +4,29 @@ Core commands tests
 import datetime
 import uuid
 
-from django.core import mail, management
-from django.contrib.auth import get_user_model
-from django.utils.formats import date_format
-from django.utils import timezone
-from django.urls import reverse
-from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-
-from immersionlyceens.libs.utils import get_general_setting
-from immersionlyceens.libs.mails.variables_parser import parser
+from django.core import mail, management
+from django.test import Client, RequestFactory, TestCase, override_settings
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.formats import date_format
 
 from immersionlyceens.apps.core.models import (
-    AttestationDocument, BachelorType, UniversityYear, MailTemplate,
-    Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
-    Building, CourseType, Training, Vacation, HighSchool, Immersion,
-    EvaluationFormLink, EvaluationType, CancelType, HighSchoolLevel,
-    StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
-    HigherEducationInstitution, PendingUserGroup, GeneralSettings
+    AttestationDocument, BachelorType, Building, Campus, CancelType, Course,
+    CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
+    Immersion, MailTemplate, PendingUserGroup, Period, PostBachelorLevel,
+    Profile, Slot, Structure, StudentLevel, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
+)
+from immersionlyceens.libs.mails.variables_parser import parser
+from immersionlyceens.libs.utils import get_general_setting
 
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, HighSchoolStudentRecordDocument
 
 class CommandsTestCase(TestCase):
     """
@@ -329,3 +330,9 @@ class CommandsTestCase(TestCase):
 
         # 2 Cancellation email sent
         self.assertEqual(len(mail.outbox), 2)
+
+
+#    def test_speaker_slot_reminder(self):
+#
+#        management.call_command("speaker_slot_reminder", verbosity=0)
+#        self.assertEqual(len(mail.outbox), 2)
