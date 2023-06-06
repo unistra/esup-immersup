@@ -1255,6 +1255,8 @@ class HighSchoolForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        active = cleaned_data.get("active", False)
+
         valid_user = False
 
         try:
@@ -1288,7 +1290,8 @@ class HighSchoolForm(forms.ModelForm):
             if not cleaned_data["with_convention"]:
                 cleaned_data["convention_start_date"] = None
                 cleaned_data["convention_end_date"] = None
-            elif not cleaned_data.get("convention_start_date") or not cleaned_data.get("convention_end_date"):
+            elif active and (not cleaned_data.get("convention_start_date") \
+                    or not cleaned_data.get("convention_end_date")):
                 if 'convention_start_date' in self.fields and 'convention_end_date' in self.fields:
                     raise forms.ValidationError({
                         'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
@@ -1718,6 +1721,20 @@ class GeneralSettingsForm(forms.ModelForm):
                     """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """
                     """cannot be both set to False """)
                 )
+
+            if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and \
+                HighSchool.objects.filter(with_convention=True).exists():
+                raise ValidationError(_(
+                    """This parameter can't be set to False : there are high schools """
+                    """with agreements in database, please update or delete these first"""
+                ))
+
+            if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and \
+                HighSchool.objects.filter(with_convention=False).exists():
+                raise ValidationError(_(
+                    """This option can't be set to False : there are high schools """
+                    """without agreements in database, please update or delete these first"""
+                ))
 
         # ACTIVATE_TRAINING_QUOTAS value constraints
         if cleaned_data['setting'] == 'ACTIVATE_TRAINING_QUOTAS':

@@ -36,7 +36,7 @@ class Command(BaseCommand, Schedulable):
             logger.error("Cannot write mailing list file %s : %s", mailing_list, e)
 
     def handle(self, *args, **options):
-        success = "%s : %s" (_("Generate mailing list subscriber files"), _("success"))
+        success = "%s : %s" % (_("Generate mailing list subscriber files"), _("success"))
         all_filename = None
         output_dir = settings.MAILING_LIST_FILES_DIR
         returns = []

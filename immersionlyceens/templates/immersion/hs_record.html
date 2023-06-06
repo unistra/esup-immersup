@@ -416,11 +416,13 @@
         yearRange: "2023:2040",
       });
 
+      let default_year =  new Date().getFullYear() - 15;
+
       $("#id_birth_date").datepicker({
         changeMonth: true,
         changeYear: true,
         yearRange: "1990:2010",
-        defaultDate: "01/01/2003",
+        defaultDate: `01/01/${default_year}`,
       });
     });
 

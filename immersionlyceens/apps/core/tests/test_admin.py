@@ -1034,17 +1034,35 @@ class AdminFormsTestCase(TestCase):
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
         self.assertTrue(form.is_valid())
-        form.save()
+        highschool = form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
 
         # Check a few fields
-        highschool = HighSchool.objects.get(label=data['label'])
         self.assertTrue(highschool.with_convention)
         self.assertTrue(highschool.active)
+
+        # High school can be saved without convention dates if not active
+        data.update({
+            'id': highschool.id,
+            'active': False,
+            'convention_start_date': None,
+            'convention_end_date': None
+        })
+
+        form = HighSchoolForm(instance=highschool, data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        highschool.refresh_from_db()
+        self.assertTrue(highschool.with_convention)
+        self.assertIsNone(highschool.convention_start_date)
+        self.assertIsNone(highschool.convention_end_date)
+        self.assertFalse(highschool.active)
 
         # As an operator
         request.user = self.operator_user
 
+        data.pop('id') # remove id
         data['label'] = 'Another high school'
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
