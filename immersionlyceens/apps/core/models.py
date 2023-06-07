@@ -3121,9 +3121,14 @@ def user_logged_out_callback(sender, request, user, **kwargs):
 
 @receiver(user_login_failed)
 def user_login_failed_callback(sender, credentials, request, **kwargs):
-    ip = request.META.get('REMOTE_ADDR')
     username = credentials.get('username', None)
+    ip = None
     user = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
 
     if username:
         try:
