@@ -21,10 +21,12 @@ from typing import Any, Optional
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.functions import Coalesce
+from django.dispatch import receiver
 from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -3070,3 +3072,69 @@ class ScheduledTaskLog(models.Model):
         verbose_name = _('Scheduled task log')
         verbose_name_plural = _('Scheduled task logs')
         ordering = ['-execution_date', ]
+
+
+class History(models.Model):
+    """
+    Store various events like account creations or login, logout, failures, ...
+    """
+    action = models.CharField(_("Action"), max_length=128)
+    ip = models.GenericIPAddressField(_("IP"), null=True)
+    username = models.CharField(max_length=256, null=True)
+    last_name = models.CharField(max_length=256, null=True)
+    first_name = models.CharField(max_length=256, null=True)
+    date = models.DateTimeField(_("Date"), auto_now_add=True)
+
+    def __str__(self):
+        identity = ", ".join(list(filter(lambda x:x, [self.username, self.last_name, self.first_name])))
+        return f"{self.date} - {identity} - {self.action}"
+
+    class Meta:
+        verbose_name = _('History')
+        verbose_name_plural = _('History')
+
+####### SIGNALS #########
+@receiver(user_logged_in)
+def user_logged_in_callback(sender, request, user, **kwargs):
+    # to cover more complex cases:
+    # http://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
+    ip = request.META.get('REMOTE_ADDR')
+    History.objects.create(
+        action=_("User logged in"),
+        ip=ip,
+        username=user.username,
+        last_name=user.last_name,
+        first_name=user.first_name,
+    )
+
+@receiver(user_logged_out)
+def user_logged_out_callback(sender, request, user, **kwargs):
+    ip = request.META.get('REMOTE_ADDR')
+    History.objects.create(
+        action=_("User logged out"),
+        ip=ip,
+        username=user.username,
+        last_name=user.last_name,
+        first_name=user.first_name,
+    )
+
+
+@receiver(user_login_failed)
+def user_login_failed_callback(sender, credentials, request, **kwargs):
+    ip = request.META.get('REMOTE_ADDR')
+    username = credentials.get('username', None)
+    user = None
+
+    if username:
+        try:
+            user = ImmersionUser.objects.get(username=username.lower().strip())
+        except ImmersionUser.DoesNotExist:
+            pass
+
+    History.objects.create(
+        action=_("User login failed"),
+        ip=ip,
+        username=username,
+        last_name=user.last_name if user else None,
+        first_name=user.first_name if user else None,
+    )

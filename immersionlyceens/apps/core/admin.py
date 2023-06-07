@@ -42,7 +42,7 @@ from .models import (
     BachelorType, Building, Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
+    HighSchoolLevel, History, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
@@ -2366,6 +2366,24 @@ class ScheduledTaskLogAdmin(admin.ModelAdmin):
         return True
 
 
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ('date', 'action', 'username', 'last_name', 'first_name', 'ip')
+    list_filter = ('action', )
+    ordering = ('-date',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
 
@@ -2411,3 +2429,4 @@ admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
 admin.site.register(ScheduledTask, ScheduledTaskAdmin)
 admin.site.register(ScheduledTaskLog, ScheduledTaskLogAdmin)
+admin.site.register(History, HistoryAdmin)
