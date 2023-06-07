@@ -3080,9 +3080,9 @@ class History(models.Model):
     """
     action = models.CharField(_("Action"), max_length=128)
     ip = models.GenericIPAddressField(_("IP"), null=True)
-    username = models.CharField(max_length=256, null=True)
-    last_name = models.CharField(max_length=256, null=True)
-    first_name = models.CharField(max_length=256, null=True)
+    username = models.CharField(_("Username"), max_length=256, null=True)
+    last_name = models.CharField(_("Last name"), max_length=256, null=True)
+    first_name = models.CharField(_("Last name"), max_length=256, null=True)
     date = models.DateTimeField(_("Date"), auto_now_add=True)
 
     def __str__(self):
