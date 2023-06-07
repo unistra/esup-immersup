@@ -13,7 +13,7 @@ from django.db.models import Count
 from . import Schedulable
 
 from ...models import (
-    Course, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
+    Course, History, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
     Period, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 
@@ -138,6 +138,9 @@ class Command(BaseCommand, Schedulable):
             call_command('delete_account_not_in_ldap')
         except CommandError:
             returns.append("Could not finish 'delete_account_not_in_ldap' command")
+
+        # Clean History
+        History.objects.all().delete()
 
         # Log all
         for line in returns:
