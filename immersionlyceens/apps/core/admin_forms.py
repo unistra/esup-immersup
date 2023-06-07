@@ -1763,7 +1763,7 @@ class GeneralSettingsForm(forms.ModelForm):
             if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and \
                 HighSchool.objects.filter(with_convention=False).exists():
                 raise ValidationError(_(
-                    """This option can't be set to False : there are high schools """
+                    """This parameter can't be set to False : there are high schools """
                     """without agreements in database, please update or delete these first"""
                 ))
 
