@@ -86,9 +86,6 @@ DEFAULT_FROM_EMAIL = '{{ default_from_email }}'
 # url for logos upload
 MEDIA_ROOT = '/nfs/immersion'
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = '{{ base_files_dir }}'
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 
 ###############
 # Sentry init #

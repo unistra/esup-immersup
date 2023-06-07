@@ -582,7 +582,6 @@ class UniversityYearForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
-        global_evaluation_date = cleaned_data.get('global_evaluation_date')
         label = cleaned_data.get('label')
         valid_user = False
 

@@ -1268,7 +1268,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         'start_date',
         'end_date',
         'purge_date',
-        'global_evaluation_date',
         'active',
     )
     list_filter = ('active',)

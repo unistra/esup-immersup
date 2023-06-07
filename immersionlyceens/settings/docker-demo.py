@@ -88,9 +88,6 @@ SUMMERNOTE_CONFIG = {
 # url for logos upload
 MEDIA_ROOT = environ.get('MEDIA_ROOT', 'mediafiles')
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = environ.get('BASE_FILES_DIR', '')
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, environ.get('MAILING_LIST_FILES_DIR', 'mailing_lists'))
 
 #######################
 # Email configuration #

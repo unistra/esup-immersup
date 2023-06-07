@@ -599,10 +599,6 @@ DEFAULT_NB_DAYS_SLOT_REMINDER = 4
 DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER = 4
 DEFAULT_NB_WEEKS_STRUCTURES_SLOT_REMINDER = 1
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = ""
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
-
 # Opendata
 # This should be a stable URL according to this site :
 # https://www.data.gouv.fr/fr/datasets/etablissements-denseignement-superieur-2

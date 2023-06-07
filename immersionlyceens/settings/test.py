@@ -85,10 +85,6 @@ FORCE_EMAIL_ADDRESS = '{{ force_email_address }}'
 DEFAULT_FROM_EMAIL = '{{ default_from_email }}'
 
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = '{{ base_files_dir }}'
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
-
 ###############
 # Sentry init #
 ###############

@@ -6,7 +6,6 @@ import datetime
 import logging
 import sys
 
-from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.management.base import BaseCommand, CommandError
@@ -14,7 +13,7 @@ from django.core.management.base import BaseCommand, CommandError
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Immersion, MailTemplate, Slot, UniversityYear
+from ...models import MailTemplate
 from . import Schedulable
 
 logger = logging.getLogger(__name__)
@@ -27,24 +26,6 @@ class Command(BaseCommand, Schedulable):
         success = "%s : %s" % (_("Send global evaluation message"), _("success"))
         template_code = 'EVALUATION_GLOBALE'
         today = timezone.localdate()
-
-        # Settings check
-        # Get evaluation date in University year
-        try:
-            year = UniversityYear.get_active()
-        except Exception as e:
-            msg = _("University year settings errors : %s") % e
-            logger.error(msg)
-            raise CommandError(msg)
-
-        if not year:
-            msg = ("""Cannot find university year global evaluation date. """
-                   """Please check your University year settings in admin section.""")
-            logger.error(msg)
-            raise CommandError(msg)
-
-        if not settings.DEBUG and today != year.global_evaluation_date: # Not today. Oh, except for the DEBUG mode ;)
-            return _("Send global evaluation message : nothing to do")
 
         # Get the mailing list address
         try:

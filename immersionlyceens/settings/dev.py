@@ -114,11 +114,6 @@ EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
 
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# Mailing list subscriber files directory
-BASE_FILES_DIR = "/tmp"
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
-
 # Goal
 STAGE = 'Dev'
 
