@@ -2367,7 +2367,7 @@ class ScheduledTaskLogAdmin(admin.ModelAdmin):
 
 
 class HistoryAdmin(admin.ModelAdmin):
-    list_display = ('date', 'action', 'username', 'last_name', 'first_name', 'ip')
+    list_display = ('date', 'action', 'username', 'user', 'hijacked', 'ip')
     list_filter = ('action', )
     ordering = ('-date',)
 

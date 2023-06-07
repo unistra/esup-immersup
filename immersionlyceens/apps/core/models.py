@@ -18,6 +18,8 @@ from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
 
+from hijack.signals import hijack_started, hijack_ended
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
@@ -3081,8 +3083,8 @@ class History(models.Model):
     action = models.CharField(_("Action"), max_length=128)
     ip = models.GenericIPAddressField(_("IP"), null=True)
     username = models.CharField(_("Username"), max_length=256, null=True)
-    last_name = models.CharField(_("Last name"), max_length=256, null=True)
-    first_name = models.CharField(_("Last name"), max_length=256, null=True)
+    user = models.CharField(_("User"), max_length=256, null=True)
+    hijacked = models.CharField(_("Hijacked user"), max_length=256, null=True)
     date = models.DateTimeField(_("Date"), auto_now_add=True)
 
     def __str__(self):
@@ -3093,18 +3095,17 @@ class History(models.Model):
         verbose_name = _('History')
         verbose_name_plural = _('History')
 
+
 ####### SIGNALS #########
 @receiver(user_logged_in)
 def user_logged_in_callback(sender, request, user, **kwargs):
-    # to cover more complex cases:
-    # http://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
     ip = request.META.get('REMOTE_ADDR')
+
     History.objects.create(
         action=_("User logged in"),
         ip=ip,
-        username=user.username,
-        last_name=user.last_name,
-        first_name=user.first_name,
+        username=user.username if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
     )
 
 @receiver(user_logged_out)
@@ -3113,9 +3114,8 @@ def user_logged_out_callback(sender, request, user, **kwargs):
     History.objects.create(
         action=_("User logged out"),
         ip=ip,
-        username=user.username,
-        last_name=user.last_name,
-        first_name=user.first_name,
+        username=user.username if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
     )
 
 
@@ -3140,6 +3140,40 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
         action=_("User login failed"),
         ip=ip,
         username=username,
-        last_name=user.last_name if user else None,
-        first_name=user.first_name if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
     )
+
+def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
+    ip = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    History.objects.create(
+        action=_("Hijack start"),
+        ip=ip,
+        username=hijacker.username if hijacker else None,
+        user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
+        hijacked=hijacked
+    )
+
+def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
+    ip = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    History.objects.create(
+        action=_("Hijack end"),
+        ip=ip,
+        username=hijacker.username if hijacker else None,
+        user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
+        hijacked=hijacked
+    )
+
+hijack_started.connect(user_hijack_start)
+hijack_ended.connect(user_hijack_end)
