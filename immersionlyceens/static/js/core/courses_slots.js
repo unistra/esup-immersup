@@ -202,14 +202,14 @@ function init_datatable() {
               }
 
               if(data.allowed_bachelor_mentions.length > 0) {
-                bachelors_mentions += "\n" + allowed_mentions_txt  + " :\n"
+                bachelors_mentions += allowed_mentions_txt  + " :\n"
                 data.allowed_bachelor_mentions.forEach(item => {
                   bachelors_mentions += "- " + item + "\n"
                 })
               }
 
               if(data.allowed_bachelor_teachings.length > 0) {
-                bachelors_teachings += "\n" + allowed_teachings_txt  + " :\n"
+                bachelors_teachings += allowed_teachings_txt  + " :\n"
                 data.allowed_bachelor_teachings.forEach(item => {
                   bachelors_teachings += "- " + item + "\n"
                 })
