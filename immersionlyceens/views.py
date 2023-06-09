@@ -21,8 +21,8 @@ from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AttestationDocument, Course, Establishment,
-    FaqEntry, HighSchool, ImmersupFile, InformationText, Period, PublicDocument,
+    AccompanyingDocument, AttestationDocument, Course, Establishment, FaqEntry,
+    HighSchool, ImmersupFile, InformationText, Period, PublicDocument,
     PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
 from immersionlyceens.exceptions import DisplayException
@@ -603,11 +603,32 @@ def host_establishments(request):
     return render(request, 'establishments_under_agreement.html', context)
 
 
-def affiliated_highschools(request):
-    """Affiliated highschools view"""
+def highschools(request):
+    """ Highschools public view"""
 
-    highschools = HighSchool.agreed.values("city", "label", "email")
+    affiliated_highschools = HighSchool.agreed.values("city", "label", "email")
+
+    try:
+        affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
+                                                                      active=True).content
+    except InformationText.DoesNotExist:
+        # TODO: Default txt value ?
+        affiliated_highschools_intro_txt = ''
+
+    try:
+        not_affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_NON_CONVENTIONNES", \
+                                                                      active=True).content
+    except InformationText.DoesNotExist:
+        # TODO: Default txt value ?
+        not_affiliated_highschools_intro_txt = ''
+
+    not_affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=False) \
+                                .values("city", "label", "email")
+
     context = {
-        'highschools': json.dumps(list(highschools)),
+        'affiliated_highschools': json.dumps(list(affiliated_highschools)),
+        'affiliated_highschools_intro_txt': affiliated_highschools_intro_txt,
+        'not_affiliated_highschools': json.dumps(list(not_affiliated_highschools)),
+        'not_affiliated_highschools_intro_txt': not_affiliated_highschools_intro_txt,
     }
-    return render(request, 'affiliated_highschools.html', context)
+    return render(request, 'highschools.html', context)
