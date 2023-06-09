@@ -1141,6 +1141,7 @@ class APITestCase(TestCase):
             mandatory=self.attestation_2.mandatory,
             requires_validity_date=False,
         )
+        self.assertEqual(self.hs_record.attestation.count(), 2)
 
         response = self.client.post(url, data, **self.header)
 
@@ -1148,10 +1149,12 @@ class APITestCase(TestCase):
         self.assertEqual(content["msg"], "Error: record has missing or invalid attestation dates")
         self.hs_record.refresh_from_db()
         self.assertEqual(self.hs_record.validation, 1)
-        self.assertEqual(HighSchoolStudentRecordDocument.objects.filter(record=self.hs_record).count(), 2)
+        self.assertEqual(self.hs_record.attestation.count(), 2)
 
         # delete document and retry : Success
-        document.delete()
+        # document.delete()
+        document.validity_date = self.today + timedelta(days=10)
+        document.save()
 
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
@@ -1159,7 +1162,7 @@ class APITestCase(TestCase):
         self.assertTrue(content['data']['ok'])
         self.hs_record.refresh_from_db()
         self.assertEqual(self.hs_record.validation, 2)  # validated
-        self.assertEqual(HighSchoolStudentRecordDocument.objects.filter(record=self.hs_record).count(), 1)
+        self.assertEqual(self.hs_record.attestation.count(), 1)
 
 
     def test_API_get_csv_anonymous(self):

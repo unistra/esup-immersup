@@ -775,9 +775,6 @@ def ajax_validate_reject_student(request, validate):
                 record.rejected_date = None if validate else timezone.now()
                 record.save()
 
-                for s in GeneralSettings.objects.all().order_by("setting"):
-                    print(s.setting)
-
                 # Delete attestations ?
                 if validate:
                     delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
