@@ -171,7 +171,9 @@ def courses_list(request):
         highschool_id = request.session.get("current_highschool_id", None)
 
     if allowed_strs.count() == 1:
-        structure_id = allowed_strs.first().id
+        structure = allowed_strs.first()
+        structure_id = structure.id
+        establishment_id = structure.establishment.id
     else:
         structure_id = request.session.get("current_structure_id", None)
 

@@ -1170,6 +1170,7 @@ def student_record(request, student_id=None, record_id=None):
         'no_record': no_record,
         'student_form': studentform,
         'record_form': recordform,
+        "quota_forms": quota_forms,
         'record': record,
         'student': student,
         'back_url': request.session.get('back'),
