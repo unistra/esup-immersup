@@ -176,6 +176,12 @@ def courses_list(request):
         establishment_id = structure.establishment.id
     else:
         structure_id = request.session.get("current_structure_id", None)
+        if structure_id and not establishment_id:
+            try:
+                structure = Structure.objects.get(pk=structure_id)
+                establishment_id = structure.establishment.id
+            except Structure.DoesNotExist:
+                pass
 
     # Check if we can add/update courses
     try:

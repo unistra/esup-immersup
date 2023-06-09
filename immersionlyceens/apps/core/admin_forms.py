@@ -810,9 +810,9 @@ class PeriodForm(forms.ModelForm):
             raise forms.ValidationError(_("A period requires all dates to be filled in"))
 
         dates_conditions = [
-            not (univ_year.start_date < registration_start_date < univ_year.end_date),
+            not (univ_year.start_date <= registration_start_date < univ_year.end_date),
             not (univ_year.start_date < start_date < univ_year.end_date),
-            not (univ_year.start_date < end_date < univ_year.end_date),
+            not (univ_year.start_date < end_date <= univ_year.end_date),
         ]
 
         if any(dates_conditions):
