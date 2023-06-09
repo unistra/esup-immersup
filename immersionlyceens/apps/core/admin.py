@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
@@ -2324,9 +2324,11 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def days(self, obj):
         week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        days = ", ".join(filter(lambda day:getattr(obj, day) is True, week_days))
+        days = ", ".join(map(lambda d:gettext(d.title()), filter(lambda day:getattr(obj, day) is True, week_days)))
 
         return days
+
+    days.short_description = _('Days')
 
     def get_readonly_fields(self, request, obj=None):
         user = request.user
