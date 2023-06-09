@@ -7062,7 +7062,7 @@ msgid ""
 "the slots of your structure(s) at the same time as the speakers."
 msgstr ""
 "Vous pouvez cocher la/les structure(s) afin de recevoir la liste des "
-"inscrits à tous les créneaux de votre/vos structure(e)s en même temps que "
+"inscrits à tous les créneaux de votre/vos structure(s) en même temps que "
 "les enseignants."
 
 #: immersionlyceens/templates/core/structures_notifications.html:42
