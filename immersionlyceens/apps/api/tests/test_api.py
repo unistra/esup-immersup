@@ -1131,12 +1131,24 @@ class APITestCase(TestCase):
             mandatory=self.attestation_1.mandatory,
             requires_validity_date=self.attestation_1.requires_validity_date,
         )
+
+        # This one should be deleted after validation
+        document2 = HighSchoolStudentRecordDocument.objects.create(
+            record=self.hs_record,
+            attestation=self.attestation_2,
+            validity_date=None,
+            for_minors=self.attestation_2.for_minors,
+            mandatory=self.attestation_2.mandatory,
+            requires_validity_date=False,
+        )
+
         response = self.client.post(url, data, **self.header)
 
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content["msg"], "Error: record has missing or invalid attestation dates")
         self.hs_record.refresh_from_db()
         self.assertEqual(self.hs_record.validation, 1)
+        self.assertEqual(HighSchoolStudentRecordDocument.objects.filter(record=self.hs_record).count(), 2)
 
         # delete document and retry : Success
         document.delete()
@@ -1147,6 +1159,7 @@ class APITestCase(TestCase):
         self.assertTrue(content['data']['ok'])
         self.hs_record.refresh_from_db()
         self.assertEqual(self.hs_record.validation, 2)  # validated
+        self.assertEqual(HighSchoolStudentRecordDocument.objects.filter(record=self.hs_record).count(), 1)
 
 
     def test_API_get_csv_anonymous(self):

@@ -170,11 +170,11 @@
   "model": "core.generalsettings",
   "pk": 17,
   "fields": {
-      "setting": "DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION",
+      "setting": "DELETE_RECORD_ATTACHMENTS_AT_VALIDATION",
       "parameters": {
           "type": "boolean",
           "value": true,
-          "description": "Si le paramètre est à 'true', les justificatifs sans date de validité seront supprimés après la validation d'une fiche visiteur"
+          "description": "Si le paramètre est à 'true', les justificatifs sans date de validité seront supprimés après la validation d'une fiche lycéen ou visiteur"
       }
   }
 },

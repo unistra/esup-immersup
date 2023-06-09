@@ -734,17 +734,18 @@ def ajax_validate_reject_student(request, validate):
 
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
-        hs = None
+        filter = {}
+
         all_highschools_conditions = [
             request.user.is_establishment_manager(),
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
         ]
 
-        if any(all_highschools_conditions):
-            hs = HighSchool.objects.all()
-        else:
-            hs = HighSchool.objects.filter(id=request.user.highschool.id)
+        if not any(all_highschools_conditions):
+            filter['id'] = request.user.highschool.id
+
+        hs = HighSchool.objects.filter(**filter)
 
         if hs:
             try:
@@ -774,7 +775,17 @@ def ajax_validate_reject_student(request, validate):
                 record.rejected_date = None if validate else timezone.now()
                 record.save()
 
-                # Todo : test send_message return value
+                for s in GeneralSettings.objects.all().order_by("setting"):
+                    print(s.setting)
+
+                # Delete attestations ?
+                if validate:
+                    delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
+                    if delete_attachments:
+                        # Delete only attestations that does not require a validity date
+                        for attestation in record.attestation.filter(requires_validity_date=False):
+                            attestation.delete()
+
                 template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
                 ret = record.student.send_message(request, template)
 
@@ -4434,7 +4445,7 @@ class VisitorRecordRejectValidate(View):
         if operation == "validate":
             validation_value = VisitorRecord.STATUSES["VALIDATED"]
             validation_email_template = "CPT_MIN_VALIDE"
-            delete_attachments = get_general_setting("DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION")
+            delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
         elif operation == "reject":
             validation_value = VisitorRecord.STATUSES["REJECTED"]
             validation_email_template = "CPT_MIN_REJET"
