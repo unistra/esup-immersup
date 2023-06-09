@@ -9,7 +9,7 @@ from immersionlyceens.apps.immersion.views import shibbolethLogin
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, affiliated_highschools, charter_not_signed, faq, home,
+    accompanying, charter_not_signed, faq, highschools, home,
     host_establishments, offer, offer_off_offer_events, offer_subdomain,
     procedure, serve_accompanying_document, serve_attestation_document,
     serve_immersup_file, serve_public_document, visits_offer,
@@ -22,7 +22,7 @@ urlpatterns = [
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
     path("accounts/", include("django.contrib.auth.urls")),
-    path('affiliated_highscools', affiliated_highschools, name='affiliated_highschools'),
+    path('highschools', highschools, name='highschools'),
     path('cas_accounts/', include('django_cas.urls', namespace='django_cas')),
     path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
