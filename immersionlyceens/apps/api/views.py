@@ -551,19 +551,33 @@ def slots(request):
             last_name=F('speakers__last_name'),
             first_name=F('speakers__first_name'),
             email=F('speakers__email')
-        ))
-
+        )),
+        allowed_establishments_list=ArrayAgg(F('allowed_establishments__short_label')),
+        allowed_highschools_list=ArrayAgg(JSONObject(
+            city=F('allowed_highschools__city'),
+            label=F('allowed_highschools__label')
+        )),
+        allowed_highschool_levels_list=ArrayAgg(F('allowed_highschool_levels__label')),
+        allowed_post_bachelor_levels_list=ArrayAgg(F('allowed_post_bachelor_levels__label')),
+        allowed_student_levels_list=ArrayAgg(F('allowed_student_levels__label')),
+        allowed_bachelor_types_list=ArrayAgg(F('allowed_bachelor_types__label')),
+        allowed_bachelor_mentions_list=ArrayAgg(F('allowed_bachelor_mentions__label')),
+        allowed_bachelor_teachings_list=ArrayAgg(F('allowed_bachelor_teachings__label')),
     ).values(
         'id', 'published', 'can_update_course_slot', 'can_update_visit_slot', 'can_update_event_slot',
         'can_update_registrations', 'course__id', 'course__label', 'course__training__label',
         'course_type__label', 'course__training__label', 'course_type__full_label', 'establishment_code',
         'establishment_short_label', 'establishment_label', 'structure_code', 'structure_label',
-        'structure_establishment_short_label', 'highschool_city', 'highschool_label', 'highschool_managed_by_me',
-        'visit__id', 'visit__purpose', 'course_type__label', 'course_type__full_label',
-        'event__id', 'event__event_type__label', 'event__label', 'event__description', 'date',
-        'start_time', 'end_time', 'campus__label', 'building__label', 'face_to_face', 'url',
-        'room', 'n_register', 'n_places', 'additional_information', 'attendances_value',
-        'attendances_status', 'speaker_list'
+        'structure_managed_by_me', 'structure_establishment_short_label', 'highschool_city',
+        'highschool_label', 'highschool_managed_by_me', 'visit__id', 'visit__purpose',
+        'course_type__label', 'course_type__full_label', 'event__id', 'event__event_type__label',
+        'event__label', 'event__description', 'date', 'start_time', 'end_time', 'campus__label',
+        'building__label', 'face_to_face', 'url', 'room', 'n_register', 'n_places',
+        'additional_information', 'attendances_value', 'attendances_status', 'speaker_list',
+        'establishments_restrictions', 'levels_restrictions', 'bachelors_restrictions',
+        'allowed_establishments_list', 'allowed_highschools_list', 'allowed_highschool_levels_list',
+        'allowed_post_bachelor_levels_list', 'allowed_student_levels_list', 'allowed_bachelor_types_list',
+        'allowed_bachelor_mentions_list', 'allowed_bachelor_teachings_list'
     )
 
     """

@@ -55,51 +55,51 @@ function init_datatable() {
             return (data) ? yes_text : no_text;
           }
         },
-        { data: 'structure',
+        { data: 'structure_code',
           render: function(data, type, row) {
-            if(row.structure) {
-                return row.establishment.code + " - " + row.structure.code;
+            if(row.structure_code) {
+              return `${row.establishment_code} - ${row.structure_code}`
             }
-            else if (row.highschool) {
-                return row.highschool.city + " - " + row.highschool.label;
+            else if (row.highschool_label) {
+              return `${row.highschool_city} - ${row.highschool_label}`
             }
 
             return ""
           },
         },
-        { data: "course",
+        { data: "course__id",
           render: function (data, type, row) {
             let txt = ""
 
-            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
-              txt = '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
-            } else {
-              txt = data.label
+            if(type === 'filter') {
+              return row.course__label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
             }
 
-            if(type === 'filter') {
-              return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
+              txt = `<a href="/core/course/${row.course__id}">${row.course_label}</a>`
+            } else {
+              txt = row.course__label
             }
 
             return txt
           },
         },
-        { data: 'course_type' },
-        { data: 'datetime',
+        { data: 'course_type__label' },
+        { data: 'date',
           render: function(data, type, row) {
             if(type === "display" || type === "filter") {
-              return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
+              return `<span>${row.date}</span><br><span>${row.start_time} - ${row.end_time}</span>`
             }
 
             return data;
           }
         },
-        { data: 'location',
+        { data: 'campus__label',
           render: function(data, type, row) {
-            let txt = data['campus'] + '<br>' + data['building'];
+            let txt = `${data}<br>${row.building_label}`;
 
             if(type === 'filter') {
-                return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
             }
 
             return txt
