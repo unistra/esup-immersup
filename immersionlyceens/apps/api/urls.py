@@ -28,7 +28,6 @@ urlpatterns = [
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
-    path('slots', views.slots, name='slots_list',),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_students_presence', views.ajax_get_student_presence, name='ajax_get_student_presence'),
     path(
@@ -72,6 +71,9 @@ urlpatterns = [
 
     # The following path may change to 'slots/' in a near future : please always use the 'name'
     path('slots/v2/', views.SlotList.as_view(), name='slot_list',),
+
+    # The old one :
+    path('slots', views.slots, name='slots_list',),
 
     # Speakers
     path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),

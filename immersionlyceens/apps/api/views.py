@@ -20,10 +20,10 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import (
-    Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
+    BooleanField, Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
     OuterRef, Q, QuerySet, Subquery, Value, When,
 )
-from django.db.models.functions import Coalesce, Concat, Greatest
+from django.db.models.functions import Coalesce, Concat, Greatest, JSONObject
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
@@ -217,15 +217,11 @@ def slots(request):
     Get slots list according to GET parameters
     :return:
     """
-
-    """
-    @TODO : rewrite this with a ListCreateAPIView and a nice serializer
-    """
-
-    response = {'msg': '', 'data': []}
-    can_update_attendances = False
     today = datetime.datetime.today()
     user = request.user
+    response = {'msg': '', 'data': []}
+
+    can_update_attendances = False
     user_filter = False
     user_slots = request.GET.get('user_slots', False) == 'true'
     filters = {}
@@ -242,7 +238,6 @@ def slots(request):
     establishment_id = request.GET.get('establishment_id')
     visits = request.GET.get('visits', False) == "true"
     events = request.GET.get('events', False) == "true"
-    courses = not (visits or events) # unused, still useful somewhere ?
     past_slots = request.GET.get('past', False) == "true"
 
     try:
@@ -374,50 +369,208 @@ def slots(request):
     user_establishment = user.establishment
     user_highschool = user.highschool
 
+    slots = slots.annotate(
+        can_update_course_slot=Case(
+            When(course__isnull=True, then=False),
+            When(
+                Q(Value(user.is_master_establishment_manager())) | Q(Value(user.is_operator())),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_establishment_manager())) & Q(course__structure__establishment=user_establishment),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_structure_manager())) & Q(course__structure__in=allowed_structures),
+                then=True
+            ),
+            default=False
+        ),
+        can_update_visit_slot=Case(
+            When(visit__isnull=True, then=False),
+            When(
+                Q(Value(user.is_master_establishment_manager())) | Q(Value(user.is_operator())),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_establishment_manager())) & Q(visit__establishment=user_establishment),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_structure_manager())) & Q(visit__structure__in=allowed_structures),
+                then=True
+            ),
+            default=False
+        ),
+        can_update_event_slot=Case(
+            When(event__isnull=True, then=False),
+            When(
+                Q(Value(user.is_master_establishment_manager())) | Q(Value(user.is_operator())),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_establishment_manager())) & Q(event__establishment=user_establishment),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_structure_manager())) & Q(event__structure__in=allowed_structures),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_high_school_manager())) & Q(event__highschool=user_highschool),
+                then=True
+            ),
+            default=False
+        ),
+        can_update_registrations=Case(
+            When(
+                Q(Value(user.is_master_establishment_manager())) | Q(Value(user.is_operator())),
+                then=True
+            ),
+            When(
+                Q(Value(user.is_establishment_manager()))
+                & (Q(course__structure__establishment=user_establishment) | Q(event__establishment=user_establishment)),
+                then=True
+            ),
+            When(
+                Q(published=True) & (
+                    Q(Value(user.is_structure_consultant()),
+                      Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures))
+                    | Q(Value(user.is_structure_manager()),
+                        Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures))
+                    | Q(Value(user.is_high_school_manager()),
+                        Q(course__highschool=user_highschool) | Q(event__highschool=user_highschool))
+                ),
+                then=True
+            ),
+            default=False
+        ),
+        can_update_attendances=Case(
+            When(
+                Q(Q(ExpressionWrapper(F('can_update_registrations'), output_field=BooleanField()))
+                  & Q(Value(can_update_attendances)))
+                | (Q(Value(user.is_speaker())) & Q(speakers=user)),
+                then=True
+            ),
+            default=False
+        ),
+        establishment_code=Coalesce(
+            F('course__structure__establishment__code'),
+            F('event__establishment__code'),
+            F('visit__establishment__code')
+        ),
+        establishment_label=Coalesce(
+            F('course__structure__establishment__label'),
+            F('event__establishment__label'),
+            F('visit__establishment__label')
+        ),
+        establishment_short_label=Coalesce(
+            F('course__structure__establishment__short_label'),
+            F('event__establishment__short_label'),
+            F('visit__establishment__short_label')
+        ),
+        structure_code=Coalesce(
+            F('course__structure__code'),
+            F('event__structure__code'),
+            F('visit__structure__code')
+        ),
+        structure_label=Coalesce(
+            F('course__structure__label'),
+            F('event__structure__label'),
+            F('visit__structure__label')
+        ),
+        structure_establishment_short_label=Coalesce(
+            F('course__structure__establishment__short_label'),
+            F('event__structure__establishment__short_label'),
+            F('visit__structure__establishment__short_label')
+        ),
+        structure_managed_by_me=Case(
+            When(
+                Q(course__structure__in=allowed_structures) |
+                Q(event__structure__in=allowed_structures) |
+                Q(visit__structure__in=allowed_structures),
+                then=True
+            ),
+            default=False
+        ),
+        highschool_city=Coalesce(
+            F('course__highschool__city'),
+            F('event__highschool__city'),
+            F('visit__highschool__city')
+        ),
+        highschool_label=Coalesce(
+            F('course__highschool__label'),
+            F('event__highschool__label'),
+            F('visit__highschool__label')
+        ),
+        highschool_managed_by_me=Case(
+            When(
+                Q(Value(user.is_establishment_manager())) | Q(Value(user.is_operator()))
+              | (Q(Value(user.is_high_school_manager())) &
+                 Q(course__highschool=user_highschool)
+               | Q(event__highschool=user_highschool)
+               | Q(visit__highschool=user_highschool)),
+                then=True
+            ),
+            default=False
+        ),
+        n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True)),
+        is_past=ExpressionWrapper(Q(date__lt=today), output_field=BooleanField()),
+        valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True)),
+        attendances_to_enter=Count(
+            'immersions',
+            filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+        ),
+        attendances_value=Case(
+            When(
+                Q(is_past=False),
+                then=0
+            ),
+            When(
+                ~Q(Value(can_update_attendances))
+                | ((Q(Value(events)) | Q(Value(visits))) & Q(face_to_face=False)),
+                then=Value(2)
+            ),
+            When(
+                Q(attendances_to_enter=0),
+                then=Value(-1)
+            ),
+            When(
+                Q(attendances_to_enter__gt=0),
+                then=Value(1)
+            ),
+            default=Value(1)
+        ),
+        attendances_status=Case(
+            When(Q(is_past=False), then=Value(gettext("Future slot"))),
+            When(Q(attendances_value=2), then=Value(gettext("University year is over"))),
+            When(Q(attendances_value=1), then=Value(gettext("To enter"))),
+            default=Value('')
+        ),
+        speaker_list=ArrayAgg(JSONObject(
+            last_name=F('speakers__last_name'),
+            first_name=F('speakers__first_name'),
+            email=F('speakers__email')
+        ))
+
+    ).values(
+        'id', 'published', 'can_update_course_slot', 'can_update_visit_slot', 'can_update_event_slot',
+        'can_update_registrations', 'course__id', 'course__label', 'course__training__label',
+        'course_type__label', 'course__training__label', 'course_type__full_label', 'establishment_code',
+        'establishment_short_label', 'establishment_label', 'structure_code', 'structure_label',
+        'structure_establishment_short_label', 'highschool_city', 'highschool_label', 'highschool_managed_by_me',
+        'visit__id', 'visit__purpose', 'course_type__label', 'course_type__full_label',
+        'event__id', 'event__event_type__label', 'event__label', 'event__description', 'date',
+        'start_time', 'end_time', 'campus__label', 'building__label', 'face_to_face', 'url',
+        'room', 'n_register', 'n_places', 'additional_information', 'attendances_value',
+        'attendances_status', 'speaker_list'
+    )
+
+    """
     for slot in slots.order_by('date', 'start_time'):
         establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
-
-        allowed_course_slot_update_conditions = [
-            user.is_master_establishment_manager() and slot.course,
-            user.is_operator() and slot.course,
-            user.is_establishment_manager() and slot.course and slot.course.structure.establishment == user_establishment,
-            user.is_structure_manager() and slot.course and slot.course.structure in allowed_structures
-        ]
-
-        allowed_visit_slot_update_conditions = [
-            user.is_master_establishment_manager(),
-            user.is_operator(),
-            user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
-            user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
-        ]
-
-        allowed_event_slot_update_conditions = [
-            user.is_master_establishment_manager() and slot.event,
-            user.is_operator() and slot.event,
-            user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
-            user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
-            user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
-        ]
-
-        registrations_update_conditions = [
-            user.is_master_establishment_manager(),
-            user.is_operator(),
-            user.is_establishment_manager() and establishment == user_establishment,
-            slot.published and (
-                    (user.is_structure_consultant() and structure in allowed_structures) or
-                    (user.is_structure_manager() and structure in allowed_structures) or
-                    ((slot.course or slot.event) and user.is_high_school_manager()
-                     and highschool and highschool == user_highschool
-                     )
-            ),
-        ]
-
-        update_attendances_conditions = [
-            registrations_update_conditions,
-            user.is_speaker() and user in slot.speakers.all()
-        ]
 
         if slot.course and slot.course.training and slot.course_type:
             training_label = f'{slot.course.training.label} ({slot.course_type.label})'
@@ -441,17 +594,7 @@ def slots(request):
             slot_datetime = ""
 
         data = {
-            'id': slot.id,
-            'published': slot.published,
-            'can_update_course_slot': slot.course and any(allowed_course_slot_update_conditions),
-            'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
-            'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
-            'can_update_registrations': any(registrations_update_conditions),
-            'can_update_attendances': can_update_attendances and any(update_attendances_conditions),
-            'course': {
-                'id': slot.course.id,
-                'label': slot.course.label
-            } if slot.course else None,
+
             'training_label': training_label,
             'training_label_full': training_label_full,
             'establishment': {
@@ -497,7 +640,7 @@ def slots(request):
             'face_to_face': slot.face_to_face,
             'url': slot.url,
             'room': slot.room or '-',
-            'speakers': {},
+    =>      'speakers': {},
             'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'restrictions': {
@@ -547,8 +690,9 @@ def slots(request):
             data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)], )
 
         all_data.append(data.copy())
+    """
 
-    response['data'] = all_data
+    response['data'] = list(slots)
 
     return JsonResponse(response, safe=False)
 
