@@ -137,6 +137,7 @@ def test():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
@@ -185,6 +186,7 @@ def test2():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     #env.use_unistra_theme='false'
     env.extra_symlink_dirs = ['media']
@@ -235,6 +237,7 @@ def preprod():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -282,6 +285,7 @@ def preprod_lorraine():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -329,6 +333,7 @@ def preprod_bordeaux():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -377,6 +382,7 @@ def preprod_caen():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -424,6 +430,7 @@ def preprod_stetienne():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -470,8 +477,9 @@ def prod():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
         'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID"
+        'matomo_site_id': "MATOMO_SITE_ID",
     }
     execute(build_env)
 
@@ -519,6 +527,7 @@ def prod_lorraine():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -566,6 +575,7 @@ def prod_bordeaux():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -613,6 +623,7 @@ def prod_stetienne():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -660,6 +671,7 @@ def prod_caen():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 

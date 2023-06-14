@@ -1,7 +1,7 @@
 import os
 import socket
 from os import environ
-from os.path import normpath
+from os.path import normpath, join, isdir
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -130,3 +130,12 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 
 # Use hash prefixed static files
 STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
+
+# Extra locales
+EXTRA_LOCALE_PATH = '{{ extra_locale_path }}'
+
+if EXTRA_LOCALE_PATH:
+    EXTRA_LOCALE_DIR = normpath(join(DJANGO_ROOT, EXTRA_LOCALE_PATH))
+
+    if isdir(EXTRA_LOCALE_DIR):
+        LOCALE_PATHS = [EXTRA_LOCALE_DIR] + LOCALE_PATHS
