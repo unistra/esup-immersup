@@ -370,6 +370,16 @@ def slots(request):
     user_highschool = user.highschool
 
     slots = slots.annotate(
+        course_label=F('course__label'),
+        course_training_label=F('course__training__label'),
+        course_type_label=F('course_type__label'),
+        course_type_full_label=F('course_type__full_label'),
+        visit_purpose=F('visit__purpose'),
+        event_type_label =F('event__event_type__label'),
+        event_label=F('event__label'),
+        event_description=F('event__description'),
+        campus_label=F('campus__label'),
+        building_label=F('building__label'),
         can_update_course_slot=Case(
             When(course__isnull=True, then=False),
             When(
@@ -514,12 +524,13 @@ def slots(request):
             ),
             default=False
         ),
-        n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True)),
+        n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
         is_past=ExpressionWrapper(Q(date__lt=today), output_field=BooleanField()),
-        valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True)),
+        valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
         attendances_to_enter=Count(
             'immersions',
-            filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+            filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
+            distinct=True
         ),
         attendances_value=Case(
             When(
@@ -547,37 +558,100 @@ def slots(request):
             When(Q(attendances_value=1), then=Value(gettext("To enter"))),
             default=Value('')
         ),
-        speaker_list=ArrayAgg(JSONObject(
-            last_name=F('speakers__last_name'),
-            first_name=F('speakers__first_name'),
-            email=F('speakers__email')
-        )),
-        allowed_establishments_list=ArrayAgg(F('allowed_establishments__short_label')),
-        allowed_highschools_list=ArrayAgg(JSONObject(
-            city=F('allowed_highschools__city'),
-            label=F('allowed_highschools__label')
-        )),
-        allowed_highschool_levels_list=ArrayAgg(F('allowed_highschool_levels__label')),
-        allowed_post_bachelor_levels_list=ArrayAgg(F('allowed_post_bachelor_levels__label')),
-        allowed_student_levels_list=ArrayAgg(F('allowed_student_levels__label')),
-        allowed_bachelor_types_list=ArrayAgg(F('allowed_bachelor_types__label')),
-        allowed_bachelor_mentions_list=ArrayAgg(F('allowed_bachelor_mentions__label')),
-        allowed_bachelor_teachings_list=ArrayAgg(F('allowed_bachelor_teachings__label')),
-    ).values(
+        speaker_list=Coalesce(
+            ArrayAgg(
+                JSONObject(
+                    last_name=F('speakers__last_name'),
+                    first_name=F('speakers__first_name'),
+                    email=F('speakers__email')
+                ),
+                filter=Q(speakers__isnull=False),
+                distinct=True),
+            Value([]),
+        ),
+        allowed_establishments_list=Coalesce(
+            ArrayAgg(
+                F('allowed_establishments__short_label'),
+                filter=Q(allowed_establishments__isnull=False),
+                distinct=True
+            ),
+            Value([]),
+        ),
+        allowed_highschools_list=Coalesce(
+            ArrayAgg(
+                JSONObject(
+                    city=F('allowed_highschools__city'),
+                    label=F('allowed_highschools__label')
+                ),
+                filter=Q(allowed_highschools__isnull=False),
+                distinct=True),
+            Value([]),
+        ),
+        allowed_highschool_levels_list=Coalesce(
+            ArrayAgg(
+                F('allowed_highschool_levels__label'),
+                filter=Q(allowed_highschool_levels__isnull=False),
+                distinct=True
+            ),
+            Value([]),
+        ),
+        allowed_post_bachelor_levels_list=Coalesce(
+            ArrayAgg(
+                F('allowed_post_bachelor_levels__label'),
+                filter=Q(allowed_post_bachelor_levels__isnull=False),
+                distinct=True
+            ),
+            Value([]),
+        ),
+        allowed_student_levels_list=Coalesce(
+            ArrayAgg(
+                F('allowed_student_levels__label'),
+                filter=Q(allowed_student_levels__isnull=False),
+                distinct=True
+            ),
+            Value([]),
+        ),
+        allowed_bachelor_types_list=Coalesce(
+            ArrayAgg(
+                F('allowed_bachelor_types__label'),
+                filter=Q(allowed_bachelor_types__isnull=False),
+                distinct=True
+            ),
+            Value([])
+        ),
+        allowed_bachelor_mentions_list=Coalesce(
+            ArrayAgg(
+                F('allowed_bachelor_mentions__label'),
+                filter=Q(allowed_bachelor_mentions__isnull=False),
+                distinct=True
+            ),
+            Value([])
+        ),
+        allowed_bachelor_teachings_list=Coalesce(
+            ArrayAgg(
+                F('allowed_bachelor_teachings__label'),
+                filter=Q(allowed_bachelor_teachings__isnull=False),
+                distinct=True
+            ),
+            Value([])
+        )
+    )\
+    .order_by('date', 'start_time')\
+    .values(
         'id', 'published', 'can_update_course_slot', 'can_update_visit_slot', 'can_update_event_slot',
-        'can_update_registrations', 'course__id', 'course__label', 'course__training__label',
-        'course_type__label', 'course__training__label', 'course_type__full_label', 'establishment_code',
+        'can_update_registrations', 'course_id', 'course_label', 'course_training_label',
+        'course_type_label', 'course_type_full_label', 'establishment_code',
         'establishment_short_label', 'establishment_label', 'structure_code', 'structure_label',
         'structure_managed_by_me', 'structure_establishment_short_label', 'highschool_city',
-        'highschool_label', 'highschool_managed_by_me', 'visit__id', 'visit__purpose',
-        'course_type__label', 'course_type__full_label', 'event__id', 'event__event_type__label',
-        'event__label', 'event__description', 'date', 'start_time', 'end_time', 'campus__label',
-        'building__label', 'face_to_face', 'url', 'room', 'n_register', 'n_places',
-        'additional_information', 'attendances_value', 'attendances_status', 'speaker_list',
-        'establishments_restrictions', 'levels_restrictions', 'bachelors_restrictions',
-        'allowed_establishments_list', 'allowed_highschools_list', 'allowed_highschool_levels_list',
-        'allowed_post_bachelor_levels_list', 'allowed_student_levels_list', 'allowed_bachelor_types_list',
-        'allowed_bachelor_mentions_list', 'allowed_bachelor_teachings_list'
+        'highschool_label', 'highschool_managed_by_me', 'visit_id', 'visit_purpose',
+        'event_id', 'event_type_label', 'event_label', 'event_description', 'date',
+        'start_time', 'end_time', 'campus_label', 'building_label', 'face_to_face', 'url',
+        'room', 'n_register', 'n_places', 'additional_information', 'attendances_value',
+        'attendances_status', 'speaker_list', 'establishments_restrictions', 'levels_restrictions',
+        'bachelors_restrictions', 'allowed_establishments_list', 'allowed_highschools_list',
+        'allowed_highschool_levels_list', 'allowed_post_bachelor_levels_list',
+        'allowed_student_levels_list', 'allowed_bachelor_types_list', 'allowed_bachelor_mentions_list',
+        'allowed_bachelor_teachings_list', 'is_past'
     )
 
     """
@@ -1943,12 +2017,9 @@ def ajax_get_available_students(request, slot_id):
         technological_bachelor_mention=F('high_school_student_record__technological_bachelor_mention__label'),
         general_bachelor_teachings_ids=ArrayAgg(
             F('high_school_student_record__general_bachelor_teachings__id'),
-            ordering='high_school_student_record__general_bachelor_teachings__id'
+            ordering='high_school_student_record__general_bachelor_teachings__id',
+            distinct=True
         ),
-        general_bachelor_teachings_labels=ArrayAgg(
-            F('high_school_student_record__general_bachelor_teachings__label'),
-            ordering='high_school_student_record__general_bachelor_teachings__id'
-        )
     )
 
     students = students.values(
@@ -1956,7 +2027,7 @@ def ajax_get_available_students(request, slot_id):
         "institution_uai_code", "city", "class_name", "profile", "profile_name", "level", "level_id",
         "post_bachelor_level", "post_bachelor_level_id", "bachelor_type_id", "bachelor_type",
         "technological_bachelor_mention_id", "technological_bachelor_mention", "general_bachelor_teachings_ids",
-        "general_bachelor_teachings_labels", "bachelor_type_is_professional"
+        "bachelor_type_is_professional"
     )
 
     response['data'] = [s for s in students]

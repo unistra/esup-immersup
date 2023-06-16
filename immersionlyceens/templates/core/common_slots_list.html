@@ -19,10 +19,11 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
 {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
 {% endif %}
 <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}

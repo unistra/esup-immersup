@@ -2,6 +2,7 @@ function init_datatable() {
   show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
   show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
   show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
+
   dt = $('#slots_list').DataTable({
     ajax: {
       url: '/api/slots',
@@ -31,7 +32,7 @@ function init_datatable() {
     serverSide: false,
     responsive: false,
     info: false,
-    search: true,
+    searching: true,
     searchCols: [
         null,
         null,
@@ -67,36 +68,37 @@ function init_datatable() {
             return ""
           },
         },
-        { data: "course__id",
+        { data: "course_id",
           render: function (data, type, row) {
             let txt = ""
 
             if(type === 'filter') {
-              return row.course__label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              return row.course_label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
             }
 
             if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
-              txt = `<a href="/core/course/${row.course__id}">${row.course_label}</a>`
+              txt = `<a href="/core/course/${row.course_id}">${row.course_label}</a>`
             } else {
-              txt = row.course__label
+              txt = row.course_label
             }
 
             return txt
           },
         },
-        { data: 'course_type__label' },
+        { data: 'course_type_label' },
         { data: 'date',
           render: function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return `<span>${row.date}</span><br><span>${row.start_time} - ${row.end_time}</span>`
-            }
-
-            return data;
+            return display_slot_date(data, type, row)
           }
         },
-        { data: 'campus__label',
+        { data: 'campus_label',
           render: function(data, type, row) {
-            let txt = `${data}<br>${row.building_label}`;
+            let campus_label = data
+            let building_label = row.building_label
+
+            let txt = is_set(campus_label) ? campus_label : ''
+            txt += txt !== '' ? '<br>' : ''
+            txt += is_set(building_label) ? building_label : ''
 
             if(type === 'filter') {
               return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -107,6 +109,10 @@ function init_datatable() {
         },
         { data: 'room',
           render: function (data, type, row) {
+            if(!is_set(data)) {
+                return ''
+            }
+
             if(type === 'filter') {
               return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
             }
@@ -114,160 +120,54 @@ function init_datatable() {
             return data
           }
         },
-        { data: 'speakers',
+        { data: 'speaker_list',
           render: function(data, type, row) {
-            let element = '';
-            $.each(data, function(name, email) {
-              element += '<a href="mailto:' + email + '">' + name + '</a><br>'
-            });
-
-            if(type === 'filter') {
-              return element.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-            }
-
-            return element;
+            return display_slot_speakers(data, type, row)
           }
         },
         { data: 'n_register',
           render: function(data, type, row) {
-            let current = data;
-            let n = row['n_places'];
-            element = '<span>' + current + '/' + n + '</span>' +
-                '<div class="progress">' +
-                '    <div' +
-                '       class="progress-bar"' +
-                '       role="progressbar"' +
-                '       aria-valuenow="' + current + '"' +
-                '       aria-valuemin="0"' +
-                '       aria-valuemax="' + n + '"' +
-                '       style="width: ' + Math.round(current/n * 100) + '%"' +
-                '></div>' +
-                '</div>';
-            return element;
+            return display_n_register(data, type, row);
           }
         },
         { data: 'additional_information',
           render: function(data) {
-            if (data) {
-              return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
-            } else {
-              return '';
-            }
+            return display_additional_information(data)
           }
         },
-        { data: 'restrictions',
-          render: function(data) {
-            let establishment_restrictions = ""
-            let levels_restrictions = ""
-            let span_txt = ""
-            let bachelors_types = ""
-            let bachelors_mentions = ""
-            let bachelors_teachings = ""
-
-            if(data.establishment_restrictions === true) {
-              establishment_restrictions += establishments_txt + " :\n"
-              data.allowed_establishments.forEach(item => {
-                establishment_restrictions += "- " + item + "\n"
-              })
-
-              data.allowed_highschools.forEach(item => {
-                establishment_restrictions += "- " + item + "\n"
-              })
-            }
-
-            if(data.levels_restrictions === true) {
-
-
-              levels_restrictions += levels_txt + " :\n"
-
-              data.allowed_highschool_levels.forEach(item => {
-                levels_restrictions += "- " + item + "\n"
-              })
-
-              data.allowed_post_bachelor_levels.forEach(item => {
-                levels_restrictions += "- " + item + "\n"
-              })
-
-              data.allowed_student_levels.forEach(item => {
-                levels_restrictions += "- " + item + "\n"
-              })
-            }
-
-            if(data.bachelors_restrictions === true) {
-              if(data.allowed_bachelor_types.length >0){
-                bachelors_types += bachelors_txt + " :\n"
-                data.allowed_bachelor_types.forEach(item => {
-                  bachelors_types += "- " + item + "\n"
-                })
-              }
-
-              if(data.allowed_bachelor_mentions.length > 0) {
-                bachelors_mentions += allowed_mentions_txt  + " :\n"
-                data.allowed_bachelor_mentions.forEach(item => {
-                  bachelors_mentions += "- " + item + "\n"
-                })
-              }
-
-              if(data.allowed_bachelor_teachings.length > 0) {
-                bachelors_teachings += allowed_teachings_txt  + " :\n"
-                data.allowed_bachelor_teachings.forEach(item => {
-                  bachelors_teachings += "- " + item + "\n"
-                })
-              }
-            }
-
-            if (establishment_restrictions.length > 0) {
-              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + establishment_restrictions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + establishments_txt + '</li>'
-            }
-
-            if (levels_restrictions.length > 0) {
-              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + levels_restrictions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + levels_txt + '</li>'
-            }
-
-            if (bachelors_types.length > 0) {
-              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + bachelors_types + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + bachelors_txt + '</li>'
-            }
-
-            if (bachelors_mentions.length > 0) {
-              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + bachelors_mentions + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + allowed_mentions_txt + '</li>'
-            }
-
-            if (bachelors_teachings.length > 0) {
-              span_txt += '<li data-toggle="tooltip" data-container="body" title="' + bachelors_teachings + '"><i class="fa fas fa-info-circle fa-fw"></i> ' + allowed_teachings_txt + '</li>'
-            }
-
-            return '<ul class="list-unstyled">' + span_txt + '<ul>'
+        { data: '',
+          render: function(data, type, row) {
+            // Use common slots function
+            return display_slot_restrictions(data, type, row)
           }
         },
         { data: 'id',
           render: function(data, type, row) {
             let element = ""
-            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me ){
+
+            if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
               if ( show_duplicate_btn ) {
-                element += '<a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
-                           'title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
+                element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
+                           `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
               }
 
               if(row.is_past === false && show_modify_btn) {
-                element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="' + modify_text + '"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
+                element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
               }
               if(row.n_register === 0 && row.is_past === false && show_delete_btn) {
-                element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="' + delete_text + '"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
+                element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
               }
 
               if(row.attendances_value === 1) {
-                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+","+row.face_to_face+")\" title=\"" + attendances_text + "\">" +
-                           "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
-                           "</button>";
+                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places} , ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+                           `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
+                           `</button>`;
               }
               else if (row.attendances_value !== -1) {
-                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+")\" title=\"" + registered_text + "\">" +
-                           "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
-                           "</button>";
+                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+                           `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
+                           `</button>`;
               }
-
-              element += "</div>";
-
             }
             return element;
           }
@@ -350,6 +250,10 @@ function init_datatable() {
 
   $('#filter_past_slots').click(function () {
     dt.ajax.reload();
+  });
+
+  dt.on( 'draw', function () {
+    $('[data-toggle="tooltip"]').tooltip();
   });
 
   yadcf.init(dt, [

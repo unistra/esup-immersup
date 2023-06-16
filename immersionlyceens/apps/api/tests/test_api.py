@@ -728,15 +728,15 @@ class APITestCase(TestCase):
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.past_slot.id)
         self.assertEqual(slot['published'], self.past_slot.published)
-        self.assertEqual(slot['course']['label'], self.past_slot.course.label)
-        self.assertEqual(slot['structure']['code'], self.past_slot.course.structure.code)
-        self.assertTrue(slot['structure']['managed_by_me'])
-        self.assertEqual(slot['course_type'], self.past_slot.course_type.label)
-        self.assertEqual(slot['date'], _date(self.today - timedelta(days=1), 'l d/m/Y'))
-        self.assertEqual(slot['time']['start'], '12h00')
-        self.assertEqual(slot['time']['end'], '14h00')
-        self.assertEqual(slot['location']['campus'], self.past_slot.campus.label)
-        self.assertEqual(slot['location']['building'], self.past_slot.building.label)
+        self.assertEqual(slot['course_label'], self.past_slot.course.label)
+        self.assertEqual(slot['structure_code'], self.past_slot.course.structure.code)
+        self.assertTrue(slot['structure_managed_by_me'])
+        self.assertEqual(slot['course_type_label'], self.past_slot.course_type.label)
+        self.assertEqual(slot['date'], (self.today - timedelta(days=1)).strftime("%Y-%m-%d"))
+        self.assertEqual(slot['start_time'], '12:00:00')
+        self.assertEqual(slot['end_time'], '14:00:00')
+        self.assertEqual(slot['campus_label'], self.past_slot.campus.label)
+        self.assertEqual(slot['building_label'], self.past_slot.building.label)
         self.assertEqual(slot['room'], self.past_slot.room)
         self.assertEqual(slot['n_register'], self.past_slot.registered_students())
         self.assertEqual(slot['n_places'], self.past_slot.n_places)
@@ -795,6 +795,15 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], slot.id)
+        self.assertEqual(content['data'][0]['visit_id'], slot.visit.id)
+        self.assertEqual(content['data'][0]['visit_purpose'], slot.visit.purpose)
+        self.assertEqual(content['data'][0]['establishment_code'], slot.visit.establishment.code)
+        self.assertEqual(content['data'][0]['establishment_label'], slot.visit.establishment.label)
+        self.assertEqual(content['data'][0]['establishment_short_label'], slot.visit.establishment.short_label)
+        self.assertEqual(content['data'][0]['structure_code'], slot.visit.structure.code)
+        self.assertEqual(content['data'][0]['structure_label'], slot.visit.structure.label)
+        self.assertEqual(content['data'][0]['highschool_city'], slot.visit.highschool.city)
+        self.assertEqual(content['data'][0]['highschool_label'], slot.visit.highschool.label)
 
 
     def test_API_get_events_slots(self):
@@ -804,6 +813,7 @@ class APITestCase(TestCase):
             highschool=self.high_school,
             event_type=self.event_type,
             label="Whatever",
+            description="The event description",
             published=True
         )
 
@@ -825,6 +835,18 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], slot.id)
+        self.assertEqual(content['data'][0]['event_id'], slot.event.id)
+        self.assertEqual(content['data'][0]['event_label'], slot.event.label)
+        self.assertEqual(content['data'][0]['event_type_label'], slot.event.event_type.label)
+        self.assertEqual(content['data'][0]['establishment_code'], slot.event.establishment.code)
+        self.assertEqual(content['data'][0]['establishment_label'], slot.event.establishment.label)
+        self.assertEqual(content['data'][0]['establishment_short_label'], slot.event.establishment.short_label)
+        self.assertEqual(content['data'][0]['structure_code'], slot.event.structure.code)
+        self.assertEqual(content['data'][0]['structure_label'], slot.event.structure.label)
+        self.assertEqual(content['data'][0]['highschool_city'], slot.event.highschool.city)
+        self.assertEqual(content['data'][0]['highschool_label'], slot.event.highschool.label)
+        self.assertEqual(content['data'][0]['event_description'], slot.event.description)
+
 
     def test_course_slot_creation(self):
         """
@@ -1977,22 +1999,16 @@ class APITestCase(TestCase):
         s = content['data'][0]
         self.assertEqual(self.highschool_slot.id, s['id'])
         self.assertEqual(self.highschool_slot.published, s['published'])
-        self.assertEqual(self.high_school.city, s['highschool']['city'])
-        self.assertEqual(self.high_school.label, s['highschool']['label'])
-        self.assertEqual(
-            f'{self.highschool_slot.course.training.label} ({self.highschool_slot.course_type.label})',
-            s['training_label']
-        )
-        self.assertEqual(
-            f'{self.highschool_slot.course.training.label} ({self.highschool_slot.course_type.full_label})',
-            s['training_label_full']
-        )
-        self.assertEqual("", s['location']['campus'])
+        self.assertEqual(self.high_school.city, s['highschool_city'])
+        self.assertEqual(self.high_school.label, s['highschool_label'])
+        self.assertEqual(self.highschool_slot.course.training.label, s['course_training_label'])
+        self.assertEqual(self.highschool_slot.course_type.label, s['course_type_label'])
+        self.assertEqual(self.highschool_slot.course_type.full_label, s['course_type_full_label'])
+        self.assertEqual(s['campus_label'], None)
         self.assertEqual(self.highschool_slot.room, s['room'])
-
-        self.assertEqual(_date(self.highschool_slot.date, 'l d/m/Y'), s['date'])
-        self.assertEqual(self.highschool_slot.start_time.strftime("%Hh%M"), s['time']['start'])
-        self.assertEqual(self.highschool_slot.end_time.strftime("%Hh%M"), s['time']['end'])
+        self.assertEqual(self.highschool_slot.date.strftime("%Y-%m-%d"), s['date'])
+        self.assertEqual(self.highschool_slot.start_time.strftime("%H:%M:%S"), s['start_time'])
+        self.assertEqual(self.highschool_slot.end_time.strftime("%H:%M:%S"), s['end_time'])
 
         # as a "structure" speaker
         request.user = self.speaker1
@@ -2006,25 +2022,20 @@ class APITestCase(TestCase):
         s = content['data'][0]
         self.assertEqual(self.past_slot.id, s['id'])
         self.assertEqual(self.past_slot.published, s['published'])
-        self.assertEqual(self.past_slot.course.structure.code, s['structure']['code'])
-        self.assertEqual(
-            f'{self.past_slot.course.training.label} ({self.past_slot.course_type.label})',
-            s['training_label']
-        )
-        self.assertEqual(
-            f'{self.past_slot.course.training.label} ({self.past_slot.course_type.full_label})',
-            s['training_label_full']
-        )
-        self.assertEqual(self.past_slot.campus.label, s['location']['campus'])
-        self.assertEqual(self.past_slot.building.label, s['location']['building'])
+        self.assertEqual(self.past_slot.course.structure.code, s['structure_code'])
+        self.assertEqual(self.past_slot.course.training.label, s['course_training_label'])
+        self.assertEqual(self.past_slot.course_type.label, s['course_type_label'])
+        self.assertEqual(self.past_slot.course_type.full_label, s['course_type_full_label'])
+        self.assertEqual(self.past_slot.campus.label, s['campus_label'])
+        self.assertEqual(self.past_slot.building.label, s['building_label'])
 
         self.assertEqual(self.past_slot.room, s['room'])
 
-        self.assertEqual(_date(self.past_slot.date, 'l d/m/Y'), s['date'])
-        self.assertEqual(self.past_slot.start_time.strftime("%Hh%M"), s['time']['start'])
-        self.assertEqual(self.past_slot.end_time.strftime("%Hh%M"), s['time']['end'])
+        self.assertEqual(self.past_slot.date.strftime("%Y-%m-%d"), s['date'])
+        self.assertEqual(self.past_slot.start_time.strftime("%H:%M:%S"), s['start_time'])
+        self.assertEqual(self.past_slot.end_time.strftime("%H:%M:%S"), s['end_time'])
 
-        self.assertEqual(self.past_slot.course.label, s['course']['label'])
+        self.assertEqual(self.past_slot.course.label, s['course_label'])
         # TODO: speakers
         self.assertEqual(self.past_slot.n_places, s['n_places'])
         self.assertEqual(self.past_slot.registered_students(), s['n_register'])
@@ -2422,7 +2433,6 @@ class APITestCase(TestCase):
             'technological_bachelor_mention_id': None,
             'technological_bachelor_mention': None,
             'general_bachelor_teachings_ids': [None],
-            'general_bachelor_teachings_labels': [None]
         })
 
         # Student
@@ -2448,7 +2458,6 @@ class APITestCase(TestCase):
             'technological_bachelor_mention_id': None,
             'technological_bachelor_mention': None,
             'general_bachelor_teachings_ids': [None],
-            'general_bachelor_teachings_labels': [None]
         })
 
         # Unknown slot
