@@ -5,7 +5,7 @@ function init_datatable() {
 
   dt = $('#slots_list').DataTable({
     ajax: {
-      url: '/api/slots',
+      url: "/core/utils/slots",
       data: function(d) {
           d.training_id = current_training_id || $('#id_training').val();
 

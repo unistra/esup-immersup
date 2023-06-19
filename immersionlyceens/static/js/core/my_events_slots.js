@@ -68,7 +68,7 @@ function init_datatable() {
     'serverSide': false,
     'responsive': false,
     'ajax': {
-      url: "/api/slots",
+      url: "/core/utils/slots",
       data: function(d) {
         d.past = $('#filter_past_slots').is(':checked')
         d.visits = false
