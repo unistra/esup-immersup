@@ -319,6 +319,9 @@ def course(request, course_id=None, duplicate=False):
             if course_form.is_valid():
                 new_course = course_form.save()
 
+                if "courses" not in request.session:
+                    request.session["courses"] = {}
+
                 request.session["courses"].update({
                     "current_structure_id": new_course.structure.id if new_course.structure else "",
                     "current_highschool_id": new_course.highschool.id if new_course.highschool else "",
