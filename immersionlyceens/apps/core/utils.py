@@ -479,3 +479,47 @@ def slots(request):
     response['data'] = list(slots)
 
     return JsonResponse(response, safe=False)
+
+
+def set_session_values(request):
+    """
+    Keep selected object id in session
+    """
+    pagename = request.POST.get('pagename', None)
+    values = request.POST.get('values', "")
+
+    try:
+        values = json.loads(values)
+    except:
+        # bad format
+        return JsonResponse({}, safe=False)
+
+    if not pagename:
+        return JsonResponse({}, safe=False)
+
+    if not values and pagename in request.session:
+        # clear
+        for k, v in request.session[pagename].items():
+            request.session[pagename][k] = ""
+
+    elif values and isinstance(values, dict):
+        if pagename not in request.session:
+            request.session[pagename] = {}
+
+        for k, v in values.items():
+            request.session[pagename][k] = v
+
+    request.session.modified = True
+
+    return JsonResponse({}, safe=False)
+
+def get_session_value(request, pagename, name):
+    """
+    Get value of 'name' for page 'pagename' in session
+    """
+    print(f"get {pagename} / {name} = {request.session.get(pagename)}")
+
+    if all([name, pagename]):
+        return request.session.get(pagename, {}).get(name, None)
+
+    return None

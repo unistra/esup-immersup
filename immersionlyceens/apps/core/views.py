@@ -27,6 +27,8 @@ from hijack import signals
 
 from immersionlyceens.decorators import groups_required
 
+from .utils import get_session_value
+
 from .admin_forms import (
     ImmersionUserChangeForm, ImmersionUserCreationForm, TrainingForm,
 )
@@ -50,15 +52,17 @@ def hijack_clean_session_vars(sender, hijacker, hijacked, request, **kwargs):
     """
     On each hijack, clean these session vars
     """
-    session_vars = [
-        'current_establishment_id',
-        'current_structure_id',
-        'current_highschool_id',
-        'current_training_id',
-    ]
+    session_vars = {
+        'courses': [
+            'current_establishment_id',
+            'current_structure_id',
+            'current_highschool_id',
+            'current_training_id',
+        ]
+    }
 
-    for var in session_vars:
-        request.session.pop(var, None)
+    for page, vars in session_vars.items():
+        map(lambda x:request.session.pop(x, None), vars)
 
 signals.hijack_started.connect(hijack_clean_session_vars)
 
@@ -163,19 +167,19 @@ def courses_list(request):
     if allowed_establishments.count() == 1:
         establishment_id = allowed_establishments.first().id
     else:
-        establishment_id = request.session.get("current_establishment_id", None)
+        establishment_id = get_session_value(request, "courses", "current_establishment_id")
 
     if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
         highschool_id = allowed_highschools.first().id
     else:
-        highschool_id = request.session.get("current_highschool_id", None)
+        highschool_id = get_session_value(request, "courses", "current_highschool_id")
 
     if allowed_strs.count() == 1:
         structure = allowed_strs.first()
         structure_id = structure.id
         establishment_id = structure.establishment.id
     else:
-        structure_id = request.session.get("current_structure_id", None)
+        structure_id = get_session_value(request, "courses", "current_structure_id")
         if structure_id and not establishment_id:
             try:
                 structure = Structure.objects.get(pk=structure_id)
@@ -315,10 +319,12 @@ def course(request, course_id=None, duplicate=False):
             if course_form.is_valid():
                 new_course = course_form.save()
 
-                request.session["current_structure_id"] = new_course.structure.id if new_course.structure else None
-                request.session["current_highschool_id"] = new_course.highschool.id if new_course.highschool else None
-                request.session["current_establishment_id"] = \
-                    new_course.structure.establishment.id if new_course.structure else None
+                request.session["courses"].update({
+                    "current_structure_id": new_course.structure.id if new_course.structure else "",
+                    "current_highschool_id": new_course.highschool.id if new_course.highschool else "",
+                    "current_establishment_id": new_course.structure.establishment.id if new_course.structure else ""
+                })
+                request.session.modified = True
 
                 current_speakers = [u for u in new_course.speakers.all().values_list('username', flat=True)]
                 new_speakers = [speaker.get('username') for speaker in speakers_list]
@@ -919,29 +925,33 @@ class CourseSlotList(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["can_update"] = True # FixMe
-        context["slot_mode"] = "course"
-        context["contact_form"] = ContactForm()
-        context["cancel_types"] = CancelType.objects.filter(active=True)
 
-        # Defaults
-        context["establishments"] = Establishment.activated.all()
-        context["structures"] = Structure.activated.all()
-        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
-
-        context["establishment_id"] = \
-            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
-
-        context["structure_id"] = \
-            kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
-
-        context["highschool_id"] = \
-            kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
-
-        context["training_id"] = \
-            kwargs.get('training_id', None) or self.request.session.get('current_training_id', None)
-
-        context["course_id"] = kwargs.get('course_id', None)
+        context.update({
+            "can_update": True, # FixMe
+            "slot_mode": "course",
+            "contact_form": ContactForm(),
+            "cancel_types": CancelType.objects.filter(active=True),
+            "establishments": Establishment.activated.all(),
+            "structures": Structure.activated.all(),
+            "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+            "establishment_id": kwargs.get(
+                'establishment_id',
+                get_session_value(self.request, "courses", "current_establishment_id")
+            ),
+            "structure_id": kwargs.get(
+                'structure_id',
+                get_session_value(self.request, "courses", "current_structure_id")
+            ),
+            "highschool_id": kwargs.get(
+                'highschool_id',
+                get_session_value(self.request, "courses", "current_highschool_id")
+            ),
+            "training_id": kwargs.get(
+                'training_id',
+                get_session_value(self.request, "courses", "current_training_id")
+            ),
+            "course_id": kwargs.get('course_id', None)
+        })
 
         if context["course_id"]:
             try:
@@ -959,23 +969,29 @@ class CourseSlotList(generic.TemplateView):
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
-                context["establishment_id"] = self.request.user.establishment.id
+                context.update({
+                    "establishments": Establishment.objects.filter(pk=self.request.user.establishment.id),
+                    "structures": context["structures"].filter(establishment=self.request.user.establishment),
+                    "establishment_id": self.request.user.establishment.id
+                })
 
             if self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = self.request.user.structures.filter(active=True)
-                context["establishment_id"] = self.request.user.establishment.id
-                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
-
+                context.update({
+                    "establishments": Establishment.objects.filter(pk=self.request.user.establishment.id),
+                    "structures": self.request.user.structures.filter(active=True),
+                    "establishment_id": self.request.user.establishment.id,
+                    "structure_id": context["structure_id"] or self.request.user.structures.first().id
+                })
             if self.request.user.is_high_school_manager():
-                context["establishments"] = Establishment.objects.none()
-                context["structures"] = Structure.objects.none()
-                context["highschools"] = HighSchool.agreed.filter(
-                    postbac_immersion=True, pk=self.request.user.highschool.id
-                )
-                context["highschool_id"] = self.request.user.highschool.id
+                context.update({
+                    "establishments": Establishment.objects.none(),
+                    "structures": Structure.objects.none(),
+                    "highschools": HighSchool.agreed.filter(
+                        postbac_immersion=True,
+                        pk=self.request.user.highschool.id
+                    ),
+                    "highschool_id": self.request.user.highschool.id
+                })
 
         return context
 

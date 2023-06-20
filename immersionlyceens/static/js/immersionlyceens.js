@@ -67,3 +67,22 @@ function is_set(obj) {
 function formatDate(date, date_options = _dates_options, date_locale = _dates_locale) {
   return new Date(date).toLocaleString(date_locale, date_options)
 }
+
+function set_session_values(pagename, values) {
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+    beforeSend: function (request) {
+      request.setRequestHeader("X-CSRFToken", csrftoken);
+    },
+
+    url: `/core/utils/set_session_values`,
+    data: {
+      pagename: pagename,
+      values: JSON.stringify(values),
+    },
+    method: "POST",
+    success: function (response) {},
+    error: function (response) {}
+  });
+}
