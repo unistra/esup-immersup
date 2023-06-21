@@ -481,18 +481,19 @@ def slots(request):
     return JsonResponse(response, safe=False)
 
 
-def set_session_values(request):
+def set_session_values(request, pagename=None, values=None):
     """
     Keep selected object id in session
     """
-    pagename = request.POST.get('pagename', None)
-    values = request.POST.get('values', "")
+    pagename = request.POST.get('pagename', pagename)
+    values = request.POST.get('values', values)
 
-    try:
-        values = json.loads(values)
-    except:
-        # bad format
-        return JsonResponse({}, safe=False)
+    if not isinstance(values, dict):
+        try:
+            values = json.loads(values)
+        except:
+            # bad format
+            return JsonResponse({}, safe=False)
 
     if not pagename:
         return JsonResponse({}, safe=False)
@@ -517,8 +518,6 @@ def get_session_value(request, pagename, name):
     """
     Get value of 'name' for page 'pagename' in session
     """
-    print(f"get {pagename} / {name} = {request.session.get(pagename)}")
-
     if all([name, pagename]):
         return request.session.get(pagename, {}).get(name, None)
 

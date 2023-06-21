@@ -27,7 +27,7 @@ from hijack import signals
 
 from immersionlyceens.decorators import groups_required
 
-from .utils import get_session_value
+from .utils import get_session_value, set_session_values
 
 from .admin_forms import (
     ImmersionUserChangeForm, ImmersionUserCreationForm, TrainingForm,
@@ -50,16 +50,17 @@ logger = logging.getLogger(__name__)
 # Define and register a signal for hijack
 def hijack_clean_session_vars(sender, hijacker, hijacked, request, **kwargs):
     """
-    On each hijack, clean these session vars
+    When hijacking an account, clean the following session vars
     """
-    session_vars = {
-        'courses': [
+    session_vars = {}
+
+    for page in ["courses", "visits", "events"]:
+        session_vars[page] = [
             'current_establishment_id',
             'current_structure_id',
             'current_highschool_id',
             'current_training_id',
         ]
-    }
 
     for page, vars in session_vars.items():
         map(lambda x:request.session.pop(x, None), vars)
@@ -319,15 +320,11 @@ def course(request, course_id=None, duplicate=False):
             if course_form.is_valid():
                 new_course = course_form.save()
 
-                if "courses" not in request.session:
-                    request.session["courses"] = {}
-
-                request.session["courses"].update({
+                set_session_values(request, "courses", {
                     "current_structure_id": new_course.structure.id if new_course.structure else "",
                     "current_highschool_id": new_course.highschool.id if new_course.highschool else "",
                     "current_establishment_id": new_course.structure.establishment.id if new_course.structure else ""
                 })
-                request.session.modified = True
 
                 current_speakers = [u for u in new_course.speakers.all().values_list('username', flat=True)]
                 new_speakers = [speaker.get('username') for speaker in speakers_list]
@@ -482,18 +479,18 @@ def myslots(request, slots_type=None):
     }
 
     if slots_type == "visits":
-        context["slot_mode"] = "visit"
+        context["slot_mode"] = "visits"
         return render(request, 'core/my_visits_slots.html', context)
     if slots_type == "hs_visits":
-        context["slot_mode"] = "visit"
+        context["slot_mode"] = "visits"
         context["user_slots"] = False
         context["highschool_id"] = request.user.highschool.id if request.user.highschool else ''
         return render(request, 'core/my_high_school_visits_slots.html', context)
     elif slots_type == "events":
-        context["slot_mode"] = "event"
+        context["slot_mode"] = "events"
         return render(request, 'core/my_events_slots.html', context)
     elif slots_type == "courses":
-        context["slot_mode"] = "course"
+        context["slot_mode"] = "courses"
         return render(request, 'core/my_courses_slots.html', context)
 
 
@@ -931,7 +928,7 @@ class CourseSlotList(generic.TemplateView):
 
         context.update({
             "can_update": True, # FixMe
-            "slot_mode": "course",
+            "slot_mode": "courses",
             "contact_form": ContactForm(),
             "cancel_types": CancelType.objects.filter(active=True),
             "establishments": Establishment.activated.all(),
@@ -1009,14 +1006,13 @@ class CourseSlot(generic.CreateView):
     duplicate = False
 
     def get_success_url(self):
-        self.request.session['current_establishment_id'] = \
-            self.object.course.structure.establishment.id if self.object.course.structure else None
-        self.request.session['current_structure_id'] = \
-            self.object.course.structure.id if self.object.course.structure else None
-        self.request.session['current_training_id'] = \
-            self.object.course.training.id if self.object.course.training else None
-        self.request.session['current_highschool_id'] = \
-            self.object.course.highschool.id if self.object.course.highschool else None
+        set_session_values(self.request, "courses", {
+            'current_establishment_id':
+                self.object.course.structure.establishment.id if self.object.course.structure else "",
+            'current_structure_id': self.object.course.structure.id if self.object.course.structure else "",
+            'current_training_id': self.object.course.training.id if self.object.course.training else "",
+            'current_highschool_id': self.object.course.highschool.id if self.object.course.highschool else ""
+        })
 
         if self.add_new:
             return reverse("add_course_slot")
@@ -1135,19 +1131,19 @@ class CourseSlot(generic.CreateView):
             context["slot_dates"] = None
 
         context["can_update"] = True  # FixMe
-        context["slot_mode"] = "course"
+        context["slot_mode"] = "courses"
 
         if "establishment_id" not in context:
-            context["establishment_id"] = self.request.session.get('current_establishment_id')
+            context["establishment_id"] = get_session_value(self.request, "courses", "current_establishment_id")
 
         if "structure_id" not in context:
-            context["structure_id"] = self.request.session.get('current_structure_id')
+            context["structure_id"] = get_session_value(self.request, "courses", "current_structure_id")
 
         if "highschool_id" not in context:
-            context["highschool_id"] = self.request.session.get('current_highschool_id')
+            context["highschool_id"] = get_session_value(self.request, "courses", "current_highschool_id")
 
         if "training_id" not in context:
-            context["training_id"] = self.request.session.get('current_training_id')
+            context["training_id"] = get_session_value(self.request, "courses", "current_training_id")
 
         # Bachelor types for restrictions
         context["bachelor_types"] = json.dumps({
@@ -1232,14 +1228,14 @@ class CourseSlotUpdate(generic.UpdateView):
         if slot_id:
             try:
                 slot = Slot.objects.get(pk=slot_id)
-                self.request.session["current_structure_id"] = \
-                    slot.course.structure.id if slot.course.structure else None
-                self.request.session["current_highschool_id"] = \
-                    slot.course.highschool.id if slot.course.highschool else None
-                self.request.session["current_establishment_id"] = \
-                    slot.course.structure.establishment.id if slot.course.structure else None
-                self.request.session["current_training_id"] = \
-                    slot.course.training.id if slot.course.training else None
+
+                set_session_values(self.request, "courses", {
+                    "current_structure_id": slot.course.structure.id if slot.course.structure else "",
+                    "current_highschool_id": slot.course.highschool.id if slot.course.highschool else "",
+                    "current_establishment_id":
+                        slot.course.structure.establishment.id if slot.course.structure else "",
+                    "current_training_id": slot.course.training.id if slot.course.training else ""
+                })
 
                 speakers_list = [{
                     "id": t.id,
@@ -1256,7 +1252,7 @@ class CourseSlotUpdate(generic.UpdateView):
             except Slot.DoesNotExist:
                 self.form = self.form_class(request=self.request)
 
-        context["slot_mode"] = "course"
+        context["slot_mode"] = "courses"
         context["can_update"] = True  # FixMe
 
         # Bachelor types for restrictions
@@ -1286,14 +1282,13 @@ class CourseSlotUpdate(generic.UpdateView):
 
         messages.success(self.request, _("Course slot \"%s\" updated.") % form.instance)
 
-        self.request.session["current_structure_id"] = \
-            self.object.course.structure.id if self.object.course.structure else None
-        self.request.session["current_highschool_id"] = \
-            self.object.course.highschool.id if self.object.course.highschool else None
-        self.request.session["current_establishment_id"] = \
-            self.object.course.structure.establishment.id if self.object.course.structure else None
-        self.request.session["current_training_id"] = \
-            self.object.course.training.id if self.object.course.training else None
+        set_session_values(self.request, "courses", {
+            "current_structure_id": self.object.course.structure.id if self.object.course.structure else "",
+            "current_highschool_id": self.object.course.highschool.id if self.object.course.highschool else "",
+            "current_establishment_id":
+                self.object.course.structure.establishment.id if self.object.course.structure else "",
+            "current_training_id": self.object.course.training.id if self.object.course.training else ""
+        })
 
         if self.object.course and not self.object.course.published and self.object.published:
             self.object.course.published = True
@@ -1350,8 +1345,8 @@ class VisitList(generic.TemplateView):
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
 
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
+        context["establishment_id"] = get_session_value(self.request, "visits", "current_establishment_id")
+        context["structure_id"] = get_session_value(self.request, "visits", "current_structure_id")
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
@@ -1429,8 +1424,8 @@ class VisitAdd(generic.CreateView):
                 pass
 
         context["can_update"] = True  # FixMe
-        context["establishment_id"] = self.request.session.get('current_establishment_id')
-        context["structure_id"] = self.request.session.get('current_structure_id')
+        context["establishment_id"] = get_session_value(self.request, "visits", "current_establishment_id")
+        context["structure_id"] = get_session_value(self.request, "visits", "current_structure_id")
         return context
 
 
@@ -1487,9 +1482,11 @@ class VisitUpdate(generic.UpdateView):
         if visit_id:
             try:
                 visit = Visit.objects.get(pk=visit_id)
-                self.request.session["current_structure_id"] = visit.structure.id if visit.structure else None
-                self.request.session["current_highschool_id"] = visit.highschool.id
-                self.request.session["current_establishment_id"] = visit.establishment.id
+                set_session_values(self.request, "visits", {
+                    "current_structure_id": visit.structure.id if visit.structure else "",
+                    "current_highschool_id": visit.highschool.id,
+                    "current_establishment_id": visit.establishment.id,
+                })
 
                 speakers_list = [{
                     "username": t.username,
@@ -1521,8 +1518,10 @@ class VisitUpdate(generic.UpdateView):
     def form_valid(self, form):
         messages.success(self.request, _("Visit \"%s\" updated.") % form.instance)
 
-        self.request.session['current_establishment_id'] = self.object.establishment.id
-        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+        set_session_values(self.request, "visits", {
+            'current_establishment_id': self.object.establishment.id,
+            'current_structure_id': self.object.structure.id if self.object.structure else ""
+        })
 
         self.duplicate = self.request.POST.get("save_duplicate", False) != False
         self.add_new = self.request.POST.get("save_add_new", False) != False
@@ -1541,7 +1540,7 @@ class VisitSlotList(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
-        context["slot_mode"] = "visit"
+        context["slot_mode"] = "visits"
         context["contact_form"] = ContactForm()
         context["cancel_types"] = CancelType.objects.filter(active=True)
 
@@ -1549,7 +1548,7 @@ class VisitSlotList(generic.TemplateView):
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
         context["establishment_id"] = \
-            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+            kwargs.get('establishment_id', get_session_value(self.request, "visits", 'current_establishment_id'))
 
         try:
             establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
@@ -1562,7 +1561,7 @@ class VisitSlotList(generic.TemplateView):
         if context["structure_id"] == "null":
             context["structure_id"] = ""
         elif context["structure_id"] is None:
-            context["structure_id"] = self.request.session.get('current_structure_id', None)
+            context["structure_id"] = get_session_value(self.request, "visits", 'current_structure_id')
         else:
             try:
                 structure = Structure.objects.get(pk=context["structure_id"])
@@ -1577,7 +1576,7 @@ class VisitSlotList(generic.TemplateView):
             except HighSchool.DoesNotExist:
                 pass
         else:
-            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+            context["highschool_id"] = get_session_value(self.request, "visits", 'current_highschool_id')
 
 
         context["visit_id"] = kwargs.get('visit_id', None)
@@ -1704,7 +1703,7 @@ class VisitSlot(generic.CreateView):
             context["form"] = self.form
 
         context["can_update"] = True  # FixMe
-        context["slot_mode"] = "visit"
+        context["slot_mode"] = "visits"
 
         # Bachelor types for restrictions
         context["bachelor_types"] = json.dumps({
@@ -1781,9 +1780,11 @@ class VisitSlotUpdate(generic.UpdateView):
         if slot_id:
             try:
                 slot = Slot.objects.get(pk=slot_id)
-                self.request.session["current_structure_id"] = slot.visit.structure.id if slot.visit.structure else None
-                self.request.session["current_highschool_id"] = slot.visit.highschool.id
-                self.request.session["current_establishment_id"] = slot.visit.establishment.id
+                set_session_values(self.request, "visits", {
+                    "current_structure_id": slot.visit.structure.id if slot.visit.structure else "",
+                    "current_highschool_id": slot.visit.highschool.id,
+                    "current_establishment_id": slot.visit.establishment.id
+                })
 
                 speakers_list = [{
                     "id": t.id,
@@ -1800,7 +1801,7 @@ class VisitSlotUpdate(generic.UpdateView):
             except Visit.DoesNotExist:
                 self.form = VisitSlotForm(request=self.request)
 
-        context["slot_mode"] = "visit"
+        context["slot_mode"] = "visits"
         context["can_update"] = True  # FixMe
         return context
 
@@ -1820,9 +1821,10 @@ class VisitSlotUpdate(generic.UpdateView):
 
         messages.success(self.request, _("Visit slot \"%s\" updated.") % form.instance)
 
-        self.request.session['current_establishment_id'] = self.object.visit.establishment.id
-        self.request.session['current_structure_id'] = \
-            self.object.visit.structure.id if self.object.visit.structure else None
+        set_session_values(self.request, "visits", {
+            'current_establishment_id': self.object.visit.establishment.id,
+            'current_structure_id': self.object.visit.structure.id if self.object.visit.structure else ""
+        })
 
         if self.object.visit and not self.object.visit.published and self.object.published:
             self.object.visit.published = True
@@ -1878,9 +1880,9 @@ class OffOfferEventsList(generic.TemplateView):
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
 
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
-        context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+        context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
+        context["structure_id"] = get_session_value(self.request, "events", 'current_structure_id')
+        context["highschool_id"] = get_session_value(self.request, "events", 'current_highschool_id')
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
@@ -1967,8 +1969,8 @@ class OffOfferEventAdd(generic.CreateView):
                 pass
 
         context["can_update"] = True  # FixMe
-        context["establishment_id"] = self.request.session.get('current_establishment_id')
-        context["structure_id"] = self.request.session.get('current_structure_id')
+        context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
+        context["structure_id"] = get_session_value(self.request, "events", 'current_structure_id')
         return context
 
 
@@ -1984,10 +1986,11 @@ class OffOfferEventAdd(generic.CreateView):
         response = super().form_valid(form)
         messages.success(self.request, _("Off offer event \"%s\" created.") % form.instance)
 
-        self.request.session['current_establishment_id'] = \
-            self.object.establishment.id if self.object.establishment else None
-        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
-        self.request.session['current_highschool_id'] = self.object.highschool.id if self.object.highschool else None
+        set_session_values(self.request, "events", {
+            'current_establishment_id': self.object.establishment.id if self.object.establishment else "",
+            'current_structure_id': self.object.structure.id if self.object.structure else "",
+            'current_highschool_id': self.object.highschool.id if self.object.highschool else ""
+        })
 
         return response
 
@@ -2031,10 +2034,11 @@ class OffOfferEventUpdate(generic.UpdateView):
         if event_id:
             try:
                 event = OffOfferEvent.objects.get(pk=event_id)
-                self.request.session["current_structure_id"] = event.structure.id if event.structure else None
-                self.request.session["current_highschool_id"] = event.highschool.id if event.highschool else None
-                self.request.session["current_establishment_id"] = \
-                    event.establishment.id if event.establishment else None
+                set_session_values(self.request, "events", {
+                    "current_structure_id": event.structure.id if event.structure else "",
+                    "current_highschool_id": event.highschool.id if event.highschool else "",
+                    "current_establishment_id": event.establishment.id if event.establishment else "",
+                })
 
                 speakers_list = [{
                     "username": t.username,
@@ -2065,10 +2069,11 @@ class OffOfferEventUpdate(generic.UpdateView):
     def form_valid(self, form):
         messages.success(self.request, _("Off offer event \"%s\" updated.") % form.instance)
 
-        self.request.session['current_establishment_id'] = \
-            self.object.establishment.id if self.object.establishment else None
-        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
-        self.request.session['current_highschool_id'] = self.object.highschool.id if self.object.highschool else None
+        set_session_values(self.request, "events", {
+            "current_structure_id": self.object.structure.id if self.object.structure else "",
+            "current_highschool_id": self.object.highschool.id if self.object.highschool else "",
+            "current_establishment_id": self.object.establishment.id if self.object.establishment else ""
+        })
 
         self.duplicate = self.request.POST.get("save_duplicate", False) != False
         self.add_new = self.request.POST.get("save_add_new", False) != False
@@ -2087,7 +2092,7 @@ class OffOfferEventSlotList(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
-        context["slot_mode"] = "event"
+        context["slot_mode"] = "events"
         context["contact_form"] = ContactForm()
         context["cancel_types"] = CancelType.objects.filter(active=True)
 
@@ -2097,7 +2102,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
         context["establishment_id"] = \
-            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+            kwargs.get('establishment_id', get_session_value(self.request, "events", "current_establishment_id"))
 
         try:
             establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
@@ -2110,7 +2115,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         if context["structure_id"] == "null":
             context["structure_id"] = ""
         elif context["structure_id"] is None:
-            context["structure_id"] = self.request.session.get('current_structure_id', None)
+            context["structure_id"] = get_session_value(self.request, "events", "current_structure_id")
         else:
             try:
                 structure = Structure.objects.get(pk=context["structure_id"])
@@ -2126,7 +2131,7 @@ class OffOfferEventSlotList(generic.TemplateView):
             except HighSchool.DoesNotExist:
                 pass
         else:
-            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+            context["highschool_id"] = get_session_value(self.request, "events", "current_highschool_id")
 
         context["event_id"] = kwargs.get('event_id', None)
 
@@ -2175,12 +2180,11 @@ class OffOfferEventSlot(generic.CreateView):
     duplicate = False
 
     def get_success_url(self):
-        self.request.session['current_establishment_id'] = \
-            self.object.event.establishment.id if self.object.event.establishment else None
-        self.request.session['current_structure_id'] = \
-            self.object.event.structure.id if self.object.event.structure else None
-        self.request.session['current_highschool_id'] = \
-            self.object.event.highschool.id if self.object.event.highschool else None
+        set_session_values(self.request, "events", {
+            "current_structure_id": self.object.event.structure.id if self.object.event.structure else "",
+            "current_highschool_id": self.object.event.highschool.id if self.object.event.highschool else "",
+            "current_establishment_id": self.object.event.establishment.id if self.object.event.establishment else ""
+        })
 
         if self.add_new:
             return reverse("add_off_offer_event_slot")
@@ -2282,7 +2286,7 @@ class OffOfferEventSlot(generic.CreateView):
             context["form"] = self.form
 
         context["can_update"] = True  # FixMe
-        context["slot_mode"] = "event"
+        context["slot_mode"] = "events"
 
         # Bachelor types for restrictions
         context["bachelor_types"] = json.dumps({
@@ -2362,12 +2366,12 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
         if slot_id:
             try:
                 slot = Slot.objects.get(pk=slot_id)
-                self.request.session["current_structure_id"] = \
-                    slot.event.structure.id if slot.event.structure else None
-                self.request.session["current_highschool_id"] = \
-                    slot.event.highschool.id if slot.event.highschool else None
-                self.request.session["current_establishment_id"] = \
-                    slot.event.establishment.id if slot.event.establishment else None
+
+                set_session_values(self.request, "events", {
+                    "current_structure_id": slot.event.structure.id if slot.event.structure else "",
+                    "current_highschool_id": slot.event.highschool.id if slot.event.highschool else "",
+                    "current_establishment_id": slot.event.establishment.id if slot.event.establishment else "",
+                })
 
                 speakers_list = [{
                     "id": t.id,
@@ -2384,7 +2388,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
             except Slot.DoesNotExist:
                 self.form = self.form_class(request=self.request)
 
-        context["slot_mode"] = "event"
+        context["slot_mode"] = "events"
         context["can_update"] = True # FixMe
         return context
 
@@ -2404,12 +2408,11 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 
         messages.success(self.request, _("Event slot \"%s\" updated.") % form.instance)
 
-        self.request.session["current_structure_id"] = \
-            self.object.event.structure.id if self.object.event.structure else None
-        self.request.session["current_highschool_id"] = \
-            self.object.event.highschool.id if self.object.event.highschool else None
-        self.request.session["current_establishment_id"] = \
-            self.object.event.establishment.id if self.object.event.establishment else None
+        set_session_values(self.request, "events", {
+            "current_structure_id": self.object.event.structure.id if self.object.event.structure else "",
+            "current_highschool_id": self.object.event.highschool.id if self.object.event.highschool else "",
+            "current_establishment_id": self.object.event.establishment.id if self.object.event.establishment else ""
+        })
 
         if self.object.event and not self.object.event.published and self.object.published:
             self.object.event.published = True
