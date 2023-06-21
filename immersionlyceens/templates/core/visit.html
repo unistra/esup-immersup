@@ -132,9 +132,9 @@
 <script type="text/javascript">
   var json_results;
   var query_order = 0;
-  var structure_id = "{{ form.initial.structure }}" || "{{ request.session.structure_id }}" ;
+  var structure_id = "{{ form.initial.structure }}" || "{{ structure_id }}" ;
   var can_update = "{{ can_update }}";
-  var establishment_id = "{{ form.initial.establishment }}" || "{{ request.session.establishment_id }}";
+  var establishment_id = "{{ form.initial.establishment }}" || "{{ establishment_id }}";
   var highschool_id = "{{ form.initial.highschool }}";
 
   {% autoescape on %}

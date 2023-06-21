@@ -272,16 +272,6 @@ function init_datatable() {
         filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
-    /*
-    {
-        column_number: 2,
-        filter_default_label: "",
-        filter_match_mode: "exact",
-        filter_container_id: "course_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    */
     {
         column_number: 3,
         filter_default_label: "",
@@ -298,33 +288,6 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
-    /*
-    {
-        column_number: 5,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "building_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-
-    {
-        column_number: 6,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "room_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    {
-        column_number: 7,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "speakers_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    */
     {
         column_number: 8,
         filter_type: "text",
@@ -335,11 +298,4 @@ function init_datatable() {
     },
   ])
 
-  /*
-  if(course_label_filter) {
-    yadcf.exFilterColumn(dt, [
-      [2, [course_label_filter]],
-    ]);
-  }
-  */
 }

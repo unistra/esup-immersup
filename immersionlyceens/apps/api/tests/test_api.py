@@ -3445,7 +3445,7 @@ class APITestCase(TestCase):
 
 
     def test_get_course_speakers(self):
-        url = f"/api/speakers/course/{self.course.id}"
+        url = f"/api/speakers/courses/{self.course.id}"
         speaker = self.course.speakers.first()
 
         # Check access for the following users
@@ -3479,7 +3479,7 @@ class APITestCase(TestCase):
 
         visit.speakers.add(self.speaker1)
 
-        url = f"/api/speakers/visit/{visit.id}"
+        url = f"/api/speakers/visits/{visit.id}"
 
         # Check access for the following users
         for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
@@ -3517,7 +3517,7 @@ class APITestCase(TestCase):
 
         event.speakers.add(self.speaker1)
 
-        url = f"/api/speakers/event/{event.id}"
+        url = f"/api/speakers/events/{event.id}"
 
         # Check access for the following users
         for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:

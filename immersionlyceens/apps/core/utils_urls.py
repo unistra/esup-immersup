@@ -8,4 +8,5 @@ from . import utils
 
 urlpatterns = [
     path('slots', utils.slots, name='get_slots'),
+    path('set_session_values', utils.set_session_values, name='set_session_values')
 ]
