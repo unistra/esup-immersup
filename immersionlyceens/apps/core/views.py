@@ -851,15 +851,45 @@ def duplicated_accounts(request):
     return render(request, 'core/duplicated_accounts.html', context)
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-ETAB', 'REF-STR', 'CONS-STR'), name="dispatch")
 class TrainingList(generic.TemplateView):
     template_name = "core/training/list.html"
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context: Dict[str, Any] = super().get_context_data(**kwargs)
-        context["can_update"] = True
+        context.update({
+            "establishments": Establishment.objects.none(),
+            "highschools": HighSchool.objects.none(),
+            "structures": Structure.objects.none()
+        })
+
         if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
-            context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
+            context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True)
+            context["establishments"] = Establishment.activated.all()
+            context["structures"] = self.request.user.get_authorized_structures()
+        elif self.request.user.is_establishment_manager():
+            context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+            context["structures"] = self.request.user.get_authorized_structures()
+        elif self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
+            context["structures"] = self.request.user.get_authorized_structures()
+        elif self.request.user.is_high_school_manager():
+            context["highschools"] = HighSchool.objects.filter(pk=self.request.user.highschool.id)
+
+        if context["establishments"].count() == 1:
+            context["establishment_id"] = context["establishments"].first().id
+        else:
+            context["establishment_id"] = get_session_value(self.request, "trainings", "current_establishment_id")
+
+        if len(context['structures']) == 1:
+            context['structure_id'] = context['structures'].first().id
+        else:
+            context['structure_id'] = ""
+
+        try:
+            training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
+            context['activated_training_quotas'] = training_quota['activate']
+        except:
+            context['activated_training_quotas'] = False
 
         return context
 

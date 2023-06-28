@@ -131,7 +131,7 @@
   var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
-  var conformDialog;
+  var confirmDialog;
   var tableConfig;
   var is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
 
@@ -397,14 +397,14 @@
         },
       ],
       columnDefs: [
-      {
-        defaultContent: "",
-        targets: "_all"
-      },
-      {
-        orderable: false,
-        targets: [8]
-      }
+        {
+          defaultContent: "",
+          targets: "_all"
+        },
+        {
+          orderable: false,
+          targets: [8]
+        }
       ],
 
       initComplete: function () {
@@ -491,27 +491,27 @@
 
 
     $('#establishments').change( function() {
-        current_establishment_id = $('#establishments option:selected').val();
-        current_structure_id = ""
+      current_establishment_id = $('#establishments option:selected').val();
+      current_structure_id = ""
 
-        dt.clear().draw()
+      dt.clear().draw()
 
-        if (current_establishment_id !== "") {
-            set_structures(current_establishment_id);
-            current_highschool_id = ""
-            $('#highschools').val("");
-        }
-        else {
-            empty_structures()
-        }
+      if (current_establishment_id !== "") {
+          set_structures(current_establishment_id);
+          current_highschool_id = ""
+          $('#highschools').val("");
+      }
+      else {
+          empty_structures()
+      }
 
-        // cache
-        set_session_values("courses", {
-            "current_highschool_id": current_highschool_id,
-            "current_establishment_id": current_establishment_id,
-            "current_structure_id": current_structure_id,
-        })
-      });
+      // cache
+      set_session_values("courses", {
+          "current_highschool_id": current_highschool_id,
+          "current_establishment_id": current_establishment_id,
+          "current_structure_id": current_structure_id,
+      })
+    });
 
     // Reload the table when structure changes in selectbox
     $('#strs').change( function() {

@@ -994,6 +994,10 @@ class Training(models.Model):
         on_delete=models.SET_NULL, related_name='trainings'
     )
 
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions per student, per period'), null=True, blank=True
+    )
+
     def __str__(self):
         return self.label
 
@@ -1005,8 +1009,10 @@ class Training(models.Model):
         """Return True if structure is set"""
         return self.structures is not None and self.structures.count() > 0
 
+    """
     def can_delete(self):
         return not self.courses.all().exists()
+    """
 
     def distinct_establishments(self):
         return Establishment.objects.filter(structures__in=self.structures.all()).distinct()

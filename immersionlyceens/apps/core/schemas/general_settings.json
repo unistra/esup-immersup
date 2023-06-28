@@ -16,7 +16,7 @@
         "integer",
         "object"
       ],
-      "minLength": 1
+      "minLength": 0
     }
   },
   "required": [

@@ -329,15 +329,6 @@ class TrainingCase(TestCase):
         t.structures.add(self.structure)
         self.assertTrue(t.is_structure())
 
-    def test_training__can_delete(self):
-        t = Training.objects.create(label="training2")
-        t.structures.add(self.structure)
-
-        self.assertTrue(t.can_delete())
-
-        course = Course.objects.create(label="course 1", training=t, structure=self.structure)
-        self.assertFalse(t.can_delete())
-
     def test_distinct_establishments(self):
         t = Training.objects.create(label="training2")
         establishment = Establishment.objects.create(

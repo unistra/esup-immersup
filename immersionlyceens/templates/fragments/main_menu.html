@@ -5,6 +5,7 @@
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
 {% general_settings_get 'CONTACT_FORM_URL' as external_contact_form_url %}
+{% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as activated_training_quotas %}
 {% settings_get 'USE_CAS' as use_cas %}
 {% active_accompanying_docs as show_accompanying_docs_menu %}
 {% active_faq_entries as show_faq_menu %}
@@ -34,7 +35,6 @@
               <a class="dropdown-item" href="{% url 'procedure' %}">{% trans 'General information' %}</a>
               <a class="dropdown-item" href="{% url 'host_establishments' %}">{% trans 'Host establishments' %}</a>
               <a class="dropdown-item" href="{% url 'highschools' %}">{% trans 'High schools' %}</a>
-
             </div>
         </div>
         <div class="nav-item dropdown">
@@ -119,15 +119,20 @@
         {% endif %}
 
         {# Structure #}
-        {% if authorized_groups|in_groups:"REF-STR" %}
+        {% if authorized_groups|in_groups:"REF-STR,CONS-STR" or authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,REF-TEC" and activated_training_quotas.activate %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownStructures" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Structures' %}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownStructures">
-              <a class="dropdown-item" href="{% url 'structure' %}">{% trans 'Update structures settings' %}</a>
-              <a class="dropdown-item" href="{% url 'structures_notifications' %}">{% trans 'Update notifications settings' %}</a>
+              {% if authorized_groups|in_groups:"REF-STR" %}
+                <a class="dropdown-item" href="{% url 'structure' %}">{% trans 'Update structures settings' %}</a>
+                <a class="dropdown-item" href="{% url 'structures_notifications' %}">{% trans 'Update notifications settings' %}</a>
+              {% endif %}
+              {% if authorized_groups|in_groups:"CONS-STR,REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" and activated_training_quotas.activate %}
+                <a class="dropdown-item" href="{% url 'trainings' %}">{% trans 'Set training quotas' %}</a>
+              {% endif %}
             </div>
           </div>
         {% endif %}

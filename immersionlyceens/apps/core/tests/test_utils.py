@@ -239,6 +239,8 @@ class UtilsTestCase(TestCase):
             last_name='ref_str2',
             establishment=cls.establishment,
         )
+        cls.ref_str2.set_password("pass")
+
         cls.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
@@ -879,3 +881,30 @@ class UtilsTestCase(TestCase):
         self.assertEqual(content['data'][0]['highschool_city'], slot.event.highschool.city)
         self.assertEqual(content['data'][0]['highschool_label'], slot.event.highschool.label)
         self.assertEqual(content['data'][0]['event_description'], slot.event.description)
+
+    def test_set_training_quota(self):
+        url = reverse('set_training_quota')
+
+        data = {
+            'id': self.training.id,
+            'value': 4
+        }
+
+        self.assertEqual(self.training.allowed_immersions, None)
+        self.client.post(url, data, **self.header)
+
+        self.training.refresh_from_db()
+        self.assertEqual(self.training.allowed_immersions, 4)
+
+        # other structure : no access
+        self.client.logout()
+        self.client.login(username='ref_str2', password='pass')
+
+        data['value'] = 2
+
+        response = self.client.post(url, data, **self.header)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result["error"], "You are not allowed to set quota for this training")
+
+        self.training.refresh_from_db()
+        self.assertEqual(self.training.allowed_immersions, 4)

@@ -46,8 +46,8 @@ from immersionlyceens.apps.core.models import (
     Immersion, ImmersionUser, ImmersionUserGroup, MailTemplate,
     MailTemplateVars, OffOfferEvent, Period, PublicDocument,
     RefStructuresNotificationsSettings, Slot, Structure, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, UserCourseAlert,
-    Vacation, Visit,
+    TrainingDomain, TrainingSubdomain, UniversityYear,
+    UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -1172,6 +1172,10 @@ def ajax_slot_registration(request):
                         slot__date__lte=period.immersion_end_date,
                         slot__course__training=slot.course.training
                     ).count()
+
+                # specific quota for this training ?
+                if slot.course.training.allowed_immersions:
+                    training_quota_count = slot.course.training.allowed_immersions
 
                 available_training_registrations = training_quota_count - training_regs_count
         except Period.DoesNotExist as e:
@@ -3299,7 +3303,12 @@ class TrainingList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        trainings_queryset = Training.objects.filter(active=True)
+        trainings_queryset = Training.objects\
+            .prefetch_related('highschool', 'structures__establishment', 'courses')\
+            .filter(active=True)\
+            .annotate(
+                nb_courses=Count('courses'),
+            )
 
         if user.is_high_school_manager():
             return trainings_queryset.filter(highschool=user.highschool)

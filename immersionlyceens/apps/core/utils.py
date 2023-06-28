@@ -28,7 +28,7 @@ from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.decorators import groups_required
 
 from immersionlyceens.apps.core.models import (
-    Slot, UniversityYear
+    Slot, Training, UniversityYear
 )
 
 logger = logging.getLogger(__name__)
@@ -522,3 +522,36 @@ def get_session_value(request, pagename, name):
         return request.session.get(pagename, {}).get(name, None)
 
     return None
+
+@groups_required('REF-STR', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
+def set_training_quota(request):
+    """
+    Set training quota
+    """
+    training_id = request.POST.get('id', None)
+    value = request.POST.get('value', '').strip()
+    user = request.user
+    allowed_structures = user.get_authorized_structures()
+
+    try:
+        training = Training.objects.get(pk=int(training_id))
+    except Training.DoesNotExist:
+        return JsonResponse({'error': _("Training not found")}, safe=False)
+
+    if user.is_high_school_manager() and training.highschool != user.highschool:
+        return JsonResponse({'error': _("You are not allowed to set quota for this high school")}, safe=False)
+
+    if any([user.is_structure_manager(), user.is_establishment_manager, user.is_master_establishment_manager]):
+        if not training.structures.intersection(allowed_structures).exists():
+            return JsonResponse({'error': _("You are not allowed to set quota for this training")}, safe=False)
+
+    if value != '':
+        try:
+            value = int(value)
+        except ValueError:
+            return JsonResponse({'error': _("Bad quota value (positive integer required)")}, safe=False)
+
+    training.allowed_immersions = value or None
+    training.save()
+
+    return JsonResponse({}, safe=False)

@@ -4364,11 +4364,12 @@ class APITestCase(TestCase):
                 'label': 'test t_sub_domain',
                 'active': True
             }],
+            'nb_courses': 1,
             'active': True,
-            'can_delete': False,
             'url': None,
             'structures': [self.structure.pk],
-            'highschool': None
+            'highschool': None,
+            'allowed_immersions': None,
         }, {
             'id': self.training2.pk,
             'label': 'test training 2',
@@ -4382,11 +4383,12 @@ class APITestCase(TestCase):
                 'label': 'test t_sub_domain',
                 'active': True
             }],
+            'nb_courses': 0,
             'active': True,
-            'can_delete': True,
             'url': None,
             'structures': [self.structure.pk],
-            'highschool': None
+            'highschool': None,
+            'allowed_immersions': None,
         }])
 
         # High school manager
@@ -4410,10 +4412,11 @@ class APITestCase(TestCase):
                 'active': True
             }],
             'active': True,
-            'can_delete': False,
+            'nb_courses': 1,
             'url': None,
             'structures': [],
-            'highschool': self.high_school.pk
+            'highschool': self.high_school.pk,
+            'allowed_immersions': None,
         }])
 
         # API with token
@@ -4820,10 +4823,10 @@ class APITestCase(TestCase):
                         'active': True
                     }],
                     'active': True,
-                    'can_delete': False,
                     'url': None,
                     'structures': [],
-                    'highschool': training.highschool.id
+                    'highschool': training.highschool.id,
+                    'allowed_immersions': None,
                 },
                 'structure': {
                     'id': self.structure3.id,
