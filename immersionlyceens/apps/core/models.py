@@ -2863,7 +2863,15 @@ class CertificateLogo(models.Model):
 
     # Singleton !
     def save(self, *args, **kwargs):
-        """Save a singleton"""
+        self.id = 1
+        return super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from logo Filefield"""
+        self.logo.storage.delete(self.logo.name)
+        super().delete()
+
+    class Meta:
         """Meta class"""
         verbose_name = _('Logo for attendance certificate')
         verbose_name_plural = _('Logo for attendance certificate')

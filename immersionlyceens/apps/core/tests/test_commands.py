@@ -23,7 +23,7 @@ from immersionlyceens.apps.core.models import (
     EvaluationFormLink, EvaluationType, CancelType, HighSchoolLevel,
     StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
     HigherEducationInstitution, PendingUserGroup, GeneralSettings,
-    ScheduledTask, ScheduledTaskLog
+    ScheduledTask, ScheduledTaskLog, UserCourseAlert
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, HighSchoolStudentRecordDocument
@@ -150,6 +150,7 @@ class CommandsTestCase(TestCase):
         cls.training.structures.add(cls.structure)
         cls.training2.structures.add(cls.structure)
         cls.course = Course.objects.create(label="course 1", training=cls.training, structure=cls.structure)
+        cls.course2 = Course.objects.create(label="course 2", training=cls.training, structure=cls.structure)
         cls.course.speakers.add(cls.speaker1)
         cls.campus = Campus.objects.create(label='Esplanade')
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
@@ -188,6 +189,19 @@ class CommandsTestCase(TestCase):
             start_time=datetime.time(12, 0),
             end_time=datetime.time(14, 0),
             n_places=20,
+            additional_information="Hello there!"
+        )
+        # slot used for course alert
+        cls.slot4 = Slot.objects.create(
+            course=cls.course2,
+            course_type=cls.course_type,
+            campus=cls.campus,
+            building=cls.building,
+            room='room 2',
+            date=cls.today + datetime.timedelta(days=35),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=1,
             additional_information="Hello there!"
         )
         cls.slot.speakers.add(cls.speaker1),
@@ -330,6 +344,47 @@ class CommandsTestCase(TestCase):
 
         # 2 Cancellation email sent
         self.assertEqual(len(mail.outbox), 2)
+
+    def test_send_course_alerts(self):
+        """
+        Test course alerts
+        """
+        self.assertEqual(len(mail.outbox), 0)
+
+        alert = UserCourseAlert.objects.create(
+            email='anything@domain.tld',
+            email_sent=False,
+            course=self.course2
+        )
+
+        management.call_command("send_course_alerts", verbosity=0)
+
+        alert.refresh_from_db()
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(alert.email_sent)
+
+        # Reset the alert, change slot4 registration_limit_delay and call again
+        alert.email_sent = False
+        alert.save()
+        self.slot4.registration_limit_delay = 36*24 # limit date = yesterday ... to late for the alert
+        self.slot4.save()
+        management.call_command("send_course_alerts", verbosity=0)
+        self.assertEqual(len(mail.outbox), 1) # no change
+        self.assertFalse(alert.email_sent) # not sent
+
+        # Reset the alert and the delay, add an immersion on slot 4 (=> remaining seats = 0) and retry
+        alert.email_sent = False
+        alert.save()
+        self.slot4.registration_limit_delay = 0
+        self.slot4.save()
+        Immersion.objects.create(slot=self.slot4, student=self.highschool_user)
+        management.call_command("send_course_alerts", verbosity=0)
+
+        alert.refresh_from_db()
+        self.assertEqual(len(mail.outbox), 1) # no change
+        self.assertFalse(alert.email_sent) # not sent
+
 
     def test_cron_master(self):
         """
