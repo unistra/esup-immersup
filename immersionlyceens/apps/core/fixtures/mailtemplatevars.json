@@ -462,5 +462,13 @@
         "code": "{{ creneau.limite_annulation }}",
         "description": "Date limite d'annulation de participation à un créneau"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 67,
+    "fields": {
+        "code": "{{ creneau.limite_inscription }}",
+        "description": "Date limite d'inscription à un créneau"
+    }
 }
 ]
