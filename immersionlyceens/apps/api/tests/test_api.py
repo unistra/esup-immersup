@@ -3100,6 +3100,19 @@ class APITestCase(TestCase):
             content['msg']
         )
 
+        # Raise single training quota and retry
+        self.training.allowed_immersions = 2
+        self.training.save()
+
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.slot3.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {'error': False, 'msg': 'Registration successfully added, confirmation email sent'})
+
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
 
