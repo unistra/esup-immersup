@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 
 from adminsortable2.admin import SortableAdminMixin
@@ -49,6 +51,7 @@ from .models import (
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
+logger = logging.getLogger(__name__)
 
 class CustomAdminSite(admin.AdminSite):
     def __init__(self, *args, **kwargs):
@@ -66,17 +69,38 @@ class CustomAdminSite(admin.AdminSite):
         Custom apps and models order
         """
         app_dict = self._build_app_dict(request)
+
+        # Inject virtual apps
+        for app_name, app_config in settings.ADMIN_APPS_MAPPING.items():
+            new_app = app_dict[app_config['app']].copy()
+            new_app['name'] = app_config['name']
+            new_app['app_label'] = app_name
+            app_dict[app_name] = new_app.copy()
+
+        # This should hide apps we don't want :
+        # - 'core' because all models are already grouped in virtual apps
+        # - django_summernote
         app_list = sorted(
-            app_dict.values(), key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
+            [app for app in app_dict.values() if app['app_label'] in settings.ADMIN_APPS_ORDER],
+            key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
         )
 
         for app in app_list:
-            if not settings.ADMIN_MODELS_ORDER.get(app['app_label'].lower()):
+            lower_app_name = app['app_label'].lower()
+
+            if not settings.ADMIN_MODELS_ORDER.get(lower_app_name):
                 app['models'].sort(key=lambda x: x.get('app_label'))
             else:
+                app['models'] = list(
+                    filter(
+                        lambda m: m['object_name'] in settings.ADMIN_MODELS_ORDER.get(lower_app_name),
+                        app['models'],
+                    )
+                )
+
                 app['models'].sort(
                     key=lambda x: self.find_in_list(
-                        settings.ADMIN_MODELS_ORDER[app['app_label'].lower()], x.get('object_name')
+                        settings.ADMIN_MODELS_ORDER[lower_app_name], x.get('object_name')
                     )
                 )
 

@@ -476,33 +476,60 @@ FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core', 'user']
+# Use virtual app names to regroup models
+ADMIN_APPS_ORDER = [
+    'auth', 'utilisateurs', 'calendrier', 'etablissements', 'formations', 'user', 'authtoken'
+]
+
+ADMIN_APPS_MAPPING = {
+    'utilisateurs': {'app': 'core', 'name': 'Utilisateurs'},
+    'calendrier': {'app': 'core', 'name': 'Calendrier'},
+    'etablissements': {'app': 'core', 'name': 'Établissements'},
+    'formations': {'app': 'core', 'name': 'Formations et évènements'},
+    'lieux': {'app': 'core', 'name': 'Lieux'},
+    'etudes': {'app': 'core', 'name': 'Études'},
+    'docs': {'app': 'core', 'name': 'Messages et documents'},
+    'evaluations': {'app': 'core', 'name': 'Évaluations'},
+    'configuration': {'app': 'core', 'name': 'Autres paramètres'},
+}
 
 ADMIN_MODELS_ORDER = {
-    'core': [
+    'utilisateurs': [
         'ImmersionUser',
+    ],
+    'calendrier': [
         'UniversityYear',
         'Vacation',
         'Holiday',
         'Period',
         'AnnualStatistics',
+    ],
+    'etablissements': [
         'Establishment',
         'HighSchool',
         'Structure',
+    ],
+    'formations': [
         'TrainingDomain',
         'TrainingSubdomain',
         'Training',
         'CourseType',
         'CancelType',
         'OffOfferEventType',
+    ],
+    'lieux': [
         'Campus',
         'Building',
+    ],
+    'etudes': [
         'BachelorType',
         'GeneralBachelorTeaching',
         'BachelorMention',
         'HighSchoolLevel',
         'PostBachelorLevel',
         'StudentLevel',
+    ],
+    'docs': [
         'MailTemplate',
         'FaqEntry',
         'PublicDocument',
@@ -511,9 +538,18 @@ ADMIN_MODELS_ORDER = {
         'AttestationDocument',
         'CertificateLogo',
         'CertificateSignature',
+    ],
+    'evaluations': [
         'EvaluationType',
         'EvaluationFormLink',
+    ],
+    'configuration': [
         'GeneralSettings',
+        'ScheduledTask',
+        'ImmersupFile',
+        'CustomThemeFile',
+        'ScheduledTaskLog',
+        'History','GeneralSettings',
         'ScheduledTask',
         'ImmersupFile',
         'CustomThemeFile',

@@ -46,7 +46,7 @@ msgstr "Type d'autre évènement"
 
 #: immersionlyceens/apps/core/models.py:1717
 msgid "Off offer event types"
-msgstr "Types d'autrss évènements"
+msgstr "Types d'autres évènements"
 
 #: immersionlyceens/apps/core/models.py:1870
 msgid "An off offer event with the same attachments and label already exists"
