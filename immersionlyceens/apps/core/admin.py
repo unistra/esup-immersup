@@ -1061,7 +1061,13 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
         return qs
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+        user_conditions = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        if not any(user_conditions):
             return False
 
         if obj and Course.objects.filter(training=obj).exists():
@@ -1647,8 +1653,14 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # Only superadmin could delete Highschool items
-        # TODO: maybe only use model groups rights !!!
-        return request.user.is_superuser
+        # TODO: maybe only use model groups rights !!! => not enough :)
+        conditions = [
+            request.user.is_superuser or request.user.is_operator(),
+            not ImmersionUser.objects.filter(highschool=obj).exists(),
+            not HighSchoolStudentRecord.objects.filter(highschool=obj).exists(),
+        ]
+
+        return all(conditions)
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!

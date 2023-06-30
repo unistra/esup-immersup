@@ -882,6 +882,7 @@ class TrainingList(generic.TemplateView):
 
         if len(context['structures']) == 1:
             context['structure_id'] = context['structures'].first().id
+            context['establishment_id'] = context['structures'].first().establishment.id
         else:
             context['structure_id'] = ""
 

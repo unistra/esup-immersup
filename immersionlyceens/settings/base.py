@@ -478,7 +478,8 @@ FORCE_EMAIL_ADDRESS = None
 # Displaying apps order in ADMIN
 # Use virtual app names to regroup models
 ADMIN_APPS_ORDER = [
-    'auth', 'utilisateurs', 'calendrier', 'etablissements', 'formations', 'user', 'authtoken'
+    'auth', 'utilisateurs', 'calendrier', 'etablissements', 'formations', 'lieux', 'etudes', 'docs',
+    'evaluations', 'configuration', 'user', 'authtoken'
 ]
 
 ADMIN_APPS_MAPPING = {
@@ -568,6 +569,7 @@ ADMIN_MODELS_ORDER = {
         'StructureConsultant',
         'HighSchoolManager',
         'LegalDepartmentStaff',
+        'UserGroup'
     ]
 }
 

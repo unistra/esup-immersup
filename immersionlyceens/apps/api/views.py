@@ -3314,6 +3314,8 @@ class TrainingList(generics.ListCreateAPIView):
             return trainings_queryset.filter(highschool=user.highschool)
         elif user.is_establishment_manager():
             return trainings_queryset.filter(structures__establishment=user.establishment)
+        elif user.is_structure_manager():
+            return trainings_queryset.filter(structures__in=user.get_authorized_structures())
 
         return trainings_queryset
 
