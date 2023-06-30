@@ -132,8 +132,6 @@
   </div>
 </div>
 
-
-
 <script type="text/javascript">
   var dt;
   let activated_training_quotas = "{{ activated_training_quotas }}" === "True";
@@ -271,6 +269,15 @@
         url: url,
         success: function (data) {
           dt.rows.add(data).draw();
+
+          if(activated_training_quotas) {
+            $('input[id^=quota-]').on('input', function () {
+              let training_id = this.id.split('-')[1]
+              let quota_value = this.value
+
+              set_training_quota(training_id, quota_value)
+            })
+          }
         },
       });
     }
@@ -340,7 +347,7 @@
           }
 
           if(type === 'display' && !is_structure_consultant) {
-            return `<input type="text" id="quota-${row.id}" class="form-control form-control-sm" value="${data}">`
+            return `<input type="number" id="quota-${row.id}" class="form-control form-control-sm" value="${data}">`
           }
 
           return data
@@ -398,17 +405,6 @@
       {% endif %}
       'columns': dt_columns,
       "columnDefs": dt_column_defs,
-
-      initComplete: function () {
-        if(activated_training_quotas) {
-          $('input[id^=quota-]').on('input', function () {
-            let training_id = this.id.split('-')[1]
-            let quota_value = this.value
-
-            set_training_quota(training_id, quota_value)
-          })
-        }
-      }
     }
 
     dt = $('#training_table').DataTable(table_config)
