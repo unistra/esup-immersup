@@ -24,7 +24,7 @@ from ...models import (
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """ """
 
     def handle(self, *args, **options):
