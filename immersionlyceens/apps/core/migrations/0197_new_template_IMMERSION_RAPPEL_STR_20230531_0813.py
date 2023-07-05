@@ -45,7 +45,7 @@ def create_template(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0182_alter_refstructuresnotificationssettings_structures'),
+        ('core', '0196_auto_20230705_0716'),
     ]
 
     operations = [
