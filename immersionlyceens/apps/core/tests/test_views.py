@@ -1714,7 +1714,7 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_structures_notifications(self):
-        # Check user is not REF_STR
+        # Check user is not REF-STR
         self.client.login(username='ref_master_etab', password='pass')
         response = self.client.get(reverse('structures_notifications'), follow=True)
         self.assertEqual(response.status_code, 200)
