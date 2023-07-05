@@ -30,7 +30,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         success = "%s : %s" % (_("Send slot reminder"), _("success"))
         returns = []
-        today = datetime.datetime.today().date()
+        today = timezone.now()
         default_value = 4
 
         # settings / default value
@@ -49,13 +49,12 @@ class Command(BaseCommand):
         if days <= 0:
             days = default_value
 
-        slot_date = today + datetime.timedelta(days=days)
+        slot_date = today.date() + datetime.timedelta(days=days)
         slots = Slot.objects.filter(date=slot_date, published=True)
 
         for slot in slots:
             slot_structure = slot.get_structure()
-            # < !!!
-            if slot.registration_limit_date > today:
+            if slot.registration_limit_date < today:
                 str_managers = ImmersionUser.objects.filter(
                     groups__name="REF-STR",
                     structures__in=[
