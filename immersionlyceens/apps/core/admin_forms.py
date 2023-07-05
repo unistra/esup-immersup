@@ -30,7 +30,7 @@ from .models import (
     Building, Campus, CancelType, CertificateLogo, CertificateSignature, CourseType,
     CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType, FaqEntry,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
+    Holiday, ImmersionUser, ImmersionUserGroup, InformationText,
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
@@ -1358,7 +1358,8 @@ class MailTemplateForm(forms.ModelForm):
             if self.instance.id:
                 self.fields['code'].disabled = True
 
-            if not self.request.user.is_superuser and not self.request.user.is_operator():
+            # The superuser is the only user allowed to update available mail template variables
+            if not self.request.user.is_superuser:
                 self.fields['available_vars'].widget = forms.MultipleHiddenInput()
 
                 if self.request.user.is_master_establishment_manager():
@@ -1871,48 +1872,6 @@ class CertificateSignatureForm(forms.ModelForm):
         fields = '__all__'
 
 
-class ImmersupFileForm(forms.ModelForm):
-    """
-    Immersup File form class
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-        self.fields["code"].widget.attrs['readonly'] = 'readonly'
-
-    def clean_file(self):
-        file = self.cleaned_data['file']
-        if file and isinstance(file, UploadedFile):
-
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'pdf']]
-
-            if not file.content_type in allowed_content_type:
-                raise forms.ValidationError(_('File type is not allowed'))
-
-        return file
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
-    class Meta:
-        model = ImmersupFile
-        fields = '__all__'
-
-
 class OffOfferEventTypeForm(TypeFormMixin):
     """Off over event type form"""
     class Meta:
@@ -2073,15 +2032,19 @@ class ScheduledTaskForm(forms.ModelForm):
             commands.sort()
             choices.append([key, [[c, c] for c in commands]])
 
-        choices.insert(0, ('', '---------'))
-        self.fields["command_name"].widget = forms.widgets.Select(choices=choices)
+        # When readonly (for some groups), command_name is not in self.fields
+        if 'command_name' in self.fields:
+            choices.insert(0, ('', '---------'))
+            self.fields["command_name"].widget = forms.widgets.Select(choices=choices)
 
         # Other field options
-        self.fields["frequency"].help_text = _("If not empty, uses 'Execution time' field for the first execution")
+        if "frequency" in self.fields:
+            self.fields["frequency"].help_text = _("If not empty, uses 'Execution time' field for the first execution")
 
-        # Time field : remove seconds
-        self.fields["time"].widget.format = "%H:%M"
-        self.fields["time"].help_text = _("Minutes will be rounded to force 5 min steps")
+        if "time" in self.fields:
+            # Time field : remove seconds
+            self.fields["time"].widget.format = "%H:%M"
+            self.fields["time"].help_text = _("Minutes will be rounded to force 5 min steps")
 
 
     def clean(self):

@@ -16,7 +16,7 @@ from ..models import (
     Building, Campus, CancelType, Course, CourseType, CustomThemeFile,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersupFile, Period, PublicDocument, PublicType,
+    Holiday, ImmersionUser, Period, PublicDocument, PublicType,
     RefStructuresNotificationsSettings, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -220,18 +220,6 @@ class TestPublicDocumentCase(TestCase):
         }
         o = PublicDocument.objects.create(**data)
         self.assertEqual(str(o), label)
-
-
-class TestImmersupFileCase(TestCase):
-    def test_immersupfile_str(self):
-        code = "TEST_CODE"
-
-        data = {
-            'code': code,
-            'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf"),
-        }
-        o = ImmersupFile.objects.create(**data)
-        self.assertEqual(str(o), "'%s' - file : %s" % (code, o.file.name))
 
 
 class TestEvaluationTypeCase(TestCase):

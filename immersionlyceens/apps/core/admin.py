@@ -33,7 +33,7 @@ from .admin_forms import (
     CustomThemeFileForm, EstablishmentForm, EvaluationFormLinkForm,
     EvaluationTypeForm, FaqEntryAdminForm, GeneralBachelorTeachingForm,
     GeneralSettingsForm, HighSchoolForm, HighSchoolLevelForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm,
     InformationTextForm, MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
     ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
@@ -44,7 +44,7 @@ from .models import (
     BachelorType, Building, Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    HighSchoolLevel, History, Holiday, Immersion, ImmersionUser, ImmersupFile,
+    HighSchoolLevel, History, Holiday, Immersion, ImmersionUser,
     InformationText, MailTemplate, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
@@ -1082,6 +1082,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('code', 'label', 'active', 'system')
+    list_display_links = ('code', 'label', )
     ordering = ('label',)
 
     def has_change_permission(self, request, obj=None):
@@ -2061,34 +2062,6 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     show_signature.short_description = _('Certificate signature')
 
 
-class ImmersupFileAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ImmersupFileForm
-    ordering = ('code',)
-
-    list_display = [
-        'code',
-        'file'
-    ]
-
-    def has_add_permission(self, request):
-        """
-        No one can add any new file since the existing codes are hardcoded in app
-        """
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        """
-        For now, no one can delete existing files (hardcoded)
-        """
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return any([
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ])
-
-
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = OffOfferEventTypeForm
     list_display = ('label', 'active')
@@ -2122,6 +2095,10 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and not obj.can_delete():
+            messages.warning(
+                request,
+                _("This event type is used by and event, it cannot be deleted")
+            )
             return False
 
         return True
@@ -2369,11 +2346,10 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         user = request.user
 
-        if user.is_superuser:
-            return super().get_readonly_fields(request, obj)
-
-        if user.is_operator():
+        if not user.is_superuser:
             return super().get_readonly_fields(request, obj) + ('command_name', 'description')
+
+        return super().get_readonly_fields(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -2456,7 +2432,6 @@ admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
-admin.site.register(ImmersupFile, ImmersupFileAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)

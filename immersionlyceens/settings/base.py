@@ -547,12 +547,10 @@ ADMIN_MODELS_ORDER = {
     'configuration': [
         'GeneralSettings',
         'ScheduledTask',
-        'ImmersupFile',
         'CustomThemeFile',
         'ScheduledTaskLog',
         'History','GeneralSettings',
         'ScheduledTask',
-        'ImmersupFile',
         'CustomThemeFile',
         'ScheduledTaskLog',
         'History',
