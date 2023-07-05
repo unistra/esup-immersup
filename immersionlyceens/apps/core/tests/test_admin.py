@@ -23,7 +23,7 @@ from ..admin_forms import (
     CancelTypeForm, CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
     EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
     GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
+    ImmersionUserCreationForm, InformationTextForm,
     MailTemplateForm, PeriodForm, PublicDocumentForm, PublicTypeForm,
     StructureForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
     UniversityYearForm, VacationForm,
@@ -33,7 +33,7 @@ from ..models import (
     Campus, CancelType, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
-    ImmersupFile, InformationText, MailTemplate, MailTemplateVars, Period,
+    InformationText, MailTemplate, MailTemplateVars, Period,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -1500,51 +1500,6 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(PublicDocument.objects.filter(label='Another document').exists())
-
-
-    def test_immersupfile_creation(self):
-        """
-        Test ImmersupFile creation with group rights
-        """
-        file = {'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
-
-        # Failures (invalid users)
-        data = {
-            'code': 'TEST_FAIL',
-        }
-
-        for user in [self.ref_str_user, self.ref_etab_user]:
-            request.user = user
-            form = ImmersupFileForm(data=data, files=file, request=request)
-            self.assertFalse(form.is_valid())
-            self.assertIn("You don't have the required privileges", form.errors["__all__"])
-            self.assertFalse(ImmersupFile.objects.filter(code='TEST_FAIL').exists())
-
-        # Failure #2 : invalid file format (and valid user)
-        file = {'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/fail")}
-        request.user = self.ref_master_etab_user
-
-        file['content_type'] = "application/fail"
-        form = ImmersupFileForm(data=data, files=file, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(ImmersupFile.objects.filter(code='TEST_FAIL').exists())
-
-        # Success
-        file = {'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
-        data = {
-            'code': 'SUCCESS',
-        }
-        form = ImmersupFileForm(data=data, files=file, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(ImmersupFile.objects.filter(code='SUCCESS').exists())
-
-        # As an operator
-        data['code'] = "SUCCESS2"
-        form = ImmersupFileForm(data=data, files=file, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(ImmersupFile.objects.filter(code='SUCCESS2').exists())
 
 
     def test_evaluation_type_creation(self):

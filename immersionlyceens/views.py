@@ -22,7 +22,7 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, AttestationDocument, Course, Establishment, FaqEntry,
-    HighSchool, ImmersupFile, InformationText, Period, PublicDocument,
+    HighSchool, InformationText, Period, PublicDocument,
     PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
 from immersionlyceens.exceptions import DisplayException
@@ -210,23 +210,6 @@ def serve_attestation_document(request, attestation_document_id):
             return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
         else:
             return redirect(doc.template.url)
-
-    except Exception:
-        return HttpResponseNotFound()
-
-
-def serve_immersup_file(request, file_code):
-    """
-    Returns a redirection to a stored file
-    """
-
-    try:
-        immersupfile = get_object_or_404(ImmersupFile, pk=file_code)
-        if isinstance(default_storage, S3Boto3Storage):
-            response = requests.get(immersupfile.file.url, stream=True)
-            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
-        else:
-            return redirect(immersupfile.file.url)
 
     except Exception:
         return HttpResponseNotFound()
