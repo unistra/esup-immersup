@@ -1,7 +1,7 @@
 import os
 import socket
 from os import environ
-from os.path import normpath
+from os.path import normpath, join, isdir
 
 from .base import *
 
@@ -114,11 +114,6 @@ EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
 
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# Mailing list subscriber files directory
-BASE_FILES_DIR = "/tmp"
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
-
 # Goal
 STAGE = 'Dev'
 
@@ -138,3 +133,14 @@ STAGE = 'Dev'
 
 # Use Unistra theme & css
 UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')
+
+# Extra locales
+EXTRA_LOCALE_PATH = environ.get('EXTRA_LOCALE_PATH', '')
+
+if EXTRA_LOCALE_PATH:
+    EXTRA_LOCALE_DIR = normpath(join(DJANGO_ROOT, EXTRA_LOCALE_PATH))
+
+    if isdir(EXTRA_LOCALE_DIR):
+        LOCALE_PATHS = [ EXTRA_LOCALE_DIR ] + LOCALE_PATHS
+    else:
+        print(f"Warning : EXTRA_LOCALE_DIR {EXTRA_LOCALE_DIR} directory does not exist")

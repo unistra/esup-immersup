@@ -28,7 +28,6 @@ urlpatterns = [
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
-    path('slots', views.slots, name='slots_list',),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_students_presence', views.ajax_get_student_presence, name='ajax_get_student_presence'),
     path(
@@ -71,13 +70,13 @@ urlpatterns = [
     path("course/<int:pk>", views.CourseDetail.as_view(), name="course_detail"),
 
     # The following path may change to 'slots/' in a near future : please always use the 'name'
-    path('slots/v2/', views.SlotList.as_view(), name='slot_list',),
+    path('slots/', views.SlotList.as_view(), name='slot_list',),
 
     # Speakers
     path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
-    path('speakers/course/<int:course_id>', views.SpeakerList.as_view(), name='course_speaker_list'),
-    path('speakers/visit/<int:visit_id>', views.SpeakerList.as_view(), name='visit_speaker_list'),
-    path('speakers/event/<int:event_id>', views.SpeakerList.as_view(), name='event_speaker_list'),
+    path('speakers/courses/<int:course_id>', views.SpeakerList.as_view(), name='course_speaker_list'),
+    path('speakers/visits/<int:visit_id>', views.SpeakerList.as_view(), name='visit_speaker_list'),
+    path('speakers/events/<int:event_id>', views.SpeakerList.as_view(), name='event_speaker_list'),
 
     # Visits
     path('visits/', views.VisitList.as_view(), name='visit_list'),

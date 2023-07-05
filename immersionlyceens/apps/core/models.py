@@ -18,13 +18,17 @@ from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
 
+from hijack.signals import hijack_started, hijack_ended
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.functions import Coalesce
+from django.dispatch import receiver
 from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -724,6 +728,9 @@ class ImmersionUser(AbstractUser):
             bachelor_restrictions = [
                 slot.allowed_bachelor_types.exists() and record.bachelor_type in slot.allowed_bachelor_types.all(),
                 any([
+                    not (record.bachelor_type.professional or record.bachelor_type.general
+                         or record.bachelor_type.technological
+                    ),
                     record.bachelor_type.professional,
                     slot.allowed_bachelor_mentions.exists() and
                       record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all(),
@@ -987,6 +994,10 @@ class Training(models.Model):
         on_delete=models.SET_NULL, related_name='trainings'
     )
 
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions per student, per period'), null=True, blank=True
+    )
+
     def __str__(self):
         return self.label
 
@@ -998,8 +1009,10 @@ class Training(models.Model):
         """Return True if structure is set"""
         return self.structures is not None and self.structures.count() > 0
 
+    """
     def can_delete(self):
         return not self.courses.all().exists()
+    """
 
     def distinct_establishments(self):
         return Establishment.objects.filter(structures__in=self.structures.all()).distinct()
@@ -1051,6 +1064,9 @@ class Campus(models.Model):
 
     label = models.CharField(_("Label"), max_length=255)
     active = models.BooleanField(_("Active"), default=True)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
         blank=False, null=True)
 
@@ -1182,7 +1198,6 @@ class Building(models.Model):
         ordering = ['label', ]
 
 
-
 class CancelType(models.Model):
     """
     Cancel type
@@ -1308,7 +1323,6 @@ class UniversityYear(models.Model):
     end_date = models.DateField(_("End date"))
     registration_start_date = models.DateField(_("Registration date"))
     purge_date = models.DateField(_("Purge date"), null=True)
-    global_evaluation_date = models.DateField(_("Global evaluation date"), null=True, blank=True)
 
     @classmethod
     def get_active(cls):
@@ -2847,9 +2861,20 @@ class CertificateLogo(models.Model):
         """get only allowed object"""
         return cls._default_manager.all().first()
 
+    def __str__(self):
+        return gettext("Attendance certificate logo")
+
     # Singleton !
     def save(self, *args, **kwargs):
-        """Save a singleton"""
+        self.id = 1
+        return super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from logo Filefield"""
+        self.logo.storage.delete(self.logo.name)
+        super().delete()
+
+    class Meta:
         """Meta class"""
         verbose_name = _('Logo for attendance certificate')
         verbose_name_plural = _('Logo for attendance certificate')
@@ -2896,47 +2921,6 @@ class CertificateSignature(models.Model):
         """Meta class"""
         verbose_name = _('Signature for attendance certificate')
         verbose_name_plural = _('Signature for attendance certificate')
-
-
-class ImmersupFile(models.Model):
-    """
-    Any file used by ImmerSup (PDF, images, ...)
-    """
-    code = models.CharField(_("File code"), max_length=64, blank=False, null=False, primary_key=True)
-
-    file = models.FileField(
-        _("File"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-
-    objects = CustomDeleteManager()
-
-    @classmethod
-    def object(cls):
-        """get only allowed object"""
-        return cls._default_manager.all().first()
-
-    def delete(self, using=None, keep_parents=False):
-        """Delete file uploaded from logo Filefield"""
-        self.file.storage.delete(self.file.name)
-        super().delete()
-
-
-    def __str__(self):
-        """str"""
-        return gettext("'%s' - file : %s" % (self.code, self.file.name))
-
-    class Meta:
-        """Meta class"""
-        verbose_name = _('ImmerSup file')
-        verbose_name_plural = _('ImmerSup files')
 
 
 class CustomThemeFile(models.Model):
@@ -3008,6 +2992,7 @@ class FaqEntry(models.Model):
         ordering = ['order']
 
 
+
 class RefStructuresNotificationsSettings(models.Model):
     user = models.OneToOneField(
         ImmersionUser,
@@ -3024,3 +3009,146 @@ class RefStructuresNotificationsSettings(models.Model):
 
     def __str__(self):
         return f"{self.user} ({', '.join(self.structures.values_list('label', flat=True))})"
+
+
+class ScheduledTask(models.Model):
+    command_name = models.CharField(_("Django command name"), max_length=128, unique=True)
+    description = models.CharField(_("Description"), max_length=256)
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+    date = models.DateField(_("Execution Date"), blank=True, null=True)
+    time = models.TimeField(_("Execution time"), auto_now=False, auto_now_add=False, blank=False, null=False)
+    frequency = models.SmallIntegerField(_("Frequency (in hours)"), blank=True, null=True)
+    monday = models.BooleanField(_("Monday"), blank=True, null=False, default=False)
+    tuesday = models.BooleanField(_("Tuesday"), blank=True, null=False, default=False)
+    wednesday = models.BooleanField(_("Wednesday"), blank=True, null=False, default=False)
+    thursday = models.BooleanField(_("Thursday"), blank=True, null=False, default=False)
+    friday = models.BooleanField(_("Friday"), blank=True, null=False, default=False)
+    saturday = models.BooleanField(_("Saturday"), blank=True, null=False, default=False)
+    sunday = models.BooleanField(_("Sunday"), blank=True, null=False, default=False)
+
+    def __str__(self):
+        return self.command_name
+
+    class Meta:
+        verbose_name = _('Scheduled task')
+        verbose_name_plural = _('Scheduled tasks')
+
+
+class ScheduledTaskLog(models.Model):
+    """
+    Logs for Scheduled tasks
+    """
+    task = models.ForeignKey(ScheduledTask, verbose_name=_("Task"), on_delete=models.CASCADE,
+        blank=False, null=False, related_name='logs')
+
+    execution_date = models.DateTimeField(_("Date"), auto_now_add=True)
+    success = models.BooleanField(_("Success"), blank=True, null=True, default=True)
+    message = models.TextField(_('Message'), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Scheduled task log')
+        verbose_name_plural = _('Scheduled task logs')
+        ordering = ['-execution_date', ]
+
+
+class History(models.Model):
+    """
+    Store various events like account creations or login, logout, failures, ...
+    """
+    action = models.CharField(_("Action"), max_length=128)
+    ip = models.GenericIPAddressField(_("IP"), null=True)
+    username = models.CharField(_("Username"), max_length=256, null=True)
+    user = models.CharField(_("User"), max_length=256, null=True)
+    hijacked = models.CharField(_("Hijacked user"), max_length=256, null=True)
+    date = models.DateTimeField(_("Date"), auto_now_add=True)
+
+    def __str__(self):
+        identity = ", ".join(list(filter(lambda x:x, [self.username, self.last_name, self.first_name])))
+        return f"{self.date} - {identity} - {self.action}"
+
+    class Meta:
+        verbose_name = _('History')
+        verbose_name_plural = _('History')
+
+
+####### SIGNALS #########
+@receiver(user_logged_in)
+def user_logged_in_callback(sender, request, user, **kwargs):
+    ip = request.META.get('REMOTE_ADDR')
+
+    History.objects.create(
+        action=_("User logged in"),
+        ip=ip,
+        username=user.username if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
+    )
+
+@receiver(user_logged_out)
+def user_logged_out_callback(sender, request, user, **kwargs):
+    ip = request.META.get('REMOTE_ADDR')
+    History.objects.create(
+        action=_("User logged out"),
+        ip=ip,
+        username=user.username if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
+    )
+
+
+@receiver(user_login_failed)
+def user_login_failed_callback(sender, credentials, request, **kwargs):
+    username = credentials.get('username', None)
+    ip = None
+    user = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    if username:
+        try:
+            user = ImmersionUser.objects.get(username=username.lower().strip())
+        except ImmersionUser.DoesNotExist:
+            pass
+
+    History.objects.create(
+        action=_("User login failed"),
+        ip=ip,
+        username=username,
+        user=f"{user.last_name} {user.first_name}" if user else None,
+    )
+
+def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
+    ip = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    History.objects.create(
+        action=_("Hijack start"),
+        ip=ip,
+        username=hijacker.username if hijacker else None,
+        user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
+        hijacked=hijacked
+    )
+
+def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
+    ip = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    History.objects.create(
+        action=_("Hijack end"),
+        ip=ip,
+        username=hijacker.username if hijacker else None,
+        user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
+        hijacked=hijacked
+    )
+
+hijack_started.connect(user_hijack_start)
+hijack_ended.connect(user_hijack_end)

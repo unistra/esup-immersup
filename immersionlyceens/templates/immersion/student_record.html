@@ -196,11 +196,13 @@
 
   $(document).ready(function() {
     $(function () {
+      let default_year =  new Date().getFullYear() - 20;
+
       $(".datepicker").datepicker({
         changeMonth: true,
         changeYear: true,
         yearRange: "1990:2010",
-        defaultDate: "01/01/2000",
+        defaultDate: `01/01/${default_year}`,
       });
     });
   });

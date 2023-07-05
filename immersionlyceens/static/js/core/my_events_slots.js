@@ -68,7 +68,7 @@ function init_datatable() {
     'serverSide': false,
     'responsive': false,
     'ajax': {
-      url: "/api/slots",
+      url: "/core/utils/slots",
       data: function(d) {
         d.past = $('#filter_past_slots').is(':checked')
         d.visits = false
@@ -93,104 +93,76 @@ function init_datatable() {
           return (data) ? yes_text : no_text;
         },
       },
-      { "data": "managed_by",
+      { "data": "establishment_code",
         "render": function (data, type, row) {
           let txt = ""
 
-          if(row.establishment) {
-            txt = row.establishment.code
-
-            if(row.structure) {
-              txt += " - " + row.structure.code;
-            }
+          if(is_set(data)) {
+            txt += data
+            txt += is_set(row.structure_code) ? ` - ${row.structure_code}` : ''
           }
-          else if (row.highschool) {
-            txt = row.highschool.city + " - " + row.highschool.label
+          else if (is_set(row.highschool_label)) {
+            txt = `${row.highschool_city} - ${row.highschool_label}`
           }
 
           return txt
         }
       },
-      { "data": "event.label",
+      { "data": "event_label",
         render: function(data, type, row) {
-          let txt = data + " (" + row.event.type + ") "
-          txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
+          let txt = `${data} (${row.event_type_label}) `
 
           if(type === 'filter') {
             return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
           }
 
+          txt += `<span style="padding-left:5px" data-toggle="tooltip" title="${row.event_description}">
+                    <i class="fa fas fa-info-circle fa-2x centered-icon"></i>
+                  </span>`
+
           return txt
         }
       },
       {
-        "data": "datetime",
+        "data": "date",
         "render": function (data, type, row) {
-          if(type === "display" || type === "filter") {
-            return "<span>" + row.date + "</span><br><span>" + row.time.start + " - " + row.time.end + "</span>";
-          }
-
-          return data;
+          return display_slot_date(data, type, row)
         }
       },
       {
-        "data": "location",
+        "data": "campus_label",
         "render": function (data, type, row) {
           let txt = ""
+          let campus_label = data
+          let building_label = row.building_label
+
+          if(type === 'filter') {
+            txt = row.face_to_face ? `${campus_label} ${building_label} ${row.room}` : remote_event_text
+            return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          }
 
           if(row.face_to_face) {
-              txt += "<span>"
-              if (data.campus) {
-                  txt += data.campus + "</span><br><span>"
-              }
-              if (data.building) {
-                  txt += data.building + "</span><br><span>"
-              }
-              txt += row.room + "</span>";
+            txt = "<span>"
+            txt += is_set(campus_label) ? `${campus_label} </span><br><span>` : ''
+            txt += is_set(building_label) ? `${building_label} </span><br><span>` : ''
+
+            return `${txt} ${row.room}</span>`
           }
           else {
-            txt = "<a href='" + row.url + "' target='_blank'>" + remote_event_text + "</a>"
+            return `<a href="${row.url}" target="_blank">${remote_event_text}</a>`
           }
-
-          if(type === 'filter') {
-            return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          }
-
-          return txt
         }
       },
       {
-        "data": "speakers",
+        "data": "speaker_list",
         "render": function (data, type, row) {
-          let txt = "";
-          $.each(data, function (name, email) {
-            txt += "<a href='mailto:" + email + "'>" + name + "</a><br>";
-          });
-
-          if(type === 'filter') {
-            return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          }
-
-          return txt;
+          return display_slot_speakers(data, type, row)
         },
       },
       {
-        "data": "",
+        "data": "n_register",
         render: function(data, type, row) {
-          let current = row.n_register;
-          let n = row.n_places;
-          element = '<span>' + current + '/' + n + '</span>' +
-              '<div class="progress">' +
-              '    <div' +
-              '       class="progress-bar"' +
-              '       role="progressbar"' +
-              '       aria-valuenow="' + current + '"' +
-              '       aria-valuemin="0"' +
-              '       aria-valuemax="' + n + '"' +
-              '       style="width: ' + Math.round(current/n * 100) + '%"' +
-              '></div>' +
-              '</div>';
-          return element;
+          return display_n_register(data, type, row);
         }
       },
       { "data": "attendances_status",
@@ -200,14 +172,14 @@ function init_datatable() {
 
           if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
             edit_mode = 1
-            msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+","+row.is_past+","+row.can_update_registrations+","+row.face_to_face+")\" title=\""+ attendances_text +"\">" +
-                "<i class='fa fas fa-edit fa-2x'></i>" +
-                "</button>";
+            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+                  `<i class='fa fas fa-edit fa-2x'></i>` +
+                  `</button>`;
           }
           else if (row.attendances_value !== -1) {
-            msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\""+ registered_text +"\">" +
-                  "<i class='fa fas fa-eye fa-2x'></i>" +
-                  "</button>";
+            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places})" title="${registered_text}">` +
+                  `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
+                  `</button>`;
           }
 
           return msg + data;
@@ -216,75 +188,12 @@ function init_datatable() {
       {
         "data": "additional_information",
         "render": function (data) {
-          if(data){
-            return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x"></i></span>';
-          } else {
-            return ""
-          }
+          return display_additional_information(data)
         },
       },
-      { data: 'restrictions',
-        render: function(data) {
-          let txt = ""
-
-          if(data.establishment_restrictions === true) {
-            txt += establishments_txt + " :\n"
-            data.allowed_establishments.forEach(item => {
-              txt += "- " + item + "\n"
-            })
-
-            data.allowed_highschools.forEach(item => {
-              txt += "- " + item + "\n"
-            })
-          }
-
-          if(data.levels_restrictions === true) {
-            if(txt) txt += "\n"
-
-            txt += levels_txt + " :\n"
-
-            data.allowed_highschool_levels.forEach(item => {
-              txt += "- " + item + "\n"
-            })
-
-            data.allowed_post_bachelor_levels.forEach(item => {
-              txt += "- " + item + "\n"
-            })
-
-            data.allowed_student_levels.forEach(item => {
-              txt += "- " + item + "\n"
-            })
-          }
-
-          if(data.bachelors_restrictions === true) {
-            if(txt) txt += "\n"
-
-            txt += bachelors_txt + " :\n"
-
-            data.allowed_bachelor_types.forEach(item => {
-              txt += "- " + item + "\n"
-            })
-
-            if(data.allowed_bachelor_mentions.length > 0) {
-              txt += allowed_mentions_txt  + " :\n"
-              data.allowed_bachelor_mentions.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-            }
-
-            if(data.allowed_bachelor_teachings.length > 0) {
-              txt += allowed_teachings_txt  + " :\n"
-              data.allowed_bachelor_teachings.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-            }
-          }
-
-          if (txt) {
-            return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
-          } else {
-            return '';
-          }
+      { data: '',
+        render: function(data, type, row) {
+          return display_slot_restrictions(data, type, row)
         }
       },
     ],
@@ -334,8 +243,6 @@ function init_datatable() {
           });
         })
       }
-
-
   });
 
   // All filters reset action

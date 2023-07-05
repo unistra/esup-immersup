@@ -63,6 +63,7 @@ class ParserFaker:
         formatted_today: str = today.strftime("%d/%m/%Y")
 
         cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\hi")
+        registration_date: str = date_format(timezone.now() - timedelta(hours=48), "j F - G\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
@@ -169,6 +170,7 @@ class ParserFaker:
                 },
                 "date": cls.add_tooltip("creneau.date", formatted_today),
                 "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
+                "limite_inscription": cls.add_tooltip("creneau.limite_inscription", registration_date),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
                 "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
                 "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),
@@ -337,6 +339,9 @@ class Parser:
             cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\hi") \
                 if slot.cancellation_limit_date else ""
 
+            registration_limit = date_format(timezone.localtime(slot.registration_limit_date), "j F - G\hi") \
+                if slot.registration_limit_date else ""
+
             return {
                 "creneau": {
                     "libelle": slot.get_label(),
@@ -368,6 +373,7 @@ class Parser:
                     } if slot.visit else {},
                     "date": date_format(slot.date) if slot.date else "",
                     "limite_annulation": cancellation_limit,
+                    "limite_inscription": registration_limit,
                     "intervenants": ",".join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
                     "heuredebut": slot.start_time.strftime("%-Hh%M") if slot.start_time else "",
                     "heurefin": slot.end_time.strftime("%-Hh%M") if slot.end_time else "",

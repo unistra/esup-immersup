@@ -131,7 +131,7 @@
   var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
-  var conformDialog;
+  var confirmDialog;
   var tableConfig;
   var is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
 
@@ -198,8 +198,6 @@
         }
 
         $("#id_div_structures").show()
-        current_highschool_id = ""
-        $('#highschools').val("");
       }
     })
   }
@@ -399,14 +397,14 @@
         },
       ],
       columnDefs: [
-      {
-        defaultContent: "",
-        targets: "_all"
-      },
-      {
-        orderable: false,
-        targets: [8]
-      }
+        {
+          defaultContent: "",
+          targets: "_all"
+        },
+        {
+          orderable: false,
+          targets: [8]
+        }
       ],
 
       initComplete: function () {
@@ -491,42 +489,37 @@
       },
     ]);
 
-    if(current_highschool_id === 'None' || current_highschool_id === "") {
-        current_highschool_id = $("#highschools").val()
-      }
-
-    if(current_establishment_id === 'None' || current_establishment_id === "") {
-        current_establishment_id = $("#establishments").val()
-    }
-    else {
-        $("#establishments").val(current_establishment_id)
-    }
-
-    if(current_structure_id === 'None' || current_structure_id === "") {
-        current_structure_id = $("#strs").val()
-    }
-
-    if(current_establishment_id) {
-        set_structures(current_establishment_id)
-    }
 
     $('#establishments').change( function() {
-        current_establishment_id = $('#establishments option:selected').val();
-        current_structure_id = ""
+      current_establishment_id = $('#establishments option:selected').val();
+      current_structure_id = ""
 
-        dt.clear().draw()
+      dt.clear().draw()
 
-        if (current_establishment_id !== "") {
-            set_structures(current_establishment_id);
-        }
-        else {
-            empty_structures()
-        }
-      });
+      if (current_establishment_id !== "") {
+          set_structures(current_establishment_id);
+          current_highschool_id = ""
+          $('#highschools').val("");
+      }
+      else {
+          empty_structures()
+      }
+
+      // cache
+      set_session_values("courses", {
+          "current_highschool_id": current_highschool_id,
+          "current_establishment_id": current_establishment_id,
+          "current_structure_id": current_structure_id,
+      })
+    });
 
     // Reload the table when structure changes in selectbox
     $('#strs').change( function() {
         current_structure_id = $('#strs option:selected').val()
+        // cache
+        set_session_values("courses", {
+            "current_structure_id": current_structure_id,
+        })
         load_courses("structure", current_structure_id)
     });
 
@@ -536,15 +529,54 @@
         if (current_highschool_id !== "") {
             empty_structures()
             $('#establishments').val("");
+            current_establishment_id = ""
         }
+
+        // cache
+        set_session_values("courses", {
+            "current_highschool_id": current_highschool_id,
+            "current_establishment_id": current_establishment_id,
+            "current_structure_id": current_structure_id,
+        })
 
         load_courses("highschool", current_highschool_id)
     });
 
-    if(!is_set(current_establishment_id) && !is_set(current_highschool_id) && is_set(current_structure_id)) {
-        $('#strs').trigger('change');
+    // Init and clean
+    if(!is_set(current_highschool_id)) {
+      current_highschool_id = $("#highschools").val()
     }
 
+    if(!is_set(current_establishment_id)) {
+      current_establishment_id = $("#establishments").val()
+    }
+
+    if(!is_set(current_structure_id)) {
+      current_structure_id = $("#strs").val()
+    }
+
+    if(is_set(current_establishment_id) && is_set(current_structure_id)) {
+      $("#establishments").val(current_establishment_id)
+      set_structures(current_establishment_id);
+      $("#strs").val(current_structure_id)
+      $('#highschools').val("");
+
+      set_session_values("courses", {
+         "current_highschool_id": "",
+      })
+
+      load_courses("structure", current_structure_id)
+    }
+    else if (is_set(current_highschool_id)) {
+      set_session_values("courses", {
+        "current_establishment_id": "",
+        "current_structure_id": "",
+      })
+      $('#establishments').val("");
+      $('#strs').val("");
+      $('#highschools').val(current_highschool_id);
+      load_courses("highschool", current_highschool_id)
+    }
   });
 </script>
 {% endblock %}

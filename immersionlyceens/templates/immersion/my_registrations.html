@@ -109,6 +109,13 @@
   var dtv_cancelled;
   var is_highschool_student = {{ request.user.is_high_school_student|yesno:"true,false" }}
 
+  const options = {
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  };
+
   function open_students_modal(immersion_id) {
     current_immersion_id = immersion_id;
     $('#modal_other_registrants').modal('show');
@@ -255,26 +262,14 @@
             }
 
             if(row.cancellable === true) {
-              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
 
-            if(msg !== "") {
-                msg += "<br>"
-            }
-
-            // put this somewhere else
-            const options = {
-              month: "long",
-              day: "numeric",
-              hour: "numeric",
-              minute: "numeric",
-            };
-
             let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
 
-            msg += `{% trans 'Cancellation limit' %} : ${cancellation_limit_date}`
+            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
           }
@@ -551,10 +546,14 @@
             }
 
             if(row.cancellable === true) {
-              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
+
+            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
+
+            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
           }
@@ -817,10 +816,12 @@
                       "</button>";
 
             if(row.cancellable === true) {
-              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
+
+            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
           }

@@ -333,6 +333,28 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return request.user.is_superuser
 
+    def has_delete_permission(self, request, obj=None):
+        conditions = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and obj and
+                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+        ]
+
+        return any(conditions)
+
+    def has_change_permission(self, request, obj=None):
+        conditions = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and obj and
+                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+        ]
+
+        return any(conditions)
+
 
 class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -366,6 +388,28 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return request.user.is_superuser
 
+    def has_delete_permission(self, request, obj=None):
+        conditions = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and obj and
+                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+        ]
+
+        return any(conditions)
+
+    def has_change_permission(self, request, obj=None):
+        conditions = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and obj and
+                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+        ]
+
+        return any(conditions)
+
 
 class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ImmersionUserGroupForm
@@ -394,17 +438,22 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
         return any(valid_groups)
 
     def has_add_permission(self, request):
-        # Only a superuser can add a template
         return request.user.is_superuser or request.user.is_operator()
 
     def has_delete_permission(self, request, obj=None):
-        # Only a superuser can delete a template
-        return request.user.is_superuser or request.user.is_operator()
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
+
+        return any(valid_groups)
 
     def has_change_permission(self, request, obj=None):
         valid_groups = [
             request.user.is_superuser,
-            request.user.is_operator()
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
         ]
 
         return any(valid_groups)
@@ -446,6 +495,28 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def has_add_permission(self, request):
         return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        conditions = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and obj and
+                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+        ]
+
+        return any(conditions)
+
+    def has_change_permission(self, request, obj=None):
+        conditions = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and obj and
+                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+        ]
+
+        return any(conditions)
 
 
 admin.site.register(HighSchoolStudent, HighschoolStudentAdmin)

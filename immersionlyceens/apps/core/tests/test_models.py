@@ -16,7 +16,7 @@ from ..models import (
     Building, Campus, CancelType, Course, CourseType, CustomThemeFile,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersupFile, Period, PublicDocument, PublicType,
+    Holiday, ImmersionUser, Period, PublicDocument, PublicType,
     RefStructuresNotificationsSettings, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -26,7 +26,13 @@ class CampusTestCase(TestCase):
     fixtures = ['higher']
 
     def test_campus_model(self):
-        test_campus = Campus.objects.create(label='MyCampus')
+        test_campus = Campus.objects.create(
+            label='MyCampus',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True
+        )
         self.assertEqual(test_campus.active, True)
         self.assertEqual(str(test_campus), 'MyCampus (-)')
 
@@ -216,18 +222,6 @@ class TestPublicDocumentCase(TestCase):
         self.assertEqual(str(o), label)
 
 
-class TestImmersupFileCase(TestCase):
-    def test_immersupfile_str(self):
-        code = "TEST_CODE"
-
-        data = {
-            'code': code,
-            'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf"),
-        }
-        o = ImmersupFile.objects.create(**data)
-        self.assertEqual(str(o), "'%s' - file : %s" % (code, o.file.name))
-
-
 class TestEvaluationTypeCase(TestCase):
     def test_evaluation_type_str(self):
         o = EvaluationType.objects.create(code='testCode', label='testLabel')
@@ -258,7 +252,13 @@ class TestSlotCase(TestCase):
         course = Course.objects.create(label='my super course', training=t, structure=c)
 
         # Campus
-        campus = Campus.objects.create(label='Campus Esplanade')
+        campus = Campus.objects.create(
+            label='Campus Esplanade',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True
+        )
 
         # Building
         building = Building.objects.create(label='Le portique', campus=campus)
@@ -316,15 +316,6 @@ class TrainingCase(TestCase):
 
         t.structures.add(self.structure)
         self.assertTrue(t.is_structure())
-
-    def test_training__can_delete(self):
-        t = Training.objects.create(label="training2")
-        t.structures.add(self.structure)
-
-        self.assertTrue(t.can_delete())
-
-        course = Course.objects.create(label="course 1", training=t, structure=self.structure)
-        self.assertFalse(t.can_delete())
 
     def test_distinct_establishments(self):
         t = Training.objects.create(label="training2")

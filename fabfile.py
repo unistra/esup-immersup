@@ -122,7 +122,6 @@ def test():
         'default_db_password': "DATABASES['default']['PASSWORD']",
         'default_db_name': "DATABASES['default']['NAME']",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -138,6 +137,7 @@ def test():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
@@ -171,7 +171,6 @@ def test2():
         'default_db_password': "DATABASES['default']['PASSWORD']",
         'default_db_name': "DATABASES['default']['NAME']",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -187,6 +186,7 @@ def test2():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     #env.use_unistra_theme='false'
     env.extra_symlink_dirs = ['media']
@@ -222,7 +222,6 @@ def preprod():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -238,6 +237,7 @@ def preprod():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -270,7 +270,6 @@ def preprod_lorraine():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -286,6 +285,7 @@ def preprod_lorraine():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -318,7 +318,6 @@ def preprod_bordeaux():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -334,6 +333,7 @@ def preprod_bordeaux():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -366,7 +366,6 @@ def preprod_caen():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -383,6 +382,7 @@ def preprod_caen():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -415,7 +415,6 @@ def preprod_stetienne():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -431,9 +430,106 @@ def preprod_stetienne():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
+@task
+def preprod_pau():
+    """Define preprod stage for Pau instance"""
+    env.roledefs = {
+        'web': ['saas-pau-pprd-1.srv.unistra.fr', 'saas-pau-pprd-2.srv.unistra.fr'],
+        'lb': ['saas-pau-pprd-1.srv.unistra.fr', 'saas-pau-pprd-2.srv.unistra.fr'],
+        'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
+
+    # env.user = 'root'  # user for ssh
+
+    env.backends = env.roledefs['web']
+    env.server_name = 'immersup-pprd.univ-pau.fr'
+    env.short_server_name = 'immersup-pprd'
+    env.static_folder = '/site_media/'
+    env.server_ip = '130.79.245.212'
+    env.no_shared_sessions = False
+    env.server_ssl_on = True
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.goal = 'preprod'
+    env.socket_port = '8001'
+    env.map_settings = {
+        'default_db_host': "DATABASES['default']['HOST']",
+        'default_db_user': "DATABASES['default']['USER']",
+        'default_db_password': "DATABASES['default']['PASSWORD']",
+        'default_db_name': "DATABASES['default']['NAME']",
+        'secret_key': "SECRET_KEY",
+        'cas_redirect_url': "CAS_REDIRECT_URL",
+        'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_ssl_on_connect': "EMAIL_SSL_ON_CONNECT",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
+    }
+    execute(build_env)
+
+
+@task
+def preprod_reims():
+    """Define preprod stage for Pau instance"""
+    env.roledefs = {
+        'web': ['saas-reims-pprd-1.srv.unistra.fr', 'saas-reims-pprd-2.srv.unistra.fr'],
+        'lb': ['saas-reims-pprd-1.srv.unistra.fr', 'saas-reims-pprd-2.srv.unistra.fr'],
+        'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
+
+    # env.user = 'root'  # user for ssh
+
+    env.backends = env.roledefs['web']
+    env.server_name = 'immersup-pprd.univ-reims.fr'
+    env.short_server_name = 'immersup-pprd'
+    env.static_folder = '/site_media/'
+    env.server_ip = '130.79.245.212'
+    env.no_shared_sessions = False
+    env.server_ssl_on = True
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.goal = 'preprod'
+    env.socket_port = '8001'
+    env.map_settings = {
+        'default_db_host': "DATABASES['default']['HOST']",
+        'default_db_user': "DATABASES['default']['USER']",
+        'default_db_password': "DATABASES['default']['PASSWORD']",
+        'default_db_name': "DATABASES['default']['NAME']",
+        'secret_key': "SECRET_KEY",
+        'cas_redirect_url': "CAS_REDIRECT_URL",
+        'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_ssl_on_connect': "EMAIL_SSL_ON_CONNECT",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
+    }
+    execute(build_env)
 
 @task
 def prod():
@@ -464,7 +560,6 @@ def prod():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -478,8 +573,9 @@ def prod():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
         'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID"
+        'matomo_site_id': "MATOMO_SITE_ID",
     }
     execute(build_env)
 
@@ -512,7 +608,6 @@ def prod_lorraine():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -528,6 +623,7 @@ def prod_lorraine():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -560,7 +656,6 @@ def prod_bordeaux():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -576,6 +671,7 @@ def prod_bordeaux():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -608,7 +704,6 @@ def prod_stetienne():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -624,6 +719,7 @@ def prod_stetienne():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 
@@ -655,7 +751,6 @@ def prod_caen():
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
         's3_access_key': "AWS_ACCESS_KEY_ID",
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
@@ -672,6 +767,7 @@ def prod_caen():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
+        'extra_locale_path': "EXTRA_LOCALE_PATH",
     }
     execute(build_env)
 

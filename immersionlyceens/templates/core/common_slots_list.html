@@ -19,10 +19,11 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
 {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
 {% endif %}
 <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -56,7 +57,7 @@
         {% if not user_slots %}
           {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
             <div class="row">
-              {% if slot_mode != "visit" %}
+              {% if slot_mode != "visits" %}
                 {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
                   <div class="col-md-3">
                     <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
@@ -74,7 +75,7 @@
                 {% endif %}
               {% endif %}
               {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-                {% if slot_mode != "visit" %}
+                {% if slot_mode != "visits" %}
                   <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
                 {% endif %}
                 <div class="col-md-3">
@@ -248,12 +249,19 @@
       set_structures(current_establishment_id);
     }
 
-    if(slot_mode === "course") {
+    if(slot_mode === "courses") {
       empty_trainings()
     }
     else {
       reload_data()
     }
+
+    set_session_values(slot_mode, {
+      "current_highschool_id": current_highschool_id,
+      "current_establishment_id": current_establishment_id,
+      "current_structure_id": current_structure_id,
+      "current_training_id": current_training_id,
+    })
   });
 
   $('#id_highschool').change( function() {
@@ -264,14 +272,22 @@
     if (current_highschool_id !== "") {
       empty_structures()
       $('#id_establishment').val("");
+      current_establishment_id = "";
     }
 
-    if(slot_mode === "course") {
+    if(slot_mode === "courses") {
       set_trainings('highschool', current_highschool_id);
     }
     else {
       reload_data();
     }
+
+    set_session_values(slot_mode, {
+      "current_highschool_id": current_highschool_id,
+      "current_establishment_id": current_establishment_id,
+      "current_structure_id": current_structure_id,
+      "current_training_id": current_training_id,
+    })
   });
 
   // Reload the table when structure changes in selectbox
@@ -280,7 +296,7 @@
 
     dt.clear().draw()
 
-    if(slot_mode === "course") {
+    if(slot_mode === "courses") {
       current_training_id = ''
       $('#id_training').val('')
       set_trainings('structures', current_structure_id);
@@ -288,6 +304,11 @@
     else {
       reload_data();
     }
+
+    set_session_values(slot_mode, {
+      "current_structure_id": current_structure_id,
+      "current_training_id": current_training_id,
+    })
   });
 
   $('#id_training').on('change', function(event) {
@@ -299,6 +320,10 @@
     else {
       dt.clear().draw()
     }
+
+    set_session_values(slot_mode, {
+      "current_training_id": current_training_id,
+    })
   });
 
   function empty_structures() {
@@ -416,7 +441,7 @@ $(document).ready(function(){
 
   if(is_set(current_structure_id)) {
     $("#id_structure").val(current_structure_id)
-    if(slot_mode === "course") {
+    if(slot_mode === "courses") {
       set_trainings('structures', current_structure_id)
     }
   }
@@ -426,7 +451,7 @@ $(document).ready(function(){
     set_trainings('highschool', current_highschool_id);
   }
 
-  if(slot_mode === "course" && is_set(current_training_id)) {
+  if(slot_mode === "courses" && is_set(current_training_id)) {
     $("#id_training").val(current_training_id)
   }
 });
@@ -469,12 +494,12 @@ function show_top_indicator(text, mode) {
     }
 
     $('#top_indicator').show();
-    setTimeout(function(){
-            $('#top_indicator').fadeOut(fade, function(){
-                $('#top_indicator').hide();
-            });
-        },
-        display
+    setTimeout(function() {
+          $('#top_indicator').fadeOut(fade, function(){
+              $('#top_indicator').hide();
+          });
+      },
+      display
     );
 }
 </script>

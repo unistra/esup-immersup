@@ -285,7 +285,7 @@ THIRD_PARTY_APPS = [
     'adminsortable2',
     'shibboleth',
     'django_countries',
-    'drf_spectacular'
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
@@ -476,30 +476,84 @@ FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core', 'user']
+# Use virtual app names to regroup models
+ADMIN_APPS_ORDER = [
+    'auth', 'utilisateurs', 'calendrier', 'etablissements', 'formations', 'lieux', 'etudes', 'docs',
+    'evaluations', 'configuration', 'user', 'authtoken'
+]
+
+ADMIN_APPS_MAPPING = {
+    'utilisateurs': {'app': 'core', 'name': 'Utilisateurs'},
+    'calendrier': {'app': 'core', 'name': 'Calendrier'},
+    'etablissements': {'app': 'core', 'name': 'Établissements'},
+    'formations': {'app': 'core', 'name': 'Formations et évènements'},
+    'lieux': {'app': 'core', 'name': 'Lieux'},
+    'etudes': {'app': 'core', 'name': 'Études'},
+    'docs': {'app': 'core', 'name': 'Messages et documents'},
+    'evaluations': {'app': 'core', 'name': 'Évaluations'},
+    'configuration': {'app': 'core', 'name': 'Autres paramètres'},
+}
 
 ADMIN_MODELS_ORDER = {
-    'core': [
+    'utilisateurs': [
         'ImmersionUser',
+    ],
+    'calendrier': [
         'UniversityYear',
+        'Vacation',
+        'Holiday',
+        'Period',
+        'AnnualStatistics',
+    ],
+    'etablissements': [
         'Establishment',
         'HighSchool',
-        'GeneralBachelorTeaching',
-        'BachelorType',
-        'BachelorMention',
-        'Campus',
-        'Building',
         'Structure',
+    ],
+    'formations': [
         'TrainingDomain',
         'TrainingSubdomain',
         'Training',
         'CourseType',
-        'PublicType',
         'CancelType',
-        'Holiday',
-        'Vacation',
-        'Period',
+        'OffOfferEventType',
+    ],
+    'lieux': [
+        'Campus',
+        'Building',
+    ],
+    'etudes': [
+        'BachelorType',
+        'GeneralBachelorTeaching',
+        'BachelorMention',
+        'HighSchoolLevel',
+        'PostBachelorLevel',
+        'StudentLevel',
+    ],
+    'docs': [
         'MailTemplate',
+        'FaqEntry',
+        'PublicDocument',
+        'PublicType',
+        'AccompanyingDocument',
+        'AttestationDocument',
+        'CertificateLogo',
+        'CertificateSignature',
+    ],
+    'evaluations': [
+        'EvaluationType',
+        'EvaluationFormLink',
+    ],
+    'configuration': [
+        'GeneralSettings',
+        'ScheduledTask',
+        'CustomThemeFile',
+        'ScheduledTaskLog',
+        'History','GeneralSettings',
+        'ScheduledTask',
+        'CustomThemeFile',
+        'ScheduledTaskLog',
+        'History',
     ],
     'user': [
         'Student',
@@ -513,7 +567,8 @@ ADMIN_MODELS_ORDER = {
         'StructureConsultant',
         'HighSchoolManager',
         'LegalDepartmentStaff',
-    ],
+        'UserGroup'
+    ]
 }
 
 # Define groups rights on others
@@ -599,10 +654,6 @@ DEFAULT_NB_DAYS_SLOT_REMINDER = 4
 DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER = 4
 DEFAULT_NB_WEEKS_STRUCTURES_SLOT_REMINDER = 1
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = ""
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
-
 # Opendata
 # This should be a stable URL according to this site :
 # https://www.data.gouv.fr/fr/datasets/etablissements-denseignement-superieur-2
@@ -632,3 +683,4 @@ COUNTRIES_FIRST = ['FR',]
 
 # Expiration of S3 url very looooooooooooooong :)
 AWS_QUERYSTRING_EXPIRE = 999999999
+

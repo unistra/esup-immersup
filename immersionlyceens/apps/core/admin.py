@@ -1,14 +1,18 @@
+import logging
+
 from datetime import datetime
 
 from adminsortable2.admin import SortableAdminMixin
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
@@ -29,24 +33,25 @@ from .admin_forms import (
     CustomThemeFileForm, EstablishmentForm, EvaluationFormLinkForm,
     EvaluationTypeForm, FaqEntryAdminForm, GeneralBachelorTeachingForm,
     GeneralSettingsForm, HighSchoolForm, HighSchoolLevelForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm,
     InformationTextForm, MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
-    StructureForm, StudentLevelForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
     BachelorType, Building, Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
+    HighSchoolLevel, History, Holiday, Immersion, ImmersionUser,
     InformationText, MailTemplate, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, PublicDocument, PublicType, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    PostBachelorLevel, Profile, PublicDocument, PublicType,
+    ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
+logger = logging.getLogger(__name__)
 
 class CustomAdminSite(admin.AdminSite):
     def __init__(self, *args, **kwargs):
@@ -64,17 +69,38 @@ class CustomAdminSite(admin.AdminSite):
         Custom apps and models order
         """
         app_dict = self._build_app_dict(request)
+
+        # Inject virtual apps
+        for app_name, app_config in settings.ADMIN_APPS_MAPPING.items():
+            new_app = app_dict[app_config['app']].copy()
+            new_app['name'] = app_config['name']
+            new_app['app_label'] = app_name
+            app_dict[app_name] = new_app.copy()
+
+        # This should hide apps we don't want :
+        # - 'core' because all models are already grouped in virtual apps
+        # - django_summernote
         app_list = sorted(
-            app_dict.values(), key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
+            [app for app in app_dict.values() if app['app_label'] in settings.ADMIN_APPS_ORDER],
+            key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
         )
 
         for app in app_list:
-            if not settings.ADMIN_MODELS_ORDER.get(app['app_label'].lower()):
+            lower_app_name = app['app_label'].lower()
+
+            if not settings.ADMIN_MODELS_ORDER.get(lower_app_name):
                 app['models'].sort(key=lambda x: x.get('app_label'))
             else:
+                app['models'] = list(
+                    filter(
+                        lambda m: m['object_name'] in settings.ADMIN_MODELS_ORDER.get(lower_app_name),
+                        app['models'],
+                    )
+                )
+
                 app['models'].sort(
                     key=lambda x: self.find_in_list(
-                        settings.ADMIN_MODELS_ORDER[app['app_label'].lower()], x.get('object_name')
+                        settings.ADMIN_MODELS_ORDER[lower_app_name], x.get('object_name')
                     )
                 )
 
@@ -629,13 +655,25 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
-    list_display = ('label', 'establishment', 'active')
+    list_display = ('label', 'establishment', 'city', 'active')
     list_filter = (
         'active',
         ('establishment', RelatedDropdownFilter),
     )
     ordering = ('label',)
     search_fields = ('label',)
+
+    fieldsets = (
+        (None, {'fields': (
+            'establishment',
+            'label',
+            'active',
+            'department',
+            'city',
+            'zip_code',
+            )}
+        ),
+    )
 
     def get_actions(self, request):
         # Disable delete
@@ -646,6 +684,11 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         except KeyError:
             pass
         return actions
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.pk:
+            return ('establishment', ) + self.readonly_fields
+        return self.readonly_fields
 
     def get_queryset(self, request):
         # Other groups has no "Can view structure" permission
@@ -681,6 +724,13 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         return True
+
+    class Media:
+        if settings.USE_GEOAPI:
+            js = (
+                'js/jquery-3.4.1.slim.min.js',
+                'js/admin_campus.min.js',
+            )
 
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1011,7 +1061,13 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
         return qs
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+        user_conditions = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        if not any(user_conditions):
             return False
 
         if obj and Course.objects.filter(training=obj).exists():
@@ -1026,6 +1082,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('code', 'label', 'active', 'system')
+    list_display_links = ('code', 'label', )
     ordering = ('label',)
 
     def has_change_permission(self, request, obj=None):
@@ -1153,23 +1210,13 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser or request.user.is_master_establishment_manager():
-            return True
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
 
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # The current active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
+        return any(valid_groups)
 
 
 class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1215,23 +1262,13 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
 
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # Active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
+        return any(valid_groups)
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1242,7 +1279,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         'start_date',
         'end_date',
         'purge_date',
-        'global_evaluation_date',
         'active',
     )
     list_filter = ('active',)
@@ -1598,8 +1634,14 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # Only superadmin could delete Highschool items
-        # TODO: maybe only use model groups rights !!!
-        return request.user.is_superuser
+        # TODO: maybe only use model groups rights !!! => not enough :)
+        conditions = [
+            request.user.is_superuser or request.user.is_operator(),
+            not ImmersionUser.objects.filter(highschool=obj).exists(),
+            not HighSchoolStudentRecord.objects.filter(highschool=obj).exists(),
+        ]
+
+        return all(conditions)
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
@@ -1986,6 +2028,9 @@ class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
 
     show_logo.short_description = _('Certificate logo')
 
+    def has_add_permission(self, request):
+        return not CertificateLogo.objects.exists()
+
 
 class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateSignatureForm
@@ -1999,33 +2044,8 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
 
     show_signature.short_description = _('Certificate signature')
 
-
-class ImmersupFileAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ImmersupFileForm
-    ordering = ('code',)
-
-    list_display = [
-        'code',
-        'file'
-    ]
-
     def has_add_permission(self, request):
-        """
-        No one can add any new file since the existing codes are hardcoded in app
-        """
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        """
-        For now, no one can delete existing files (hardcoded)
-        """
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return any([
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ])
+        return not CertificateSignature.objects.exists()
 
 
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -2061,6 +2081,10 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and not obj.can_delete():
+            messages.warning(
+                request,
+                _("This event type is used by and event, it cannot be deleted")
+            )
             return False
 
         return True
@@ -2195,9 +2219,9 @@ class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
     def has_delete_permission(self, request, obj=None):
         return self.custom_has_something_permission(request, obj)
 
+
 class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
-
 
     def get_list_display(self, request):
         def copy_link_btn(obj):
@@ -2273,9 +2297,94 @@ class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
+class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ScheduledTaskForm
+    list_display = ('command_name', 'description', 'date', 'time', 'frequency', 'days', 'active')
+    ordering = ('command_name', 'time', )
+    list_filter = ('active', )
+
+    fieldsets = (
+        (None, {'fields': (
+            'command_name',
+            'description',
+            'active',
+            'date',
+            'time',
+            'frequency',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday')}
+         ),
+    )
+
+    def days(self, obj):
+        week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        days = ", ".join(map(lambda d:gettext(d.title()), filter(lambda day:getattr(obj, day) is True, week_days)))
+
+        return days
+
+    days.short_description = _('Days')
+
+    def get_readonly_fields(self, request, obj=None):
+        user = request.user
+
+        if not user.is_superuser:
+            return super().get_readonly_fields(request, obj) + ('command_name', 'description')
+
+        return super().get_readonly_fields(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+class ScheduledTaskLogAdmin(admin.ModelAdmin):
+    list_display = ('task', 'execution_date', 'success', 'message')
+    ordering = ('-execution_date', )
+    list_filter = ('task', 'success')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ('date', 'action', 'username', 'user', 'hijacked', 'ip')
+    list_filter = ('action', )
+    ordering = ('-date',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
-
 
 admin.site = CustomAdminSite(name='Repositories')
 
@@ -2309,7 +2418,6 @@ admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
-admin.site.register(ImmersupFile, ImmersupFileAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
@@ -2317,3 +2425,6 @@ admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
+admin.site.register(ScheduledTask, ScheduledTaskAdmin)
+admin.site.register(ScheduledTaskLog, ScheduledTaskLogAdmin)
+admin.site.register(History, HistoryAdmin)

@@ -16,15 +16,14 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.contrib.postgres.aggregates import StringAgg
+from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import (
-    Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
+    BooleanField, Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
     OuterRef, Q, QuerySet, Subquery, Value, When,
 )
-from django.db.models.functions import Coalesce, Concat, Greatest
-from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models.functions import Coalesce, Concat, Greatest, JSONObject
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -47,8 +46,8 @@ from immersionlyceens.apps.core.models import (
     Immersion, ImmersionUser, ImmersionUserGroup, MailTemplate,
     MailTemplateVars, OffOfferEvent, Period, PublicDocument,
     RefStructuresNotificationsSettings, Slot, Structure, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, UserCourseAlert,
-    Vacation, Visit,
+    TrainingDomain, TrainingSubdomain, UniversityYear,
+    UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -207,348 +206,6 @@ def ajax_get_documents(request):
         }
         for document in documents
     ]
-
-    return JsonResponse(response, safe=False)
-
-
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER', 'REF-TEC', 'CONS-STR')
-def slots(request):
-    """
-    Get slots list according to GET parameters
-    :return:
-    """
-
-    """
-    @TODO : rewrite this with a ListCreateAPIView and a nice serializer
-    """
-
-    response = {'msg': '', 'data': []}
-    can_update_attendances = False
-    today = datetime.datetime.today()
-    user = request.user
-    user_filter = False
-    user_slots = request.GET.get('user_slots', False) == 'true'
-    filters = {}
-
-    try:
-        year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today.date() <= year.end_date
-    except UniversityYear.DoesNotExist:
-        pass
-
-    training_id = request.GET.get('training_id')
-    structure_id = request.GET.get('structure_id')
-    highschool_id = request.GET.get('highschool_id')
-    establishment_id = request.GET.get('establishment_id')
-    visits = request.GET.get('visits', False) == "true"
-    events = request.GET.get('events', False) == "true"
-    courses = not (visits or events) # unused, still useful somewhere ?
-    past_slots = request.GET.get('past', False) == "true"
-
-    try:
-        int(establishment_id)
-    except (TypeError, ValueError):
-        establishment_id = None
-
-    try:
-        int(structure_id)
-    except (TypeError, ValueError):
-        structure_id = None
-
-    try:
-        int(highschool_id)
-    except (TypeError, ValueError):
-        highschool_id = None
-
-    try:
-        int(training_id)
-    except (TypeError, ValueError):
-        training_id = None
-
-    force_user_filter = [
-        user_slots,
-        user.is_speaker() and not any([
-            user.is_master_establishment_manager(),
-            user.is_establishment_manager(),
-            user.is_high_school_manager() and visits,
-            user.is_structure_manager(),
-            user.is_structure_consultant(),
-            user.is_operator()
-        ])
-    ]
-
-    if any(force_user_filter):
-        user_filter = True
-        filters["speakers__in"] = user.linked_users()
-
-    if not user_filter:
-        if visits and not establishment_id and not structure_id:
-            if user.is_high_school_manager() and user.highschool:
-                filters["visit__highschool__id"] = user.highschool.id
-            else:
-                try:
-                    establishment_id = user.establishment.id
-                except:
-                    response['msg'] = gettext("Error : a valid establishment or structure must be selected")
-                    return JsonResponse(response, safe=False)
-
-        elif events and not establishment_id and not highschool_id:
-            try:
-                establishment_id = user.establishment.id
-            except:
-                pass
-
-            try:
-                highschool_id = user.highschool.id
-            except:
-                pass
-
-            if not highschool_id and not establishment_id:
-                response['msg'] = gettext("Error : a valid establishment or high school must be selected")
-                return JsonResponse(response, safe=False)
-
-        elif not events and not visits and not training_id:
-            response['msg'] = gettext("Error : a valid training must be selected")
-            return JsonResponse(response, safe=False)
-
-    if visits:
-        filters["course__isnull"] = True
-        filters["event__isnull"] = True
-
-        if establishment_id:
-            filters['visit__establishment__id'] = establishment_id
-
-        if structure_id is not None:
-            filters['visit__structure__id'] = structure_id
-
-        slots = Slot.objects.prefetch_related(
-            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters)
-
-        user_filter_key = "visit__structure__in"
-    elif events:
-        filters["course__isnull"] = True
-        filters["visit__isnull"] = True
-
-        if establishment_id:
-            filters['event__establishment__id'] = establishment_id
-            if structure_id is not None:
-                filters['event__structure__id'] = structure_id
-        elif highschool_id:
-            filters['event__highschool__id'] = highschool_id
-
-        slots = Slot.objects.prefetch_related(
-            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
-            .filter(**filters)
-
-        user_filter_key = "event__structure__in"
-    else:
-        filters["visit__isnull"] = True
-        filters["event__isnull"] = True
-
-        if training_id is not None:
-            filters['course__training__id'] = training_id
-
-        slots = Slot.objects.prefetch_related(
-            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions') \
-            .filter(**filters)
-
-        user_filter_key = "course__training__structures__in"
-
-    if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
-        user_filter = {
-            user_filter_key: user.structures.all()
-        }
-        slots = slots.filter(**user_filter)
-
-    if not past_slots:
-        slots = slots.filter(
-            Q(date__isnull=True)
-            | Q(date__gte=today.date())
-            | Q(date=today.date(), end_time__gte=today.time())
-            | Q(face_to_face=True, immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
-        ).distinct()
-
-    all_data = []
-    allowed_structures = user.get_authorized_structures()
-    user_establishment = user.establishment
-    user_highschool = user.highschool
-
-    for slot in slots.order_by('date', 'start_time'):
-        establishment = slot.get_establishment()
-        structure = slot.get_structure()
-        highschool = slot.get_highschool()
-
-        allowed_course_slot_update_conditions = [
-            user.is_master_establishment_manager() and slot.course,
-            user.is_operator() and slot.course,
-            user.is_establishment_manager() and slot.course and slot.course.structure.establishment == user_establishment,
-            user.is_structure_manager() and slot.course and slot.course.structure in allowed_structures
-        ]
-
-        allowed_visit_slot_update_conditions = [
-            user.is_master_establishment_manager(),
-            user.is_operator(),
-            user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
-            user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
-        ]
-
-        allowed_event_slot_update_conditions = [
-            user.is_master_establishment_manager() and slot.event,
-            user.is_operator() and slot.event,
-            user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
-            user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
-            user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
-        ]
-
-        registrations_update_conditions = [
-            user.is_master_establishment_manager(),
-            user.is_operator(),
-            user.is_establishment_manager() and establishment == user_establishment,
-            slot.published and (
-                    (user.is_structure_consultant() and structure in allowed_structures) or
-                    (user.is_structure_manager() and structure in allowed_structures) or
-                    ((slot.course or slot.event) and user.is_high_school_manager()
-                     and highschool and highschool == user_highschool
-                     )
-            ),
-        ]
-
-        update_attendances_conditions = [
-            registrations_update_conditions,
-            user.is_speaker() and user in slot.speakers.all()
-        ]
-
-        if slot.course and slot.course.training and slot.course_type:
-            training_label = f'{slot.course.training.label} ({slot.course_type.label})'
-            training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
-        else:
-            training_label = None
-            training_label_full = None
-
-        if slot.date and slot.start_time:
-            slot_datetime = datetime.datetime.strptime(
-                "%s:%s:%s %s:%s"
-                % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute),
-                "%Y:%m:%d %H:%M",
-            )
-        elif slot.date:
-            slot_datetime = datetime.datetime.strptime(
-                "%s:%s:%s" % (slot.date.year, slot.date.month, slot.date.day),
-                "%Y:%m:%d",
-            )
-        else:
-            slot_datetime = ""
-
-        data = {
-            'id': slot.id,
-            'published': slot.published,
-            'can_update_course_slot': slot.course and any(allowed_course_slot_update_conditions),
-            'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
-            'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
-            'can_update_registrations': any(registrations_update_conditions),
-            'can_update_attendances': can_update_attendances and any(update_attendances_conditions),
-            'course': {
-                'id': slot.course.id,
-                'label': slot.course.label
-            } if slot.course else None,
-            'training_label': training_label,
-            'training_label_full': training_label_full,
-            'establishment': {
-                'code': establishment.code,
-                'short_label': establishment.short_label,
-                'label': establishment.label
-            } if establishment else None,
-            'structure': {
-                'code': structure.code,
-                'label': structure.label,
-                'establishment': structure.establishment.short_label,
-                'managed_by_me': structure in allowed_structures,
-            } if structure else None,
-            'highschool': {
-                'city': highschool.city,
-                'label': highschool.label,
-                'managed_by_me': user.is_master_establishment_manager()
-                or user.is_operator()
-                or (user_highschool and highschool == user_highschool),
-            } if highschool else None,
-            'visit': {
-                'id': slot.visit.id,
-                'purpose': slot.visit.purpose
-            } if slot.visit else None,
-            'course_type': slot.course_type.label if slot.course_type is not None else '-',
-            'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
-            'event': {
-                'id': slot.event.id,
-                'type': slot.event.event_type.label if slot.event.event_type else None,
-                'label': slot.event.label,
-                'description': slot.event.description
-            } if slot.event else None,
-            'datetime': slot_datetime,
-            'date': _date(slot.date, 'l d/m/Y'),
-            'time': {
-                'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
-                'end': slot.end_time.strftime('%Hh%M') if slot.end_time else '',
-            },
-            'location': {
-                'campus': slot.campus.label if slot.campus else '',
-                'building': slot.building.label if slot.building else '',
-            },
-            'face_to_face': slot.face_to_face,
-            'url': slot.url,
-            'room': slot.room or '-',
-            'speakers': {},
-            'n_register': slot.registered_students(),
-            'n_places': slot.n_places if slot.n_places is not None else 0,
-            'restrictions': {
-                'establishment_restrictions': slot.establishments_restrictions,
-                'levels_restrictions': slot.levels_restrictions,
-                'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
-                'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
-                'allowed_highschool_levels': [level.label for level in slot.allowed_highschool_levels.all()],
-                'allowed_post_bachelor_levels': [level.label for level in slot.allowed_post_bachelor_levels.all()],
-                'allowed_student_levels': [level.label for level in slot.allowed_student_levels.all()],
-                'bachelors_restrictions': slot.bachelors_restrictions,
-                'allowed_bachelor_types': [btype.label for btype in slot.allowed_bachelor_types.all()],
-                'allowed_bachelor_mentions': [mention.label for mention in slot.allowed_bachelor_mentions.all()],
-                'allowed_bachelor_teachings': [teaching.label for teaching in slot.allowed_bachelor_teachings.all()],
-            },
-            'additional_information': slot.additional_information,
-            'attendances_value': 0,
-            'attendances_status': '',
-            'is_past': False,
-        }
-
-        # Update attendances rights depending on slot data and current user
-        if data['datetime'] and data['datetime'] <= today:
-            data['is_past'] = True
-
-            if not can_update_attendances or ((events or visits) and not slot.face_to_face):
-                # University year end date < now
-                data['attendances_value'] = 2  # view only
-                if not can_update_attendances:
-                    data['attendances_status'] = gettext("University year is over")
-
-            elif not slot.immersions.filter(cancellation_type__isnull=True).exists():
-                # Nothing to do
-                data['attendances_value'] = -1  # nothing to do
-
-            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists():
-                data['attendances_value'] = 1  # to enter
-                data['attendances_status'] = gettext("To enter")
-
-            else:
-                data['attendances_value'] = 1  # enter or update
-
-        else:
-            data['attendances_status'] = gettext("Future slot")
-
-        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
-            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)], )
-
-        all_data.append(data.copy())
-
-    response['data'] = all_data
 
     return JsonResponse(response, safe=False)
 
@@ -734,17 +391,18 @@ def ajax_validate_reject_student(request, validate):
 
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
-        hs = None
+        filter = {}
+
         all_highschools_conditions = [
             request.user.is_establishment_manager(),
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
         ]
 
-        if any(all_highschools_conditions):
-            hs = HighSchool.objects.all()
-        else:
-            hs = HighSchool.objects.filter(id=request.user.highschool.id)
+        if not any(all_highschools_conditions):
+            filter['id'] = request.user.highschool.id
+
+        hs = HighSchool.objects.filter(**filter)
 
         if hs:
             try:
@@ -774,7 +432,14 @@ def ajax_validate_reject_student(request, validate):
                 record.rejected_date = None if validate else timezone.now()
                 record.save()
 
-                # Todo : test send_message return value
+                # Delete attestations ?
+                if validate:
+                    delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
+                    if delete_attachments:
+                        # Delete only attestations that does not require a validity date
+                        for attestation in record.attestation.filter(requires_validity_date=False):
+                            attestation.delete()
+
                 template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
                 ret = record.student.send_message(request, template)
 
@@ -1508,6 +1173,10 @@ def ajax_slot_registration(request):
                         slot__course__training=slot.course.training
                     ).count()
 
+                # specific quota for this training ?
+                if slot.course.training.allowed_immersions:
+                    training_quota_count = slot.course.training.allowed_immersions
+
                 available_training_registrations = training_quota_count - training_regs_count
         except Period.DoesNotExist as e:
             msg = _("No period found for slot %s : please check periods settings") % slot
@@ -1777,12 +1446,9 @@ def ajax_get_available_students(request, slot_id):
         technological_bachelor_mention=F('high_school_student_record__technological_bachelor_mention__label'),
         general_bachelor_teachings_ids=ArrayAgg(
             F('high_school_student_record__general_bachelor_teachings__id'),
-            ordering='high_school_student_record__general_bachelor_teachings__id'
+            ordering='high_school_student_record__general_bachelor_teachings__id',
+            distinct=True
         ),
-        general_bachelor_teachings_labels=ArrayAgg(
-            F('high_school_student_record__general_bachelor_teachings__label'),
-            ordering='high_school_student_record__general_bachelor_teachings__id'
-        )
     )
 
     students = students.values(
@@ -1790,7 +1456,7 @@ def ajax_get_available_students(request, slot_id):
         "institution_uai_code", "city", "class_name", "profile", "profile_name", "level", "level_id",
         "post_bachelor_level", "post_bachelor_level_id", "bachelor_type_id", "bachelor_type",
         "technological_bachelor_mention_id", "technological_bachelor_mention", "general_bachelor_teachings_ids",
-        "general_bachelor_teachings_labels", "bachelor_type_is_professional"
+        "bachelor_type_is_professional"
     )
 
     response['data'] = [s for s in students]
@@ -3227,7 +2893,7 @@ def ajax_send_email_contact_us(request):
     # Ref-etab mail sending
     try:
         body = _('Mail sent by %s from contact form') % f'{firstname} {lastname} ({email})' + '<br><br>' + body
-        send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
+        send_email(recipient, subject, body, None, f'{firstname} {lastname} ({email})')
     except Exception as e:
         response['error'] = True
         response['msg'] += gettext("%s : error") % recipient
@@ -3637,12 +3303,19 @@ class TrainingList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        trainings_queryset = Training.objects.filter(active=True)
+        trainings_queryset = Training.objects\
+            .prefetch_related('highschool', 'structures__establishment', 'courses')\
+            .filter(active=True)\
+            .annotate(
+                nb_courses=Count('courses'),
+            )
 
         if user.is_high_school_manager():
             return trainings_queryset.filter(highschool=user.highschool)
         elif user.is_establishment_manager():
             return trainings_queryset.filter(structures__establishment=user.establishment)
+        elif user.is_structure_manager():
+            return trainings_queryset.filter(structures__in=user.get_authorized_structures())
 
         return trainings_queryset
 
@@ -4434,7 +4107,7 @@ class VisitorRecordRejectValidate(View):
         if operation == "validate":
             validation_value = VisitorRecord.STATUSES["VALIDATED"]
             validation_email_template = "CPT_MIN_VALIDE"
-            delete_attachments = get_general_setting("DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION")
+            delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
         elif operation == "reject":
             validation_value = VisitorRecord.STATUSES["REJECTED"]
             validation_email_template = "CPT_MIN_REJET"

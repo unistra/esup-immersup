@@ -160,12 +160,21 @@
     else {
       empty_structures()
     }
+
+    set_session_values("visits", {
+      "current_establishment_id": current_establishment_id,
+      "current_structure_id": "",
+    })
   });
 
   // Reload the table when structure changes in selectbox
   $('#structures').change( function() {
     current_structure_id = $('#structures option:selected').val()
     load_visits()
+
+    set_session_values("visits", {
+      "current_structure_id": current_structure_id
+    })
   });
 
   function set_structures(establishment_id) {

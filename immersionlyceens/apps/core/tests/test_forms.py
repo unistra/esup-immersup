@@ -183,7 +183,13 @@ class FormTestCase(TestCase):
         cls.training2.structures.add(cls.structure)
         cls.course = Course.objects.create(label="course 1", training=cls.training, structure=cls.structure)
         cls.course.speakers.add(cls.speaker1)
-        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.campus = Campus.objects.create(
+            label='Esplanade',
+            department='67',
+            zip_code='67000',
+            city='STRASBOURG',
+            active=True
+        )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
         cls.slot = Slot.objects.create(

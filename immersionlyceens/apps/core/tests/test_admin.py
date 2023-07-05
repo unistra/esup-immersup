@@ -23,7 +23,7 @@ from ..admin_forms import (
     CancelTypeForm, CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
     EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
     GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, ImmersupFileForm, InformationTextForm,
+    ImmersionUserCreationForm, InformationTextForm,
     MailTemplateForm, PeriodForm, PublicDocumentForm, PublicTypeForm,
     StructureForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
     UniversityYearForm, VacationForm,
@@ -33,7 +33,7 @@ from ..models import (
     Campus, CancelType, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
-    ImmersupFile, InformationText, MailTemplate, MailTemplateVars, Period,
+    InformationText, MailTemplate, MailTemplateVars, Period,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -342,18 +342,27 @@ class AdminFormsTestCase(TestCase):
         data_campus_1 = {
             'label': 'Test Campus',
             'active': True,
+            'department': '67',
+            'city': 'STRASBOURG',
+            'zip_code': '67000',
             'establishment': self.master_establishment
         }
 
         data_campus_2 = {
             'label': 'Test Campus',
             'active': True,
+            'department': '68',
+            'city': 'COLMAR',
+            'zip_code': '68000',
             'establishment': self.establishment
         }
 
         # Failures (invalid user)
         request.user = self.ref_str_user
         form = CampusForm(data=data_campus_2, request=request)
+        form.fields['city'].choices = [('COLMAR', 'COLMAR')]
+        form.fields['zip_code'].choices = [('68000', '68000')]
+
         self.assertFalse(form.is_valid())
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(Campus.objects.filter(label=data_campus_2['label']).exists())
@@ -361,6 +370,9 @@ class AdminFormsTestCase(TestCase):
         # Success
         request.user = self.ref_etab_user
         form = CampusForm(data=data_campus_2, request=request)
+        form.fields['city'].choices = [('COLMAR', 'COLMAR')]
+        form.fields['zip_code'].choices = [('68000', '68000')]
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Campus.objects.filter(label=data_campus_2['label']).exists())
@@ -369,6 +381,9 @@ class AdminFormsTestCase(TestCase):
         # Second campus (same label) in another establishment : success
         request.user = self.ref_master_etab_user
         form = CampusForm(data=data_campus_1, request=request)
+        form.fields['city'].choices = [('STRASBOURG', 'STRASBOURG')]
+        form.fields['zip_code'].choices = [('67000', '67000')]
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Campus.objects.filter(label=data_campus_1['label']).exists())
@@ -376,6 +391,9 @@ class AdminFormsTestCase(TestCase):
 
         # Second campus within the same establishment : fail
         form = CampusForm(data=data_campus_1, request=request)
+        form.fields['city'].choices = [('STRASBOURG', 'STRASBOURG')]
+        form.fields['zip_code'].choices = [('67000', '67000')]
+
         self.assertFalse(form.is_valid())
         self.assertIn(["A campus with this label already exists within the same establishment"], form.errors["label"])
         self.assertEqual(Campus.objects.filter(label=data_campus_1['label']).count(), 2)
@@ -384,10 +402,15 @@ class AdminFormsTestCase(TestCase):
         data_campus_3 = {
             'label': 'Test Campus operator',
             'active': True,
+            'department': '35',
+            'city': 'RENNES',
+            'zip_code': '35000',
             'establishment': self.master_establishment
         }
         request.user = self.operator_user
         form = CampusForm(data=data_campus_3, request=request)
+        form.fields['city'].choices = [('RENNES', 'RENNES')]
+        form.fields['zip_code'].choices = [('35000', '35000')]
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Campus.objects.filter(label=data_campus_3['label']).exists())
@@ -416,7 +439,14 @@ class AdminFormsTestCase(TestCase):
         adminsite = CustomAdminSite(name='Repositories')
         campus_admin = CampusAdmin(admin_site=adminsite, model=Campus)
 
-        testCampus = Campus.objects.create(label='testCampus', active=True, establishment=self.master_establishment)
+        testCampus = Campus.objects.create(
+            label='testCampus',
+            active=True,
+            department='54',
+            city='NANCY',
+            zip_code='54000',
+            establishment=self.master_establishment
+        )
 
         success_user_list = [self.operator_user, self.ref_master_etab_user, self.superuser]
         fail_user_list = [self.ref_etab_user, self.ref_str_user, self.ref_lyc_user]
@@ -443,7 +473,15 @@ class AdminFormsTestCase(TestCase):
         Test admin Campus creation with group rights
         """
 
-        testCampus = Campus.objects.create(label='testCampus', active=True, establishment=self.establishment)
+        testCampus = Campus.objects.create(
+            label='testCampus',
+            active=True,
+            department='14',
+            city='CAEN',
+            zip_code='14000',
+            establishment=self.establishment
+        )
+
         data = {
             'label': 'testBuilding',
             'campus': testCampus.pk,
@@ -1034,17 +1072,35 @@ class AdminFormsTestCase(TestCase):
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
         self.assertTrue(form.is_valid())
-        form.save()
+        highschool = form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
 
         # Check a few fields
-        highschool = HighSchool.objects.get(label=data['label'])
         self.assertTrue(highschool.with_convention)
         self.assertTrue(highschool.active)
+
+        # High school can be saved without convention dates if not active
+        data.update({
+            'id': highschool.id,
+            'active': False,
+            'convention_start_date': None,
+            'convention_end_date': None
+        })
+
+        form = HighSchoolForm(instance=highschool, data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        highschool.refresh_from_db()
+        self.assertTrue(highschool.with_convention)
+        self.assertIsNone(highschool.convention_start_date)
+        self.assertIsNone(highschool.convention_end_date)
+        self.assertFalse(highschool.active)
 
         # As an operator
         request.user = self.operator_user
 
+        data.pop('id') # remove id
         data['label'] = 'Another high school'
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
@@ -1444,51 +1500,6 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(PublicDocument.objects.filter(label='Another document').exists())
-
-
-    def test_immersupfile_creation(self):
-        """
-        Test ImmersupFile creation with group rights
-        """
-        file = {'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
-
-        # Failures (invalid users)
-        data = {
-            'code': 'TEST_FAIL',
-        }
-
-        for user in [self.ref_str_user, self.ref_etab_user]:
-            request.user = user
-            form = ImmersupFileForm(data=data, files=file, request=request)
-            self.assertFalse(form.is_valid())
-            self.assertIn("You don't have the required privileges", form.errors["__all__"])
-            self.assertFalse(ImmersupFile.objects.filter(code='TEST_FAIL').exists())
-
-        # Failure #2 : invalid file format (and valid user)
-        file = {'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/fail")}
-        request.user = self.ref_master_etab_user
-
-        file['content_type'] = "application/fail"
-        form = ImmersupFileForm(data=data, files=file, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(ImmersupFile.objects.filter(code='TEST_FAIL').exists())
-
-        # Success
-        file = {'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
-        data = {
-            'code': 'SUCCESS',
-        }
-        form = ImmersupFileForm(data=data, files=file, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(ImmersupFile.objects.filter(code='SUCCESS').exists())
-
-        # As an operator
-        data['code'] = "SUCCESS2"
-        form = ImmersupFileForm(data=data, files=file, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(ImmersupFile.objects.filter(code='SUCCESS2').exists())
 
 
     def test_evaluation_type_creation(self):
@@ -2132,9 +2143,8 @@ class AdminFormsTestCase(TestCase):
 
         form = GeneralSettingsForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        # error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string', 'integer', 'object']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
 
-        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean',\n                                       'string',\n                                       'integer',\n                                       'object']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
+        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 0,\n                              'type': ['boolean',\n                                       'string',\n                                       'integer',\n                                       'object']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
 
         self.assertIn(error, form.errors['parameters'][0])
 

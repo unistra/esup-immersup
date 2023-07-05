@@ -1,7 +1,7 @@
 import os
 import socket
 from os import environ
-from os.path import normpath
+from os.path import normpath, join, isdir
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -86,9 +86,6 @@ DEFAULT_FROM_EMAIL = '{{ default_from_email }}'
 # url for logos upload
 MEDIA_ROOT = '/nfs/immersion'
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = '{{ base_files_dir }}'
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 
 ###############
 # Sentry init #
@@ -133,3 +130,12 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 
 # Use hash prefixed static files
 STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
+
+# Extra locales
+EXTRA_LOCALE_PATH = '{{ extra_locale_path }}'
+
+if EXTRA_LOCALE_PATH:
+    EXTRA_LOCALE_DIR = normpath(join(DJANGO_ROOT, EXTRA_LOCALE_PATH))
+
+    if isdir(EXTRA_LOCALE_DIR):
+        LOCALE_PATHS = [EXTRA_LOCALE_DIR] + LOCALE_PATHS

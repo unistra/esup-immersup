@@ -260,7 +260,9 @@ class TrainingSerializer(serializers.ModelSerializer):
     """
     # GET: full related object in serializer (asymetric : 'id' in POST, object in GET)
     training_subdomains = AsymetricRelatedField.from_serializer(TrainingSubdomainSerializer)(required=True, many=True)
-    can_delete = serializers.BooleanField(read_only=True)
+
+    # may not exist in nested representation (like course_list)
+    nb_courses = serializers.IntegerField(read_only=True)
 
     def validate(self, data):
         """
@@ -291,12 +293,14 @@ class TrainingSerializer(serializers.ModelSerializer):
 
         structure_establishments = [structure.establishment.id for structure in data.get("structures", [])]
 
-        tr_queryset = Training.objects.exclude(**excludes).filter(
-            Q(label__iexact=label,
-              structures__establishment__in=structure_establishments)|
-            Q(label__iexact=label,
-              highschool=highschool)
-        )
+        tr_queryset = Training.objects.prefetch_related('structures__establishment', 'highschool')\
+            .exclude(**excludes)\
+            .filter(
+                Q(label__iexact=label,
+                  structures__establishment__in=structure_establishments)|
+                Q(label__iexact=label,
+                  highschool=highschool)
+            )
 
         if tr_queryset.exists():
             details["label"] = gettext(
@@ -310,8 +314,8 @@ class TrainingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Training
-        fields = ("id", "label", "training_subdomains", "active", "can_delete", "url", "structures", "highschool")
-        # fields = "__all__"
+        fields = ("id", "label", "training_subdomains", "nb_courses", "active", "url", "structures",
+                  "highschool", "allowed_immersions")
 
 
 class VisitSerializer(serializers.ModelSerializer):

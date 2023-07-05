@@ -11,10 +11,12 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
+from django.core.management import get_commands, load_command_class
 from django.db.models import Count, Q
-from django.forms.widgets import TextInput
+from django.forms.widgets import TextInput, TimeInput
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
+from django.utils.datastructures import MultiValueDict
 from django.utils.translation import gettext_lazy as _, pgettext
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
@@ -28,10 +30,11 @@ from .models import (
     Building, Campus, CancelType, CertificateLogo, CertificateSignature, CourseType,
     CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType, FaqEntry,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
+    Holiday, ImmersionUser, ImmersionUserGroup, InformationText,
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, PublicDocument, PublicType, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -86,15 +89,46 @@ class CampusForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        if settings.USE_GEOAPI and (not self.is_bound or self.errors):
+            city_choices = [
+                ('', '---------'),
+            ]
+            zip_choices = [
+                ('', '---------'),
+            ]
+
+            department_choices = get_departments()
+
+            # if this test fails, it's probably an API error or timeout => switch to manual form
+            if department_choices:
+                # Put datas in choices fields if form instance
+                if self.instance.department:
+                    city_choices = get_cities(self.instance.department)
+
+                if self.instance.city:
+                    zip_choices = get_zipcodes(self.instance.department, self.instance.city)
+
+                # Put datas in choices fields if form data
+                if 'department' in self.data:
+                    city_choices = get_cities(self.data.get('department'))
+
+                if 'city' in self.data:
+                    zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
+
+                self.fields['department'] = forms.TypedChoiceField(
+                    label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+                )
+                self.fields['city'] = forms.TypedChoiceField(
+                    label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+                )
+                self.fields['zip_code'] = forms.TypedChoiceField(
+                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+                )
+
         if self.fields.get("establishment") and not self.request.user.is_superuser \
                 and self.request.user.is_establishment_manager():
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
 
-        try:
-            if self.instance.establishment.id:
-                self.fields["establishment"].disabled = True
-        except (AttributeError, Establishment.DoesNotExist):
-            pass
 
     def clean(self):
         cleaned_data = super().clean()
@@ -142,7 +176,7 @@ class CampusForm(forms.ModelForm):
 
     class Meta:
         model = Campus
-        fields = ('establishment', 'label', 'active')
+        fields = ('establishment', 'label', 'department', 'city', 'zip_code', 'active')
 
 
 class CancelTypeForm(TypeFormMixin):
@@ -548,7 +582,6 @@ class UniversityYearForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
-        global_evaluation_date = cleaned_data.get('global_evaluation_date')
         label = cleaned_data.get('label')
         valid_user = False
 
@@ -777,9 +810,9 @@ class PeriodForm(forms.ModelForm):
             raise forms.ValidationError(_("A period requires all dates to be filled in"))
 
         dates_conditions = [
-            not (univ_year.start_date < registration_start_date < univ_year.end_date),
+            not (univ_year.start_date <= registration_start_date < univ_year.end_date),
             not (univ_year.start_date < start_date < univ_year.end_date),
-            not (univ_year.start_date < end_date < univ_year.end_date),
+            not (univ_year.start_date < end_date <= univ_year.end_date),
         ]
 
         if any(dates_conditions):
@@ -1252,6 +1285,8 @@ class HighSchoolForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        active = cleaned_data.get("active", False)
+
         valid_user = False
 
         try:
@@ -1285,7 +1320,8 @@ class HighSchoolForm(forms.ModelForm):
             if not cleaned_data["with_convention"]:
                 cleaned_data["convention_start_date"] = None
                 cleaned_data["convention_end_date"] = None
-            elif not cleaned_data.get("convention_start_date") or not cleaned_data.get("convention_end_date"):
+            elif active and (not cleaned_data.get("convention_start_date") \
+                    or not cleaned_data.get("convention_end_date")):
                 if 'convention_start_date' in self.fields and 'convention_end_date' in self.fields:
                     raise forms.ValidationError({
                         'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
@@ -1322,7 +1358,8 @@ class MailTemplateForm(forms.ModelForm):
             if self.instance.id:
                 self.fields['code'].disabled = True
 
-            if not self.request.user.is_superuser and not self.request.user.is_operator():
+            # The superuser is the only user allowed to update available mail template variables
+            if not self.request.user.is_superuser:
                 self.fields['available_vars'].widget = forms.MultipleHiddenInput()
 
                 if self.request.user.is_master_establishment_manager():
@@ -1716,6 +1753,20 @@ class GeneralSettingsForm(forms.ModelForm):
                     """cannot be both set to False """)
                 )
 
+            if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and \
+                HighSchool.objects.filter(with_convention=True).exists():
+                raise ValidationError(_(
+                    """This parameter can't be set to False : there are high schools """
+                    """with agreements in database, please update or delete these first"""
+                ))
+
+            if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and \
+                HighSchool.objects.filter(with_convention=False).exists():
+                raise ValidationError(_(
+                    """This parameter can't be set to False : there are high schools """
+                    """without agreements in database, please update or delete these first"""
+                ))
+
         # ACTIVATE_TRAINING_QUOTAS value constraints
         if cleaned_data['setting'] == 'ACTIVATE_TRAINING_QUOTAS':
             dict_value = cleaned_data['parameters']['value']
@@ -1818,48 +1869,6 @@ class CertificateSignatureForm(forms.ModelForm):
 
     class Meta:
         model = CertificateSignature
-        fields = '__all__'
-
-
-class ImmersupFileForm(forms.ModelForm):
-    """
-    Immersup File form class
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-        self.fields["code"].widget.attrs['readonly'] = 'readonly'
-
-    def clean_file(self):
-        file = self.cleaned_data['file']
-        if file and isinstance(file, UploadedFile):
-
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'pdf']]
-
-            if not file.content_type in allowed_content_type:
-                raise forms.ValidationError(_('File type is not allowed'))
-
-        return file
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
-    class Meta:
-        model = ImmersupFile
         fields = '__all__'
 
 
@@ -1989,11 +1998,72 @@ class ProfileForm(forms.ModelForm):
     """
     User Profiles form class
     """
-
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
         model = Profile
+        fields = '__all__'
+
+
+class ScheduledTaskForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        # Limit command choice to the schedulable ones
+
+        choices_dict = MultiValueDict()
+
+        for command, app in get_commands().items():
+            if app.startswith("immersionlyceens"):
+                try:
+                    CommandClass = load_command_class(app, command)
+                    if CommandClass.is_schedulable():
+                        choices_dict.appendlist(app, command)
+                except AttributeError:
+                    # 'is_schedulable' is missing : nothing to do
+                    pass
+
+        choices = []
+        for key in choices_dict.keys():
+            commands = choices_dict.getlist(key)
+            commands.sort()
+            choices.append([key, [[c, c] for c in commands]])
+
+        # When readonly (for some groups), command_name is not in self.fields
+        if 'command_name' in self.fields:
+            choices.insert(0, ('', '---------'))
+            self.fields["command_name"].widget = forms.widgets.Select(choices=choices)
+
+        # Other field options
+        if "frequency" in self.fields:
+            self.fields["frequency"].help_text = _("If not empty, uses 'Execution time' field for the first execution")
+
+        if "time" in self.fields:
+            # Time field : remove seconds
+            self.fields["time"].widget.format = "%H:%M"
+            self.fields["time"].help_text = _("Minutes will be rounded to force 5 min steps")
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data.get("date") and cleaned_data.get("frequency"):
+            raise forms.ValidationError(_("Date and frequency can't be both set"))
+
+        # Input format can take seconds and microseconds : force clean them
+        # + force 5 min steps to avoid running master cron every minute
+        if cleaned_data.get("time"):
+            cleaned_data["time"] = cleaned_data["time"].replace(
+                minute=cleaned_data["time"].minute - (cleaned_data["time"].minute % 5),
+                second=0,
+                microsecond=0
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = ScheduledTask
         fields = '__all__'

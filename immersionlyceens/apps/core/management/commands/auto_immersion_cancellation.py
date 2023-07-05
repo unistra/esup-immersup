@@ -10,36 +10,39 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.conf import settings
-from ...models import Slot, Immersion
+from . import Schedulable
 
 from immersionlyceens.apps.core.models import CancelType, GeneralSettings, Immersion, ImmersionUser
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecordDocument, VisitorRecordDocument
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
     def handle(self, *args, **options):
+        success = "%s : %s" % (_("Immersion cancellations"), _("success"))
         today = timezone.localdate()
         now = timezone.now()
 
         try:
             slot_unsubscribe_delay = int(GeneralSettings.get_setting("AUTO_SLOT_UNSUBSCRIBE_DELAY"))
         except:
-            logger.error(_("AUTO_SLOT_UNSUBSCRIBE_DELAY missing or invalid, please check your configuration."))
-            return
+            msg = _("AUTO_SLOT_UNSUBSCRIBE_DELAY missing or invalid, please check your configuration.")
+            logger.error(msg)
+            raise CommandError(msg)
 
         try:
             cancellation_reason = CancelType.objects.get(code='ATT', system=True)  # reserved cancellation type
         except CancelType.DoesNotExist:
-            logger.error(
-                _("""'ATT' system cancellation type (out of date attestation) is missing, """
+            msg = _("""'ATT' system cancellation type (out of date attestation) is missing, """
                   """please check your configuration""")
-            )
-            return
+            logger.error(msg)
+            raise CommandError(msg)
 
         max_unsubscribe_date = today + datetime.timedelta(days=slot_unsubscribe_delay)
 
@@ -66,3 +69,6 @@ class Command(BaseCommand):
             immersion.cancellation_date = now
             immersion.save()
             immersion.student.send_message(None, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+        logger.info(success)
+        return success
