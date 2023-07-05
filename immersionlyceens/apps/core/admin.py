@@ -414,7 +414,9 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU', 'CONS-STR'])|Q(structures__establishment=es)|Q(establishment=es)
+                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU', 'CONS-STR'])
+                |Q(structures__establishment=es)
+                |Q(establishment=es)
             ).distinct()
 
         if request.user.is_high_school_manager():
@@ -984,9 +986,13 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
         valid_groups = [
             request.user.is_superuser,
             request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
             request.user.is_operator()
         ]
 
+        return any(valid_groups)
+
+        """
         if any(valid_groups):
             return True
 
@@ -994,6 +1000,7 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
             return True
 
         return False
+        """
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:

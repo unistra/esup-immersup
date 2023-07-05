@@ -483,15 +483,19 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
         Q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
-            filter = {'highschool' : 'request.user.highschool'}
+            filter = {'highschool' : request.user.highschool}
 
         if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
             Q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter,
-                                            groups__name='CONS-STR',
-                                            **filter).order_by('last_name', 'first_name')
+        return ImmersionUser.objects\
+            .filter(
+                Q_filter,
+                groups__name='CONS-STR',
+                **filter)\
+            .distinct()\
+            .order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return request.user.is_superuser
