@@ -1210,23 +1210,13 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser or request.user.is_master_establishment_manager():
-            return True
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
 
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # The current active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
+        return any(valid_groups)
 
 
 class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1272,23 +1262,13 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
 
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # Active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
+        return any(valid_groups)
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
