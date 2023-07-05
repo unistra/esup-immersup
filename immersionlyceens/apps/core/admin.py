@@ -2048,6 +2048,9 @@ class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
 
     show_logo.short_description = _('Certificate logo')
 
+    def has_add_permission(self, request):
+        return not CertificateLogo.objects.exists()
+
 
 class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateSignatureForm
@@ -2060,6 +2063,9 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     ]
 
     show_signature.short_description = _('Certificate signature')
+
+    def has_add_permission(self, request):
+        return not CertificateSignature.objects.exists()
 
 
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
