@@ -44,6 +44,7 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
+    maxDiff = None
     fixtures = [
         'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
         'mailtemplatevars', 'mailtemplate', 'higher'
@@ -790,6 +791,7 @@ class APITestCase(TestCase):
             "cancellation_limit_delay":48,
             "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+02:00",
             "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+02:00",
+            "reminder_notification_sent":False,
         })
 
         # Published course - test missing fields
