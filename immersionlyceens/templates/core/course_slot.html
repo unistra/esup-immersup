@@ -4,7 +4,15 @@
 {% load static %}
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
-
+{% block title %}
+{% if duplicate %}
+  {% trans "Duplicate a course slot" %}
+{% elif slot %}
+  {% trans "Update a course slot" %}
+{% else %}
+  {% trans "Add a new course slot" %}
+{% endif %}
+{% endblock %}
 {% include '../modals/modal_slot_repetition.html' %}
 
 {% block confirm_slot_creation %}

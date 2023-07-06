@@ -4,7 +4,7 @@
 {% load static %}
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
-
+{% block title %}{% trans "Event slots" %}{% endblock%}
 {% block head-javascript %}
 {{ block.super }}
 <script src="{% static 'js/core/events_slots.min.js' %}"></script>
