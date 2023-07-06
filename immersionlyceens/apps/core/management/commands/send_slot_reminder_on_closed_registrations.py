@@ -20,41 +20,23 @@ class Command(BaseCommand, Schedulable):
     """
     """
     def handle(self, *args, **options):
-        success = "%s : %s" % (_("Send speaker slot reminder"), _("success"))
+        success = "%s : %s" % (_("Send slot reminder on closed registration"), _("success"))
         returns = []
         today = timezone.now()
-        default_value = 4
 
-        # settings / default value
-        try:
-            days = settings.DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER
-        except AttributeError:
-            days = default_value
-
-        # Configured value
-        try:
-            days = int(get_general_setting('NB_DAYS_SPEAKER_SLOT_REMINDER'))
-        except (ValueError, NameError):
-            pass
-
-        # If configured value is invalid
-        if days <= 0:
-            days = default_value
-
-        # ================      
-        slot_date = today.date() + datetime.timedelta(days=days)
-        slots = Slot.objects.filter(date=slot_date,
+        slots = Slot.objects.filter(registration_limit_date__lte=today, 
                                     published=True,
-                                    registration_limit_date__lte=today, 
-                                    reminder_notification_sent=False,)
+                                    reminder_notification_sent=False)
 
-        for slot in slots:          
-                # Speakers
-                for speaker in slot.speakers.all():
-                    msg = speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
-                    if msg:
-                        returns.append(msg)
-                # Structures managers
+        for slot in slots:
+            print(slot)          
+            # Speakers
+            for speaker in slot.speakers.all():
+                msg = speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
+                if msg:
+                    returns.append(msg)
+            # Structures managers
+            try:
                 slot_structure = slot.get_structure()
                 str_managers = ImmersionUser.objects.filter(
                     groups__name="REF-STR",
@@ -72,9 +54,11 @@ class Command(BaseCommand, Schedulable):
                         msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
                         if msg:
                             returns.append(msg)
+            except Exception as e:
+                print(e)
 
-                slot.reminder_notification_sent=True
-                slot.save()
+            slot.reminder_notification_sent=True
+            slot.save()
            
         if returns:
             for line in returns:
