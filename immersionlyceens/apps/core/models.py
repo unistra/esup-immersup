@@ -2491,6 +2491,10 @@ class Slot(models.Model):
     registration_limit_date = models.DateTimeField(_('Registration limit'), blank=True, null=True)
     cancellation_limit_date = models.DateTimeField(_('Cancellation limit'), blank=True, null=True)
 
+    reminder_notification_sent = models.BooleanField(
+        _("Slot reminder notification sent"), default=False, null=False, blank=True
+    )
+
     def get_establishment(self):
         """
         Get the slot establishment depending on the slot type (visit, course, event)
@@ -2685,10 +2689,10 @@ class Slot(models.Model):
             if timezone.is_naive(self.cancellation_limit_date):
                 self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
 
-            if self.registration_limit_delay > 0:
+            if self.registration_limit_delay and self.registration_limit_delay > 0:
                 self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
 
-            if self.cancellation_limit_delay > 0:
+            if self.cancellation_limit_delay and self.cancellation_limit_delay > 0:
                 self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
 
         else:
