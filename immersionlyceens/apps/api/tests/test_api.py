@@ -44,7 +44,8 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    maxDiff = None
+    # maxDiff could be used for tests debugging 
+    #maxDiff = None
     fixtures = [
         'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
         'mailtemplatevars', 'mailtemplate', 'higher'
