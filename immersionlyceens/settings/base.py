@@ -546,12 +546,10 @@ ADMIN_MODELS_ORDER = {
     ],
     'configuration': [
         'GeneralSettings',
+        'Profile',
         'ScheduledTask',
         'CustomThemeFile',
-        'ScheduledTaskLog',
-        'History','GeneralSettings',
         'ScheduledTask',
-        'CustomThemeFile',
         'ScheduledTaskLog',
         'History',
     ],

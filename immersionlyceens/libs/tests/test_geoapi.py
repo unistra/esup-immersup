@@ -33,7 +33,9 @@ request = request_factory.get('/admin')
 class GEOAPITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['group', 'group_permissions', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
+    # 'group', 'group_permissions'
+
+    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def test_get_json_from_url(self):
         url = f'{settings.GEOAPI_BASE_URL}/departements?fields=nom,code'

@@ -377,7 +377,8 @@ class ImmersionUser(AbstractUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for code, name in self._groups.items():
-            setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
+            # setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
+            setattr(self, 'is_%s' % name, partial(lambda x:self.groups.filter(name__in=[x]).exists(), code))
 
         for code, name in self._groups.items():
             setattr(self, 'is_only_%s' % name, partial(self.has_single_group, code))

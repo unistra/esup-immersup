@@ -44,8 +44,10 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
+    # 'group', 'group_permissions'
+
     fixtures = [
-        'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
+        'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
         'mailtemplatevars', 'mailtemplate', 'higher'
     ]
 

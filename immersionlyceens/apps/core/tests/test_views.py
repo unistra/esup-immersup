@@ -34,7 +34,10 @@ request_factory = RequestFactory()
 request = request_factory.get('/admin')
 
 class CoreViewsTestCase(TestCase):
-    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'higher']
+
+    # 'group', 'group_permissions'
+
+    fixtures = ['generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'higher']
 
     @classmethod
     def setUpTestData(cls):
