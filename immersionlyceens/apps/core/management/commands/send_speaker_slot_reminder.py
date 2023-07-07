@@ -9,16 +9,18 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Immersion, Slot, ImmersionUser, RefStructuresNotificationsSettings
+from ...models import Immersion, ImmersionUser, RefStructuresNotificationsSettings, Slot
 from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand, Schedulable):
-    """
-    """
+    """ """
+
     def handle(self, *args, **options):
         success = "%s : %s" % (_("Send speaker slot reminder"), _("success"))
         returns = []
@@ -33,7 +35,7 @@ class Command(BaseCommand, Schedulable):
 
         # Configured value
         try:
-            days = int(get_general_setting('NB_DAYS_SPEAKER_SLOT_REMINDER'))
+            days = int(get_general_setting("NB_DAYS_SPEAKER_SLOT_REMINDER"))
         except (ValueError, NameError):
             pass
 
@@ -41,41 +43,43 @@ class Command(BaseCommand, Schedulable):
         if days <= 0:
             days = default_value
 
-        # ================      
+        # ================
         slot_date = today.date() + datetime.timedelta(days=days)
-        slots = Slot.objects.filter(date=slot_date,
-                                    published=True,
-                                    registration_limit_date__lte=today, 
-                                    reminder_notification_sent=False,)
+        slots = Slot.objects.filter(
+            date=slot_date,
+            published=True,
+            registration_limit_date__lte=today,
+            reminder_notification_sent=False,
+        )
 
-        for slot in slots:          
-                # Speakers
-                for speaker in slot.speakers.all():
-                    msg = speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
-                    if msg:
-                        returns.append(msg)
-                # Structures managers
-                slot_structure = slot.get_structure()
-                str_managers = ImmersionUser.objects.filter(
-                    groups__name="REF-STR",
+        for slot in slots:
+            # Speakers
+            for speaker in slot.speakers.all():
+                msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
+                if msg:
+                    returns.append(msg)
+            # Structures managers
+            slot_structure = slot.get_structure()
+            str_managers = ImmersionUser.objects.filter(
+                groups__name="REF-STR",
+                structures__in=[
+                    slot_structure.pk,
+                ],
+            )
+            for s in str_managers:
+                if RefStructuresNotificationsSettings.objects.filter(
+                    user=s,
                     structures__in=[
                         slot_structure.pk,
                     ],
-                )
-                for s in str_managers:
-                    if RefStructuresNotificationsSettings.objects.filter(
-                        user=s,
-                        structures__in=[
-                            slot_structure.pk,
-                        ],
-                    ).exists():
-                        msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
-                        if msg:
-                            returns.append(msg)
+                ).exists():
+                    msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
+                    if msg:
+                        returns.append(msg)
 
-                slot.reminder_notification_sent=True
-                slot.save()
-           
+            slot.reminder_notification_sent = True
+            slot.save()
+
         if returns:
             for line in returns:
                 logger.error(line)

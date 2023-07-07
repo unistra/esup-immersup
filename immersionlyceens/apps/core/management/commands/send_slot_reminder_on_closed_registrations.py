@@ -9,30 +9,36 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Immersion, Slot, ImmersionUser, RefStructuresNotificationsSettings
+from ...models import Immersion, ImmersionUser, RefStructuresNotificationsSettings, Slot
 from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand, Schedulable):
-    """
-    """
+    """ Sends speakers & structures managers notifcations for slots reminders """
+
     def handle(self, *args, **options):
-        success = "%s : %s" % (_("Send slot reminder on closed registration"), _("success"))
+        success = "%s : %s" % (
+            _("Send slot reminder on closed registration"),
+            _("success"),
+        )
         returns = []
         today = timezone.now()
 
-        slots = Slot.objects.filter(registration_limit_date__lte=today, 
-                                    published=True,
-                                    reminder_notification_sent=False)
+        slots = Slot.objects.filter(
+            registration_limit_date__lte=today,
+            published=True,
+            reminder_notification_sent=False,
+        )
 
         for slot in slots:
-            print(slot)          
             # Speakers
             for speaker in slot.speakers.all():
-                msg = speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
+                msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
                 if msg:
                     returns.append(msg)
             # Structures managers
@@ -57,9 +63,9 @@ class Command(BaseCommand, Schedulable):
             except Exception as e:
                 print(e)
 
-            slot.reminder_notification_sent=True
+            slot.reminder_notification_sent = True
             slot.save()
-           
+
         if returns:
             for line in returns:
                 logger.error(line)
