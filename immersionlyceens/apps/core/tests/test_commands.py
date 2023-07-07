@@ -14,17 +14,15 @@ from django.utils import timezone
 from django.utils.formats import date_format
 
 from immersionlyceens.apps.core.models import (
-    AttestationDocument, BachelorType, UniversityYear, MailTemplate,
-    Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
-    Building, CourseType, Training, Vacation, HighSchool, Immersion,
-    EvaluationFormLink, EvaluationType, CancelType, HighSchoolLevel,
-    StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
-    HigherEducationInstitution, PendingUserGroup, GeneralSettings,
-    ScheduledTask, ScheduledTaskLog, UserCourseAlert
-)
+    AttestationDocument, BachelorType, Building, Campus, CancelType, Course,
+    CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
+    Immersion, MailTemplate, PendingUserGroup, Period, PostBachelorLevel,
+    Profile, RefStructuresNotificationsSettings, ScheduledTask,
+    ScheduledTaskLog, Slot, Structure, StudentLevel, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation)
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
-)
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument)
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -208,7 +206,6 @@ class CommandsTestCase(TestCase):
         cls.slot.speakers.add(cls.speaker1),
         cls.slot2.speakers.add(cls.speaker1),
         cls.slot3.speakers.add(cls.speaker1),
-
         cls.hs_record = HighSchoolStudentRecord.objects.create(
             student=cls.highschool_user,
             highschool=cls.high_school,
@@ -493,7 +490,72 @@ class CommandsTestCase(TestCase):
         )
 
 
-#    def test_speaker_slot_reminder(self):
-#
-#        management.call_command("speaker_slot_reminder", verbosity=0)
-#        self.assertEqual(len(mail.outbox), 2)
+    def test_send_speakers_and_structures_managers_slot_reminder(self):
+        """ Tests send_speaker_slot_reminder """    
+        
+        # first nothing to do !
+        management.call_command("send_speaker_slot_reminder", verbosity=0)
+        self.assertEqual(len(mail.outbox), 0)
+        
+        slot5 = Slot.objects.create(
+            course=self.course2,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 666',
+            # TODO: use default nb days reminder settings (??)
+            date=self.today + datetime.timedelta(days=3),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=1,
+            additional_information="Hello there!",
+            registration_limit_delay=24*4,
+        )        
+        slot5.speakers.add(self.speaker1)      
+        immersion_from_hell = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=slot5,
+        )
+        self.assertFalse(slot5.reminder_notification_sent)
+        
+        management.call_command("send_speaker_slot_reminder", verbosity=0)
+        
+        # Reminder sent for slot !
+        self.assertEqual(len(mail.outbox), 1)
+        slot5.refresh_from_db()
+        self.assertTrue(slot5.reminder_notification_sent)
+
+        # Add a structure manager 
+        slot5.reminder_notification_sent=False
+        slot5.save()
+        new_ref_str = get_user_model().objects.create_user(
+            username='new_ref_str',
+            password='pass',
+            email='new_ref_str@no-reply.com',
+            first_name='new_ref_str',
+            last_name='new_ref_str',
+            establishment=self.establishment,
+        )
+        new_ref_str.structures.add(self.structure)
+        Group.objects.get(name='REF-STR').user_set.add(new_ref_str)
+        
+        # No mail for REF-STR for now no notification setting initialised
+        management.call_command("send_speaker_slot_reminder", verbosity=0)
+        self.assertEqual(len(mail.outbox), 2)
+        slot5.refresh_from_db()
+        self.assertTrue(slot5.reminder_notification_sent)
+        
+        # Structure manager has set notifications for his structure
+        setting = RefStructuresNotificationsSettings.objects.create(
+            user = new_ref_str
+        )
+        setting.structures.add(self.structure)
+        slot5.reminder_notification_sent=False
+        slot5.save()
+        management.call_command("send_speaker_slot_reminder", verbosity=0)
+        
+        # mail for ref-str and speaker
+        self.assertEqual(len(mail.outbox), 4)
+        slot5.refresh_from_db()
+        self.assertTrue(slot5.reminder_notification_sent)                 
+     
