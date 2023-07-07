@@ -85,7 +85,18 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='LYC').order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
+
+    def has_change_permission(self, request):
+        """
+        Here we need more detailed rights than group rights on ImmersionUser
+        """
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
+        return any(valid_groups)
 
 
 class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -112,8 +123,18 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='ETU').order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
 
+    def has_change_permission(self, request):
+        """
+        Here we need more detailed rights than group rights on ImmersionUser
+        """
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
+        return any(valid_groups)
 
 class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -133,7 +154,18 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
+
+    def has_change_permission(self, request):
+        """
+        Here we need more detailed rights than group rights on ImmersionUser
+        """
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
+        return any(valid_groups)
 
 
 class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -161,7 +193,7 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(Q_filter, groups__name='INTER',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
 
     def has_view_permission(self, request, obj=None):
         valid_groups = [
@@ -169,6 +201,17 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
             request.user.is_establishment_manager(),
+        ]
+        return any(valid_groups)
+
+    def has_change_permission(self, request):
+        """
+        Here we need more detailed rights than group rights on ImmersionUser
+        """
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
         ]
         return any(valid_groups)
 
@@ -191,21 +234,16 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-TEC').order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request):
         return request.user.is_superuser
-
-    def has_view_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
 
     def has_module_permission(self, request, obj=None):
         valid_groups = [
             request.user.is_superuser,
             request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
             request.user.is_operator()
         ]
 
@@ -236,7 +274,18 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(Q_filter, groups__name='REF-ETAB',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
+
+    def has_change_permission(self, request):
+        """
+        Here we need more detailed rights than group rights on ImmersionUser
+        """
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+        ]
+        return any(valid_groups)
 
 
 class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -257,12 +306,13 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-ETAB-MAITRE').order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
 
     def has_view_permission(self, request, obj=None):
         valid_groups = [
             request.user.is_superuser,
             request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
             request.user.is_operator()
         ]
 
@@ -272,11 +322,21 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         valid_groups = [
             request.user.is_superuser,
             request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
             request.user.is_operator()
         ]
 
         return any(valid_groups)
 
+    def has_change_permission(self, request):
+        """
+        Here we need more detailed rights than group rights on ImmersionUser
+        """
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+        ]
+        return any(valid_groups)
 
 class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -296,7 +356,16 @@ class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-LYC').order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+        ]
+
+        return any(valid_groups)
 
 
 class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -331,7 +400,7 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
                                             **filter).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
 
     def has_delete_permission(self, request, obj=None):
         conditions = [
@@ -345,15 +414,14 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return any(conditions)
 
     def has_change_permission(self, request, obj=None):
-        conditions = [
+        valid_groups = [
             request.user.is_superuser,
             request.user.is_operator(),
             request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager() and obj and
-                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+            request.user.is_establishment_manager()
         ]
 
-        return any(conditions)
+        return any(valid_groups)
 
 
 class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -386,7 +454,7 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
                                             **filter).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
 
     def has_delete_permission(self, request, obj=None):
         conditions = [
@@ -497,8 +565,8 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
             .distinct()\
             .order_by('last_name', 'first_name')
 
-    def has_add_permission(self, request):
-        return request.user.is_superuser
+    def has_add_permission(self, request, obj=None):
+        return False
 
     def has_delete_permission(self, request, obj=None):
         conditions = [
@@ -512,15 +580,14 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return any(conditions)
 
     def has_change_permission(self, request, obj=None):
-        conditions = [
+        valid_groups = [
             request.user.is_superuser,
             request.user.is_operator(),
             request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager() and obj and
-                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
+            request.user.is_establishment_manager()
         ]
 
-        return any(conditions)
+        return any(valid_groups)
 
 
 admin.site.register(HighSchoolStudent, HighschoolStudentAdmin)

@@ -4,6 +4,7 @@ Mails tests
 import datetime
 import uuid
 
+from django.core import management
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
 from django.utils import timezone
@@ -34,6 +35,8 @@ class MailsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        management.call_command("restore_group_rights")
+
         cls.today = timezone.now()
 
         cls.establishment = Establishment.objects.create(
@@ -348,6 +351,7 @@ class MailsTestCase(TestCase):
 
         # Attestations renewal
         message_body = MailTemplate.objects.get(code='CPT_DEPOT_PIECE')
+
         parsed_body = parser(
             message_body.body,
             user=self.highschool_user

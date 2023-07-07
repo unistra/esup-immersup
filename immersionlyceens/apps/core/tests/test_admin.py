@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages import get_messages
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core import management
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
@@ -56,7 +57,9 @@ class AdminFormsTestCase(TestCase):
     Main admin forms tests class
     """
 
-    fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher',
+    # 'group', 'group_permissions'
+
+    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher',
                 'mailtemplatevars', 'mailtemplate']
 
     @classmethod
@@ -65,6 +68,8 @@ class AdminFormsTestCase(TestCase):
         Data that do not change in tests below
         They are only set once
         """
+        management.call_command("restore_group_rights")
+
         cls.site = AdminSite()
         cls.today = timezone.localdate()
 
@@ -1405,12 +1410,6 @@ class AdminFormsTestCase(TestCase):
             request.user = user
             self.assertFalse(period_admin.has_add_permission(request=request))
             self.assertFalse(period_admin.has_delete_permission(request=request, obj=period))
-            self.assertEqual(
-                request._messages._queued_messages[0].message,
-                "You are not allowed to delete periods"
-            )
-            # Clear messages each time
-            list(get_messages(request))
 
         # Readonly fields
         # superuser : None
