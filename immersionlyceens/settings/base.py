@@ -535,6 +535,7 @@ ADMIN_MODELS_ORDER = {
         'FaqEntry',
         'PublicDocument',
         'PublicType',
+        'InformationText',
         'AccompanyingDocument',
         'AttestationDocument',
         'CertificateLogo',
