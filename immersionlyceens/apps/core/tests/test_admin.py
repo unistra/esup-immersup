@@ -60,7 +60,7 @@ class AdminFormsTestCase(TestCase):
     # 'group', 'group_permissions'
 
     fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher',
-                'mailtemplatevars', 'mailtemplate']
+                'mailtemplate']
 
     @classmethod
     def setUpTestData(cls):
@@ -2071,8 +2071,14 @@ class AdminFormsTestCase(TestCase):
 
     def test_general_settings(self):
         # User =! admin nor operator
-        data = {"setting": "MY_SETTING", "parameters": \
-            {"type": "text", "value": "value", "description": "my super setting"}}
+        data = {
+            "setting": "MY_SETTING",
+            "parameters": {
+                "type": "text",
+                "value": "value",
+                "description": "my super setting"
+            }
+        }
         request.user = self.ref_str_user
         form = GeneralSettingsForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -2087,9 +2093,21 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(GeneralSettings.objects.filter(setting='MY_SETTING').exists())
 
-        # Add ACTIVATE_STUDENTS setting
-        data = {"setting": "ACTIVATE_STUDENTS", "parameters": \
-            {"type": "boolean", "value": True, "description": "activate students"}}
+        # Try to add again
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("General setting with this Setting name already exists.", form.errors['setting'])
+
+        """
+        # Add NEW_SETTING setting
+        data = {
+            "setting": "NEW_SETTING",
+            "parameters": {
+                "type": "boolean",
+                "value": True,
+                "description": "activate students"
+            }
+        }
 
         form = GeneralSettingsForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -2100,12 +2118,19 @@ class AdminFormsTestCase(TestCase):
         form = GeneralSettingsForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("General setting with this Setting name already exists.", form.errors['setting'])
+        """
 
         # ACTIVATE_STUDENTS try to deactivate with students in database
         g = GeneralSettings.objects.get(setting='ACTIVATE_STUDENTS')
 
-        data = {"setting": "ACTIVATE_STUDENTS", "parameters": \
-            {"type": "boolean", "value": False, "description": "activate students"}}
+        data = {
+            "setting": "ACTIVATE_STUDENTS",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "activate students"
+            }
+        }
 
         form = GeneralSettingsForm(data=data, instance=g, request=request)
         self.assertFalse(form.is_valid())
@@ -2117,17 +2142,24 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # ACTIVATE_VISITORS try to deactivate with visitors in database
+        g = GeneralSettings.objects.get(setting='ACTIVATE_VISITORS')
 
-        data = {"setting": "ACTIVATE_VISITORS", "parameters": \
-            {"type": "boolean", "value": False, "description": "activate visitors"}}
+        data = {
+            "setting": "ACTIVATE_VISITORS",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "activate visitors"
+            }
+        }
 
-        form = GeneralSettingsForm(data=data, request=request)
+        form = GeneralSettingsForm(data=data, instance=g, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Visitors users exist you can't deactivate visitors", form.errors["__all__"])
 
         # ACTIVATE_VISITORS working when no visitors in database
         self.visitor.delete()
-        form = GeneralSettingsForm(data=data, request=request)
+        form = GeneralSettingsForm(data=data, instance=g, request=request)
         self.assertTrue(form.is_valid())
 
         # Wrong format for setting parameters

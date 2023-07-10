@@ -37,8 +37,8 @@ class UtilsTestCase(TestCase):
     # 'group', 'group_permissions'
 
     fixtures = [
-        'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
-        'mailtemplatevars', 'mailtemplate', 'higher'
+        'high_school_levels', 'student_levels', 'post_bachelor_levels',
+        'mailtemplate', 'higher'
     ]
 
     @classmethod

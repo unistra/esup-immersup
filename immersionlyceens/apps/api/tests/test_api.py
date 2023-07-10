@@ -45,8 +45,8 @@ class APITestCase(TestCase):
     """Tests for API"""
 
     fixtures = [
-        'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
-        'mailtemplatevars', 'mailtemplate', 'higher'
+        'high_school_levels', 'student_levels', 'post_bachelor_levels',
+        'mailtemplate', 'higher'
     ]
 
     @classmethod

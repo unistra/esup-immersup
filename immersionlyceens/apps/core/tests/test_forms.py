@@ -48,7 +48,7 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', 'generalsettings']
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', ]
 
     @classmethod
     def setUpTestData(cls):

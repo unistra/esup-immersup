@@ -37,7 +37,7 @@ class CoreViewsTestCase(TestCase):
 
     # 'group', 'group_permissions'
 
-    fixtures = ['generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'higher']
+    fixtures = ['mailtemplate', 'images', 'higher']
 
     @classmethod
     def setUpTestData(cls):

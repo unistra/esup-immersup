@@ -36,7 +36,7 @@ class ImmersionViewsTestCase(TestCase):
     Immersion app views tests
     """
 
-    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'high_school_levels',
+    fixtures = ['group', 'mailtemplate', 'images', 'high_school_levels',
                 'student_levels', 'post_bachelor_levels', 'higher']
 
     @classmethod

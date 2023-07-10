@@ -32,7 +32,7 @@ class CommandsTestCase(TestCase):
     Core app Management Commands tests
     """
 
-    fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
+    fixtures = ['group', 'mailtemplate', 'evaluationtype', 'canceltype',
                 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
 
     @classmethod

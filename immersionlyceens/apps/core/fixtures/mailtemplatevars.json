@@ -470,5 +470,13 @@
         "code": "{{ creneau.limite_inscription }}",
         "description": "Date limite d'inscription à un créneau"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 68,
+    "fields": {
+        "code": "{{ justificatifs_expires }}",
+        "description": "Liste des justificatifs à renouveler lorsque la fin de validité approche"
+    }
 }
 ]
