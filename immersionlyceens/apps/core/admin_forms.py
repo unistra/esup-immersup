@@ -1703,85 +1703,88 @@ class GeneralSettingsForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        # Settings that can't be deactivated because users already exist
-        if cleaned_data['setting'] == 'ACTIVATE_STUDENTS' \
-            and not cleaned_data['parameters']['value']:
+        try:
+            # Settings that can't be deactivated because users already exist
+            if cleaned_data['setting'] == 'ACTIVATE_STUDENTS' \
+                and not cleaned_data['parameters']['value']:
 
-            if ImmersionUser.objects.filter(groups__name='ETU').first():
-                raise forms.ValidationError(
-                    _("Students users exist you can't deactivate students"))
+                if ImmersionUser.objects.filter(groups__name='ETU').first():
+                    raise forms.ValidationError(
+                        _("Students users exist you can't deactivate students"))
 
-        if cleaned_data['setting']=='ACTIVATE_VISITORS' \
-            and not cleaned_data['parameters']['value']:
+            if cleaned_data['setting']=='ACTIVATE_VISITORS' \
+                and not cleaned_data['parameters']['value']:
 
-            if ImmersionUser.objects.filter(groups__name='VIS').first():
-                raise forms.ValidationError(
-                    _("Visitors users exist you can't deactivate visitors"))
+                if ImmersionUser.objects.filter(groups__name='VIS').first():
+                    raise forms.ValidationError(
+                        _("Visitors users exist you can't deactivate visitors"))
 
-        # Check that at least one of these parameter is True
-        if cleaned_data['setting'] in [
-            'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT', 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT'
-        ]:
-            # Value to save
-            setting_name = cleaned_data['setting']
-            value = cleaned_data['parameters']['value']
+            # Check that at least one of these parameter is True
+            if cleaned_data['setting'] in [
+                'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT', 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT'
+            ]:
+                # Value to save
+                setting_name = cleaned_data['setting']
+                value = cleaned_data['parameters']['value']
 
-            try:
-                w_agreement = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
-                w_agreement_v = w_agreement.parameters['value']
-            except (GeneralSettings.DoesNotExist, KeyError):
-                raise ValidationError(
-                    _("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT general setting is missing or incorrect. Please fix.")
-                )
-
-            try:
-                without_agreement = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
-                without_agreement_v = without_agreement.parameters['value']
-            except (GeneralSettings.DoesNotExist, KeyError):
-                raise ValidationError(
-                    _("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT general setting is missing or incorrect. Please fix.")
-                )
-
-            raise_conditions = [
-                setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and not without_agreement_v,
-                setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and not w_agreement_v,
-            ]
-
-            if any(raise_conditions):
-                raise ValidationError(_(
-                    """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """
-                    """cannot be both set to False """)
-                )
-
-            if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and \
-                HighSchool.objects.filter(with_convention=True).exists():
-                raise ValidationError(_(
-                    """This parameter can't be set to False : there are high schools """
-                    """with agreements in database, please update or delete these first"""
-                ))
-
-            if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and \
-                HighSchool.objects.filter(with_convention=False).exists():
-                raise ValidationError(_(
-                    """This parameter can't be set to False : there are high schools """
-                    """without agreements in database, please update or delete these first"""
-                ))
-
-        # ACTIVATE_TRAINING_QUOTAS value constraints
-        if cleaned_data['setting'] == 'ACTIVATE_TRAINING_QUOTAS':
-            dict_value = cleaned_data['parameters']['value']
-
-            if dict_value.get('activate', False):
                 try:
-                    default_quota = int(dict_value.get('default_quota'))
-                except (ValueError, TypeError):
-                    raise ValidationError(_("A default quota value is mandatory"))
+                    w_agreement = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+                    w_agreement_v = w_agreement.parameters['value']
+                except (GeneralSettings.DoesNotExist, KeyError):
+                    raise ValidationError(
+                        _("ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT general setting is missing or incorrect. Please fix.")
+                    )
 
-                if default_quota <= 0:
-                    raise ValidationError(_("The default quota value must be a positive integer > 0"))
-            else:
-                cleaned_data['parameters']['value']['activate'] = False
-                cleaned_data['parameters']['value']['default_quota'] = 2
+                try:
+                    without_agreement = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+                    without_agreement_v = without_agreement.parameters['value']
+                except (GeneralSettings.DoesNotExist, KeyError):
+                    raise ValidationError(
+                        _("ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT general setting is missing or incorrect. Please fix.")
+                    )
+
+                raise_conditions = [
+                    setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and not without_agreement_v,
+                    setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and not w_agreement_v,
+                ]
+
+                if any(raise_conditions):
+                    raise ValidationError(_(
+                        """ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT """
+                        """cannot be both set to False """)
+                    )
+
+                if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' and not value and \
+                    HighSchool.objects.filter(with_convention=True).exists():
+                    raise ValidationError(_(
+                        """This parameter can't be set to False : there are high schools """
+                        """with agreements in database, please update or delete these first"""
+                    ))
+
+                if setting_name == 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' and not value and \
+                    HighSchool.objects.filter(with_convention=False).exists():
+                    raise ValidationError(_(
+                        """This parameter can't be set to False : there are high schools """
+                        """without agreements in database, please update or delete these first"""
+                    ))
+
+            # ACTIVATE_TRAINING_QUOTAS value constraints
+            if cleaned_data['setting'] == 'ACTIVATE_TRAINING_QUOTAS':
+                dict_value = cleaned_data['parameters']['value']
+
+                if dict_value.get('activate', False):
+                    try:
+                        default_quota = int(dict_value.get('default_quota'))
+                    except (ValueError, TypeError):
+                        raise ValidationError(_("A default quota value is mandatory"))
+
+                    if default_quota <= 0:
+                        raise ValidationError(_("The default quota value must be a positive integer > 0"))
+                else:
+                    cleaned_data['parameters']['value']['activate'] = False
+                    cleaned_data['parameters']['value']['default_quota'] = 2
+        except KeyError:
+            raise ValidationError('')
 
         return cleaned_data
 
