@@ -131,13 +131,7 @@ def load_general_settings(apps, schema_editor):
     for setting_name, parameters in data.items():
         if not GeneralSettings.objects.filter(setting=setting_name).exists():
             GeneralSettings.objects.create(setting=setting_name, parameters=parameters)
-        """    
-        try:
-            GeneralSettings.objects.create(setting=setting_name, parameters=parameters)
-        except IntegrityError:
-            # Already exists
-            pass
-        """
+
 
 class Migration(migrations.Migration):
     dependencies = [
