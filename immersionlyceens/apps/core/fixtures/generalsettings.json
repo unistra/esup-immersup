@@ -90,7 +90,7 @@
     "parameters" : {
       "description": "Adresse de contact du réferent établissement",
       "type": "text",
-      "value": "ref_etab@somewhere.og"
+      "value": "ref_etab@somewhere.org"
     }
   }
 },
