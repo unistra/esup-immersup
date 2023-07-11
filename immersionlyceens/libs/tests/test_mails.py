@@ -30,8 +30,8 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, High
 class MailsTestCase(TestCase):
     """Mail templates tests"""
 
-    fixtures = ['group', 'mailtemplate', 'evaluationtype', 'canceltype',
-                'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
+    fixtures = ['group', 'evaluationtype', 'canceltype', 'high_school_levels', 'post_bachelor_levels',
+                'student_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):

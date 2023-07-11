@@ -32,8 +32,8 @@ class CommandsTestCase(TestCase):
     Core app Management Commands tests
     """
 
-    fixtures = ['group', 'mailtemplate', 'evaluationtype', 'canceltype',
-                'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
+    fixtures = ['group', 'evaluationtype', 'canceltype', 'high_school_levels', 'post_bachelor_levels',
+                'student_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):

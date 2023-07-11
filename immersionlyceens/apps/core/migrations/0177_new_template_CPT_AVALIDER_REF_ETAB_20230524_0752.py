@@ -2,38 +2,6 @@
 
 from django.db import migrations
 
-def create_template(apps, schema_editor):
-    MailTemplateVars = apps.get_model('core', 'MailTemplateVars')
-    MailTemplate = apps.get_model('core', 'MailTemplate')
-
-    template_data = {
-        "code": "CPT_AVALIDER_REF_ETAB",
-        "label": "Mail de notification de comptes à valider pour les lycées non conventionnés et les visiteurs",
-        "description": """Mail envoyé par un batch chaque nuit si des comptes visiteurs ou de """
-                       """lycéens de lycées non conventionnés sont à (re)valider""",
-        "subject": "Référent(e) établissement - comptes à valider sur la plateforme d'immersion",
-        "body": """<p>Bonjour {{ prenom }} {{ nom }}, </p>"""
-                """<p>Il existe des comptes visiteurs ou de lycéens de lycées non conventionnés """
-                """à valider ou rejeter.</p>"""
-                """<p>Merci de vous connecter sur la plateforme {{ urlPlateforme }} pour les traiter. </p>"""
-                """<p>Le service en ligne d'immersions</p>""",
-        "active": True
-    }
-
-    template = MailTemplate.objects.create(**template_data)
-
-    # Add these existing vars to the new template
-    codes = [
-        "{{ nom }}", "{{ prenom }}", "{{ urlPlateforme }}", "{{ annee }}"
-    ]
-
-    for code in codes:
-        try:
-            template_var = MailTemplateVars.objects.get(code=code)
-            template.available_vars.add(template_var)
-        except MailTemplateVars.DoesNotExist:
-            print(f"Mail template var '{code}' not found")
-
 
 class Migration(migrations.Migration):
 
@@ -42,6 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_template),
     ]
 

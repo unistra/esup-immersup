@@ -59,8 +59,7 @@ class AdminFormsTestCase(TestCase):
 
     # 'group', 'group_permissions'
 
-    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher',
-                'mailtemplate']
+    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):

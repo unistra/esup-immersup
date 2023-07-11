@@ -44,10 +44,7 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = [
-        'high_school_levels', 'student_levels', 'post_bachelor_levels',
-        'mailtemplate', 'higher'
-    ]
+    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):

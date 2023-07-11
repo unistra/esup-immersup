@@ -2,47 +2,6 @@
 
 from django.db import migrations
 
-def create_template(apps, schema_editor):
-    MailTemplateVars = apps.get_model('core', 'MailTemplateVars')
-    MailTemplate = apps.get_model('core', 'MailTemplate')
-
-    template_var_data = {
-        "code": "{{ justificatifs_expires }}",
-        "description": "Liste des justificatifs à renouveler lorsque la fin de validité approche"
-    }
-
-    template_var = MailTemplateVars.objects.create(**template_var_data)
-
-    template_data = {
-        "code": "CPT_DEPOT_PIECE",
-        "label": "Mail envoyé lorsqu'un justificatif doit être renvoyé",
-        "description": """L'envoi du mail se base sur la date de validité des justificatifs """
-                       """et sur le paramètre 'ATTESTATION_DOCUMENT_DEPOSIT_DELAY'""",
-        "subject": "Fin de validité d'un ou plusieurs justificatifs",
-        "body": """<p>Bonjour,</p><p>Votre fiche comporte un ou plusieurs justificatifs arrivant à expiration :<br></p>"""
-                """<p>{{ justificatifs_expires }}<br></p>"""
-                """<p>Merci de le ou les renouveler avant la date limite afin de faire revalider votre fiche.<br></p>"""
-                """<p>Cordialement, </p><p>Le service en ligne d'immersions</p>""",
-        "active": True
-    }
-
-    template = MailTemplate.objects.create(**template_data)
-    template.available_vars.add(template_var)
-
-    # Add these existing vars to the new template
-    codes = [
-        "{{ annee }}", "{{ estetudiant }}", "{{ estlyceen }}", "{{ estvisiteur }}", "{{ nom }}",
-        "{{ prenom }}", "{{ urlPlateforme }}"
-    ]
-
-    for code in codes:
-        try:
-            template_var = MailTemplateVars.objects.get(code=code)
-            template.available_vars.add(template_var)
-        except MailTemplateVars.DoesNotExist:
-            print(f"Mail template var '{code}' not found")
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -50,5 +9,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_template),
     ]
