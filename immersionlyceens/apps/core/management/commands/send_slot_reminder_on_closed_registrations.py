@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand, Schedulable):
-    """ Sends speakers & structures managers notifcations for slots reminders """
+    """Sends speakers & structures managers notifcations for slots reminders"""
 
     def handle(self, *args, **options):
         success = "%s : %s" % (
@@ -36,35 +36,38 @@ class Command(BaseCommand, Schedulable):
         )
 
         for slot in slots:
-            # Speakers
-            for speaker in slot.speakers.all():
-                msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
-                if msg:
-                    returns.append(msg)
-            # Structures managers
-            try:
-                slot_structure = slot.get_structure()
-                str_managers = ImmersionUser.objects.filter(
-                    groups__name="REF-STR",
-                    structures__in=[
-                        slot_structure.pk,
-                    ],
-                )
-                for s in str_managers:
-                    if RefStructuresNotificationsSettings.objects.filter(
-                        user=s,
+            if slot.registered_students() > 0:
+                # Speakers
+                for speaker in slot.speakers.all():
+                    msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
+                    if msg:
+                        returns.append(msg)
+                # Structures managers
+                try:
+                    slot_structure = slot.get_structure()
+                    str_managers = ImmersionUser.objects.filter(
+                        groups__name="REF-STR",
                         structures__in=[
                             slot_structure.pk,
                         ],
-                    ).exists():
-                        msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
-                        if msg:
-                            returns.append(msg)
-            except Exception as e:
-                print(e)
+                    )
+                    for s in str_managers:
+                        if RefStructuresNotificationsSettings.objects.filter(
+                            user=s,
+                            structures__in=[
+                                slot_structure.pk,
+                            ],
+                        ).exists():
+                            msg = s.send_message(
+                                None, "IMMERSION_RAPPEL_STR", slot=slot
+                            )
+                            if msg:
+                                returns.append(msg)
+                except Exception as e:
+                    print(e)
 
-            slot.reminder_notification_sent = True
-            slot.save()
+                slot.reminder_notification_sent = True
+                slot.save()
 
         if returns:
             for line in returns:

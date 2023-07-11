@@ -491,12 +491,30 @@ class CommandsTestCase(TestCase):
 
 
     def test_send_speakers_and_structures_managers_slot_reminder(self):
-        """ Tests send_speaker_slot_reminder """    
+        """ Tests send_speaker_slot_reminder & send_slot_reminder_on_closed_registrations"""    
+        
+        self.slot.published = False
+        self.slot2.published = False
+        self.slot3.published = False
+        self.slot4.published = False
+        self.slot.save()
+        self.slot2.save()
+        self.slot3.save()
+        self.slot4.save()
         
         # first nothing to do !
         management.call_command("send_speaker_slot_reminder", verbosity=0)
+        management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
         self.assertEqual(len(mail.outbox), 0)
-        
+
+        with self.settings(DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER=0):
+            management.call_command("send_speaker_slot_reminder", verbosity=0)
+            self.assertEqual(len(mail.outbox), 0)
+
+        with self.settings(DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER=None):
+            management.call_command('send_speaker_slot_reminder', verbosity=0)
+            self.assertEqual(len(mail.outbox), 0)            
+
         slot5 = Slot.objects.create(
             course=self.course2,
             course_type=self.course_type,
@@ -511,7 +529,14 @@ class CommandsTestCase(TestCase):
             additional_information="Hello there!",
             registration_limit_delay=24*4,
         )        
-        slot5.speakers.add(self.speaker1)      
+        slot5.speakers.add(self.speaker1)
+
+        # No registered student still nothing to do
+        management.call_command("send_speaker_slot_reminder", verbosity=0)
+        management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
+        self.assertEqual(len(mail.outbox), 0)              
+
+        # One registered student
         immersion_from_hell = Immersion.objects.create(
             student=self.highschool_user,
             slot=slot5,
@@ -523,6 +548,12 @@ class CommandsTestCase(TestCase):
         # Reminder sent for slot !
         self.assertEqual(len(mail.outbox), 1)
         slot5.refresh_from_db()
+        self.assertFalse(slot5.reminder_notification_sent)
+        # Reminder sent for slot (again) !
+        management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
+        self.assertEqual(len(mail.outbox), 2)
+        slot5.refresh_from_db()
+        # Reminder notification sent flag set to True
         self.assertTrue(slot5.reminder_notification_sent)
 
         # Add a structure manager 
@@ -541,9 +572,9 @@ class CommandsTestCase(TestCase):
         
         # No mail for REF-STR for now no notification setting initialised
         management.call_command("send_speaker_slot_reminder", verbosity=0)
-        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(len(mail.outbox), 3)
         slot5.refresh_from_db()
-        self.assertTrue(slot5.reminder_notification_sent)
+        self.assertFalse(slot5.reminder_notification_sent)
         
         # Structure manager has set notifications for his structure
         setting = RefStructuresNotificationsSettings.objects.create(
@@ -554,8 +585,16 @@ class CommandsTestCase(TestCase):
         slot5.save()
         management.call_command("send_speaker_slot_reminder", verbosity=0)
         
-        # mail for ref-str and speaker
-        self.assertEqual(len(mail.outbox), 4)
+        # Mail for ref-str and speaker
+        self.assertEqual(len(mail.outbox), 5)
         slot5.refresh_from_db()
-        self.assertTrue(slot5.reminder_notification_sent)                 
-     
+        self.assertFalse(slot5.reminder_notification_sent)
+
+        management.call_command("send_speaker_slot_reminder", verbosity=0)
+        self.assertEqual(len(mail.outbox), 7)
+
+        management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
+        self.assertEqual(len(mail.outbox), 9)
+        # Reminder notification sent flag set to True
+        slot5.refresh_from_db()      
+        self.assertTrue(slot5.reminder_notification_sent)

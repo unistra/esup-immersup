@@ -53,32 +53,31 @@ class Command(BaseCommand, Schedulable):
         )
 
         for slot in slots:
-            # Speakers
-            for speaker in slot.speakers.all():
-                msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
-                if msg:
-                    returns.append(msg)
-            # Structures managers
-            slot_structure = slot.get_structure()
-            str_managers = ImmersionUser.objects.filter(
-                groups__name="REF-STR",
-                structures__in=[
-                    slot_structure.pk,
-                ],
-            )
-            for s in str_managers:
-                if RefStructuresNotificationsSettings.objects.filter(
-                    user=s,
+            # TODO: if we should optimise this come from Immersion and not from Slot !!!
+            if slot.registered_students() > 0:
+                # Speakers
+                for speaker in slot.speakers.all():
+                    msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
+                    if msg:
+                        returns.append(msg)
+                # Structures managers
+                slot_structure = slot.get_structure()
+                str_managers = ImmersionUser.objects.filter(
+                    groups__name="REF-STR",
                     structures__in=[
                         slot_structure.pk,
                     ],
-                ).exists():
-                    msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
-                    if msg:
-                        returns.append(msg)
-
-            slot.reminder_notification_sent = True
-            slot.save()
+                )
+                for s in str_managers:
+                    if RefStructuresNotificationsSettings.objects.filter(
+                        user=s,
+                        structures__in=[
+                            slot_structure.pk,
+                        ],
+                    ).exists():
+                        msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
+                        if msg:
+                            returns.append(msg)
 
         if returns:
             for line in returns:
