@@ -9,7 +9,7 @@ from django.conf import settings
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, UserCourseAlert, Slot
+    HighSchoolLevel, UserCourseAlert, Slot, CourseType,
 )
 
 class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
@@ -357,6 +357,11 @@ class HighSchoolLevelSerializer(serializers.ModelSerializer):
         model = HighSchoolLevel
         fields = "__all__"
 
+class CourseTypeSerializer(serializers.ModelSerializer):
+    """Course Type serializer"""
+    class Meta:
+        model = CourseType
+        fields = "__all__"
 
 class CourseSerializer(serializers.ModelSerializer):
     """

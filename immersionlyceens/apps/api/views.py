@@ -41,7 +41,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from immersionlyceens.apps.core.models import (
-    Building, Campus, CancelType, Course, Establishment, GeneralSettings,
+    Building, Campus, CancelType, Course, CourseType, Establishment, GeneralSettings,
     HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday,
     Immersion, ImmersionUser, ImmersionUserGroup, MailTemplate,
     MailTemplateVars, OffOfferEvent, Period, PublicDocument,
@@ -50,7 +50,7 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer, CourseTypeSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer, HighSchoolSerializer,
     OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
@@ -3469,6 +3469,38 @@ class HighSchoolDetail(generics.RetrieveAPIView):
     lookup_fields = ['id']
     queryset = HighSchool.objects.all()
 
+
+class CourseTypeList(generics.ListCreateAPIView):
+    """
+    Course types list
+    """
+    model = CourseType
+    serializer_class = CourseTypeSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [CustomDjangoModelPermissions]
+    filterset_fields = ['label', 'full_label', 'active']
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CourseType.objects.all()
+        return queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+class CourseTypeDetail(generics.RetrieveAPIView):
+    """
+    Course Type detail
+    """
+    serializer_class = CourseTypeSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [IsAuthenticated] # enough ?
+    lookup_fields = ['id']
+    queryset = CourseType.objects.all()
 
 class CourseList(generics.ListCreateAPIView):
     """

@@ -4270,6 +4270,91 @@ class APITestCase(TestCase):
         self.assertTrue(TrainingDomain.objects.filter(label='Training domain test B').exists())
 
 
+    def test_course_type(self):
+        view_permission = Permission.objects.get(codename='view_coursetype')
+        add_permission = Permission.objects.get(codename='add_coursetype')
+        url = reverse("course_type_list")
+
+        # List
+        self.assertTrue(CourseType.objects.exists())
+
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission and try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all training domains are there
+        for course_type in CourseType.objects.all():
+            self.assertTrue(course_type.id in [ct['id'] for ct in result])
+
+        # Creation (POST)
+        self.assertFalse(CourseType.objects.filter(label='Course type test').exists())
+        data = {
+            "label": "Course type test",
+            "full_label": "Course type full label",
+            "active": True
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Course type test")
+        self.assertTrue(CourseType.objects.filter(label='Course type test').exists())
+        self.assertEqual(CourseType.objects.filter(label__iexact='Course type test').count(), 1)
+
+        # Unique label : fail
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {
+            'label': ['Course type with this Short label already exists.'],
+            'full_label': ['Course type with this Full label already exists.']
+        })
+
+        # Create multiple course types at once
+        # Mind the content_type, as test Client expects a dict and not a list
+        self.assertFalse(CourseType.objects.filter(label='Course type test A').exists())
+        self.assertFalse(CourseType.objects.filter(label='Course type test B').exists())
+        data = [{
+            "label": "Course type test A",
+            "full_label": "Course type full test A",
+            "active": True,
+        }, {
+            "label": "Course type test B",
+            "full_label": "Course type full test B",
+            "active": True,
+        }]
+
+        response = self.api_client_token.post(url, json.dumps(data), content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(CourseType.objects.filter(label='Course type test A').exists())
+        self.assertTrue(CourseType.objects.filter(label='Course type test B').exists())
+
+        c_type = CourseType.objects.get(label='Course type test A')
+
+        # Detail
+        url = reverse("course_type_detail", args=[c_type.id, ])
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result, {
+            'id': c_type.id,
+            'label': 'Course type test A',
+            'full_label': 'Course type full test A',
+            'active': True
+        })
+
     def test_training_subdomain_list(self):
         view_permission = Permission.objects.get(codename='view_trainingsubdomain')
         add_permission = Permission.objects.get(codename='add_trainingsubdomain')
