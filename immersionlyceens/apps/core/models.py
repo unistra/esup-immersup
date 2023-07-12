@@ -513,7 +513,6 @@ class ImmersionUser(AbstractUser):
 
     def get_cleaned_username(self):
         return self.get_username()
-        # return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
         redirect_url: str = "/immersion/login"

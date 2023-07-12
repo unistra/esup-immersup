@@ -3443,6 +3443,8 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(result["data"].get('email'), "new_speaker@domain.tld")
         self.assertTrue(ImmersionUser.objects.filter(email='new_speaker@domain.tld', groups__name='INTER').exists())
+        user = ImmersionUser.objects.get(email='new_speaker@domain.tld', groups__name='INTER')
+        self.assertEqual(user.username, "new_speaker@domain.tld")
 
         # Duplicate
         response = self.api_client_token.post(url, data)

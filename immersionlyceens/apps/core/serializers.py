@@ -52,9 +52,15 @@ class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class ImmersionUserSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        if not validated_data.get('username'):
+            validated_data['username'] = validated_data.get('email')
+
+        return super().create(validated_data)
+
     class Meta:
         model = ImmersionUser
-        fields = ('last_name', 'first_name', 'email')
+        fields = ('last_name', 'first_name', 'email', 'username')
 
 
 class SpeakerSerializer(ImmersionUserSerializer):
