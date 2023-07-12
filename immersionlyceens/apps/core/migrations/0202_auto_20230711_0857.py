@@ -384,7 +384,8 @@ def load_mail_templates(apps, schema_editor):
                 '{{ estvisiteur }}',
                 '{{ nom }}',
                 '{{ prenom }}',
-                '{{ urlPlateforme }}'
+                '{{ urlPlateforme }}',
+                '{{ justificatifs_expires }}'
             ]
         },
         'EVALUATION_GLOBALE': {
