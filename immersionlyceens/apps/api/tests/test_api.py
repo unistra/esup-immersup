@@ -1805,7 +1805,7 @@ class APITestCase(TestCase):
         client = Client()
         client.login(username='speaker1', password='pass')
 
-        url = "/api/courses/"
+        url = reverse("course_list")
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -1873,7 +1873,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
-        url = "/api/highschools/?agreed=true"
+        url = "/api/highschools?agreed=true"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2276,7 +2276,7 @@ class APITestCase(TestCase):
             self.assertEqual(None, h[field])
 
         # As a high school manager
-        url = "/api/get_highschool_students/"
+        url = "/api/get_highschool_students"
         request.user = self.ref_lyc
         client = Client()
         client.login(username='ref_lyc', password='pass')
@@ -3564,7 +3564,7 @@ class APITestCase(TestCase):
         self.assertEqual(result['error'], 'Authentication credentials were not provided.')
 
         # Agreed high schools : success
-        response = self.client.get("/api/highschools/?agreed=true")
+        response = self.client.get("/api/highschools?agreed=true")
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         result = json.loads(response.content.decode('utf-8'))
@@ -3631,7 +3631,7 @@ class APITestCase(TestCase):
 
         # Success
         client.login(username='ref_lyc', password='pass')
-        response = client.get(f"/api/speakers/?highschool={self.high_school.id}")
+        response = client.get(f"/api/speakers?highschool={self.high_school.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
 
@@ -4646,7 +4646,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         request.user = self.ref_etab_user
 
-        url = f"/api/courses/?training__structures={self.structure.id}"
+        url = f"/api/courses?training__structures={self.structure.id}"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -4684,7 +4684,7 @@ class APITestCase(TestCase):
         """
         # Is this still an error ?
 
-        url = "/api/courses/"
+        url = "/api/courses"
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
@@ -4693,7 +4693,7 @@ class APITestCase(TestCase):
         self.client.login(username='cons_str', password='pass')
         request.user = self.cons_str
 
-        url = f"/api/courses/?training__structures={self.structure.id}"
+        url = f"/api/courses?training__structures={self.structure.id}"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())

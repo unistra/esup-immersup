@@ -1,7 +1,7 @@
 $(document).ready(function() {
   function set_campuses(establishment_id) {
     $.ajax({
-      url: '/api/campuses/?establishment='+establishment_id,
+      url: '/api/campuses?establishment='+establishment_id,
       type: 'GET',
       success(data) {
         let selected

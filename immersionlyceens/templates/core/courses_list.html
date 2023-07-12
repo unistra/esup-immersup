@@ -209,13 +209,13 @@
     let url;
     if (key === 'highschool') {
         if(is_set(value)) {
-            url = `/api/courses/?training__highschool=${value}`
+            url = `/api/courses?training__highschool=${value}`
         }
         current_highschool_id = value
     }
     else if (key === 'structure') {
         if(is_set(value)) {
-            url = `/api/courses/?training__structures=${value}`
+            url = `/api/courses?training__structures=${value}`
         }
         current_structure_id = value
     }

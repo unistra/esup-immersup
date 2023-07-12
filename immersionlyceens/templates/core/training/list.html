@@ -147,10 +147,10 @@
 
   function init_url() {
     if(is_set(current_structure_id)) {
-      return `/api/trainings/?structures=${current_structure_id}`
+      return `/api/trainings?structures=${current_structure_id}`
     }
     else if(is_set(current_highschool_id)) {
-      return `/api/trainings/?highschool=${current_highschool_id}`
+      return `/api/trainings?highschool=${current_highschool_id}`
     }
 
     return `/api/trainings`
@@ -175,7 +175,7 @@
         else if(msg !== '' && msg !== undefined) {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
-        // dt.ajax.url("/api/trainings/highschool").load();
+
         dt.ajax.url("{% url 'training_list' %}").load();
       },
       error: function (e) {
@@ -258,10 +258,10 @@
     dt.clear().draw()
 
     if(is_set(current_structure_id)) {
-      url = `/api/trainings/?structures=${current_structure_id}`
+      url = `/api/trainings?structures=${current_structure_id}`
     }
     else if(is_set(current_highschool_id)) {
-      url = `/api/trainings/?highschool=${current_highschool_id}`
+      url = `/api/trainings?highschool=${current_highschool_id}`
     }
 
     if(is_set(url)) {

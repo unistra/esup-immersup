@@ -53,7 +53,7 @@ window.onload = function () {
       content.innerHTML = "<br/></br.><p class='center'>" + gettext("Command running ...") + "</p>"
       purge_submit.setAttribute("disabled", "")
 
-      fetch("/api/commands/annual_purge/",{
+      fetch("/api/commands/annual_purge",{
         method: "POST",
         headers: csrfHeaders,
       })

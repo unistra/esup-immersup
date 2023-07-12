@@ -47,46 +47,46 @@ urlpatterns = [
     path('remove_link', views.remove_link, name='remove_link'),
 
     # DRF
-    path('campuses/', views.CampusList.as_view(), name='campus_list'),
-    path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
+    path('campuses', views.CampusList.as_view(), name='campus_list'),
+    path('establishments', views.EstablishmentList.as_view(), name='establishment_list'),
     path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_detail'),
-    path('structures/', views.StructureList.as_view(), name='structure_list'),
-    path('buildings/', views.BuildingList.as_view(), name='building_list'),
-    path('trainingdomains/', views.TrainingDomainList.as_view(), name='training_domain_list'),
-    path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
+    path('structures', views.StructureList.as_view(), name='structure_list'),
+    path('buildings', views.BuildingList.as_view(), name='building_list'),
+    path('trainingdomains', views.TrainingDomainList.as_view(), name='training_domain_list'),
+    path('trainingsubdomains', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
 
     # High schools
-    path('highschools/', views.HighSchoolList.as_view(), name='highschool_list'),
+    path('highschools', views.HighSchoolList.as_view(), name='highschool_list'),
     path('highschool/<int:pk>', views.HighSchoolDetail.as_view(), name='highschool_detail'),
-    path('get_highschool_students/', views.ajax_get_highschool_students, name='get_highschool_students'),
+    path('get_highschool_students', views.ajax_get_highschool_students, name='get_highschool_students'),
     path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
 
     # Trainings
-    path('trainings/', views.TrainingList.as_view(), name='training_list'),
+    path('trainings', views.TrainingList.as_view(), name='training_list'),
     path("training/<int:pk>", views.TrainingDetail.as_view(), name="training_detail"),
 
     # Courses
-    path('courses/', views.CourseList.as_view(), name='course_list'),
+    path('courses', views.CourseList.as_view(), name='course_list'),
     path("course/<int:pk>", views.CourseDetail.as_view(), name="course_detail"),
 
-    path('course_types/', views.CourseTypeList.as_view(), name='course_type_list'),
+    path('course_types', views.CourseTypeList.as_view(), name='course_type_list'),
     path("course_type/<int:pk>", views.CourseTypeDetail.as_view(), name="course_type_detail"),
 
     # The following path may change to 'slots/' in a near future : please always use the 'name'
     path('slots/', views.SlotList.as_view(), name='slot_list',),
 
     # Speakers
-    path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
+    path('speakers', views.SpeakerList.as_view(), name='speaker_list'),
     path('speakers/courses/<int:course_id>', views.SpeakerList.as_view(), name='course_speaker_list'),
     path('speakers/visits/<int:visit_id>', views.SpeakerList.as_view(), name='visit_speaker_list'),
     path('speakers/events/<int:event_id>', views.SpeakerList.as_view(), name='event_speaker_list'),
 
     # Visits
-    path('visits/', views.VisitList.as_view(), name='visit_list'),
+    path('visits', views.VisitList.as_view(), name='visit_list'),
     path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
 
     # Off offer events
-    path('off_offer_events/', views.OffOfferEventList.as_view(), name='off_offer_event_list'),
+    path('off_offer_events', views.OffOfferEventList.as_view(), name='off_offer_event_list'),
     path('off_offer_event/<int:pk>', views.OffOfferEventDetail.as_view(), name='off_offer_event_detail'),
 
     # High school levels
@@ -114,8 +114,8 @@ urlpatterns = [
     path("mail_template/<int:pk>/preview", views.MailTemplatePreviewAPI.as_view(), name="mail_template_preview"),
 
     # Annual purge
-    path("commands/annual_purge/", views.AnnualPurgeAPI.as_view(), name="annual_purge"),
+    path("commands/annual_purge", views.AnnualPurgeAPI.as_view(), name="annual_purge"),
 
     # Structures Manager notifications settings update
-    path("update_structures_notifications/", views.ajax_update_structures_notifications, name="update_structures_notifications")
+    path("update_structures_notifications", views.ajax_update_structures_notifications, name="update_structures_notifications")
 ]
