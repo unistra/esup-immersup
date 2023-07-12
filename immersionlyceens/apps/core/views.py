@@ -889,6 +889,7 @@ class TrainingList(generic.TemplateView):
         try:
             training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
             context['activated_training_quotas'] = training_quota['activate']
+            context['training_quotas_value'] = training_quota['default_quota']
         except:
             context['activated_training_quotas'] = False
 

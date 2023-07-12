@@ -347,7 +347,7 @@
           }
 
           if(type === 'display' && !is_structure_consultant) {
-            return `<input type="number" id="quota-${row.id}" class="form-control form-control-sm" value="${data}">`
+            return `<input type="number" id="quota-${row.id}" class="form-control form-control-sm" value="${data}" placeholder="{% if activated_training_quotas %}{{ training_quotas_value }} ({% trans 'by default' %}){% endif %}">`
           }
 
           return data

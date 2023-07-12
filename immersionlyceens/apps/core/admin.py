@@ -775,7 +775,8 @@ class BachelorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_module_permission(self, request):
         valid_groups = [
             request.user.is_superuser,
-            request.user.is_operator()
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager()
         ]
 
         return any(valid_groups)
@@ -1800,7 +1801,12 @@ class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmi
     sortable_by = ('order', )
 
     def has_module_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
         if obj and not obj.can_delete():
@@ -1824,7 +1830,12 @@ class PostBachelorLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAd
     sortable_by = ('order',)
 
     def has_module_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
         if obj and not obj.can_delete():
@@ -1848,7 +1859,12 @@ class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     sortable_by = ('order',)
 
     def has_module_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
         if obj and not obj.can_delete():
