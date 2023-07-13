@@ -2674,6 +2674,12 @@ class Slot(models.Model):
             return True
         else:
             return False
+    
+    def is_registration_limit_date_due(self):
+        return self.registration_limit_date < timezone.now()
+
+    def is_cancellation_limit_date_due(self):
+        return self.cancellation_limit_date < timezone.now()
 
     def save(self, *args, **kwargs):
         """

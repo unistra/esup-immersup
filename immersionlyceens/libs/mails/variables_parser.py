@@ -380,7 +380,9 @@ class Parser:
                     "info": slot.additional_information or pgettext("slot data", "None"),
                     "salle": slot.room,
                     "nbplaceslibres": slot.available_seats(),
-                    "listeInscrits": "<br />".join(sorted(registered_students)) if registered_students else ""
+                    "listeInscrits": "<br />".join(sorted(registered_students)) if registered_students else "",
+                    "limite_annulation_depassee": slot.is_cancellation_limit_date_due(),
+                    "limite_inscription_depassee": slot.is_registration_limit_date_due(),
                 }
             }
         return {}
@@ -462,7 +464,6 @@ class Parser:
             return context
         return {}
 
-
     @staticmethod
     def get_cancellation_type_context(immersion: Optional[Immersion]) -> Dict[str, Any]:
         if immersion and immersion.cancellation_type:
@@ -498,8 +499,6 @@ class Parser:
                 }
 
         return {}
-
-
 
     @staticmethod
     def get_slot_list_context(slot_list):
@@ -582,7 +581,6 @@ class Parser:
             )
 
         return link_dict
-
 
     @classmethod
     def get_context(cls, user: Optional[ImmersionUser], request: Optional[Request] = None, **kwargs) -> Dict[str, Any]:
