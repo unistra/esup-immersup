@@ -1988,7 +1988,7 @@ class ScheduledTaskLogAdmin(admin.ModelAdmin):
     list_display = ('task', 'execution_date', 'success', 'message')
     ordering = ('-execution_date', )
     list_filter = ('task', 'success')
-    list_per_age = 25
+    list_per_page = 25
 
     def has_add_permission(self, request, obj=None):
         return False
