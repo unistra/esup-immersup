@@ -1080,7 +1080,12 @@ class Campus(models.Model):
         blank=False, null=True)
 
     def __str__(self):
-        return f"{self.label} ({self.establishment.label if self.establishment else '-'})"
+        campus_str = self.label
+
+        if self.city:
+            campus_str += f" ({self.city.title()})"
+
+        return campus_str
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
