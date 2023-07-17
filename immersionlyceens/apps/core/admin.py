@@ -1947,6 +1947,7 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ScheduledTaskForm
     list_display = ('command_name', 'description', 'date', 'time', 'frequency', 'days', 'active')
     ordering = ('command_name', 'time', )
+    list_per_age = 25
     list_filter = ('active', )
 
     fieldsets = (

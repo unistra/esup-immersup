@@ -26,16 +26,6 @@ class CampusTestCase(TestCase):
     fixtures = ['higher']
 
     def test_campus_model(self):
-        test_campus = Campus.objects.create(
-            label='MyCampus',
-            department=67,
-            city='STRASBOURG',
-            zip_code=67000,
-            active=True
-        )
-        self.assertEqual(test_campus.active, True)
-        self.assertEqual(str(test_campus), 'MyCampus (-)')
-
         establishment = Establishment.objects.create(
             code='ETA2',
             label='Etablissement 2',
@@ -43,18 +33,24 @@ class CampusTestCase(TestCase):
             active=True,
             master=False,
             email='test@test.com',
-            address= 'address',
+            address='address',
             department='departement',
             city='city',
-            zip_code= 'zip_code',
-            phone_number= '+33666',
+            zip_code='zip_code',
+            phone_number='+33666',
             uai_reference=HigherEducationInstitution.objects.first()
         )
 
-        test_campus.establishment = establishment
-        test_campus.save()
-
-        self.assertEqual(str(test_campus), f'{test_campus.label} ({establishment.label})')
+        test_campus = Campus.objects.create(
+            label='MyCampus',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True,
+            establishment=establishment
+        )
+        self.assertEqual(test_campus.active, True)
+        self.assertEqual(str(test_campus), 'MyCampus (Strasbourg)')
 
 
     def test_building_str(self):
