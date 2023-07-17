@@ -175,9 +175,9 @@ class SlotForm(forms.ModelForm):
         self.fields["allowed_bachelor_types"].queryset = BachelorType.objects\
             .filter(active=True).order_by('label')
         self.fields["allowed_bachelor_mentions"].queryset = BachelorMention.objects\
-                    .filter(active=True).order_by('label')
+            .filter(active=True).order_by('label')
         self.fields["allowed_bachelor_teachings"].queryset = GeneralBachelorTeaching.objects\
-                    .filter(active=True).order_by('label')
+            .filter(active=True).order_by('label')
 
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)

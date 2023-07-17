@@ -33,8 +33,6 @@
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
 
-{% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as training_quotas %}
-
 <div class="container" style="padding-top:20px; width:70%;">
   <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
@@ -324,15 +322,6 @@
                 <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
               </div>
             {% endfor %}
-
-            {% if training_quotas.activate %}
-              <div class="form-group row align-items-center">
-                <div class="col-sm-7">
-                  <label class="col-form-label">{% trans 'Quota by training, for each period' %} :</label>
-                </div>
-                <div class="col-sm-1 col-form-label">{{ training_quotas.default_quota }}</div>
-              </div>
-            {% endif %}
           </div>
       {% endif %}
       <div class="card-header text-white bg-secondary">

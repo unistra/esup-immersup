@@ -812,10 +812,19 @@ class ImmersionUser(AbstractUser):
     def accept_to_share_immersions(self):
         """
         Get high school student decision to share his immersions data with his high school
-        :return: High school object if found, else None
+        :return: boolean (student choice) if found, else True
         """
+        try:
+            request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
+        except:
+            request_agreement = False
+
+        # Setting disabled : return True
+        if not request_agreement:
+            return True
+
         record = self.get_high_school_student_record()
-        return record.allow_high_school_consultation if record else None
+        return record.allow_high_school_consultation if record else True
 
 
     def has_obsolete_attestations(self):

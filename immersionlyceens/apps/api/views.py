@@ -1483,6 +1483,12 @@ def ajax_get_highschool_students(request):
         request.user.is_high_school_manager() and request.user.highschool and request.user.highschool.postbac_immersion
     ]
 
+    # request agreement setting
+    try:
+        request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
+    except:
+        request_agreement = False
+
     if any(admin_groups):
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
@@ -1562,7 +1568,12 @@ def ajax_get_highschool_students(request):
         hs_origin_bachelor=F('high_school_student_record__origin_bachelor_type__label'),
         bachelor=F('high_school_student_record__bachelor_type__label'),
         registered=Count(F('immersions')),
+        request_agreement=Value(request_agreement),
         allow_high_school_consultation=Case(
+            When(
+                Q(request_agreement=False),
+                then=True
+            ),
             When(
                 high_school_student_record__highschool__with_convention=True,
                 then=F('high_school_student_record__allow_high_school_consultation'),
@@ -1887,7 +1898,7 @@ def get_csv_structures(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True,then=F('room')),
+                When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_speakers=StringAgg(
@@ -1992,7 +2003,7 @@ def get_csv_structures(request):
             highschool=F('visit__highschool__label'),
             purpose=F('visit__purpose'),
             meeting_place=Case(
-                When(face_to_face=True,then=F('room')),
+                When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
@@ -2144,7 +2155,7 @@ def get_csv_structures(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True,then=F('room')),
+                When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
@@ -2265,7 +2276,7 @@ def get_csv_highschool(request):
         slot_campus_label=F('immersions__slot__campus__label'),
         slot_building=F('immersions__slot__building__label'),
         slot_room=Case(
-            When(immersions__slot__face_to_face=True,then=F('immersions__slot__room')),
+            When(immersions__slot__face_to_face=True, then=F('immersions__slot__room')),
             When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
         ),
         attendance=Case(*attendance_status_whens, output_field=CharField()),
@@ -2308,12 +2319,12 @@ def get_csv_highschool(request):
         attendance=Value(''),
         informations=Value(''),
         detail_consultancy=Case(
-            When(high_school_student_record__allow_high_school_consultation=True,then=Value(gettext('Yes'))),
-            When(high_school_student_record__allow_high_school_consultation=False,then=Value(gettext('No'))),
+            When(high_school_student_record__allow_high_school_consultation=True, then=Value(gettext('Yes'))),
+            When(high_school_student_record__allow_high_school_consultation=False, then=Value(gettext('No'))),
         ),
         detail_registrations=Case(
-            When(high_school_student_record__visible_immersion_registrations=True,then=Value(gettext('Yes'))),
-            When(high_school_student_record__visible_immersion_registrations=False,then=Value(gettext('No'))),
+            When(high_school_student_record__visible_immersion_registrations=True, then=Value(gettext('Yes'))),
+            When(high_school_student_record__visible_immersion_registrations=False, then=Value(gettext('No'))),
         ),
     ).values_list(
         'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
@@ -2463,7 +2474,7 @@ def get_csv_anonymous(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True,then=F('room')),
+                When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_speakers=StringAgg(
@@ -2568,7 +2579,7 @@ def get_csv_anonymous(request):
             highschool=F('visit__highschool__label'),
             purpose=F('visit__purpose'),
             meeting_place=Case(
-                When(face_to_face=True,then=F('room')),
+                When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
@@ -2679,7 +2690,7 @@ def get_csv_anonymous(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True,then=F('room')),
+                When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(

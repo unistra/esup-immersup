@@ -431,6 +431,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
         self.fields['current_diploma'].widget.attrs['size'] = 80
+        self.fields['bachelor_type'].queryset = BachelorType.objects.filter(active=True)
         self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
         self.fields['general_bachelor_teachings'] = forms.ModelMultipleChoiceField(
             queryset=GeneralBachelorTeaching.objects.filter(active=True).order_by('label'),

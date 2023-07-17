@@ -138,6 +138,7 @@ class CampusForm(forms.ModelForm):
         try:
             user = self.request.user
             valid_groups = [
+                user.is_superuser,
                 user.is_establishment_manager(),
                 user.is_master_establishment_manager(),
                 user.is_operator()
@@ -225,6 +226,7 @@ class TrainingSubdomainForm(forms.ModelForm):
         try:
             user = self.request.user
             valid_groups = [
+                user.is_superuser,
                 user.is_master_establishment_manager(),
                 user.is_operator()
             ]
@@ -285,6 +287,7 @@ class BuildingForm(forms.ModelForm):
         try:
             user = self.request.user
             valid_groups = [
+                user.is_superuser,
                 user.is_master_establishment_manager(),
                 user.is_establishment_manager(),
                 user.is_operator(),
@@ -326,6 +329,7 @@ class TrainingForm(forms.ModelForm):
             )
 
         valid_groups = [
+            self.request.user.is_superuser,
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
             self.request.user.is_operator()
@@ -358,6 +362,7 @@ class TrainingForm(forms.ModelForm):
             user = self.request.user
 
             valid_groups = [
+                user.is_superuser,
                 user.is_establishment_manager(),
                 user.is_master_establishment_manager(),
                 user.is_high_school_manager(),
@@ -529,6 +534,7 @@ class StructureForm(forms.ModelForm):
             user = self.request.user
 
             valid_groups = [
+                user.is_superuser,
                 user.is_establishment_manager(),
                 user.is_master_establishment_manager(),
                 user.is_operator()
@@ -587,14 +593,14 @@ class UniversityYearForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        if start_date and start_date <= datetime.today().date():
+        if not self.instance.pk and start_date and start_date <= timezone.localdate():
             raise forms.ValidationError(_("Start date can't be today or earlier"))
         if start_date and end_date and start_date >= end_date:
             raise forms.ValidationError(_("Start date greater than end date"))
@@ -653,7 +659,7 @@ class HolidayForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -709,7 +715,7 @@ class VacationForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -789,7 +795,7 @@ class PeriodForm(forms.ModelForm):
         # Test user group
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
         if not valid_user:
@@ -1293,6 +1299,7 @@ class HighSchoolForm(forms.ModelForm):
             user = self.request.user
 
             valid_groups = [
+                user.is_superuser,
                 user.is_operator(),
                 user.is_master_establishment_manager(),
                 user.is_high_school_manager() and user.highschool
@@ -1479,7 +1486,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1562,7 +1569,7 @@ class PublicDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1621,7 +1628,7 @@ class AttestationDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1820,7 +1827,7 @@ class CertificateLogoForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1861,7 +1868,7 @@ class CertificateSignatureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 

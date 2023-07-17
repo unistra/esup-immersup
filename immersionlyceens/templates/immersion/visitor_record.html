@@ -22,7 +22,6 @@
 
 {% block content %}
 {% authorized_groups request.user %}
-{% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as training_quotas %}
 
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
@@ -211,15 +210,6 @@
               <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
             </div>
           {% endfor %}
-
-          {% if training_quotas.activate %}
-            <div class="form-group row align-items-center">
-              <div class="col-sm-7">
-                <label class="col-form-label">{% trans 'Quota by training, for each period' %} :</label>
-              </div>
-              <div class="col-sm-1 col-form-label">{{ training_quotas.default_quota }}</div>
-            </div>
-          {% endif %}
         </div>
       {% endif %}
       <div class="card-header text-white bg-secondary">
