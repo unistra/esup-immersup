@@ -1947,7 +1947,6 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ScheduledTaskForm
     list_display = ('command_name', 'description', 'date', 'time', 'frequency', 'days', 'active')
     ordering = ('command_name', 'time', )
-    list_per_age = 25
     list_filter = ('active', )
 
     fieldsets = (
@@ -1989,6 +1988,7 @@ class ScheduledTaskLogAdmin(admin.ModelAdmin):
     list_display = ('task', 'execution_date', 'success', 'message')
     ordering = ('-execution_date', )
     list_filter = ('task', 'success')
+    list_per_age = 25
 
     def has_add_permission(self, request, obj=None):
         return False
