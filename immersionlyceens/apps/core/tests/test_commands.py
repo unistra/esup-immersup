@@ -542,7 +542,8 @@ class CommandsTestCase(TestCase):
             slot=slot5,
         )
         self.assertFalse(slot5.reminder_notification_sent)
-        
+        slot5.registration_limit_delay=0
+        slot5.save()
         management.call_command("send_speaker_slot_reminder", verbosity=0)
         
         # Reminder sent for slot !
@@ -550,6 +551,8 @@ class CommandsTestCase(TestCase):
         slot5.refresh_from_db()
         self.assertFalse(slot5.reminder_notification_sent)
         # Reminder sent for slot (again) !
+        slot5.registration_limit_delay=24*4
+        slot5.save()
         management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
         self.assertEqual(len(mail.outbox), 2)
         slot5.refresh_from_db()
@@ -571,6 +574,8 @@ class CommandsTestCase(TestCase):
         Group.objects.get(name='REF-STR').user_set.add(new_ref_str)
         
         # No mail for REF-STR for now no notification setting initialised
+        slot5.registration_limit_delay=0
+        slot5.save()
         management.call_command("send_speaker_slot_reminder", verbosity=0)
         self.assertEqual(len(mail.outbox), 3)
         slot5.refresh_from_db()
@@ -592,7 +597,9 @@ class CommandsTestCase(TestCase):
 
         management.call_command("send_speaker_slot_reminder", verbosity=0)
         self.assertEqual(len(mail.outbox), 7)
-
+        
+        slot5.registration_limit_delay=24*4
+        slot5.save()
         management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
         self.assertEqual(len(mail.outbox), 9)
         # Reminder notification sent flag set to True

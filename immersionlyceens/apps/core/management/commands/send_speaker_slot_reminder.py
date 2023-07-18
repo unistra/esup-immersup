@@ -48,7 +48,7 @@ class Command(BaseCommand, Schedulable):
         slots = Slot.objects.filter(
             date=slot_date,
             published=True,
-            registration_limit_date__lte=today,
+            registration_limit_date__gt=today,
             reminder_notification_sent=False,
         )
 
