@@ -2385,7 +2385,7 @@ msgstr "Un favicon est déjà utilisé"
 
 #: immersionlyceens/apps/core/admin_forms.py:2045
 msgid "If not empty, uses 'Execution time' field for the first execution"
-msgstr "Si vide, utilise l'Heure d'exécution pour le premier lancement"
+msgstr "Si non vide, utilise l'Heure d'exécution pour le premier lancement de la journée"
 
 #: immersionlyceens/apps/core/admin_forms.py:2050
 msgid "Minutes will be rounded to force 5 min steps"
