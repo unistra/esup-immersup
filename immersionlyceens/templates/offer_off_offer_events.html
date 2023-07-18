@@ -219,7 +219,7 @@
                             <td style="width: 10%">
                             {% if s.event.structure %}
                                 <i class="fa fas fa-institution text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Structure' %}"></i>
-                                {{ s.event.structure.label }}
+                                {{ s.event.structure.label }} ({{ s.event.structure.establishment.label }})
                             {% endif %}
                             </td>
                             <td style="width: 10%">

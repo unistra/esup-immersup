@@ -217,7 +217,7 @@
                             <span class="badge badge-pill immersup-badge" style="background-color: {{s.visit.establishment.badge_html_color }};margin: 2px;">{{ s.visit.establishment.label }}</span>
                         {% endif %}
                         {% if s.visit.structure %}
-                            {{ s.visit.structure.label }}
+                            {{ s.visit.structure.label }} ({{ s.visit.structure.establishment.label }})
                         {% endif %}
                           </td>
                           <td>{% if s.additional_information %} <p><i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Additional information' %}"></i> {{ s.additional_information }}</p>{% endif %}</td>
