@@ -68,9 +68,9 @@ class ParserFaker:
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
         slot_list: List[str] = [
-            f"* {formatted_today} (10h00 - 12h00) : Mon cours (TD)<br />Bâtiment principal, salle 1605<br /> -> {', '.join(speakers)}",
-            f"* {formatted_today} (12h00 - 14h00) : Mon cours 2 (CM)<br />Bâtiment secondaire, salle 309<br /> -> {', '.join(speakers)}",
-            f"* {formatted_today} (15h30 - 17h30) : Mon cours (TD)<br />Bâtiment principal, salle 170<br /> -> {', '.join(speakers)}",
+            f"* {formatted_today} (10h00 - 12h00) : Mon cours (TD)<br>Bâtiment principal, salle 1605<br> -> {', '.join(speakers)}",
+            f"* {formatted_today} (12h00 - 14h00) : Mon cours 2 (CM)<br>Bâtiment secondaire, salle 309<br> -> {', '.join(speakers)}",
+            f"* {formatted_today} (15h30 - 17h30) : Mon cours (TD)<br>Bâtiment principal, salle 170<br> -> {', '.join(speakers)}",
         ]
 
         attestations: List[str] = [
@@ -101,7 +101,7 @@ class ParserFaker:
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
-            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br />".join(attestations))
+            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations))
         })
         context[user_is] = True
 
@@ -178,7 +178,7 @@ class ParserFaker:
                 "salle": cls.add_tooltip("creneau.salle", "Salle 102"),
                 "nbplaceslibres": 25,
                 "listeInscrits": format_html(
-                    cls.add_tooltip("creneau.listeInscrits", "Alexandre COMBEAU<br />")
+                    cls.add_tooltip("creneau.listeInscrits", "Alexandre COMBEAU<br>")
                 ),
             }
         })
@@ -210,7 +210,7 @@ class ParserFaker:
         # slot list
         context.update({
             "creneaux": {
-                "liste": cls.add_tooltip("creneaux.liste", "<br /><br />".join(slot_list))
+                "liste": cls.add_tooltip("creneaux.liste", "<br><br>".join(slot_list))
             }
         })
 
@@ -380,7 +380,7 @@ class Parser:
                     "info": slot.additional_information or pgettext("slot data", "None"),
                     "salle": slot.room,
                     "nbplaceslibres": slot.available_seats(),
-                    "listeInscrits": "<br />".join(sorted(registered_students)) if registered_students else "",
+                    "listeInscrits": format_html("<br>".join(sorted(registered_students)) if registered_students else ""),
                     "limite_annulation_depassee": slot.is_cancellation_limit_date_due(),
                     "limite_inscription_depassee": slot.is_registration_limit_date_due(),
                 }
