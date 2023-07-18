@@ -87,7 +87,7 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         """
         Here we need more detailed rights than group rights on ImmersionUser
         """
@@ -125,7 +125,7 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         """
         Here we need more detailed rights than group rights on ImmersionUser
         """
@@ -156,7 +156,7 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         """
         Here we need more detailed rights than group rights on ImmersionUser
         """
@@ -204,7 +204,7 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         ]
         return any(valid_groups)
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         """
         Here we need more detailed rights than group rights on ImmersionUser
         """
@@ -236,7 +236,7 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         return request.user.is_superuser
 
     def has_module_permission(self, request, obj=None):
@@ -276,7 +276,7 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         """
         Here we need more detailed rights than group rights on ImmersionUser
         """
@@ -328,7 +328,7 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
         return any(valid_groups)
 
-    def has_change_permission(self, request):
+    def has_change_permission(self, request, obj=None):
         """
         Here we need more detailed rights than group rights on ImmersionUser
         """
