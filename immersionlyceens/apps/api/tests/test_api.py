@@ -3061,7 +3061,7 @@ class APITestCase(TestCase):
             record=self.hs_record
         ).update(allowed_immersions=3)
 
-        Immersion.objects.create(student=self.highschool_user, slot=self.slot2)
+        immersion = Immersion.objects.create(student=self.highschool_user, slot=self.slot2)
 
         training_quotas = GeneralSettings.objects.get(setting="ACTIVATE_TRAINING_QUOTAS")
         training_quotas.parameters["value"] = {
@@ -3098,7 +3098,23 @@ class APITestCase(TestCase):
             content['msg']
         )
 
-        # Raise single training quota and retry
+        # Cancel the immersion and retry
+        immersion.cancellation_type = CancelType.objects.first()
+        immersion.save()
+        response = client.post(
+            "/api/register",
+            {'slot_id': self.slot3.id},
+            **self.header,
+            follow=True
+        )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {'error': False, 'msg': 'Registration successfully added, confirmation email sent'})
+
+        # Remove first immersion cancellation and latest immersion, raise single training quota and register again
+        immersion.cancellation_type = None
+        immersion.save()
+        Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).delete()
+
         self.training.allowed_immersions = 2
         self.training.save()
 
