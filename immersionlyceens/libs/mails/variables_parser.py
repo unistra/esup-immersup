@@ -149,7 +149,10 @@ class ParserFaker:
                         format_html(f"<a href='https://www.moma.org/'>https://www.moma.org/</a>")
                     ),
                 },
-                "campus": cls.add_tooltip("creneau.campus", "Université de Columbia"),
+                "campus": {
+                    "libelle": cls.add_tooltip("creneau.campus.libelle", "Campus principal"),
+                    "ville": cls.add_tooltip("creneau.campus.ville", "Columbia"),
+                },
                 "temoindistanciel": remote,
                 "lien": cls.add_tooltip(
                     "creneau.lien",
@@ -355,7 +358,10 @@ class Parser:
                         'libelle': slot.building.label,
                         'lien': format_html(f"<a href='{slot.building.url}'>{slot.building.url}</a>"),
                     } if slot.building else {},
-                    "campus": slot.campus.label if slot.campus else "",
+                    "campus": {
+                        'libelle': slot.campus.label if slot.campus else "",
+                        'ville': slot.campus.city if slot.campus and slot.campus.city else "",
+                    },
                     "temoindistanciel": not slot.face_to_face,
                     "lien": format_html(f"<a href='{slot.url}'>{slot.url}</a>") if slot.url else "",
                     "cours": {
