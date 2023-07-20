@@ -149,7 +149,12 @@ class MailsTestCase(TestCase):
         cls.training2.structures.add(cls.structure)
         cls.course = Course.objects.create(label="course 1", training=cls.training, structure=cls.structure)
         cls.course.speakers.add(cls.speaker1)
-        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.campus = Campus.objects.create(
+            label='Esplanade',
+            department=67,
+            city='Strasbourg',
+            zip_code='67000'
+        )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM', full_label='Cours magistral')
         cls.slot = Slot.objects.create(

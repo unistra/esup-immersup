@@ -39,7 +39,8 @@ def slots(request):
     Get slots list according to GET parameters
     :return:
     """
-    today = datetime.datetime.today()
+    today = timezone.localdate()
+    now = timezone.now()
     user = request.user
     response = {'msg': '', 'data': []}
 
@@ -50,7 +51,7 @@ def slots(request):
 
     try:
         year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today.date() <= year.end_date
+        can_update_attendances = today <= year.end_date
     except UniversityYear.DoesNotExist:
         pass
 
@@ -181,8 +182,8 @@ def slots(request):
     if not past_slots:
         slots = slots.filter(
             Q(date__isnull=True)
-            | Q(date__gte=today.date())
-            | Q(date=today.date(), end_time__gte=today.time())
+            | Q(date__gte=today)
+            | Q(date=today, end_time__gte=now)
             | Q(face_to_face=True, immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
         ).distinct()
 
@@ -347,7 +348,10 @@ def slots(request):
             default=False
         ),
         n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
-        is_past=ExpressionWrapper(Q(date__lt=today), output_field=BooleanField()),
+        is_past=ExpressionWrapper(
+            Q(date__lt=today)|Q(date=today, end_time__lt=now),
+            output_field=BooleanField()
+        ),
         valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
         attendances_to_enter=Count(
             'immersions',
@@ -365,11 +369,7 @@ def slots(request):
                 then=Value(2)
             ),
             When(
-                Q(attendances_to_enter=0),
-                then=Value(-1)
-            ),
-            When(
-                Q(attendances_to_enter__gt=0),
+                Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
                 then=Value(1)
             ),
             default=Value(1)

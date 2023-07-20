@@ -1170,7 +1170,8 @@ def ajax_slot_registration(request):
                     .filter(
                         slot__date__gte=period.immersion_start_date,
                         slot__date__lte=period.immersion_end_date,
-                        slot__course__training=slot.course.training
+                        slot__course__training=slot.course.training,
+                        cancellation_type__isnull=True,
                     ).count()
 
                 # specific quota for this training ?

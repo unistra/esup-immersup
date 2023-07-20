@@ -35,8 +35,8 @@
     "model": "core.mailtemplatevars",
     "pk": 5,
     "fields": {
-        "code": "{{ creneau.campus }}",
-        "description": "Créneau : campus"
+        "code": "{{ creneau.campus.libelle }}",
+        "description": "Créneau : campus : libellé"
     }
 },
 {
@@ -477,6 +477,14 @@
     "fields": {
         "code": "{{ justificatifs_expires }}",
         "description": "Liste des justificatifs à renouveler lorsque la fin de validité approche"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 69,
+    "fields": {
+        "code": "{{ creneau.campus.ville }}",
+        "description": "Créneau : campus : ville"
     }
 }
 ]

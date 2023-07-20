@@ -115,7 +115,9 @@ function set_attendance(immersion_id, value) {
         setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
       }
       dtr.ajax.reload();
-      dt.ajax.reload();
+
+      // Refresh main table and jump to the previous page
+      dt.ajax.reload(null, false);
     },
     error: function(json) {
       console.log(json);
