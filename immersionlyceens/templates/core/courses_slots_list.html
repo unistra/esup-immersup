@@ -51,23 +51,48 @@
 {% block table_definition %}
 <thead>
   <tr>
+    <!--
+    0 <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+    1 <th id="managed_by_filter" class="align-top">{% trans 'Managed By' context "slots" %}</th>
+    2 <th id="course_filter" class="align-top">{% trans 'Course label' %}</th>
+    3 <th id="course_type_filter" class="align-top">{% trans 'Course type' %}</th>
+    4 <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
+    5 <th id="building_filter" class="align-top">{% trans 'Campus' %} - {% trans 'Building' %}</th>
+    6 <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
+    7 <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+    8 <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
+    9 <th class="align-top">{% trans 'Info.' %}</th>
+    10 <th class="align-top">{% trans 'Restr.' %}</th>
+    11 <th class="align-top">{% trans 'Control' %}</th>
+
+    11   => 0
+    0    => 1
+    1    => 2
+    formation => 3
+    2+3  => 4
+    4    => 5
+    8    => 6
+    5+6  => 7
+    7    => 8
+    9    => 9
+    10   => 10
+    -->
+
+    <th class="align-top">{% trans 'Control' %}</th>
     <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
     <th id="managed_by_filter" class="align-top">{% trans 'Managed By' context "slots" %}</th>
-    <th id="course_filter" class="align-top">{% trans 'Course label' %}</th>
-    <th id="course_type_filter" class="align-top">{% trans 'Course type' %}</th>
+    <th id="training_filter" class="align-top">{% trans 'Training label' %}</th>
+    <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
     <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
-    <th id="building_filter" class="align-top">{% trans 'Campus' %} - {% trans 'Building' %}</th>
-    <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
+    <th id="registration_filter" class="align-top">{% trans 'Registrants' %}</th>
+    <th id="building_filter" class="align-top">{% trans 'Meeting place' %}</th>
     <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
-    <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
     <th class="align-top">{% trans 'Info.' %}</th>
     <th class="align-top">{% trans 'Restr.' %}</th>
-    <th class="align-top">{% trans 'Control' %}</th>
   </tr>
 </thead>
 <tbody>
   <tr>
-    <td></td>
     <td></td>
     <td></td>
     <td></td>
