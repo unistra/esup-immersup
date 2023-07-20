@@ -373,7 +373,7 @@ def slots(request):
                 then=Value(-1)
             ),
             When(
-                Q(attendances_to_enter__gt=0),
+                Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
                 then=Value(1)
             ),
             default=Value(1)
