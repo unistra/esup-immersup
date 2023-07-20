@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block head-css %}
+<style>
+.cards tbody tr {
+    float: left;
+    width: 20rem;
+    height: 25rem;
+    margin: 0.5rem;
+    border: 0.0625rem solid rgba(0,0,0,.125);
+    border-radius: .25rem;
+    box-shadow: 0.25rem 0.25rem 0.5rem rgba(0,0,0,0.25);
+}
+.cards tbody td {
+    display: block;
+}
+
+.table thead {
+  display: none;
+}
+
+.cards tbody label {
+  display: inline;
+  position: relative;
+  float: left;
+  color: #808080;
+  min-width: 4rem;
+  margin-left: 0;
+  margin-right: 1rem;
+  text-align: left;
+}
+tr.selected label {
+    color: #404040;
+}
+
+.cards .fa {
+    font-size: 3.5rem;
+}
+
+</style>
+{% endblock %}
+{% block title %}
+{% trans "Search immersions slots" %}
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+    <div></div>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+            <h1>{% trans 'Search immersions slots' %}</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+  <section class="py-2">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{% trans "Search immersions slots" %}</li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+  <section class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col lead">
+          {% if intro_offer_search %}
+          {{ intro_offer_search | safe }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="py-5">
+    <div class="container">
+        <div class="row border-top my-3"></div>
+        <div class="row" style="padding-top:20px;">
+        <div class="col offset-sm-1 text-center">
+            <form class="form-inline justify-content-center">
+            <i class="fa fas fa-search" aria-hidden="true"></i>
+            <input class="form-control form-control-sm ml-4 w-25" id="search_immersions_slots" type="text" aria-label="{% trans 'Search immersions slots' %}">
+            </form>
+        </div>
+        </div>
+        <div class="row" style="padding-top:20px;padding-bottom:20px;">
+        <div class="col table-responsive" >
+            <table id="search_immersions_slots_table" class="table table-sm table-hover cards" style="width: 100%">
+            </table>
+        </div>
+        </div>
+    </div>
+</section>
+{% block foot-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
+{% endblock %}
+<script type="text/javascript">
+  $(document).ready(function() {
+    function decodeHTMLEntities(text) {
+      return $("<textarea/>").html(text).text();
+    }
+    let colors = ["Crimson ", "Cyan ", "DarkBlue ", "DarkCyan ", "DarkGoldenRod ", "DarkGray ", "DarkGrey ", "DarkGreen ", "DarkKhaki ", "DarkMagenta ", "DarkOliveGreen ", "DarkOrange "];
+    let slots = JSON.parse(decodeHTMLEntities('{{ slots }}'));
+    // TODO: Remove debug  
+    console.log(slots);
+    let dt = $('#search_immersions_slots_table').DataTable({
+      'processing': false,
+      'order': [
+          [5, "asc"],
+
+       ],
+      'dom': 'ltpr',
+      'pagingType': 'full_numbers',
+      'select': 'single',
+      'lengthChange': false,
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'dataType': 'json',
+      'data': slots,
+      'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+      'language': {
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
+      },
+      {% endif %}
+      'columns': [
+          {  
+              orderable: false, className: 'text-center', width: '20px',
+              createdCell: function (td, cellData, rowData, row, col) {
+                  var $ctl = $('<i class="fa fa-users fa-2x"></i>').css('color', colors[Math.round(Math.random() * colors.length) + 1])
+                  $(td).append($ctl);
+              },
+          },
+          { 
+            data: "label",
+            render: function (data, type, full, meta) {  
+              return '<label>'+ '{% trans "Label" %}' +':</label>' + data; 
+            }
+          },
+          { 
+            data: "slot_type",
+            render: function (data, type, full, meta) { 
+              return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
+            }
+          },
+          { 
+            data: "establishment_label",
+            render: function (data, type, full, meta) { 
+              return '<label>'+ "{% trans 'Establishment' %}" +':</label>' + data;
+            }
+          },
+          { 
+            data: "course_training_label",
+            render: function (data, type, full, meta) { 
+              return '<label>'+ '{% trans "Training" %}' +':</label>' + data;
+            }
+          },
+          { 
+            data: "date", class: 'text-right',
+            render: function (data, type, full, meta) { 
+              return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
+            }
+          },
+          { 
+            "data": "structure_code",
+            render: function (data, type, full, meta) {
+              return '<label>'+ "{% trans 'Structure' %}" +':</label>' + data;
+            }
+          },
+          { 
+            "data": "n_register", title: "register", visible: true,
+            render: function (data, type, full, meta) { 
+              return '<label>'+ '{% trans "Registrations" %}' +':</label>' + data;
+            }
+          },
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+
+    })
+    .on('select', function (e, dt, type, indexes) {
+      var rowData = dt.rows(indexes).data().toArray()
+      // TODO: debug for now modals WIP
+      console.log(JSON.stringify(rowData));
+    })
+    $('#search_immersions_slots').keyup( function() {
+      let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      dt.search(slots_search_value).draw();
+    });
+  });
+</script>
+{% endblock %}

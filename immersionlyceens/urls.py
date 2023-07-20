@@ -11,8 +11,8 @@ from .apps.core import views as core_views
 from .views import (
     accompanying, charter_not_signed, faq, highschools, home,
     host_establishments, offer, offer_off_offer_events, offer_subdomain,
-    procedure, serve_accompanying_document, serve_attestation_document,
-    serve_public_document, visits_offer,
+    procedure, search_slots, serve_accompanying_document, serve_attestation_document,
+    serve_public_document, visits_offer 
 )
 
 admin.autodiscover()
@@ -44,6 +44,7 @@ urlpatterns = [
     path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),
     path('offer_off_offer_events', offer_off_offer_events, name='offer_off_offer_events'),
     path('procedure', procedure, name='procedure'),
+    path('search_slots', search_slots, name='search_slots'),
     path('shib_secure/', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),

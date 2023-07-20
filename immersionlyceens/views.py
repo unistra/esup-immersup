@@ -8,23 +8,30 @@ from wsgiref.util import FileWrapper
 
 import requests
 from django.conf import settings
+from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.files.storage import default_storage
-from django.db.models.query_utils import Q
-from django.http import (
-    FileResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
-    HttpResponseNotFound, StreamingHttpResponse,
-)
+from django.db.models import (BooleanField, Case, CharField, Count, DateField,
+                              Exists, ExpressionWrapper, F, Func, OuterRef, Q,
+                              QuerySet, Subquery, Value, When)
+from django.db.models.functions import Coalesce, Concat, Greatest, JSONObject
+from django.http import (FileResponse, HttpResponse, HttpResponseBadRequest,
+                         HttpResponseForbidden, HttpResponseNotFound,
+                         StreamingHttpResponse)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.utils.translation import gettext, gettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AttestationDocument, Course, Establishment, FaqEntry,
-    HighSchool, InformationText, Period, PublicDocument,
-    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
-)
+from immersionlyceens.apps.core.models import (AccompanyingDocument,
+                                               AttestationDocument, Course,
+                                               Establishment, FaqEntry,
+                                               HighSchool, InformationText,
+                                               Period, PublicDocument,
+                                               PublicType, Slot, Training,
+                                               TrainingSubdomain,
+                                               UserCourseAlert, Visit)
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -615,3 +622,209 @@ def highschools(request):
         'not_affiliated_highschools_intro_txt': not_affiliated_highschools_intro_txt,
     }
     return render(request, 'highschools.html', context)
+
+
+def search_slots(request):
+    today = timezone.now()
+
+    try:
+        intro_offer_search = InformationText.objects.get(
+            code="INTRO_OFFER_SEARCH", active=True
+        ).content
+    except InformationText.DoesNotExist:
+        # TODO: Default txt value ?
+        intro_offer_search = ""
+
+    slots = Slot.objects.filter(published=True).filter(
+        Q(date__isnull=True)
+        | Q(date__gte=today.date())
+        | Q(date=today.date(), end_time__gte=today.time())
+    )
+
+    slots = (
+        slots.annotate(
+            label=Coalesce(F("course__label"), F("visit__purpose"), F("event__label")),
+            slot_type=Case(
+                When(course__isnull=False, then=Value(gettext("Course"))),
+                When(event__isnull=False, then=Value(gettext("Event"))),
+                When(visit__isnull=False, then=Value(gettext("Visit"))),        
+            ),
+            course_training_label=F("course__training__label"),
+            course_type_full_label=F("course_type__full_label"),
+            event_description=F("event__description"),
+            campus_label=F("campus__label"),
+            building_label=F("building__label"),
+
+            establishment_label=Coalesce(
+                F("course__structure__establishment__label"),
+                F("event__establishment__label"),
+                F("visit__establishment__label"),
+            ),
+            establishment_short_label=Coalesce(
+                F("course__structure__establishment__short_label"),
+                F("event__establishment__short_label"),
+                F("visit__establishment__short_label"),
+            ),
+            structure_code=Coalesce(
+                F("course__structure__code"),
+                F("event__structure__code"),
+                F("visit__structure__code"),
+            ),
+            structure_label=Coalesce(
+                F("course__structure__label"),
+                F("event__structure__label"),
+                F("visit__structure__label"),
+            ),
+            structure_establishment_short_label=Coalesce(
+                F("course__structure__establishment__short_label"),
+                F("event__structure__establishment__short_label"),
+                F("visit__structure__establishment__short_label"),
+            ),
+            highschool_city=Coalesce(
+                F("course__highschool__city"),
+                F("event__highschool__city"),
+                F("visit__highschool__city"),
+            ),
+            highschool_label=Coalesce(
+                F("course__highschool__label"),
+                F("event__highschool__label"),
+                F("visit__highschool__label"),
+            ),
+            n_register=Count(
+                "immersions",
+                filter=Q(immersions__cancellation_type__isnull=True),
+                distinct=True,
+            ),
+            attendances_to_enter=Count(
+                "immersions",
+                filter=Q(
+                    immersions__attendance_status=0,
+                    immersions__cancellation_type__isnull=True,
+                ),
+                distinct=True,
+            ),
+            speaker_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        last_name=F("speakers__last_name"),
+                        first_name=F("speakers__first_name"),
+                        email=F("speakers__email"),
+                    ),
+                    filter=Q(speakers__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_establishments_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_establishments__short_label"),
+                    filter=Q(allowed_establishments__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        city=F("allowed_highschools__city"),
+                        label=F("allowed_highschools__label"),
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschool_levels_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_highschool_levels__label"),
+                    filter=Q(allowed_highschool_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_post_bachelor_levels_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_post_bachelor_levels__label"),
+                    filter=Q(allowed_post_bachelor_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_student_levels_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_student_levels__label"),
+                    filter=Q(allowed_student_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_types_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_bachelor_types__label"),
+                    filter=Q(allowed_bachelor_types__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_mentions_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_bachelor_mentions__label"),
+                    filter=Q(allowed_bachelor_mentions__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_teachings_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_bachelor_teachings__label"),
+                    filter=Q(allowed_bachelor_teachings__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+        )
+        .order_by("date", "start_time")
+        .values(
+            "id",
+            "slot_type",
+            "published",
+            "label",
+            "course_type_full_label",
+            "establishment_short_label",
+            "establishment_label",
+            "structure_code",
+            "structure_label",
+            "structure_establishment_short_label",
+            "highschool_city",
+            "highschool_label",
+            "event_description",
+            "date",
+            "start_time",
+            "end_time",
+            "campus_label",
+            "building_label",
+            "face_to_face",
+            "url",
+            "room",
+            "n_register",
+            "n_places",
+            "speaker_list",
+            "establishments_restrictions",
+            "levels_restrictions",
+            "bachelors_restrictions",
+            "allowed_establishments_list",
+            "allowed_highschools_list",
+            "allowed_highschool_levels_list",
+            "allowed_post_bachelor_levels_list",
+            "allowed_student_levels_list",
+            "allowed_bachelor_types_list",
+            "allowed_bachelor_mentions_list",
+            "allowed_bachelor_teachings_list",
+            "course_training_label",
+        )
+    )
+    context = {
+        "intro_offer_search": intro_offer_search,
+        "slots": json.dumps(list(slots), default=str),
+    }
+    return render(request, "search_slots.html", context)
