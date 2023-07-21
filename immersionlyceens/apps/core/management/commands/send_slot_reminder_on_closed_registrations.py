@@ -5,6 +5,7 @@ Send a reminder to speakers for upcoming slots
 import datetime
 import logging
 
+from django.db.models import Q
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
@@ -30,7 +31,7 @@ class Command(BaseCommand, Schedulable):
         today = timezone.now()
 
         slots = Slot.objects.filter(
-            registration_limit_date__lte=today,
+            Q(registration_limit_date__lte=today) | Q(date__gte=today),
             published=True,
             reminder_notification_sent=False,
         )
