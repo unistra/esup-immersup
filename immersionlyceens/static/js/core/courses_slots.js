@@ -139,7 +139,6 @@ function init_datatable() {
             txt += txt !== '' ? '<br>' : ''
             txt += is_set(room) ? room : ''
 
-
             if(type === 'filter') {
               return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
             }
