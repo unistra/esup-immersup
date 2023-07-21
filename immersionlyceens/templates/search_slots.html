@@ -43,6 +43,7 @@ tr.selected label {
 {% trans "Search immersions slots" %}
 {% endblock %}
 {% block content %}
+{% include './modals/modal_search_slots_details.html' %}
 <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -188,12 +189,15 @@ tr.selected label {
           "targets": "_all"
         },
       ],
-
     })
     .on('select', function (e, dt, type, indexes) {
       var rowData = dt.rows(indexes).data().toArray()
       // TODO: debug for now modals WIP
-      console.log(JSON.stringify(rowData));
+      console.log(rowData);
+      $('#modal_search_slots_details').modal("show");
+      $('#modal_search_slots_details #modal_label').html(rowData[0].label);
+      $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
+      
     })
     $('#search_immersions_slots').keyup( function() {
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
