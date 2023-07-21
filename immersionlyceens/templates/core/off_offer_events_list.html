@@ -89,10 +89,11 @@
         {% endif %}
       </div>
 
-      <div class="table-responsive">
-        <table id="events_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+      <div class="col-12 col-sm-12 col-lg-12 table-responsive">
+        <table id="events_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap" style="max-width: none !important;">
         <thead>
           <tr>
+            <th class="align-top">{% trans 'Control' %}</th>
             <th id="published_filter">{% trans 'Published' %}</th>
             <th id="managed_by_filter">{% trans 'Managed by' context "events" %}</th>
             <th id="event_type_filter">{% trans 'Event type' %}</th>
@@ -100,11 +101,11 @@
             <th id="speakers_filter">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
-            <th></th>
           </tr>
         </thead>
         <tfoot>
           <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -312,8 +313,8 @@
     dt = $('#events_table').DataTable({
       'processing': false,
       'order': [
-        [1, "asc"],
-        [2, "asc"]
+        [2, "asc"],
+        [3, "asc"]
       ],
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -326,6 +327,53 @@
       },
       {% endif %}
       'columns': [
+        {
+          "data": "",
+          "render": function (data, type, row) {
+            let icons = "";
+            let slot_url = '/core/off_offer_events_slots/'
+            let add_slot_url = '/core/off_offer_event_slot/add/'
+
+            if(is_set(row.establishment) && is_set(row.id)) {
+                let structure_id = is_set(row.structure) ? row.structure.id : null
+                slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
+            }
+            else if (is_set(row.highschool) && is_set(row.id)) {
+                slot_url += row.highschool.id + "/" + row.id
+                add_slot_url += row.highschool.id + "/" + row.id
+            }
+
+            // direct link to slots list
+            if(row.slots_count) {
+              icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this event' %}\">" +
+                       "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                       "</a>\n";
+            }
+            {% if not request.user.is_structure_consultant %}
+            // direct link to new slot form
+            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
+                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                     "</a>\n";
+
+            icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                "</a>\n";
+
+            icons += "<a href='/core/off_offer_event/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
+                "</a>\n";
+
+            if (row.can_delete) {
+              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('event_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
+                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                  "</button>";
+            }
+            {% endif %}
+
+            return icons;
+          },
+        },
         {
           "data": "published",
           "render": function (data) {
@@ -409,67 +457,20 @@
                   '</div>';
             return element;
           }
-        },
-        {
-          "data": "",
-          "render": function (data, type, row) {
-            let icons = "";
-            let slot_url = '/core/off_offer_events_slots/'
-            let add_slot_url = '/core/off_offer_event_slot/add/'
-
-            if(is_set(row.establishment) && is_set(row.id)) {
-                let structure_id = is_set(row.structure) ? row.structure.id : null
-                slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
-                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
-            }
-            else if (is_set(row.highschool) && is_set(row.id)) {
-                slot_url += row.highschool.id + "/" + row.id
-                add_slot_url += row.highschool.id + "/" + row.id
-            }
-
-            // direct link to slots list
-            if(row.slots_count) {
-              icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this event' %}\">" +
-                       "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
-                       "</a>\n";
-            }
-            {% if not request.user.is_structure_consultant %}
-            // direct link to new slot form
-            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
-                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                     "</a>\n";
-
-            icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                "</a>\n";
-
-            icons += "<a href='/core/off_offer_event/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
-                "</a>\n";
-
-            if (row.can_delete) {
-              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('event_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
-                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                  "</button>";
-            }
-            {% endif %}
-
-            return icons;
-          },
-        },
+        }
       ],
       columnDefs: [{
         defaultContent: "",
         targets: "_all"
       }, {
         orderable: false,
-        targets: [7]
+        targets: [0]
       }],
 
       initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [3, 4]
+        var columns_idx = [4, 5]
 
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
@@ -514,14 +515,14 @@
 
     // Filters init
     yadcf.init(dt, [{
-      column_number: 0,
+      column_number: 1,
       filter_default_label: "",
       filter_container_id: "published_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
       {
-        column_number: 1,
+        column_number: 2,
         filter_default_label: "",
         filter_match_mode: "exact",
         filter_container_id: "managed_by_filter",
@@ -529,7 +530,7 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 2,
+        column_number: 3,
         filter_default_label: "",
         filter_match_mode: "exact",
         filter_container_id: "event_type_filter",

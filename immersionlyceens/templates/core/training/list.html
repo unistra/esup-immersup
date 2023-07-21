@@ -98,30 +98,30 @@
           </div>
         {% endif %}
       </div>
-      <div class="table-responsive">
+      <div class="col-12 col-sm-12 col-lg-12 table-responsive">
         <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
+            {% if not request.user.is_structure_consultant %}
+              <th class="align-top">{% trans 'Control' %}</th>
+            {% endif %}
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
             <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
             <th><span id="active_filter">{% trans 'active' %}</span></th>
             {% if activated_training_quotas %}
               <th><span id="quota_filter">{% trans 'Allowed immersions count' %}</span></th>
             {% endif %}
-            {% if not request.user.is_structure_consultant %}
-              <th></th>
-            {% endif %}
           </tr>
         </thead>
         <tfoot>
           <tr>
+            {% if not request.user.is_structure_consultant %}
+              <td></td>
+            {% endif %}
             <td></td>
             <td></td>
             <td></td>
             {% if activated_training_quotas %}
-              <td></td>
-            {% endif %}
-            {% if not request.user.is_structure_consultant %}
               <td></td>
             {% endif %}
           </tr>
@@ -314,8 +314,32 @@
       ],
     });
 
-    let dt_columns = [
-      { data: "label",
+    // Columns initialization - depends on user (structure consultant or not) and active training quotas
+    let dt_columns;
+
+    if(!is_structure_consultant) {
+      dt_columns = [{
+        data: "nb_courses",
+        render: function (data, type, row) {
+          if ( data !== 0 ) {
+            return ""
+          }
+
+          let delete_text = "{% trans 'Delete' %}"
+
+          return `<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data('training_id', ${row.id}).dialog('open')" title="${delete_text}">
+                  <i class="fa fas fa-trash fa-2x"></i>
+                  </button>`
+        }
+      }]
+    }
+    else {
+        dt_columns = []
+    }
+
+    dt_columns.splice(is_structure_consultant ? 0 : 1, 0,
+      {
+        data: "label",
         render: (data, type, row) => {
           if(type === 'display' && !is_structure_consultant) {
             return `<a href="/core/training/${row.id}/update">${data}</a>`
@@ -334,12 +358,12 @@
         render: (data, type, row) => {
           return  data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
         }
-      },
-    ]
+      }
+    )
 
-    // Insert columns if necessary
+    // Insert quota columns if necessary
     if(activated_training_quotas) {
-      dt_columns.splice(3, 0, {
+      dt_columns.splice(is_structure_consultant ? 3 : 4, 0, {
         data: "allowed_immersions",
         render: function (data, type, row) {
           if(!is_set(data)) {
@@ -355,23 +379,6 @@
       })
     }
 
-    if(!is_structure_consultant) {
-      dt_columns.splice(activated_training_quotas ? 4 : 3, 0, {
-        data: "nb_courses",
-        render: function (data, type, row) {
-          if ( data !== 0 ) {
-            return ""
-          }
-
-          let delete_text = "{% trans 'Delete' %}"
-
-          return `<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data('training_id', ${row.id}).dialog('open')" title="${delete_text}">
-                  <i class="fa fas fa-trash fa-2x"></i>
-                  </button>`
-        }
-      })
-    }
-
     let dt_column_defs = [
       {
         "defaultContent": "",
@@ -382,7 +389,7 @@
     if(!is_structure_consultant) {
       dt_column_defs.push({
         orderable: false,
-        targets: [activated_training_quotas ? 4 : 3]
+        targets: [0]
       })
     }
 
@@ -390,8 +397,8 @@
     table_config = {
       'processing': false,
       'order': [
-          [0, "asc"], // label
-          [2, "asc"]  // high school label
+          [1, "asc"], // label
+          [3, "asc"]  // active
        ],
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -411,7 +418,7 @@
 
     // filters array
     let filters = [{
-        column_number: 0,
+        column_number: 1,
         filter_default_label: "",
         filter_type: "text",
         filter_container_id: "label_filter",
@@ -419,7 +426,7 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 1,
+        column_number: 2,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "subdomain_filter",
@@ -427,7 +434,7 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 2,
+        column_number: 3,
         filter_default_label: "",
         filter_container_id: "active_filter",
         style_class: "form-control form-control-sm",
@@ -437,7 +444,7 @@
 
     if(activated_training_quotas) {
       filters.push({
-        column_number: 3,
+        column_number: is_structure_consultant ? 3 : 4,
         filter_default_label: "",
         filter_container_id: "quota_filter",
         style_class: "form-control form-control-sm",

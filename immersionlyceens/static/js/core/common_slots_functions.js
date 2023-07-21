@@ -68,7 +68,7 @@ function display_slot_date(data, type, row) {
       return txt;
     }
     else if(type === 'filter') {
-      return `${date} ${start_time} ${end_time}`
+      return `${formatDate(date, date_options)} ${start_time} ${end_time}`
     }
 
     return data;

@@ -126,7 +126,7 @@ def slots(request):
                 response['msg'] = gettext("Error : a valid establishment or high school must be selected")
                 return JsonResponse(response, safe=False)
 
-        elif not events and not visits and not training_id:
+        elif not events and not visits and not establishment_id and not training_id:
             response['msg'] = gettext("Error : a valid training must be selected")
             return JsonResponse(response, safe=False)
 
@@ -165,11 +165,18 @@ def slots(request):
         filters["visit__isnull"] = True
         filters["event__isnull"] = True
 
+        if establishment_id is not None:
+            filters['course__training__structures__establishment__id'] = establishment_id
+
+        if structure_id is not None:
+            filters['course__training__structures'] = structure_id
+
         if training_id is not None:
             filters['course__training__id'] = training_id
 
         slots = Slot.objects.prefetch_related(
-            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions') \
+            'course__training__structures', 'course__training__highschool', 'course__training__structures__establishment',
+            'speakers', 'immersions') \
             .filter(**filters)
 
         user_filter_key = "course__training__structures__in"
