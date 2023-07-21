@@ -53,7 +53,7 @@ class APITestCase(TestCase):
         They are only set once
         """
 
-        cls.today = timezone.now()
+        cls.today = timezone.localtime()
         cls.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         cls.establishment = Establishment.objects.create(

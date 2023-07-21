@@ -40,7 +40,8 @@ def slots(request):
     :return:
     """
     today = timezone.localdate()
-    now = timezone.now()
+    now = timezone.localtime()
+
     user = request.user
     response = {'msg': '', 'data': []}
 
@@ -349,7 +350,7 @@ def slots(request):
         ),
         n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
         is_past=ExpressionWrapper(
-            Q(date__lt=today)|Q(date=today, end_time__lt=now),
+            Q(date__lt=today)|Q(date=today, start_time__lt=now),
             output_field=BooleanField()
         ),
         valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
@@ -372,7 +373,7 @@ def slots(request):
                 Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
                 then=Value(1)
             ),
-            default=Value(1)
+            default=Value(-1)
         ),
         attendances_status=Case(
             When(Q(is_past=False), then=Value(gettext("Future slot"))),
