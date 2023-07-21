@@ -7,7 +7,13 @@ function init_datatable() {
     ajax: {
       url: "/core/utils/slots",
       data: function(d) {
-          d.training_id = current_training_id || $('#id_training').val();
+          if($('#id_establishment').val()) {
+            d.establishment_id = current_establishment_id || $('#id_establishment').val();
+          }
+
+          if($('#id_training').val()) {
+            d.training_id = current_training_id || $('#id_training').val();
+          }
 
           if($('#id_structure').val()) {
             d.structure_id = current_structure_id || $('#id_structure').val();
