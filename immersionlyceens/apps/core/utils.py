@@ -474,7 +474,7 @@ def slots(request):
         'bachelors_restrictions', 'allowed_establishments_list', 'allowed_highschools_list',
         'allowed_highschool_levels_list', 'allowed_post_bachelor_levels_list',
         'allowed_student_levels_list', 'allowed_bachelor_types_list', 'allowed_bachelor_mentions_list',
-        'allowed_bachelor_teachings_list', 'is_past'
+        'allowed_bachelor_teachings_list', 'is_past', 'can_update_attendances'
     )
 
     response['data'] = list(slots)
