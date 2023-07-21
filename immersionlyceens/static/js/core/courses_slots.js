@@ -166,7 +166,6 @@ function init_datatable() {
     ],
     columnDefs: [
         { defaultContent: '-', targets: '_all' },
-        { width: "15%", targets: 3 },
     ],
 
     initComplete: function () {
