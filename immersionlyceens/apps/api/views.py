@@ -428,8 +428,8 @@ def ajax_validate_reject_student(request, validate):
                 # 2 => VALIDATED
                 # 3 => REJECTED
                 record.set_status("VALIDATED" if validate else "REJECTED")
-                record.validation_date = timezone.now() if validate else None
-                record.rejected_date = None if validate else timezone.now()
+                record.validation_date = timezone.localtime() if validate else None
+                record.rejected_date = None if validate else timezone.localtime()
                 record.save()
 
                 # Delete attestations ?
@@ -558,7 +558,7 @@ def ajax_cancel_registration(request):
                 response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
                 return JsonResponse(response, safe=False)
 
-            if immersion.slot.cancellation_limit_date < timezone.now():
+            if immersion.slot.cancellation_limit_date < timezone.localtime():
                 response = {'error': True, 'msg': _("Slot cancellation deadline has passed")}
                 return JsonResponse(response, safe=False)
 
@@ -632,7 +632,7 @@ def ajax_get_immersions(request, user_id=None):
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     today = timezone.localdate()
-    now = timezone.now()
+    now = timezone.localtime()
 
     try:
         student = ImmersionUser.objects.get(pk=user_id)
@@ -753,7 +753,7 @@ def ajax_get_immersions(request, user_id=None):
             'info': slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
-            'cancellable': timezone.now() <= slot.cancellation_limit_date if slot.cancellation_limit_date else True,
+            'cancellable': timezone.localtime() <= slot.cancellation_limit_date if slot.cancellation_limit_date else True,
             'cancellation_limit_date': slot.cancellation_limit_date,
             'cancellation_type': '',
             'slot_id': slot.id,
@@ -1100,7 +1100,7 @@ def ajax_slot_registration(request):
 
     # Slot restrictions validation
     can_register_slot, reasons = student.can_register_slot(slot)
-    passed_registration_date = timezone.now() > slot.registration_limit_date
+    passed_registration_date = timezone.localtime() > slot.registration_limit_date
 
     if not can_register_slot or passed_registration_date:
         if can_force_reg:
@@ -4183,8 +4183,8 @@ class VisitorRecordRejectValidate(View):
             return JsonResponse(data)
 
         record.validation = validation_value
-        record.validation_date = timezone.now() if validation_value == 2 else None
-        record.rejected_date = timezone.now() if validation_value == 3 else None
+        record.validation_date = timezone.localtime() if validation_value == 2 else None
+        record.rejected_date = timezone.localtime() if validation_value == 3 else None
         record.save()
         record.visitor.send_message(self.request, validation_email_template)
         data["data"] = {"record_id": record.id}
