@@ -69,14 +69,14 @@
       </div>
 
       <div class="col-12 col-sm-12 col-lg-12 table-responsive">
-        <table id="visits_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap" style="max-width: none !important;">
+        <table id="visits_table" class="table table-striped table-bordered compact dt-head-nowrap" style="max-width: none !important;">
         <thead>
           <tr>
             <th class="align-top">{% trans 'Control' %}</th>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
             <th><span id="managed_by_filter">{% trans 'Managed by' context "visits" %}</span></th>
             <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
-            <th id="purpose_filter">{% trans 'Purpose' %}</th>
+            <th id="purpose_filter" style="width:20%">{% trans 'Purpose' %}</th>
             <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
