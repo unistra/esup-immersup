@@ -11,11 +11,14 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-{% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
-{% trans "My slots" %}
+{% trans "Students by date" %}
 {% endblock %}
 
 {% block content %}
@@ -32,8 +35,8 @@
         <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
         <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
       </div>
-      <div class="table-responsive">
-        <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
+      <div class="col-12 col-sm-12 col-lg-12 table-responsive">
+        <table id="students_table" class="table table-sm table-striped table-bordered compact" style="border-spacing:0;border-collapse:collapse;width:100%;">
           <thead>
             <tr>
             {% if request.user.is_master_establishment_manager or request.user.is_operator %}
@@ -52,6 +55,7 @@
             <th id="building_filter" class="align-top">{% trans 'Building' %}</th>
             {% endif %}
               <th id="meeting_place_filter" class="align-top">{% trans 'Meeting place' %}</th>
+              <th id="registration_date_filter" class="align-top>">{% trans "Date of registration" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -70,6 +74,7 @@
               {% endif %}
               <td></td>
               <td></td>
+              <td></td>
             </tr>
           </tbody>
         </table>
@@ -82,6 +87,12 @@
   var min_date = "{{ min_date }}";
   var max_date = "{{ max_date }}";
   var current_student_id;
+  var date_options = {
+      weekday: 'long',
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
+  };
 
   var alert1 = "{% blocktrans %}'From' date must be before 'Until' date'{% endblocktrans %}";
   var alert2 = "{% blocktrans %}'Until' date must be after 'From' date'{% endblocktrans %}";
@@ -117,7 +128,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_students_presence",
+        url: "{% url 'ajax_get_student_presence' %}",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data'];
@@ -125,9 +136,11 @@
         }
       },
     'searching': true,
+    {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
     },
+    {% endif %}
     'columns': [
     {% if request.user.is_master_establishment_manager or request.user.is_operator %}
       { "data": "establishment"},
@@ -135,17 +148,34 @@
     {% if not request.user.is_high_school_manager %}
       { "data": "structure"},
     {% endif %}
-      { "data": "datetime",
+      { "data": "date",
         "render": function(data, type, row) {
+          let date = formatDate(data, date_options)
+          let start_split = row.start_time.split(':')
+          let end_split = row.end_time.split(':')
+          let start = `${start_split[0]}h${start_split[1]}`
+          let end = `${end_split[0]}h${end_split[1]}`
+
+          // format date only for display and filter, not for sorting
           if(type === "display" || type === "filter") {
-            return row.date + " <br />" + row.time['start'] + " - " + row.time['end'];
+            return `${date}<br />${start} - ${end}`
           }
 
-          return data;
+          return `${data} ${start} ${end}`
         }
       },
       { "data": "student_profile"},
-      { "data": "name" },
+      { "data": "name",
+        "render": function(data, type, row) {
+          let name = `${row.last_name.toUpperCase()} ${row.first_name}`
+
+          if(type === "sort") {
+            return name.toLowerCase()
+          }
+
+          return name
+        }
+      },
       { "data": "institution" },
       { "data": "",
         "render": function(data, type, row) {
@@ -156,12 +186,21 @@
           return txt;
         }
       },
-    {% if not request.user.is_high_school_manager %}
-    { "data": "campus" },
-    { "data": "building" },
-    {% endif %}
-    { "data": "meeting_place" },
-  ],
+      {% if not request.user.is_high_school_manager %}
+      { "data": "campus" },
+      { "data": "building" },
+      {% endif %}
+      { "data": "meeting_place" },
+      { "data": "registration_date",
+        render: function(data, type, row) {
+          if (type !== 'sort') {
+            return data ? formatDate(data) : "";
+          }
+
+          return data
+        }
+      },
+    ],
     "columnDefs": [
       {
         "defaultContent": "",
@@ -241,6 +280,13 @@
     filter_container_id: "meeting_place_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
+
+  },{
+    column_number: 10,
+    filter_default_label: "",
+    filter_container_id: "registration_date_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
   }
   {% elif request.user.is_high_school_manager %}
   {
@@ -279,6 +325,12 @@
     column_number: 5,
     filter_default_label: "",
     filter_container_id: "meeting_place_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 6,
+    filter_default_label: "",
+    filter_container_id: "registration_date_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   }
@@ -337,6 +389,12 @@
         column_number: 8,
         filter_default_label: "",
         filter_container_id: "meeting_place_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },{
+        column_number: 9,
+        filter_default_label: "",
+        filter_container_id: "registration_date_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     }

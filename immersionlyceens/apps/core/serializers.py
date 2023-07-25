@@ -1,23 +1,148 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
-
+from collections import OrderedDict
 from rest_framework import serializers, status
-from django.utils.translation import gettext
+from django.contrib.auth.models import Group
+from django.utils.translation import gettext, gettext_lazy as _
 from django.db.models import Q
+from django.conf import settings
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, PostBachelorLevel, StudentLevel
+    HighSchoolLevel, UserCourseAlert, Slot, CourseType,
 )
-from ..immersion.models import VisitorRecord
+
+class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
+    """
+    Allow a serialized relation field to be used this way :
+    - POST : use the id of the object in POST data
+    - GET : returns the serialized related object
+    """
+    def to_representation(self, value):
+        return self.serializer_class(value).data
+
+    def get_queryset(self):
+        if self.queryset:
+            return self.queryset
+        return self.serializer_class.Meta.model.objects.all()
+
+    def get_choices(self, cutoff=None):
+        queryset = self.get_queryset()
+        if queryset is None:
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return OrderedDict([(
+            item.pk,
+            self.display_value(item)
+        ) for item in queryset
+        ])
+
+    def use_pk_only_optimization(self):
+        return False
+
+    @classmethod
+    def from_serializer(cls, serializer, name=None, args=(), kwargs={}):
+        if name is None:
+            name = f"{serializer.__name__}AsymetricAutoField"
+
+        return type(name, (cls,), {"serializer_class": serializer})
 
 
 class ImmersionUserSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        if not validated_data.get('username'):
+            validated_data['username'] = validated_data.get('email')
+
+        return super().create(validated_data)
+
     class Meta:
         model = ImmersionUser
-        fields = ('last_name', 'first_name', 'email')
+        fields = ('last_name', 'first_name', 'email', 'username')
+
+
+class SpeakerSerializer(ImmersionUserSerializer):
+    def validate(self, attrs):
+        # Note : email (account) unicity is checked before serializer validation
+        establishment = attrs.get('establishment', None)
+        highschool = attrs.get('highschool', None)
+
+        if not establishment and not highschool:
+            raise serializers.ValidationError(_("Either an establishment or a high school is mandatory"))
+
+        if establishment and establishment.data_source_plugin:
+            raise serializers.ValidationError(
+                _("Establishment '%s' has an account plugin, please create the speakers in the admin interface")
+                % establishment.short_label
+            )
+
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        try:
+            user = super().create(validated_data)
+            Group.objects.get(name='INTER').user_set.add(user)
+        except Exception as e:
+            raise
+
+        return user
+
+    def to_representation(self, instance):
+        """
+        CREATE : Inject status and warning messages in response
+        GET : add extra fields useful in datatables
+        """
+        data = super().to_representation(instance)
+
+        if hasattr(self, "initial_data"):
+            if isinstance(self.initial_data, list):
+                objects = { c["email"]: c for c in self.initial_data }
+                status = objects.get(data["email"]).get("status", "success")
+                message = objects.get(data["email"]).get("msg", "")
+            else:
+                status = self.initial_data.get("status", "success")
+                message = self.initial_data.get("msg", "")
+
+            response = {
+                "data": data,
+                "status": status,
+                "msg": message,
+            }
+
+            return response
+        else:
+            if instance:
+                data['has_courses'] = instance.courses.exists()
+                data['can_delete'] = not data['has_courses']
+
+            return data
+
+    class Meta:
+        model = ImmersionUser
+        fields = ('id', 'last_name', 'first_name', 'email', 'establishment', 'highschool', 'is_active')
+
 
 class CampusSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        label_filter = {'label__iexact': attrs.get('label')}
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter = {'label__unaccent__iexact': attrs.get('label')}
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if Campus.objects.filter(establishment=attrs.get('establishment'), **label_filter).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A Campus object with the same establishment and label already exists")
+            )
+
+        return super().validate(attrs)
+
     class Meta:
         model = Campus
         fields = "__all__"
@@ -30,45 +155,54 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 
 
 class StructureSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        label_filter = {'label__iexact': attrs.get('label')}
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter = {'label__unaccent__iexact': attrs.get('label')}
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if Structure.objects.filter(
+                establishment=attrs.get('establishment'),
+                **label_filter
+            ).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A Structure object with the same establishment and label already exists")
+            )
+
+        return super().validate(attrs)
+
     class Meta:
         model = Structure
         fields = "__all__"
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    """
-    Course serializer
-    """
-
-    def validate(self, data):
-        """
-        check speakers/published status and that only structures OR highschool are set at the same time
-        """
-        content = None
-        published = data.get('published', False) in ('true', 'True', True)
-        speakers = data.get('speakers')
-        structure = data.get("structure")
-        highschool = data.get("highschool")
-
-        if published and not speakers:
-            content = gettext("A published course requires at least one speaker")
-
-        if not structure and not highschool:
-            content = gettext("Please provide a structure or a high school")
-        elif structure and highschool:
-            content = gettext("High school and structures can't be set together. Please choose one.")
-
-        if content:
-            raise serializers.ValidationError(detail=content, code=status.HTTP_400_BAD_REQUEST)
-
-        return data
-
-    class Meta:
-        model = Course
-        fields = "__all__"
-
-
 class BuildingSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        label_filter = {'label__iexact': attrs.get('label')}
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter = {'label__unaccent__iexact': attrs.get('label')}
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if Building.objects.filter(
+                campus=attrs.get('campus'),
+                **label_filter
+            ).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A Building object with the same campus and label already exists")
+            )
+
+        return super().validate(attrs)
+
     class Meta:
         model = Building
         fields = "__all__"
@@ -80,52 +214,6 @@ class HighSchoolViewSerializer(serializers.ModelSerializer):
         fields = ("id", "city", "label")
 
 
-class TrainingSerializer(serializers.ModelSerializer):
-    """
-    Training serializer
-    """
-    def validate(self, data):
-        """
-        check that only structures OR highschool are set at the same time
-        """
-        content = None
-        structures = data.get("structures")
-        highschool = data.get("highschool")
-        label = data.get("label")
-
-        if not structures and not highschool:
-            content = gettext("'%s' : please provide a structure or a high school") % label
-        elif structures and highschool:
-            content = gettext("'%s' : high school and structures can't be set together. Please choose one.") % label
-
-        excludes = {}
-        if data.get("id"):
-            excludes['id'] = data.get("id")
-
-        structure_establishments = [structure.establishment.id for structure in data.get("structures", [])]
-
-        tr_queryset = Training.objects.exclude(**excludes).filter(
-            Q(label__iexact=label,
-              structures__establishment__in=structure_establishments)|
-            Q(label__iexact=label,
-              highschool=highschool)
-        )
-
-        if tr_queryset.exists():
-            content = gettext(
-                "A training with the label '%s' already exists within the same establishment or highschool"
-            ) % label
-
-        if content:
-            raise serializers.ValidationError(detail=content, code=status.HTTP_400_BAD_REQUEST)
-
-        return data
-
-    class Meta:
-        model = Training
-        fields = "__all__"
-
-
 class TrainingDomainSerializer(serializers.ModelSerializer):
     """Training domain serializer"""
     class Meta:
@@ -135,32 +223,105 @@ class TrainingDomainSerializer(serializers.ModelSerializer):
 
 class TrainingSubdomainSerializer(serializers.ModelSerializer):
     """Training sub domain serializer"""
-    # training_domain = TrainingDomainSerializer(many=False, required=True)
-    training_domain = serializers.PrimaryKeyRelatedField(
-        queryset=TrainingDomain.objects.all(),
-        many=False,
-        required=True
-    )
+    training_domain = AsymetricRelatedField.from_serializer(TrainingDomainSerializer)(required=True, many=False)
 
     class Meta:
         model = TrainingSubdomain
         fields = "__all__"
 
 
-class TrainingHighSchoolSerializer(serializers.ModelSerializer):
-    """Training serializer"""
-    training_subdomains = serializers.SerializerMethodField("get_training_subdomains")
-    can_delete = serializers.BooleanField()
+class HighSchoolSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        filters = {
+            'label__iexact': attrs.get('label'),
+            'city__iexact': attrs.get('city')
+        }
 
-    def get_training_subdomains(self, training):
-        """get only active training subdomains"""
-        query = training.training_subdomains.filter(active=True)
-        serializer = TrainingSubdomainSerializer(instance=query, many=True)
-        return serializer.data
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            filters = {
+                'label__unaccent__iexact': attrs.get('label'),
+                'city__unaccent__iexact': attrs.get('city'),
+            }
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if HighSchool.objects.filter(**filters).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A high school object with the same label and city already exists")
+            )
+
+        return super().validate(attrs)
+
+    class Meta:
+        model = HighSchool
+        fields = "__all__"
+
+
+class TrainingSerializer(serializers.ModelSerializer):
+    """
+    Training serializer
+    """
+    # GET: full related object in serializer (asymetric : 'id' in POST, object in GET)
+    training_subdomains = AsymetricRelatedField.from_serializer(TrainingSubdomainSerializer)(required=True, many=True)
+
+    # may not exist in nested representation (like course_list)
+    nb_courses = serializers.IntegerField(read_only=True)
+
+    def validate(self, data):
+        """
+        check that only structures OR highschool are set at the same time
+        """
+        details = {}
+        structures = data.get("structures")
+        highschool = data.get("highschool")
+        label = data.get("label")
+
+        if not structures and not highschool:
+            raise serializers.ValidationError(
+                detail=gettext("'%s' : please provide a structure or a high school") % label,
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        elif structures and highschool:
+            raise serializers.ValidationError(
+                detail=gettext("'%s' : high school and structures can't be set together. Please choose one.") % label,
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not data.get("training_subdomains"):
+            details["training_subdomains"] = gettext("'%s' : please provide at least one training subdomain") % label
+
+        excludes = {}
+        if data.get("id"):
+            excludes['id'] = data.get("id")
+
+        structure_establishments = [structure.establishment.id for structure in data.get("structures", [])]
+
+        tr_queryset = Training.objects.prefetch_related('structures__establishment', 'highschool')\
+            .exclude(**excludes)\
+            .filter(
+                Q(label__iexact=label,
+                  structures__establishment__in=structure_establishments)|
+                Q(label__iexact=label,
+                  highschool=highschool)
+            )
+
+        if tr_queryset.exists():
+            details["label"] = gettext(
+                "A training with the label '%s' already exists within the same establishment or highschool"
+            ) % label
+
+        if details:
+            raise serializers.ValidationError(detail=details, code=status.HTTP_400_BAD_REQUEST)
+
+        return data
 
     class Meta:
         model = Training
-        fields = ("id", "label", "training_subdomains", "active", "can_delete")
+        fields = ("id", "label", "training_subdomains", "nb_courses", "active", "url", "structures",
+                  "highschool", "allowed_immersions")
 
 
 class VisitSerializer(serializers.ModelSerializer):
@@ -200,4 +361,251 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
 class HighSchoolLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchoolLevel
+        fields = "__all__"
+
+class CourseTypeSerializer(serializers.ModelSerializer):
+    """Course Type serializer"""
+    class Meta:
+        model = CourseType
+        fields = "__all__"
+
+class CourseSerializer(serializers.ModelSerializer):
+    """
+    Course serializer
+    """
+    training = AsymetricRelatedField.from_serializer(TrainingSerializer)(required=True, many=False)
+    structure = AsymetricRelatedField.from_serializer(StructureSerializer)(required=False, many=False)
+    highschool = AsymetricRelatedField.from_serializer(HighSchoolSerializer)(required=False, many=False)
+    speakers = AsymetricRelatedField.from_serializer(SpeakerSerializer)(required=False, many=True)
+
+    def validate(self, data):
+        """
+        check speakers/published status and that only structures OR highschool are set at the same time
+        """
+        published = data.get('published', False) in ('true', 'True', True)
+        speakers = data.get('speakers')
+        structure = data.get("structure")
+        highschool = data.get("highschool")
+
+        if published and not speakers:
+            raise serializers.ValidationError(
+                detail=gettext("A published course requires at least one speaker"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not structure and not highschool:
+            raise serializers.ValidationError(
+                detail=gettext("Please provide a structure or a high school"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        elif structure and highschool:
+            raise serializers.ValidationError(
+                detail=gettext("High school and structures can't be set together. Please choose one."),
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Unicity test
+        excludes = {'id': data.get('id')} if data.get('id') else {}
+
+        label_filter = {
+            'label__iexact': data.get('label'),
+            'training': data.get("training"),
+            'highschool': highschool,
+            'structure': structure
+        }
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter.pop('label__iexact')
+            label_filter['label__unaccent__iexact'] = data.get('label')
+
+        if Course.objects.filter(
+                **label_filter
+            ).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                detail=gettext("A Course object with the same structure/highschool, training and label already exists"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        return data
+
+    def to_representation(self, instance):
+        """
+        Inject status and warning messages in response
+        """
+        data = super().to_representation(instance)
+
+        if hasattr(self, "initial_data"):
+            if isinstance(self.initial_data, list):
+                objects = { c["label"]: c for c in self.initial_data }
+                status = objects.get(data["label"]).get("status", "success")
+                message = objects.get(data["label"]).get("msg", "")
+            else:
+                status = self.initial_data.get("status", "success")
+                message = self.initial_data.get("msg", "")
+
+            response = {
+                "data": data,
+                "status": status,
+                "msg": message,
+            }
+
+            return response
+        else:
+            request = self.context.get("request")
+            user_courses = self.context.get("user_courses", False)
+            speaker_filter = {}
+
+            if request and instance:
+                user = request.user
+                allowed_structures = user.get_authorized_structures()
+                has_rights = False
+
+                if user_courses:
+                    speaker_filter["speakers"] = user.linked_users()
+
+                if instance.structure:
+                    has_rights = (Structure.objects.filter(pk=instance.structure.id) & allowed_structures).exists()
+                elif instance.highschool:
+                    has_rights = any([
+                        user.is_master_establishment_manager(),
+                        user.is_operator(),
+                        instance.highschool == user.highschool
+                    ])
+
+                data['has_rights'] = has_rights
+                data['slots_count'] = instance.slots_count(**speaker_filter)
+                data['n_places'] = instance.free_seats(**speaker_filter)
+                data['published_slots_count'] = instance.published_slots_count(**speaker_filter)
+                data['registered_students_count'] = instance.registrations_count(**speaker_filter)
+                data['can_delete'] = not instance.slots.exists()
+                data['alerts_count'] = instance.get_alerts_count()
+
+            return data
+
+    class Meta:
+        model = Course
+        fields =  [
+            "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by"
+        ]
+
+
+class SlotSerializer(serializers.ModelSerializer):
+    """
+    Slot serializer
+    """
+
+    def validate(self, data):
+        """
+        For now, only create course slots
+        """
+        course = data.get("course")
+        course_type = data.get("course_type")
+        campus = data.get("campus")
+        building = data.get("building")
+        visit = data.get("visit")
+        event = data.get("event")
+        start_time = data.get("start_time")
+        end_time = data.get("end_time")
+        face_to_face = data.get("face_to_face", True)
+        published = data.get("published", False)
+        speakers = data.get("speakers")
+        allowed_establishments = data.get("allowed_establishments")
+        allowed_highschools = data.get("allowed_highschools")
+        allowed_highschool_levels = data.get("allowed_highschool_levels")
+        allowed_student_levels  = data.get("allowed_student_levels")
+        allowed_post_bachelor_levels = data.get("allowed_post_bachelor_levels")
+        allowed_bachelor_types = data.get("allowed_bachelor_types")
+        allowed_bachelor_mentions = data.get("allowed_bachelor_mentions")
+        allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
+        details = {}
+
+        # Slot type
+        if not any([course, visit, event]):
+            raise serializers.ValidationError(
+                detail=_("A slot requires at least a 'course', a 'visit' or an 'event' object"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        if published:
+            required_fields = ["n_places", "date", "start_time", "end_time", "speakers"]
+
+            if face_to_face:
+                required_fields.append("room")
+            elif event or visit:
+                required_fields.append("url")
+
+            for rfield in required_fields:
+                if not data.get(rfield):
+                    details[rfield] = _("Field '%s' is required for a new published slot") % rfield
+
+        if start_time and end_time and end_time <= start_time:
+            details["end_time"] = _("end_time can't be set before or equal to start_time")
+
+        if course:
+            if not course_type:
+                details["course_type"] = _("The course_type field is required when creating a new course slot")
+
+            if course.structure:
+                if not campus:
+                    details["campus"] = \
+                        _("The campus field is required when creating a new slot for a structure course")
+
+                if not building:
+                    details["building"] = \
+                        _("The building field is required when creating a new slot for a structure course")
+
+            if course.highschool:
+                if campus:
+                    details["campus"] = \
+                        _("The campus field is forbidden when creating a new slot for a high school course")
+
+                if building:
+                    details["building"] = \
+                        _("The building field is forbidden when creating a new slot for a high school course")
+
+            for speaker in speakers:
+                if speaker not in course.speakers.all():
+                    if not details.get('speakers'):
+                        details["speakers"] = []
+
+                    details["speakers"].append(
+                        _("Speaker '%s' is not linked to course '%s'") % (speaker, course)
+                    )
+
+        if details:
+            raise serializers.ValidationError(
+                detail=details,
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Restrictions
+        # Common to courses, visits and events
+        data["levels_restrictions"] = any([
+            allowed_highschool_levels, allowed_student_levels, allowed_post_bachelor_levels
+        ])
+
+        data["bachelors_restrictions"] = any([
+            allowed_bachelor_types, allowed_bachelor_mentions, allowed_bachelor_teachings
+        ])
+
+        if course or event:
+            data["establishments_restrictions"] = any([allowed_establishments, allowed_highschools])
+        elif visit:
+            # No establishment restriction
+            data["establishments_restrictions"] = False
+            data["allowed_establishments"] = None
+            data["allowed_highschools"] = None
+
+        return data
+
+    class Meta:
+        model = Slot
+        fields = "__all__"
+
+
+class UserCourseAlertSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = UserCourseAlert
         fields = "__all__"

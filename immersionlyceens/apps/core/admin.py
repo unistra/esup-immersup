@@ -1,46 +1,57 @@
+import logging
+
 from datetime import datetime
 
 from adminsortable2.admin import SortableAdminMixin
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
 
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
+    VisitorRecordDocument,
+)
+
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
-    CourseTypeForm, CustomThemeFileForm, EstablishmentForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
+    AccompanyingDocumentForm, AttestationDocumentForm, BachelorMentionForm,
+    BachelorTypeForm, BuildingForm, CampusForm, CancelTypeForm,
+    CertificateLogoForm, CertificateSignatureForm, CourseTypeForm,
+    CustomThemeFileForm, EstablishmentForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, FaqEntryAdminForm, GeneralBachelorTeachingForm,
     GeneralSettingsForm, HighSchoolForm, HighSchoolLevelForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
-    InformationTextForm, MailTemplateForm, OffOfferEventTypeForm,
-    PostBachelorLevelForm, PublicDocumentForm, PublicTypeForm, StructureForm,
-    StudentLevelForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm,
+    InformationTextForm, MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
+    PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
+    ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
+    AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
+    BachelorType, Building, Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
-    InformationText, MailTemplate, OffOfferEventType, PostBachelorLevel,
-    PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
+    EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
+    HighSchoolLevel, History, Holiday, Immersion, ImmersionUser,
+    InformationText, MailTemplate, OffOfferEventType, Period,
+    PostBachelorLevel, Profile, PublicDocument, PublicType,
+    ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
+logger = logging.getLogger(__name__)
 
 class CustomAdminSite(admin.AdminSite):
     def __init__(self, *args, **kwargs):
@@ -58,17 +69,38 @@ class CustomAdminSite(admin.AdminSite):
         Custom apps and models order
         """
         app_dict = self._build_app_dict(request)
+
+        # Inject virtual apps
+        for app_name, app_config in settings.ADMIN_APPS_MAPPING.items():
+            new_app = app_dict[app_config['app']].copy()
+            new_app['name'] = app_config['name']
+            new_app['app_label'] = app_name
+            app_dict[app_name] = new_app.copy()
+
+        # This should hide apps we don't want :
+        # - 'core' because all models are already grouped in virtual apps
+        # - django_summernote
         app_list = sorted(
-            app_dict.values(), key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
+            [app for app in app_dict.values() if app['app_label'] in settings.ADMIN_APPS_ORDER],
+            key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
         )
 
         for app in app_list:
-            if not settings.ADMIN_MODELS_ORDER.get(app['app_label'].lower()):
+            lower_app_name = app['app_label'].lower()
+
+            if not settings.ADMIN_MODELS_ORDER.get(lower_app_name):
                 app['models'].sort(key=lambda x: x.get('app_label'))
             else:
+                app['models'] = list(
+                    filter(
+                        lambda m: m['object_name'] in settings.ADMIN_MODELS_ORDER.get(lower_app_name),
+                        app['models'],
+                    )
+                )
+
                 app['models'].sort(
                     key=lambda x: self.find_in_list(
-                        settings.ADMIN_MODELS_ORDER[app['app_label'].lower()], x.get('object_name')
+                        settings.ADMIN_MODELS_ORDER[lower_app_name], x.get('object_name')
                     )
                 )
 
@@ -136,19 +168,32 @@ class HighschoolWithImmersionsListFilter(admin.SimpleListFilter):
 
 
 class HighschoolListFilter(admin.SimpleListFilter):
+    """
+    Custom filter on ref-lyc highschool or student record highschool
+    """
     title = _('High schools')
     parameter_name = 'highschool'
     template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
-        highschools = HighSchool.objects.all().order_by('city', 'label')
+        # Optional : filter high school list by agreement value (see high school student admin filters)
+        agreement_filter = {}
+
+        if request.GET.get("agreement") and request.GET.get("agreement") in ('True', 'False'):
+            agreement_filter['with_convention'] = request.GET.get("agreement") == 'True'
+
+        highschools = HighSchool.objects.filter(**agreement_filter).order_by('city', 'label')
         return [(h.id, f"{h.city} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(highschool=self.value())
+            return queryset.filter(
+                Q(highschool=self.value())
+                |Q(high_school_student_record__highschool=self.value())
+            )
         else:
             return queryset
+
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
     title = _('Conventions')
@@ -174,7 +219,7 @@ class HighschoolConventionFilter(admin.SimpleListFilter):
 
 
     def queryset(self, request, queryset):
-        if self.value() == 'active' or self.value() is None:
+        if self.value() == 'active':
             return queryset.filter(
                 convention_start_date__lte=datetime.now().date(),
                 convention_end_date__gte=datetime.now().date()
@@ -184,8 +229,9 @@ class HighschoolConventionFilter(admin.SimpleListFilter):
                 convention_start_date__lt=datetime.now().date(),
                 convention_end_date__lt=datetime.now().date()
             )
-        elif self.value() == 'all':
+        elif self.value() == 'all' or self.value() is None:
             return queryset
+
         elif self.value() == 'none':
             return queryset.filter(
                 Q(convention_start_date__isnull=True, convention_end_date__isnull=True,)
@@ -279,9 +325,9 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return ''
         elif obj.is_student():
             record = obj.get_student_record()
-            if record and record.home_institution():
-                return record.home_institution()[0]
-        elif obj.is_structure_manager():
+            if record and record.institution:
+                return record.institution.uai_code
+        elif obj.is_structure_manager() or obj.is_structure_consultant():
             if obj.highschool:
                 return obj.highschool
             elif obj.establishment:
@@ -368,8 +414,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU'])|Q(structures__establishment=es)|Q(establishment=es)
-            )
+                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU', 'CONS-STR'])
+                |Q(structures__establishment=es)
+                |Q(establishment=es)
+            ).distinct()
 
         if request.user.is_high_school_manager():
             return qs.filter(groups__name__in=['INTER'], highschool=request.user.highschool)
@@ -379,14 +427,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     def has_delete_permission(self, request, obj=None):
         no_delete_msg = _("You don't have enough privileges to delete this account")
 
+        if request.user.is_superuser:
+            return True
+
         if obj:
-            if request.user.is_superuser:
-                return True
-            elif obj.is_superuser:
+            if obj.is_superuser:
                 messages.warning(request, no_delete_msg)
                 return False
 
-            if obj.courses.all().exists() or obj.visits.all().exists():
+            if obj.courses.all().exists() or obj.visits.all().exists() or obj.events.all().exists():
                 messages.warning(
                     request,
                     _("This account is linked to courses/visits/events, you can't delete it")
@@ -466,21 +515,11 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         return True
 
     def has_add_permission(self, request):
-        has_permission = [
-            request.user.is_superuser,
-            request.user.is_operator(),
-            request.user.is_establishment_manager(),
-            request.user.is_master_establishment_manager()
-        ]
-
-        if any(has_permission):
-            return True
-
         if request.user.is_high_school_manager():
-            if request.user.highschool and request.user.highschool.postbac_immersion:
-                return True
+            return request.user.highschool and request.user.highschool.postbac_immersion
 
-        return False
+        # Group permissions
+        return super().has_add_permission(request)
 
     def get_fieldsets(self, request, obj=None):
         # On user change, add structures in permissions fieldset
@@ -521,6 +560,21 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
+class ProfileAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ProfileForm
+    list_display = ('code', 'label', 'active')
+    list_filter = ('active',)
+    ordering = ('label',)
+    search_fields = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if AttestationDocument.objects.filter(profiles=obj).exists():
+            messages.warning(request, _("This profile can't be deleted because it is used by an attestation document"))
+            return False
+
+        return super().has_delete_permission(request, obj)
+
+
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingDomainForm
     list_display = ('label', 'active')
@@ -539,17 +593,14 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and TrainingSubdomain.objects.filter(training_domain=obj).exists():
             messages.warning(
                 request,
-                _("""This training domain can't be deleted """ """because it is used by training subdomains"""),
+                _("This training domain can't be deleted because it is used by training subdomains"),
             )
             return False
 
-        return True
+        return super().has_delete_permission(request, obj)
 
 
 class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -573,27 +624,37 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and Training.objects.filter(training_subdomains=obj).exists():
             messages.warning(
-                request, _("""This training subdomain can't be deleted """ """because it is used by a training"""),
+                request,
+                _("This training subdomain can't be deleted because it is used by a training"),
             )
             return False
 
-        return True
+        return super().has_delete_permission(request, obj)
 
 
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
-    list_display = ('label', 'establishment', 'active')
+    list_display = ('label', 'establishment', 'city', 'active')
     list_filter = (
         'active',
         ('establishment', RelatedDropdownFilter),
     )
     ordering = ('label',)
     search_fields = ('label',)
+
+    fieldsets = (
+        (None, {'fields': (
+            'establishment',
+            'label',
+            'active',
+            'department',
+            'city',
+            'zip_code',
+            )}
+        ),
+    )
 
     def get_actions(self, request):
         # Disable delete
@@ -604,6 +665,11 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         except KeyError:
             pass
         return actions
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.pk:
+            return ('establishment', ) + self.readonly_fields
+        return self.readonly_fields
 
     def get_queryset(self, request):
         # Other groups has no "Can view structure" permission
@@ -619,16 +685,6 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_delete_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_establishment_manager(),
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        if not any(valid_groups):
-            return False
-
         # establishment manager : can't delete a campus if it's not attached to his/her own establishment
         if obj and request.user.establishment and request.user.is_establishment_manager() and not \
                 request.user.establishment == obj.establishment:
@@ -638,7 +694,15 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
             messages.warning(request, _("This campus can't be deleted because it is used by a building"))
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
+
+    class Media:
+        if settings.USE_GEOAPI:
+            js = (
+                'js/jquery-3.4.1.slim.min.js',
+                'js/admin_campus.min.js',
+            )
 
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -684,14 +748,17 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
         return qs
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+        # establishment manager : can't delete a building if it's not attached to his/her own establishment
+        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
+                request.user.establishment == obj.establishment:
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
             messages.warning(request, _("This building can't be deleted because it is used by a slot"))
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
     class Media:
         js = (
@@ -700,26 +767,51 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
         )
 
 
+class BachelorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = BachelorTypeForm
+    list_display = ('label', 'pre_bachelor_level', 'general', 'professional', 'technological', 'active')
+    ordering = ('label',)
+
+    def has_module_permission(self, request):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager()
+        ]
+
+        return any(valid_groups)
+
+    def has_delete_permission(self, request, obj=None):
+        obj_in_use = any([
+            HighSchoolStudentRecord.objects.filter(Q(bachelor_type=obj) | Q(origin_bachelor_type=obj)).exists(),
+            StudentRecord.objects.filter(origin_bachelor_type=obj).exists(),
+        ])
+
+        if obj and obj_in_use:
+            messages.warning(
+                request,
+                _("This bachelor type can't be deleted because it is used by a high school or student record"),
+            )
+            return False
+
+        # Group permissions
+        return super().has_delete_permission(request, obj)
+
 class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorMentionForm
     list_display = ('label', 'active')
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and HighSchoolStudentRecord.objects.filter(technological_bachelor_mention=obj).exists():
             messages.warning(
                 request,
-                _(
-                    """This bachelor mention can't be deleted """
-                    """because it is used by a high-school student record"""
-                ),
+                _("This bachelor mention can't be deleted because it is used by a high-school student record"),
             )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -730,17 +822,15 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and HighSchoolStudentRecord.objects.filter(general_bachelor_teachings=obj).exists():
             messages.warning(
                 request,
-                _("""This teaching can't be deleted """ """because it is used by a high-school student record"""),
+                _("This teaching can't be deleted because it is used by a high-school student record"),
             )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -778,11 +868,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
         return fieldset
 
 
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser \
-               or request.user.is_operator() \
-               or request.user.is_master_establishment_manager()
-
     def get_readonly_fields(self, request, obj=None):
         user = request.user
 
@@ -804,15 +889,13 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_superuser and not request.user.is_operator():
-            return False
-
         # Test existing data before deletion (see US 160)
         if obj and Structure.objects.filter(establishment=obj).exists():
             messages.warning(request, _("This establishment can't be deleted (linked structures)"))
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -854,43 +937,22 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return qs
 
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        if any(valid_groups):
-            return True
-
-        if obj and request.user.is_establishment_manager() and obj.establishment == request.user.establishment:
-            return True
-
-        return False
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-
-        valid_groups = [
-            request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        if not any(valid_groups):
-            return False
-
         # Establishment manager : own establishment structures only
-        if obj and request.user.is_establishment_manager() and obj.establishment != request.user.establishment:
-            return False
+        if obj:
+            if request.user.is_establishment_manager() and obj.establishment != request.user.establishment:
+                return False
 
-        if obj and Training.objects.filter(structures=obj).exists():
-            messages.warning(request, _("This structure can't be deleted because it is used by a training"))
-            return False
+            if Training.objects.filter(structures=obj).exists():
+                messages.warning(
+                    request,
+                    _("This structure can't be deleted because it is used by a training")
+                )
+                return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -935,34 +997,52 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
         return qs
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and Course.objects.filter(training=obj).exists():
             messages.warning(
                 request, _("This training can't be deleted because it is used by some courses"),
             )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
-    list_display = ('label', 'active')
+    list_display = ('code', 'label', 'active', 'system')
+    list_display_links = ('code', 'label', )
     ordering = ('label',)
 
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            # In use
+            if Immersion.objects.filter(cancellation_type=obj).exists():
+                messages.warning(
+                    request, _("This cancellation type can't be updated because it is used by some registrations"),
+                )
+                return False
+
+            # Protected
+            if obj.system and not request.user.is_operator() and not request.user.is_superuser:
+                return False
+
+        # Group permissions
+        return super().has_change_permission(request, obj)
+
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
+        if obj:
+            # Protected
+            if obj.system and not request.user.is_operator() and not request.user.is_superuser:
+                return False
 
-        if obj and Immersion.objects.filter(cancellation_type=obj).exists():
-            messages.warning(
-                request, _("This cancellation type can't be deleted because it is used by some registrations"),
-            )
-            return False
+            if Immersion.objects.filter(cancellation_type=obj).exists():
+                messages.warning(
+                    request, _("This cancellation type can't be deleted because it is used by some registrations"),
+                )
+                return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -971,16 +1051,14 @@ class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and Slot.objects.filter(course_type=obj).exists():
             messages.warning(
                 request, _("This course type can't be deleted because it is used by some slots"),
             )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -989,139 +1067,26 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and AccompanyingDocument.objects.filter(public_type=obj).exists():
             messages.warning(
                 request,
-                _("""This public type can't be deleted """ """because it is used by accompanying document(s)"""),
+                _("This public type can't be deleted because it is used by accompanying document(s)"),
             )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
-
     form = HolidayForm
     list_display = ('label', 'date')
     ordering = ('date',)
-
-    def has_delete_permission(self, request, obj=None):
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # The current active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # The current active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
-
-    def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser or request.user.is_master_establishment_manager():
-            return True
-
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # The current active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
 
 
 class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
     form = VacationForm
     list_display = ('label', 'start_date', 'end_date')
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # Active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # Active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
-
-    def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-
-        now = datetime.now().date()
-        univ_years = UniversityYear.objects.filter(active=True)
-
-        # No active year
-        if not univ_years.exists():
-            return True
-
-        univ_year = univ_years[0]
-
-        # Active year has already started
-        if now >= univ_year.start_date:
-            return False
-
-        return True
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1154,33 +1119,31 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 fields.append('start_date')
         return fields
 
-    def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        elif request.user.is_master_establishment_manager() or request.user.is_operator():
+    def has_add_permission(self, request):
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
             return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
-        else:
-            return False
+
+        # Group permissions
+        return super().has_add_permission(request)
 
     def has_delete_permission(self, request, obj=None):
-
-        if request.user.is_superuser:
-            return True
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj:
-            if obj.start_date <= datetime.today().date() <= obj.end_date:
+            if obj.start_date <= timezone.localdate() <= obj.end_date:
                 messages.warning(
                     request,
-                    _("""This university year can't be deleted """ """because university year has already started"""),
+                    _("This university year can't be deleted because university year has already started"),
                 )
                 return False
-            elif obj.purge_date is not None:
-                messages.warning(request, _("This university year can't be deleted because a purge date is defined"))
+
+            if obj.purge_date is not None:
+                messages.warning(
+                    request,
+                    _("This university year can't be deleted because a purge date is defined")
+                )
                 return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
     class Media:
         js = (
@@ -1196,88 +1159,187 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         }
 
 
-class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = CalendarForm
-    list_display = ('label',)
-    search_fields = ('label',)
-    fieldsets = (
-        (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
-        (
-            _('Year mode'),
-            {
-                'fields': (
-                    'year_nb_authorized_immersion',
-                    'year_registration_start_date',
-                    'year_start_date',
-                    'year_end_date',
-                )
-            },
-        ),
-        (
-            _('Semester mode'),
-            {
-                'fields': (
-                    'nb_authorized_immersion_per_semester',
-                    'semester1_registration_start_date',
-                    'semester2_registration_start_date',
-                )
-            },
-        ),
-        (_('Semester 1'), {'fields': ('semester1_start_date', 'semester1_end_date',)}),
-        (_('Semester 2'), {'fields': ('semester2_start_date', 'semester2_end_date',)}),
+class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
+    """
+    Period admin class
+    """
+    form = PeriodForm
+    list_display = (
+        'label', 'registration_start_date', 'immersion_start_date', 'immersion_end_date', 'allowed_immersions'
     )
+    search_fields = ('label',)
+    order = ('immersion_start_date', )
 
     def get_readonly_fields(self, request, obj=None):
-        fields = []
+        today = timezone.localdate()
 
+        if not obj:
+            return []
+
+        fields = []
         uy = None
-        university_years = UniversityYear.objects.filter(active=True)
-        if university_years.count() > 0:
-            uy = university_years[0]
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
 
         if uy is None or request.user.is_superuser:
             return []
 
-        if obj:
-            if uy.start_date <= datetime.today().date():
-                fields = [
-                    'label',
-                    'calendar_mode',
-                    'year_start_date',
-                    'year_end_date',
-                    'semester1_start_date',
-                    'semester1_end_date',
-                    'semester2_start_date',
-                    'semester2_end_date',
-                    'year_registration_start_date',
-                    'semester1_registration_start_date',
-                    'semester2_registration_start_date',
-                    'year_nb_authorized_immersion',
-                    'nb_authorized_immersion_per_semester',
-                ]
-
-            if uy.end_date <= datetime.today().date():
-                fields.append('global_evaluation_date')
+        # passed period : can't modify
+        if obj.immersion_end_date < today:
+            fields = [
+                'label',
+                'immersion_start_date',
+                'immersion_end_date',
+                'registration_start_date',
+                'allowed_immersions',
+            ]
+        elif obj.registration_start_date < today < obj.immersion_end_date:
+            fields = [
+                'label',
+                'immersion_start_date',
+                'registration_start_date',
+            ]
 
         return list(set(fields))
 
+
     def has_add_permission(self, request):
-        """Singleton"""
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+        uy = None
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
             return False
 
-        # Only one calendar can exist
-        return not Calendar.objects.exists()
+        if not uy:
+            messages.error(
+                request, _("Active year not found. Please check your university years settings."),
+            )
+            return False
+
+        # Group permissions
+        return super().has_add_permission(request)
 
 
     def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
+        today = timezone.localdate()
 
-    class Media:
-        # TODO: check why I can't use django.jquery stuff !!!!!
-        js = (
-            'js/jquery-3.4.1.slim.min.js',
-            'js/admin_calendar.min.js',
+        if not obj:
+            return False
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            messages.error(
+                request, _("Multiple active years found. Please check your university years settings."),
+            )
+            return False
+
+        if not uy:
+            messages.error(
+                request, _("Active year not found. Please check your university years settings."),
+            )
+            return False
+
+        # Slots and university year conditions
+        slots_exist = Slot.objects.filter(
+            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
+        ).exists()
+
+        if slots_exist:
+            messages.warning(
+                request,
+                _("This period has slots, it cannot be deleted")
+            )
+            return False
+        elif today > uy.end_date:
+            messages.warning(
+                request,
+                _("The active university year is over, the period cannot be deleted")
+            )
+            return False
+        elif uy.start_date > today and obj.immersion_start_date <= today:
+            messages.warning(
+                request,
+                _("This period has already begun, it cannot be deleted")
+            )
+            return False
+
+        # Group permissions
+        return super().has_delete_permission(request, obj)
+
+
+    def has_change_permission(self, request, obj=None):
+        today = timezone.localdate()
+
+        self.details = {
+            'ERROR': set(),
+            'WARNING': set()
+        }
+
+        if not obj:
+            return False
+
+        try:
+            uy = UniversityYear.get_active()
+        except Exception as e:
+            self.details['ERROR'].add(
+                _("Multiple active years found. Please check your university years settings.")
+            )
+            return False
+
+        if not uy:
+            self.details['ERROR'].add(
+                _("Active year not found. Please check your university years settings.")
+            )
+            return False
+
+        # University year not begun | period registration date is in the future
+        year_condition = [
+            uy.start_date > today,
+            today < uy.end_date,
+            obj.immersion_start_date > today,
+        ]
+
+        slots_exist = Slot.objects.filter(
+            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
+        ).exists()
+
+        if slots_exist or any(year_condition):
+            self.details['WARNING'].add(
+                _("This period has slots or has already begun, it can't be updated")
+            )
+            return False
+
+        # Group permissions
+        return super().has_change_permission(request, obj)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+
+        # set error and warning messages
+        try:
+            obj = Period.objects.get(pk=object_id)
+        except Period.DoesNotExist:
+            obj = None
+
+        self.has_change_permission(request, obj=obj)
+
+        if hasattr(self, "details") and isinstance(self.details, dict):
+            for level, message_set in  self.details.items():
+                for message in message_set:
+                    self.message_user(request, message, getattr(messages, level))
+
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context,
         )
 
 
@@ -1290,28 +1352,63 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'email',
         'head_teacher_name',
         'referents_list',
-        'convention_start_date',
-        'convention_end_date',
-        'postbac_immersion',
+        'with_convention',
+        'custom_convention_dates',
+        'active',
+        'custom_postbac_immersion',
         'signed_charter',
     )
     list_filter = (
+        'active',
         'postbac_immersion',
+        'with_convention',
         ('country', DropdownFilter),
         ('city', DropdownFilter),
         HighschoolConventionFilter,
     )
 
+    # Keep the list here to maintain order even when some fields are readonly
+    fields = (
+        'active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
+        'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
+        'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
+        'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'certificate_footer'
+    )
+
+    @admin.display(description=_('Postbac immersions'), boolean=True)
+    def custom_postbac_immersion(self, obj):
+        return obj.postbac_immersion
+
+    @admin.display(description=_('Convention'))
+    def custom_convention_dates(self, obj):
+        if obj.convention_start_date and obj.convention_end_date:
+            return format_html("<br />".join(
+                [_("From %s") % obj.convention_start_date, _("to %s") % str(obj.convention_end_date)]
+            ))
+
+        return ""
+
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name')
 
     def referents_list(self, obj):
-        return [
+        return format_html("<br />".join([
             f"{user.last_name} {user.first_name}"
-            for user in obj.users.filter(groups__name='REF-LYC').order_by('last_name', 'first_name')
-        ]
+            for user in obj.users.prefetch_related("groups")\
+                .filter(groups__name='REF-LYC')\
+                .order_by('last_name', 'first_name')
+        ]))
 
     referents_list.short_description = _('Referents')
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+        if obj:
+            if obj.student_records.exists():
+                fields.append('active')
+
+        return fields
 
     def get_actions(self, request):
         # Disable delete
@@ -1324,9 +1421,21 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        # Only superadmin could delete Highschool items
-        # TODO: maybe only use model groups rights !!!
-        return request.user.is_superuser
+        if obj:
+            conditions = [
+                ImmersionUser.objects.filter(highschool=obj).exists(),
+                HighSchoolStudentRecord.objects.filter(highschool=obj).exists(),
+            ]
+
+            if any(conditions):
+                messages.warning(
+                    request,
+                    _("Some users or records are linked to this high school, it cannot be deleted")
+                )
+                return False
+
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
@@ -1354,12 +1463,6 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
             if obj.code:
                 fields.append('code')
         return fields
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
 
     class Media:
         css = {
@@ -1392,13 +1495,6 @@ class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         file_url.short_description = _('Address')
         return ('label', 'description', 'get_types', file_url, 'active')
-
-
-    def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
-        return True
 
 
 class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1438,23 +1534,65 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         return ('label', file_url, doc_used_in, 'active', 'published')
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
+        if obj and obj.published:
+            messages.warning(
+                request, _("This document is used in public interface : it cannot be deleted"),
+            )
             return False
 
-        if obj:
-            if obj.published:
-                messages.warning(
-                    request, _("This document is used in public interface : deletion not allowed "),
-                )
-                return False
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
-        return True
+
+class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
+    form = AttestationDocumentForm
+    search_fields = ('label',)
+    list_filter = ('active', 'mandatory', 'for_minors', 'requires_validity_date')
+    list_display = ('label', 'order', 'profile_list', 'file_url', 'active', 'mandatory', 'for_minors',
+                    'requires_validity_date')
+    list_display_links = ('label', )
+    filter_horizontal = ('profiles',)
+    ordering = ('order',)
+    sortable_by = ('order',)
+
+    def changelist_view(self, request, extra_context=None):
+        # access the request object when in the list view
+        self.request = request
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def profile_list(self, obj):
+        return format_html("<br>".join([p.code for p in obj.profiles.all()]))
+
+    def file_url(self, obj):
+        if obj.template:
+            url = self.request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
+            return format_html(f'<a href="{url}">{url}</a>')
+
+        return ""
+
+    profile_list.short_description = _('Profiles')
+    file_url.short_description = _('Address')
+
+    def has_delete_permission(self, request, obj=None):
+        hs_records = HighSchoolStudentRecordDocument.objects.filter(attestation=obj)
+        visitor_records = VisitorRecordDocument.objects.filter(attestation=obj)
+
+        if hs_records.exists() or visitor_records.exists():
+            messages.warning(request, _("This attestation can't be deleted because it is used by some records"))
+            return False
+
+        # Group permissions
+        return super().has_delete_permission(request, obj)
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
 
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label', 'active')
     filter_horizontal = ('available_vars',)
+    ordering = ('code', )
     summernote_fields = ('body',)
 
     def has_module_permission(self, request):
@@ -1467,32 +1605,6 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
 
         return any(valid_groups)
 
-    def has_view_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    def has_add_permission(self, request):
-        # Only a superuser can add a template
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        # Only a superuser can delete a template
-        return request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
 
     class Media:
         css = {
@@ -1506,8 +1618,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
             'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-            # 'js/immersion_mail_templates.min.js',
-            'js/immersion_mail_templates.js',
+            'js/immersion_mail_templates.min.js',
             'js/vendor/datatables/datatables.min.js',
             'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
@@ -1527,11 +1638,6 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
     )
     ordering = ('evaluation_type',)
 
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
@@ -1550,6 +1656,8 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
             return _('boolean')
         elif obj.parameters['type'] == 'text':
             return _('text')
+        elif obj.parameters['type'] == 'integer':
+            return _('integer')
         else:
             #TODO: hope to have localized type in i18n files ?
             return _(obj.parameters['type'])
@@ -1566,30 +1674,11 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     def setting_description(self, obj):
         return obj.parameters.get('description', '')
 
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
     def has_module_permission(self, request):
         return any([
             request.user.is_superuser,
             request.user.is_operator()
         ])
-
-    def has_view_permission(self, request, obj=None):
-        return any([
-            request.user.is_superuser,
-            request.user.is_operator()
-        ])
-
-    def has_change_permission(self, request, obj=None):
-        return any([
-            request.user.is_superuser,
-            request.user.is_operator()
-        ])
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-
 
     form = GeneralSettingsForm
     list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
@@ -1661,6 +1750,9 @@ class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
 
     show_logo.short_description = _('Certificate logo')
 
+    def has_add_permission(self, request):
+        return not CertificateLogo.objects.exists() and super().has_add_permission(request)
+
 
 class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateSignatureForm
@@ -1674,33 +1766,8 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
 
     show_signature.short_description = _('Certificate signature')
 
-
-class ImmersupFileAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ImmersupFileForm
-    ordering = ('code',)
-
-    list_display = [
-        'code',
-        'file'
-    ]
-
     def has_add_permission(self, request):
-        """
-        No one can add any new file since the existing codes are hardcoded in app
-        """
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        """
-        For now, no one can delete existing files (hardcoded)
-        """
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return any([
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ])
+        return not CertificateSignature.objects.exists() and super().has_add_permission(request)
 
 
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1708,9 +1775,6 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'active')
     ordering = ('label',)
 
-    def has_add_permission(self, request):
-        return any([request.user.is_master_establishment_manager(), request.user.is_operator()])
-
     def has_module_permission(self, request):
         return any([
             request.user.is_master_establishment_manager(),
@@ -1718,60 +1782,42 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
             request.user.is_operator()
         ])
 
-    def has_view_permission(self, request, obj=None):
-        return any([
-            request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager(),
-            request.user.is_operator()
-        ])
-
-    def has_change_permission(self, request, obj=None):
-        return any([
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ])
-
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and not obj.can_delete():
+            messages.warning(
+                request,
+                _("This event type is used by and event, it cannot be deleted")
+            )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
 
 class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = HighSchoolLevelForm
-    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'active')
+    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'requires_bachelor_speciality', 'active')
     ordering = ('order', )
     sortable_by = ('order', )
 
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
     def has_module_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
+        allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
-            request.user.is_superuser
+            request.user.is_superuser,
         ]
-        return any(valid_groups)
+        return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_superuser:
-            return False
-
         if obj and not obj.can_delete():
+            messages.warning(
+                request,
+                _("This high school level is in use, it cannot be deleted")
+            )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
@@ -1783,31 +1829,24 @@ class PostBachelorLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAd
     ordering = ('order', )
     sortable_by = ('order',)
 
-    def has_add_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
     def has_module_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
+        allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
-            request.user.is_superuser
+            request.user.is_superuser,
         ]
-        return any(valid_groups)
+        return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and not obj.can_delete():
+            messages.warning(
+                request,
+                _("This post bachelor level is in use, it cannot be deleted")
+            )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
@@ -1819,36 +1858,29 @@ class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     ordering = ('order', )
     sortable_by = ('order',)
 
-    def has_add_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
     def has_module_permission(self, request):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
-
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
+        allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
-            request.user.is_superuser
+            request.user.is_superuser,
         ]
-        return any(valid_groups)
+        return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
-            return False
-
         if obj and not obj.can_delete():
+            messages.warning(
+                request,
+                _("This student level is in use, it cannot be deleted")
+            )
             return False
 
-        return True
+        # Group permissions
+        return super().has_delete_permission(request, obj)
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
 
-
+"""
 class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
     def custom_has_something_permission(self, request, obj=None):
         if request.user.is_operator:
@@ -1869,10 +1901,10 @@ class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
 
     def has_delete_permission(self, request, obj=None):
         return self.custom_has_something_permission(request, obj)
+"""
 
 class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
-
 
     def get_list_display(self, request):
         def copy_link_btn(obj):
@@ -1881,29 +1913,15 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
             return format_html(f"""
                 <a href="#" class="btn btn-secondary mb-1" onclick="navigator.clipboard.writeText('{url}')">
                 <i class="fa fas fa-copy" data-toggle="tooltip" title="{label}"></i>
-
                 </a>
                 """
             )
-
 
         copy_link_btn.short_description = _('Copy file link')
         return ('type', 'file', copy_link_btn, )
 
 
-    def has_add_permission(self, request):
-        return request.user.is_operator() or request.user.is_superuser
-
     def has_module_permission(self, request):
-        return request.user.is_operator() or request.user.is_superuser
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_operator() or request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_operator() or request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
         return request.user.is_operator() or request.user.is_superuser
 
     class Media:
@@ -1911,18 +1929,112 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
              'all': ('fonts/fontawesome/4.7.0/css/font-awesome.min.css',)
         }
 
+
+class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
+    form = FaqEntryAdminForm
+    list_display = ('id', 'order', 'label', 'question', 'active')
+    ordering = ('order', )
+    sortable_by = ('order', )
+
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager() or request.user.is_operator()
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
+
+
+class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ScheduledTaskForm
+    list_display = ('command_name', 'description', 'date', 'time', 'frequency', 'days', 'active')
+    ordering = ('command_name', 'time', )
+    list_filter = ('active', )
+
+    fieldsets = (
+        (None, {'fields': (
+            'command_name',
+            'description',
+            'active',
+            'date',
+            'time',
+            'frequency',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday')}
+         ),
+    )
+
+    def days(self, obj):
+        week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        days = ", ".join(map(lambda d:gettext(d.title()), filter(lambda day:getattr(obj, day) is True, week_days)))
+
+        return days
+
+    days.short_description = _('Days')
+
+    def get_readonly_fields(self, request, obj=None):
+        user = request.user
+
+        if not user.is_superuser:
+            return super().get_readonly_fields(request, obj) + ('command_name', 'description')
+
+        return super().get_readonly_fields(request, obj)
+
+
+class ScheduledTaskLogAdmin(admin.ModelAdmin):
+    list_display = ('task', 'execution_date', 'success', 'message')
+    ordering = ('-execution_date', )
+    list_filter = ('task', 'success')
+    list_per_page = 25
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ('date', 'action', 'username', 'user', 'hijacked', 'ip')
+    list_filter = ('action', )
+    ordering = ('-date',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+"""
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
-
+"""
 
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
 admin.site.register(Establishment, EstablishmentAdmin)
 admin.site.register(Structure, StructureAdmin)
+admin.site.register(BachelorType, BachelorTypeAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
@@ -1934,20 +2046,24 @@ admin.site.register(PublicType, PublicTypeAdmin)
 admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
-admin.site.register(Calendar, CalendarAdmin)
+admin.site.register(Period, PeriodAdmin)
 admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
+admin.site.register(AttestationDocument, AttestationDocumentAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
-admin.site.register(ImmersupFile, ImmersupFileAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
+admin.site.register(FaqEntry, FaqEntryAdmin)
+admin.site.register(ScheduledTask, ScheduledTaskAdmin)
+admin.site.register(ScheduledTaskLog, ScheduledTaskLogAdmin)
+admin.site.register(History, HistoryAdmin)

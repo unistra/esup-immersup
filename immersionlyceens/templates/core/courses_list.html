@@ -73,7 +73,7 @@
             </div>
           </div>
         {% endif %}
-        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator or request.user.is_structure_consultant %}
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="strs">{% trans 'Select a structure' %} :</label>
@@ -90,23 +90,23 @@
         {% endif %}
       </div>
       <div class="col-12 col-sm-12 col-lg-12 table-responsive">
-        <table id="courses_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap" style="max-width: none !important;">
+        <table id="courses_table" class="table table-striped table-bordered compact dt-head-nowrap" style="max-width: none !important;">
         <thead>
           <tr>
+            <th class="align-top">{% trans 'Control' %}</th>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
             <th><span id="training_filter">{% trans 'Training' %}</span></th>
             <th><span id="managed_by_filter">{% trans 'Managed by' context "courses" %}</span></th>
-            <th id="label_filter">{% trans 'Label' %}</th>
+            <th id="label_filter" style="width:20%">{% trans 'Label' %}</th>
             <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %} </th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
-            <th></th>
           </tr>
         </thead>
         <tfoot>
           <tr>
-            <td></td>
+            <td class="dt-body-nowrap"></td>
             <td></td>
             <td></td>
             <td></td>
@@ -131,7 +131,9 @@
   var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
-  var conformDialog;
+  var confirmDialog;
+  var tableConfig;
+  var is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
@@ -145,20 +147,11 @@
         request.setRequestHeader("X-CSRFToken", csrftoken);
       },
 
-      url: "/api/delete_course",
-      data: {
-        course_id: course_id,
-      },
-
-      success: function (json) {
-        let msg = json['msg'];
-        let error = json['error'];
-
-        if(error !== '') {
-          feedback.trigger("showFeedback", [[error, "danger"]]);
-        }
-        else if(msg !== '') {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
+      url: `/api/course/${course_id}`,
+      method: "DELETE",
+      success: function (response) {
+        if(is_set(response.msg)) {
+          feedback.trigger("showFeedback", [[response.msg, "success"]]);
         }
 
         if ($('#strs option:selected').val() !== "") {
@@ -168,43 +161,12 @@
           load_courses("highschool", $('#highschools option:selected').val());
         }
       },
-      error: function (e) {
-        obj = JSON.stringify(e);
-        console.log("Error : " + obj);
+      error: function (response) {
+        let error = response.responseJSON.error
+        feedback.trigger("showFeedback", [[error, "danger"]])
       }
     });
   }
-
-  $('#establishments').change( function() {
-    current_establishment_id = $('#establishments option:selected').val();
-    current_structure_id = ""
-
-    dt.clear().draw()
-
-    if (current_establishment_id !== "") {
-        set_structures(current_establishment_id);
-    }
-    else {
-        empty_structures()
-    }
-  });
-
-  // Reload the table when structure changes in selectbox
-  $('#strs').change( function() {
-    current_structure_id = $('#strs option:selected').val()
-    load_courses("structure", current_structure_id)
-  });
-
-  $('#highschools').change( function() {
-    current_highschool_id = $('#highschools option:selected').val();
-
-    if (current_highschool_id !== "") {
-        empty_structures()
-        $('#establishments').val("");
-    }
-
-    load_courses("highschool", current_highschool_id)
-  });
 
   function empty_structures() {
       let options = '<option value="">---------</option>'
@@ -236,8 +198,6 @@
         }
 
         $("#id_div_structures").show()
-        current_highschool_id = ""
-        $('#highschools').val("");
       }
     })
   }
@@ -245,38 +205,34 @@
   function load_courses(key, value) {
     yadcf.exResetAllFilters(dt);
     dt.clear().draw()
-    dt.ajax.reload()
 
-    if(key === 'highschool') {
-      current_highschool_id = value
+    let url;
+    if (key === 'highschool') {
+        if(is_set(value)) {
+            url = `/api/courses?training__highschool=${value}`
+        }
+        current_highschool_id = value
     }
-    else if(key === 'structure') {
-      current_structure_id = value
+    else if (key === 'structure') {
+        if(is_set(value)) {
+            url = `/api/courses?training__structures=${value}`
+        }
+        current_structure_id = value
+    }
+
+    if(is_set(url)) {
+      $.ajax({
+        url: url,
+        success: function (data) {
+          dt.rows.add(data).draw();
+        },
+      });
     }
   }
 
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
-
-    if(current_highschool_id === 'None' || current_highschool_id === "") {
-      current_highschool_id = $("#highschools").val()
-    }
-
-    if(current_establishment_id === 'None' || current_establishment_id === "") {
-      current_establishment_id = $("#establishments").val()
-    }
-    else {
-        $("#establishments").val(current_establishment_id)
-    }
-
-    if(current_structure_id === 'None' || current_structure_id === "") {
-      current_structure_id = $("#strs").val()
-    }
-
-    if(current_establishment_id) {
-        set_structures(current_establishment_id)
-    }
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
@@ -305,52 +261,91 @@
       ],
     });
 
-    dt = $('#courses_table').DataTable({
+    // Create a tableConfig without Ajax settings to prevent first datatable ajax call
+    // Ajax settings will be added in load_courses function and the datatable recreated
+    tableConfig = {
       'processing': false,
       'order': [
-          [1, "asc"],
-          [2, "asc"]
+          [2, "asc"],
+          [3, "asc"]
        ],
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
-      'ajax': {
-        url: "/api/get_courses",
-        data: function(d) {
-          if($('#strs').val()) {
-            d.structure = $('#strs').val();
-          }
-          else if($('#highschools').val()) {
-            d.highschool = $('#highschools').val();
-          }
-
-          return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
-          { "data": "published",
-            "render": function (data) {
-              if (data) {
-                txt="{% trans 'Yes' %}";
-              }
-              else {
-                txt="{% trans 'No' %}";
-              }
+          { "data": "",
+            "render": function (data, type, row) {
+              let icons = ""
+              let slot_url = '/core/slots/'
+              let add_slot_url = '/core/slot/add/'
 
-              return txt;
+              if(row.has_rights) {
+                if(is_set(row.structure) && is_set(row.structure.establishment) && is_set(row.structure.id) && is_set(row.training.id)) {
+                    slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
+                    add_slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
+                }
+                else if(is_set(row.highschool) && is_set(row.highschool.id) && is_set(row.training.id)) {
+                    slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
+                    add_slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
+                }
+
+                // direct link to slots list
+                if(row.slots_count) {
+                  icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this course' %}\">" +
+                           "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                           "</a>\n";
+                }
+
+                // direct link to new slot form
+                if(!is_structure_consultant) {
+
+                    icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
+                        "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                        "</a>\n";
+
+
+                    icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                        "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                        "</a>\n";
+
+                    if(updatable === "True") {
+                        icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                            "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
+                            "</a>\n";
+                    }
+
+                    if(row.can_delete) {
+                      icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
+                               "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                               "</button>";
+                    }
+                }
+
+              }
+              return icons;
             },
           },
-          { "data": "training_label"},
+          { "data": "published",
+            "render": function (data) {
+              return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+            },
+          },
+          { "data": "training",
+            "render": function(data, type, row) {
+              if(type === 'filter') {
+                return data.label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data.label
+            }
+          },
           { "data": "managed_by" },
           { "data": "label",
             "render": function (data, type, row) {
@@ -365,7 +360,7 @@
             "render": function (data, type, row) {
               let txt = "";
               $.each(data, function (index, speaker) {
-                txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
+                txt += `<a href='mailto:${speaker.email}'>${speaker.last_name} ${speaker.first_name}</a><br>`;
               });
 
               if(type === 'filter') {
@@ -400,70 +395,22 @@
             }
           },
           { "data": "alerts_count" },
-          { "data": "",
-            "render": function (data, type, row) {
-              let icons = ""
-              let slot_url = '/core/slots/'
-              let add_slot_url = '/core/slot/add/'
-
-              if(row.has_rights) {
-                if(is_set(row.establishment_id) && is_set(row.structure_id) && is_set(row.training_id)) {
-                    slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id + "/" + row.id
-                    add_slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id + "/" + row.id
-                }
-                else if(is_set(row.highschool_id) && is_set(row.training_id)) {
-                    slot_url += row.highschool_id + "/" + row.training_id + "/" + row.id
-                    add_slot_url += row.highschool_id + "/" + row.training_id + "/" + row.id
-                }
-
-                // direct link to slots list
-                if(row.slots_count) {
-                  icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this course' %}\">" +
-                           "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
-                           "</a>\n";
-                }
-
-                // direct link to new slot form
-                icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
-                         "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                         "</a>\n";
-
-
-                icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                         "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                         "</a>\n";
-
-                if(updatable === "True") {
-                  icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                      "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
-                      "</a>\n";
-                }
-
-                if(row.can_delete) {
-                  icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
-                           "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                           "</button>";
-                }
-
-
-              }
-
-              return icons;
-            },
-          },
       ],
-      columnDefs: [{
-        defaultContent: "",
-        targets: "_all"
-      }, {
-        orderable: false,
-        targets: [8]
-      }],
+      columnDefs: [
+        {
+          defaultContent: "",
+          targets: "_all"
+        },
+        {
+          orderable: false,
+          targets: [0]
+        }
+      ],
 
       initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [3, 4]
+        var columns_idx = [4, 5]
 
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
@@ -504,21 +451,15 @@
           });
         })
       }
-    });
+    };
+
+    dt = $('#courses_table').DataTable(tableConfig);
 
     // Filters init
     yadcf.init(dt, [{
-        column_number: 0,
-        filter_default_label: "",
-        filter_container_id: "published_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
         column_number: 1,
         filter_default_label: "",
-        filter_match_mode: "exact",
-        filter_container_id: "training_filter",
+        filter_container_id: "published_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
@@ -526,22 +467,20 @@
         column_number: 2,
         filter_default_label: "",
         filter_match_mode: "exact",
-        filter_container_id: "managed_by_filter",
+        filter_container_id: "training_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
-      /*
       {
         column_number: 3,
         filter_default_label: "",
         filter_match_mode: "exact",
-        filter_container_id: "label_filter",
+        filter_container_id: "managed_by_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
-      */
       {
-        column_number: 7,
+        column_number: 8,
         filter_default_label: "",
         filter_match_mode: "exact",
         filter_container_id: "alerts_filter",
@@ -549,6 +488,95 @@
         filter_reset_button_text: false,
       },
     ]);
+
+
+    $('#establishments').change( function() {
+      current_establishment_id = $('#establishments option:selected').val();
+      current_structure_id = ""
+
+      dt.clear().draw()
+
+      if (current_establishment_id !== "") {
+          set_structures(current_establishment_id);
+          current_highschool_id = ""
+          $('#highschools').val("");
+      }
+      else {
+          empty_structures()
+      }
+
+      // cache
+      set_session_values("courses", {
+          "current_highschool_id": current_highschool_id,
+          "current_establishment_id": current_establishment_id,
+          "current_structure_id": current_structure_id,
+      })
+    });
+
+    // Reload the table when structure changes in selectbox
+    $('#strs').change( function() {
+        current_structure_id = $('#strs option:selected').val()
+        // cache
+        set_session_values("courses", {
+            "current_structure_id": current_structure_id,
+        })
+        load_courses("structure", current_structure_id)
+    });
+
+    $('#highschools').change( function() {
+        current_highschool_id = $('#highschools option:selected').val();
+
+        if (current_highschool_id !== "") {
+            empty_structures()
+            $('#establishments').val("");
+            current_establishment_id = ""
+        }
+
+        // cache
+        set_session_values("courses", {
+            "current_highschool_id": current_highschool_id,
+            "current_establishment_id": current_establishment_id,
+            "current_structure_id": current_structure_id,
+        })
+
+        load_courses("highschool", current_highschool_id)
+    });
+
+    // Init and clean
+    if(!is_set(current_highschool_id)) {
+      current_highschool_id = $("#highschools").val()
+    }
+
+    if(!is_set(current_establishment_id)) {
+      current_establishment_id = $("#establishments").val()
+    }
+
+    if(!is_set(current_structure_id)) {
+      current_structure_id = $("#strs").val()
+    }
+
+    if(is_set(current_establishment_id) && is_set(current_structure_id)) {
+      $("#establishments").val(current_establishment_id)
+      set_structures(current_establishment_id);
+      $("#strs").val(current_structure_id)
+      $('#highschools').val("");
+
+      set_session_values("courses", {
+         "current_highschool_id": "",
+      })
+
+      load_courses("structure", current_structure_id)
+    }
+    else if (is_set(current_highschool_id)) {
+      set_session_values("courses", {
+        "current_establishment_id": "",
+        "current_structure_id": "",
+      })
+      $('#establishments').val("");
+      $('#strs').val("");
+      $('#highschools').val(current_highschool_id);
+      load_courses("highschool", current_highschool_id)
+    }
   });
 </script>
 {% endblock %}

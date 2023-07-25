@@ -30,8 +30,6 @@
         <div class="card-body">
             <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
                 <fieldset>
-
-
                     <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
                     {% csrf_token %}
                     {{ course_form.id }}
@@ -210,18 +208,24 @@
 
   function set_trainings(type, object_id) {
     /* Type is either 'structure' or 'highschool' */
+    let options = "<option value=''>---------</option>"
+
+    if(!is_set(object_id)) {
+       $('select#id_training').html(options)
+       $("#id_training").val($("#id_training option:first").val());
+       return
+    }
+
     $.ajax({
-      url: "{% url 'GetTrainings' %}",
+      url: "{% url 'training_list' %}",
       data: {
-        'type': type,
-        'object_id': object_id,
-        csrfmiddlewaretoken: '{{ csrf_token }}'
+        "csrfmiddlewaretoken": '{{ csrf_token }}',
+        [type]: object_id
       },
       success: function (json) {
-        let options = '<option value="">---------</option>'
-        for (let i = 0; i < json['data'].length; i++) {
-          let selected = json['data'][i]['id'] === parseInt(training_id) ? "selected='selected'" : ""
-          options += `<option value="${json['data'][i]['id']}" ${selected}>${json['data'][i]['label']}</option>`
+        for (let i = 0; i < json.length; i++) {
+          let selected = json[i]['id'] === parseInt(training_id) ? "selected='selected'" : ""
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']}</option>`
         }
 
         $('select#id_training').html(options)
@@ -276,7 +280,7 @@
     structure_id = $('#id_structure option:selected').val()
 
     if(structure_id !== '') {
-      set_trainings('structure', structure_id)
+      set_trainings('structures', structure_id)
     }
     else {
       empty_trainings()
@@ -431,7 +435,7 @@
       set_trainings('highschool', highschool_id)
     }
     else if (structure_id !== 'None' && structure_id !== '' && structure_id !== undefined) {
-      set_trainings('structure', structure_id)
+      set_trainings('structures', structure_id)
     }
     else {
       empty_trainings()

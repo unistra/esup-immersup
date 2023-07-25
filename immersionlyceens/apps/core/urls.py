@@ -2,13 +2,15 @@
 Url configuration for the core application API
 """
 
-from django.urls import path
+from django.urls import include, path
 
 from . import views
+from . import utils
 
 urlpatterns = [
     # path('structure', views.structure, name='structure'),
     # path('structure/<structure_code>', views.structure, name='update_structure'),
+    path('utils/', include('immersionlyceens.apps.core.utils_urls')),
 
     path('structure', views.MyStructureView.as_view(), name='structure'),
 
@@ -33,13 +35,13 @@ urlpatterns = [
     path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>',
          views.CourseSlotList.as_view(), name='establishment_filtered_course_slots_list'),
 
-    path('slot', views.CourseSlotAdd.as_view(), name='add_course_slot'),
+    path('slot', views.CourseSlot.as_view(), name='add_course_slot'),
     path('slot/<int:pk>', views.CourseSlotUpdate.as_view(), name='update_course_slot'),
-    path('slot/<int:pk>/<int:duplicate>', views.CourseSlotAdd.as_view(), name='duplicate_course_slot'),
-    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.CourseSlotAdd.as_view(),
+    path('slot/<int:pk>/<int:duplicate>', views.CourseSlot.as_view(), name='duplicate_course_slot'),
+    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.CourseSlot.as_view(),
          name='add_high_school_course_slot'),
     path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>',
-         views.CourseSlotAdd.as_view(), name='add_establishment_course_slot'),
+         views.CourseSlot.as_view(), name='add_establishment_course_slot'),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
 
     path('stats/', views.stats, name="stats"),
@@ -50,12 +52,12 @@ urlpatterns = [
     path('speaker', views.speaker, name='speaker'),
     path('speaker/<int:id>', views.speaker, name='edit_speaker'),
 
-    path("training", views.TrainingList.as_view(), name="trainings"),
-    path("training/add", views.TrainingAdd.as_view(), name="training_add"),
+    path("trainings", views.TrainingList.as_view(), name="trainings"),
+    path("training", views.TrainingAdd.as_view(), name="training_add"),
     path("training/<int:pk>/update", views.TrainingUpdate.as_view(), name="training_update"),
 
     path("visits", views.VisitList.as_view(), name="visits"),
-    path("visit/add", views.VisitAdd.as_view(), name="add_visit"),
+    path("visit", views.VisitAdd.as_view(), name="add_visit"),
     path("visit/<int:pk>", views.VisitUpdate.as_view(), name="update_visit"),
     path('visit/<int:pk>/<int:duplicate>', views.VisitAdd.as_view(), name='duplicate_visit'),
 
@@ -63,14 +65,14 @@ urlpatterns = [
     path('visits_slots/<int:establishment_id>/<str:structure_id>/<int:highschool_id>/<int:visit_id>',
          views.VisitSlotList.as_view(), name='establishment_filtered_visits_slots_list'),
 
-    path('visit_slot', views.VisitSlotAdd.as_view(), name='add_visit_slot'),
+    path('visit_slot', views.VisitSlot.as_view(), name='add_visit_slot'),
     path('visit_slot/<int:pk>', views.VisitSlotUpdate.as_view(), name='update_visit_slot'),
-    path('visit_slot/<int:pk>/<int:duplicate>', views.VisitSlotAdd.as_view(), name='duplicate_visit_slot'),
+    path('visit_slot/<int:pk>/<int:duplicate>', views.VisitSlot.as_view(), name='duplicate_visit_slot'),
     path('visit_slot/add/<int:establishment_id>/<str:structure_id>/<int:highschool_id>/<int:visit_id>',
-         views.VisitSlotAdd.as_view(), name='add_establishment_visit_slot'),
+         views.VisitSlot.as_view(), name='add_establishment_visit_slot'),
 
     path("off_offer_events", views.OffOfferEventsList.as_view(), name="off_offer_events"),
-    path("off_offer_event/add", views.OffOfferEventAdd.as_view(), name="add_off_offer_event"),
+    path("off_offer_event", views.OffOfferEventAdd.as_view(), name="add_off_offer_event"),
     path("off_offer_event/<int:pk>", views.OffOfferEventUpdate.as_view(), name="update_off_offer_event"),
     path('off_offer_event/<int:pk>/<int:duplicate>', views.OffOfferEventAdd.as_view(), name='duplicate_off_offer_event'),
 
@@ -81,14 +83,15 @@ urlpatterns = [
          views.OffOfferEventSlotList.as_view(),
          name='establishment_filtered_events_slots_list'),
 
-    path('off_offer_event_slot', views.OffOfferEventSlotAdd.as_view(), name='add_off_offer_event_slot'),
+    path('off_offer_event_slot', views.OffOfferEventSlot.as_view(), name='add_off_offer_event_slot'),
     path('off_offer_event_slot/<int:pk>', views.OffOfferEventSlotUpdate.as_view(), name='update_ff_offer_event_slot'),
-    path('off_offer_event_slot/<int:pk>/<int:duplicate>', views.OffOfferEventSlotAdd.as_view(),
+    path('off_offer_event_slot/<int:pk>/<int:duplicate>', views.OffOfferEventSlot.as_view(),
          name='duplicate_off_offer_event_slot'),
 
-    path('off_offer_event_slot/add/<int:highschool_id>/<int:event_id>', views.OffOfferEventSlotAdd.as_view(),
+    path('off_offer_event_slot/add/<int:highschool_id>/<int:event_id>', views.OffOfferEventSlot.as_view(),
          name='add_high_school_event_slot'),
     path('off_offer_event_slot/add/<int:establishment_id>/<str:structure_id>/<int:event_id>',
-         views.OffOfferEventSlotAdd.as_view(), name='add_establishment_event_slot'),
-    path('charter', views.charter, name='charter')
+         views.OffOfferEventSlot.as_view(), name='add_establishment_event_slot'),
+    path('charter', views.charter, name='charter'),
+    path('structures_notifications', views.structures_notifications, name='structures_notifications'),
 ]

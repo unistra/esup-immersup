@@ -109,6 +109,13 @@
   var dtv_cancelled;
   var is_highschool_student = {{ request.user.is_high_school_student|yesno:"true,false" }}
 
+  const options = {
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  };
+
   function open_students_modal(immersion_id) {
     current_immersion_id = immersion_id;
     $('#modal_other_registrants').modal('show');
@@ -197,9 +204,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
@@ -233,21 +242,34 @@
           },
         },
         { "data": "info" },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        },
         { "data": "",
           "render": function(data, type, row) {
+            let msg = "";
+
             if(is_highschool_student === true) {
-              var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+              msg += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
                         "<i class='fa fas fa-users fa-2x'></i>" +
                         "</button>";
-            } else {
-              var msg = "";
             }
 
             if(row.cancellable === true) {
-              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
+
+            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
+
+            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
           }
@@ -260,7 +282,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": [8,9],
+          "orderable": false, "targets": [8,10],
         },
       ],
     });
@@ -288,9 +310,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
@@ -334,6 +358,15 @@
             return msg;
           }
         },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        },
         { "data": "" }
       ],
       "columnDefs": [
@@ -371,9 +404,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
@@ -411,18 +446,27 @@
             var msg = data;
 
             if(row.can_register) {
-              msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+                msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
             if(row.free_seats === 0) {
-              msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+                msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
             return msg;
           }
         },
-      ],
-      "columnDefs": [
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        }
+    ],
+    "columnDefs": [
         {
           "defaultContent": "",
           "targets": "_all",
@@ -455,9 +499,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
@@ -480,21 +526,34 @@
         },
         { "data": "speakers"},
         { "data": "info" },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        },
         { "data": "",
           "render": function(data, type, row) {
+            let msg = "";
+
             if(is_highschool_student === true) {
-              var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
-                        "<i class='fa fas fa-users fa-2x'></i>" +
-                        "</button>";
-            } else {
-              var msg = "";
+              msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+                    "<i class='fa fas fa-users fa-2x'></i>" +
+                    "</button>";
             }
 
             if(row.cancellable === true) {
-              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
+
+            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
+
+            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
           }
@@ -536,9 +595,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
@@ -580,6 +641,15 @@
             return msg;
           }
         },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        },
         { "data": "" }
       ],
       "columnDefs": [
@@ -617,9 +687,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
@@ -664,6 +736,15 @@
             return msg;
           }
         },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        },
       ],
       "columnDefs": [
         {
@@ -698,9 +779,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
@@ -717,17 +800,28 @@
         },
         { "data": "speakers"},
         { "data": "info" },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
+          }
+        },
         { "data": "",
           "render": function(data, type, row) {
-            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal(" + row.id +")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+            let msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal(" + row.id +")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
                       "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
             if(row.cancellable === true) {
-              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
+
+            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
           }
@@ -769,9 +863,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
@@ -805,6 +901,15 @@
                   "</a>";
             }
             return msg;
+          }
+        },
+        { "data": "registration_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
         { "data": "" }
@@ -844,9 +949,11 @@
         }
       },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
+      {% endif %}
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
@@ -883,6 +990,15 @@
             }
 
             return msg;
+          }
+        },
+        { "data": "cancellation_date",
+          render: function(data, type, row) {
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+
+            return data
           }
         },
       ],

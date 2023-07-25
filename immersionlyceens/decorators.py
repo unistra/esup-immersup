@@ -1,3 +1,4 @@
+import time
 from functools import wraps
 
 from django.contrib.auth.decorators import user_passes_test
@@ -36,3 +37,23 @@ def groups_required(*groups, login_url='/'):
 
     return user_passes_test(in_groups, login_url=login_url)
 
+
+def timer(func):
+    """helper function to display execution time"""
+
+    @wraps(func)  # used for copying func metadata
+    def wrapper(*args, **kwargs):
+        # record start time
+        start = time.time()
+
+        # func execution
+        result = func(*args, **kwargs)
+
+        duration = (time.time() - start) * 1000
+        # output execution time to console
+        print('view {} takes {:.2f} ms'.format(
+            func.__name__,
+            duration
+            ))
+        return result
+    return wrapper

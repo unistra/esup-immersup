@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+{% endblock %}
+{% block head-javascript %}
+{% endblock %}
+{% block title %}
+{% trans "High schools" %}
+{% endblock %}
+{% block content %}
+{% general_settings_get 'ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT' as activate_high_school_with_agreement %}
+{% general_settings_get 'ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT' as activate_high_school_without_agreement %}
+<div class="main-title inside text-center">
+  <div></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'High schools' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'High schools' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    {% if activate_high_school_with_agreement %}
+    <div class="row border-top my-3"></div>
+    <div class="row">
+      <div class="col offset-sm-1 text-center">
+        <h3>{% trans 'Affiliated high schools'%}</h3>
+        <h4>{{ affiliated_highschools_intro_txt | safe }}</h4>
+      </div>
+    </div>
+    <div class="row" style="padding-top:20px;">
+      <div class="col offset-sm-1 text-center">
+        <form class="form-inline justify-content-center">
+          <i class="fa fas fa-search" aria-hidden="true"></i>
+          <input class="form-control form-control-sm ml-4 w-25" id="search_affiliated_highschool" type="text" aria-label="{% trans 'Search Highschool'%}">
+        </form>
+      </div>
+    </div>
+    <div class="row" style="padding-top:20px;padding-bottom:20px;">
+      <div class="col table-responsive" style="width: 98%">
+        <table id="affiliated_highschool_table" class="table table-striped table-bordered nowrap dt-body-nowrap">
+          <thead>
+            <tr>
+              <th>{% trans 'City' %}</th>
+              <th>{% trans 'Name' %}</th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    {% if activate_high_school_without_agreement %}
+    <div class="row border-top my-3"></div>
+    <div class="row">
+      <div class="col offset-sm-1 text-center">
+        <h3>{% trans 'Not affiliated high schools'%}</h3>
+        <h4>{{ not_affiliated_highschools_intro_txt | safe }}</h4>
+      </div>
+    </div>
+    <div class="row" style="padding-top:20px;">
+      <div class="col offset-sm-1 text-center">
+        <form class="form-inline justify-content-center">
+          <i class="fa fas fa-search" aria-hidden="true"></i>
+          <input class="form-control form-control-sm ml-4 w-25" id="search_not_affiliated_highschool" type="text" aria-label="{% trans 'Search Highschool'%}">
+        </form>
+      </div>
+    </div>
+    <div class="row" style="padding-top:20px;padding-bottom:20px;">
+      <div class="col table-responsive" style="width: 98%">
+        <table id="not_affiliated_highschool_table" class="table table-striped table-bordered nowrap dt-body-nowrap">
+          <thead>
+            <tr>
+              <th>{% trans 'City' %}</th>
+              <th>{% trans 'Name' %}</th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% block foot-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+<script type="text/javascript">
+  $(document).ready(function() {
+    function decodeHTMLEntities(text) {
+      return $("<textarea/>").html(text).text();
+    }
+
+    {% if activate_high_school_with_agreement %}
+    let affiliated_highschools = JSON.parse(decodeHTMLEntities('{{ affiliated_highschools }}'));
+    let dt = $('#affiliated_highschool_table').DataTable({
+      'processing': false,
+      'order': [
+          [0, "asc"],
+          [1, "asc"]
+       ],
+      dom: 'ltpr',
+      lengthChange: false,
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'dataType': 'json',
+      'data': affiliated_highschools,
+      'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+      'language': {
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
+      },
+      {% endif %}
+      'columns': [
+          { "data": "city",
+            "render": function (data, type, row) {
+              if(type === 'filter' || type === 'sort') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
+          { "data": "label",
+            "render": function (data, type, row) {
+              if(type === 'filter' || type === 'sort') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+
+    });
+    $('#search_affiliated_highschool').keyup( function() {
+      let affiliated_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      dt.search(affiliated_search_value).draw();
+    });
+    {% endif %}
+    {% if activate_high_school_without_agreement %}
+      let not_affiliated_highschools = JSON.parse(decodeHTMLEntities('{{ not_affiliated_highschools }}'));
+      let dt2 = $('#not_affiliated_highschool_table').DataTable({
+      'processing': false,
+      'order': [
+          [0, "asc"],
+          [1, "asc"]
+       ],
+      dom: 'ltpr',
+      lengthChange: false,
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'dataType': 'json',
+      'data': not_affiliated_highschools,
+      'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+      'language': {
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
+      },
+      {% endif %}
+      'columns': [
+          { "data": "city",
+            "render": function (data, type, row) {
+              if(type === 'filter' || type === 'sort') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
+          { "data": "label",
+            "render": function (data, type, row) {
+              if(type === 'filter' || type === 'sort') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+    });
+    $('#search_not_affiliated_highschool').keyup( function() {
+      let not_affiliated_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      dt2.search(not_affiliated_search_value).draw();
+    });
+    {% endif %}
+  });
+</script>
+{% endblock %}
+

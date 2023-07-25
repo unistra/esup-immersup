@@ -11,16 +11,16 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
-    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment, HigherEducationInstitution
+    BachelorType, Structure, TrainingDomain, TrainingSubdomain,
+    Training, Course, Building, CourseType, Slot, Campus,
+    HighSchool, HighSchoolLevel, PostBachelorLevel, StudentLevel,
+    Establishment, HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
-
 class MockRequest:
     pass
-
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -127,16 +127,8 @@ class FormTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
-        )
-        cls.calendar = Calendar.objects.create(
-            label='my calendar', 
-            calendar_mode='YEAR',
-            year_start_date=cls.today + datetime.timedelta(days=1),
-            year_end_date=cls.today + datetime.timedelta(days=100),
-            year_registration_start_date=cls.today + datetime.timedelta(days=2),
-            year_nb_authorized_immersion=4
         )
 
 

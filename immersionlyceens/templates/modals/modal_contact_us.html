@@ -1,4 +1,5 @@
 {% load static i18n immersionlyceens_tags %}
+{% information_text_get 'INTRO_CONTACT' as intro_contact %}
 <div class="modal fade" id="modal_contact_us" tabindex="-1" role="dialog" aria-labelledby="modal_contact_us_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
@@ -7,8 +8,13 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
           <span aria-hidden="true">&times;</span>
         </button>
-      </div>
-      <div class="modal-body">
+    </div>
+    <div class="modal-body">
+        {% if intro_contact %}
+        <div id="intro_contact">
+            {{ intro_contact|safe }}
+        </div>
+        {% endif %}
         <form id="contact_us_form" class="needs-validation">
           <div id="contactus_feedback"></div>
           <div class="controls">

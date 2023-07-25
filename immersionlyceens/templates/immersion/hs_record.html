@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
+
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
@@ -15,7 +16,10 @@
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
 {% endblock %}
 {% block title %}{% trans "High school student record" %}
 {% endblock %}
@@ -28,8 +32,9 @@
 {% authorized_groups request.user %}
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
+
 <div class="container" style="padding-top:20px; width:70%;">
-  <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
+  <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ record_form.student }}
         {{ record_form.id }}
@@ -161,6 +166,15 @@
             <div class="col-sm-3 col-md-2">{{ record_form.current_diploma.errors }}</div>
           </div>
         </div>
+        {% if request_student_consent %}
+        <div id="id_div_allow_high_school_consultation" class="form-group row align-items-center">
+          <label for="id_allow_high_school_consultation" class="col-sm-9 col-form-label">
+            {% trans 'Allow my high school to view my immersions and attendance certificates ?' %}
+          </label>
+          <div class="col-sm-2">{{ record_form.allow_high_school_consultation }}</div>
+          <div class="col-sm-1">{{ record_form.allow_high_school_consultation.errors }}</div>
+        </div>
+        {% endif %}
         <div class="form-group row align-items-center">
           <label for="id_visible_immersion_registrations" class="col-sm-9 col-form-label">
             {% trans 'Make the current immersion registrations visible ?' %}
@@ -175,87 +189,205 @@
           <div class="col-sm-2">{{ record_form.visible_email }}</div>
           <div class="col-sm-1 ">{{ record_form.visible_email.errors }}</div>
         </div>
-        <div class="form-group row">
+      </div>
+      {% if document_forms|length %}
+        <div class="card-header text-white bg-secondary">
+          {% trans "Attestations" %}
         </div>
-        {% if calendar.calendar_mode == "YEAR" %}
-          <div class="form-group row align-items-center">
-            {% if record_form.allowed_global_registrations %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+        <div class="card-body">
+          {% for document_form in document_forms %}
+            {{ document_form.non_field_errors }}
+            {{ document_form.id }}
+            {{ document_form.record }}
+            {{ document_form.attestation }}
+            <div class="form-group row align-items-center">
+              <label class="col-sm-3 col-md-4 col-form-label">
+                {{ document_form.attestation_label }} {% if document_form.instance.mandatory %}*{% endif %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ record_form.allowed_global_registrations }}</div>
-            {% elif record_form.instance.highschool %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually registrations realized (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-2">{{ immersion_number }} / {{ record_form.allowed_global_registrations|default:record.allowed_global_registrations }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ record.allowed_global_registrations }}</div>
+              <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
+              <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
+            </div>
+            {% if document_form.instance.deposit_date %}
+            <div class="form-group row align-items-center">
+              <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Deposit date' %}</label>
+              <div class="col-sm-3 col-md-4">{{ document_form.instance.deposit_date }}</div>
+            </div>
             {% endif %}
+            {% if document_form.instance.requires_validity_date %}
+              {% if document_form.validity_required or document_form.validity_date.value %}
+                <div class="form-group row align-items-center">
+                  <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</label>
+                  {% if document_form.validity_required %}
+                    <div class="col-sm-3 col-md-4">{{ document_form.validity_date }}</div>
+                    <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
+                  {% else %}
+                    <div class="col-sm-3 col-md-4">
+                      {{ document_form.validity_date }}
+                      {{ document_form.validity_date.value }}
+                    </div>
+                    <div class="col-sm-4 col-md-4 warning">{{ document_form.renew_document }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endif %}
+            {% if document_form.attestation_template %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Template' %}</label>
+                <div class="col-sm-3 col-md-4">
+                  <a target='_blank' href="{{ document_form.attestation_template.url }}">{% trans 'Get document template' %}</a>
+                </div>
+              </div>
+            {% endif %}
+            {% if archives|keyvalue:document_form.instance.attestation.id and not request.user.is_high_school_student %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Archives' %}</label>
+                <div class="col-sm-9 col-md-8">
+                  <ul class="filelinks">
+                  {% for archive in archives|keyvalue:document_form.instance.attestation.id %}
+                    <li class="sun sun-theme-light sun-full">
+                      <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block collapsed"></i>
+                      <a target='_blank' href="{{ archive.document.url }}" class="sun-row">
+                        {{ archive.document }} {% if archive.validity_date %}({{ archive.validity_date }}){% endif %}
+                      </a>
+                    </li>
+                  {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+            {% if not forloop.last %}
+              <hr class="mt-2 mb-3"/>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if future_periods or quota_forms|length and not request.user.is_high_school_student or record.quota.count %}
+          <div class="card-header text-white bg-secondary">
+            {% trans "Immersions periods and quotas" %}
           </div>
-        {% else %}
-          <div class="form-group row align-items-center">
-            {% if record_form.allowed_first_semester_registrations %}
-              <label class="col-sm-9 col-form-label">
-              {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
-            </label>
-              <div class="col-sm-2">{{ record_form.allowed_first_semester_registrations }}</div>
-            {% elif record_form.instance.highschool %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for first semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations }}</div>
+          <div class="card-body">
+            {% if quota_forms|length and not request.user.is_high_school_student %}
+              {% for quota_form in quota_forms %}
+                {{ quota_form.non_field_errors }}
+                {{ quota_form.id }}
+                {{ quota_form.record }}
+                {{ quota_form.period }}
+                <div class="form-group row align-items-center">
+                  <div class="col-sm-5">
+                    <label class="col-form-label">
+                      {{ quota_form.period_label }}
+                    </label>
+                  </div>
+                  <div class="col-sm-2 col-form-label">
+                    {% trans 'allowed immersions' %} :
+                  </div>
+                  <div class="col-sm-1 col-form-label">
+                    {{ quota_form.allowed_immersions }}
+                  </div>
+                </div>
+              {% endfor %}
             {% else %}
-              <label class="col-sm-9 col-form-label">
-              {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
-            </label>
-              <div class="col-sm-1 col-form-label">{{ record.allowed_first_semester_registrations }}</div>
+              {% for quota in record.quota.all|dictsort:"period.immersion_start_date" %}
+                <div class="form-group row align-items-center">
+                  <div class="col-sm-5">
+                    <label class="col-form-label">
+                      {{ quota.period }}
+                    </label>
+                  </div>
+                  <div class="col-sm-2 col-form-label">
+                    {% trans 'allowed immersions' %} :
+                  </div>
+                  <div class="col-sm-1 col-form-label">
+                    {{ immersions_count|keyvalue:quota.period.pk|default:"0" }} / {{ quota.allowed_immersions }}
+                  </div>
+                </div>
+              {% endfor %}
             {% endif %}
+
+            {% comment %}
+              Display future periods as readonly (no form to update the student custom quota)
+            {% endcomment %}
+
+            {% for period in future_periods|dictsort:"immersion_start_date" %}
+              <div class="form-group row align-items-center">
+                <div class="col-sm-5">
+                  <label class="col-form-label">
+                    {{ period }}
+                  </label>
+                </div>
+                <div class="col-sm-2 col-form-label">
+                  {% trans 'allowed immersions' %} :
+                </div>
+                <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+              </div>
+            {% endfor %}
           </div>
-          <div class="form-group row align-items-center">
-            {% if record_form.allowed_second_semester_registrations %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-2">{{ record_form.allowed_second_semester_registrations }}</div>
-            {% elif record_form.instance.highschool %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ record.allowed_second_semester_registrations }}</div>
+      {% endif %}
+      <div class="card-header text-white bg-secondary">
+        {% trans "Status" %}
+      </div>
+      <div class="card-body">
+        {% if record.creation_date %}
+        <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Record creation date' %} :
+            </label>
+            <div class="col-sm-4 col-form-label">
+              {{ record.creation_date }}
+            </div>
+        </div>
+        {% endif %}
+        <div class="form-group row align-items-center">
+          <label class="col-sm-4 col-form-label">{% trans "Validation" %} :</label>
+          <div class="form-group  col-sm-4">
+            {% if record.validation == 1 %}
+              <span class="badge badge-pill badge-warning" id="record_status">
+              {% trans "Waiting validation" %}
+            {% elif record.validation == 2 %}
+              <span class="badge badge-pill badge-success" id="record_status">
+              {% trans "Validated" %}
+            {% elif record.validation == 3 %}
+              <span class="badge badge-pill badge-danger" id="record_status">
+              {% trans "Rejected" %}
+            {% elif record.validation == 4 %}
+              <span class="badge badge-pill badge-warning" id="recordStatus">
+              {% trans "Waiting revalidation" %}
             {% endif %}
+            </span>
+          </div>
+        </div>
+        {% if record.validation_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Record validation date' %} :
+            </label>
+            <div class="col-sm-8 col-form-label">
+              {{ record.validation_date }}
+            </div>
           </div>
         {% endif %}
       </div>
-
-      <div class="form-group row">
-
-      </div>
     </div>
     <div class="row mt-4">
-        <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
+        <input type="submit"
+               class="btn btn-secondary btn-sm ml-4"
+               name="submit"
+               value="{% if record.id %}{% trans 'Submit' %}{% else %}{% trans 'Next' %}{% endif %}"
+        >
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
 
       {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
         <input type="button" class="btn btn-primary btn-sm ml-4" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
       {% endif %}
     </div>
-
-
   </form>
 </div>
 
 <script>
   {% autoescape off %}
     let high_school_levels = is_set('{{ high_school_levels }}') ? JSON.parse('{{ high_school_levels }}') : Array()
+    let bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
   {% endautoescape %}
 
   function open_modal() {
@@ -263,12 +395,23 @@
   }
 
   $(document).ready(function() {
+    let high_school_with_convention;
+
     $(function () {
-      $(".datepicker").datepicker({
+      $("[id$=validity_date]").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        minDate: new Date(),
+        yearRange: "2023:2040",
+      });
+
+      let default_year =  new Date().getFullYear() - 15;
+
+      $("#id_birth_date").datepicker({
         changeMonth: true,
         changeYear: true,
         yearRange: "1990:2010",
-        defaultDate: "01/01/2003",
+        defaultDate: `01/01/${default_year}`,
       });
     });
 
@@ -284,7 +427,9 @@
     }
 
     function switch_bachelor_type_options(b_type, level) {
-      if(b_type == 1) {
+      const parsed_b_type = parseInt(b_type)
+
+      if(is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_general']) {
         if ( is_set(high_school_levels[level]) && high_school_levels[level]['requires_bachelor_speciality'] === true ) {
           $('#id_general_bachelor_data').show("slow");
         } else {
@@ -293,15 +438,39 @@
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').hide("slow");
       }
-      else if (b_type == 2) {
+      else if (is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_technological']) {
         $('#id_general_bachelor_data').hide("slow");
         $('#id_technological_bachelor_data').show("slow");
         $('#id_professional_bachelor_data').hide("slow");
       }
-      else if (b_type == 3) {
+      else if (is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_professional']) {
         $('#id_general_bachelor_data').hide("slow");
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').show("slow");
+      }
+    }
+
+    function toggle_student_consent_field() {
+      let high_school_id = $('#id_highschool option:selected').val();
+
+      if(is_set(high_school_id)) {
+        $.ajax({
+          url: `/api/highschool/${high_school_id}`,
+          type: 'GET',
+          data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (obj) {
+            high_school_with_convention = obj.with_convention === true
+
+            if(high_school_with_convention === false) {
+              $("#id_div_allow_high_school_consultation").hide()
+            }
+            else {
+              $("#id_div_allow_high_school_consultation").show()
+            }
+          }
+        })
       }
     }
 
@@ -318,12 +487,30 @@
       switch_bachelor_type_options(b_type, level);
     });
 
+    //
+    $('#id_highschool').change(function() {
+      toggle_student_consent_field();
+    });
+
+    // special case when the file is not mandatory but it still requires a validity date if provided
+    $('[id$=-document]').change(function() {
+      let prefix_id = this.id.split("-")[0]
+      let validity_date_id = `${prefix_id}-validity_date`
+      let validity_required = $(`[id=${validity_date_id}]`).data("validity_required") === true
+
+      if(validity_required) {
+        $(`[id=${validity_date_id}]`).prop('required', this.files.length !== 0)
+      }
+    });
+
     // Init
     let level = $('#id_level option:selected').val();
     switch_bachelor_data(level);
 
     let b_type = $('#id_bachelor_type option:selected').val();
     switch_bachelor_type_options(b_type, level);
+
+    toggle_student_consent_field();
   });
 </script>
 {% endblock %}

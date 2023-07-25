@@ -1,3 +1,7 @@
+// default dates settings
+var _dates_options = { dateStyle: 'long' };
+var _dates_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
+
 function getCookie(name) {
   var cookieValue = null
   if (document.cookie && document.cookie != '') {
@@ -58,4 +62,27 @@ function initBadge() {
 
 function is_set(obj) {
   return obj !== null && obj !== undefined && obj !== "" && obj !== "None"
+}
+
+function formatDate(date, date_options = _dates_options, date_locale = _dates_locale) {
+  return new Date(date).toLocaleString(date_locale, date_options)
+}
+
+function set_session_values(pagename, values) {
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+    beforeSend: function (request) {
+      request.setRequestHeader("X-CSRFToken", csrftoken);
+    },
+
+    url: `/core/utils/set_session_values`,
+    data: {
+      pagename: pagename,
+      values: JSON.stringify(values),
+    },
+    method: "POST",
+    success: function (response) {},
+    error: function (response) {}
+  });
 }

@@ -163,5 +163,38 @@
       "description": "Texte à valider lors de la connexion d'un nouvel établissement d'accueil",
       "active": true
     }
-  }
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 16,
+    "fields": {
+      "label": "Texte d'introduction pour le formulaire de contact",
+      "code": "INTRO_CONTACT",
+      "content": "<p>Vous pouvez nous contacter via ce formulaire, nous vous r\u00e9pondrons dans les plus brefs d\u00e9lais.</p>",
+      "description": "Texte d'introduction en haut du formulaire de contact",
+      "active": false
+    }
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 17,
+    "fields": {
+      "label": "Texte d'introduction sur l'offre de cours",
+      "code": "INTRO_OFFER_COURSE",
+      "content": "<p>Vous pouvez retrouver ici l'ensemble des cours ouverts à l'immersion, cela vous permettra de participer à cours avec des \u00e9tudiants.</p>",
+      "description": "Texte d'intro sur l'offre de cours (page offre de cours)",
+      "active": false
+    }
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 18,
+    "fields": {
+      "label": "Texte d'introduction sur la page de la FAQ",
+      "code": "INTRO_FAQ",
+      "content": "<p>Nous avons rassembl\u00e9 les questions les plus fr\u00e9quemment pos\u00e9es pour vous donnez plus d'informations.</p>",
+      "description": "Texte d'intro sur la foire aux questions (page FAQ)",
+      "active": false
+    }
+  }     
 ]

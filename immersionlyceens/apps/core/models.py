@@ -18,19 +18,23 @@ from functools import partial
 from os.path import dirname, join
 from typing import Any, Optional
 
+from hijack.signals import hijack_started, hijack_ended
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.functions import Coalesce
+from django.dispatch import receiver
 from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django_countries.fields import CountryField
+
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
@@ -41,6 +45,8 @@ from .managers import (
     ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
     HighSchoolAgreedManager, StructureQuerySet,
 )
+
+#from ordered_model.models import OrderedModel
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +61,29 @@ def get_file_path(instance, filename,):
         .lower()
         .replace(' ', '_')
     )
+
+def validate_slot_date(date: datetime.date):
+    """
+    :param date: the slot date to validate
+    :return: Raises ValidationError Exception or nothing
+    """
+    # Period
+    try:
+        Period.from_date(date)
+    except Period.DoesNotExist:
+        raise ValidationError(
+            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
+        )
+    except Period.MultipleObjectsReturned:
+        raise ValidationError(
+            _("Multiple periods found for date '%s' : please check your periods settings") % date.strftime("%Y-%m-%d")
+        )
+
+    # Past
+    if date < timezone.localdate():
+        raise ValidationError(
+            _("You can't set a date in the past")
+        )
 
 
 class HigherEducationInstitution(models.Model):
@@ -136,6 +165,9 @@ class Establishment(models.Model):
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
 
+    def provides_accounts(self):
+        return self.data_source_plugin is not None
+
     class Meta:
         verbose_name = _('Establishment')
         verbose_name_plural = _('Establishments')
@@ -194,12 +226,8 @@ class HighSchool(models.Model):
     )
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
-
-    objects = models.Manager()  # default manager
-    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
-
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
-    immersions_proposal = PostBacImmersionManager()
+
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     logo = models.ImageField(
@@ -219,13 +247,25 @@ class HighSchool(models.Model):
     signed_charter = models.BooleanField(_("Signed charter"), default=False)
     certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=True)
+    with_convention = models.BooleanField(_("Has a convention"), default=True)
+
+    objects = models.Manager()  # default manager
+    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
+    immersions_proposal = PostBacImmersionManager()
 
     def __str__(self):
         return f"{self.city} - {self.label}"
 
     class Meta:
         verbose_name = _('High school')
-        unique_together = ('label', 'city')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'city'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool'
+            ),
+        ]
         ordering = ['city', 'label', ]
 
 
@@ -331,12 +371,14 @@ class ImmersionUser(AbstractUser):
         'INTER': 'speaker',
         'SRV-JUR': 'legal_department_staff',
         'VIS': 'visitor',
+        'CONS-STR': 'structure_consultant',
     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for code, name in self._groups.items():
-            setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
+            # setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
+            setattr(self, 'is_%s' % name, partial(lambda x:self.groups.filter(name__in=[x]).exists(), code))
 
         for code, name in self._groups.items():
             setattr(self, 'is_only_%s' % name, partial(self.has_single_group, code))
@@ -424,7 +466,8 @@ class ImmersionUser(AbstractUser):
             return True
         elif self.is_speaker() and self.highschool:
             return True
-        elif self.is_structure_manager() or self.is_establishment_manager() or self.is_legal_department_staff() or self.is_speaker():
+        elif self.is_structure_manager() or self.is_establishment_manager() \
+            or self.is_legal_department_staff() or self.is_speaker() or self.is_structure_consultant():
             if self.establishment is not None and self.establishment.data_source_plugin is None:
                 return True
         return False
@@ -470,7 +513,6 @@ class ImmersionUser(AbstractUser):
 
     def get_cleaned_username(self):
         return self.get_username()
-        # return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
         redirect_url: str = "/immersion/login"
@@ -482,7 +524,8 @@ class ImmersionUser(AbstractUser):
             redirect_url = "/immersion/login/ref-lyc"
         elif self.is_speaker() and self.highschool is not None:
             redirect_url = "/immersion/login/speaker"
-        elif self.is_speaker() or self.is_establishment_manager() or self.is_structure_manager() or self.is_legal_department_staff():
+        elif self.is_speaker() or self.is_establishment_manager() or self.is_structure_manager() \
+             or self.is_structure_consultant() or self.is_legal_department_staff():
             if self.establishment is not None and self.establishment.data_source_plugin is None:
                 redirect_url = "/immersion/login/speaker"
         return redirect_url
@@ -545,7 +588,7 @@ class ImmersionUser(AbstractUser):
             return Structure.activated.all()
         if self.is_establishment_manager() and self.establishment:
             return Structure.activated.filter(establishment=self.establishment)
-        if self.is_structure_manager():
+        if self.is_structure_manager() or self.is_structure_consultant:
             return self.structures.all()
 
         return Structure.objects.none()
@@ -567,31 +610,18 @@ class ImmersionUser(AbstractUser):
 
     def remaining_registrations_count(self):
         """
-        Based on the calendar mode and the current immersions registrations,
-        returns a dictionnary with remaining registrations count for
-        both semesters and year
+        Returns a dictionary with remaining registrations count for each period
+        If the current user is not a student, return 0 for each period
 
-        If there's no calendar or the current user is not a student, return 0
-        for each period
+        It does NOT check the training quota per period
         """
-        current_semester_1_regs = 0
-        current_semester_2_regs = 0
-        current_year_regs = 0
+        from immersionlyceens.apps.immersion.models import (
+            HighSchoolStudentRecordQuota, StudentRecordQuota,
+            VisitorRecordQuota,
+        )
+
         record = None
-
-        remaining = {
-            'semester1': 0,
-            'semester2': 0,
-            'annually': 0,
-        }
-
-        calendar = None
-
-        # No calendar : no registration
-        try:
-            calendar = Calendar.objects.first()
-        except Exception:
-            return remaining
+        remaining = { period.pk: 0 for period in Period.objects.all() }
 
         # Not a student or no record yet : no registration
         if self.is_high_school_student():
@@ -604,50 +634,36 @@ class ImmersionUser(AbstractUser):
         if not record or not record.is_valid():
             return remaining
 
-        if calendar.calendar_mode == 'SEMESTER':
-            if not calendar.semester1_start_date or not calendar.semester1_end_date:
-                current_semester_1_regs = 0
-            else:
-                current_semester_1_regs = self.immersions.filter(
-                    slot__date__gte=calendar.semester1_start_date,
-                    slot__date__lte=calendar.semester1_end_date,
-                    cancellation_type__isnull=True,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True,
-                ).count()
+        for period in Period.objects.all():
+            registrations = self.immersions.filter(
+                slot__date__gte=period.immersion_start_date,
+                slot__date__lte=period.immersion_end_date,
+                cancellation_type__isnull=True,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+            ).count()
 
-            if not calendar.semester2_start_date or not calendar.semester2_end_date:
-                current_semester_2_regs = 0
-            else:
-                current_semester_2_regs = self.immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date,
-                    slot__date__lte=calendar.semester2_end_date,
-                    cancellation_type__isnull=True,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True,
-                ).count()
-        else:
-            if not calendar.year_start_date or not calendar.year_end_date:
-                current_year_regs = 0
-            else:
-                current_year_regs = self.immersions.filter(
-                    slot__date__gte=calendar.year_start_date,
-                    slot__date__lte=calendar.year_end_date,
-                    cancellation_type__isnull=True,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True,
-                ).count()
+            # Default period quota or student record quota
+            # FIXME : what if custom_quota.allowed_immersions < period.allowed_immersions ?
+            try:
+                custom_quota = record.quota.get(period=period)
+                allowed_immersions = custom_quota.allowed_immersions
+            except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
+                    VisitorRecordQuota.DoesNotExist) as e:
+                logger.debug("%s : record not found" % self)
+                allowed_immersions = period.allowed_immersions
 
-        return {
-            'semester1': (record.allowed_first_semester_registrations or 0) - current_semester_1_regs,
-            'semester2': (record.allowed_second_semester_registrations or 0) - current_semester_2_regs,
-            'annually': (record.allowed_global_registrations or 0) - current_year_regs,
-        }
+            remaining[period.pk] = allowed_immersions - registrations
 
-    def set_increment_registrations_(self, type):
+        return remaining
+
+    def set_increment_registrations_(self, period):
+        from immersionlyceens.apps.immersion.models import (
+            HighSchoolStudentRecordQuota, StudentRecordQuota,
+            VisitorRecordQuota,
+        )
         """
-        Updates student registrations remaining based on type parameter
-        type values are annual/semester1/semester2
+        Updates student remaining registrations based on period
         """
         record = None
 
@@ -661,24 +677,34 @@ class ImmersionUser(AbstractUser):
         if not record or not record.is_valid():
             return
 
-        if type == 'annual':
-            record.allowed_global_registrations += 1
+        try:
+            quota = record.quota.get(period=period)
+            quota.allowed_immersions += 1
+            quota.save()
+        except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
+                VisitorRecordQuota.DoesNotExist) as e:
+            # Not found : something to do ?
+            pass
 
-        elif type == 'semester1':
-            record.allowed_first_semester_registrations += 1
+        return
 
-        elif type == 'semester2':
-            record.allowed_second_semester_registrations += 1
-        else:
-            return
-
-        record.save()
 
     def can_register_slot(self, slot=None):
+        """
+        Slot registration check : validate only User vs Slot restrictions here,
+        - NOT slot registration delay
+        - NOT registrations quotas
+        """
         errors = []
 
+        slot_has_restrictions = any([
+            slot.establishments_restrictions,
+            slot.levels_restrictions,
+            slot.bachelors_restrictions
+        ])
+
         # Returns True if no restrictions are found
-        if not slot or not slot.establishments_restrictions and not slot.levels_restrictions:
+        if not slot or not slot_has_restrictions:
             return True, errors
 
         if self.is_high_school_student():
@@ -699,10 +725,27 @@ class ImmersionUser(AbstractUser):
                     record.post_bachelor_level in slot.allowed_post_bachelor_levels.all()
             ]
 
+            bachelor_restrictions = [
+                slot.allowed_bachelor_types.exists() and record.bachelor_type in slot.allowed_bachelor_types.all(),
+                any([
+                    not (record.bachelor_type.professional or record.bachelor_type.general
+                         or record.bachelor_type.technological
+                    ),
+                    record.bachelor_type.professional,
+                    slot.allowed_bachelor_mentions.exists() and
+                      record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all(),
+                    slot.allowed_bachelor_teachings.exists() and
+                      slot.allowed_bachelor_teachings.all().intersection(
+                          record.general_bachelor_teachings.all()).exists()
+                ])
+            ]
+
             if slot.establishments_restrictions and not all(high_school_conditions):
                 errors.append(_('High schools restrictions in effect'))
             if slot.levels_restrictions and not any(levels_conditions):
                 errors.append(_('High school or post bachelor levels restrictions in effect'))
+            if slot.bachelors_restrictions and not all(bachelor_restrictions):
+                errors.append(_('Bachelors restrictions in effect'))
 
             if errors:
                 return False, errors
@@ -732,6 +775,9 @@ class ImmersionUser(AbstractUser):
             if slot.levels_restrictions and not all(levels_conditions):
                 errors.append(_('Student levels restrictions in effect'))
 
+            if slot.bachelors_restrictions:
+                errors.append(_('Bachelors restrictions in effect'))
+
             if errors:
                 return False, errors
 
@@ -741,14 +787,16 @@ class ImmersionUser(AbstractUser):
 
             if not record or not record.is_valid():
                 errors.append(_("Visitor record not found or not valid"))
-                return False, errors
 
             # visitors can register to "open to all" slots
-            if slot.levels_restrictions or slot.establishments_restrictions:
+            if any([slot.levels_restrictions, slot.establishments_restrictions, slot.bachelors_restrictions]):
                 errors.append(_('Slot restrictions in effect'))
+
+            if errors:
                 return False, errors
 
         return True, errors
+
 
     def linked_users(self):
         """
@@ -759,6 +807,35 @@ class ImmersionUser(AbstractUser):
             return [self]
 
         return [user for group in self.usergroup.all() for user in group.immersionusers.all()]
+
+
+    def accept_to_share_immersions(self):
+        """
+        Get high school student decision to share his immersions data with his high school
+        :return: boolean (student choice) if found, else True
+        """
+        try:
+            request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
+        except:
+            request_agreement = False
+
+        # Setting disabled : return True
+        if not request_agreement:
+            return True
+
+        record = self.get_high_school_student_record()
+        return record.allow_high_school_consultation if record else True
+
+
+    def has_obsolete_attestations(self):
+        today = timezone.localdate()
+        record = self.get_high_school_student_record() or self.get_visitor_record()
+        return record.attestation.filter(
+            mandatory=True,
+            archive=False,
+            requires_validity_date=True,
+            validity_date__lt=today
+        ).exists()
 
 
     class Meta:
@@ -815,6 +892,24 @@ class PendingUserGroup(models.Model):
         ordering = ['pk', ]
 
 
+class Profile(models.Model):
+    """
+    User profiles
+    Has to be more precise than just groups
+    """
+    code = models.CharField(_("Code"), max_length=20, unique=True)
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self):
+        return f"{self.code} : {self.label}"
+
+    class Meta:
+        verbose_name = _('User profile')
+        verbose_name_plural = _('User profiles')
+        ordering = ['label', ]
+
+
 class TrainingDomain(models.Model):
     """
     Training domain class
@@ -869,6 +964,22 @@ class TrainingSubdomain(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A training sub domain with this label already exists'))
 
+    def count_subdomain_slots(self):
+        today = datetime.datetime.today()
+        slots_count = Slot.objects.filter(
+            course__training__training_subdomains=self,
+            published=True,
+            visit__isnull=True,event__isnull=True
+        ).prefetch_related('course__training__training_subdomains__training_domain') \
+        .filter(
+            Q(date__isnull=True)
+            | Q(date__gte=today.date())
+            | Q(date=today.date(), end_time__gte=today.time())
+        ).count()
+
+        return slots_count
+
+
     class Meta:
         verbose_name = _('Training sub domain')
         verbose_name_plural = _('Training sub domains')
@@ -892,6 +1003,10 @@ class Training(models.Model):
         on_delete=models.SET_NULL, related_name='trainings'
     )
 
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions per student, per period'), null=True, blank=True
+    )
+
     def __str__(self):
         return self.label
 
@@ -903,8 +1018,10 @@ class Training(models.Model):
         """Return True if structure is set"""
         return self.structures is not None and self.structures.count() > 0
 
+    """
     def can_delete(self):
         return not self.courses.all().exists()
+    """
 
     def distinct_establishments(self):
         return Establishment.objects.filter(structures__in=self.structures.all()).distinct()
@@ -956,17 +1073,55 @@ class Campus(models.Model):
 
     label = models.CharField(_("Label"), max_length=255)
     active = models.BooleanField(_("Active"), default=True)
-
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
         blank=False, null=True)
 
-
     def __str__(self):
-        return f"{self.label} ({self.establishment.label if self.establishment else '-'})"
+        campus_str = self.label
+
+        if self.city:
+            campus_str += f" ({self.city.title()})"
+
+        return campus_str
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                qs = Campus.objects.filter(
+                       establishment__id=self.establishment.id,
+                       label__unaccent__iexact=self.label
+                ).exclude(**excludes)
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("A Campus object with the same establishment and label already exists")
+                    )
+
+        except ValidationError as e:
+            raise
 
     class Meta:
         verbose_name = _('Campus')
         verbose_name_plural = _('Campus')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'establishment'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_campus'
+            ),
+        ]
         ordering = ['label', ]
 
 
@@ -995,6 +1150,34 @@ class BachelorMention(models.Model):
         ordering = ['label', ]
 
 
+class BachelorType(models.Model):
+    """
+    Bachelor type
+    """
+
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    pre_bachelor_level = models.BooleanField(_("Is pre-bachelor level"), default=False)
+    general = models.BooleanField(_("Is general type"), default=False)
+    technological = models.BooleanField(_("Is technological type"), default=False)
+    professional = models.BooleanField(_("Is professional type"), default=False)
+
+    def __str__(self):
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A bachelor type with this label already exists'))
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Bachelor type')
+        verbose_name_plural = _('Bachelor types')
+        ordering = ['label', ]
+
+
 class Building(models.Model):
     """
     Building class
@@ -1019,9 +1202,14 @@ class Building(models.Model):
 
     class Meta:
         verbose_name = _('Building')
-        unique_together = ('campus', 'label')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'campus'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_building'
+            ),
+        ]
         ordering = ['label', ]
-
 
 
 class CancelType(models.Model):
@@ -1029,14 +1217,14 @@ class CancelType(models.Model):
     Cancel type
     """
 
+    code = models.CharField(_("Code"), max_length=8, null=True, blank=True, unique=True)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-
+    system = models.BooleanField(_("System reserved"), default=False)
 
     def __str__(self):
         """str"""
         return self.label
-
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
@@ -1150,6 +1338,14 @@ class UniversityYear(models.Model):
     registration_start_date = models.DateField(_("Registration date"))
     purge_date = models.DateField(_("Purge date"), null=True)
 
+    @classmethod
+    def get_active(cls):
+        try:
+            return UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return None
+        except UniversityYear.MultipleObjectsReturned as e:
+            raise Exception(_("Error : multiple active university years")) from e
 
     def __str__(self):
         """str"""
@@ -1236,7 +1432,7 @@ class Vacation(models.Model):
 
 
     def date_is_between(self, _date):
-        return self.start_date <= _date and _date <= self.end_date
+        return self.start_date <= _date <= self.end_date
 
 
     @classmethod
@@ -1275,106 +1471,60 @@ class Vacation(models.Model):
         ordering = ['label', ]
 
 
-class Calendar(models.Model):
+class Period(models.Model):
     """
-    Semesters or annual dates for current university year
+    Period class. Replaces the semesters
     """
-
-    CALENDAR_MODE = [
-        ('YEAR', _('Year')),
-        ('SEMESTER', _('Semester')),
-    ]
-
-    label = models.CharField(_("Label"), max_length=256, unique=True)
-    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
-
-    year_start_date = models.DateField(_("Year start date"), null=True, blank=True)
-    year_end_date = models.DateField(_("Year end date"), null=True, blank=True)
-    year_registration_start_date = models.DateField(_("Year start registration date"), null=True, blank=True)
-    year_nb_authorized_immersion = models.PositiveIntegerField(_("Number of authorized immersions per year"), default=4)
-
-    semester1_start_date = models.DateField(_("Semester 1 start date"), null=True, blank=True)
-    semester1_end_date = models.DateField(_("Semester 1 end date"), null=True, blank=True)
-    semester1_registration_start_date = models.DateField(_("Semester 1 start registration date"), null=True, blank=True)
-    semester2_start_date = models.DateField(_("Semester 2 start date"), null=True, blank=True)
-    semester2_end_date = models.DateField(_("Semester 2 end date"), null=True, blank=True)
-    semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
-    nb_authorized_immersion_per_semester = models.PositiveIntegerField(
-        _("Number of authorized immersions per semester"), default=2
+    label = models.CharField(_("Label"), max_length=256, unique=True, null=False, blank=False)
+    registration_start_date = models.DateField(_("Registrations start date"), null=False, blank=False)
+    immersion_start_date = models.DateField(_("Immersions start date"), null=False, blank=False)
+    immersion_end_date = models.DateField(_("Immersions end date"), null=False, blank=False)
+    allowed_immersions = models.PositiveIntegerField(
+        _('Allowed immersions per student'), null=False, blank=False, default=1
     )
 
-    global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
+    @classmethod
+    def from_date(cls, date:datetime.date):
+        """
+        :param date: the date.
+        :return: the period that matches start_date < date < end_date
+        """
 
+        try:
+            return Period.objects.get(immersion_start_date__lte=date, immersion_end_date__gte=date)
+        except Period.DoesNotExist as e:
+            raise # Exception(_("Period not found for date %s") % date) from e
+        except Period.MultipleObjectsReturned as e:
+            raise # Exception(_("Configuration error : some periods overlap")) from e
 
     def __str__(self):
-        """str"""
-        return self.label
-
+        return _("Period '%s' : %s - %s") % (
+            self.label, date_format(self.immersion_start_date), date_format(self.immersion_end_date)
+        )
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
             super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                if Period.objects.filter(label__unaccent__iexact=self.label).exclude(**excludes).exists():
+                    raise ValidationError(
+                        _("A Period object with the same label already exists")
+                    )
         except ValidationError as e:
-            raise ValidationError(_('A calendar with this label already exists'))
-
-
-    def date_is_between(self, _date):
-        if self.calendar_mode == 'YEAR':
-            if not self.year_start_date or not self.year_end_date:
-                return False
-
-            return self.year_start_date <= _date and _date <= self.year_end_date
-        else:
-            if not all([
-                self.semester1_start_date,
-                self.semester1_end_date,
-                self.semester2_start_date,
-                self.semester2_end_date
-            ]):
-                return False
-
-            return (self.semester1_start_date <= _date <= self.semester1_end_date) or (
-                self.semester2_start_date <= _date <= self.semester2_end_date
-            )
-
-
-    def which_semester(self, _date):
-        if self.calendar_mode == 'SEMESTER':
-            if self.semester1_start_date and self.semester1_end_date:
-                if self.semester1_start_date <= _date <= self.semester1_end_date:
-                    return 1
-
-            if self.semester2_start_date and self.semester2_end_date:
-                if self.semester2_start_date <= _date <= self.semester2_end_date:
-                    return 2
-
-        return None
-
-
-    def get_limit_dates(self, _date):
-        sem = self.which_semester(_date)
-        if sem == 1:
-            return {
-                'start': self.semester1_start_date,
-                'end': self.semester1_end_date,
-            }
-        elif sem == 2:
-            return {
-                'start': self.semester2_start_date,
-                'end': self.semester2_end_date,
-            }
-        else:
-            return {
-                'start': self.year_start_date,
-                'end': self.year_end_date,
-            }
+            raise
 
     class Meta:
-        """Meta class"""
-        verbose_name = _('Calendar')
-        verbose_name_plural = _('Calendars')
-        ordering = ['label', ]
+        verbose_name = _('Period')
+        verbose_name_plural = _('Periods')
+        ordering = ['immersion_start_date', ]
 
 
 class Course(models.Model):
@@ -1383,11 +1533,9 @@ class Course(models.Model):
     """
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-
     training = models.ForeignKey(
         Training, verbose_name=_("Training"), null=False, blank=False, on_delete=models.CASCADE, related_name="courses",
     )
-
     structure = models.ForeignKey(
         Structure,
         verbose_name=_("Structure"),
@@ -1396,7 +1544,6 @@ class Course(models.Model):
         on_delete=models.CASCADE,
         related_name="courses",
     )
-
     highschool = models.ForeignKey(
         HighSchool,
         verbose_name=_("High school"),
@@ -1407,19 +1554,14 @@ class Course(models.Model):
     )
 
     published = models.BooleanField(_("Published"), default=True)
-
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses', blank=True)
-
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
-
 
     def __str__(self):
         return self.label
 
-
     def get_structures_queryset(self):
         return self.training.structures.all()
-
 
     def free_seats(self, speakers=None):
         """
@@ -1438,7 +1580,6 @@ class Course(models.Model):
 
         return d['total_seats']
 
-
     def published_slots_count(self, speakers=None):
         """
         :speakers: optional : only consider slots attached to 'speakers'
@@ -1454,6 +1595,17 @@ class Course(models.Model):
 
         return self.slots.filter(**filters).count()
 
+    def is_deletable(self):
+        """
+        Return True if the course can be deleted
+        """
+        return not self.slots.exists()
+
+    def managed_by(self):
+        if self.structure:
+            return f"{self.structure.establishment.code} - {self.structure.code}"
+        elif self.highschool:
+            return f"{self.highschool.city} - {self.highschool.label}"
 
     def slots_count(self, speakers=None):
         """
@@ -1467,7 +1619,6 @@ class Course(models.Model):
             return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
-
 
     def registrations_count(self, speakers=None):
         """
@@ -1484,7 +1635,6 @@ class Course(models.Model):
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
-
 
     def get_alerts_count(self):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
@@ -2126,6 +2276,71 @@ class PublicDocument(models.Model):
         ordering = ['label', ]
 
 
+class AttestationDocument(models.Model):
+    """
+    AttestationDocument class
+    Documents users have to provide on their records
+    """
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True, unique=True,
+        default=partial(get_object_default_order, 'AttestationDocument')
+    )
+    for_minors = models.BooleanField(_("Attestation reserved for minors"), default=True)
+    mandatory = models.BooleanField(_("Mandatory"), default=True)
+    requires_validity_date = models.BooleanField(_("Requires a validity date"), default=True)
+    template = models.FileField(
+        _("Template"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
+
+    profiles = models.ManyToManyField(
+        Profile,
+        verbose_name=_("Profiles"),
+        related_name='attestations',
+        blank=True,
+        limit_choices_to={'code__in': ["LYC_W_CONV", "LYC_WO_CONV", "VIS"]}
+    )
+
+    objects = models.Manager() # default manager
+    activated = ActiveManager() # manager for active elements only
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('An attestation with this label already exists'))
+
+    def delete(self, using=None, keep_parents=False):
+        """
+        Delete file uploaded from document Filefield if not empty
+        """
+        if bool(self.template):
+            try:
+                self.template.storage.delete(self.template.name)
+            except Exception as e:
+                logger.error(f"Cannot delete {self.template.name} : {e}")
+
+        super().delete()
+
+    class Meta:
+        verbose_name = _('Attestation document')
+        verbose_name_plural = _('Attestation documents')
+        ordering = ['order', ]
+
+
 class EvaluationType(models.Model):
     """
     Evaluation type class
@@ -2175,7 +2390,6 @@ class EvaluationFormLink(models.Model):
         """str"""
         return f'{self.evaluation_type.label} : {self.url}'
 
-
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
@@ -2223,14 +2437,14 @@ class Slot(models.Model):
     )
     room = models.CharField(_("Room"), max_length=128, blank=True, null=True)
 
-    date = models.DateField(_('Date'), blank=True, null=True)
+    date = models.DateField(_('Date'), blank=True, null=True, validators=[validate_slot_date])
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
     end_time = models.TimeField(_('End time'), blank=True, null=True)
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots', blank=True)
 
-    n_places = models.PositiveIntegerField(_('Number of places'))
-    additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)
+    n_places = models.PositiveIntegerField(_('Number of places'), null=True, blank=True)
+    additional_information = models.TextField(_('Additional information'), null=True, blank=True)
 
     url = models.URLField(_("Website address"), max_length=512, blank=True, null=True)
 
@@ -2246,6 +2460,11 @@ class Slot(models.Model):
         _("Use levels restrictions"), default=False, null=False, blank=True
     )
 
+    bachelors_restrictions = models.BooleanField(
+        _("Use bachelors restrictions"), default=False, null=False, blank=True
+    )
+
+    # Allowed establishments / high schools
     allowed_establishments = models.ManyToManyField(
         Establishment, verbose_name=_("Allowed establishments"), related_name='+', blank=True
     )
@@ -2254,7 +2473,7 @@ class Slot(models.Model):
         HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
     )
 
-    # new fields
+    # Allowed levels
     allowed_highschool_levels = models.ManyToManyField(
         HighSchoolLevel, verbose_name=_("Allowed high school levels"), related_name='+', blank=True
     )
@@ -2265,9 +2484,34 @@ class Slot(models.Model):
         PostBachelorLevel, verbose_name=_("Allowed post bachelor levels"), related_name='+', blank=True
     )
 
+    # Allowed bachelor types
+    allowed_bachelor_types = models.ManyToManyField(
+        BachelorType, verbose_name=_("Allowed bachelor types"), related_name='+', blank=True
+    )
+    allowed_bachelor_mentions = models.ManyToManyField(
+        BachelorMention, verbose_name=_("Allowed bachelor mentions"), related_name='+', blank=True
+    )
+    allowed_bachelor_teachings = models.ManyToManyField(
+        GeneralBachelorTeaching, verbose_name=_("Allowed bachelor teachings"), related_name='+', blank=True
+    )
+
+    registration_limit_delay = models.PositiveSmallIntegerField(
+        _('Registration limit delay'), null=True, blank=True, default=0
+    )
+    cancellation_limit_delay = models.PositiveSmallIntegerField(
+        _('Cancellation limit delay'), null=True, blank=True, default=0
+    )
+
+    registration_limit_date = models.DateTimeField(_('Registration limit'), blank=True, null=True)
+    cancellation_limit_date = models.DateTimeField(_('Cancellation limit'), blank=True, null=True)
+
+    reminder_notification_sent = models.BooleanField(
+        _("Slot reminder notification sent"), default=False, null=False, blank=True
+    )
+
     def get_establishment(self):
         """
-        Get the slot establishment depending of the slot type (visit, course, event)
+        Get the slot establishment depending on the slot type (visit, course, event)
         """
         if self.course_id and self.course.structure_id:
             return self.course.structure.establishment
@@ -2280,7 +2524,7 @@ class Slot(models.Model):
 
     def get_structure(self):
         """
-        Get the slot structure depending of the slot type (visit, course, event)
+        Get the slot structure depending on the slot type (visit, course, event)
         """
         if self.course_id and self.course.structure_id:
             return self.course.structure
@@ -2293,7 +2537,7 @@ class Slot(models.Model):
 
     def get_highschool(self):
         """
-        Get the slot high school depending of the slot type (visit, course, event)
+        Get the slot high school depending on the slot type (visit, course, event)
         """
         if self.course_id and self.course.highschool_id:
             return self.course.highschool
@@ -2304,7 +2548,6 @@ class Slot(models.Model):
 
         return None
 
-
     def available_seats(self):
         """
         :return: number of available seats for instance slot
@@ -2313,14 +2556,12 @@ class Slot(models.Model):
         s = self.n_places - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
         return 0 if s < 0 else s
 
-
     def registered_students(self):
         """
         :return: number of registered students for instance slot
         """
         # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
-
 
     def clean(self):
         if [self.course, self.visit, self.event].count(None) != 2:
@@ -2354,11 +2595,26 @@ class Slot(models.Model):
     def get_allowed_highschool_levels(self):
         return [level.label for level in self.allowed_highschool_levels.all()]
 
+
     def get_allowed_students_levels(self):
         return [level.label for level in self.allowed_student_levels.all()]
 
+
     def get_allowed_post_bachelor_levels(self):
         return [level.label for level in self.allowed_post_bachelor_levels.all()]
+
+
+    def get_allowed_bachelor_types(self):
+        return [type.label for type in self.allowed_bachelor_types.all()]
+
+
+    def get_allowed_bachelor_mentions(self):
+        return [mention.label for mention in self.allowed_bachelor_mentions.all()]
+
+
+    def get_allowed_bachelor_teachings(self):
+        return [teach.label for teach in self.allowed_bachelor_teachings.all()]
+
 
     def get_label(self):
         """
@@ -2432,6 +2688,38 @@ class Slot(models.Model):
             return True
         else:
             return False
+    
+    def is_registration_limit_date_due(self):
+        return self.registration_limit_date < timezone.now()
+
+    def is_cancellation_limit_date_due(self):
+        return self.cancellation_limit_date < timezone.now()
+
+    def save(self, *args, **kwargs):
+        """
+        Parse registration and cancellation dates based on slot date and delays
+        """
+        if self.date and self.start_time:
+            self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
+            self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
+
+            if timezone.is_naive(self.registration_limit_date):
+                self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+
+            if timezone.is_naive(self.cancellation_limit_date):
+                self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+
+            if self.registration_limit_delay and self.registration_limit_delay > 0:
+                self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
+
+            if self.cancellation_limit_delay and self.cancellation_limit_delay > 0:
+                self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
+
+        else:
+            self.registration_limit_date = None
+            self.cancellation_limit_date = None
+
+        return super().save(*args, **kwargs)
 
 
     class Meta:
@@ -2468,12 +2756,15 @@ class Immersion(models.Model):
         verbose_name=_("Cancellation type"),
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="immersions",
     )
 
     attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
     survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
+
+    registration_date = models.DateTimeField(_("Registration date"), auto_now_add=True)
+    cancellation_date = models.DateTimeField(_("Cancellation date"), null=True, blank=True)
 
     def get_attendance_status(self) -> str:
         """
@@ -2484,6 +2775,9 @@ class Immersion(models.Model):
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
+
+    def __str__(self):
+        return f"{self.student} - {self.slot}"
 
     class Meta:
         verbose_name = _('Immersion')
@@ -2497,6 +2791,15 @@ class GeneralSettings(models.Model):
         default=dict,
         validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
     )
+
+    @classmethod
+    def get_setting(cls, name:str):
+        try:
+            return cls.objects.get(setting__iexact=name).parameters["value"]
+        except (cls.DoesNotExist, KeyError) as e:
+            raise Exception(
+                _("General setting '%s' is missing or incorrect. Please check your settings.") % name
+            ) from e
 
     def __str__(self) -> str:
         return str(self.setting)
@@ -2515,7 +2818,7 @@ class UserCourseAlert(models.Model):
     email = models.EmailField(_('Recipient'), blank=False, null=False)
     email_sent = models.BooleanField(_("Alert sent status"), default=False, blank=False, null=False)
     alert_date = models.DateField(_("Date"), auto_now_add=True)
-    course = course = models.ForeignKey(
+    course = models.ForeignKey(
         Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="alerts",
     )
 
@@ -2582,9 +2885,11 @@ class CertificateLogo(models.Model):
         """get only allowed object"""
         return cls._default_manager.all().first()
 
+    def __str__(self):
+        return gettext("Attendance certificate logo")
+
     # Singleton !
     def save(self, *args, **kwargs):
-        """Save a singleton"""
         self.id = 1
         return super().save(*args, **kwargs)
 
@@ -2592,11 +2897,6 @@ class CertificateLogo(models.Model):
         """Delete file uploaded from logo Filefield"""
         self.logo.storage.delete(self.logo.name)
         super().delete()
-
-
-    def __str__(self):
-        """str"""
-        return 'logo'
 
     class Meta:
         """Meta class"""
@@ -2647,47 +2947,6 @@ class CertificateSignature(models.Model):
         verbose_name_plural = _('Signature for attendance certificate')
 
 
-class ImmersupFile(models.Model):
-    """
-    Any file used by ImmerSup (PDF, images, ...)
-    """
-    code = models.CharField(_("File code"), max_length=64, blank=False, null=False, primary_key=True)
-
-    file = models.FileField(
-        _("File"),
-        upload_to=get_file_path,
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-                  % {
-                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
-                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-                  },
-    )
-
-    objects = CustomDeleteManager()
-
-    @classmethod
-    def object(cls):
-        """get only allowed object"""
-        return cls._default_manager.all().first()
-
-    def delete(self, using=None, keep_parents=False):
-        """Delete file uploaded from logo Filefield"""
-        self.file.storage.delete(self.file.name)
-        super().delete()
-
-
-    def __str__(self):
-        """str"""
-        return gettext("'%s' - file : %s" % (self.code, self.file.name))
-
-    class Meta:
-        """Meta class"""
-        verbose_name = _('ImmerSup file')
-        verbose_name_plural = _('ImmerSup files')
-
-
 class CustomThemeFile(models.Model):
     """
     Any file used to pimp immersup theme
@@ -2734,3 +2993,186 @@ class CustomThemeFile(models.Model):
         """Meta class"""
         verbose_name = _('Custom theme file')
         verbose_name_plural = _('Custom theme files')
+
+
+class FaqEntry(models.Model):
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=partial(get_object_default_order, 'FaqEntry')
+    )
+    question = models.TextField(_('Question'), max_length=2000, blank=False, null=False)
+    answer = models.TextField(_('Answer'), max_length=10000, blank=False, null=False)
+    active = models.BooleanField(_("Active"), default=True)
+    objects = models.Manager()
+    activated = ActiveManager()
+
+    def __str__(self):
+        return self.label
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Faq entry')
+        verbose_name_plural = _('Faq entries')
+        ordering = ['order']
+
+
+
+class RefStructuresNotificationsSettings(models.Model):
+    user = models.OneToOneField(
+        ImmersionUser,
+        verbose_name=_('Structure Manager'),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="ref_structure_notifications_settings"
+    )
+
+    structures = models.ManyToManyField(
+        Structure, verbose_name=_("Structures"), related_name='source_structures', blank=True
+    )
+
+    def __str__(self):
+        return f"{self.user} ({', '.join(self.structures.values_list('label', flat=True))})"
+
+
+class ScheduledTask(models.Model):
+    command_name = models.CharField(_("Django command name"), max_length=128, unique=True)
+    description = models.CharField(_("Description"), max_length=256)
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+    date = models.DateField(_("Execution Date"), blank=True, null=True)
+    time = models.TimeField(_("Execution time"), auto_now=False, auto_now_add=False, blank=False, null=False)
+    frequency = models.SmallIntegerField(_("Frequency (in hours)"), blank=True, null=True)
+    monday = models.BooleanField(_("Monday"), blank=True, null=False, default=False)
+    tuesday = models.BooleanField(_("Tuesday"), blank=True, null=False, default=False)
+    wednesday = models.BooleanField(_("Wednesday"), blank=True, null=False, default=False)
+    thursday = models.BooleanField(_("Thursday"), blank=True, null=False, default=False)
+    friday = models.BooleanField(_("Friday"), blank=True, null=False, default=False)
+    saturday = models.BooleanField(_("Saturday"), blank=True, null=False, default=False)
+    sunday = models.BooleanField(_("Sunday"), blank=True, null=False, default=False)
+
+    def __str__(self):
+        return self.command_name
+
+    class Meta:
+        verbose_name = _('Scheduled task')
+        verbose_name_plural = _('Scheduled tasks')
+
+
+class ScheduledTaskLog(models.Model):
+    """
+    Logs for Scheduled tasks
+    """
+    task = models.ForeignKey(ScheduledTask, verbose_name=_("Task"), on_delete=models.CASCADE,
+        blank=False, null=False, related_name='logs')
+
+    execution_date = models.DateTimeField(_("Date"), auto_now_add=True)
+    success = models.BooleanField(_("Success"), blank=True, null=True, default=True)
+    message = models.TextField(_('Message'), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Scheduled task log')
+        verbose_name_plural = _('Scheduled task logs')
+        ordering = ['-execution_date', ]
+
+
+class History(models.Model):
+    """
+    Store various events like account creations or login, logout, failures, ...
+    """
+    action = models.CharField(_("Action"), max_length=128)
+    ip = models.GenericIPAddressField(_("IP"), null=True)
+    username = models.CharField(_("Username"), max_length=256, null=True)
+    user = models.CharField(_("User"), max_length=256, null=True)
+    hijacked = models.CharField(_("Hijacked user"), max_length=256, null=True)
+    date = models.DateTimeField(_("Date"), auto_now_add=True)
+
+    def __str__(self):
+        identity = ", ".join(list(filter(lambda x:x, [self.username, self.last_name, self.first_name])))
+        return f"{self.date} - {identity} - {self.action}"
+
+    class Meta:
+        verbose_name = _('History')
+        verbose_name_plural = _('History')
+
+
+####### SIGNALS #########
+@receiver(user_logged_in)
+def user_logged_in_callback(sender, request, user, **kwargs):
+    ip = request.META.get('REMOTE_ADDR')
+
+    History.objects.create(
+        action=_("User logged in"),
+        ip=ip,
+        username=user.username if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
+    )
+
+@receiver(user_logged_out)
+def user_logged_out_callback(sender, request, user, **kwargs):
+    ip = request.META.get('REMOTE_ADDR')
+    History.objects.create(
+        action=_("User logged out"),
+        ip=ip,
+        username=user.username if user else None,
+        user=f"{user.last_name} {user.first_name}" if user else None,
+    )
+
+
+@receiver(user_login_failed)
+def user_login_failed_callback(sender, credentials, request, **kwargs):
+    username = credentials.get('username', None)
+    ip = None
+    user = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    if username:
+        try:
+            user = ImmersionUser.objects.get(username=username.lower().strip())
+        except ImmersionUser.DoesNotExist:
+            pass
+
+    History.objects.create(
+        action=_("User login failed"),
+        ip=ip,
+        username=username,
+        user=f"{user.last_name} {user.first_name}" if user else None,
+    )
+
+def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
+    ip = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    History.objects.create(
+        action=_("Hijack start"),
+        ip=ip,
+        username=hijacker.username if hijacker else None,
+        user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
+        hijacked=hijacked
+    )
+
+def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
+    ip = None
+
+    try:
+        ip = request.META.get('REMOTE_ADDR')
+    except AttributeError:
+        pass
+
+    History.objects.create(
+        action=_("Hijack end"),
+        ip=ip,
+        username=hijacker.username if hijacker else None,
+        user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
+        hijacked=hijacked
+    )
+
+hijack_started.connect(user_hijack_start)
+hijack_ended.connect(user_hijack_end)

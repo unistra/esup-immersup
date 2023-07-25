@@ -66,5 +66,6 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 #######################
 # Email configuration #
 #######################
-EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.DummyBackend'
+# EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.DummyBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 

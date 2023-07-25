@@ -8,7 +8,10 @@
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
 {% endblock %}
 {% block title %}{% trans "Visitor record" %}{% endblock %}
 
@@ -19,15 +22,15 @@
 
 {% block content %}
 {% authorized_groups request.user %}
+
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
-
   <form class="" role="form" action="/immersion/visitor_record{% if form.instance and can_change %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+    {% csrf_token %}
     <input id="id_visitor" type="hidden" name="visitor" value="{{ visitor.id }}"/>
+    {{ form.id }}
+    {{ user_form.id }}
 
-        {{ form.id }}
-        {{ user_form.id }}
     <div class="card">
       <div class="card-header text-white bg-secondary">
         {% trans "Please fill this form to complete the personal record" %}
@@ -35,7 +38,7 @@
       <div class="card-body">
 
         <div class="form-group row">
-          <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
+          <label for="id_last_name" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Lastname' %}* :
           </label>
           <div class="col-sm-6 col-md-6">{{ user_form.last_name }}</div>
@@ -70,113 +73,195 @@
         </div>
       </div>
       <div class="card-header text-white bg-secondary">
-        {% trans "supporting documents" %}
+        {% trans "Motivations" %}
       </div>
       <div class="card-body">
-
         <div class="form-group row align-center">
           <label for="id_motivation" class="col-sm-3 col-md-4 col-form-label">
             {{ form.motivation.label }}* :
           </label>
           <div class="col-sm-6 col-md-6">{{ form.motivation }}</div>
-          <div class="col-sm-3 col-md-2">{{ record_form.motivation.errors }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.motivation.errors }}</div>
         </div>
-        <div class="form-group row align-center">
-          <label for="id_identity_document" class="col-sm-3 col-md-4 col-form-label">
-            {{ form.identity_document.label }}* :
-          </label>
-          <div class="col-sm-6 col-md-6">{{ form.identity_document }}</div>
-          <div class="col-sm-3 col-md-2">{{ form.identity_document.errors }}</div>
+      </div>
+      {% if document_forms|length %}
+        <div class="card-header text-white bg-secondary">
+          {% trans "Attestations" %}
         </div>
-        <div class="form-group row align-center">
-          <label for="id_civil_liability_insurance" class="col-sm-3 col-md-4 col-form-label">
-            {{ form.civil_liability_insurance.label }}* :
-          </label>
-          <div class="col-sm-6 col-md-6">{{ form.civil_liability_insurance }}</div>
-          <div class="col-sm-3 col-md-2">{{ form.civil_liability_insurance.errors }}</div>
+        <div class="card-body">
+          {% for document_form in document_forms %}
+            {{ document_form.non_field_errors }}
+            {{ document_form.id }}
+            {{ document_form.record }}
+            {{ document_form.attestation }}
+            <div class="form-group row align-items-center">
+              <label class="col-sm-3 col-md-4 col-form-label">
+                {{ document_form.attestation_label }} {% if document_form.instance.mandatory %}*{% endif %} :
+              </label>
+              <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
+              <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
+            </div>
+            {% if document_form.instance.requires_validity_date %}
+              {% if document_form.validity_required or document_form.validity_date.value %}
+                <div class="form-group row align-items-center">
+                  <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</label>
+                  {% if document_form.validity_required %}
+                    <div class="col-sm-3 col-md-4">{{ document_form.validity_date }}</div>
+                    <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
+                  {% else %}
+                    <div class="col-sm-3 col-md-4">
+                      {{ document_form.validity_date }}
+                      {{ document_form.validity_date.value }}
+                    </div>
+                    <div class="col-sm-4 col-md-4 warning">{{ document_form.renew_document }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endif %}
+            {% if document_form.attestation_template %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Template' %}</label>
+                <div class="col-sm-3 col-md-4">
+                  <a target='_blank' href="{{ document_form.attestation_template }}">{% trans 'Get document template' %}</a>
+                </div>
+              </div>
+            {% endif %}
+            {% if archives|keyvalue:document_form.instance.attestation.id and not request.user.is_visitor %}
+              <div class="form-group row align-items-center">
+                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Archives' %}</label>
+                <div class="col-sm-9 col-md-8">
+                  <ul class="filelinks">
+                  {% for archive in archives|keyvalue:document_form.instance.attestation.id %}
+                    <li class="sun sun-theme-light sun-full">
+                      <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block collapsed"></i>
+                      <a target='_blank' href="{{ archive.document.url }}" class="sun-row">
+                        {{ archive.document }} {% if archive.validity_date %}({{ archive.validity_date }}){% endif %}
+                      </a>
+                    </li>
+                  {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+            {% if not forloop.last %}
+              <hr class="mt-2 mb-3"/>
+            {% endif %}
+          {% endfor %}
         </div>
-        <div class="form-group row align-center">
-          <label for="id_parental_auth_document" class="col-sm-3 col-md-4 col-form-label">
-            {{ form.parental_auth_document.label }} <span id="id_minor">({% trans 'if minor' %}*)</span> :
-          </label>
-          <div class="col-sm-6 col-md-6">
-            {{ form.parental_auth_document }}
-            <a target='_blank' href="{% url 'immersup_file' file_code='AUTORISATION_PARENTALE' %}">{% trans 'Get template here' %}</a>
-          </div>
-          <div class="col-sm-3 col-md-2">{{ form.parental_auth_document.errors }}</div>
-        </div>
+      {% endif %}
 
-        {% if calendar.calendar_mode == "YEAR" %}
-          <div class="form-group row align-items-center">
-            {% if can_change %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-2">
-                <input id="id_allowed_global_registrations" name="allowed_global_registrations"
-                  class="form-control" type="number" value="{{form.allowed_global_registrations.value|default:calendar.year_nb_authorized_immersion}}"
-                />
+      {% if future_periods or record.quota.count or quota_forms|length and can_change %}
+        <div class="card-header text-white bg-secondary">
+          {% trans "Immersions periods" %}
+        </div>
+        <div class="card-body">
+          {% if quota_forms|length and can_change %}
+            {% for quota_form in quota_forms %}
+              {{ quota_form.non_field_errors }}
+              {{ quota_form.id }}
+              {{ quota_form.record }}
+              {{ quota_form.period }}
+              <div class="form-group row align-items-center">
+                <div class="col-sm-5">
+                  <label class="col-form-label">
+                    {{ quota_form.period_label }}
+                  </label>
+                </div>
+                <div class="col-sm-2 col-form-label">
+                  {% trans 'allowed immersions' %} :
+                </div>
+                <div class="col-sm-1 col-form-label">
+                  {{ quota_form.allowed_immersions }}
+                </div>
               </div>
-            {% elif form.instance.visitor %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually registrations realized (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number }} / {{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion }}</div>
-            {% endif %}
-          </div>
-        {% else %}
-          <div class="form-group row align-items-center">
-            {% if can_change %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-2">
-                <input id="id_allowed_first_semester_registrations" name="allowed_first_semester_registrations"
-                  class="form-control" type="number" value="{{form.allowed_first_semester_registrations.value|default:calendar.nb_authorized_immersion_per_semester}}"
-                />
+            {% endfor %}
+          {% else %}
+            {% for quota in record.quota.all|dictsort:"period.immersion_start_date" %}
+              <div class="form-group row align-items-center">
+                <div class="col-sm-5">
+                  <label class="col-form-label">
+                    {{ quota.period }}
+                  </label>
+                </div>
+                <div class="col-sm-2 col-form-label">
+                  {% trans 'allowed immersions' %} :
+                </div>
+                <div class="col-sm-1 col-form-label">
+                  {{ immersions_count|keyvalue:quota.period.pk }} / {{ quota.allowed_immersions }}
+                </div>
               </div>
-            {% elif form.instance.visitor %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for first semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
-            {% endif %}
-          </div>
-          <div class="form-group row align-items-center">
-            {% if can_change %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-2">
-                <input id="id_allowed_second_semester_registrations" name="allowed_second_semester_registrations"
-                  class="form-control" type="number" value="{{ form.allowed_second_semester_registrations.value|default:calendar.nb_authorized_immersion_per_semester}}"
-                />
-              </div>
-            {% elif form.instance.visitor %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
-            {% else %}
-              <label class="col-sm-9 col-form-label">
-                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-              </label>
-              <div class="col-sm-1 col-form-label">{{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
-            {% endif %}
+            {% endfor %}
+          {% endif %}
 
-            <!-- year_nb_authorized_immersion -->
+          {% comment %}
+            Display future periods as readonly (no form to update the student custom quota)
+          {% endcomment %}
+
+          {% for period in future_periods|dictsort:"immersion_start_date" %}
+            <div class="form-group row align-items-center">
+              <div class="col-sm-5">
+                <label class="col-form-label">
+                  {{ period }}
+                </label>
+              </div>
+              <div class="col-sm-2 col-form-label">
+                {% trans 'allowed immersions' %} :
+              </div>
+              <div class="col-sm-1 col-form-label">{{ period.allowed_immersions }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="card-header text-white bg-secondary">
+        {% trans "Status" %}
+      </div>
+      <div class="card-body">
+        {% if record.creation_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Record creation date' %} :
+            </label>
+            <div class="col-sm-4 col-form-label">
+              {{ record.creation_date }}
+            </div>
           </div>
         {% endif %}
+        <div class="form-group row align-items-center">
+          <label class="col-sm-4 col-form-label">
+            {% if record %}{% trans "Validation" %} :{% else %}{% trans "Visitor record" %} :{% endif %}
+          </label>
+          <div class="form-group col-sm-4 col-form-label">
+            <h6>
+              {% if record.validation == 1 %}
+                <span class="badge badge-pill badge-warning" id="record_status">
+                {% trans "Waiting validation" %}
+              {% elif record.validation == 2 %}
+                <span class="badge badge-pill badge-success" id="record_status">
+                {% trans "Validated" %}
+              {% elif record.validation == 3 %}
+                <span class="badge badge-pill badge-danger" id="record_status">
+                {% trans "Rejected" %}
+              {% elif record.validation == 4 %}
+                <span class="badge badge-pill badge-warning" id="recordStatus">
+                {% trans "Waiting revalidation" %}
+              {% else %}
+                <span class="badge badge-pill badge-light" id="record_status">
+                {% trans "In the process of being created" %}
+              {% endif %}
+              </span>
+            </h6>
+          </div>
+        </div>
+        {% if record.validation_date %}
+        <div class="form-group row align-items-center">
+          <label class="col-sm-4 col-form-label">
+            {% trans 'Record validation date' %} :
+          </label>
+          <div class="col-sm-8 col-form-label">
+            {{ record.validation_date }}
+          </div>
+        </div>
+       {% endif %}
       </div>
     </div>
     <div class="row mt-4">
@@ -191,66 +276,54 @@
 
 <script>
 
-
-// function open_modal(record_id) {
-//   current_student_id = record_id;
-//   $('#modal_student_details').modal('show');
-// }
-
 var age = 0;
-var has_parental_auth_document = "{{ record.parental_auth_document }}" !== "";
 
 function open_modal() {
   $('#modal_nuke_account').modal('show');
 }
 
+
+// Move this somewhere else
 function user_age() {
-    let birthdate = $('#id_birth_date').datepicker('getDate')
+  let birthdate = $('#id_birth_date').datepicker('getDate')
 
-    var today = new Date();
-    var age = today.getFullYear() - birthdate.getFullYear();
-    var m = today.getMonth() - birthdate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
-        age--;
-    }
-    return age;
+  var today = new Date();
+  var age = today.getFullYear() - birthdate.getFullYear();
+  var m = today.getMonth() - birthdate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
+    age--;
+  }
+  return age;
 }
 
-function update_minor_warning() {
-  if(Number.isInteger(age)) {
-    if(age >= 18) {
-      $('#id_minor').hide()
-      $('#id_parental_auth_document').removeAttr("required")
-    }
-    else if (has_parental_auth_document === false) {
-      $('#id_minor').show()
-      $('#id_parental_auth_document').prop("required", true)
-    }
+$(function () {
+  $("[id$=validity_date]").datepicker({
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "2023:2040",
+  });
+
+  let default_year =  new Date().getFullYear() - 20;
+
+  $("#id_birth_date").datepicker({
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1970:2010",
+    defaultDate: `01/01/${default_year}`,
+  });
+});
+
+// special case when the file is not mandatory but it still requires a validity date if provided
+$('[id$=-document]').change(function() {
+  let prefix_id = this.id.split("-")[0]
+  let validity_date_id = `${prefix_id}-validity_date`
+  let validity_required = $(`[id=${validity_date_id}]`).data("validity_required") === true
+
+  if(validity_required) {
+    $(`[id=${validity_date_id}]`).prop('required', this.files.length !== 0)
   }
-  else if (has_parental_auth_document === false) {
-    $('#id_minor').show()
-    $('#id_parental_auth_document').prop("required", true)
-  }
-}
-
-(() => {
-    $(".datepicker").datepicker({
-        changeMonth: true,
-        changeYear: true,
-        yearRange: "1970:2010",
-        defaultDate: "01/01/2003",
-    })
-})()
-
-$(document).ready(function() {
-  age = user_age()
-  update_minor_warning()
-
-  $('#id_birth_date').change(function () {
-    age = user_age()
-    update_minor_warning()
-  })
 })
+
 
 </script>
 {% endblock %}

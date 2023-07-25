@@ -29,5 +29,15 @@
       "label": "Plus interess\u00e9",
       "active": true
     }
+  },
+  {
+    "model": "core.canceltype",
+    "pk": 5,
+    "fields": {
+      "code": "ATT",
+      "label": "Défaut pièce",
+      "active": true,
+      "system": true
+    }
   }
 ]

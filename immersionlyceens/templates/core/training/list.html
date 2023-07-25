@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n immersionlyceens_tags %}
+{% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as activated_training_quotas %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
@@ -18,63 +19,142 @@
 {% endblock %}
 
 {% block content %}
+{% authorized_groups request.user %}
 <div id="feedback" class="container"></div>
 
-<div class="container-fluid" style="padding-top:20px; width:70%;">
-
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-        {% trans "My high school" %} - {{ user.highschool.label }}
-    </div>
-    <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
+<div class="container-fluid" style="padding-top:20px;">
+  <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
     <span>
       {% trans "Do you really want to delete this training ?" %}
     </span>
   </div>
+
+  <div class="card">
+    <div class="card-title card-header text-white bg-secondary d-flex justify-content-between align-items-center">
+      {% trans "Training list" %}
+      {% if authorized_groups|in_groups:"REF-STR" and structures|length == 1 %}
+        - {{ structures.first.label }}
+      {% endif %}
+
+      {% if authorized_groups|in_groups:"REF-LYC" %}
+        - {{ request.user.highschool.label }}
+        <a class="btn btn-primary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a>
+      {% endif %}
+    </div>
     <div class="card-body">
-
-      <div class="card">
-        <div class="card-title card-header d-flex justify-content-between align-items-center">
-          {% trans "Training list" %}
-          <a class="btn btn-secondary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a></div>
-        <div class="card-body">
-
-          <div class="table-responsive">
-            <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
-            <thead>
-              <tr>
-                <th><span id="label_filter">{% trans 'Label' %}</span></th>
-                <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
-                <th><span id="active_filter">{% trans 'active' %}</span></th>
-                <th></th>
-              </tr>
-            </thead>
-            <tfoot>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tfoot>
-            </table>
+      <div class="row">
+        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
+          <div class="col-md-3">
+            <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
+              <label for="highschools">{% trans 'Select a high school' %} :</label>
+              <select id="highschools" class="form-control">
+                {% if highschools|length > 1 %}
+                  <option value="">------------</option>
+                {% endif %}
+                {% for highschool in highschools %}
+                  <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
+                    {{ highschool }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
-        </div>
+        {%  endif %}
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+          <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
+        {% endif %}
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+          <div class="col-md-3">
+            <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
+              <label for="establishments">{% trans 'Select an establishment' %} :</label>
+              <select id="establishments" class="form-control">
+                {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+                  <option value="">------------</option>
+                {% endif %}
+                {% for establishment in establishments %}
+                  <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
+                    {{ establishment.code }} - {{ establishment.label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        {% endif %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator or request.user.is_structure_consultant %}
+          <div class="col-md-5" id="id_div_structures">
+            <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+              <label for="strs">{% trans 'Select a structure' %} :</label>
+              <select id="strs" class="form-control">
+                {% if structures|length > 1 %}
+                  <option value="">------------</option>
+                {% endif %}
+                {% for structure in structures %}
+                  <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                    {{ structure.code }} - {{ structure.label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      <div class="col-12 col-sm-12 col-lg-12 table-responsive">
+        <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+        <thead>
+          <tr>
+            {% if not request.user.is_structure_consultant %}
+              <th class="align-top">{% trans 'Control' %}</th>
+            {% endif %}
+            <th><span id="label_filter">{% trans 'Label' %}</span></th>
+            <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
+            <th><span id="active_filter">{% trans 'active' %}</span></th>
+            {% if activated_training_quotas %}
+              <th><span id="quota_filter">{% trans 'Allowed immersions count' %}</span></th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            {% if not request.user.is_structure_consultant %}
+              <td></td>
+            {% endif %}
+            <td></td>
+            <td></td>
+            <td></td>
+            {% if activated_training_quotas %}
+              <td></td>
+            {% endif %}
+          </tr>
+        </tfoot>
+        </table>
       </div>
     </div>
   </div>
-
 </div>
 
-
-
 <script type="text/javascript">
-  let dt;
-  let updatable = "{{ can_update }}";
+  var dt;
+  let activated_training_quotas = "{{ activated_training_quotas }}" === "True";
   let feedback;
   let duplicate_text = "{% trans 'Duplicate' %}";
   let delete_text = "{% trans 'Delete' %}";
   let confirmDialog;
+  let is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
+  var current_structure_id = "{{ structure_id }}";
+  var current_establishment_id = "{{ establishment_id }}";
+  var current_highschool_id = "{{ highschool_id }}";
+  var table_config
+
+  function init_url() {
+    if(is_set(current_structure_id)) {
+      return `/api/trainings?structures=${current_structure_id}`
+    }
+    else if(is_set(current_highschool_id)) {
+      return `/api/trainings?highschool=${current_highschool_id}`
+    }
+
+    return `/api/trainings`
+  }
 
   function delete_training(training_id) {
     var csrftoken = getCookie('csrftoken');
@@ -89,19 +169,118 @@
         let msg = json['msg']
         let error = json['error']
 
-        if(error != '' && error != undefined) {
+        if(error !== '' && error !== undefined) {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-        else if(msg != '' && msg != undefined) {
+        else if(msg !== '' && msg !== undefined) {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
-        dt.ajax.url("/api/trainings/highschool").load();
+
+        dt.ajax.url("{% url 'training_list' %}").load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
         console.log("Error : " + obj);
       }
     });
+  }
+
+  function empty_structures() {
+    let options = '<option value="">---------</option>'
+    $('select#strs').html(options)
+    current_structure_id = ''
+    $("#id_div_structures").hide()
+  }
+
+  function set_structures(establishment_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = ''
+
+        if(json.length > 1) {
+          options += '<option value="">---------</option>'
+        }
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#strs').html(options)
+
+        if(current_structure_id) {
+          $("#strs").val(current_structure_id);
+          // load_trainings()
+        }
+        else {
+          $("#strs").val($("#strs option:first").val());
+        }
+
+        $("#id_div_structures").show()
+      }
+    })
+  }
+
+  function set_training_quota(id, value) {
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajax({
+      beforeSend: (request) => { request.setRequestHeader("X-CSRFToken", csrftoken)},
+
+      url: "/core/utils/set_training_quota",
+      method: "POST",
+      data: {
+        id: id,
+        value: value,
+      },
+
+      success: (json) =>  {
+        let error = json['error']
+
+        if(error !== '' && error !== undefined) {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
+        }
+      },
+      error: function (e) {
+        obj = JSON.stringify(e);
+        console.log("Error : " + obj);
+      }
+    });
+  }
+
+  function load_trainings() {
+    let url = ""
+
+    yadcf.exResetAllFilters(dt);
+    dt.clear().draw()
+
+    if(is_set(current_structure_id)) {
+      url = `/api/trainings?structures=${current_structure_id}`
+    }
+    else if(is_set(current_highschool_id)) {
+      url = `/api/trainings?highschool=${current_highschool_id}`
+    }
+
+    if(is_set(url)) {
+      $.ajax({
+        url: url,
+        success: function (data) {
+          dt.rows.add(data).draw();
+
+          if(activated_training_quotas) {
+            $('input[id^=quota-]').on('input', function () {
+              let training_id = this.id.split('-')[1]
+              let quota_value = this.value
+
+              set_training_quota(training_id, quota_value)
+            })
+          }
+        },
+      });
+    }
   }
 
   $(document).ready(() => {
@@ -135,73 +314,111 @@
       ],
     });
 
+    // Columns initialization - depends on user (structure consultant or not) and active training quotas
+    let dt_columns;
 
-    dt = $('#training_table').DataTable({
+    if(!is_structure_consultant) {
+      dt_columns = [{
+        data: "nb_courses",
+        render: function (data, type, row) {
+          if ( data !== 0 ) {
+            return ""
+          }
+
+          let delete_text = "{% trans 'Delete' %}"
+
+          return `<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data('training_id', ${row.id}).dialog('open')" title="${delete_text}">
+                  <i class="fa fas fa-trash fa-2x"></i>
+                  </button>`
+        }
+      }]
+    }
+    else {
+        dt_columns = []
+    }
+
+    dt_columns.splice(is_structure_consultant ? 0 : 1, 0,
+      {
+        data: "label",
+        render: (data, type, row) => {
+          if(type === 'display' && !is_structure_consultant) {
+            return `<a href="/core/training/${row.id}/update">${data}</a>`
+          }
+
+          return data;
+        }
+      },
+      { data: "training_subdomains",
+        render: function (data, type, row) {
+          let label_list = data.map(({label}) => `<li>${label}</li>`).join("")
+          return `<ul>${label_list}</ul>`
+        },
+      },
+      { data: "active",
+        render: (data, type, row) => {
+          return  data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+        }
+      }
+    )
+
+    // Insert quota columns if necessary
+    if(activated_training_quotas) {
+      dt_columns.splice(is_structure_consultant ? 3 : 4, 0, {
+        data: "allowed_immersions",
+        render: function (data, type, row) {
+          if(!is_set(data)) {
+            data = ''
+          }
+
+          if(type === 'display' && !is_structure_consultant) {
+            return `<input type="number" id="quota-${row.id}" class="form-control form-control-sm" value="${data}" placeholder="{% if activated_training_quotas %}{{ training_quotas_value }} ({% trans 'by default' %}){% endif %}">`
+          }
+
+          return data
+        }
+      })
+    }
+
+    let dt_column_defs = [
+      {
+        "defaultContent": "",
+        "targets": "_all"
+      },
+    ]
+
+    if(!is_structure_consultant) {
+      dt_column_defs.push({
+        orderable: false,
+        targets: [0]
+      })
+    }
+
+    // table config with no ajax call
+    table_config = {
       'processing': false,
       'order': [
-          [0, "asc"], // label
-          [2, "asc"]  // high school label
+          [1, "asc"], // label
+          [3, "asc"]  // active
        ],
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
-      'ajax': {
-          url: "/api/trainings/highschool",
-          dataSrc: (json) => { return json },
-      },
       'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
       },
-      'columns': [
-          {
-              data: "label",
-              render: (data, type, row) => {
-                  return '<a href="/core/training/' + row.id + '/update">' + data + '</a>'
-              }
-          },
-          { data: "training_subdomains",
-            render: function (data, type, row) {
-              return "<ul>" + data.map(({label}) => "<li>" + label + "</li>").join("") + "</ul>"
-            },
-          },
-          {
-              data: "active",
-              render: (data, type, row) => {
-                  return  data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
-              }
-          },
-          {
-              data: "can_delete",
-              render: function (data, type, row) {
-                  if ( data === false ) {
-                      return ""
-                  }
-                  let delete_text = "{% trans 'Delete' %}"
-                  let icons = ''
+      {% endif %}
+      'columns': dt_columns,
+      "columnDefs": dt_column_defs,
+    }
 
-                  if(row.can_delete) {
-                      icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', ' + row.id + ').dialog(\'open\')" title="' + delete_text + '">' +
-                          '<i class="fa fas fa-trash fa-2x"></i>' +
-                          '</button>'
-                  }
-                  return icons
-              }
+    dt = $('#training_table').DataTable(table_config)
 
-          }
-      ],
-      "columnDefs": [
-        {
-          "defaultContent": "",
-          "targets": "_all"
-        },
-      ],
-    });
-
-    // Filters init
-    yadcf.init(dt, [{
-        column_number: 0,
+    // filters array
+    let filters = [{
+        column_number: 1,
         filter_default_label: "",
         filter_type: "text",
         filter_container_id: "label_filter",
@@ -209,7 +426,7 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 1,
+        column_number: 2,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "subdomain_filter",
@@ -217,16 +434,120 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 2,
+        column_number: 3,
         filter_default_label: "",
         filter_container_id: "active_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
-      },
-    ]);
+      }
+    ]
 
+    if(activated_training_quotas) {
+      filters.push({
+        column_number: is_structure_consultant ? 3 : 4,
+        filter_default_label: "",
+        filter_container_id: "quota_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      })
+    }
+
+    // Filters init
+    yadcf.init(dt, filters);
+
+    // Init and clean
+    if(!is_set(current_highschool_id)) {
+      current_highschool_id = $("#highschools").val()
+    }
+
+    if(!is_set(current_establishment_id)) {
+      current_establishment_id = $("#establishments").val()
+      empty_structures()
+    }
+
+    if(!is_set(current_structure_id)) {
+      current_structure_id = $("#strs").val()
+    }
+
+    if(is_set(current_establishment_id) && is_set(current_structure_id)) {
+      $("#establishments").val(current_establishment_id)
+      set_structures(current_establishment_id);
+      $("#strs").val(current_structure_id)
+      $('#highschools').val("");
+
+      set_session_values("trainings", {
+       "current_highschool_id": "",
+      })
+
+      load_trainings()
+    }
+    else if (is_set(current_highschool_id)) {
+      set_session_values("trainings", {
+        "current_establishment_id": "",
+        "current_structure_id": "",
+      })
+      $('#establishments').val("");
+      $('#strs').val("");
+      $('#highschools').val(current_highschool_id);
+
+      load_trainings()
+    }
 
   })
+
+  $('#establishments').change( function() {
+    current_establishment_id = $('#establishments option:selected').val();
+    current_structure_id = ""
+
+    dt.clear().draw()
+
+    if (current_establishment_id !== "") {
+      set_structures(current_establishment_id);
+      current_highschool_id = ""
+      $('#highschools').val("");
+    }
+    else {
+      empty_structures()
+    }
+
+    // cache
+    set_session_values("courses", {
+      "current_highschool_id": current_highschool_id,
+      "current_establishment_id": current_establishment_id,
+      "current_structure_id": current_structure_id,
+    })
+  });
+
+  // Reload the table when structure changes in selectbox
+  $('#strs').change( function() {
+      current_structure_id = $('#strs option:selected').val()
+      // cache
+      if(current_structure_id !== "")
+        current_highschool_id = ""
+
+      set_session_values("training", {
+        "current_structure_id": current_structure_id,
+      })
+
+      load_trainings()
+  });
+
+  $('#highschools').change( function() {
+      current_highschool_id = $('#highschools option:selected').val()
+      // cache
+      if(current_highschool_id !== "") {
+        empty_structures()
+        $('#establishments').val("");
+        current_structure_id = ""
+        current_establishment_id = ""
+      }
+
+      set_session_values("training", {
+        "current_highschool_id": current_highschool_id,
+      })
+
+      load_trainings()
+  });
 
 </script>
 

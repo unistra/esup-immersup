@@ -34,7 +34,7 @@
     </div>
     <div class="card-body">
       <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
-      <form class="" role="form" action="/core/visit/{% if visit.id %}{{ visit.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
+      <form class="" role="form" action="/core/visit{% if visit.id %}/{{ visit.id }}{% elif origin_id %}/{{ origin_id }}{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}
         <input type="hidden" name="duplicate" value="{{ duplicate }}">
@@ -132,9 +132,9 @@
 <script type="text/javascript">
   var json_results;
   var query_order = 0;
-  var structure_id = "{{ form.initial.structure }}" || "{{ request.session.structure_id }}" ;
+  var structure_id = "{{ form.initial.structure }}" || "{{ structure_id }}" ;
   var can_update = "{{ can_update }}";
-  var establishment_id = "{{ form.initial.establishment }}" || "{{ request.session.establishment_id }}";
+  var establishment_id = "{{ form.initial.establishment }}" || "{{ establishment_id }}";
   var highschool_id = "{{ form.initial.highschool }}";
 
   {% autoescape on %}

@@ -14,14 +14,15 @@ from django_countries.fields import CountryField
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from rest_framework.exceptions import ValidationError
 
+from ...libs.utils import get_general_setting
 from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
-    Building, Calendar, Campus, Course, CourseType, Establishment, HighSchool,
-    HighSchoolLevel, ImmersionUser, OffOfferEvent, OffOfferEventType,
-    PostBachelorLevel, Slot, Structure, StudentLevel, Training, UniversityYear,
-    Visit,
+    BachelorMention, BachelorType, Building, Campus, Course, CourseType,
+    Establishment, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    ImmersionUser, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
+    Slot, Structure, StudentLevel, Training, UniversityYear, Visit,
 )
 
 
@@ -127,7 +128,7 @@ class SlotForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
     structure = forms.ModelChoiceField(queryset=Structure.objects.all(), required=False)
     training = forms.ModelChoiceField(queryset=Training.objects.all(), required=False)
-    highschool = forms.ModelChoiceField(queryset=HighSchool.agreed.filter(postbac_immersion=True), required=False)
+    highschool = forms.ModelChoiceField(queryset=HighSchool.objects.all(), required=False)
     repeat = forms.DateField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -145,7 +146,8 @@ class SlotForm(forms.ModelForm):
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels']:
+            'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
+            'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # Disable autocomplete for date fields
@@ -158,10 +160,24 @@ class SlotForm(forms.ModelForm):
             self.request.user.is_structure_manager()
         ])
 
+        self.fields["highschool"].queryset = HighSchool.agreed.filter(postbac_immersion=True)
         self.fields["allowed_highschools"].queryset = HighSchool.agreed.order_by('city', 'label')
-        self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
-        self.fields["allowed_student_levels"].queryset = StudentLevel.objects.filter(active=True).order_by('order')
-        self.fields["allowed_post_bachelor_levels"].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
+
+        # Level restrictions
+        self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects\
+            .filter(active=True).order_by('order')
+        self.fields["allowed_student_levels"].queryset = StudentLevel.objects\
+            .filter(active=True).order_by('order')
+        self.fields["allowed_post_bachelor_levels"].queryset = PostBachelorLevel.objects\
+            .filter(active=True).order_by('order')
+
+        # Bachelor restrictions
+        self.fields["allowed_bachelor_types"].queryset = BachelorType.objects\
+            .filter(active=True).order_by('label')
+        self.fields["allowed_bachelor_mentions"].queryset = BachelorMention.objects\
+            .filter(active=True).order_by('label')
+        self.fields["allowed_bachelor_teachings"].queryset = GeneralBachelorTeaching.objects\
+            .filter(active=True).order_by('label')
 
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)
@@ -222,21 +238,46 @@ class SlotForm(forms.ModelForm):
             }
         )
 
+        # registration and cancellation limit delays
+        try:
+            self.fields["registration_limit_delay"].initial = get_general_setting("SLOT_REGISTRATION_LIMIT")
+        except (ValueError, NameError):
+            self.fields["registration_limit_delay"].initial = 0
+
+        try:
+            self.fields["cancellation_limit_delay"].initial = get_general_setting("SLOT_CANCELLATION_LIMIT")
+        except (ValueError, NameError):
+            self.fields["cancellation_limit_delay"].initial = 0
+
     def clean_restrictions(self, cleaned_data):
+        # Establishment resrtictions fields
         establishments_restrictions = cleaned_data.get('establishments_restrictions')
-        levels_restrictions = cleaned_data.get('levels_restrictions')
         allowed_establishments = cleaned_data.get('allowed_establishments')
         allowed_highschools = cleaned_data.get('allowed_highschools')
+
+        # Level restrictions fields
+        levels_restrictions = cleaned_data.get('levels_restrictions')
         allowed_highschool_levels = cleaned_data.get('allowed_highschool_levels')
         allowed_student_levels = cleaned_data.get('allowed_student_levels')
         allowed_post_bachelor_levels = cleaned_data.get('allowed_post_bachelor_levels')
 
+        # Bachelor types restrictions fields
+        bachelors_restrictions = cleaned_data.get('bachelors_restrictions')
+        allowed_bachelor_types = cleaned_data.get('allowed_bachelor_types')
+        allowed_bachelor_mentions = cleaned_data.get('allowed_bachelor_mentions')
+        allowed_bachelor_teachings = cleaned_data.get('allowed_bachelor_teachings')
+
+        # Controls
         if establishments_restrictions and not allowed_establishments and not allowed_highschools:
             cleaned_data["establishments_restrictions"] = False
 
         if levels_restrictions and not allowed_highschool_levels and not allowed_student_levels \
                 and not allowed_post_bachelor_levels:
             cleaned_data["levels_restrictions"] = False
+
+        if bachelors_restrictions and not any([
+            allowed_bachelor_types, allowed_bachelor_mentions, allowed_bachelor_teachings]):
+            cleaned_data["bachelors_restrictions"] = False
 
         return cleaned_data
 
@@ -268,13 +309,6 @@ class SlotForm(forms.ModelForm):
         if cleaned_data.get('repeat'):
             self.slot_dates = self.request.POST.getlist("slot_dates")
 
-        cals = Calendar.objects.all()
-
-        if cals.exists():
-            cal = cals.first()
-        else:
-            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
-
         if published:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['course', 'course_type', 'date', 'start_time', 'end_time', 'speakers']
@@ -294,12 +328,7 @@ class SlotForm(forms.ModelForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            if _date < timezone.now().date():
-                raise forms.ValidationError(
-                    {'date': _("You can't set a date in the past")}
-                )
-
-            if _date == timezone.now().date() and start_time <= timezone.now().time():
+            if _date == timezone.localdate() and start_time <= timezone.now().time():
                 raise forms.ValidationError(
                     {'start_time': _("Slot is set for today : please enter a valid start_time")}
                 )
@@ -307,11 +336,6 @@ class SlotForm(forms.ModelForm):
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
                 raise forms.ValidationError({'n_places': msg})
-
-        if _date and not cal.date_is_between(_date):
-            raise forms.ValidationError(
-                {'date': _('Error: The date must be between the dates of the current calendar')}
-            )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
@@ -330,31 +354,52 @@ class SlotForm(forms.ModelForm):
 
         if self.data.get("repeat"):
             new_dates = self.data.getlist("slot_dates[]")
+
             try:
                 university_year = UniversityYear.objects.get(active=True)
                 new_slot_template = Slot.objects.get(pk=instance.pk)
+            except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
+                # Nothing to do here but we should never get there
+                pass
+            else:
+                # Store current slot related objects
                 slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
                 slot_allowed_establishments = [e for e in new_slot_template.allowed_establishments.all()]
                 slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
                 slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
                 slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
                 slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
+                slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
+                slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
+                slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
 
                 for new_date in new_dates:
                     parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
-                    if parsed_date <= university_year.end_date:
-                        new_slot_template.pk = None
-                        new_slot_template.date = parsed_date
-                        new_slot_template.save()
-                        new_slot_template.speakers.add(*slot_speakers)
-                        new_slot_template.allowed_establishments.add(*slot_allowed_establishments)
-                        new_slot_template.allowed_highschools.add(*slot_allowed_highschools)
-                        new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
-                        new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
-                        new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
-                        messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
-            except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
-                pass
+
+                    try:
+                        period = Period.from_date(parsed_date)
+                    except Period.DoesNotExist as e:
+                        # No period for this date : not an error, just ignore
+                        pass
+                    except Period.MultipleObjectsReturned:
+                        # THIS is always an error
+                        raise
+                    else:
+                        if parsed_date <= university_year.end_date:
+                            new_slot_template.pk = None
+                            new_slot_template.date = parsed_date
+                            new_slot_template.save()
+                            new_slot_template.speakers.add(*slot_speakers)
+                            new_slot_template.allowed_establishments.add(*slot_allowed_establishments)
+                            new_slot_template.allowed_highschools.add(*slot_allowed_highschools)
+                            new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
+                            new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
+                            new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
+                            new_slot_template.allowed_bachelor_types.add(*slot_allowed_bachelor_types)
+                            new_slot_template.allowed_bachelor_mentions.add(*slot_allowed_bachelor_mentions)
+                            new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
+
+                            messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
 
         return instance
 
@@ -364,11 +409,13 @@ class SlotForm(forms.ModelForm):
         fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'event', 'training', 'course',
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
-            'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'speakers', 'repeat')
+            'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+            'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
+            'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
+            'cancellation_limit_delay')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
-            'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
+            'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200}),
             'room': forms.TextInput(attrs={'placeholder': _('Enter the room name')}),
             'date': forms.DateInput(
                 format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
@@ -423,13 +470,6 @@ class VisitSlotForm(SlotForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
-        cals = Calendar.objects.all()
-
-        if cals.exists():
-            cal = cals.first()
-        else:
-            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
-
         if published is True:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['visit', 'date', 'start_time', 'end_time', 'speakers']
@@ -448,12 +488,34 @@ class VisitSlotForm(SlotForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            if _date < timezone.now().date():
+            # Period check
+            try:
+                period = Period.from_date(date=_date)
+            except Period.DoesNotExist:
+                raise forms.ValidationError(
+                    _("No period found for date '%s' : please check periods settings") % _date
+                )
+            except Period.MultipleObjectsReturned:
+                raise forms.ValidationError(
+                    _("Multiple periods found for date '%s' : please check periods settings") % _date
+                )
+
+            if not period:
+                raise forms.ValidationError(
+                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
+                )
+
+            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
+                raise forms.ValidationError(
+                    {'date': _("Slot date must be between period immersion start and end dates")}
+                )
+
+            if _date < timezone.localdate():
                 raise forms.ValidationError(
                     {'date': _("You can't set a date in the past")}
                 )
 
-            if _date == timezone.now().date() and start_time <= timezone.now().time():
+            if _date == timezone.localdate() and start_time <= timezone.now().time():
                 raise forms.ValidationError(
                     {'start_time': _("Slot is set for today : please enter a valid start_time")}
                 )
@@ -462,11 +524,6 @@ class VisitSlotForm(SlotForm):
                 raise forms.ValidationError(
                     {'n_places': _("Please enter a valid number for 'n_places' field")}
                 )
-
-        if _date and not cal.date_is_between(_date):
-            raise forms.ValidationError(
-                {'date': _('Error: The date must be between the dates of the current calendar')}
-            )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
@@ -542,13 +599,6 @@ class OffOfferEventSlotForm(SlotForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
-        cals = Calendar.objects.all()
-
-        if cals.exists():
-            cal = cals.first()
-        else:
-            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
-
         if published is True:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['event', 'date', 'start_time', 'end_time', 'speakers']
@@ -567,20 +617,37 @@ class OffOfferEventSlotForm(SlotForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-            if _date < timezone.now().date():
+            # Period check
+            try:
+                period = Period.from_date(date=_date)
+            except Period.DoesNotExist:
+                raise forms.ValidationError(
+                    _("No period found for date '%s' : please check periods settings") % _date
+                )
+            except Period.MultipleObjectsReturned:
+                raise forms.ValidationError(
+                    _("Multiple periods found for date '%s' : please check periods settings") % _date
+                )
+
+            if not period:
+                raise forms.ValidationError(
+                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
+                )
+
+            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
+                raise forms.ValidationError(
+                    {'date': _("Slot date must be between period immersion start and end dates")}
+                )
+
+            if _date < timezone.localdate():
                 self.add_error('date', _("You can't set a date in the past"))
 
-            if _date == timezone.now().date() and start_time <= timezone.now().time():
+            if _date == timezone.localdate() and start_time <= timezone.now().time():
                 self.add_error('start_time', _("Slot is set for today : please enter a valid start_time"))
 
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
                 self.add_error('n_places', msg)
-
-        if _date and not cal.date_is_between(_date):
-            raise forms.ValidationError(
-                {'date': _('Error: The date must be between the dates of the current calendar')}
-            )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')

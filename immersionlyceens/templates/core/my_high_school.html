@@ -20,6 +20,7 @@
     {% endif %}
     <div class="card-body">
       <form class="" role="form" action="/core/high_school/{{ high_school.id }}" method="POST">
+      <input type="hidden" name="active" value="{{ high_school.active }}">
       {% csrf_token %}
         <div class="card">
           <div class="card-title card-header">
@@ -146,7 +147,7 @@
             <div class="form-group row">
               <label class="col-sm-3">{% trans "Mailing list" %}</label>
               <div class="col-sm-6">
-                <output class="form-control" readonly>{{ high_school.mailing_list | default:"-" }}</output>
+                <output class="form-control">{{ high_school.mailing_list | default:"-" }}</output>
               </div>
             </div>
 
@@ -201,6 +202,12 @@
         <div class="card">
           <div class="card-title card-header">{% trans "Convention" %}</div>
           <div class="card-body">
+            <div class="form-group row">
+              <label class="col-sm-3">{% trans "With convention" %}</label>
+              <div class="col-sm-6">
+                <div id="with_convention" class="readonly">{{ high_school.with_convention|yesno }}</div>
+              </div>
+            </div>
             <div class="form-group row">
               <label class="col-sm-3">{% trans "Convention start date" %}</label>
               <div class="col-sm-6">

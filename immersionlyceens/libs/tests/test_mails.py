@@ -4,8 +4,10 @@ Mails tests
 import datetime
 import uuid
 
+from django.core import management
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
+from django.utils import timezone
 from django.urls import reverse
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
@@ -15,23 +17,27 @@ from immersionlyceens.libs.utils import get_general_setting
 from ..mails.variables_parser import parser
 
 from immersionlyceens.apps.core.models import (
-    UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
-    Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment, HigherEducationInstitution,
-    PendingUserGroup
+    AttestationDocument, BachelorType, UniversityYear, MailTemplate,
+    Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
+    Building, CourseType, Training, Vacation, HighSchool, Immersion,
+    EvaluationFormLink, EvaluationType, CancelType, HighSchoolLevel,
+    StudentLevel, Period, PostBachelorLevel, Profile, Establishment,
+    HigherEducationInstitution, PendingUserGroup
 )
 
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, HighSchoolStudentRecordDocument
 
 class MailsTestCase(TestCase):
     """Mail templates tests"""
 
-    fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
-                'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
+    fixtures = ['group', 'evaluationtype', 'canceltype', 'high_school_levels', 'post_bachelor_levels',
+                'student_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):
-        cls.today = datetime.datetime.today()
+        management.call_command("restore_group_rights")
+
+        cls.today = timezone.now()
 
         cls.establishment = Establishment.objects.create(
             code='ETA1',
@@ -120,12 +126,12 @@ class MailsTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(cls.ref_str)
 
-        cls.calendar = Calendar.objects.create(
-            calendar_mode=Calendar.CALENDAR_MODE[0][0],
-            year_start_date=cls.today - datetime.timedelta(days=10),
-            year_end_date=cls.today + datetime.timedelta(days=10),
-            year_nb_authorized_immersion=4,
-            year_registration_start_date=cls.today - datetime.timedelta(days=9)
+        cls.period1 = Period.objects.create(
+            label='period 1',
+            immersion_start_date=cls.today - datetime.timedelta(days=9),
+            immersion_end_date=cls.today + datetime.timedelta(days=10),
+            registration_start_date=cls.today - datetime.timedelta(days=10),
+            allowed_immersions=4,
         )
         cls.vac = Vacation.objects.create(
             label="vac",
@@ -143,7 +149,12 @@ class MailsTestCase(TestCase):
         cls.training2.structures.add(cls.structure)
         cls.course = Course.objects.create(label="course 1", training=cls.training, structure=cls.structure)
         cls.course.speakers.add(cls.speaker1)
-        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.campus = Campus.objects.create(
+            label='Esplanade',
+            department=67,
+            city='Strasbourg',
+            zip_code='67000'
+        )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM', full_label='Cours magistral')
         cls.slot = Slot.objects.create(
@@ -180,7 +191,7 @@ class MailsTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
             visible_email=True,
@@ -199,6 +210,38 @@ class MailsTestCase(TestCase):
             evaluation_type=cls.slot_eval_type, active=True, url='http://slot.evaluation.test/')
         cls.global_eval_link = EvaluationFormLink.objects.create(
             evaluation_type=cls.global_eval_type, active=True, url='http://disp.evaluation.test/')
+
+        # Attestations
+        cls.attestation_1 = AttestationDocument.objects.create(
+            label='Test label',
+            mandatory=True,
+            active=True,
+            for_minors=True,
+            requires_validity_date=True
+        )
+
+        cls.attestation_1.profiles.add(Profile.objects.get(code='LYC_W_CONV'))
+        cls.attestation_1.profiles.add(Profile.objects.get(code='LYC_WO_CONV'))
+        cls.attestation_1.profiles.add(Profile.objects.get(code='VIS'))
+
+        cls.attestation_2 = AttestationDocument.objects.create(
+            label='Test label 2',
+            mandatory=True,
+            active=True,
+            for_minors=False,
+            requires_validity_date=True
+        )
+
+        cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
+
+        cls.hs_record_document=HighSchoolStudentRecordDocument.objects.create(
+            record=cls.hs_record,
+            attestation=cls.attestation_1,
+            mandatory=True,
+            for_minors=False,
+            requires_validity_date=True,
+            validity_date=cls.today.date() + datetime.timedelta(days=5)
+        )
 
 
     def test_variables(self):
@@ -310,6 +353,15 @@ class MailsTestCase(TestCase):
         )
         self.assertIn(f"{self.speaker1.last_name} {self.speaker1.first_name}", parsed_body)
         self.assertIn(f"{platform_url}{url}", parsed_body)
+
+        # Attestations renewal
+        message_body = MailTemplate.objects.get(code='CPT_DEPOT_PIECE')
+
+        parsed_body = parser(
+            message_body.body,
+            user=self.highschool_user
+        )
+        self.assertIn(self.attestation_1.label, parsed_body)
 
 
     def test_condition(self):

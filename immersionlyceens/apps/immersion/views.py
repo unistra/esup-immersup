@@ -1,10 +1,12 @@
 import json
 import logging
 import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
 
+from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (
@@ -22,30 +24,39 @@ from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import FormView, TemplateView
+from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
+
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, CertificateLogo, CertificateSignature,
-    HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
-    MailTemplate, PendingUserGroup, PostBachelorLevel, Slot, StudentLevel,
-    UniversityYear, UserCourseAlert,
+    AttestationDocument, BachelorType, CancelType, CertificateLogo,
+    CertificateSignature, GeneralSettings, HigherEducationInstitution,
+    HighSchoolLevel, Immersion, ImmersionUser, MailTemplate, PendingUserGroup,
+    Period, PostBachelorLevel, Slot, StudentLevel, UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm, NewPassForm,
-    RegistrationForm, StudentForm, StudentRecordForm, VisitorForm,
-    VisitorRecordForm,
+    HighSchoolStudentForm, HighSchoolStudentRecordDocumentForm,
+    HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm, LoginForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+    StudentRecordQuotaForm, VisitorForm, VisitorRecordDocumentForm,
+    VisitorRecordForm, VisitorRecordQuotaForm,
 )
-from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
+from .models import (
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
+    HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota,
+    VisitorRecord, VisitorRecordDocument, VisitorRecordQuota,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,9 +126,9 @@ class CustomLoginView(FormView):
         ]
 
         if self.user.is_high_school_student():
-            return "/immersion" if self.user.get_high_school_student_record() else "/immersion/hs_record"
+            return reverse('home') if self.user.get_high_school_student_record() else "/immersion/hs_record"
         elif self.user.is_visitor():
-            return "/immersion" if self.user.get_visitor_record() else "/immersion/visitor_record"
+            return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
         elif any(go_home):
             return reverse('home')
         else:
@@ -170,10 +181,12 @@ def shibbolethLogin(request, profile=None):
 
         try:
             msg = new_user.send_message(request, 'CPT_MIN_CREATE')
+            if msg:
+                messages.error(request, _("Cannot send email : %s") % msg)
         except Exception as e:
             logger.exception("Cannot send activation message : %s", e)
 
-        messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
+        messages.success(request, _("Account created. Please check your emails for the activation procedure."))
         return HttpResponseRedirect("/")
 
 
@@ -279,7 +292,7 @@ def register(request, profile=None):
             except Exception as e:
                 logger.exception("Cannot send activation message : %s", e)
 
-            messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
+            messages.success(request, _("Account created. Please check your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
         # Not used anymore using form.errors displaying instead
         # else:
@@ -567,27 +580,43 @@ class LinkView(View):
 
 
 @login_required
-def home(request):
-    context = {}
-    return render(request, 'immersion/home.html', context)
-
-
-@login_required
 @groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC', 'REF-TEC', 'REF-LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
     """
     template_name: str = 'immersion/hs_record.html'
-    redirect_url: str = reverse('offer')
+    redirect_url: str = reverse('immersion:hs_record')
     record = None
     student = None
-    calendar = None
+    create_documents = False
+    no_quota_form = False
+    no_document_form = False
 
-    calendars = Calendar.objects.all()
+    next = False
+    quota_form_valid = False
+    document_form_valid = False
 
-    if calendars:
-        calendar = calendars.first()
+    quota_forms = []
+    document_forms = []
+
+    from_page = request.headers.get('Referer', "")
+    user = request.user
+
+    # Quota for non-student user
+    quota_allowed_groups = any([
+        user.is_establishment_manager(),
+        user.is_master_establishment_manager(),
+        user.is_operator()
+    ])
+
+    # 'back' control if not from the same page (eg. POST)
+    if reverse('immersion:hs_record') not in from_page:
+        request.session['back'] = request.headers.get('Referer')
+
+    periods = Period.objects.filter(
+        immersion_end_date__gte=timezone.localdate()
+    )
 
     # Unused ?
     if student_id:
@@ -602,18 +631,34 @@ def high_school_student_record(request, student_id=None, record_id=None):
         record = student.get_high_school_student_record()
 
         if not record:
-            record = HighSchoolStudentRecord(
-                student=request.user,
-                allowed_global_registrations=calendar.year_nb_authorized_immersion,
-                allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-            )
+            record = HighSchoolStudentRecord(student=request.user)
+
     elif record_id:
         try:
             record = HighSchoolStudentRecord.objects.get(pk=record_id)
             student = record.student
         except HighSchoolStudentRecord.DoesNotExist:
+            # Record not created yet.
             pass
+
+    if record and record.pk:
+        # Check user access for this record
+        if user.is_high_school_manager() and user.highschool != record.highschool:
+            if from_page:
+                return HttpResponseRedirect(from_page)
+            else:
+                return HttpResponseRedirect(reverse('home'))
+
+        # Custom quotas objects for already started periods (check registration date)
+        # The record must exist
+        for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+            if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
+                HighSchoolStudentRecordQuota.objects.create(
+                    record=record, period=period, allowed_immersions=period.allowed_immersions
+                )
+    else:
+        # No record yet, we have to initialize attestations on first record save()
+        create_documents = True
 
     if request.method == 'POST' and request.POST.get('submit'):
         student_id = request.POST.get('student', None)
@@ -625,31 +670,29 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 messages.error(request, _("Invalid student id"))
                 return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
-        current_email = student.email
-        try:
-            current_highschool = record.highschool.id
-        except Exception:
-            current_highschool = None
-
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, instance=student, request=request)
 
         if studentform.is_valid():
-            student = studentform.save()
+            if studentform.has_changed():
+                student = studentform.save()
 
-            if current_email != student.email:
+            # if current_email != student.email:
+            if "email" in studentform.changed_data:
                 student.username = student.email
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
-                    messages.warning(
-                        request,
-                        _(
-                            """You have updated the email."""
-                            """<br>Warning : the new email is also the new login."""
-                            """<br>A new activation email has been sent."""
-                        ),
-                    )
+                    if msg:
+                        messages.error(request, _("Cannot send email : %s") % msg)
+                    else:
+                        messages.warning(
+                            request, _(
+                                """You have updated the email."""
+                                """<br>Warning : the new email is also the new login."""
+                                """<br>A new activation email has been sent."""
+                            ),
+                        )
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
         else:
@@ -659,12 +702,20 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
-            record = recordform.save()
+            if recordform.has_changed():
+                record = recordform.save()
+                messages.success(request, _("Record successfully saved."))
 
-            if current_highschool and current_highschool != record.highschool.id:
-                record.validation = 1
-                record.save()
-                messages.info(request, _("You have changed the high school, your record needs a new validation"))
+            # High school or birth date update : new validation required
+            if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
+                if record.validation in [2, 3]:
+                    messages.info(
+                        request,
+                        _("You have updated some important fields, your record needs a new validation")
+                    )
+
+                # Documents update needed
+                create_documents = True
 
             # Look for duplicated records
             if record.search_duplicates():
@@ -678,26 +729,191 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         request, _("A record already exists with this identity, look at duplicate records.")
                     )
 
-            if record.validation == 1:
-                if request.user.is_high_school_student():
-                    messages.success(
-                        request, _("Thank you. Your record is awaiting validation from your high-school referent.")
+            for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+                # For newly created records
+                if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    HighSchoolStudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            messages.success(request, _("Record successfully saved."))
+            # Only for allowed groups (establishment managers and operators)
+            if quota_allowed_groups:
+                quota_form_valid = True
+
+                for quota in HighSchoolStudentRecordQuota.objects.filter(record=record):
+                    quota_form = HighSchoolStudentRecordQuotaForm(
+                        request.POST,
+                        instance=quota,
+                        request=request,
+                        prefix=f"quota_{quota.period.id}"
+                    )
+
+                    if quota_form.is_valid():
+                        quota_form.save()
+                    else:
+                        quota_form_valid = False
+
+                    quota_forms.append(quota_form)
+
+                if not quota_form_valid:
+                    messages.error(request, _("You have errors in Immersion periods section"))
+            else:
+                no_quota_form = True
+
+            # Documents forms
+            if create_documents:
+                no_document_form = True
+                today = timezone.localdate()
+                student_age = today.year - record.birth_date.year\
+                              - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
+
+                attestation_filters = {
+                    'profiles__code': "LYC_W_CONV" if record.highschool.with_convention else "LYC_WO_CONV"
+                }
+
+                if student_age >= 18:
+                    attestation_filters['for_minors'] = False
+
+                current_documents = HighSchoolStudentRecordDocument.objects.filter(record=record)
+                attestations = AttestationDocument.activated.filter(**attestation_filters)
+
+                # Clean documents if school has changed, including archives
+                for hsrd in current_documents:
+                    if hsrd.attestation not in attestations:
+                        hsrd.delete()
+
+                if attestations.exists():
+                    creations = 0
+                    for attestation in attestations:
+                        obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
+                            record=record,
+                            attestation=attestation,
+                            archive=False,
+                            defaults={
+                                'for_minors': attestation.for_minors,
+                                'mandatory': attestation.mandatory,
+                                'requires_validity_date': attestation.requires_validity_date,
+                                'archive': False
+                            }
+                        )
+
+                        creations += 1 if created else 0
+
+                    if creations:
+                        next = True
+                        # Documents have to be filled -> status = 0
+                        record.set_status("TO_COMPLETE")
+                    else:
+                        record.set_status("TO_VALIDATE")
+                else:
+                    # No attestation
+                    record.set_status("TO_VALIDATE")
+            else:
+                documents = HighSchoolStudentRecordDocument.objects\
+                    .filter(record=record, archive=False)\
+                    .order_by("attestation__order")
+
+                document_form_valid = True
+
+                if documents:
+                    for document in documents:
+                        document_form = HighSchoolStudentRecordDocumentForm(
+                            request.POST,
+                            request.FILES,
+                            instance=document,
+                            request=request,
+                            prefix=f"document_{document.attestation.id}"
+                        )
+
+                        if document_form.is_valid():
+                            document = document_form.save()
+
+                            if document_form.has_changed() and 'document' in document_form.changed_data:
+                                document.deposit_date = timezone.now()
+                                document.validity_date = None
+                                document.save()
+                                if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
+                                    record.set_status('TO_REVALIDATE')
+                                elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
+                                    record.set_status('TO_VALIDATE')
+                        else:
+                            document_form_valid = False
+
+                        document_forms.append(document_form)
+
+                    if not document_form_valid:
+                        messages.error(request, _("You have errors in Attestations section"))
+
+                elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
+                    record.set_status('TO_VALIDATE')
+
+            record.save()
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
 
-        if recordform.is_valid() and studentform.is_valid():
-            return HttpResponseRedirect(redirect_url)
+        valid_forms = all([
+            recordform.is_valid(),
+            studentform.is_valid(),
+            no_quota_form or quota_form_valid,
+            no_document_form or document_form_valid
+        ])
+
+        if valid_forms:
+            if request.user.is_high_school_student():
+                if next:
+                    messages.warning(
+                        request, _("Record saved. Please fill all the required attestation documents below.")
+                    )
+                elif record.validation in [record.STATUSES["TO_VALIDATE"], record.STATUSES["TO_REVALIDATE"]]:
+                    if record.highschool.with_convention:
+                        messages.success(
+                            request, _("Thank you. Your record is awaiting validation from your high-school referent.")
+                        )
+                    else:
+                        messages.success(
+                            request, _("Thank you. Your record is awaiting validation by the establishment referent.")
+                        )
+
+            return HttpResponseRedirect(reverse('immersion:modify_hs_record', kwargs={'record_id': record.id}))
+
     else:
-        request.session['back'] = request.headers.get('Referer')
+        # Forms init
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
 
+        valid_users = any([
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator()
+        ])
+
+        if valid_users:
+            for quota in HighSchoolStudentRecordQuota.objects\
+                    .filter(record=record)\
+                    .order_by("period__immersion_start_date"):
+                quota_form = HighSchoolStudentRecordQuotaForm(
+                    request=request,
+                    instance=quota,
+                    prefix=f"quota_{quota.period.id}"
+                )
+                quota_forms.append(quota_form)
+
+        for document in HighSchoolStudentRecordDocument.objects\
+                .filter(record=record, archive=False)\
+                .order_by("attestation__order"):
+            document_form = HighSchoolStudentRecordDocumentForm(
+                request=request,
+                instance=document,
+                prefix=f"document_{document.attestation.id}"
+            )
+            document_forms.append(document_form)
+
+    if request.user.is_high_school_student():
+        messages.info(request, _("Your record status : %s") % record.get_validation_display())
+    else:
         messages.info(request, _("Current record status : %s") % record.get_validation_display())
 
     # Stats for user deletion
@@ -705,39 +921,41 @@ def high_school_student_record(request, student_id=None, record_id=None):
     now = datetime.today().time()
 
     past_immersions = student.immersions.filter(
-        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
+        cancellation_type__isnull=True
     ).count()
 
     future_immersions = student.immersions.filter(
-        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
+        cancellation_type__isnull=True
     ).count()
 
-    immersion_number = None
-    immersions = student.immersions.filter(
+    # Count immersion registrations for each period
+    immersions_count = {}
+    for period in periods:
+        immersions_count[period.pk] = student.immersions.filter(
+                slot__date__gte=period.immersion_start_date,
+                slot__date__lte=period.immersion_end_date,
                 slot__event__isnull=True,
                 slot__visit__isnull=True,
                 cancellation_type__isnull=True
-    )
+        ).count()
 
-    if calendar.calendar_mode == "YEAR":
-        immersion_number = immersions.count()
-    else:
-        if calendar.semester1_end_date and calendar.semester2_start_date:
-            immersion_number = {
-                "semester_1": immersions.filter(
-                    slot__date__lte=calendar.semester1_end_date
-                ).count(),
-                "semester_2": immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date
-                ).count(),
-            }
-        else:
-            immersion_number = 0
+    # Periods to display
+    period_filter = { 'registration_start_date__gt': today } if record.id else {'immersion_end_date__gte': today}
+
+    # Document archives
+    archives = defaultdict(list)
+    for archive in HighSchoolStudentRecordDocument.objects \
+                .filter(Q(validity_date__gte=today)|Q(validity_date__isnull=True), record=record, archive=True) \
+                .order_by("-validity_date"):
+        archives[archive.attestation.id].append(archive)
 
     context = {
-        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
+        'quota_forms': quota_forms,
+        'document_forms': document_forms,
         'student': student,
         'record': record,
         'back_url': request.session.get('back'),
@@ -749,7 +967,17 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 'requires_bachelor_speciality': l.requires_bachelor_speciality
             } for l in HighSchoolLevel.objects.all()}
         ),
-        'immersion_number': immersion_number
+        'bachelor_types': json.dumps(
+            {bt.id: {
+                'is_general': bt.general,
+                'is_technological': bt.technological,
+                'is_professional': bt.professional,
+            } for bt in BachelorType.objects.all()}
+        ),
+        'immersions_count': immersions_count,
+        'request_student_consent': GeneralSettings.get_setting('REQUEST_FOR_STUDENT_AGREEMENT'),
+        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+        'archives': archives
     }
 
     return render(request, template_name, context)
@@ -764,12 +992,9 @@ def student_record(request, student_id=None, record_id=None):
     template_name: str = 'immersion/student_record.html'
     record = None
     student = None
-    calendar = None
     no_record = False
-
-    calendars = Calendar.objects.all()
-    if calendars:
-        calendar = calendars.first()
+    quota_forms = []
+    periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
     # Unused ?
     if student_id:
@@ -783,6 +1008,7 @@ def student_record(request, student_id=None, record_id=None):
         student = request.user
         record = student.get_student_record()
         uai_code = None
+        institution = None
 
         no_record = record is None
 
@@ -794,17 +1020,22 @@ def student_record(request, student_id=None, record_id=None):
 
         if uai_code and uai_code.startswith('{UAI}'):
             uai_code = uai_code.replace('{UAI}', '')
+            try:
+                institution = HigherEducationInstitution.objects.get(uai_code__iexact=uai_code)
+            except HigherEducationInstitution.DoesNotExist:
+                # Just warn the admins with a nice Sentry error :)
+                logger.error("UAI codes update required : unknown uai_code : %s", uai_code)
+        elif student.establishment and student.establishment.uai_reference:
+            # Fallback if student establishment is known
+            institution = student.establishment.uai_reference
+            uai_code = institution.uai_code
 
         if not record:
-            record = StudentRecord(
-                student=request.user,
-                uai_code=uai_code,
-                allowed_global_registrations=calendar.year_nb_authorized_immersion,
-                allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-            )
+            record = StudentRecord(student=request.user, uai_code=uai_code, institution=institution)
+
         elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
+            record.institution = institution
             record.save()
     elif record_id:
         try:
@@ -812,6 +1043,15 @@ def student_record(request, student_id=None, record_id=None):
             student = record.student
         except StudentRecord.DoesNotExist:
             pass
+
+    # Custom quotas objects for already started periods (check registration date)
+    # The record must exist
+    if record.pk:
+        for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+            if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
+                StudentRecordQuota.objects.create(
+                    record=record, period=period, allowed_immersions=period.allowed_immersions
+                )
 
     if request.method == 'POST':
         student_id = request.POST.get('student', None)
@@ -834,9 +1074,13 @@ def student_record(request, student_id=None, record_id=None):
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
-                    messages.warning(
-                        request, _("""You have updated the email.""" """<br>A new activation email has been sent.""")
-                    )
+                    if msg:
+                        messages.error(request, _("Cannot send email : %s") % msg)
+                    else:
+                        messages.warning(
+                            request,
+                            _("""You have updated the email.""" """<br>A new activation email has been sent.""")
+                        )
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
 
@@ -848,17 +1092,57 @@ def student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             record = recordform.save()
-
             messages.success(request, _("Record successfully saved."))
+
+            # Quota creation for newly created records
+            for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+                if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
+                    StudentRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            # Quota for non-student user
+            if not request.user.is_student():
+                quota_form_valid = True
+
+                for quota in StudentRecordQuota.objects.filter(record=record):
+                    quota_form = StudentRecordQuotaForm(
+                        request.POST,
+                        instance=quota,
+                        request=request,
+                        prefix=f"quota_{quota.period.id}"
+                    )
+
+                    if quota_form.is_valid():
+                        quota_form.save()
+                    else:
+                        quota_form_valid = False
+
+                    quota_forms.append(quota_form)
+
+                if not quota_form_valid:
+                    messages.error(request, _("You have errors in Immersion periods section"))
+            else:
+                no_quota_form = True
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
+
     else:
-        request.session['back'] = request.headers.get('Referer')
         recordform = StudentRecordForm(request=request, instance=record)
         studentform = StudentForm(request=request, instance=student)
+        for quota in StudentRecordQuota.objects.filter(record=record):
+            quota_form = StudentRecordQuotaForm(
+                request=request,
+                instance=quota,
+                prefix=f"quota_{quota.period.id}"
+            )
+            quota_forms.append(quota_form)
+
+    if reverse('immersion:student_record') not in request.headers.get('Referer', ""):
+        request.session['back'] = request.headers.get('Referer')
 
     # Stats for user deletion
     today = datetime.today().date()
@@ -872,38 +1156,33 @@ def student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
-    immersion_number = None
-    immersions = student.immersions.filter(
-                slot__event__isnull=True,
-                slot__visit__isnull=True,
-                cancellation_type__isnull=True,
-    )
-    if calendar.calendar_mode == "YEAR":
-        immersion_number = immersions.count()
-    else:
-        if calendar.semester1_end_date and calendar.semester2_start_date:
-            immersion_number = {
-                "semester_1": immersions.filter(
-                    slot__date__lte=calendar.semester1_end_date
-                ).count(),
-                "semester_2": immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date
-                ).count(),
-            }
-        else:
-            immersion_number = 0
+    # Count immersion registrations for each period
+    immersions_count = {}
+    for period in periods:
+        immersions_count[period.pk] = student.immersions.filter(
+            slot__date__gte=period.immersion_start_date,
+            slot__date__lte=period.immersion_end_date,
+            slot__event__isnull=True,
+            slot__visit__isnull=True,
+            cancellation_type__isnull=True
+        ).count()
+
+    # Periods to display
+    period_filter = {'registration_start_date__gt': today} if record.id \
+        else {'immersion_end_date__gte': today}
 
     context = {
         'no_record': no_record,
-        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
+        "quota_forms": quota_forms,
         'record': record,
         'student': student,
         'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
-        'immersion_number': immersion_number,
+        'immersions_count': immersions_count,
+        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date')
     }
 
     return render(request, template_name, context)
@@ -916,7 +1195,10 @@ def registrations(request):
     Students : display to come, past and cancelled immersions/events/visits
     Also display the number of active alerts
     """
-    cancellation_reasons = CancelType.objects.filter(active=True).order_by('label')
+    cancellation_reasons = CancelType.objects.filter(
+        active=True,
+        system=False
+    ).order_by('label')
     alerts = UserCourseAlert.objects.filter(email=request.user.email)
     not_sent_alerts_cnt = alerts.filter(email_sent=False).count()
     sent_alerts_cnt = alerts.filter(email_sent=True).count()
@@ -983,7 +1265,7 @@ def immersion_attestation_download(request, immersion_id):
 
 
 @login_required
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'INTER', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'INTER', 'REF-TEC', 'REF-LYC', 'CONS-STR')
 def immersion_attendance_students_list_download(request, slot_id):
     """
     Attendance students list pdf download
@@ -1022,6 +1304,12 @@ class VisitorRecordView(FormView):
     template_name = "immersion/visitor_record.html"
     form_class = VisitorRecordForm
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.record = None
+        self.no_quota_form = False
+        self.no_document_form = False
+
     def get_form_kwargs(self):
         form_kwargs = super().get_form_kwargs()
         form_kwargs["request"] = self.request
@@ -1030,10 +1318,12 @@ class VisitorRecordView(FormView):
         if self.request.user.is_visitor():
             record = self.request.user.get_visitor_record()
             if record:
+                self.record = record
                 form_kwargs["instance"] = record
         elif record_id:
             try:
                 record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+                self.record = record
                 form_kwargs["instance"] = record
             except VisitorRecord.DoesNotExist:
                 # todo: handle it
@@ -1047,24 +1337,27 @@ class VisitorRecordView(FormView):
         user_form: Optional[VisitorForm] = None
         visitor: Optional[ImmersionUser] = None
         record: Optional[VisitorRecordForm] = None
-        hash_change_permission = any([
+        has_change_permission = any([
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
             self.request.user.is_operator()
         ])
+        quota_forms = []
+        document_forms = []
+        periods = Period.objects.filter(
+            registration_start_date__lte=timezone.localdate(),
+            immersion_end_date__gte=timezone.localdate()
+        )
 
-        self.request.session['back'] = self.request.headers.get('Referer')
-
-        calendars: QuerySet = Calendar.objects.all()
-        calendar: Optional[Calendar] = None
-        if calendars:
-            calendar = calendars.first()
+        if reverse('immersion:visitor_record') not in self.request.headers.get('Referer', ""):
+            self.request.session['back'] = self.request.headers.get('Referer')
 
         if self.request.user.is_visitor():
             visitor = self.request.user
             record = visitor.get_visitor_record()
-            if record:
-                messages.info(self.request, _("Current record status : %s") % record.get_validation_display())
+            if not record:
+                record = VisitorRecord(visitor=visitor)
+
             user_form = VisitorForm(request=self.request, instance=visitor)
         elif record_id:
             try:
@@ -1072,17 +1365,29 @@ class VisitorRecordView(FormView):
             except VisitorRecord.DoesNotExist:
                 messages.error(self.request, _("Invalid visitor record id"))
                 raise Http404
+
             visitor = record.visitor
             form_kwargs = self.get_form_kwargs()
+
             if "data" in form_kwargs:
                 user_form = VisitorForm(form_kwargs, instance=visitor, request=self.request)
             else:
                 user_form = VisitorForm(instance=visitor, request=self.request)
 
+        # Custom quotas objects for already started periods (check registration date)
+        # The record must exist
+        if record and record.pk:
+            for period in periods:
+                if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
+                    VisitorRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
 
         # Stats for user deletion
-        today = datetime.today().date()
-        now = datetime.today().time()
+        today = timezone.localdate()
+        now = timezone.now()
+        all_periods = Period.objects.all()
+
         past_immersions = visitor.immersions.filter(
             Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
         ).count()
@@ -1090,38 +1395,73 @@ class VisitorRecordView(FormView):
             Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
         ).count()
 
-        immersion_number = None
-        immersions = visitor.immersions.filter(
-            slot__event__isnull=True,
-            slot__visit__isnull=True,
-            cancellation_type__isnull=True
-        )
-        if calendar.calendar_mode == "YEAR":
-            immersion_number = immersions.count()
-        else:
-            if calendar.semester1_end_date and calendar.semester2_start_date:
-                immersion_number = {
-                    "semester_1": immersions.filter(
-                        slot__date__lte=calendar.semester1_end_date
-                    ).count(),
-                    "semester_2": immersions.filter(
-                        slot__date__gte=calendar.semester2_start_date
-                    ).count(),
-                }
-            else:
-                immersion_number = 0
+        # Count immersion registrations for each period
+        immersions_count = {}
+        for period in all_periods:
+            immersions_count[period.pk] = visitor.immersions.filter(
+                slot__date__gte=period.immersion_start_date,
+                slot__date__lte=period.immersion_end_date,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+                cancellation_type__isnull=True
+            ).count()
 
-        if record:
+        if record.pk:
             context.update({"record": record})  # for modal nuke purpose
+
+            # Extra forms for quotas and documents
+            for quota in VisitorRecordQuota.objects\
+                    .filter(record=record)\
+                    .order_by("period__immersion_start_date"):
+                quota_form = VisitorRecordQuotaForm(
+                    request=self.request,
+                    instance=quota,
+                    prefix=f"quota_{quota.period.id}"
+                )
+                quota_forms.append(quota_form)
+
+            for document in VisitorRecordDocument.objects\
+                    .filter(record=record, archive=False)\
+                    .order_by("attestation__order"):
+                document_form = VisitorRecordDocumentForm(
+                    request=self.request,
+                    instance=document,
+                    prefix=f"document_{document.attestation.id}"
+                )
+                document_forms.append(document_form)
+
+        # Record status
+        if self.request.user.is_visitor():
+            msg = _("Your record status : %s") % record.get_validation_display()
+        else:
+            msg = _("Current record status : %s") % record.get_validation_display()
+
+        messages.info(self.request, msg)
+
+        # Periods to display
+        period_filter = {'registration_start_date__gt': today} if record and record.pk \
+            else {'immersion_end_date__gte': today}
+
+        # Document archives
+        archives = defaultdict(list)
+        for archive in VisitorRecordDocument.objects \
+                .filter(Q(validity_date__gte=today) | Q(validity_date__isnull=True), record=record, archive=True) \
+                .order_by("-validity_date"):
+            archives[archive.attestation.id].append(archive)
+
         context.update({
-            "past_immersions": past_immersions, "future_immersions": future_immersions,
+            "past_immersions": past_immersions,
+            "future_immersions": future_immersions,
             "visitor": visitor,
             "student": visitor,  # visitor = student for modal nuke purpose
             "user_form": user_form,
+            "quota_forms": quota_forms,
+            "document_forms": document_forms,
             "back_url": self.request.session.get("back"),
-            "calendar": calendar,
-            "can_change": hash_change_permission,  # can change number of allowed positions
-            "immersion_number": immersion_number,
+            "can_change": has_change_permission,  # can change number of allowed immersions
+            "immersions_count": immersions_count,
+            'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+            'archives': archives
         })
         return context
 
@@ -1131,14 +1471,17 @@ class VisitorRecordView(FormView):
 
         try:
             msg = user.send_message(self.request, "CPT_MIN_CHANGE_MAIL")
-            messages.warning(
-                self.request,
-                _(
-                    """You have updated the email."""
-                    """<br>Warning : the new email is also the new login."""
-                    """<br>A new activation email has been sent."""
-                ),
-            )
+            if msg:
+                messages.error(self.request, _("Cannot send email : %s") % msg)
+            else:
+                messages.warning(
+                    self.request,
+                    _(
+                        """You have updated the email."""
+                        """<br>Warning : the new email is also the new login."""
+                        """<br>A new activation email has been sent."""
+                    ),
+                )
         except Exception as exc:
             logger.exception("Cannot send 'change mail' message : %s", exc)
 
@@ -1149,6 +1492,11 @@ class VisitorRecordView(FormView):
         record_id: Optional[int] = self.kwargs.get("record_id")
         current_email: Optional[str] = None
         user: Optional[ImmersionUser] = None
+        create_documents = False
+        next = False
+        quota_forms = []
+        document_forms = []
+        periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
 
         if request.user.is_visitor():
             user = request.user
@@ -1163,21 +1511,174 @@ class VisitorRecordView(FormView):
         if user:
             current_email = user.email
 
+        if not self.record:
+            create_documents = True
+
         if form.is_valid() and form_user.is_valid():
-            form.save()
+            record = form.save()
             saved_user = form_user.save()
+
+            # Default quotas for newly created records
+            for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+                if not VisitorRecordQuota.objects.filter(record=record, period=period).exists():
+                    VisitorRecordQuota.objects.create(
+                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                    )
+
+            # birth date update : new validation required
+            if 'birth_date' in form.changed_data:
+                if record.validation in [2, 3]:
+                    messages.info(
+                        request,
+                        _("Your birth date have been updated, your record needs a new validation")
+                    )
+
+                # Documents update needed
+                create_documents = True
+
+            # Quota for non-visitor user
+            if not request.user.is_visitor():
+                quota_form_valid = True
+
+                for quota in VisitorRecordQuota.objects.filter(record=record):
+                    quota_form = VisitorRecordQuotaForm(
+                        request.POST,
+                        instance=quota,
+                        request=request,
+                        prefix=f"quota_{quota.period.id}"
+                    )
+
+                    if quota_form.is_valid():
+                        quota_form.save()
+                    else:
+                        quota_form_valid = False
+
+                    quota_forms.append(quota_form)
+
+                if not quota_form_valid:
+                    messages.error(request, _("You have errors in Immersion periods section"))
+            else:
+                self.no_quota_form = True
+
+            # Documents forms
+            if create_documents:
+                self.no_document_form = True
+                today = timezone.localdate()
+                visitor_age = today.year - record.birth_date.year \
+                              - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
+
+                attestation_filters = {
+                    'profiles__code': "VIS"
+                }
+
+                if visitor_age >= 18:
+                    attestation_filters['for_minors'] = False
+
+                current_documents = VisitorRecordDocument.objects.filter(record=record)
+                attestations = AttestationDocument.activated.filter(**attestation_filters)
+
+                # Clean documents if school has changed, including archives
+                for vrd in current_documents:
+                    if vrd.attestation not in attestations:
+                        vrd.delete()
+
+                if attestations.exists():
+                    creations = 0
+
+                    for attestation in attestations:
+                        obj, created = VisitorRecordDocument.objects.update_or_create(
+                            record=record,
+                            attestation=attestation,
+                            archive=False,
+                            defaults={
+                                'for_minors': attestation.for_minors,
+                                'mandatory': attestation.mandatory,
+                                'requires_validity_date': attestation.requires_validity_date,
+                                'archive': False
+                            }
+                        )
+
+                        creations += 1 if created else 0
+
+                    if creations:
+                        next = True
+                        # Documents have to be filled -> status = 0
+                        record.set_status("TO_COMPLETE")
+                    else:
+                        record.set_status("TO_VALIDATE")
+                else:
+                    # No attestation
+                    record.set_status("TO_VALIDATE")
+            else:
+                documents = VisitorRecordDocument.objects \
+                    .filter(record=record, archive=False) \
+                    .order_by("attestation__order")
+
+                document_form_valid = True
+
+                if documents:
+                    for document in documents:
+                        document_form = VisitorRecordDocumentForm(
+                            request.POST,
+                            request.FILES,
+                            instance=document,
+                            request=request,
+                            prefix=f"document_{document.attestation.id}"
+                        )
+
+                        if document_form.is_valid():
+                            document = document_form.save()
+                            if document_form.has_changed() and 'document' in document_form.changed_data:
+                                document.deposit_date = timezone.now()
+                                document.validity_date = None
+                                document.save()
+                                if record.validation == VisitorRecord.STATUSES["VALIDATED"]:
+                                    record.set_status('TO_REVALIDATE')
+                                else:
+                                    record.set_status('TO_VALIDATE')
+                        else:
+                            document_form_valid = False
+
+                        document_forms.append(document_form)
+
+                    if not document_form_valid:
+                        messages.error(request, _("You have errors in Attestations section"))
+                    else:
+                        if record.validation == VisitorRecord.STATUSES["TO_COMPLETE"]:
+                            record.set_status('TO_VALIDATE')
+                        elif record.validation == VisitorRecord.STATUSES["VALIDATED"]:
+                            record.set_status('TO_REVALIDATE')
+
+                elif record.validation == VisitorRecord.STATUSES["TO_COMPLETE"]:
+                    record.set_status('TO_VALIDATE')
+
+            record.save()
 
             if current_email != saved_user.email:
                 self.email_changed(saved_user)
 
-            return self.form_valid(form)
+            valid_forms = all([
+                form.is_valid(),
+                form_user.is_valid(),
+                self.no_quota_form or quota_form_valid,
+                self.no_document_form or document_form_valid
+            ])
+
+            if valid_forms:
+                if request.user.is_visitor() and next:
+                    messages.warning(
+                        request, _("Record saved. Please fill all the required attestation documents below.")
+                    )
+
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
         else:
             for form_ in (form, form_user):
                 for err_field, err_list in form_.errors.get_json_data().items():
                     for error in err_list:
                         if error.get("message"):
                             messages.error(self.request, error.get("message"))
-                            print(f'err: {error.get("message")} ==> {form_.__class__}')
 
             return self.form_invalid(form)
 

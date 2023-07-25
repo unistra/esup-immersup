@@ -117,7 +117,9 @@
 
       <div class="table-responsive">
         <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
-          <thead><tr><td></td></tr></thead>
+          <thead>
+            <tr></tr>
+          </thead>
         </table>
       </div>
     </div>
@@ -178,6 +180,8 @@
           cnt_columns = data.cnt_columns
           registrations_columns = data.registrations_columns
 
+          console.log(data)
+
           dt = $('#statistics_table').DataTable({
             'processing': false,
             'order': [
@@ -192,10 +196,11 @@
             'data': data.data,
             'columns': data.columns,
             'searching': true,
+            {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
             'language': {
-              url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+              url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
             },
-
+            {% endif %}
             "columnDefs": [
               {
                 "defaultContent": "",

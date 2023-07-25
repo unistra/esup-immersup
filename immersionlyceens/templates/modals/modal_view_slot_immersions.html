@@ -15,17 +15,18 @@
         <div class="row">
           <div class="col">
             <div class="table-responsive">
-              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;>
+              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
               <thead>
                 <tr>
                   <th></th>
-                  <th>{% trans 'Lastname' %}</th>
-                  <th>{% trans 'Firstname' %}</th>
-                  <th>{% trans 'Profile' %}</th>
-                  <th>{% trans 'High-school / Home institution' %}</th>
-                  <th>{% trans 'City' %}</th>
-                  <th>{% trans 'Level' %}</th>
-                  <th>{% trans 'Attendances' %}</th>
+                  <th scope="col">{% trans 'Lastname' %}</th>
+                  <th scope="col">{% trans 'Firstname' %}</th>
+                  <th scope="col">{% trans 'Profile' %}</th>
+                  <th scope="col">{% trans 'High-school / Home institution' %}</th>
+                  <th scope="col">{% trans 'City' %}</th>
+                  <th scope="col">{% trans 'Level' %}</th>
+                  <th scope="col">{% trans 'Attendances' %}</th>
+                  <th scope="col">{% trans 'Date of registration' %}</th>
                 </tr>
                 <tr id="id_attendances">
                   <th colspan='7'></th>
@@ -39,10 +40,12 @@
                       </button>
                     </div>
                   </th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -82,10 +85,10 @@
         {% comment %}
           Attendances : same groups but INTER users can also update attendances for their courses/visits/events
         {% endcomment %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
           <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
           <button type="button" id="btn_attendance_pdf" class="btn btn-primary mr-2 mb-2 resp-btn">{% trans 'Attendance list' %}</button>
         {% endif %}
           <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
@@ -112,7 +115,9 @@ function set_attendance(immersion_id, value) {
         setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
       }
       dtr.ajax.reload();
-      dt.ajax.reload();
+
+      // Refresh main table and jump to the previous page
+      dt.ajax.reload(null, false);
     },
     error: function(json) {
       console.log(json);
@@ -183,9 +188,11 @@ dtr = $('#students_list').DataTable({
     style: 'multi',
     selector: 'td:first-child'
   },
+  {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
   'language': {
-    url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+    url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
   },
+  {% endif %}
   'columns': [
     {"data": "isChecked",
      "class": "checkcell",
@@ -227,8 +234,24 @@ dtr = $('#students_list').DataTable({
      }
     },
     {"data": "profile"},
-    {"data": "school"},
-    {"data": "city"},
+    { "data": "school",
+      "render": function (data, type, row) {
+        if(type === 'sort') {
+          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        return data
+      }
+    },
+    {"data": "city",
+      "render": function (data, type, row) {
+        if(type === 'sort') {
+          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        return data
+      }
+    },
     {"data": "level"},
     {"data": "attendance",
      "render": function(data, type, row) {
@@ -253,8 +276,17 @@ dtr = $('#students_list').DataTable({
         else {
          return data;
         }
-     }
+     },
     },
+    {"data": "registration_date",
+     render: function(data, type, row) {
+       if (type !== 'sort') {
+         return data ? formatDate(data) : "";
+       }
+
+       return data
+     }
+    }
   ],
   "columnDefs": [
     {

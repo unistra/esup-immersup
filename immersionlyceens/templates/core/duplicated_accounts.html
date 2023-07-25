@@ -12,9 +12,15 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
-{% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
 {% endblock %}
+{% block title %}
+{% trans "Duplicated accounts" %}
+{% endblock title %}
+
 {% block section_title %}
 <h2 class="ml-2">{% trans "Duplicated accounts" %}</h2>
 {% endblock %}
@@ -120,9 +126,11 @@
         }
       },
     'searching': true,
+    {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
     },
+    {% endif %}
     'columns': [
       { "data": "names",
         "render": function(data, type, row) {

@@ -20,7 +20,7 @@ $(document).on('change', 'select#id_city', () => {
     success(data) {
       var options = '<option value="">---------</option>'
       // console.log(data.length)
-      if (data.length == 1) {
+      if (data.length === 1) {
         options = `<option value="${data[0][0]}">${data[0][0]}</option>`
       } else {
         for (let i = 0; i < data.length; i++) {
@@ -68,3 +68,26 @@ if ($(this).val() != 'FR') {
 }
 })
 
+$(document).on('change', 'input#id_with_convention', function() {
+  // Disable convention date fields and datepickers when 'with_convention' is unchecked
+  $('#id_convention_start_date').prop("disabled", !$(this).is(':checked'))
+  $('#id_convention_start_date').prop("required", $(this).is(':checked'))
+  $('#id_convention_end_date').prop("disabled", !$(this).is(':checked'))
+  $('#id_convention_end_date').prop("required", $(this).is(':checked'))
+
+   // Hide date fields
+  $('.field-convention_start_date').toggle($(this).is(':checked') === true)
+  $('.field-convention_end_date').toggle($(this).is(':checked') === true)
+
+  /*
+  $('#id_convention_start_date').next('.datetimeshortcuts').toggle($(this).is(':checked') === true)
+  $('#id_convention_end_date').next('.datetimeshortcuts').toggle($(this).is(':checked') === true)
+  */
+})
+
+// init
+$(document).ready(function() {
+   // Hide date fields if convention is not checked
+  $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)
+  $('.field-convention_end_date').toggle($('#id_with_convention').is(':checked') === true)
+})

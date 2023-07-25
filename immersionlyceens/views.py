@@ -1,12 +1,12 @@
 import datetime
+import json
 import mimetypes
 import os
 import sys
-import requests
-
 from email.policy import default
 from wsgiref.util import FileWrapper
 
+import requests
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models.query_utils import Q
@@ -20,14 +20,14 @@ from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from immersionlyceens.exceptions import DisplayException
-
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, ImmersupFile, InformationText,
-    PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
-    UserCourseAlert, Visit,
+    AccompanyingDocument, AttestationDocument, Course, Establishment, FaqEntry,
+    HighSchool, InformationText, Period, PublicDocument,
+    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
+from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
+
 
 def home(request):
     """Homepage view"""
@@ -89,15 +89,22 @@ def offer(request):
     """Offer view"""
 
     try:
-        offer_txt = InformationText.objects.get(code="OFFER", active=True).content
+        offer_txt = InformationText.objects.get(code="INTRO_OFFER_COURSE", active=True).content
     except InformationText.DoesNotExist:
         offer_txt = ''
 
+    today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    courses_count = Course.objects.filter(published=True).count()
+    slots_count = Slot.objects.filter(published=True, visit__isnull=True,event__isnull=True).filter(
+        Q(date__isnull=True)
+        | Q(date__gte=today.date())
+        | Q(date=today.date(), end_time__gte=today.time())
+
+    ).distinct().count()
+
     context = {
         'subdomains': subdomains,
-        'courses_count': courses_count,
+        'slots_count': slots_count,
         'offer_txt': offer_txt,
     }
     return render(request, 'offer.html', context)
@@ -142,9 +149,19 @@ def procedure(request):
     except InformationText.DoesNotExist:
         procedure_group_txt = ''
 
+    highschools = HighSchool.agreed.values("city", "label", "email")
+    establishments = Establishment.activated.all().values('city', 'label', 'email')
+    immersion_highschools = HighSchool.immersions_proposal\
+            .filter(signed_charter=True)\
+            .values('city', 'label', 'email')
+
+    immersion_establishments = establishments.union(immersion_highschools)
+
     context = {
         'procedure_txt': procedure_txt,
         'procedure_group_txt': procedure_group_txt,
+        'highschools': json.dumps(list(highschools)),
+        'immersion_establishments': json.dumps(list(immersion_establishments))
     }
     return render(request, 'procedure.html', context)
 
@@ -184,18 +201,15 @@ def serve_public_document(request, public_document_id):
         return HttpResponseNotFound()
 
 
-def serve_immersup_file(request, file_code):
-    """
-    Returns a redirection to a stored file
-    """
-
+def serve_attestation_document(request, attestation_document_id):
+    """Serve attestation documents files"""
     try:
-        immersupfile = get_object_or_404(ImmersupFile, pk=file_code)
+        doc = get_object_or_404(AttestationDocument, pk=attestation_document_id)
         if isinstance(default_storage, S3Boto3Storage):
-            response = requests.get(immersupfile.file.url, stream=True)
+            response = requests.get(doc.template.url, stream=True)
             return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
         else:
-            return redirect(immersupfile.file.url)
+            return redirect(doc.template.url)
 
     except Exception:
         return HttpResponseNotFound()
@@ -205,10 +219,6 @@ def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
     student = None
     record = None
-    calendar = None
-    cal_start_date = None
-    cal_end_date = None
-    reg_start_date = None
     remaining_regs_count = None
     course_alerts = None
 
@@ -223,6 +233,8 @@ def offer_subdomain(request, subdomain_id):
         elif student.is_visitor():
             record = student.get_visitor_record()
 
+        # Remaining registrations for each period
+        # remaining_regs_count = { period.pk : nb_registrations_left }
         remaining_regs_count = student.remaining_registrations_count()
 
         course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).values_list(
@@ -234,40 +246,9 @@ def offer_subdomain(request, subdomain_id):
 
     data = []
 
-    # determine dates range to use
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    today = datetime.datetime.today().date()
-    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-
-    try:
-        # Year mode
-        if calendar and calendar.calendar_mode == 'YEAR':
-            cal_start_date = calendar.year_registration_start_date
-            cal_end_date = calendar.year_end_date
-            reg_start_date = calendar.year_registration_start_date
-        # semester mode
-        elif calendar:
-            if calendar.which_semester(today) == 1:
-                semester = 1
-                cal_start_date = calendar.semester1_start_date
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester1_registration_start_date
-                reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.which_semester(today) == 2:
-                semester = 2
-                cal_start_date = calendar.semester2_start_date
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester2_registration_start_date
-            else:
-                raise AttributeError
-
-    except (AttributeError, TypeError):
-        raise DisplayException(_('Calendar not initialized'), display=True)
+    now = timezone.now()
+    today = timezone.localdate()
 
     for training in trainings:
         training_courses = (
@@ -278,7 +259,7 @@ def offer_subdomain(request, subdomain_id):
 
         for course in training_courses:
             slots = Slot.objects.filter(
-                course__id=course.id, published=True, date__gte=today, date__lte=cal_end_date,
+                course__id=course.id, published=True, date__gte=today
             ).order_by('date', 'start_time', 'end_time')
 
             training_data = {
@@ -295,6 +276,23 @@ def offer_subdomain(request, subdomain_id):
                     slot.can_register = False
                     slot.cancelled = False
                     slot.opening_soon = False
+                    slot.passed_registration_limit_date = \
+                        slot.registration_limit_date < timezone.now() if slot.registration_limit_date else False
+                    slot.passed_cancellation_limit_date = \
+                        slot.cancellation_limit_date < timezone.now() if slot.cancellation_limit_date else False
+
+                    # FIXME: still used somewhere ?
+                    remaining_period_registrations = 0
+
+                    # get slot period (for dates)
+                    try:
+                        period = Period.from_date(date=slot.date)
+                        remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
+                    except Period.DoesNotExist:
+                        raise
+                    except Period.MultipleObjectsReturned:
+                        raise
+
                     # Already registered / cancelled ?
                     for immersion in student.immersions.all():
                         if immersion.slot == slot:
@@ -303,27 +301,16 @@ def offer_subdomain(request, subdomain_id):
 
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
+                    # ignore "remaining_period_registrations > 0" ?
                     if not slot.already_registered or slot.cancelled:
                         can_register, reasons = student.can_register_slot(slot)
-                        if slot.available_seats() > 0 and can_register:
-                            # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                            if calendar.calendar_mode == 'YEAR':
-                                if reg_start_date <= today <= cal_end_date:
-                                    slot.can_register = True
-                                elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
-                                    slot.opening_soon = True
-                            # Check if we could register with reg_date
-                            elif semester == 1:
-                                if reg_start_date <= today and slot.date < reg_semester2_start_date:
-                                    slot.can_register = True
-                                elif slot.date > reg_semester2_start_date or today < reg_start_date:
-                                    slot.opening_soon = True
-                            elif semester == 2:
-                                if today >= reg_start_date:
-                                    slot.can_register = True
-                                elif today < reg_start_date:
-                                    slot.opening_soon = True
 
+                        if slot.available_seats() > 0 and can_register:
+                            if period.registration_start_date <= today <= period.immersion_end_date\
+                                and slot.registration_limit_date >= now:
+                                slot.can_register = True
+                            elif now < slot.registration_limit_date:
+                                slot.opening_soon = True
             else:
                 for slot in slots:
                     slot.cancelled = False
@@ -354,10 +341,7 @@ def offer_subdomain(request, subdomain_id):
     context = {
         'subdomain': subdomain,
         'data': data,
-        'reg_start_date': reg_start_date,
         'today': today,
-        'cal_start_date': cal_start_date,
-        'cal_end_date': cal_end_date,
         'student': student,
         'open_training_id': open_training_id,
         'open_course_id': open_course_id,
@@ -410,36 +394,9 @@ def visits_offer(request):
     if Q_filter:
         visits = visits.filter(Q_filter)
 
-    # determine dates range to use
-    # TODO: refactor in model !
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    today = datetime.datetime.today().date()
-    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-    try:
-        # Year mode
-        if calendar and calendar.calendar_mode == 'YEAR':
-            cal_end_date = calendar.year_end_date
-            reg_start_date = calendar.year_registration_start_date
-        # semester mode
-        elif calendar:
-            if calendar.which_semester(today) == 1:
-                semester = 1
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester1_registration_start_date
-                reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.which_semester(today) == 2:
-                semester = 2
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester2_registration_start_date
-        else:
-            raise AttributeError
-    except (AttributeError, TypeError):
-        raise DisplayException(_('Calendar not initialized'), display=True)
+    now = timezone.now()
+    today = timezone.localdate()
 
     # If the current user is a higschool student, check whether he can register
     if student and record:
@@ -458,25 +415,20 @@ def visits_offer(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not visit.already_registered or visit.cancelled:
                 can_register, reasons = student.can_register_slot(visit)
-                if visit.available_seats() > 0 and can_register:
-                    # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                    if calendar.calendar_mode == 'YEAR':
-                        if reg_start_date <= today <= cal_end_date:
-                            visit.can_register = True
-                        elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
-                            visit.opening_soon = True
-                    # Check if we could register with reg_date
-                    elif semester == 1:
-                        if reg_start_date <= today and visit.date < reg_semester2_start_date:
-                            visit.can_register = True
-                        elif visit.date > reg_semester2_start_date or today < reg_start_date:
-                            visit.opening_soon = True
-                    elif semester == 2:
-                        if today >= reg_start_date:
-                            visit.can_register = True
-                        elif today < reg_start_date:
-                            visit.opening_soon = True
 
+                try:
+                    period = Period.from_date(date=visit.date)
+                except Period.MultipleObjectsReturned:
+                    raise
+                except Period.DoesNotExist:
+                    raise
+
+                if visit.available_seats() > 0 and can_register:
+                    if period.registration_start_date <= today <= period.immersion_end_date \
+                            and visit.registration_limit_date >= now:
+                        visit.can_register = True
+                    elif now < visit.registration_limit_date:
+                        visit.opening_soon = True
     else:
         for visit in visits:
             visit.cancelled = False
@@ -500,9 +452,6 @@ def offer_off_offer_events(request):
     today = timezone.now().date()
     student = None
     record = None
-    calendar = None
-    cal_end_date = None
-    reg_start_date = None
     Q_Filter = None
     semester = None
 
@@ -537,36 +486,9 @@ def offer_off_offer_events(request):
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
             .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date' )
 
-    # determine dates range to use
-    # TODO: refactor in model !
-    try:
-        calendar = Calendar.objects.first()
-    except Exception:
-        pass
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    today = datetime.datetime.today().date()
-    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-    try:
-        # Year mode
-        if calendar and calendar.calendar_mode == 'YEAR':
-            cal_end_date = calendar.year_end_date
-            reg_start_date = calendar.year_registration_start_date
-        # semester mode
-        elif calendar:
-            if calendar.which_semester(today) == 1:
-                semester = 1
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester1_registration_start_date
-                reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.which_semester(today) == 2:
-                semester = 2
-                cal_end_date = calendar.semester2_end_date
-                reg_start_date = calendar.semester2_registration_start_date
-            else:
-                raise AttributeError
-    except (AttributeError, TypeError):
-        raise DisplayException(_('Calendar not initialized'), display=True)
+    now = timezone.now()
+    today = timezone.localdate()
 
     # If the current user is a student/highschool student, check whether he can register
     if student and record:
@@ -586,24 +508,20 @@ def offer_off_offer_events(request):
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
                 can_register, reasons = student.can_register_slot(event)
+
+                try:
+                    period = Period.from_date(date=event.date)
+                except Period.MultipleObjectsReturned:
+                    raise
+                except Period.DoesNotExist:
+                    raise
+
                 if event.available_seats() > 0 and can_register:
-                    # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                    if calendar.calendar_mode == 'YEAR':
-                        if reg_start_date <= today <= cal_end_date:
-                            event.can_register = True
-                        elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
-                            event.opening_soon = True
-                    # Check if we could register with reg_date
-                    elif semester == 1:
-                        if reg_start_date <= today and visit.date < reg_semester2_start_date:
-                            event.can_register = True
-                        elif visit.date > reg_semester2_start_date or today < reg_start_date:
-                            event.opening_soon = True
-                    elif semester == 2:
-                        if today >= reg_start_date:
-                            event.can_register = True
-                        elif today < reg_start_date:
-                            event.opening_soon = True
+                    if period.registration_start_date <= today <= period.immersion_end_date \
+                            and event.registration_limit_date >= now:
+                        event.can_register = True
+                    elif now < event.registration_limit_date:
+                        event.opening_soon = True
     else:
         for event in events:
             event.cancelled = False
@@ -638,3 +556,62 @@ def error_500(request, *args, **kwargs):
         context["error"] = str(exc)
 
     return render(request, '500.html', context, status=500)
+
+
+def faq(request):
+    """FAQ view"""
+
+    entries = FaqEntry.activated.all().order_by('order')
+
+    context = {
+        'entries': entries,
+    }
+
+    return render(request, 'faq.html', context)
+
+
+def host_establishments(request):
+    """Host establishments view"""
+
+    establishments = Establishment.activated.all().values('city', 'label', 'email')
+    immersion_highschools = HighSchool.immersions_proposal\
+            .filter(signed_charter=True)\
+            .values('city', 'label', 'email')
+
+    immersion_establishments = establishments.union(immersion_highschools)
+
+    context = {
+        'immersion_establishments': json.dumps(list(immersion_establishments))
+    }
+    return render(request, 'establishments_under_agreement.html', context)
+
+
+def highschools(request):
+    """ Highschools public view"""
+
+    affiliated_highschools = HighSchool.agreed.values("city", "label", "email")
+
+    try:
+        affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
+                                                                      active=True).content
+    except InformationText.DoesNotExist:
+        # TODO: Default txt value ?
+        affiliated_highschools_intro_txt = ''
+
+    try:
+        not_affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_NON_CONVENTIONNES", \
+                                                                      active=True).content
+    except InformationText.DoesNotExist:
+        # TODO: Default txt value ?
+        not_affiliated_highschools_intro_txt = ''
+
+    not_affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=False) \
+                                .values("city", "label", "email")
+
+    context = {
+        'affiliated_highschools': json.dumps(list(affiliated_highschools)),
+        'affiliated_highschools_intro_txt': affiliated_highschools_intro_txt,
+        'not_affiliated_highschools': json.dumps(list(not_affiliated_highschools)),
+        'not_affiliated_highschools_intro_txt': not_affiliated_highschools_intro_txt,
+    }
+    return render(request, 'highschools.html', context)

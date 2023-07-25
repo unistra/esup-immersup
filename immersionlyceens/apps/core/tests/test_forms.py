@@ -15,25 +15,25 @@ from django.test import Client, RequestFactory, TestCase
 
 from ...immersion.models import HighSchoolStudentRecord
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
+    AccompanyingDocumentForm, AttestationDocumentForm, BachelorMentionForm,
+    BuildingForm, CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
     EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
-    HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
-    StructureForm, TrainingDomainForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    HighSchoolForm, HolidayForm, PeriodForm, PublicDocumentForm,
+    PublicTypeForm, StructureForm, TrainingDomainForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm
 )
 from ..forms import (
     HighSchoolStudentImmersionUserForm, MyHighSchoolForm, OffOfferEventForm,
     OffOfferEventSlotForm, SlotForm, VisitForm, VisitSlotForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
-    CancelType, Course, CourseType, Establishment, EvaluationFormLink,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
-    Holiday, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
-    PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, Visit,
-    HigherEducationInstitution
+    Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
+    Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Visit, HigherEducationInstitution
 )
 
 request_factory = RequestFactory()
@@ -48,7 +48,7 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', ]
 
     @classmethod
     def setUpTestData(cls):
@@ -168,6 +168,8 @@ class FormTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(cls.ref_str_user)
         Group.objects.get(name='REF-TEC').user_set.add(cls.operator_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(cls.ref_master_etab_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
 
         cls.today = datetime.datetime.today()
         cls.structure = Structure.objects.create(label="test structure")
@@ -181,7 +183,13 @@ class FormTestCase(TestCase):
         cls.training2.structures.add(cls.structure)
         cls.course = Course.objects.create(label="course 1", training=cls.training, structure=cls.structure)
         cls.course.speakers.add(cls.speaker1)
-        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.campus = Campus.objects.create(
+            label='Esplanade',
+            department='67',
+            zip_code='67000',
+            city='STRASBOURG',
+            active=True
+        )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
         cls.slot = Slot.objects.create(
@@ -199,16 +207,25 @@ class FormTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 
-        cls.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',
-                        year_start_date=cls.today + datetime.timedelta(days=1),
-                        year_end_date=cls.today + datetime.timedelta(days=100),
-                        year_registration_start_date=cls.today + datetime.timedelta(days=2),
-                        year_nb_authorized_immersion=4
-                        )
+        cls.past_period = Period.objects.create(
+            label='Past period',
+            registration_start_date=cls.today - datetime.timedelta(days=12),
+            immersion_start_date=cls.today - datetime.timedelta(days=10),
+            immersion_end_date=cls.today - datetime.timedelta(days=8),
+            allowed_immersions=4
+        )
+
+        cls.period1 = Period.objects.create(
+            label = 'Period 1',
+            registration_start_date = cls.today + datetime.timedelta(days=10),
+            immersion_start_date = cls.today + datetime.timedelta(days=20),
+            immersion_end_date = cls.today + datetime.timedelta(days=40),
+            allowed_immersions=4
+        )
 
         cls.evaluation_type = EvaluationType.objects.create(code='testCode', label='testLabel')
         cls.event_type = OffOfferEventType.objects.create(label="Event type label")
@@ -217,6 +234,168 @@ class FormTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
+
+
+    def test_period_form(self):
+        """
+        Period form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        data = {
+            'label': 'Period 2',
+            'registration_start_date': self.today - datetime.timedelta(days=8),
+            'immersion_start_date': self.today - datetime.timedelta(days=6),
+            'immersion_end_date': self.today + datetime.timedelta(days=1),
+            'allowed_immersions': 4
+        }
+
+        # Fail : no active year
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("An active university year is required to create a period", form.errors['__all__'])
+
+        university_year = UniversityYear.objects.create(
+            label='Active year',
+            start_date=self.today - datetime.timedelta(days=10),
+            end_date=self.today + datetime.timedelta(days=300),
+            registration_start_date=self.today,
+        )
+
+        # Fail : dates in the past
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A new period can't be set with a start_date in the past", form.errors["__all__"])
+
+        # Fail : start date overlaps an existing period
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=25),
+            "immersion_start_date": self.today + datetime.timedelta(days=35),
+            "immersion_end_date": self.today + datetime.timedelta(days=60),
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : end date overlaps an existing period
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=2),
+            "immersion_start_date": self.today + datetime.timedelta(days=8),
+            "immersion_end_date": self.today + datetime.timedelta(days=21),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : end date out of university year dates
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=290),
+            "immersion_start_date": self.today + datetime.timedelta(days=295),
+            "immersion_end_date": self.today + datetime.timedelta(days=340),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "All period dates must be between university year start/end dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : start date out of university year dates
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=290),
+            "immersion_start_date": self.today + datetime.timedelta(days=310),
+            "immersion_end_date": self.today + datetime.timedelta(days=340),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "All period dates must be between university year start/end dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : registration date out of university year dates
+        data.update({
+            "registration_start_date": self.today - datetime.timedelta(days=15),
+            "immersion_start_date": self.today + datetime.timedelta(days=1),
+            "immersion_end_date": self.today + datetime.timedelta(days=2),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "All period dates must be between university year start/end dates",
+            form.errors["__all__"]
+        )
+
+        # Fail : dates inversions
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_start_date": self.today + datetime.timedelta(days=70),
+            "immersion_end_date": self.today + datetime.timedelta(days=60),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Start date is after end date", form.errors["__all__"])
+
+        # Fail : registration date after immersions start_date
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=60),
+            "immersion_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_end_date": self.today + datetime.timedelta(days=70),
+        })
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Registration start date must be before the immersions start date", form.errors["__all__"])
+
+        # Fail : missing dates
+        data.update({
+            "registration_start_date": self.today + datetime.timedelta(days=50),
+            "immersion_end_date": self.today + datetime.timedelta(days=70),
+        })
+
+        data.pop("immersion_start_date")
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A period requires all dates to be filled in", form.errors["__all__"])
+
+        # Fail : duplicated label
+        # test 1: exact same label
+        data.update({
+            "label": "Period 1",
+            "registration_start_date": self.today + datetime.timedelta(days=35),
+            "immersion_start_date": self.today + datetime.timedelta(days=60),
+            "immersion_end_date": self.today + datetime.timedelta(days=70),
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Period with this Label already exists.", form.errors["label"])
+
+        # test 2 : using unaccent
+        data.update({
+            "label": "Périod 1",
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A Period object with the same label already exists", form.errors["__all__"])
+
+        # Success
+        data.update({
+            "label": "Period 2",
+        })
+
+        form = PeriodForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Period.objects.filter(label='Period 2').exists())
 
 
     def test_slot_form(self):
@@ -247,7 +426,7 @@ class FormTestCase(TestCase):
             'campus': self.campus.id,
             'building': self.building.id,
             'room': 'room 1',
-            'date': self.today + datetime.timedelta(days=10),
+            'date': self.today + datetime.timedelta(days=21),
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -287,7 +466,7 @@ class FormTestCase(TestCase):
             'campus': self.campus.id,
             'building': self.building.id,
             'room': 'room 1',
-            'date': self.today + datetime.timedelta(days=10),
+            'date': self.today + datetime.timedelta(days=21),
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -310,7 +489,6 @@ class FormTestCase(TestCase):
         # FAILS #
         #########
         request.user = self.ref_master_etab_user
-
         invalid_data = {
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -329,13 +507,26 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("You can't set a date in the past", form.errors["date"])
 
-        # Fail : Not between calendar dates
-        invalid_data["date"] = self.today + datetime.timedelta(days=102)
+        # Fail : period not found
+        i_date = self.today + datetime.timedelta(days=102)
+        invalid_data["date"] = i_date
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % i_date.strftime("%Y-%m-%d"),
+            form.errors["date"]
+        )
 
         # Fail : time errors
+
+        period_now = Period.objects.create(
+            label='Now',
+            registration_start_date=self.today - datetime.timedelta(days=2),
+            immersion_start_date=self.today - datetime.timedelta(days=1),
+            immersion_end_date=self.today + datetime.timedelta(days=1),
+            allowed_immersions=4
+        )
+
         invalid_data["date"] = self.today
         invalid_data["start_time"] = datetime.time(hour=0)
         invalid_data["end_time"] = datetime.time(hour=1)
@@ -343,7 +534,7 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
 
-        invalid_data["date"] = self.today + datetime.timedelta(days=10)
+        invalid_data["date"] = self.today + datetime.timedelta(days=21)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
         form = SlotForm(data=invalid_data, request=request)
@@ -355,12 +546,6 @@ class FormTestCase(TestCase):
         form = SlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Required fields are not filled in", form.errors["__all__"])
-
-        # Fail : no calendar
-        self.calendar.delete()
-        form = SlotForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Error: A calendar is required to set a slot.", form.errors["__all__"])
 
 
     def test_HighSchoolStudentImmersionUserForm(self):
@@ -482,12 +667,15 @@ class FormTestCase(TestCase):
 
         data["speakers"] = [self.speaker1.id]
 
-        # Fail : date not in calendar
+        # Fail : no period for the following date
         data["date"] = self.today + datetime.timedelta(days=101)
 
         form = VisitSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
+            form.errors["date"]
+        )
 
         data["date"] = self.today + datetime.timedelta(days=30)
 
@@ -704,15 +892,18 @@ class FormTestCase(TestCase):
 
         data["speakers"] = [self.speaker1]
 
-        # Fail : date not in calendar
+        # Fail : date not in periods limit
         data["date"] = self.today + datetime.timedelta(days=101)
 
         form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+        self.assertIn(
+            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
+            form.errors["date"]
+        )
 
         # Fail : date in the past
-        data["date"] = self.today - datetime.timedelta(days=1)
+        data["date"] = self.today - datetime.timedelta(days=10)
 
         form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -750,3 +941,50 @@ class FormTestCase(TestCase):
         slot = Slot.objects.get(event=event)
         self.assertEqual(slot.speakers.count(), 1)
         self.assertEqual(slot.speakers.first(), self.speaker1)
+
+
+    def test_attestation_document_form(self):
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        document = AttestationDocument.objects.create(label="Test", active=True)
+        lyc_w_conv_profile = Profile.objects.get(code="LYC_W_CONV")
+        lyc_wo_conv_profile = Profile.objects.get(code="LYC_WO_CONV")
+
+        data = {
+            "id": document.id,
+            "order": document.order,
+            "label": "New label",
+            "active": True,
+            "profiles": [lyc_w_conv_profile.pk, ]
+        }
+
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(AttestationDocument.objects.filter(label='New label').exists())
+        self.assertFalse(AttestationDocument.objects.filter(label='Test').exists())
+
+        document.refresh_from_db()
+
+        # Should fail because ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT is disabled
+        data["profiles"] = [lyc_w_conv_profile.pk, lyc_wo_conv_profile.pk]
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        form.is_valid()
+
+        self.assertIn(
+            "Select a valid choice. %s is not one of the available choices." % lyc_wo_conv_profile.pk,
+            form.errors["profiles"]
+        )
+
+        self.assertFalse(form.is_valid())
+
+        # No profile
+        data["profiles"] = []
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        form.is_valid()
+
+        self.assertIn("At least one profile is required", form.errors["__all__"])
+
+        self.assertFalse(form.is_valid())

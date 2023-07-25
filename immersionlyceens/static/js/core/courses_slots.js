@@ -1,9 +1,19 @@
 function init_datatable() {
+  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
+  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
+  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
+
   dt = $('#slots_list').DataTable({
     ajax: {
-      url: '/api/slots',
+      url: "/core/utils/slots",
       data: function(d) {
-          d.training_id = current_training_id || $('#id_training').val();
+          if($('#id_establishment').val()) {
+            d.establishment_id = current_establishment_id || $('#id_establishment').val();
+          }
+
+          if($('#id_training').val()) {
+            d.training_id = current_training_id || $('#id_training').val();
+          }
 
           if($('#id_structure').val()) {
             d.structure_id = current_structure_id || $('#id_structure').val();
@@ -23,18 +33,18 @@ function init_datatable() {
         return [];
       }
     },
-    order: [[4, "asc"]],
+    order: [[5, "asc"]],
     processing: false,
     serverSide: false,
     responsive: false,
     info: false,
-    search: true,
+    searching: true,
     searchCols: [
         null,
         null,
+        null,
+        null,
         { "search": course_label_filter.normalize("NFD").replace(/\p{Diacritic}/gu, "")},
-        null,
-        null,
         null,
         null,
         null,
@@ -47,195 +57,127 @@ function init_datatable() {
       url: language_file
     },
     columns: [
+        { data: 'id',
+          render: function(data, type, row) {
+            let element = ""
+
+            if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
+              if ( show_duplicate_btn ) {
+                element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
+                           `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
+              }
+
+              if(row.is_past === false && show_modify_btn) {
+                element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
+              }
+              if(row.n_register === 0 && row.is_past === false && show_delete_btn) {
+                element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
+              }
+
+              if(row.attendances_value === 1) {
+                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places} , ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+                           `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
+                           `</button>`;
+              }
+              else if(row.attendances_value !== -1) {
+                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+                           `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
+                           `</button>`;
+              }
+            }
+            return element;
+          }
+        },
         { data: 'published',
           render: function(data, type, row) {
             return (data) ? yes_text : no_text;
           }
         },
-        { data: 'structure',
+        { data: 'structure_code',
           render: function(data, type, row) {
-            if(row.structure) {
-                return row.establishment.code + " - " + row.structure.code;
+            if(row.structure_code) {
+              return `${row.establishment_code} - ${row.structure_code}`
             }
-            else if (row.highschool) {
-                return row.highschool.city + " - " + row.highschool.label;
+            else if (row.highschool_label) {
+              return `${row.highschool_city} - ${row.highschool_label}`
             }
 
             return ""
           },
         },
-        { data: "course",
+        { data: 'course_training_label' },
+        { data: "course_id",
           render: function (data, type, row) {
             let txt = ""
 
-            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
-              txt = '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
-            } else {
-              txt = data.label
+            if(type === 'filter') {
+              return `${row.course_label.normalize("NFD").replace(/\p{Diacritic}/gu, "")} (${row.course_type_label})`
             }
+
+            if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
+              txt = `<a href="/core/course/${row.course_id}">${row.course_label} (${row.course_type_label})</a>`
+            } else {
+              txt = `{row.course_label} (${row.course_type_label})`
+            }
+
+            return txt
+          },
+        },
+        { data: 'date',
+          render: function(data, type, row) {
+            return display_slot_date(data, type, row)
+          }
+        },
+        { data: 'n_register',
+          render: function(data, type, row) {
+            return display_n_register(data, type, row);
+          }
+        },
+        { data: 'campus_label',
+          render: function(data, type, row) {
+            let campus_label = data
+            let building_label = row.building_label
+            let room = row.room
+
+            let txt = is_set(campus_label) ? campus_label : ''
+            txt += txt !== '' ? '<br>' : ''
+            txt += is_set(building_label) ? building_label : ''
+            txt += txt !== '' ? '<br>' : ''
+            txt += is_set(room) ? room : ''
 
             if(type === 'filter') {
               return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
             }
 
             return txt
-          },
-        },
-        { data: 'course_type' },
-        { data: 'datetime',
-          render: function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
-            }
-
-            return data;
           }
         },
-        { data: 'location',
+        { data: 'speaker_list',
           render: function(data, type, row) {
-            let txt = data['campus'] + '<br>' + data['building'];
-
-            if(type === 'filter') {
-                return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-            }
-
-            return txt
-          }
-        },
-        { data: 'room',
-          render: function (data, type, row) {
-            if(type === 'filter') {
-              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-            }
-
-            return data
-          }
-        },
-        { data: 'speakers',
-          render: function(data, type, row) {
-            let element = '';
-            $.each(data, function(name, email) {
-              element += '<a href="mailto:' + email + '">' + name + '</a><br>'
-            });
-
-            if(type === 'filter') {
-              return element.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-            }
-
-            return element;
-          }
-        },
-        { data: 'n_register',
-          render: function(data, type, row) {
-            let current = data;
-            let n = row['n_places'];
-            element = '<span>' + current + '/' + n + '</span>' +
-                '<div class="progress">' +
-                '    <div' +
-                '       class="progress-bar"' +
-                '       role="progressbar"' +
-                '       aria-valuenow="' + current + '"' +
-                '       aria-valuemin="0"' +
-                '       aria-valuemax="' + n + '"' +
-                '       style="width: ' + Math.round(current/n * 100) + '%"' +
-                '></div>' +
-                '</div>';
-            return element;
+            return display_slot_speakers(data, type, row)
           }
         },
         { data: 'additional_information',
           render: function(data) {
-            if (data) {
-              return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
-            } else {
-              return '';
-            }
+            return display_additional_information(data)
           }
         },
-        { data: 'restrictions',
-          render: function(data) {
-            let txt = ""
-
-            if(data.establishment_restrictions === true) {
-              txt += establishments_txt + " :\n"
-              data.allowed_establishments.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-
-              data.allowed_highschools.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-            }
-
-            if(data.levels_restrictions === true) {
-              if(txt) txt += "\n"
-
-              txt += levels_txt + " :\n"
-
-              data.allowed_highschool_levels.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-
-              data.allowed_post_bachelor_levels.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-
-              data.allowed_student_levels.forEach(item => {
-                txt += "- " + item + "\n"
-              })
-            }
-
-            if (txt) {
-              return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
-            } else {
-              return '';
-            }
-          }
-        },
-        { data: 'id',
+        { data: '',
           render: function(data, type, row) {
-            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
-              let element =
-            '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
-            '         title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
-
-              if(row.is_past === false) {
-                element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="' + modify_text + '"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
-              }
-              if(row.n_register === 0 && row.is_past === false) {
-                element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="' + delete_text + '"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
-              }
-
-              if(row.attendances_value === 1) {
-                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+","+row.face_to_face+")\" title=\"" + attendances_text + "\">" +
-                           "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
-                           "</button>";
-              }
-              else if (row.attendances_value !== -1) {
-                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+")\" title=\"" + registered_text + "\">" +
-                           "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
-                           "</button>";
-              }
-
-              element += "</div>";
-
-              return element;
-            } else {
-              return '';
-            }
+            // Use common slots function
+            return display_slot_restrictions(data, type, row)
           }
         },
     ],
-    columnDefs: [{
-        defaultContent: '-',
-        targets: '_all'
-    }],
+    columnDefs: [
+        { defaultContent: '-', targets: '_all' },
+    ],
 
     initComplete: function () {
       var api = this.api();
 
-      var columns_idx = [2, 5, 6, 7]
-      var initial_values = { 2: course_label_filter };
+      var columns_idx = [4, 7, 8]
+      var initial_values = { 4: course_label_filter };
 
       columns_idx.forEach(function(col_idx) {
         var column = api.column(col_idx)
@@ -288,7 +230,7 @@ function init_datatable() {
     yadcf.exResetAllFilters(dt);
 
     // Clear search inputs
-    let columns_idx = [2, 5, 6, 7]
+    let columns_idx = [4, 7, 8]
 
     columns_idx.forEach(function(col_idx) {
       let column = dt.column(col_idx)
@@ -305,77 +247,44 @@ function init_datatable() {
     dt.ajax.reload();
   });
 
+  dt.on( 'draw', function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+
   yadcf.init(dt, [
     {
-        column_number: 0,
+        column_number: 1,
         filter_default_label: "",
         filter_container_id: "published_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
     {
-        column_number: 1,
+        column_number: 2,
         filter_default_label: "",
         filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
         filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
-    /*
-    {
-        column_number: 2,
-        filter_default_label: "",
-        filter_match_mode: "exact",
-        filter_container_id: "course_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    */
     {
         column_number: 3,
         filter_default_label: "",
         filter_match_mode: "exact",
-        filter_container_id: "course_type_filter",
+        filter_container_id: "training_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
     {
-        column_number: 4,
+        column_number: 5,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "date_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
-    /*
-    {
-        column_number: 5,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "building_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-
     {
         column_number: 6,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "room_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    {
-        column_number: 7,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "speakers_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    */
-    {
-        column_number: 8,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "registration_filter",
@@ -384,11 +293,4 @@ function init_datatable() {
     },
   ])
 
-  /*
-  if(course_label_filter) {
-    yadcf.exFilterColumn(dt, [
-      [2, [course_label_filter]],
-    ]);
-  }
-  */
 }

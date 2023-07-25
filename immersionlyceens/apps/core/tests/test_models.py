@@ -6,18 +6,19 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
 )
 
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
-    CancelType, Course, CourseType, CustomThemeFile, Establishment,
-    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, Course, CourseType, CustomThemeFile,
+    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
-    Holiday, ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot,
-    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    Holiday, ImmersionUser, Period, PublicDocument, PublicType,
+    RefStructuresNotificationsSettings, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -25,10 +26,6 @@ class CampusTestCase(TestCase):
     fixtures = ['higher']
 
     def test_campus_model(self):
-        test_campus = Campus.objects.create(label='MyCampus')
-        self.assertEqual(test_campus.active, True)
-        self.assertEqual(str(test_campus), 'MyCampus (-)')
-
         establishment = Establishment.objects.create(
             code='ETA2',
             label='Etablissement 2',
@@ -36,18 +33,24 @@ class CampusTestCase(TestCase):
             active=True,
             master=False,
             email='test@test.com',
-            address= 'address',
+            address='address',
             department='departement',
             city='city',
-            zip_code= 'zip_code',
-            phone_number= '+33666',
+            zip_code='zip_code',
+            phone_number='+33666',
             uai_reference=HigherEducationInstitution.objects.first()
         )
 
-        test_campus.establishment = establishment
-        test_campus.save()
-
-        self.assertEqual(str(test_campus), f'{test_campus.label} ({establishment.label})')
+        test_campus = Campus.objects.create(
+            label='MyCampus',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True,
+            establishment=establishment
+        )
+        self.assertEqual(test_campus.active, True)
+        self.assertEqual(str(test_campus), 'MyCampus (Strasbourg)')
 
 
     def test_building_str(self):
@@ -201,48 +204,6 @@ class TestVacationCase(TestCase):
         self.assertTrue(Vacation.date_is_inside_a_vacation(now + timedelta(days=2)))
         self.assertFalse(Vacation.date_is_inside_a_vacation(now + timedelta(days=999)))
 
-
-class TestCalendarCase(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.today = timezone.now()
-
-    def test_calendar_str(self):
-        label = "Calendar"
-        o = Calendar.objects.create(
-            label=label,
-            year_start_date=self.today,
-            year_end_date=self.today + timedelta(days=2),
-            year_registration_start_date=self.today + timedelta(days=1),
-            year_nb_authorized_immersion=4,
-        )
-
-        self.assertEqual(str(o), label)
-
-    def test_calendar__date_is_between(self):
-        o = Calendar.objects.create(
-            label='Calendar',
-            year_start_date=self.today + timedelta(days=1),
-            year_end_date=self.today + timedelta(days=3),
-            year_registration_start_date=self.today + timedelta(days=1),
-            year_nb_authorized_immersion=4,
-        )
-
-        # inside
-        # start < date < end
-        self.assertTrue(o.date_is_between(self.today + timedelta(days=2)))
-        # start = date
-        self.assertTrue(o.date_is_between(self.today + timedelta(days=1)))
-        # end = date
-        self.assertTrue(o.date_is_between(self.today + timedelta(days=3)))
-
-        # date < start < end
-        self.assertFalse(o.date_is_between(self.today + timedelta(days=-99)))
-
-        # start < end < date
-        self.assertFalse(o.date_is_between(self.today + timedelta(days=99)))
-
-
 class TestPublicDocumentCase(TestCase):
     def test_public_document_str(self):
         label = "testDocument"
@@ -255,18 +216,6 @@ class TestPublicDocumentCase(TestCase):
         }
         o = PublicDocument.objects.create(**data)
         self.assertEqual(str(o), label)
-
-
-class TestImmersupFileCase(TestCase):
-    def test_immersupfile_str(self):
-        code = "TEST_CODE"
-
-        data = {
-            'code': code,
-            'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf"),
-        }
-        o = ImmersupFile.objects.create(**data)
-        self.assertEqual(str(o), "'%s' - file : %s" % (code, o.file.name))
 
 
 class TestEvaluationTypeCase(TestCase):
@@ -299,7 +248,13 @@ class TestSlotCase(TestCase):
         course = Course.objects.create(label='my super course', training=t, structure=c)
 
         # Campus
-        campus = Campus.objects.create(label='Campus Esplanade')
+        campus = Campus.objects.create(
+            label='Campus Esplanade',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            active=True
+        )
 
         # Building
         building = Building.objects.create(label='Le portique', campus=campus)
@@ -357,15 +312,6 @@ class TrainingCase(TestCase):
 
         t.structures.add(self.structure)
         self.assertTrue(t.is_structure())
-
-    def test_training__can_delete(self):
-        t = Training.objects.create(label="training2")
-        t.structures.add(self.structure)
-
-        self.assertTrue(t.can_delete())
-
-        course = Course.objects.create(label="course 1", training=t, structure=self.structure)
-        self.assertFalse(t.can_delete())
 
     def test_distinct_establishments(self):
         t = Training.objects.create(label="training2")
@@ -601,10 +547,7 @@ class ImmersionUserTestCase(TestCase):
             uai_code=institution.uai_code,
             birth_date=timezone.now(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
         )
 
         # Check that the link between the student record and Establishment is good (same object)
@@ -627,7 +570,7 @@ class ImmersionUserTestCase(TestCase):
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere S 3',
-            bachelor_type=3,
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
             professional_bachelor_mention='My spe'
         )
 
@@ -662,20 +605,9 @@ class ImmersionUserTestCase(TestCase):
             uai_code=institution.uai_code,
             birth_date=self.today - timedelta(days=8000),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
-            allowed_global_registrations=2,
-            allowed_first_semester_registrations=0,
-            allowed_second_semester_registrations=0,
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
         )
 
-        calendar = Calendar.objects.create(
-            label="Calendrier1",
-            calendar_mode=Calendar.CALENDAR_MODE[0][0],
-            year_start_date=self.today - timedelta(days=10),
-            year_end_date=self.today + timedelta(days=10),
-            year_nb_authorized_immersion=4,
-            year_registration_start_date=self.today - timedelta(days=9)
-        )
         structure = Structure.objects.create(
             label="test structure",
             code="STR",
@@ -777,8 +709,9 @@ class CourseTestCase(TestCase):
 
 class GeneralSettingsTestCase(TestCase):
     def test_str_general_settings(self):
-        g = GeneralSettings.objects.create(setting="MySetting", parameters=[{'my_setting': 'myvalue'}])
+        g = GeneralSettings.objects.create(setting="MySetting", parameters={'value': 'myvalue'})
         self.assertEqual(str(g), 'MySetting')
+        self.assertEqual(g.parameters["value"], 'myvalue')
 
 
 class CustomThemeFileTestCase(TestCase):
@@ -789,3 +722,47 @@ class CustomThemeFileTestCase(TestCase):
         }
         c = CustomThemeFile.objects.create(**data)
         self.assertEqual(str(c), "file : %s (%s)" % (c.file.name, c.type))
+
+
+class AttestationDocumentTestCase(TestCase):
+    def test_attestation_creation(self):
+        attestation = AttestationDocument.objects.create(
+            label='Test',
+            active=True
+        )
+
+        attestation2 = AttestationDocument.objects.create(
+            label='Test 2',
+            active=True
+        )
+
+        # Default values
+        self.assertTrue(attestation.active)
+        self.assertTrue(attestation.for_minors)
+        self.assertTrue(attestation.mandatory)
+        self.assertTrue(attestation.requires_validity_date)
+        self.assertEqual(attestation.order, 1) # Careful with this value if we add fixtures
+
+        # Order increase
+        self.assertEqual(attestation2.order, 2)
+
+class RefStructuresNotificationsSettingsTestCase(TestCase):
+    def test_str_ref_structures_notifications_settings(self):
+
+        r = get_user_model().objects.create_user(
+            username='ref_str',
+            password='pass',
+            email='immersion4@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
+            date_joined=timezone.now(),
+            establishment=Establishment.objects.first(),
+        )
+
+        s = Structure.objects.create(label='my structure', code='666')
+
+        n = RefStructuresNotificationsSettings.objects.create(
+            user = r
+        )
+        n.structures.add(s)
+        self.assertEqual(str(n), "%s (%s)" % (str(r), str(s.label)))

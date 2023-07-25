@@ -90,7 +90,7 @@
     "parameters" : {
       "description": "Adresse de contact du réferent établissement",
       "type": "text",
-      "value": "ref_etab@somewhere.og"
+      "value": "ref_etab@somewhere.org"
     }
   }
 },
@@ -170,12 +170,111 @@
   "model": "core.generalsettings",
   "pk": 17,
   "fields": {
-      "setting": "DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION",
+      "setting": "DELETE_RECORD_ATTACHMENTS_AT_VALIDATION",
       "parameters": {
           "type": "boolean",
           "value": true,
-          "description": "Si le paramètre est à 'true', la pièce d'identité des visiteurs est supprimée après la validation de leur fiche."
+          "description": "Si le paramètre est à 'true', les justificatifs sans date de validité seront supprimés après la validation d'une fiche lycéen ou visiteur"
       }
   }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 18,
+  "fields": {
+      "setting": "SLOT_REGISTRATION_LIMIT",
+      "parameters": {
+          "type": "integer",
+          "value": 48,
+          "description": "Nombre d'heures, avant le début d'un créneau, fixant la limite après laquelle l'inscription n'est plus possible."
+      }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 19,
+  "fields": {
+      "setting": "SLOT_CANCELLATION_LIMIT",
+      "parameters": {
+          "type": "integer",
+          "value": 48,
+          "description": "Nombre d'heures, avant le début d'un créneau, fixant la limite après laquelle l'annulation n'est plus possible."
+      }
+  }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 22,
+    "fields": {
+        "setting": "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT",
+        "parameters": {
+            "type": "boolean",
+            "value": true,
+            "description": "Activation des lycées conventionnés"
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 23,
+    "fields": {
+        "setting": "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT",
+        "parameters": {
+            "type": "boolean",
+            "value": false,
+            "description": "Activation des lycées non conventionnés"
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 24,
+    "fields": {
+        "setting": "REQUEST_FOR_STUDENT_AGREEMENT",
+        "parameters": {
+            "type": "boolean",
+            "value": true,
+            "description": "Demander l'accord des lycéens pour que leur lycée puisse voir leurs immersions"
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 25,
+    "fields": {
+        "setting": "ATTESTATION_DOCUMENT_DEPOSIT_DELAY",
+        "parameters": {
+            "type": "integer",
+            "value": 30,
+            "description": "Délai (en jours) à partir duquel un lycéen ou un visiteur peut redéposer une pièce justificative valide."
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 26,
+    "fields": {
+        "setting": "ACTIVATE_TRAINING_QUOTAS",
+        "parameters": {
+            "type": "object",
+            "value": {
+              "activate": true,
+              "default_quota": 2
+            },
+            "description": "Appliquer des quotas d'immersions en fonction des formations liées aux créneaux"
+        }
+    }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 27,
+    "fields": {
+        "setting": "AUTO_SLOT_UNSUBSCRIBE_DELAY",
+        "parameters": {
+            "type": "integer",
+            "value": 15,
+            "description": "Si un justificatif expire un jour J, les inscriptions aux créneaux dans le délai J+<valeur> seront annulées"
+        }
+    }
 }
 ]

@@ -13,7 +13,7 @@ from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.utils.translation import pgettext, gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Calendar, Campus, CancelType, Course,
+    AccompanyingDocument, Building, Campus, CancelType, Course,
     CourseType, GeneralSettings, HighSchool, Immersion, ImmersionUser,
     MailTemplate, MailTemplateVars, Slot, Structure, Training, TrainingDomain,
     TrainingSubdomain, UserCourseAlert, Vacation,
@@ -21,7 +21,7 @@ from immersionlyceens.apps.core.models import (
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
 )
-from immersionlyceens.libs.api.views import ajax_check_course_publication
+
 from immersionlyceens.libs.geoapi.utils import (
     get_cities, get_departments, get_json_from_url, get_zipcodes,
 )
@@ -33,7 +33,9 @@ request = request_factory.get('/admin')
 class GEOAPITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['group', 'group_permissions', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
+    # 'group', 'group_permissions'
+
+    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def test_get_json_from_url(self):
         url = f'{settings.GEOAPI_BASE_URL}/departements?fields=nom,code'

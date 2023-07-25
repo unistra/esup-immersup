@@ -105,36 +105,72 @@ class ChartsAPITestCase(TestCase):
         )
 
         # As a high school manager
-        self.client.login(username='test-ref-lyc', password='hiddenpassword')
+        self.client.login(username=self.reflyc_user.username, password='hiddenpassword')
         response = self.client.post(url, {})
         content = response.content.decode()
         json_content = json.loads(content)
 
-        self.assertEqual(json_content['datasets'],
-            [{'domain': 'Art, Lettres, Langues', 'count': 24,
-              'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
-             {'domain': 'Droit, Economie, Gestion', 'count': 6,
-              'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
-             {'domain': 'Sciences Humaines et sociales', 'count': 3,
-              'subData': [{'name': 'Sport', 'count': 3}]},
-             {'domain': 'Sciences et Technologies', 'count': 20,
-              'subData': [{'name': 'Informatique', 'count': 10}, {'name': 'Mathématiques', 'count': 10}]}]
-        )
+        self.assertEqual(json_content['datasets'],[
+            {'domain': 'Art, Lettres, Langues',
+             'count': 15,
+             'subData': [
+                 {'name': 'Art plastiques', 'count': 7},
+                 {'name': 'Art visuels', 'count': 8}
+             ]
+            },
+            {'domain': 'Droit, Economie, Gestion',
+             'count': 5,
+             'subData': [
+                 {'name': 'Economie, Gestion', 'count': 5}
+             ]
+            },
+            {'domain': 'Sciences Humaines et sociales',
+             'count': 2,
+             'subData': [
+                 {'name': 'Sport', 'count': 2}
+             ]
+            },
+            {'domain': 'Sciences et Technologies', 'count': 11,
+             'subData': [
+                 {'name': 'Informatique', 'count': 4},
+                 {'name': 'Mathématiques', 'count': 7}
+             ]
+            }
+        ])
 
         # With a filter on level
         response = self.client.post(url, {'level': 2})
         content = response.content.decode()
         json_content = json.loads(content)
-        self.assertEqual(json_content['datasets'],
-            [{'domain': 'Art, Lettres, Langues', 'count': 9,
-              'subData': [{'name': 'Art plastiques', 'count': 4}, {'name': 'Art visuels', 'count': 5}]},
-             {'domain': 'Droit, Economie, Gestion', 'count': 3,
-              'subData': [{'name': 'Economie, Gestion', 'count': 3}]},
-             {'domain': 'Sciences Humaines et sociales', 'count': 1,
-              'subData': [{'name': 'Sport', 'count': 1}]},
-             {'domain': 'Sciences et Technologies', 'count': 9,
-              'subData': [{'name': 'Informatique', 'count': 4}, {'name': 'Mathématiques', 'count': 5}]}]
-        )
+
+        self.assertEqual(json_content['datasets'], [
+            {'domain': 'Art, Lettres, Langues',
+             'count': 7,
+             'subData': [
+                 {'name': 'Art plastiques', 'count': 3},
+                 {'name': 'Art visuels', 'count': 4}
+             ]
+            },
+            {'domain': 'Droit, Economie, Gestion',
+             'count': 3,
+             'subData': [
+                 {'name': 'Economie, Gestion', 'count': 3}
+            ]
+            },
+            {'domain': 'Sciences Humaines et sociales',
+             'count': 1,
+             'subData': [
+                 {'name': 'Sport', 'count': 1}
+             ]
+            },
+            {'domain': 'Sciences et Technologies',
+             'count': 7,
+             'subData': [
+                 {'name': 'Informatique', 'count': 2},
+                 {'name': 'Mathématiques', 'count': 5}
+             ]
+            }
+        ])
 
 
     def test_global_domains_charts_by_trainings(self):
@@ -182,7 +218,7 @@ class ChartsAPITestCase(TestCase):
         json_content = json.loads(content)
 
         # As a high school manager
-        self.client.login(username='test-ref-lyc', password='hiddenpassword')
+        self.client.login(username=self.reflyc_user.username, password='hiddenpassword')
         response = self.client.post(url, {})
         content = response.content.decode()
         json_content = json.loads(content)

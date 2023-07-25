@@ -35,8 +35,8 @@
     "model": "core.mailtemplatevars",
     "pk": 5,
     "fields": {
-        "code": "{{ creneau.campus }}",
-        "description": "Créneau : campus"
+        "code": "{{ creneau.campus.libelle }}",
+        "description": "Créneau : campus : libellé"
     }
 },
 {
@@ -453,6 +453,38 @@
     "fields": {
         "code": "{{ lienAssociationComptes }}",
         "description": "Lien vers la page de validation d'association de comptes intervenants"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 66,
+    "fields": {
+        "code": "{{ creneau.limite_annulation }}",
+        "description": "Date limite d'annulation de participation à un créneau"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 67,
+    "fields": {
+        "code": "{{ creneau.limite_inscription }}",
+        "description": "Date limite d'inscription à un créneau"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 68,
+    "fields": {
+        "code": "{{ justificatifs_expires }}",
+        "description": "Liste des justificatifs à renouveler lorsque la fin de validité approche"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 69,
+    "fields": {
+        "code": "{{ creneau.campus.ville }}",
+        "description": "Créneau : campus : ville"
     }
 }
 ]

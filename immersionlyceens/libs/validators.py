@@ -17,7 +17,8 @@ class JsonSchemaValidator:
 
     def __init__(self, schema_path):
         self.schema_path = schema_path
-        self.schema = json.load(open(self.schema_path))
+        with open(self.schema_path) as f:
+            self.schema = json.load(f)
         schema_dir = os.path.dirname(self.schema_path)
         schema_uri = f'file://{schema_dir}/'
 

@@ -1,14 +1,18 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
-from django.utils.formats import date_format
+from django.utils import timezone
+from django.utils.formats import date_format, time_format
 from django.utils.translation import pgettext, gettext as _
+
 from requests import Request
 
-from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
-    MailTemplateVars, Slot, ImmersionUser, Course, Visit, OffOfferEvent)
+from immersionlyceens.apps.core.models import (
+    EvaluationFormLink, GeneralSettings, Immersion, UniversityYear, MailTemplateVars,
+    Slot, ImmersionUser, Course, Visit, OffOfferEvent
+)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
@@ -55,14 +59,23 @@ class ParserFaker:
 
     @classmethod
     def get_context(cls, request, user_is, slot_type, local_account, remote):
-        today: str = datetime.today().strftime("%d/%m/%Y")
+        today: datetime = timezone.localdate()
+        formatted_today: str = today.strftime("%d/%m/%Y")
+
+        cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\hi")
+        registration_date: str = date_format(timezone.now() - timedelta(hours=48), "j F - G\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
         slot_list: List[str] = [
-            f"* {today} (10h00 - 12h00) : Mon cours (TD)<br />Bâtiment principal, salle 1605<br /> -> {', '.join(speakers)}",
-            f"* {today} (12h00 - 14h00) : Mon cours 2 (CM)<br />Bâtiment secondaire, salle 309<br /> -> {', '.join(speakers)}",
-            f"* {today} (15h30 - 17h30) : Mon cours (TD)<br />Bâtiment principal, salle 170<br /> -> {', '.join(speakers)}",
+            f"* {formatted_today} (10h00 - 12h00) : Mon cours (TD)<br>Bâtiment principal, salle 1605<br> -> {', '.join(speakers)}",
+            f"* {formatted_today} (12h00 - 14h00) : Mon cours 2 (CM)<br>Bâtiment secondaire, salle 309<br> -> {', '.join(speakers)}",
+            f"* {formatted_today} (15h30 - 17h30) : Mon cours (TD)<br>Bâtiment principal, salle 170<br> -> {', '.join(speakers)}",
+        ]
+
+        attestations: List[str] = [
+            "* Attestation d'assurance - %s" % date_format(today + timedelta(days=10), "j F Y"),
+            "* Autorisation parentale - %s" % date_format(today + timedelta(days=30), "j F Y")
         ]
 
         year = Parser.get_year()
@@ -88,6 +101,7 @@ class ParserFaker:
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
+            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations))
         })
         context[user_is] = True
 
@@ -135,7 +149,10 @@ class ParserFaker:
                         format_html(f"<a href='https://www.moma.org/'>https://www.moma.org/</a>")
                     ),
                 },
-                "campus": cls.add_tooltip("creneau.campus", "Université de Columbia"),
+                "campus": {
+                    "libelle": cls.add_tooltip("creneau.campus.libelle", "Campus principal"),
+                    "ville": cls.add_tooltip("creneau.campus.ville", "Columbia"),
+                },
                 "temoindistanciel": remote,
                 "lien": cls.add_tooltip(
                     "creneau.lien",
@@ -154,7 +171,9 @@ class ParserFaker:
                 "visite": {
                     "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
-                "date": cls.add_tooltip("creneau.date", today),
+                "date": cls.add_tooltip("creneau.date", formatted_today),
+                "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
+                "limite_inscription": cls.add_tooltip("creneau.limite_inscription", registration_date),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
                 "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
                 "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),
@@ -162,7 +181,7 @@ class ParserFaker:
                 "salle": cls.add_tooltip("creneau.salle", "Salle 102"),
                 "nbplaceslibres": 25,
                 "listeInscrits": format_html(
-                    cls.add_tooltip("creneau.listeInscrits", "Alexandre COMBEAU<br />")
+                    cls.add_tooltip("creneau.listeInscrits", "Alexandre COMBEAU<br>")
                 ),
             }
         })
@@ -194,7 +213,7 @@ class ParserFaker:
         # slot list
         context.update({
             "creneaux": {
-                "liste": cls.add_tooltip("creneaux.liste", "<br /><br />".join(slot_list))
+                "liste": cls.add_tooltip("creneaux.liste", "<br><br>".join(slot_list))
             }
         })
 
@@ -305,8 +324,7 @@ class Parser:
                 elif registration.student.is_student():
                     record = registration.student.get_student_record()
                     if record:
-                        uai_code, institution = record.home_institution()
-                        institution_label = institution.label if institution else uai_code
+                        institution_label = record.institution.label if record.institution else record.uai_code
 
                 registered_students.append(
                     f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
@@ -321,6 +339,12 @@ class Parser:
             highschool = slot.get_highschool()
             registered_students = get_registered_students(slot)
 
+            cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\hi") \
+                if slot.cancellation_limit_date else ""
+
+            registration_limit = date_format(timezone.localtime(slot.registration_limit_date), "j F - G\hi") \
+                if slot.registration_limit_date else ""
+
             return {
                 "creneau": {
                     "libelle": slot.get_label(),
@@ -334,7 +358,10 @@ class Parser:
                         'libelle': slot.building.label,
                         'lien': format_html(f"<a href='{slot.building.url}'>{slot.building.url}</a>"),
                     } if slot.building else {},
-                    "campus": slot.campus.label if slot.campus else "",
+                    "campus": {
+                        'libelle': slot.campus.label if slot.campus else "",
+                        'ville': slot.campus.city if slot.campus and slot.campus.city else "",
+                    },
                     "temoindistanciel": not slot.face_to_face,
                     "lien": format_html(f"<a href='{slot.url}'>{slot.url}</a>") if slot.url else "",
                     "cours": {
@@ -351,13 +378,17 @@ class Parser:
                         'libelle': slot.get_label(),
                     } if slot.visit else {},
                     "date": date_format(slot.date) if slot.date else "",
+                    "limite_annulation": cancellation_limit,
+                    "limite_inscription": registration_limit,
                     "intervenants": ",".join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
                     "heuredebut": slot.start_time.strftime("%-Hh%M") if slot.start_time else "",
                     "heurefin": slot.end_time.strftime("%-Hh%M") if slot.end_time else "",
                     "info": slot.additional_information or pgettext("slot data", "None"),
                     "salle": slot.room,
                     "nbplaceslibres": slot.available_seats(),
-                    "listeInscrits": "<br />".join(sorted(registered_students)) if registered_students else ""
+                    "listeInscrits": format_html("<br>".join(sorted(registered_students)) if registered_students else ""),
+                    "limite_annulation_depassee": slot.is_cancellation_limit_date_due(),
+                    "limite_inscription_depassee": slot.is_registration_limit_date_due(),
                 }
             }
         return {}
@@ -385,31 +416,59 @@ class Parser:
             }
 
             if user.is_high_school_student():
-                try:
+                record = user.get_high_school_student_record()
+
+                if record:
+                    attestations_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
+
+                    attestations = [f"* {a.attestation.label} - {date_format(a.validity_date, 'j F Y')}"
+                        for a in record.attestation.filter(
+                            archive=False,
+                            requires_validity_date=True,
+                            validity_date__lte=timezone.localdate() + timedelta(days=attestations_delay)
+                        )
+                    ]
+
                     context.update({
-                        "lycee": user.high_school_student_record.highschool.label,
-                        "datedenaissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
+                        "lycee": record.highschool.label,
+                        "datedenaissance": date_format(record.birth_date, 'd/m/Y'),
+                        "justificatifs_expires": format_html("<br>".join(attestations))
                     })
-                except HighSchoolStudentRecord.DoesNotExist:
-                    pass
+
             elif user.is_student():
                 record = user.get_student_record()
 
                 if record:
-                    uai_code, institution = record.home_institution()
-                    institution_label = institution.label if institution else uai_code
+                    institution_label = record.institution.label if record.institution else record.uai_code
 
                     # TODO: maybe instead of lycee use a home_institution tpl var ???
                     context.update({
                         "lycee": institution_label,
                         "inscrit_datedenaissance": date_format(record.birth_date, 'd/m/Y')
                     })
+            elif user.is_visitor():
+                record = user.get_visitor_record()
+
+                if record:
+                    attestations_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
+
+                    attestations = [f"* {a.attestation.label} - {date_format(a.validity_date, 'j F Y')}"
+                        for a in record.attestation.filter(
+                            archive=False,
+                            requires_validity_date=True,
+                            validity_date__lte=timezone.localdate() + timedelta(days=attestations_delay)
+                        )
+                    ]
+
+                    context.update({
+                        "justificatifs_expires": format_html("<br>".join(attestations))
+                    })
+
             elif user.highschool:
                 context.update({"lycee": user.highschool.label})
 
             return context
         return {}
-
 
     @staticmethod
     def get_cancellation_type_context(immersion: Optional[Immersion]) -> Dict[str, Any]:
@@ -446,8 +505,6 @@ class Parser:
                 }
 
         return {}
-
-
 
     @staticmethod
     def get_slot_list_context(slot_list):
@@ -530,7 +587,6 @@ class Parser:
             )
 
         return link_dict
-
 
     @classmethod
     def get_context(cls, user: Optional[ImmersionUser], request: Optional[Request] = None, **kwargs) -> Dict[str, Any]:

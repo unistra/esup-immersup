@@ -285,7 +285,7 @@ THIRD_PARTY_APPS = [
     'adminsortable2',
     'shibboleth',
     'django_countries',
-    'drf_spectacular'
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
@@ -294,6 +294,7 @@ LOCAL_APPS = [
     'immersionlyceens.apps.immersion',
     'immersionlyceens.apps.charts',
     'immersionlyceens.apps.user',
+    'immersionlyceens.apps.api',
 ]
 
 
@@ -369,8 +370,8 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'rest_framework_custom_exceptions.exceptions.simple_error_handler',
@@ -475,29 +476,83 @@ FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core', 'user']
+# Use virtual app names to regroup models
+ADMIN_APPS_ORDER = [
+    'auth', 'utilisateurs', 'calendrier', 'etablissements', 'formations', 'lieux', 'etudes', 'docs',
+    'evaluations', 'configuration', 'user', 'authtoken'
+]
+
+ADMIN_APPS_MAPPING = {
+    'utilisateurs': {'app': 'core', 'name': 'Utilisateurs'},
+    'calendrier': {'app': 'core', 'name': 'Calendrier'},
+    'etablissements': {'app': 'core', 'name': 'Établissements'},
+    'formations': {'app': 'core', 'name': 'Formations et évènements'},
+    'lieux': {'app': 'core', 'name': 'Lieux'},
+    'etudes': {'app': 'core', 'name': 'Études'},
+    'docs': {'app': 'core', 'name': 'Messages et documents'},
+    'evaluations': {'app': 'core', 'name': 'Évaluations'},
+    'configuration': {'app': 'core', 'name': 'Autres paramètres'},
+}
 
 ADMIN_MODELS_ORDER = {
-    'core': [
+    'utilisateurs': [
         'ImmersionUser',
+    ],
+    'calendrier': [
         'UniversityYear',
+        'Vacation',
+        'Holiday',
+        'Period',
+        'AnnualStatistics',
+    ],
+    'etablissements': [
         'Establishment',
         'HighSchool',
-        'GeneralBachelorTeaching',
-        'BachelorMention',
-        'Campus',
-        'Building',
         'Structure',
+    ],
+    'formations': [
         'TrainingDomain',
         'TrainingSubdomain',
         'Training',
         'CourseType',
-        'PublicType',
         'CancelType',
-        'Holiday',
-        'Vacation',
-        'Calendar',
+        'OffOfferEventType',
+    ],
+    'lieux': [
+        'Campus',
+        'Building',
+    ],
+    'etudes': [
+        'BachelorType',
+        'GeneralBachelorTeaching',
+        'BachelorMention',
+        'HighSchoolLevel',
+        'PostBachelorLevel',
+        'StudentLevel',
+    ],
+    'docs': [
         'MailTemplate',
+        'FaqEntry',
+        'PublicDocument',
+        'PublicType',
+        'InformationText',
+        'AccompanyingDocument',
+        'AttestationDocument',
+        'CertificateLogo',
+        'CertificateSignature',
+    ],
+    'evaluations': [
+        'EvaluationType',
+        'EvaluationFormLink',
+    ],
+    'configuration': [
+        'GeneralSettings',
+        'Profile',
+        'ScheduledTask',
+        'CustomThemeFile',
+        'ScheduledTask',
+        'ScheduledTaskLog',
+        'History',
     ],
     'user': [
         'Student',
@@ -508,17 +563,19 @@ ADMIN_MODELS_ORDER = {
         'MasterEstablishmentManager',
         'EstablishmentManager',
         'StructureManager',
+        'StructureConsultant',
         'HighSchoolManager',
         'LegalDepartmentStaff',
-    ],
+        'UserGroup'
+    ]
 }
 
 # Define groups rights on others
 # DO NOT EDIT
 HAS_RIGHTS_ON_GROUP = {
-    'REF-TEC': ['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'LYC', 'VIS', 'ETU'],
-    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
-    'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER'],
+    'REF-TEC': ['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'LYC', 'VIS', 'ETU', 'CONS-STR'],
+    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'CONS-STR'],
+    'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER', 'CONS-STR'],
     'REF-LYC': ['INTER']
 }
 
@@ -596,10 +653,6 @@ DEFAULT_NB_DAYS_SLOT_REMINDER = 4
 DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER = 4
 DEFAULT_NB_WEEKS_STRUCTURES_SLOT_REMINDER = 1
 
-# Mailing list subscriber files directory
-BASE_FILES_DIR = ""
-MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
-
 # Opendata
 # This should be a stable URL according to this site :
 # https://www.data.gouv.fr/fr/datasets/etablissements-denseignement-superieur-2
@@ -629,3 +682,4 @@ COUNTRIES_FIRST = ['FR',]
 
 # Expiration of S3 url very looooooooooooooong :)
 AWS_QUERYSTRING_EXPIRE = 999999999
+

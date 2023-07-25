@@ -9,33 +9,36 @@ from immersionlyceens.apps.immersion.views import shibbolethLogin
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, charter_not_signed, home, offer, offer_off_offer_events,
-    offer_subdomain, procedure, serve_accompanying_document,
-    serve_immersup_file, serve_public_document, visits_offer,
+    accompanying, charter_not_signed, faq, highschools, home,
+    host_establishments, offer, offer_off_offer_events, offer_subdomain,
+    procedure, serve_accompanying_document, serve_attestation_document,
+    serve_public_document, visits_offer,
 )
 
 admin.autodiscover()
-
 
 urlpatterns = [
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
-    path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
     path("accounts/", include("django.contrib.auth.urls")),
+    path('highschools', highschools, name='highschools'),
     path('cas_accounts/', include('django_cas.urls', namespace='django_cas')),
+    path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('admin/', admin.site.urls),
-    path('api/', include('immersionlyceens.libs.api.urls')),
+    path('api/', include('immersionlyceens.apps.api.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),
     path('core/', include('immersionlyceens.apps.core.urls')),
     path('dl/accdoc/<int:accompanying_document_id>', serve_accompanying_document, name='accompanying_document',),
     path('dl/pubdoc/<int:public_document_id>', serve_public_document, name='public_document',),
-    path('dl/immersupfile/<str:file_code>', serve_immersup_file, name='immersup_file',),
+    path('dl/attestation/<int:attestation_document_id>', serve_attestation_document, name='attestation_document',),
+    path('faq', faq, name='faq'),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
+    path('host_establishments/', host_establishments, name='host_establishments'),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),
     path('offer', offer, name='offer'),
     path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),

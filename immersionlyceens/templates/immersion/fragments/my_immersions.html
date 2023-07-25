@@ -1,8 +1,6 @@
 {% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
-
-
 <div id="accordion">
   <div class="card">
     <div class="card-header bg-primary" id="headingOne">
@@ -16,7 +14,7 @@
     <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
       <div class="card-body">
         <div class="table-responsive">
-          <table id="immersions_to_come" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
+          <table id="immersions_to_come" class="table table-sm table-striped table-bordered compact" style="border-spacing:0;border-collapse:collapse;width:100%;">
             <thead>
               <tr>
                 <th>{% trans 'Training' %}</th>
@@ -27,12 +25,14 @@
                 <th>{% trans 'Meeting place' %}</th>
                 <th>{% trans 'Date and time' %}</th>
                 <th>{% trans 'Speakers' %}</th>
-                <th>{% trans 'Additional info' %}</th>
+                <th style="width: 15%"%>{% trans 'Additional info' %}</th>
+                <th>{% trans 'Date of registration' %}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -73,11 +73,13 @@
                 <th>{% trans 'Date and time' %}</th>
                 <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Attendance status' %}</th>
+                <th>{% trans 'Date of registration' %}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -118,10 +120,12 @@
                 <th>{% trans 'Date and time' %}</th>
                 <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Cancellation type' %}</th>
+                <th>{% trans 'Date of cancellation' %}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>

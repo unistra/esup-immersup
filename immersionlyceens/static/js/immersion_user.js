@@ -29,8 +29,9 @@ $(document).ready(function() {
     let select_text = gettext("Select a user ...")
 
     // Display or hide the search user field
+    // only useful on user creation form (not changeform)
     function refresh_search_field() {
-      if(!has_plugin) {
+      if (!has_plugin || is_set($("#id_is_superuser").val())) {
         $(".field-search").hide()
         $("#id_email").prop("readonly", false);
         $("#id_first_name").prop("readonly", false);

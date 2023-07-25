@@ -4,6 +4,15 @@
 {% load static %}
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
+{% block title %}
+{% if duplicate %}
+{% trans "Duplicate a visit slot" %}
+{% elif slot %}
+{% trans "Update a visit slot" %}
+{% else %}
+{% trans "Add a new visit slot" %}
+{% endif %}
+{% endblock %}
 
 {% block confirm_slot_creation %}
 <div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm visit slot creation" %}">

@@ -68,16 +68,18 @@ def global_trainings_charts(request, my_trainings=False):
     if filter_by_my_trainings or not request.user.is_high_school_manager():
         high_school_levels_filters['is_post_bachelor'] = False
 
-    highschools = [
-        {'id': h.id, 'label': h.label, 'city': h.city}
-        for h in HighSchool.objects.filter(**filter).order_by('label', 'city')
-    ]
+    highschools = list(
+        HighSchool.objects.filter(**filter)
+        .order_by('label', 'city')
+        .values('id', 'label', 'city')
+    )
 
     # This will be only useful to structure managers
-    structures = [
-        {'id': s.id, 'label': s.label}
-        for s in request.user.structures.all().order_by('label')
-    ]
+    structures = list(
+        request.user.structures.all()
+        .order_by('label')
+        .values('id', 'label')
+    )
 
     # Do not include post_bachelor pupils levels as they will be added to Students count
     context = {

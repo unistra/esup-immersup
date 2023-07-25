@@ -80,7 +80,7 @@
                       <table class="table table-bordered">
                         <tbody>
                           <tr>
-                            <td width="15%">
+                            <td style="width: 15%">
                               <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
                               {{ s.date | date:"l d F Y"}}
                             </td>
@@ -101,7 +101,7 @@
                               {% trans 'Remote visit' %}
                               {% endif %}
                             </td>
-                            <td rowspan="2" width="15%">
+                            <td rowspan="2" style="width: 15%">
                               <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                               {% trans 'Speaker(s)' %} :
                               <ul>
@@ -114,54 +114,79 @@
                             {% endif %}
                               </ul>
                             </td>
-                            <td rowspan="2" width="15%">
-                            {% if s.establishments_restrictions or s.levels_restrictions %}
+                            <td rowspan="2" style="width: 15%">
+                            {% if s.establishments_restrictions or s.levels_restrictions or s.bachelors_restrictions %}
                               <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                               {% trans "Restrictions" %} :
                               {% if s.allowed_establishments.all%}
                               <h6>{% trans "Allowed establishments" %} :</h6>
                               <ul>
-                              {% for e in s.allowed_establishments.all %}
-                              <li>{{ e.label }} - {{ e.city }}</li>
-                              {% endfor %}
+                                {% for e in s.allowed_establishments.all %}
+                                <li>{{ e.label }} - {{ e.city }}</li>
+                                {% endfor %}
                               </ul>
                               {% endif %}
-                            {% if s.allowed_highschools.all%}
+                              {% if s.allowed_highschools.all%}
                               <h6>{% trans "Allowed highschools" %} :</h6>
                               <ul>
-                              {% for h in s.allowed_highschools.all %}
-                              <li>{{ h.label }} - {{ h.city }}</li>
-                              {% endfor %}
+                                {% for h in s.allowed_highschools.all %}
+                                <li>{{ h.label }} - {{ h.city }}</li>
+                                {% endfor %}
                               </ul>
                               {% endif %}
-                            {% endif %}
-                            {% if s.levels_restrictions %}
-                              {% if s.allowed_highschool_levels.all %}
-                                <h6>{% trans "Allowed highschool levels" %} :</h6>
-                                <ul>
-                                {% for l in  s.get_allowed_highschool_levels %}
-                                  <li>{{ l }}</li>
-                                {% endfor %}
-                                </ul>
-                              {% endif %}
-                              {% if s.allowed_student_levels.all %}
-                                <h6>{% trans "Allowed student levels" %} :</h6>
-                                <ul>
-                                {% for l in s.get_allowed_student_levels %}
-                                  <li>{{ l }}</li>
-                                {% endfor %}
-                                </ul>
+
+                              {% if s.levels_restrictions %}
+                                {% if s.allowed_highschool_levels.all %}
+                              <h6>{% trans "Allowed highschool levels" %} :</h6>
+                              <ul>
+                                  {% for l in  s.get_allowed_highschool_levels %}
+                                <li>{{ l }}</li>
+                                  {% endfor %}
+                              </ul>
+                                {% endif %}
+                                {% if s.allowed_student_levels.all %}
+                              <h6>{% trans "Allowed student levels" %} :</h6>
+                              <ul>
+                                  {% for l in  s.get_allowed_students_levels %}
+                                <li>{{ l }}</li>
+                                  {% endfor %}
+                              </ul>
+                                {% endif %}
                               {% endif %}
                               {% if s.allowed_post_bachelor_levels.all %}
-                                <h6>{% trans "Allowed post bachelor levels" %} :</h6>
-                                <ul>
+                              <h6>{% trans "Allowed post bachelor levels" %} :</h6>
+                              <ul>
                                 {% for l in  s.get_allowed_post_bachelor_levels %}
                                   <li>{{ l }}</li>
                                 {% endfor %}
-                                </ul>
+                              </ul>
+                              {% endif %}
+                              {% if s.allowed_bachelor_types.all %}
+                              <h6>{% trans "Allowed bachelor types" %} :</h6>
+                              <ul>
+                                    {% for t in  s.get_allowed_bachelor_types %}
+                                <li>{{ t }}</li>
+                                    {% endfor %}
+                              </ul>
+                              {% endif %}
+                              {% if s.allowed_bachelor_mentions.all %}
+                              <h6>{% trans "Allowed bachelor mentions" %} :</h6>
+                              <ul>
+                                  {% for m in  s.get_allowed_bachelor_mentions %}
+                                <li>{{ m }}</li>
+                                  {% endfor %}
+                              </ul>
+                              {% endif %}
+                              {% if s.allowed_bachelor_teachings.all %}
+                              <h6>{% trans "Allowed bachelor teachings" %} :</h6>
+                              <ul>
+                                  {% for t in  s.get_allowed_bachelor_teachings %}
+                                <li>{{ t }}</li>
+                                  {% endfor %}
+                              </ul>
                               {% endif %}
                             {% endif %}
-                            {% if not s.establishments_restrictions and not s.levels_restrictions %}
+                            {% if not s.establishments_restrictions and not s.levels_restrictions and not s.bachelors_restrictions %}
                               <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                               {% trans "Slot open to all" %}
                             {% endif %}
@@ -194,7 +219,7 @@
                             <td style="width: 10%">
                             {% if s.event.structure %}
                                 <i class="fa fas fa-institution text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Structure' %}"></i>
-                                {{ s.event.structure.label }}
+                                {{ s.event.structure.label }} ({{ s.event.structure.establishment.label }})
                             {% endif %}
                             </td>
                             <td style="width: 10%">

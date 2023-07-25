@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block title %}
+{% trans "FAQ" %}
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans "FAQ" %}</h1>
+        <p class="text-uppercase">{% trans 'Frequently asked questions' %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'FAQ' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-8 col-lg-6">
+                <div class="text-center" >
+                    <h3>{% trans "Frequently asked questions" %}</h3>
+                    {% information_text_get 'INTRO_FAQ' as intro_faq %}
+                    {% if intro_faq %}
+                    {{ intro_faq|safe }}
+                    {% else %}
+                    <p>{% trans "We've put together some commonly asked questions to give you more information." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-lg-8">
+                <div class="accordion faq-accordion" id="faqAccordion">
+                    {% for entry in entries %}
+                    <div class="card border-0">
+                        <div class="card-header" id="heading{{entry.id}}">
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse{{entry.id}}" aria-expanded="true" aria-controls="collapse{{entry.id}}" spellcheck="false">
+                                <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block collapsed" data-toggle="tooltip" title="" data-original-title="Question"></i>
+                                {{ entry.question }}
+                            </button>
+                        </div>
+                        <div class="collapse" id="collapse{{entry.id}}" aria-labelledby="heading{{entry.id}}" data-parent="#faqAccordion">
+                            <div class="card-body">
+                                {{ entry.answer|safe }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="faq-contact-us text-center d-flex align-items-center justify-content-center mt-4">
+                    <i class="fa fa-frown-o"></i>
+                    <p class="mb-0 px-2">{% trans "Can't find your answers?" %}</p>
+                    <a {% if external_contact_form_url %} href="{{ external_contact_form_url }}" target="_blank"{% else%}href="#" data-toggle="modal" data-backdrop="static" data-target="#modal_contact_us"  {% endif %}>{% trans 'Contact us' %}</a>
+                </div>
+            </div>
+        </div>
+  </div>
+</section>
+{% endblock %}
+
+
+

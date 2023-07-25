@@ -22,8 +22,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Courses offer" %}
-</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Courses offer" %}</li>
       </ol>
     </nav>
   </div>
@@ -42,7 +41,7 @@
 
 <section class="py-5 bg-gray ">
   <div class="container ">
-    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ courses_count }} {% trans 'available courses divided in subdomains (see below)' %}">{{ courses_count }} {% trans 'available courses' %}</span></p>
+    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_count }} {% trans 'available slots divided in subdomains (see below)' %}">{{ slots_count }} {% trans 'available slots' %}</span></p>
     <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
     {% if subdomains %}
     {% regroup subdomains by training_domain.label as subdomains_list %}
@@ -57,12 +56,19 @@
           <div class="card-body">
             <ul class="list-arrows">
               {% for d in subdomain.list %}
+              {%  with slots_number=d.count_subdomain_slots %}
               <li>
+                {% if slots_number > 0 %}
                 <a href="{% url 'offer_subdomain' d.id %}">
                 {{ d.label }}
                 </a>
-                {% comment %}TODO: not planned in US doing it ? <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="8 cours disponibles">8</span></span> {% endcomment %}
+                <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_number }} {% trans "slot(s) available" %}">{{ slots_number }}</span></span>
+                {% else %}
+                <span data-toggle="tooltip" title="{% trans "No slots available" %}">{{ d.label }}</span>
+
+                {% endif %}
               </li>
+              {% endwith %}
               {% endfor %}
             </ul>
           </div>

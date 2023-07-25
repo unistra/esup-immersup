@@ -28,10 +28,14 @@
                   <th>{% trans 'Additional info' %}</th>
                   <th>{% trans 'Cancellation type' %}</th>
                   <th>{% trans 'Attendance' %}</th>
+                  <th>{% trans "Date of registration" %}</th>
+                  <th>{% trans "Date of cancellation" %}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -80,9 +84,11 @@ dtr = $('#immersions_table').DataTable({
     }
   },
   'searching': true,
+  {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
   'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+    url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
   },
+  {% endif %}
   'columns': [
     { "data": "translated_type" },
     { "data": "",
@@ -147,6 +153,24 @@ dtr = $('#immersions_table').DataTable({
                   "</a>";
         }
         return msg;
+      }
+    },
+    { "data": "registration_date",
+      render: function(data, type, row) {
+        if (type !== 'sort') {
+          return data ? formatDate(data) : "";
+        }
+
+        return data
+      }
+    },
+    { "data": "cancellation_date",
+      render: function(data, type, row) {
+        if (type !== 'sort') {
+          return data ? formatDate(data) : "";
+        }
+
+        return data
       }
     },
   ],

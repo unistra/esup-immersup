@@ -2,20 +2,30 @@
 Immersion app forms tests
 """
 import datetime
+from os.path import abspath, dirname, join
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
+from rest_framework import status
+
 from immersionlyceens.apps.core.models import (
-    BachelorMention, Building, Calendar, Campus, Course, CourseType,
-    Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
-    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, ImmersionUserGroup,
-    PendingUserGroup, PostBachelorLevel, Slot, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    AttestationDocument, BachelorMention, BachelorType, Building, Campus,
+    Course, CourseType, Establishment, GeneralBachelorTeaching,
+    HigherEducationInstitution, HighSchool, HighSchoolLevel,
+    Immersion, ImmersionUser, ImmersionUserGroup, PendingUserGroup,
+    Period, PostBachelorLevel, Profile, Slot, Structure,
+    StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear,
 )
+
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, StudentRecord,
+    HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
+    HighSchoolStudentRecordQuota, StudentRecord, StudentRecordQuota,
+    VisitorRecord, VisitorRecordDocument, VisitorRecordQuota
 )
 
 request_factory = RequestFactory()
@@ -26,12 +36,11 @@ class ImmersionViewsTestCase(TestCase):
     Immersion app views tests
     """
 
-    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'high_school_levels',
-                'student_levels', 'post_bachelor_levels', 'higher']
+    fixtures = ['group', 'images', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
 
     @classmethod
     def setUpTestData(cls):
-        cls.today = datetime.datetime.today()
+        cls.today = timezone.localdate()
 
         cls.establishment = Establishment.objects.create(
             code='ETA1',
@@ -108,6 +117,19 @@ class ImmersionViewsTestCase(TestCase):
         cls.student_user.set_password('pass')
         cls.student_user.save()
 
+        # Visitor
+        cls.visitor_user = get_user_model().objects.create_user(
+            username='visitor',
+            password='pass',
+            email='visitor@no-reply.com',
+            first_name='vis',
+            last_name='itor',
+            validation_string='another_string',
+        )
+
+        cls.visitor_user.set_password('pass')
+        cls.visitor_user.save()
+
         cls.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
@@ -132,6 +154,14 @@ class ImmersionViewsTestCase(TestCase):
             last_name='REF',
             highschool=cls.high_school,
         )
+        cls.lyc_ref2 = get_user_model().objects.create_user(
+            username='lycref2',
+            password='pass',
+            email='lycref2@no-reply.com',
+            first_name='lyc2',
+            last_name='REF2',
+            highschool=cls.high_school2,
+        )
         cls.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
@@ -141,6 +171,12 @@ class ImmersionViewsTestCase(TestCase):
             establishment=cls.establishment,
         )
 
+        cls.lyc_ref.set_password('pass')
+        cls.lyc_ref.save()
+
+        cls.lyc_ref2.set_password('pass')
+        cls.lyc_ref2.save()
+
         cls.ref_etab_user.set_password('pass')
         cls.ref_etab_user.save()
 
@@ -148,8 +184,10 @@ class ImmersionViewsTestCase(TestCase):
         Group.objects.get(name='INTER').user_set.add(cls.speaker2)
         Group.objects.get(name='LYC').user_set.add(cls.highschool_user)
         Group.objects.get(name='LYC').user_set.add(cls.highschool_user2)
+        Group.objects.get(name='VIS').user_set.add(cls.visitor_user)
         Group.objects.get(name='ETU').user_set.add(cls.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
+        Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref2)
         Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
 
         BachelorMention.objects.create(
@@ -180,20 +218,19 @@ class ImmersionViewsTestCase(TestCase):
         )
         cls.slot.speakers.add(cls.speaker1)
 
-        cls.calendar = Calendar.objects.create(
-            label='my calendar',
-            calendar_mode='YEAR',
-            year_start_date=cls.today + datetime.timedelta(days=1),
-            year_end_date=cls.today + datetime.timedelta(days=100),
-            year_registration_start_date=cls.today + datetime.timedelta(days=2),
-            year_nb_authorized_immersion=4
+        cls.period1 = Period.objects.create(
+            label='Period 1',
+            immersion_start_date=cls.today + datetime.timedelta(days=2),
+            immersion_end_date=cls.today + datetime.timedelta(days=100),
+            registration_start_date=cls.today + datetime.timedelta(days=1),
+            allowed_immersions=4
         )
 
         cls.university_year = UniversityYear.objects.create(
             label='2020-2021',
-            start_date=cls.today.date() - datetime.timedelta(days=10),
-            end_date=cls.today.date() + datetime.timedelta(days=20),
-            registration_start_date=cls.today.date() - datetime.timedelta(days=1),
+            start_date=cls.today - datetime.timedelta(days=10),
+            end_date=cls.today + datetime.timedelta(days=20),
+            registration_start_date=cls.today - datetime.timedelta(days=1),
             active=True,
         )
 
@@ -203,6 +240,30 @@ class ImmersionViewsTestCase(TestCase):
             attendance_status=1
         )
 
+        # Attestations
+        cls.attestation_1 = AttestationDocument.objects.create(
+            label='Test label',
+            mandatory=True,
+            active=True,
+            for_minors=True,
+            requires_validity_date=True
+        )
+
+        cls.attestation_1.profiles.add(Profile.objects.get(code='LYC_W_CONV'))
+        cls.attestation_1.profiles.add(Profile.objects.get(code='LYC_WO_CONV'))
+        cls.attestation_1.profiles.add(Profile.objects.get(code='VIS'))
+
+        cls.attestation_2 = AttestationDocument.objects.create(
+            label='Test label 2',
+            mandatory=True,
+            active=True,
+            for_minors=False,
+            requires_validity_date=True
+        )
+
+        cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
+
+
     def setUp(self):
         """
         SetUp for Immersion app tests
@@ -211,7 +272,7 @@ class ImmersionViewsTestCase(TestCase):
 
 
     def test_login(self):
-        self.university_year.start_date = self.today.date() + datetime.timedelta(days=10)
+        self.university_year.start_date = self.today + datetime.timedelta(days=10)
         self.university_year.save()
 
         # This will fail (year not valid yet)
@@ -220,7 +281,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("""Sorry, the university year has not begun (or already over), you can't login yet.""",
             response.content.decode('utf-8'))
 
-        self.university_year.start_date = self.today.date() - datetime.timedelta(days=10)
+        self.university_year.start_date = self.today - datetime.timedelta(days=10)
         self.university_year.save()
 
         # This will fail (authentication error)
@@ -275,7 +336,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Account creation
         response = self.client.post('/shib/', data={'submit':1}, request=request, **header, follow=True)
-        self.assertIn("Account created. Please look at your emails for the activation procedure.",
+        self.assertIn("Account created. Please check your emails for the activation procedure.",
             response.content.decode('utf-8'))
 
         try:
@@ -305,19 +366,21 @@ class ImmersionViewsTestCase(TestCase):
             "phone": "0388010101",
             "uai_code": "0673021V",
             "level": 1,
-            "origin_bachelor_type": 1,
+            "origin_bachelor_type": BachelorType.objects.get(label__iexact='général').pk,
             "current_diploma": "DUT 1ere année",
             "submit": 1,
         }
 
-        # Missing fields
+        # Missing fields (TODO : add details)
         response = self.client.post('/immersion/student_record', record_data, follow=True)
         self.assertIn("This field is required", response.content.decode('utf-8'))
 
         # All fields
-        record_data["last_name"] = new_user.last_name
-        record_data["birth_date"] = "1999-01-04"
-        record_data["current_diploma"] = "DUT 1ere année",
+        record_data.update({
+            "last_name": new_user.last_name,
+            "birth_date": "1999-01-04",
+            "current_diploma": "DUT 1ere année",
+        })
 
         response = self.client.post('/immersion/student_record', record_data, follow=True)
         self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
@@ -375,7 +438,7 @@ class ImmersionViewsTestCase(TestCase):
         data['password2'] = "Is this password long enough ?"
 
         response = self.client.post('/immersion/register', data, follow=True)
-        self.assertIn("Account created. Please look at your emails for the activation procedure.",
+        self.assertIn("Account created. Please check your emails for the activation procedure.",
             response.content.decode('utf-8'))
 
         # Check some attributes
@@ -511,24 +574,15 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
         self.assertIn("This account has already been activated, please login.", response.content.decode('utf-8'))
 
-    def test_home(self):
-        # Not logged : redirection
-        response = self.client.post('/immersion/')
-        self.assertEqual(response.url, "/accounts/login/?next=/immersion/")
-
-        # Logged
-        self.client.login(username='hs', password='pass')
-        response = self.client.post('/immersion/')
-        self.assertEqual(response.status_code, 200)
-
     def test_high_school_student_record(self):
         # First check that high school student record doesn't exist yet
         self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user).exists())
+        self.assertFalse(HighSchoolStudentRecordDocument.objects.exists())
 
         self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/hs_record')
 
-        self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
         record_data = {
@@ -541,12 +595,12 @@ class ImmersionViewsTestCase(TestCase):
             "highschool": self.high_school.id,
             "level": 1,
             "class_name": "S10",
-            "bachelor_type": 1,
+            "bachelor_type": BachelorType.objects.get(label__iexact='général').pk,
             "general_bachelor_teachings": [GeneralBachelorTeaching.objects.first().id],
             "technological_bachelor_mention": "",
             "professional_bachelor_mention": "",
             "post_bachelor_level": "",
-            "origin_bachelor_type": 1,
+            "origin_bachelor_type": BachelorType.objects.get(label__iexact='général').pk,
             "current_diploma": "",
             "visible_immersion_registrations": 1,
             "visible_email": 1,
@@ -559,31 +613,131 @@ class ImmersionViewsTestCase(TestCase):
 
         # All fields
         record_data["last_name"] = self.highschool_user.last_name
-        record_data["birth_date"] = "1999-01-04"
+        record_data["birth_date"] = (self.today - datetime.timedelta(days=5840)).strftime("%Y-%m-%d") # ~16 years (=under 18)
         record_data["post_bachelor_level"] = 1
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
-        self.assertIn("Thank you. Your record is awaiting validation from your high-school referent.",
+        self.assertTrue(HighSchoolStudentRecord.objects.filter(student=self.highschool_user).exists())
+
+        self.assertIn("Record saved. Please fill all the required attestation documents below.",
             response.content.decode('utf-8'))
         self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
 
-        # Post with an another email
+        record = self.highschool_user.get_high_school_student_record()
+
+        # Check attestations objects (only 1)
+        documents = HighSchoolStudentRecordDocument.objects.filter(record=record)
+
+        self.assertEqual(documents.count(), 1)
+        self.assertEqual(documents.first().attestation, self.attestation_1)
+
+        document = documents.first()
+
+        # repost without attestations
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Add missing file, fields, and repost
+        fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
+        prefix = f"document_{self.attestation_1.pk}"
+
+        record_data.update({
+            f"{prefix}-record": document.record.pk,
+            f"{prefix}-attestation": document.attestation.pk,
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
+        })
+
+        fd.close()
+
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        content = response.content.decode('utf-8')
+
+        self.assertIn("Thank you. Your record is awaiting validation from your high-school referent.", content)
+        self.assertIn("Your record status : To validate", response.content.decode('utf-8'))
+        document.refresh_from_db()
+        self.assertNotEqual(document.document, None)
+        self.assertIsNone(document.validity_date)
+
+        del (record_data[f"{prefix}-document"]) # no more needed (yet)
+
+        # Test get route as ref_etab user
+        self.client.login(username='ref_etab', password='pass')
+
+        response = self.client.get('/immersion/hs_record/%s' % record.id)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        # Post - missing validity date
+        response = self.client.post('/immersion/hs_record/%s' % record.id, record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Success
+        record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=10)).strftime("%Y-%m-%d")
+        response = self.client.post('/immersion/hs_record/%s' % record.id, record_data, follow=True)
+        self.assertNotIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Back to the high school student for more tests
+        self.client.login(username='hs', password='pass')
+
+        # Validity date is 10 days ahead : if the record has been validated, the student
+        # should see a "renew this attestation" warning
+        record.refresh_from_db()
+        record.set_status("VALIDATED")
+        record.save()
+        response = self.client.get('/immersion/hs_record')
+        self.assertIn("Please renew this attestation", response.content.decode('utf-8'))
+
+        # He can renew it (even with the same file), the record should have the new status to "TO_REVALIDATE"
+        # Check that the validity date has been erased
+        # del(record_data[f"{prefix}-validity_date"])
+        fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
+        record_data.update({
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())]
+        })
+        fd.close()
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+
+        self.assertIn(
+            "Thank you. Your record is awaiting validation from your high-school referent.",
+            response.content.decode("utf-8")
+        )
+        record.refresh_from_db()
+        document.refresh_from_db()
+        self.assertEqual(record.validation, record.STATUSES["TO_REVALIDATE"])
+        self.assertNotEqual(document.document, None)
+        self.assertIsNone(document.validity_date) # New document : date is empty again
+
+        # This time, set the validity date beyond the renewal delay (30 days by default) => No change (field disabled)
+        record.set_status("VALIDATED")
+        record.save()
+        new_validity_date = self.today + datetime.timedelta(days=40)
+        document.validity_date = new_validity_date
+        document.save()
+        document.refresh_from_db()
+        record_data[f"{prefix}-validity_date"] = new_validity_date
+
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        record.refresh_from_db()
+        document.refresh_from_db()
+        self.assertEqual(document.validity_date, new_validity_date) # shouldn't have changed
+        del (record_data[f"{prefix}-document"]) # Clean
+
+        # Post with another email
         record_data["email"] = "another@email.com"
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
 
-        user = ImmersionUser.objects.get(pk=self.highschool_user.id)
-        self.assertNotEqual(user.validation_string, None)
+        self.highschool_user.refresh_from_db()
+        self.assertNotEqual(self.highschool_user.validation_string, None)
 
-        # Assume the record has been rejected, then repost with another high school (validation should be set to 1)
-        record = HighSchoolStudentRecord.objects.get(student=self.highschool_user)
-        self.assertEqual(record.validation, 1)
-        record.validation = 3 # Rejected
+        # Manually reject the record, then repost with another high school
+        # validation should be back to "TO_VALIDATE"
+        record.set_status("REJECTED")
         record.save()
 
         record_data["highschool"] = self.high_school2.id
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
 
-        record = HighSchoolStudentRecord.objects.get(student=self.highschool_user)
+        record.refresh_from_db()
         self.assertEqual(record.highschool.id, self.high_school2.id)
         self.assertEqual(record.validation, 1)
 
@@ -591,22 +745,54 @@ class ImmersionViewsTestCase(TestCase):
         self.client.login(username='hs2', password='pass')
         self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user2).exists())
         response = self.client.get('/immersion/hs_record')
-        self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
-        record_data["student"] = self.highschool_user2.id
-        record_data["last_name"] = self.highschool_user2.last_name
-        record_data["first_name"] = self.highschool_user2.first_name
-        record_data["email"] = self.highschool_user2.email,
+        record_data.update({
+            'student': self.highschool_user2.id,
+            'last_name': self.highschool_user2.last_name,
+            'first_name': self.highschool_user2.first_name,
+            'email': self.highschool_user2.email,
+        })
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
         self.assertIn("A record already exists with this identity, please contact the establishment referent.",
             response.content.decode('utf-8'))
 
-        # Test get route as ref_etab user
-        self.client.login(username='ref_etab', password='pass')
-        response = self.client.get('/immersion/hs_record/%s' % record.id)
-        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+    def test_high_school_student_record_access(self):
+        """
+        Test high school student record access
+        """
+        hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=self.today,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere S 3',
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
+            professional_bachelor_mention='My spe'
+        )
+
+        # As a high school manager from the same high school : success
+        self.client.login(username=self.lyc_ref.username, password='pass')
+        response = self.client.get(f'/immersion/hs_record/{hs_record.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("High school student record", response.content.decode('utf-8'))
+        self.client.logout()
+
+        # As a high school manager from another high school : redirection
+        self.client.login(username=self.lyc_ref2.username, password='pass')
+        response = self.client.get(f'/immersion/hs_record/{hs_record.id}')
+
+        self.assertRedirects(
+            response,
+            reverse('home'),
+            status_code=status.HTTP_302_FOUND,
+            target_status_code=status.HTTP_200_OK,
+            msg_prefix='',
+            fetch_redirect_response=True
+        )
 
 
     def test_immersions(self):
@@ -650,12 +836,9 @@ class ImmersionViewsTestCase(TestCase):
             birth_date="1990-02-19",
             level=HighSchoolLevel.objects.get(pk=1),
             class_name="S20",
-            bachelor_type=1,
+            bachelor_type=BachelorType.objects.get(label__iexact='général'),
             visible_immersion_registrations=False,
             visible_email=False,
-            allowed_global_registrations=None,
-            allowed_first_semester_registrations=2,
-            allowed_second_semester_registrations=2,
             validation=2,
             duplicates="[5,6,4]"
         )
@@ -666,12 +849,9 @@ class ImmersionViewsTestCase(TestCase):
             birth_date="1990-02-19",
             level=HighSchoolLevel.objects.get(pk=1),
             class_name="S20",
-            bachelor_type=1,
+            bachelor_type=BachelorType.objects.get(label__iexact='général'),
             visible_immersion_registrations=False,
             visible_email=False,
-            allowed_global_registrations=None,
-            allowed_first_semester_registrations=2,
-            allowed_second_semester_registrations=2,
             validation=2,
             duplicates="[5,6,4]"
         )
@@ -731,7 +911,7 @@ class ImmersionViewsTestCase(TestCase):
 
         self.assertTrue(PendingUserGroup.objects.all().exists())
         pending_group = PendingUserGroup.objects.first()
-        self.assertEqual(pending_group.creation_date.date(), self.today.date())
+        self.assertEqual(pending_group.creation_date.date(), self.today)
         self.assertEqual(pending_group.immersionuser1, self.speaker1)
         self.assertEqual(pending_group.immersionuser2, self.speaker2)
 
@@ -762,3 +942,108 @@ class ImmersionViewsTestCase(TestCase):
 
         self.assertIn("Your accounts have been linked", response.content.decode('utf8'))
         self.assertEqual(self.speaker1.linked_users(), [self.speaker1, self.speaker2])
+
+
+    def test_visitor_record(self):
+        # First check that visitor record doesn't exist yet
+        self.assertFalse(VisitorRecord.objects.filter(visitor=self.visitor_user).exists())
+        self.assertFalse(VisitorRecordDocument.objects.exists())
+
+        self.client.login(username='visitor', password='pass')
+        response = self.client.get('/immersion/visitor_record')
+
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        record_data = {
+            "visitor": self.visitor_user.id,
+            "last_name": "",
+            "first_name": self.visitor_user.first_name,
+            "email": self.visitor_user.email,
+            "birth_date": "",
+            "phone": "0388010101",
+            "motivation": "I'm very motivated.",
+            "submit": 1,
+        }
+
+        # Missing fields
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        self.assertIn("This field is required", response.content.decode('utf-8'))
+
+        # All fields
+        record_data["last_name"] = self.visitor_user.last_name
+        # 20 years (= above 18)
+        record_data["birth_date"] = (self.today - datetime.timedelta(days=7300)).strftime("%Y-%m-%d")
+
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        self.assertTrue(VisitorRecord.objects.filter(visitor=self.visitor_user).exists())
+
+        self.assertIn("Record saved. Please fill all the required attestation documents below.",
+            response.content.decode('utf-8'))
+        self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
+
+        record = self.visitor_user.get_visitor_record()
+
+        # Check attestations objects (only 1 -> attestation_2)
+        documents = VisitorRecordDocument.objects.filter(record=record)
+
+        self.assertEqual(documents.count(), 1)
+        self.assertEqual(documents.first().attestation, self.attestation_2)
+
+        document = documents.first()
+
+        # repost without attestations
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Add missing file, fields, and repost
+        fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
+        prefix = f"document_{self.attestation_2.pk}"
+
+        record_data.update({
+            f"{prefix}-record": document.record.pk,
+            f"{prefix}-attestation": document.attestation.pk,
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
+        })
+
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+        content = response.content.decode('utf-8')
+
+        self.assertIn("Your record status : To validate", response.content.decode('utf-8'))
+        document.refresh_from_db()
+        self.assertNotEqual(document.document, None)
+        self.assertIsNone(document.validity_date)
+
+        del (record_data[f"{prefix}-document"]) # no more needed
+
+        # Test get route as ref_etab user
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get('/immersion/visitor_record/%s' % record.id)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        # Post - missing required validity date
+        response = self.client.post('/immersion/visitor_record/%s' % record.id, record_data, follow=True)
+        self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Success
+        record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+        response = self.client.post('/immersion/visitor_record/%s' % record.id, record_data, follow=True)
+        self.assertNotIn("You have errors in Attestations section", response.content.decode('utf-8'))
+
+        # Back to the visitor for a last test
+        self.client.login(username='visitor', password='pass')
+
+        # Post with another email
+        record_data["email"] = "another_visitor@email.com"
+        response = self.client.post('/immersion/visitor_record', record_data, follow=True)
+
+        self.visitor_user.refresh_from_db()
+        self.assertNotEqual(self.visitor_user.validation_string, None)
+
+        # Test access
+        # Fail
+        self.client.login(username=self.lyc_ref.username, password='pass')
+
+        response = self.client.get(f'/immersion/visitor_record/{record.id}')
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertNotIn("Visitor record", response.content.decode('utf-8'))
