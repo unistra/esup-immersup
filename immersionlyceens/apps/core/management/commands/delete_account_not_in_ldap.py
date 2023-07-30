@@ -4,7 +4,7 @@ from typing import List, Any, Union
 
 from django.core.management import BaseCommand
 from django.db.models import QuerySet
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 
 from immersionlyceens.apps.core.models import ImmersionUser
 from immersionlyceens.libs.api.accounts import AccountAPI
@@ -35,7 +35,7 @@ class Command(BaseCommand, Schedulable):
         n = ImmersionUser.objects.filter(username__in=username_list).delete()
         t = time.time() - t
 
-        msg = _("%s users deleted in %s seconds"), n[0], round(t, 3)
+        msg = gettext("%s users deleted in %s seconds" % (n[0], round(t, 3)))
 
         logger.info(msg)
         return msg
