@@ -15,13 +15,16 @@ def create_campus_city_template_var(apps, schema_editor):
         print("Cannot find / update campus label mail template variable")
 
     try:
+        campus_city = MailTemplateVars.objects.get(code="{{ creneau.campus.ville }}")
+    except MailTemplateVars.DoesNotExist:
         campus_city = MailTemplateVars.objects.create(
             code="{{ creneau.campus.ville }}",
             description='Créneau : campus : ville'
         )
 
+    try:
         for template in MailTemplate.objects.filter(body__icontains="creneau.campus"):
-            template.body.replace("creneau.campus", "creneau.campus.libelle")
+            template.body = template.body.replace("creneau.campus", "creneau.campus.libelle")
             template.save()
             template.available_vars.add(campus_city)
     except:

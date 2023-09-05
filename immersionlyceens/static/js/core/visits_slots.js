@@ -24,7 +24,7 @@ function init_datatable() {
         return [];
       },
     },
-    order: [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]],
+    order: [[5, "asc"], [2, "asc"], [3, "asc"], [4, "asc"]],
     processing: false,
     serverSide: false,
     responsive: false,
@@ -32,10 +32,10 @@ function init_datatable() {
     search: true,
     searchCols: [
         null,
+        null,
         { "search": highschool_filter },
         { "search": managed_by_filter },
         { "search": visit_purpose_filter.normalize("NFD").replace(/\p{Diacritic}/gu, "")},
-        null,
         null,
         null,
         null,
@@ -48,6 +48,35 @@ function init_datatable() {
       url: language_file
     },
     columns: [
+        { data: 'id',
+          render: function(data, type, row) {
+            let element = ""
+
+            if (row.can_update_visit_slot) {
+              element += `<a href="/core/visit_slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
+                         `title=${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
+
+              if(row.is_past === false) {
+                element += `<a href="/core/visit_slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`
+              }
+              if(row.n_register === 0 && row.is_past === false) {
+                element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
+              }
+
+              if(row.attendances_value === 1) {
+                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+                           `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
+                           `</button>`;
+              }
+              else if (row.attendances_value !== -1) {
+                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+                           `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
+                           `</button>`;
+              }
+            }
+            return element;
+          }
+        },
         { data: 'published',
           render: function(data, type, row) {
             return (data) ? yes_text : no_text;
@@ -117,50 +146,21 @@ function init_datatable() {
             // Use common slots function
             return display_slot_restrictions(data, type, row)
           }
-        },
-        { data: 'id',
-          render: function(data, type, row) {
-            let element = ""
-
-            if (row.can_update_visit_slot) {
-              element += `<a href="/core/visit_slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
-                         `title=${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
-
-              if(row.is_past === false) {
-                element += `<a href="/core/visit_slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`
-              }
-              if(row.n_register === 0 && row.is_past === false) {
-                element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
-              }
-
-              if(row.attendances_value === 1) {
-                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
-                           `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
-                           `</button>`;
-              }
-              else if (row.attendances_value !== -1) {
-                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
-                           `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
-                           `</button>`;
-              }
-            }
-            return element;
-          }
-        },
+        }
     ],
     columnDefs: [{
         defaultContent: '-',
         targets: '_all'
     }, {
       orderable: false,
-      targets: [9]
+      targets: [10]
     }],
 
     initComplete: function () {
       var api = this.api();
 
-      var columns_idx = [3, 5, 6]
-      var initial_values = { 3: visit_purpose_filter };
+      var columns_idx = [4, 6, 7]
+      var initial_values = { 4: visit_purpose_filter };
 
       columns_idx.forEach(function(col_idx) {
         var column = api.column(col_idx)
@@ -213,7 +213,7 @@ function init_datatable() {
     yadcf.exResetAllFilters(dt);
 
     // Clear search inputs
-    let columns_idx = [3, 5, 6]
+    let columns_idx = [4, 6, 7]
 
     columns_idx.forEach(function(col_idx) {
       let column = dt.column(col_idx)
@@ -236,17 +236,9 @@ function init_datatable() {
 
   yadcf.init(dt, [
     {
-        column_number: 0,
-        filter_default_label: "",
-        filter_container_id: "published_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    {
         column_number: 1,
         filter_default_label: "",
-        filter_match_mode: "exact",
-        filter_container_id: "highschool_filter",
+        filter_container_id: "published_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
@@ -254,48 +246,28 @@ function init_datatable() {
         column_number: 2,
         filter_default_label: "",
         filter_match_mode: "exact",
+        filter_container_id: "highschool_filter",
         style_class: "form-control form-control-sm",
-        filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
-    /*
     {
         column_number: 3,
         filter_default_label: "",
         filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
-        filter_container_id: "purpose_filter",
+        filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
-    */
     {
-        column_number: 4,
+        column_number: 5,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "date_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
-    /*
     {
-        column_number: 5,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "location_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    {
-        column_number: 6,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "speakers_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    */
-    {
-        column_number: 7,
+        column_number: 8,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "registration_filter",
@@ -308,15 +280,15 @@ function init_datatable() {
     let filter_array = Array()
 
     if(highschool_filter) {
-      filter_array.push([1, [highschool_filter]])
+      filter_array.push([2, [highschool_filter]])
     }
 
     if(managed_by_filter) {
-      filter_array.push([2, [managed_by_filter]])
+      filter_array.push([3, [managed_by_filter]])
     }
 
     if(visit_purpose_filter) {
-      filter_array.push([3, [visit_purpose_filter]])
+      filter_array.push([4, [visit_purpose_filter]])
     }
 
     yadcf.exFilterColumn(dt, filter_array);

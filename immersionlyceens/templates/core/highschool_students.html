@@ -54,7 +54,7 @@
               {% if can_show_users_without_record %}
               <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
               {% endif %}
-              <th class="align-top">{% trans 'Name' %}</th>
+              <th id="name_filter" class="align-top">{% trans 'Name' %}</th>
               <th class="align-top">{% trans 'Birth date' %}</th>
               {% if can_show_users_without_record %}
               <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
@@ -254,6 +254,14 @@
         filter_match_mode: "exact",
         filter_default_label: "",
         filter_container_id: "type_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 1,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "name_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },

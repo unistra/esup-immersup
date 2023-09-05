@@ -114,8 +114,8 @@
             <br>
           {% endif %}
         {% endif %}
-      <div class="table-responsive">
-        <table id="slots_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
+      <div class="col-12 col-sm-12 col-lg-12 table-responsive">
+        <table id="slots_list" class="table table-sm table-striped table-bordered compact dt-head-nowrap" style="max-width: none !important;">
           {% block table_definition %}{% endblock %}
         </table>
       </div>
@@ -252,7 +252,8 @@
     if(slot_mode === "courses") {
       empty_trainings()
     }
-    else {
+
+    if(current_establishment_id !== "") {
       reload_data()
     }
 
@@ -278,7 +279,8 @@
     if(slot_mode === "courses") {
       set_trainings('highschool', current_highschool_id);
     }
-    else {
+
+    if (current_highschool_id !== "") {
       reload_data();
     }
 
@@ -301,9 +303,9 @@
       $('#id_training').val('')
       set_trainings('structures', current_structure_id);
     }
-    else {
-      reload_data();
-    }
+
+
+    reload_data();
 
     set_session_values(slot_mode, {
       "current_structure_id": current_structure_id,
@@ -314,12 +316,7 @@
   $('#id_training').on('change', function(event) {
     current_training_id = $("#id_training").val()
 
-    if(is_set(current_training_id)) {
-      reload_data();
-    }
-    else {
-      dt.clear().draw()
-    }
+    reload_data();
 
     set_session_values(slot_mode, {
       "current_training_id": current_training_id,
