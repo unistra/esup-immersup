@@ -102,7 +102,7 @@
         <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
-            {% if not request.user.is_structure_consultant %}
+            {% if request.user.is_high_school_manager %}
               <th class="align-top">{% trans 'Control' %}</th>
             {% endif %}
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
@@ -115,7 +115,7 @@
         </thead>
         <tfoot>
           <tr>
-            {% if not request.user.is_structure_consultant %}
+            {% if request.user.is_high_school_manager %}
               <td></td>
             {% endif %}
             <td></td>
@@ -140,6 +140,7 @@
   let delete_text = "{% trans 'Delete' %}";
   let confirmDialog;
   let is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
+  let is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True";
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
@@ -176,7 +177,7 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-        dt.ajax.url("{% url 'training_list' %}").load();
+        load_trainings()
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -317,7 +318,7 @@
     // Columns initialization - depends on user (structure consultant or not) and active training quotas
     let dt_columns;
 
-    if(!is_structure_consultant) {
+    if(is_high_school_manager) {
       dt_columns = [{
         data: "nb_courses",
         render: function (data, type, row) {
@@ -337,11 +338,11 @@
         dt_columns = []
     }
 
-    dt_columns.splice(is_structure_consultant ? 0 : 1, 0,
+    dt_columns.splice(is_high_school_manager ? 1 : 0, 0,
       {
         data: "label",
         render: (data, type, row) => {
-          if(type === 'display' && !is_structure_consultant) {
+          if(type === 'display' && is_high_school_manager) {
             return `<a href="/core/training/${row.id}/update">${data}</a>`
           }
 
@@ -363,7 +364,7 @@
 
     // Insert quota columns if necessary
     if(activated_training_quotas) {
-      dt_columns.splice(is_structure_consultant ? 3 : 4, 0, {
+      dt_columns.splice(is_high_school_manager ? 4 : 3, 0, {
         data: "allowed_immersions",
         render: function (data, type, row) {
           if(!is_set(data)) {
@@ -386,7 +387,7 @@
       },
     ]
 
-    if(!is_structure_consultant) {
+    if(is_high_school_manager) {
       dt_column_defs.push({
         orderable: false,
         targets: [0]
@@ -444,7 +445,7 @@
 
     if(activated_training_quotas) {
       filters.push({
-        column_number: is_structure_consultant ? 3 : 4,
+        column_number: is_high_school_manager ? 4 : 3,
         filter_default_label: "",
         filter_container_id: "quota_filter",
         style_class: "form-control form-control-sm",

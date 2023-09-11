@@ -549,7 +549,7 @@ def set_training_quota(request):
     if user.is_high_school_manager() and training.highschool != user.highschool:
         return JsonResponse({'error': _("You are not allowed to set quota for this high school")}, safe=False)
 
-    if any([user.is_structure_manager(), user.is_establishment_manager, user.is_master_establishment_manager]):
+    if any([user.is_structure_manager(), user.is_establishment_manager(), user.is_master_establishment_manager()]):
         if not training.structures.intersection(allowed_structures).exists():
             return JsonResponse({'error': _("You are not allowed to set quota for this training")}, safe=False)
 
