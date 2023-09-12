@@ -63,6 +63,7 @@ input[type='number'] {
     from {
         transform: scale(1) rotate(0deg);
     }
+
     to {
         transform: scale(1) rotate(360deg);
     }
@@ -72,6 +73,7 @@ input[type='number'] {
     from {
         -webkit-transform: rotate(0deg);
     }
+
     to {
         -webkit-transform: rotate(360deg);
     }
@@ -81,6 +83,7 @@ input[type='number'] {
     from {
         -moz-transform: rotate(0deg);
     }
+
     to {
         -moz-transform: rotate(360deg);
     }
@@ -102,8 +105,8 @@ input[type='number'] {
 
 /* No hover effect on specific element of a nav pill */
 
-.nav > li.no-effect > a:hover,
-.nav > li.no-effect > a:focus {
+.nav>li.no-effect>a:hover,
+.nav>li.no-effect>a:focus {
     background-color: transparent;
 }
 
@@ -133,6 +136,7 @@ input[type='number'] {
     0% {
         -moz-transform: rotate(0deg);
     }
+
     100% {
         -moz-transform: rotate(359deg);
     }
@@ -142,6 +146,7 @@ input[type='number'] {
     0% {
         -webkit-transform: rotate(0deg);
     }
+
     100% {
         -webkit-transform: rotate(359deg);
     }
@@ -151,6 +156,7 @@ input[type='number'] {
     0% {
         -o-transform: rotate(0deg);
     }
+
     100% {
         -o-transform: rotate(359deg);
     }
@@ -161,6 +167,7 @@ input[type='number'] {
         -webkit-transform: rotate(0deg);
         transform: rotate(0deg);
     }
+
     100% {
         -webkit-transform: rotate(359deg);
         transform: rotate(359deg);
@@ -198,7 +205,7 @@ a.unlink:hover {
     max-height: 99% !important;
 }
 
-.more-less-title > button:after {
+.more-less-title>button:after {
     /* minus */
     content: '\f067';
     font-family: 'FontAwesome';
@@ -206,7 +213,7 @@ a.unlink:hover {
     right: 2px;
 }
 
-.more-less-title > button[aria-expanded='true']:after {
+.more-less-title>button[aria-expanded='true']:after {
     /* plus */
     content: '\f068';
     right: 2px;
@@ -258,7 +265,7 @@ a.unlink:hover {
 }
 
 /* ui widgets */
-.ui-widget > * {
+.ui-widget>* {
     font-family: 'Unistra A', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
         'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     font-size: 1.1rem;
@@ -305,6 +312,7 @@ a.unlink:hover {
 .faq-accordion .card .card-body {
     padding: 1.75rem 2rem;
 }
+
 .faq-accordion .card .card-body p:last-child {
     margin-bottom: 0;
 }
@@ -324,4 +332,55 @@ a.unlink:hover {
         background-size: contain !important;
         cursor: pointer;
     }
+}
+
+.results-cards tbody tr:not(:has(td.dataTables_empty)) {
+    float: left;
+    width: 20rem;
+    height: 25rem;
+    margin: 0.5rem;
+    border: 0.0625rem solid rgba(0, 0, 0, .125);
+    border-radius: .15rem;
+    box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
+}
+
+.results-cards tbody td {
+    display: block;
+}
+
+.results-cards tbody label {
+    display: inline;
+    position: relative;
+    float: left;
+    color: #808080;
+    min-width: 4rem;
+    margin-left: 0;
+    margin-right: 1rem;
+    text-align: left;
+}
+
+.results-cards thead {
+    display: none;
+}
+
+.results-cards .fa {
+    font-size: 2rem;
+}
+
+.results-cards caption {
+    text-align: center;
+    caption-side: top;
+    padding: 2.5rem;
+}
+
+.slot-type-c {
+    color: DarkMagenta;
+}
+
+.slot-type-v {
+    color: DarkCyan;
+}
+
+.slot-type-e {
+    color: DarkGreen;
 }
