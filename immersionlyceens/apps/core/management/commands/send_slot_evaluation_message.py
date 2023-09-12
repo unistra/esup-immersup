@@ -8,7 +8,7 @@ import logging
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from ...models import EvaluationFormLink, Immersion, Slot
 from . import Schedulable
