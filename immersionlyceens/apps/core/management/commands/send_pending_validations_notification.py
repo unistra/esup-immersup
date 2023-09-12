@@ -6,7 +6,7 @@ import logging
 
 from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from ...models import HighSchool, ImmersionUser
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, VisitorRecord
 from . import Schedulable

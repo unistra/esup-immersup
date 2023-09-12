@@ -8,7 +8,7 @@ import logging
 import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from django.utils import timezone
 from . import Schedulable
 
