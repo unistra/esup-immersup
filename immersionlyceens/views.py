@@ -652,7 +652,6 @@ def search_slots(request):
             course_training_label=F("course__training__label"),
             course_type_full_label=F("course_type__full_label"),
             event_description=F("event__description"),
-            campus_label=F("campus__label"),
             building_label=F("building__label"),
 
             establishment_label=Coalesce(
@@ -689,6 +688,17 @@ def search_slots(request):
                 F("course__highschool__label"),
                 F("event__highschool__label"),
                 F("visit__highschool__label"),
+            ),
+            location=Coalesce(
+                F("course__highschool__city"),
+                F("event__highschool__city"),
+                F("visit__highschool__city"),
+                Concat(Value('Campus '),
+                       F('campus__label'),
+                       Value(', '),
+                       F('campus__city'),
+                       output_field=CharField()
+                )
             ),
             n_register=Count(
                 "immersions",
@@ -801,7 +811,7 @@ def search_slots(request):
             "date",
             "start_time",
             "end_time",
-            "campus_label",
+            "location",
             "building_label",
             "face_to_face",
             "url",

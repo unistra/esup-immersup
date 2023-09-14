@@ -110,7 +110,6 @@
               orderable: false, className: 'text-center', width: '20px',
               render: function(data, type, full, meta) {
                   slotType = full['slot_type'][0].toLowerCase();
-                  console.log(slotType)
                   if (slotType == 'c') {
                       return '<i class="fa fa-graduation-cap slot-type-c"></i>';
                   } else if (slotType == 'v') {
@@ -119,18 +118,6 @@
                       return '<i class="fa fa-calendar slot-type-e"></i>';
                   } 
               }
-          },
-          { 
-            data: "label",
-            render: function (data, type, full, meta) {  
-              return '<label>'+ '{% trans "Label" %}' +':</label>' + data; 
-            }
-          },
-          { 
-            data: "slot_type",
-            render: function (data, type, full, meta) { 
-              return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
-            }
           },
           { 
             data: "establishment_label",
@@ -145,21 +132,35 @@
             }
           },
           { 
+            data: "label",
+            render: function (data, type, full, meta) {  
+              return '<label>'+ '{% trans "Label" %}' +':</label>' + data; 
+            }
+          },
+          { 
+            data: "slot_type",
+            render: function (data, type, full, meta) { 
+              return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
+            }
+          },
+          { 
             data: "date", class: 'text-right',
             render: function (data, type, full, meta) { 
               return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
             }
           },
           { 
-            "data": "structure_code",
+            "data": "location",
             render: function (data, type, full, meta) {
-              return '<label>'+ "{% trans 'Structure' %}" +':</label>' + data;
+              return '<label>'+ "{% trans 'Location' %}" +':</label>' + data.split(' ')
+                .map(w => w[0].toUpperCase() + w.substring(1).toLowerCase())
+                .join(' ');
             }
           },
           { 
-            "data": "n_register", title: "register", visible: true,
+            "data": "n_places", title: "register", visible: true,
             render: function (data, type, full, meta) { 
-              return '<label>'+ '{% trans "Registrations" %}' +':</label>' + data;
+              return '<label>'+ '{% trans "Available places" %}' +':</label>' + data;
             }
           },
       ],
