@@ -713,7 +713,7 @@ def search_slots(request):
                 ),
                 distinct=True,
             ),
-            speaker_list=Coalesce(
+            speakers_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
                         last_name=F("speakers__last_name"),
@@ -818,7 +818,7 @@ def search_slots(request):
             "room",
             "n_register",
             "n_places",
-            "speaker_list",
+            "speakers_list",
             "establishments_restrictions",
             "levels_restrictions",
             "bachelors_restrictions",
@@ -831,6 +831,8 @@ def search_slots(request):
             "allowed_bachelor_mentions_list",
             "allowed_bachelor_teachings_list",
             "course_training_label",
+            "additional_information",
+            "registration_limit_date",
         )
     )
     context = {

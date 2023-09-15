@@ -127,8 +127,11 @@
           },
           { 
             data: "course_training_label",
-            render: function (data, type, full, meta) { 
-              return '<label>'+ '{% trans "Training" %}' +':</label>' + data;
+            render: function (data, type, full, meta) {
+              if (data == null) {
+                data = '&nbsp;';
+              } 
+              return '<label>'+ '{% trans "Training" %}' + ':</label>' + data;
             }
           },
           { 
@@ -167,7 +170,7 @@
       "columnDefs": [
         {
           "defaultContent": "",
-          "targets": "_all"
+          "targets": "_all",
         },
       ],
     })
@@ -175,10 +178,24 @@
       var rowData = dt.rows(indexes).data().toArray()
       // TODO: debug for now modals WIP
       console.log(rowData);
+      var speakers_array = "";
+      $.each(rowData[0].speakers_list, function(i, item) {
+        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
+      });
       $('#modal_search_slots_details').modal("show");
+      $('#modal_search_slots_details #modal_establishment').html(rowData[0].establishment_label);
+      $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
-      
+      $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
+      $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0]));
+      $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
+      $('#modal_search_slots_details #modal_speakers').html(
+        "<ul>" + speakers_array + "</ul>"
+      );
+      $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
+      $('#modal_search_slots_details #modal_available_seats').html(rowData[0].n_places);
+      $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));      
     })
     $('#search_immersions_slots').keyup( function() {
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
