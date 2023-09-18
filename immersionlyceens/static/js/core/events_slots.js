@@ -5,16 +5,16 @@ function init_datatable() {
       data: function(d) {
         d.events = true
 
-        if($('#id_establishment').val()) {
-          d.establishment_id = $('#id_establishment').val();
+        if(is_set(current_establishment_id) || $('#id_establishment').val()) {
+          d.establishment_id = current_establishment_id || $('#id_establishment').val();
         }
 
-        if($('#id_structure').val()) {
-          d.structure_id = $('#id_structure').val();
+        if(is_set(current_structure_id) || $('#id_structure').val()) {
+          d.structure_id = current_structure_id || $('#id_structure').val();
         }
 
-        if($('#id_highschool').val()) {
-          d.highschool_id = $('#id_highschool').val();
+        if(is_set(current_highschool_id) || $('#id_highschool').val()) {
+          d.highschool_id = current_highschool_id || $('#id_highschool').val();
         }
 
         d.past = $('#filter_past_slots').is(':checked')

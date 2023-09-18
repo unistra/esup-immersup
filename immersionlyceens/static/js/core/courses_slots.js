@@ -7,22 +7,25 @@ function init_datatable() {
     ajax: {
       url: "/core/utils/slots",
       data: function(d) {
-          if($('#id_establishment').val()) {
+          if(is_set(current_establishment_id) || $('#id_establishment').val()) {
             d.establishment_id = current_establishment_id || $('#id_establishment').val();
           }
 
-          if($('#id_training').val()) {
+          if(is_set(current_training_id) || $('#id_training').val()) {
             d.training_id = current_training_id || $('#id_training').val();
           }
 
-          if($('#id_structure').val()) {
+          if(is_set(current_structure_id) || $('#id_structure').val()) {
             d.structure_id = current_structure_id || $('#id_structure').val();
           }
-          else if($('#id_highschool').val()) {
+          else if(is_set(current_highschool_id) || $('#id_highschool').val()) {
             d.highschool_id = current_highschool_id || $('#id_highschool').val();
           }
 
           d.past = $('#filter_past_slots').is(':checked')
+
+          console.log("DATA :")
+          console.log(d)
 
           return d
       },
