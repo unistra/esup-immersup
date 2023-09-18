@@ -24,9 +24,6 @@ function init_datatable() {
 
           d.past = $('#filter_past_slots').is(':checked')
 
-          console.log("DATA :")
-          console.log(d)
-
           return d
       },
       dataSrc: function (json) {
