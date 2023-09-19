@@ -117,7 +117,7 @@ function init_datatable() {
             if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
               txt = `<a href="/core/course/${row.course_id}">${row.course_label} (${row.course_type_label})</a>`
             } else {
-              txt = `{row.course_label} (${row.course_type_label})`
+              txt = `${row.course_label} (${row.course_type_label})`
             }
 
             return txt
