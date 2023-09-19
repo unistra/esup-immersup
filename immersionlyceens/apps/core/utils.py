@@ -140,10 +140,6 @@ def slots(request):
         if structure_id is not None:
             filters['visit__structure__id'] = structure_id
 
-        slots = Slot.objects.prefetch_related(
-            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters)
-
         user_filter_key = "visit__structure__in"
     elif events:
         filters["course__isnull"] = True
@@ -155,10 +151,6 @@ def slots(request):
                 filters['event__structure__id'] = structure_id
         elif highschool_id:
             filters['event__highschool__id'] = highschool_id
-
-        slots = Slot.objects.prefetch_related(
-            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
-            .filter(**filters)
 
         user_filter_key = "event__structure__in"
     else:
@@ -174,12 +166,22 @@ def slots(request):
         if training_id is not None:
             filters['course__training__id'] = training_id
 
-        slots = Slot.objects.prefetch_related(
-            'course__training__structures', 'course__training__highschool', 'course__training__structures__establishment',
-            'speakers', 'immersions') \
-            .filter(**filters)
-
         user_filter_key = "course__training__structures__in"
+
+    slots = Slot.objects.prefetch_related(
+        'course__training__highschool',
+        'course__training__structures__establishment', 'course_type',
+        'course__structure__establishment', 'course__highschool',
+        'campus', 'building', 'speakers',
+        'visit__highschool', 'visit__establishment',
+        'visit__structure__establishment', 'event__event_type',
+        'event__establishment', 'event__structure__establishment',
+        'event__highschool', 'immersions__cancellation_type',
+        'allowed_establishments', 'allowed_highschools',
+        'allowed_highschool_levels', 'allowed_post_bachelor_levels',
+        'allowed_student_levels', 'allowed_bachelor_types',
+        'allowed_bachelor_mentions', 'allowed_bachelor_teachings')\
+        .filter(**filters)
 
     if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
         user_filter = {

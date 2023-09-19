@@ -304,7 +304,6 @@
       set_trainings('structures', current_structure_id);
     }
 
-
     reload_data();
 
     set_session_values(slot_mode, {
@@ -424,8 +423,6 @@ $(document).ready(function(){
     }
   });
 
-  init_datatable();
-
   $('#top_indicator').hide();
 
   if(is_set(current_establishment_id)) {
@@ -449,8 +446,10 @@ $(document).ready(function(){
   }
 
   if(slot_mode === "courses" && is_set(current_training_id)) {
-    $("#id_training").val(current_training_id)
+    $("#id_training").val(current_training_id);
   }
+
+  init_datatable();
 });
 
 
