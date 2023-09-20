@@ -1,20 +1,22 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static i18n immersionlyceens_tags %}
 {% block head-css %}
+<link rel="stylesheet" href="{% static "css/vendor/chosen/chosen.min.css" %}">
+
 {% endblock %}
 {% block title %}
-{% trans "Search immersions slots" %}
+  {% trans 'Search immersions slots' %}
 {% endblock %}
 {% block content %}
-{% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
-{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
-{% include './modals/modal_search_slots_details.html' %}
-<div class="main-title inside text-center">
+  {% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
+  {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+  {% include './modals/modal_search_slots_details.html' %}
+  <div class="main-title inside text-center">
     <div></div>
     <div class="container">
       <div class="row">
         <div class="col">
-            <h1>{% trans 'Search immersions slots' %}</h1>
+          <h1>{% trans 'Search immersions slots' %}</h1>
         </div>
       </div>
     </div>
@@ -23,8 +25,12 @@
     <div class="container">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-          <li class="breadcrumb-item active" aria-current="page">{% trans "Search immersions slots" %}</li>
+          <li class="breadcrumb-item">
+            <a href="/">{% trans 'Home' %}</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            {% trans 'Search immersions slots' %}
+          </li>
         </ol>
       </nav>
     </div>
@@ -34,7 +40,7 @@
       <div class="row">
         <div class="col lead">
           {% if intro_offer_search %}
-          {{ intro_offer_search | safe }}
+            {{ intro_offer_search|safe }}
           {% endif %}
         </div>
       </div>
@@ -42,40 +48,97 @@
   </section>
   <section class="py-5">
     <div class="container">
-        <div class="row border-top my-3"></div>
-        <div class="row" style="padding-top:20px;">
+      <div class="row border-top my-3"></div>
+      <div class="row" style="padding-top:20px;">
         <div class="col offset-sm-1 text-center">
-            <form class="form-inline justify-content-center">
+          <form class="form-inline justify-content-center">
             <i class="fa fas fa-search" aria-hidden="true"></i>
-            <input class="form-control form-control-sm ml-4 w-25" id="search_immersions_slots" type="text" aria-label="{% trans 'Search immersions slots' %}">
-            </form>
+            <input class="form-control form-control-sm ml-4 w-25" id="search_immersions_slots" type="text" aria-label="{% trans 'Search immersions slots' %}" />
+          </form>
         </div>
-        </div>
-        <div class="row" style="padding-top:20px;padding-bottom:20px;">
-        <div class="col table-responsive" >
-            <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:100%">
+      </div>
+      <div class="mt-3">
+        <a data-toggle="collapse" href="#collapseAdvancedSearch" aria-expanded="false">{% trans 'Advanced search' %} <i class="fa fa-angle-down"></i></a>
+        <div id="collapseAdvancedSearch" class="col-ml-4 collapse">
+          <div class="card card-body">
             {% if highschool_visit or events_off_offer %}
-            <caption>
-              <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
-              {% if highschool_visit %}
-              <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
-              {% endif %}
-              {% if events_off_offer %}
-              <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
-              {% endif %}
-            </caption>
+            <h5>{% trans "Slot types" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="coursesCheckbox" name="slotType" class="filters slotTypeFilter" value="Type:{% trans "Course" %}" checked> {% trans "Courses" %}
+                </label>
+                {% if  events_off_offer%}
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="eventsCheckbox" name="slotType" class="filters slotTypeFilter" value="Type:% trans "Event" %}" checked> {% trans "Events" %}
+                </label>
+                {% endif %}
+                {% if highschool_visit %}
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="visitsCheckbox" name="slotType" class="filters slotTypeFilter" value="Type:{% trans "Visit" %}" checked> {% trans "Visits" %}
+                </label>
+                {% endif %}
+              </div>
+            </div>
             {% endif %}
-            </table>
+            <h5>{% trans "Establishments" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <span id="establishments_filter"></span>
+              </div>
+            </div>
+            <h5>{% trans "Slots with available places" %} :</h5>
+            
+            <div class="row">
+              <div class="col">
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="slotsAvailableCheckbox" name="slotsAvailable" class="filters slotsAvailableFilter" value="true"> {% trans "Slots not full only" %}
+                </label>                
+              </div>
+            </div>
+            <h5>{% trans "Dates" %} :</h5>
+            <div class="row">
+              <div class="col-md-4">
+                <input type="text" placeholder="Property ID" class="form-control" />
+              </div>
+
+              <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Search by MAP" />
+              </div>
+
+              <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Search by Country" />
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="row" style="padding-top:20px;padding-bottom:20px;">
+        <div class="col table-responsive">
+          <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:100%">
+            {% if highschool_visit or events_off_offer %}
+              <caption>
+                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
+                {% if highschool_visit %}
+                  <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
+                {% endif %}
+                {% if events_off_offer %}
+                  <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
+                {% endif %}
+              </caption>
+            {% endif %}
+          </table>
         </div>
+      </div>
     </div>
-</section>
+  </section>
 {% block foot-javascript %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
-<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
-<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
+  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+  <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+  <script src="{% static "js/vendor/chosen/chosen.jquery.min.js" %}"></script>
+  <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+  <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+  <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}
 <script type="text/javascript">
   $(document).ready(function() {
@@ -83,6 +146,40 @@
       return $("<textarea/>").html(text).text();
     }
     let slots = JSON.parse(decodeHTMLEntities('{{ slots }}'));
+    $.fn.dataTable.ext.search.push(
+      function( settings, searchData, index, rowData, counter ) {
+        // slotsAvailable
+        var showAvailable = false;
+        var showType = false;
+        var showDate = false;
+        var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
+        var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
+          return this.value;
+        }).get();
+        var slotPlaces = parseInt(searchData[7].split(':')[1]);
+        var min = $('#min').datepicker("getDate");
+        var max = $('#max').datepicker("getDate");
+        var startDate = new Date(searchData[5].split(' ')[1]);
+
+        console.log(startDate)
+
+        if (slotTypes.length === 0) {
+          showType=false;
+        }
+        if (slotTypes.indexOf(searchData[4]) !== -1) {
+          showType=true;
+        }
+        if (onlyAvailable === 0 || slotPlaces > 0) {
+          showAvailable = true;
+        }
+        if (min == null && max == null) { showDate = true; }
+        if (min == null && startDate <= max) { showDate = true; }
+        if (max == null && startDate >= min) { showDate = true; }
+        if (startDate <= max && startDate >= min) { showDate = true; }
+      
+        return showType && showAvailable && showDate;
+      }
+    );    
     let dt = $('#search_immersions_slots_table').DataTable({
       'processing': false,
       'order': [
@@ -163,7 +260,8 @@
           { 
             "data": "n_places", title: "register", visible: true,
             render: function (data, type, full, meta) { 
-              return '<label>'+ '{% trans "Available places" %}' +':</label>' + data;
+              availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
+              return '<label>'+ '{% trans "Available places" %}' +':</label>' + availablePlaces;
             }
           },
       ],
@@ -194,13 +292,33 @@
         "<ul>" + speakers_array + "</ul>"
       );
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
-      $('#modal_search_slots_details #modal_available_seats').html(rowData[0].n_places);
+      $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));      
     })
     $('#search_immersions_slots').keyup( function() {
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
       dt.search(slots_search_value).draw();
     });
+
+    $('.filters').on('change', function () {
+        dt.draw();
+    });
+    
+    yadcf.initMultipleColumns(dt, [{
+        column_number: [1], 
+        filter_type: 'multi_select', 
+        select_type: 'chosen',
+        // TODO: check select_type_options !!!
+        select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
+        filter_container_id: 'establishments_filter', 
+        filter_default_label: ' ',
+        select_type_options: {width: '190px'},
+    }]);
+
+
+
+
+
   });
 </script>
 {% endblock %}
