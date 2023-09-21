@@ -175,7 +175,7 @@
         }
         else {
           feedback.trigger("showFeedback", [[msg, "success"]]);
-          dt.ajax.reload()
+          dt.ajax.reload(null, false);
         }
       },
       error: function (json) {
