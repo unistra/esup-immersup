@@ -169,11 +169,13 @@
         let msg = json['msg'];
         let error = json['error'];
         $('#modal_search_slots_details').modal("hide");
+        
         if (error) {
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
           feedback.trigger("showFeedback", [[msg, "success"]]);
+          dt.ajax.reload()
         }
       },
       error: function (json) {
@@ -186,7 +188,7 @@
     initFeedback();
     feedback = $("#feedback");
 
-    let slots = JSON.parse(decodeHTMLEntities('{{ slots }}'));
+    //let slots = JSON.parse(decodeHTMLEntities('{{ slots }}'));
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
         var showAvailable = false;
@@ -230,7 +232,14 @@
       'serverSide': false,
       'responsive': false,
       'dataType': 'json',
-      'data': slots,
+      'ajax': {
+        url: "{% url 'ajax_search_slots_list' %}",
+        dataSrc: function (json) {
+          if (json['data'] !== undefined) {
+            return json['data']['slots'];
+          }
+        }
+      },
       'searching': true,
       {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
       'language': {
@@ -309,8 +318,8 @@
     })
     .on('select', function (e, dt, type, indexes) {
       var rowData = dt.rows(indexes).data().toArray()
-      // TODO: debug for now modals WIP
-      console.log(rowData);
+      // TODO: debug for now should be removed later !!!
+      /// console.log(rowData);
       var speakers_array = "";
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
