@@ -35,6 +35,7 @@
       </nav>
     </div>
   </section>
+  <div id="feedback" class="container"></div>
   <section class="py-5">
     <div class="container">
       <div class="row">
@@ -98,17 +99,25 @@
             </div>
             <h5>{% trans "Dates" %} :</h5>
             <div class="row">
-              <div class="col-md-4">
-                <input type="text" placeholder="Property ID" class="form-control" />
-              </div>
 
               <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Search by MAP" />
+
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="">{% trans "Start date" %}</span>
+                  </div>
+                  <input type="date" name="start_date" id="start_date" class="filters form-control" />
+                </div>
+              </div>
+              <div class="col-md-4">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="">{% trans "End date" %}</span>
+                </div>
+                <input type="date" name="end_date" id="end_date" class="filters form-control" />
+              </div>              
               </div>
 
-              <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Search by Country" />
-              </div>
             </div>
           </div>
         </div>
@@ -141,14 +150,45 @@
   <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}
 <script type="text/javascript">
+  var feedback;
+  var dt; 
+
+  function decodeHTMLEntities(text) {
+    return $("<textarea/>").html(text).text();
+  } 
+  
+  function register(slot_id) {
+    $.ajax({
+      url: "{% url 'SlotRegistration' %}",
+      type: 'POST',
+      data: {
+        'slot_id': slot_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+        $('#modal_search_slots_details').modal("hide");
+        if (error) {
+          feedback.trigger("showFeedback", [[msg, "danger"]]);
+        }
+        else {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+      },
+      error: function (json) {
+        console.log(json);
+      }
+    })
+  }
+
   $(document).ready(function() {
-    function decodeHTMLEntities(text) {
-      return $("<textarea/>").html(text).text();
-    }
+    initFeedback();
+    feedback = $("#feedback");
+
     let slots = JSON.parse(decodeHTMLEntities('{{ slots }}'));
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
-        // slotsAvailable
         var showAvailable = false;
         var showType = false;
         var showDate = false;
@@ -157,12 +197,9 @@
           return this.value;
         }).get();
         var slotPlaces = parseInt(searchData[7].split(':')[1]);
-        var min = $('#min').datepicker("getDate");
-        var max = $('#max').datepicker("getDate");
-        var startDate = new Date(searchData[5].split(' ')[1]);
-
-        console.log(startDate)
-
+        var start_date = $('#start_date').val() || null;
+        var end_date = $('#end_date').val() || null;
+        var startDate = rowData['date']
         if (slotTypes.length === 0) {
           showType=false;
         }
@@ -172,19 +209,17 @@
         if (onlyAvailable === 0 || slotPlaces > 0) {
           showAvailable = true;
         }
-        if (min == null && max == null) { showDate = true; }
-        if (min == null && startDate <= max) { showDate = true; }
-        if (max == null && startDate >= min) { showDate = true; }
-        if (startDate <= max && startDate >= min) { showDate = true; }
-      
+        if (start_date == null && end_date == null) { showDate = true; }
+        if (start_date == null && startDate <= end_date) { showDate = true; }
+        if (end_date == null && startDate >= start_date) { showDate = true; }
+        if (startDate <= end_date && startDate >= start_date) { showDate = true; }
         return showType && showAvailable && showDate;
       }
     );    
-    let dt = $('#search_immersions_slots_table').DataTable({
+    dt = $('#search_immersions_slots_table').DataTable({
       'processing': false,
       'order': [
           [5, "asc"],
-
        ],
       'dom': 'ltpr',
       'pagingType': 'full_numbers',
@@ -217,8 +252,8 @@
               }
           },
           { 
-            data: "establishment_label",
-            render: function (data, type, full, meta) { 
+            data: "establishment_label", 
+            render: function (data, type, full, meta) {
               return '<label>'+ "{% trans 'Establishment' %}" +':</label>' + data;
             }
           },
@@ -294,6 +329,17 @@
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
       $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));      
+      $.ajax({
+        url: "/api/can_register_slot/" + rowData[0].id,
+        type: 'GET',
+        success: function (data) {
+          if (data['data'][0]['can_register'] === true) {
+            $('#modal_register_btn').html(
+              "<button type=\"button\" class=\"btn badge badge-pill badge-primary\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
+            );
+          }
+        }
+      })
     })
     $('#search_immersions_slots').keyup( function() {
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -314,11 +360,6 @@
         filter_default_label: ' ',
         select_type_options: {width: '190px'},
     }]);
-
-
-
-
-
   });
 </script>
 {% endblock %}
