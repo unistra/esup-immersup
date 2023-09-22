@@ -48,7 +48,7 @@
     </div>
   </section>
   <section class="py-5">
-    <div class="container-fluid m-4">
+    <div class="container-fluid justify-content-md-center">
       <div class="row border-top my-3"></div>
       <div class="row" style="padding-top:20px;">
         <div class="col offset-sm-1 text-center">
@@ -135,21 +135,20 @@
           </div>
         </div>
       </div>
-      </div>
       <div class="row" style="padding-top:20px;padding-bottom:20px;">
         <div class="col table-responsive">
           <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:100%">
             {% if highschool_visit or events_off_offer %}
-              <caption>
-                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
+            <caption>
+              <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
                 {% if highschool_visit %}
-                  <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
+                <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
                 {% endif %}
                 {% if events_off_offer %}
                   <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
                 {% endif %}
               </caption>
-            {% endif %}
+              {% endif %}
           </table>
         </div>
       </div>
