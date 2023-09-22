@@ -276,11 +276,15 @@
           { 
             data: "establishment_label", 
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               if(type === "display") {
                 return '<label>'+ '{% trans 'Establishment' %}' +':</label>' + data;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+
               }              
               return data;
             }
@@ -288,6 +292,9 @@
           { 
             data: "structure_label", 
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               if(type === "display") {
                 return '<label>'+ "{% trans 'Structure' %}" +':</label>' + data;
               }
@@ -315,6 +322,9 @@
           { 
             data: "label",
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               if(type === "display") { 
                 return '<label>'+ '{% trans "Label" %}' +':</label>' + data;
               }
@@ -327,6 +337,9 @@
           { 
             data: "slot_type",
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               if(type === "display") { 
                 return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
               }
@@ -339,6 +352,9 @@
           { 
             data: "date", class: 'text-right',
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               if(type === "display") {
                 return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
               }
@@ -351,8 +367,11 @@
           { 
             data: "campus_label",
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               if(type === "display") {
-                return '<label>'+ "{% trans 'Campus' %}" +':</label>' + data + '&nbsp;';
+                return '<label>'+ "{% trans 'Campus' %}" +':</label>' + data;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -363,6 +382,9 @@
           { 
             data: "city",
             render: function (data, type, full, meta) {
+              if (data === null) {
+                data = '&nbsp;';
+              }              
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
               if(type === "display") {
                 return '<label>'+ "{% trans 'City' %}" +':</label>' + data

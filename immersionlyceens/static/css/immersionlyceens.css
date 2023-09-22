@@ -337,7 +337,7 @@ a.unlink:hover {
 .results-cards tbody tr:not(:has(td.dataTables_empty)) {
     float: left;
     width: 20rem;
-    height: 28rem;
+    height: 32rem;
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
     border-radius: .15rem;
