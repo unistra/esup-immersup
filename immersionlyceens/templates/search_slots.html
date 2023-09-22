@@ -399,12 +399,17 @@
       });
       $('#modal_search_slots_details').modal("show");
       $('#modal_search_slots_details #modal_establishment').html(rowData[0].establishment_label);
+      $('#modal_search_slots_details #modal_structure').html(rowData[0].structure_label);
       $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0]));
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
+      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
+      $('#modal_search_slots_details #modal_city').html(rowData[0].city)
+      $('#modal_search_slots_details #modal_building').html(rowData[0].building_label)
+      $('#modal_search_slots_details #modal_room').html(rowData[0].room)
       $('#modal_search_slots_details #modal_speakers').html(
         "<ul>" + speakers_array + "</ul>"
       );
