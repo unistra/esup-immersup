@@ -903,12 +903,13 @@ class ImmersionUserCreationForm(UserCreationForm):
         cleaned_data = super().clean()
         email = cleaned_data.get("email", "").strip().lower()
 
-        if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+        if ImmersionUser.objects.filter(email__iexact=email).exclude(id=self.instance.id).exists():
             self.add_error('email', _("This email address is already used"))
             return cleaned_data
 
         # Override username
         cleaned_data["username"] = email
+        cleaned_data["email"] = email
 
         # Override high school when a high school manager creates an account
         if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
@@ -1044,6 +1045,7 @@ class ImmersionUserChangeForm(UserChangeForm):
         establishment = cleaned_data.get('establishment')
         highschool = cleaned_data.get('highschool')
         forbidden_msg = _("Forbidden")
+        cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
 
         if groups:
             linked_groups_conditions = [
