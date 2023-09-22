@@ -4392,7 +4392,6 @@ def ajax_update_structures_notifications(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def ajax_can_register_slot(request, slot_id=None):
     """
     Returns registering slot status for a logged user
@@ -4403,6 +4402,10 @@ def ajax_can_register_slot(request, slot_id=None):
 
     user = request.user
     response = {'msg': '', 'data': []}
+
+    if not user.is_authenticated:
+        response['msg'] = gettext("Error : user not authenticated")
+        return JsonResponse(response, safe=False)
 
     if not slot_id:
         response['msg'] = gettext("Error : missing slot id")
