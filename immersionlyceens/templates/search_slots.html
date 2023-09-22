@@ -279,6 +279,9 @@
               if(type === "display") {
                 return '<label>'+ '{% trans 'Establishment' %}' +':</label>' + data;
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },
@@ -288,6 +291,9 @@
               if(type === "display") {
                 return '<label>'+ "{% trans 'Structure' %}" +':</label>' + data;
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },          
@@ -300,6 +306,9 @@
               if(type === "display") {
                 return '<label>'+ '{% trans "Training" %}' + ':</label>' + data;
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },
@@ -309,6 +318,9 @@
               if(type === "display") { 
                 return '<label>'+ '{% trans "Label" %}' +':</label>' + data;
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },
@@ -318,6 +330,9 @@
               if(type === "display") { 
                 return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },
@@ -327,6 +342,9 @@
               if(type === "display") {
                 return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },
@@ -336,6 +354,9 @@
               if(type === "display") {
                 return '<label>'+ "{% trans 'Campus' %}" +':</label>' + data + '&nbsp;';
               }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }              
               return data;
             }
           },
@@ -345,6 +366,9 @@
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
               if(type === "display") {
                 return '<label>'+ "{% trans 'City' %}" +':</label>' + data
+              }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
               }
               return data;
             }
@@ -369,8 +393,6 @@
     })
     .on('select', function (e, dt, type, indexes) {
       var rowData = dt.rows(indexes).data().toArray()
-      // TODO: debug for now should be removed later !!!
-      /// console.log(rowData);
       var speakers_array = "";
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
@@ -405,11 +427,9 @@
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
       dt.search(slots_search_value).draw();
     });
-
     $('.filters').on('change', function () {
       dt.draw();
     });
-    
     yadcf.init(dt, [
     {
       column_number: [1], 
