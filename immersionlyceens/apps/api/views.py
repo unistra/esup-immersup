@@ -2881,12 +2881,11 @@ def ajax_send_email_contact_us(request):
     Send an email to SCUO-IP mail address
     email address is set in general settings
     """
-
-    subject = request.POST.get('subject', "")
-    body = request.POST.get('body', "")
-    lastname = request.POST.get('lastname', "").capitalize()
-    firstname = request.POST.get('firstname', "").capitalize()
-    email = request.POST.get('email', "")
+    subject = request.POST.get('subject', "").strip()
+    body = request.POST.get('body', "").strip()
+    lastname = request.POST.get('lastname', "").strip().capitalize()
+    firstname = request.POST.get('firstname', "").strip().capitalize()
+    email = request.POST.get('email', "").strip()
     notify_user = False
 
     try:
@@ -2898,14 +2897,14 @@ def ajax_send_email_contact_us(request):
 
     response = {'error': False, 'msg': ''}
 
-    if not all([subject.strip, body.strip(), lastname.strip(), firstname.strip(), email.strip()]):
+    if not all([subject, body, lastname, firstname, email]):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
     # Ref-etab mail sending
     try:
         body = _('Mail sent by %s from contact form') % f'{firstname} {lastname} ({email})' + '<br><br>' + body
-        send_email(recipient, subject, body, None, f'{firstname} {lastname} ({email})')
+        send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
     except Exception as e:
         response['error'] = True
         response['msg'] += gettext("%s : error") % recipient

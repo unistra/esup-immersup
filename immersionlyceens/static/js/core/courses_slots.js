@@ -7,18 +7,18 @@ function init_datatable() {
     ajax: {
       url: "/core/utils/slots",
       data: function(d) {
-          if($('#id_establishment').val()) {
+          if(is_set(current_establishment_id) || $('#id_establishment').val()) {
             d.establishment_id = current_establishment_id || $('#id_establishment').val();
           }
 
-          if($('#id_training').val()) {
+          if(is_set(current_training_id) || $('#id_training').val()) {
             d.training_id = current_training_id || $('#id_training').val();
           }
 
-          if($('#id_structure').val()) {
+          if(is_set(current_structure_id) || $('#id_structure').val()) {
             d.structure_id = current_structure_id || $('#id_structure').val();
           }
-          else if($('#id_highschool').val()) {
+          else if(is_set(current_highschool_id) || $('#id_highschool').val()) {
             d.highschool_id = current_highschool_id || $('#id_highschool').val();
           }
 
@@ -117,7 +117,7 @@ function init_datatable() {
             if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
               txt = `<a href="/core/course/${row.course_id}">${row.course_label} (${row.course_type_label})</a>`
             } else {
-              txt = `{row.course_label} (${row.course_type_label})`
+              txt = `${row.course_label} (${row.course_type_label})`
             }
 
             return txt

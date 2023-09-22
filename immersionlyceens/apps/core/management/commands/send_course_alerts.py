@@ -7,7 +7,7 @@ import logging
 
 import datetime
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.db.models import Count, F, Q
 from immersionlyceens.libs.mails.utils import send_email

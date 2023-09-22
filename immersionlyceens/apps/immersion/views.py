@@ -181,9 +181,12 @@ def shibbolethLogin(request, profile=None):
 
         try:
             msg = new_user.send_message(request, 'CPT_MIN_CREATE')
+
             if msg:
-                messages.error(request, _("Cannot send email : %s") % msg)
+                messages.error(request, _("Cannot send email. The administrators have been notified."))
+                logger.error(f"Error while sending activation email : {msg}")
         except Exception as e:
+            messages.error(request, _("Cannot send email. The administrators have been notified."))
             logger.exception("Cannot send activation message : %s", e)
 
         messages.success(request, _("Account created. Please check your emails for the activation procedure."))
@@ -289,8 +292,13 @@ def register(request, profile=None):
 
             try:
                 msg = new_user.send_message(request, 'CPT_MIN_CREATE')
+
+                if msg:
+                    messages.error(request, _("Cannot send email. The administrators have been notified."))
+                    logger.error(f"Error while sending activation email : {msg}")
             except Exception as e:
                 logger.exception("Cannot send activation message : %s", e)
+                messages.error(request, _("Cannot send email. The administrators have been notified."))
 
             messages.success(request, _("Account created. Please check your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
@@ -332,7 +340,12 @@ class RecoveryView(TemplateView):
             else:
                 user.set_recovery_string()
                 msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
-                messages.success(request, _("An email has been sent with the procedure to set a new password."))
+
+                if not msg:
+                    messages.success(request, _("An email has been sent with the procedure to set a new password."))
+                else:
+                    messages.error(request, _("Cannot send email. The administrators have been notified."))
+                    logger.error(f"Error while sending email : {msg}")
 
         except ImmersionUser.DoesNotExist:
             # Don't send error message as it can be used to detect valid url for accounts
@@ -478,10 +491,12 @@ class ResendActivationView(TemplateView):
                 return HttpResponseRedirect(redirect_url)
             else:
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
-                if not msg:
-                    messages.success(request, _("The activation message has been resent."))
+
+                if msg:
+                    messages.error(request, _("Cannot send email. The administrators have been notified."))
+                    logger.error(f"Error while sending activation email : {msg}")
                 else:
-                    messages.error(request, _("The activation message has not been sent") + " : " + msg)
+                    messages.success(request, _("The activation message has been resent."))
 
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
@@ -535,10 +550,12 @@ class LinkAccountsView(TemplateView):
                         link_source_user=request.user
                     )
 
-                    if not msg:
-                        messages.success(request, _("The link message has been sent to this email address"))
+                    if msg:
+                        messages.error(request, _("Cannot send email. The administrators have been notified."))
+                        logger.error(f"Error while sending account link email : {msg}")
                     else:
-                        messages.error(request, _("Message not sent : %s") % msg)
+                        messages.success(request, _("The link message has been sent to this email address"))
+
             else:
                 messages.error(request, _("This account has not been validated (yet)"))
 
@@ -683,8 +700,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
+
                     if msg:
-                        messages.error(request, _("Cannot send email : %s") % msg)
+                        messages.error(request, _("Cannot send email. The administrators have been notified."))
+                        logger.error(f"Error while sending email update notification : {msg}")
                     else:
                         messages.warning(
                             request, _(
@@ -1074,15 +1093,18 @@ def student_record(request, student_id=None, record_id=None):
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
+
                     if msg:
-                        messages.error(request, _("Cannot send email : %s") % msg)
+                        messages.error(request, _("Cannot send email. The administrators have been notified."))
+                        logger.error(f"Error while sending email update notification : {msg}")
                     else:
                         messages.warning(
                             request,
                             _("""You have updated the email.""" """<br>A new activation email has been sent.""")
                         )
                 except Exception as e:
-                    logger.exception("Cannot send 'change mail' message : %s", e)
+                    logger.exception("Error while sending email update notification : %s", e)
+                    messages.error(request, _("Cannot send email. The administrators have been notified."))
 
         else:
             for err_field, err_list in studentform.errors.get_json_data().items():
@@ -1471,8 +1493,10 @@ class VisitorRecordView(FormView):
 
         try:
             msg = user.send_message(self.request, "CPT_MIN_CHANGE_MAIL")
+
             if msg:
-                messages.error(self.request, _("Cannot send email : %s") % msg)
+                messages.error(self.request, _("Cannot send email. The administrators have been notified."))
+                logger.error(f"Error while sending email update notification : {msg}")
             else:
                 messages.warning(
                     self.request,
@@ -1483,7 +1507,8 @@ class VisitorRecordView(FormView):
                     ),
                 )
         except Exception as exc:
-            logger.exception("Cannot send 'change mail' message : %s", exc)
+            messages.error(self.request, _("Cannot send email. The administrators have been notified."))
+            logger.exception("Error while sending email update notification : %s", exc)
 
     def post(self, request, *args, **kwargs):
         # multi validation for multiple form
