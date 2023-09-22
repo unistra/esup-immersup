@@ -120,8 +120,8 @@ urlpatterns = [
     path("update_structures_notifications", views.ajax_update_structures_notifications, name="update_structures_notifications"),
 
     # Check if logged user can register a slot
-    path('can_register_slot/<int:slot_id>', views.ajax_can_register_slot, name='ajax_can_register_slot'),
+    path('can_register_slot/<int:slot_id>', views.ajax_can_register_slot, name='can_register_slot'),
 
     # Slots list for search slots page
-    path('search_slots_list', views.ajax_search_slots_list, name='ajax_search_slots_list')
+    path('search_slots_list', views.ajax_search_slots_list, name='search_slots_list')
 ]

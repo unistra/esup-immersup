@@ -2,7 +2,6 @@
 {% load static i18n immersionlyceens_tags %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static "css/vendor/chosen/chosen.min.css" %}">
-
 {% endblock %}
 {% block title %}
   {% trans 'Search immersions slots' %}
@@ -67,16 +66,16 @@
             <div class="row">
               <div class="col">
                 <label class="checkbox-inline">
-                  <input type="checkbox" id="coursesCheckbox" name="slotType" class="filters slotTypeFilter" value="Type:{% trans "Course" %}" checked> {% trans "Courses" %}
+                  <input type="checkbox" id="coursesCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Course" %}" checked> {% trans "Courses" %}
                 </label>
                 {% if  events_off_offer%}
                 <label class="checkbox-inline">
-                  <input type="checkbox" id="eventsCheckbox" name="slotType" class="filters slotTypeFilter" value="Type:% trans "Event" %}" checked> {% trans "Events" %}
+                  <input type="checkbox" id="eventsCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Event" %}" checked> {% trans "Events" %}
                 </label>
                 {% endif %}
                 {% if highschool_visit %}
                 <label class="checkbox-inline">
-                  <input type="checkbox" id="visitsCheckbox" name="slotType" class="filters slotTypeFilter" value="Type:{% trans "Visit" %}" checked> {% trans "Visits" %}
+                  <input type="checkbox" id="visitsCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Visit" %}" checked> {% trans "Visits" %}
                 </label>
                 {% endif %}
               </div>
@@ -88,8 +87,25 @@
                 <span id="establishments_filter"></span>
               </div>
             </div>
+            <h5>{% trans "Structures" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <span id="structures_filter"></span>
+              </div>
+            </div>            
+            <h5>{% trans "Cities" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <span id="cities_filter"></span>
+              </div>
+            </div>
+            <h5>{% trans "Campus" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <span id="campus_filter"></span>
+              </div>
+            </div>                      
             <h5>{% trans "Slots with available places" %} :</h5>
-            
             <div class="row">
               <div class="col">
                 <label class="checkbox-inline">
@@ -99,12 +115,10 @@
             </div>
             <h5>{% trans "Dates" %} :</h5>
             <div class="row">
-
               <div class="col-md-4">
-
                 <div class="input-group">
                   <div class="input-group-prepend">
-                    <span class="input-group-text" id="">{% trans "Start date" %}</span>
+                    <span class="input-group-text">{% trans "Start date" %}</span>
                   </div>
                   <input type="date" name="start_date" id="start_date" class="filters form-control" />
                 </div>
@@ -112,15 +126,14 @@
               <div class="col-md-4">
               <div class="input-group">
                 <div class="input-group-prepend">
-                  <span class="input-group-text" id="">{% trans "End date" %}</span>
+                  <span class="input-group-text">{% trans "End date" %}</span>
                 </div>
                 <input type="date" name="end_date" id="end_date" class="filters form-control" />
               </div>              
-              </div>
-
             </div>
           </div>
         </div>
+      </div>
       </div>
       <div class="row" style="padding-top:20px;padding-bottom:20px;">
         <div class="col table-responsive">
@@ -149,7 +162,7 @@
   <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
   <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}
-<script type="text/javascript">
+<script>
   var feedback;
   var dt; 
 
@@ -198,14 +211,14 @@
         var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
           return this.value;
         }).get();
-        var slotPlaces = parseInt(searchData[7].split(':')[1]);
+        var slotPlaces = parseInt(searchData[9]);
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
         if (slotTypes.length === 0) {
           showType=false;
         }
-        if (slotTypes.indexOf(searchData[4]) !== -1) {
+        if (slotTypes.indexOf(searchData[5]) !== -1) {
           showType=true;
         }
         if (onlyAvailable === 0 || slotPlaces > 0) {
@@ -221,7 +234,7 @@
     dt = $('#search_immersions_slots_table').DataTable({
       'processing': false,
       'order': [
-          [5, "asc"],
+          [6, "asc"],
        ],
       'dom': 'ltpr',
       'pagingType': 'full_numbers',
@@ -233,7 +246,7 @@
       'responsive': false,
       'dataType': 'json',
       'ajax': {
-        url: "{% url 'ajax_search_slots_list' %}",
+        url: "{% url 'search_slots_list' %}",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data']['slots'];
@@ -251,9 +264,9 @@
               orderable: false, className: 'text-center', width: '20px',
               render: function(data, type, full, meta) {
                   slotType = full['slot_type'][0].toLowerCase();
-                  if (slotType == 'c') {
+                  if (slotType === 'c') {
                       return '<i class="fa fa-graduation-cap slot-type-c"></i>';
-                  } else if (slotType == 'v') {
+                  } else if (slotType === 'v') {
                       return '<i class="fa fa-university slot-type-v"></i>';
                   } else {
                       return '<i class="fa fa-calendar slot-type-e"></i>';
@@ -263,49 +276,87 @@
           { 
             data: "establishment_label", 
             render: function (data, type, full, meta) {
-              return '<label>'+ "{% trans 'Establishment' %}" +':</label>' + data;
+              if(type === "display") {
+                return '<label>'+ '{% trans 'Establishment' %}' +':</label>' + data;
+              }
+              return data;
             }
           },
           { 
+            data: "structure_label", 
+            render: function (data, type, full, meta) {
+              if(type === "display") {
+                return '<label>'+ "{% trans 'Structure' %}" +':</label>' + data;
+              }
+              return data;
+            }
+          },          
+          { 
             data: "course_training_label",
             render: function (data, type, full, meta) {
-              if (data == null) {
+              if (data === null) {
                 data = '&nbsp;';
-              } 
-              return '<label>'+ '{% trans "Training" %}' + ':</label>' + data;
+              }
+              if(type === "display") {
+                return '<label>'+ '{% trans "Training" %}' + ':</label>' + data;
+              }
+              return data;
             }
           },
           { 
             data: "label",
-            render: function (data, type, full, meta) {  
-              return '<label>'+ '{% trans "Label" %}' +':</label>' + data; 
+            render: function (data, type, full, meta) {
+              if(type === "display") { 
+                return '<label>'+ '{% trans "Label" %}' +':</label>' + data;
+              }
+              return data;
             }
           },
           { 
             data: "slot_type",
-            render: function (data, type, full, meta) { 
-              return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
+            render: function (data, type, full, meta) {
+              if(type === "display") { 
+                return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
+              }
+              return data;
             }
           },
           { 
             data: "date", class: 'text-right',
-            render: function (data, type, full, meta) { 
-              return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
+            render: function (data, type, full, meta) {
+              if(type === "display") {
+                return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
+              }
+              return data;
             }
           },
           { 
-            "data": "location",
+            data: "campus_label",
             render: function (data, type, full, meta) {
-              return '<label>'+ "{% trans 'Location' %}" +':</label>' + data.split(' ')
-                .map(w => w[0].toUpperCase() + w.substring(1).toLowerCase())
-                .join(' ');
+              if(type === "display") {
+                return '<label>'+ "{% trans 'Campus' %}" +':</label>' + data + '&nbsp;';
+              }
+              return data;
             }
           },
+          { 
+            data: "city",
+            render: function (data, type, full, meta) {
+              data = data[0].toUpperCase() + data.substring(1).toLowerCase();
+              if(type === "display") {
+                return '<label>'+ "{% trans 'City' %}" +':</label>' + data
+              }
+              return data;
+            }
+          },          
           { 
             "data": "n_places", title: "register", visible: true,
             render: function (data, type, full, meta) { 
               availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
-              return '<label>'+ '{% trans "Available places" %}' +':</label>' + availablePlaces;
+              if(type === "display") {
+                return '<label>'+ '{% trans "Available places" %}' +':</label>' + availablePlaces;
+              }
+              return availablePlaces;
             }
           },
       ],
@@ -344,7 +395,7 @@
         success: function (data) {
           if (data['data'][0]['can_register'] === true) {
             $('#modal_register_btn').html(
-              "<button type=\"button\" class=\"btn badge badge-pill badge-primary\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
+              "<button type=\"button\" class=\"btn badge badge-pill badge-primary pull-right\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
             );
           }
         }
@@ -356,19 +407,47 @@
     });
 
     $('.filters').on('change', function () {
-        dt.draw();
+      dt.draw();
     });
     
-    yadcf.initMultipleColumns(dt, [{
-        column_number: [1], 
-        filter_type: 'multi_select', 
-        select_type: 'chosen',
-        // TODO: check select_type_options !!!
-        select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
-        filter_container_id: 'establishments_filter', 
-        filter_default_label: ' ',
-        select_type_options: {width: '190px'},
-    }]);
+    yadcf.init(dt, [
+    {
+      column_number: [1], 
+      filter_type: 'multi_select', 
+      select_type: 'chosen',
+      select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
+      filter_container_id: 'establishments_filter', 
+      filter_default_label: ' ',
+      select_type_options: {width: '190px'},
+    },
+    {
+      column_number: [2], 
+      filter_type: 'multi_select', 
+      select_type: 'chosen',
+      select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
+      filter_container_id: 'structures_filter', 
+      filter_default_label: ' ',
+      select_type_options: {width: '190px'},
+    },        
+    {
+      column_number: [7], 
+      filter_type: 'multi_select', 
+      select_type: 'chosen',
+      select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
+      filter_container_id: 'campus_filter', 
+      filter_default_label: ' ',
+      select_type_options: {width: '190px'},
+    },    
+    {
+      column_number: [8], 
+      filter_type: 'multi_select', 
+      select_type: 'chosen',
+      select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
+      filter_container_id: 'cities_filter', 
+      filter_default_label: ' ',
+      select_type_options: {width: '190px'},
+    }
+    ]);
   });
 </script>
 {% endblock %}

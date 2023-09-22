@@ -4502,16 +4502,15 @@ def ajax_search_slots_list(request, slot_id=None):
                 F("event__highschool__label"),
                 F("visit__highschool__label"),
             ),
-            location=Coalesce(
+            campus_label=Coalesce(
+                F('campus__label'),
+                Value(''),
+            ),
+            city=Coalesce(
+                F("campus__city"),
                 F("course__highschool__city"),
                 F("event__highschool__city"),
-                F("visit__highschool__city"),
-                Concat(Value('Campus '),
-                       F('campus__label'),
-                       Value(', '),
-                       F('campus__city'),
-                       output_field=CharField()
-                )
+                F("visit__highschool__city"),                
             ),
             n_register=Count(
                 "immersions",
@@ -4624,7 +4623,8 @@ def ajax_search_slots_list(request, slot_id=None):
             "date",
             "start_time",
             "end_time",
-            "location",
+            "campus_label",
+            "city",
             "building_label",
             "face_to_face",
             "url",
@@ -4648,7 +4648,6 @@ def ajax_search_slots_list(request, slot_id=None):
             "registration_limit_date",
         )
     )
-    #response['data'] = {"slots": json.dumps(list(slots), default=str),}
     response['data'] = {"slots": list(slots)}
 
     return JsonResponse(response, safe=False)
