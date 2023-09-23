@@ -430,7 +430,7 @@ class Parser:
                     ]
 
                     context.update({
-                        "lycee": record.highschool.label,
+                        "lycee": record.highschool.label if record and record.highschool else _("unknown"),
                         "datedenaissance": date_format(record.birth_date, 'd/m/Y'),
                         "justificatifs_expires": format_html("<br>".join(attestations))
                     })
