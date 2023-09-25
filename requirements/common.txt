@@ -17,7 +17,7 @@ django-admin-list-filter-dropdown==1.0.3
 djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
-drf-spectacular-0.26.5
+drf-spectacular==0.26.5
 django-storages[boto3]
 django-admin-sortable2==1.0.4
 pillow==9.4.0
