@@ -135,20 +135,20 @@
           </div>
         </div>
       </div>
-      <div class="row" style="padding-top:20px;padding-bottom:20px;">
-        <div class="col table-responsive">
+      <div class="row">
+        <div class="col-md-12 table-responsive">
           <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:100%">
             {% if highschool_visit or events_off_offer %}
             <caption>
               <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
-                {% if highschool_visit %}
-                <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
-                {% endif %}
-                {% if events_off_offer %}
-                  <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
-                {% endif %}
-              </caption>
+              {% if highschool_visit %}
+              <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
               {% endif %}
+              {% if events_off_offer %}
+              <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
+              {% endif %}
+            </caption>
+            {% endif %}
           </table>
         </div>
       </div>
@@ -209,7 +209,7 @@
         var showDate = false;
         var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
         var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
-          return this.value;
+          return this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "");
         }).get();
         var slotPlaces = parseInt(searchData[9]);
         var start_date = $('#start_date').val() || null;

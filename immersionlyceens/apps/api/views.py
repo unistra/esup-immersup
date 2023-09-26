@@ -4464,9 +4464,19 @@ def ajax_search_slots_list(request, slot_id=None):
                 When(event__isnull=False, then=Value(gettext("Event"))),
                 When(visit__isnull=False, then=Value(gettext("Visit"))),        
             ),
-            course_training_label=F("course__training__label"),
-            course_type_full_label=F("course_type__full_label"),
-            event_description=F("event__description"),
+
+            course_training_label=Coalesce(
+                F("course__training__label"),
+                Value(''),
+            ),
+            course_type_full_label=Coalesce(
+                F("course_type__full_label"),
+                Value(''),
+            ),
+            event_description=Coalesce(
+                F("event__description"),
+                Value(''),
+            ),
             building_label=F("building__label"),
 
             establishment_label=Coalesce(
