@@ -200,8 +200,6 @@
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
-
-    //let slots = JSON.parse(decodeHTMLEntities('{{ slots }}'));
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
         var showAvailable = false;
@@ -276,7 +274,7 @@
           { 
             data: "establishment_label", 
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               if(type === "display") {
@@ -292,7 +290,7 @@
           { 
             data: "structure_label", 
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               if(type === "display") {
@@ -305,9 +303,10 @@
             }
           },          
           { 
-            data: "course_training_label",
+            data: "course_training_label", class: 'text-center',
             render: function (data, type, full, meta) {
-              if (data === null) {
+
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }
               if(type === "display") {
@@ -320,9 +319,9 @@
             }
           },
           { 
-            data: "label",
+            data: "label", class: 'text-center',
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               if(type === "display") { 
@@ -337,7 +336,7 @@
           { 
             data: "slot_type",
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               if(type === "display") { 
@@ -350,9 +349,9 @@
             }
           },
           { 
-            data: "date", class: 'text-right',
+            data: "date", class: 'text-center',
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               if(type === "display") {
@@ -367,7 +366,7 @@
           { 
             data: "campus_label",
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               if(type === "display") {
@@ -382,7 +381,7 @@
           { 
             data: "city",
             render: function (data, type, full, meta) {
-              if (data === null) {
+              if (data === '' || data === null) {
                 data = '&nbsp;';
               }              
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
