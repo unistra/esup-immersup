@@ -34,8 +34,8 @@
         </ol>
       </nav>
     </div>
+    <div id="feedback" class="container"></div>
   </section>
-  <div id="feedback" class="container"></div>
   <section class="py-5">
     <div class="container">
       <div class="row">
@@ -125,31 +125,34 @@
                 </div>
               </div>
               <div class="col-md-4">
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text">{% trans "End date" %}</span>
-                </div>
-                <input type="date" name="end_date" id="end_date" class="filters form-control" />
-              </div>              
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">{% trans "End date" %}</span>
+                  </div>
+                  <input type="date" name="end_date" id="end_date" class="filters form-control" />
+                </div>              
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-12 table-responsive">
-          <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:100%">
-            {% if highschool_visit or events_off_offer %}
-            <caption>
-              <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
-              {% if highschool_visit %}
-              <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
+      <div class="mt-3">
+        <div class="row">
+          <div class="col-md-12 table-responsive">
+            <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:95%">
+              {% if highschool_visit or events_off_offer %}
+              <caption>
+                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
+                {% if highschool_visit %}
+                <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
+                {% endif %}
+                {% if events_off_offer %}
+                <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
+                {% endif %}
+              </caption>
               {% endif %}
-              {% if events_off_offer %}
-              <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
-              {% endif %}
-            </caption>
-            {% endif %}
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -164,7 +167,14 @@
 {% endblock %}
 <script>
   var feedback;
-  var dt; 
+  var dt;
+  let establishments_txt = "{% trans 'Establishments' %}"
+  let levels_txt = "{% trans 'Levels' %}"
+  let bachelors_txt = "{% trans 'Bachelor types' %}"
+  let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
+  let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+
+
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
@@ -437,6 +447,7 @@
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
       $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
+      $('#modal_search_slots_details #modal_restrictions').html(display_slot_restrictions(null, null, rowData[0]))
       {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
       $.ajax({
         url: "/api/can_register_slot/" + rowData[0].id,
@@ -444,12 +455,12 @@
         success: function (data) {
           if (data['data'][0] !== undefined && data['data'][0]['can_register'] === true) {
             $('#modal_register_btn').html(
-              "<button type=\"button\" class=\"btn badge badge-pill badge-primary pull-right\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
+              "<button class=\"btn badge badge-pill badge-primary pull-right\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
             );
           }
         }
       })
-      {% endif %}
+      {% endif %}    
     })
     $('#search_immersions_slots').keyup( function() {
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
