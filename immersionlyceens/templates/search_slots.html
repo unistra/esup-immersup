@@ -206,7 +206,6 @@
       }
     })
   }
-
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
@@ -288,7 +287,7 @@
                 data = '&nbsp;';
               }              
               if(type === "display") {
-                return '<label>'+ '{% trans 'Establishment' %}' +':</label>' + data;
+                return '<label>'+ '{% trans 'Establishment' %}' +':</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -304,7 +303,7 @@
                 data = '&nbsp;';
               }              
               if(type === "display") {
-                return '<label>'+ "{% trans 'Structure' %}" +':</label>' + data;
+                return '<label>'+ "{% trans 'Structure' %}" +':</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -320,7 +319,7 @@
                 data = '&nbsp;';
               }
               if(type === "display") {
-                return '<label>'+ '{% trans "Training" %}' + ':</label>' + data;
+                return '<label>'+ '{% trans "Training" %}' + ':</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -335,7 +334,7 @@
                 data = '&nbsp;';
               }              
               if(type === "display") { 
-                return '<label>'+ '{% trans "Label" %}' +':</label>' + data;
+                return '<label>'+ '{% trans "Label" %}' +':</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
