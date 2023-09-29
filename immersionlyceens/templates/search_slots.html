@@ -172,7 +172,7 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
-  
+
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
   } 
@@ -438,8 +438,8 @@
       $('#modal_search_slots_details #modal_building').html(rowData[0].building_label)
       $('#modal_search_slots_details #modal_room').html(rowData[0].room)
       $('#modal_search_slots_details #modal_speakers').html(
-        "<ul>" + speakers_array + "</ul>"
-      );
+        '<ul class="list-group">' + speakers_array + '</ul>'
+      )
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
       $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
