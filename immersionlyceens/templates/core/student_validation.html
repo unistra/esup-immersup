@@ -259,7 +259,7 @@ $(document).ready(function () {
           let options;
           let selected_value;
 
-          if([false, "0"].includes(convention)) {
+          if([false, "0"].includes(convention) || w_convention === false) {
             options = "<option value='all'>{% trans 'All' %}</option>"
           }
           else {
