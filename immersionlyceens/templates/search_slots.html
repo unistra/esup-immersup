@@ -426,13 +426,62 @@
       ],
     })
     .on('select', function (e, dt, type, indexes) {
-      var rowData = dt.rows(indexes).data().toArray()
-      var speakers_array = "";
+      let rowData = dt.rows(indexes).data().toArray()
+      let speakers_array = "";
+      let slotType = rowData[0].slot_type[0].toLowerCase();
+      let etab = [];
+      let restrictions = null;
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
       });
       $('#modal_search_slots_details').modal("show");
-      $('#modal_search_slots_details #modal_establishment').html(rowData[0].establishment_label);
+      if (slotType === 'c') {
+          if (rowData[0].establishment_label !==null ) {
+            etab.push(rowData[0].establishment_label)
+          }
+
+          if (rowData[0].highschool_label !== null ) {
+            etab.push(rowData[0].highschool_label)
+          }
+          $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
+          $('#modal_search_slots_details #row_course_label').show();
+          $('#modal_search_slots_details #row_course_type').show();
+          $('#modal_search_slots_details #row_highschool').hide();
+      } else if (slotType === 'v') {
+          if (rowData[0].establishment_label !==null ) {
+            etab.push(rowData[0].establishment_label)
+          }
+          if (rowData[0].structur_label !== null ) {
+            etab.push(rowData[0].structure_label)
+          }
+          $('#modal_search_slots_details #row_course_label').hide();
+          $('#modal_search_slots_details #row_course_type').hide();
+          $('#modal_search_slots_details #modal_highshool').html(rowData[0].highschool_label + '-' + rowData[0].highschool_city );
+          $('#modal_search_slots_details #row_highschool').show();
+      } else {
+          if (rowData[0].establishment_label !==null ) {
+            etab.push(rowData[0].establishment_label)
+          }
+
+          if (rowData[0].highschool_label !== null ) {
+            etab.push(rowData[0].highschool_label)
+          }
+
+          if (rowData[0].structure_label !== null ) {
+            etab.push(rowData[0].structure_label)
+          }
+          $('#modal_search_slots_details #row_course_label').hide();
+          $('#modal_search_slots_details #row_course_type').hide();
+          $('#modal_search_slots_details #modal_highshool').html(rowData[0].highschool_label + '-' + rowData[0].highschool_city );
+          $('#modal_search_slots_details #row_highschool').show();
+
+      }
+
+      restrictions = display_slot_restrictions(null, null, rowData[0])
+      if (restrictions === '<ul class="list-unstyled"><ul>') {
+        restrictions = "<p>{% trans "Slot open to all" %}</p>";
+      } 
+      $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
@@ -442,14 +491,14 @@
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
       $('#modal_search_slots_details #modal_city').html(rowData[0].city)
       $('#modal_search_slots_details #modal_building').html(rowData[0].building_label)
-      $('#modal_search_slots_details #modal_room').html(rowData[0].room)
+      $('#modal_search_slots_details #modal_meeting_place').html(rowData[0].room)
       $('#modal_search_slots_details #modal_speakers').html(
         '<ul class="list-group">' + speakers_array + '</ul>'
       )
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
       $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
-      $('#modal_search_slots_details #modal_restrictions').html("<div>"+display_slot_restrictions(null, null, rowData[0])+"</div>")
+      $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
       {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
       $.ajax({
         url: "/api/can_register_slot/" + rowData[0].id,

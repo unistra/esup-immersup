@@ -596,7 +596,8 @@ def host_establishments(request):
 def highschools(request):
     """ Highschools public view"""
 
-    affiliated_highschools = HighSchool.agreed.values("city", "label", "email")
+    affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=True) \
+                                .values("city", "label", "email")
 
     try:
         affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
