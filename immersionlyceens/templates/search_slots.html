@@ -87,13 +87,7 @@
               <div class="col">
                 <span id="establishments_filter"></span>
               </div>
-            </div>
-            <h5>{% trans "Structures" %} :</h5>
-            <div class="row">
-              <div class="col">
-                <span id="structures_filter"></span>
-              </div>
-            </div>            
+            </div>           
             <h5>{% trans "Cities" %} :</h5>
             <div class="row">
               <div class="col">
@@ -215,14 +209,14 @@
         var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
           return this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "");
         }).get();
-        var slotPlaces = parseInt(searchData[9]);
+        var slotPlaces = parseInt(searchData[8]);
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
         if (slotTypes.length === 0) {
           showType=false;
         }
-        if (slotTypes.indexOf(searchData[5]) !== -1) {
+        if (slotTypes.indexOf(searchData[4]) !== -1) {
           showType=true;
         }
         if (onlyAvailable === 0 || slotPlaces > 0) {
@@ -281,7 +275,12 @@
             data: "establishment_label", 
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-                data = '&nbsp;';
+                
+                if (full['highschool_label'] !== null) {
+                  data = full['highschool_label'];
+                } else {
+                  data = '&nbsp;';
+                }
               }              
               if(type === "display") {
                 return '<label>'+ '{% trans 'Establishment' %}' +':</label><span>' + data + '</span>';
@@ -294,29 +293,24 @@
             }
           },
           { 
-            data: "structure_label", 
-            render: function (data, type, full, meta) {
-              if (data === '' || data === null) {
-                data = '&nbsp;';
-              }              
-              if(type === "display") {
-                return '<label>'+ "{% trans 'Structure' %}" +':</label><span>' + data + '</span>';
-              }
-              if(type === 'filter') {
-                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-              }              
-              return data;
-            }
-          },          
-          { 
             data: "course_training_label", class: 'text-center',
             render: function (data, type, full, meta) {
-
-              if (data === '' || data === null) {
-                data = '&nbsp;';
+              slotType = full['slot_type'][0].toLowerCase();
+              if (slotType === 'c') {
+                label = '<label>'+ '{% trans "Training" %}' + ':</label>';
+                if (data === '' || data === null) {
+                  data = '&nbsp;';
+                }
+              } else if (slotType === 'v') {
+                  label = '<label>'+ '{% trans "Highschool" %}' + ':</label>';
+                  data = "lycée concerné"
+              } else {
+                  label = '<label>'+ "{% trans "Event type" %}" + ':</label>';
+                  data = full['event_type'];
               }
+
               if(type === "display") {
-                return '<label>'+ '{% trans "Training" %}' + ':</label><span>' + data + '</span>';
+                return label + '<span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -372,11 +366,18 @@
           { 
             data: "campus_label",
             render: function (data, type, full, meta) {
+              label = "<label>{% trans 'Campus' %}</label>";
               if (data === '' || data === null) {
-                data = '&nbsp;';
+                if (full['face_to_face'] === true) {
+                  data = '&nbsp;';
+                  return '';
+                } else {
+                  label = "";
+                  data = "{% trans 'Remote' %}";
+                }
               }              
               if(type === "display") {
-                return '<label>'+ "{% trans 'Campus' %}" +':</label>' + data;
+                return  label + data;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -388,7 +389,7 @@
             data: "city",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-                data = '&nbsp;';
+                return ''
               }              
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
               if(type === "display") {
@@ -410,6 +411,12 @@
               return availablePlaces;
             }
           },
+          {
+            render: function (data, type, full, meta) {
+              return "<button class=\"btn badge badge-pill badge-primary pull-right\">{% trans 'More details' %}</button>"
+            }
+
+          },
       ],
       "columnDefs": [
         {
@@ -426,7 +433,6 @@
       });
       $('#modal_search_slots_details').modal("show");
       $('#modal_search_slots_details #modal_establishment').html(rowData[0].establishment_label);
-      $('#modal_search_slots_details #modal_structure').html(rowData[0].structure_label);
       $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
@@ -475,18 +481,9 @@
       filter_container_id: 'establishments_filter', 
       filter_default_label: ' ',
       select_type_options: {width: '190px'},
-    },
-    {
-      column_number: [2], 
-      filter_type: 'multi_select', 
-      select_type: 'chosen',
-      select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
-      filter_container_id: 'structures_filter', 
-      filter_default_label: ' ',
-      select_type_options: {width: '190px'},
     },        
     {
-      column_number: [7], 
+      column_number: [6], 
       filter_type: 'multi_select', 
       select_type: 'chosen',
       select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
@@ -495,7 +492,7 @@
       select_type_options: {width: '190px'},
     },    
     {
-      column_number: [8], 
+      column_number: [7], 
       filter_type: 'multi_select', 
       select_type: 'chosen',
       select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},

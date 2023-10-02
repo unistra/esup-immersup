@@ -4518,6 +4518,14 @@ def ajax_search_slots_list(request, slot_id=None):
                 F('campus__label'),
                 Value(''),
             ),
+            meeting_place=Case(
+                When(face_to_face=True, then=F('room')),
+                When(face_to_face=False, then=Value(gettext('Remote'))),
+            ),            
+            event_type=Coalesce(
+                F('event__event_type__label'),
+                Value(''),
+            ),            
             city=Coalesce(
                 F("campus__city"),
                 F("course__highschool__city"),
@@ -4641,6 +4649,8 @@ def ajax_search_slots_list(request, slot_id=None):
             "face_to_face",
             "url",
             "room",
+            "meeting_place",
+            "face_to_face",
             "n_register",
             "n_places",
             "speakers_list",
@@ -4658,6 +4668,7 @@ def ajax_search_slots_list(request, slot_id=None):
             "course_training_label",
             "additional_information",
             "registration_limit_date",
+            "event_type",
         )
     )
     response['data'] = {"slots": list(slots)}
