@@ -803,6 +803,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                 if attestations.exists():
                     creations = 0
+                    has_mandatory_attestations = False
+
                     for attestation in attestations:
                         obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
                             record=record,
@@ -816,12 +818,20 @@ def high_school_student_record(request, student_id=None, record_id=None):
                             }
                         )
 
+                        has_mandatory_attestations = has_mandatory_attestations or attestation.mandatory
+
                         creations += 1 if created else 0
 
-                    if creations:
+                    if creations and has_mandatory_attestations:
                         next = True
                         # Documents have to be filled -> status = 0
                         record.set_status("TO_COMPLETE")
+                    elif creations:
+                        # Optional documents to send
+                        messages.warning(
+                            request, _("Record saved. Please check the optional documents to send below.")
+                        )
+                        record.set_status("TO_VALIDATE")
                     else:
                         record.set_status("TO_VALIDATE")
                 else:
@@ -1609,6 +1619,7 @@ class VisitorRecordView(FormView):
 
                 if attestations.exists():
                     creations = 0
+                    has_mandatory_attestations = False
 
                     for attestation in attestations:
                         obj, created = VisitorRecordDocument.objects.update_or_create(
@@ -1623,12 +1634,20 @@ class VisitorRecordView(FormView):
                             }
                         )
 
+                        has_mandatory_attestations = has_mandatory_attestations or attestation.mandatory
+
                         creations += 1 if created else 0
 
-                    if creations:
+                    if creations and has_mandatory_attestations:
                         next = True
                         # Documents have to be filled -> status = 0
                         record.set_status("TO_COMPLETE")
+                    elif creations:
+                        # Optional documents to send
+                        messages.warning(
+                            request, _("Record saved. Please check the optional documents to send below.")
+                        )
+                        record.set_status("TO_VALIDATE")
                     else:
                         record.set_status("TO_VALIDATE")
                 else:

@@ -3815,7 +3815,7 @@ class BuildingList(generics.ListCreateAPIView):
         user = self.request.user
         queryset = Building.objects.order_by('label')
 
-        if not user.is_superuser:
+        if user.is_authenticated and not user.is_superuser:
             if user.is_structure_manager():
                 return queryset.filter(campus__establishment__structures__in=user.structures.all()).distinct()
 
