@@ -368,13 +368,7 @@
             render: function (data, type, full, meta) {
               label = "<label>{% trans 'Campus' %}</label>";
               if (data === '' || data === null) {
-                if (full['face_to_face'] === true) {
-                  data = '&nbsp;';
-                  return '';
-                } else {
-                  label = "<label>{% trans "Information" %} :</label>";
-                  data = "{% trans 'Remote' %}";
-                }
+                data = '';
               }              
               if(type === "display") {
                 return  label + data;
@@ -400,7 +394,24 @@
               }
               return data;
             }
-          },          
+          },
+          {
+            data: "meeting_place",
+            render: function (data, type, full, meta)
+            {
+              if (data === '' || data === null) {
+                return ''
+              }              
+              if(type === "display") {
+                return '<label>'+ "{% trans 'Meeting place' %}" +':</label>' + data
+              }
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+              return data;              
+
+            }
+          },
           { 
             "data": "n_places", title: "register", visible: true,
             render: function (data, type, full, meta) { 
@@ -428,14 +439,13 @@
     .on('select', function (e, dt, type, indexes) {
       let rowData = dt.rows(indexes).data().toArray()
       let speakers_array = "";
+      let url = null;
       let slotType = rowData[0].slot_type[0].toLowerCase();
       let etab = [];
       let restrictions = null;
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
-
-      console.log(rowData[0])
       
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
@@ -443,11 +453,11 @@
       // display all row_* elements
       $(displayedRows).show();
       if (slotType === 'c') {
-          if (rowData[0].establishment_label !==null ) {
+          if (rowData[0].establishment_label !==null) {
             etab.push(rowData[0].establishment_label)
           }
 
-          if (rowData[0].highschool_label !== null ) {
+          if (rowData[0].highschool_label !== null) {
             etab.push(rowData[0].highschool_label)
           }
           $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
@@ -456,10 +466,10 @@
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
           }
-          if (rowData[0].structure_label !== null ) {
+          if (rowData[0].structure_label !== null) {
             etab.push(rowData[0].structure_label)
           }
-          filteredRows.push('row_course_label', 'row_course_type', 'row_campus', 'row_building');
+          filteredRows.push('row_course_label', 'row_course_type', 'row_building');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
           } else if (rowData[0].highschool_label !== null) {
@@ -471,13 +481,13 @@
             
           }   
       } else {
-          if (rowData[0].establishment_label !==null ) {
+          if (rowData[0].establishment_label !==null) {
             etab.push(rowData[0].establishment_label)
           }
-          if (rowData[0].highschool_label !== null ) {
+          if (rowData[0].highschool_label !== null) {
             etab.push(rowData[0].highschool_label)
           }
-          if (rowData[0].structure_label !== null ) {
+          if (rowData[0].structure_label !== null) {
             etab.push(rowData[0].structure_label)
           }
           filteredRows.push('row_course_label', 'row_course_type', 'row_city');
@@ -490,6 +500,29 @@
             filteredRows.push('row_highschool');
           }
       }
+      if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {             
+        filteredRows.push('row_campus');
+      }
+
+      if (rowData[0].building_label === '' || rowData[0].building_label === null) {
+        filteredRows.push('row_building');
+      }      
+
+      if (rowData[0].additional_information === '' || rowData[0].additional_information === null) {
+        filteredRows.push('row_additional_information');
+      }
+
+      if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
+        filteredRows.push('row_meeting_place');
+      }
+
+      if (rowData[0].face_to_face === false) {
+          
+          if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
+            url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
+          }
+      }         
+  
       restrictions = display_slot_restrictions(null, null, rowData[0])
       if (restrictions === '<ul class="list-unstyled"><ul>') {
         restrictions = "<p>{% trans "Slot open to all" %}</p>";
@@ -504,7 +537,7 @@
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
       $('#modal_search_slots_details #modal_city').html(rowData[0].city)
       $('#modal_search_slots_details #modal_building').html(rowData[0].building_label)
-      $('#modal_search_slots_details #modal_meeting_place').html(rowData[0].room)
+      $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
       $('#modal_search_slots_details #modal_speakers').html(
         '<ul class="list-group">' + speakers_array + '</ul>'
       )
@@ -525,7 +558,7 @@
         }
       })
       {% endif %}
-      $('[data-toggle="tooltip"]').tooltip();
+      $('[data-toggle="tooltip"]').tooltip({placement:"left",});
       // rows to hide
       selectedRows = filteredRows.map(id => `#${id}`).join(',') 
       $(selectedRows).hide();
