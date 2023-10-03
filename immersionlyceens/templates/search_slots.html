@@ -303,7 +303,7 @@
                 }
               } else if (slotType === 'v') {
                   label = '<label>'+ '{% trans "Highschool" %}' + ':</label>';
-                  data = "lycée concerné"
+                  data = full['highschool_label'] + ' (' + full['highschool_city'] + ')';
               } else {
                   label = '<label>'+ "{% trans "Event type" %}" + ':</label>';
                   data = full['event_type'];
@@ -372,7 +372,7 @@
                   data = '&nbsp;';
                   return '';
                 } else {
-                  label = "";
+                  label = "<label>{% trans "Information" %} :</label>";
                   data = "{% trans 'Remote' %}";
                 }
               }              
@@ -431,11 +431,17 @@
       let slotType = rowData[0].slot_type[0].toLowerCase();
       let etab = [];
       let restrictions = null;
+      let displayedRows = $("[id^=row_]");
+      let selectedRows = [];
+      var filteredRows = [];
+
+      console.log(rowData[0])
+      
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
       });
-      
-      console.log(slotType)
+      // display all row_* elements
+      $(displayedRows).show();
       if (slotType === 'c') {
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
@@ -445,9 +451,7 @@
             etab.push(rowData[0].highschool_label)
           }
           $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
-          $('#modal_search_slots_details #row_course_label').show();
-          $('#modal_search_slots_details #row_course_type').show();
-          $('#modal_search_slots_details #row_highschool').hide();
+          filteredRows.push('row_highschool', 'row_city'); 
       } else if (slotType === 'v') {
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
@@ -455,42 +459,37 @@
           if (rowData[0].structure_label !== null ) {
             etab.push(rowData[0].structure_label)
           }
-          $('#modal_search_slots_details #row_course_label').hide();
-          $('#modal_search_slots_details #row_course_type').hide();
-          $('#modal_search_slots_details #row_highschool').show();
+          filteredRows.push('row_course_label', 'row_course_type', 'row_campus', 'row_building');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
           } else if (rowData[0].highschool_label !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label);
           } else {
             $('#modal_search_slots_details #modal_highschool').html();
-            $('#modal_search_slots_details #row_highschool').hide();
+            $('#modal_search_slots_details #modal_city').html(rowData[0].city);
+            filteredRows.push('row_highschool');
+            
           }   
       } else {
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
           }
-
           if (rowData[0].highschool_label !== null ) {
             etab.push(rowData[0].highschool_label)
           }
-
           if (rowData[0].structure_label !== null ) {
             etab.push(rowData[0].structure_label)
           }
-          $('#modal_search_slots_details #row_course_label').hide();
-          $('#modal_search_slots_details #row_course_type').hide();
-          $('#modal_search_slots_details #row_highschool').show();
+          filteredRows.push('row_course_label', 'row_course_type', 'row_city');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
           } else if (rowData[0].highschool_label !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label);
           } else {
             $('#modal_search_slots_details #modal_highschool').html();
-            $('#modal_search_slots_details #row_highschool').hide();
+            filteredRows.push('row_highschool');
           }
       }
-      
       restrictions = display_slot_restrictions(null, null, rowData[0])
       if (restrictions === '<ul class="list-unstyled"><ul>') {
         restrictions = "<p>{% trans "Slot open to all" %}</p>";
@@ -527,6 +526,9 @@
       })
       {% endif %}
       $('[data-toggle="tooltip"]').tooltip();
+      // rows to hide
+      selectedRows = filteredRows.map(id => `#${id}`).join(',') 
+      $(selectedRows).hide();
       $('#modal_search_slots_details').modal("show");     
     })
     $('#search_immersions_slots').keyup( function() {
