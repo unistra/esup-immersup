@@ -4456,6 +4456,53 @@ def ajax_search_slots_list(request, slot_id=None):
         | Q(date=today.date(), end_time__gte=today.time())
     )
 
+    fields = [
+        "id",
+        "slot_type",
+        "published",
+        "label",
+        "course_type_full_label",
+        "establishment_short_label",
+        "establishment_label",
+        "structure_code",
+        "structure_label",
+        "structure_establishment_short_label",
+        "highschool_city",
+        "highschool_label",
+        "event_description",
+        "date",
+        "start_time",
+        "end_time",
+        "campus_label",
+        "city",
+        "building_label",
+        "face_to_face",
+        "room",
+        "meeting_place",
+        "face_to_face",
+        "n_register",
+        "n_places",
+        "speakers_list",
+        "establishments_restrictions",
+        "levels_restrictions",
+        "bachelors_restrictions",
+        "allowed_establishments_list",
+        "allowed_highschools_list",
+        "allowed_highschool_levels_list",
+        "allowed_post_bachelor_levels_list",
+        "allowed_student_levels_list",
+        "allowed_bachelor_types_list",
+        "allowed_bachelor_mentions_list",
+        "allowed_bachelor_teachings_list",
+        "course_training_label",
+        "additional_information",
+        "registration_limit_date",
+        "event_type",       
+    ]
+
+    if request.user.is_authenticated:
+        fields.append('url')
+
     slots = (
         slots.annotate(
             label=Coalesce(F("course__label"), F("visit__purpose"), F("event__label")),
@@ -4627,48 +4674,7 @@ def ajax_search_slots_list(request, slot_id=None):
         )
         .order_by("date", "start_time")
         .values(
-            "id",
-            "slot_type",
-            "published",
-            "label",
-            "course_type_full_label",
-            "establishment_short_label",
-            "establishment_label",
-            "structure_code",
-            "structure_label",
-            "structure_establishment_short_label",
-            "highschool_city",
-            "highschool_label",
-            "event_description",
-            "date",
-            "start_time",
-            "end_time",
-            "campus_label",
-            "city",
-            "building_label",
-            "face_to_face",
-            "url",
-            "room",
-            "meeting_place",
-            "face_to_face",
-            "n_register",
-            "n_places",
-            "speakers_list",
-            "establishments_restrictions",
-            "levels_restrictions",
-            "bachelors_restrictions",
-            "allowed_establishments_list",
-            "allowed_highschools_list",
-            "allowed_highschool_levels_list",
-            "allowed_post_bachelor_levels_list",
-            "allowed_student_levels_list",
-            "allowed_bachelor_types_list",
-            "allowed_bachelor_mentions_list",
-            "allowed_bachelor_teachings_list",
-            "course_training_label",
-            "additional_information",
-            "registration_limit_date",
-            "event_type",
+            *fields
         )
     )
     response['data'] = {"slots": list(slots)}
