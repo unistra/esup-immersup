@@ -26,4 +26,4 @@ django-countries==7.3.2
 faker
 cairosvg==2.7.0
 py==1.11.0
-django-ipware==5.0.1
+python-ipware==1.0.3

@@ -19,7 +19,7 @@ from os.path import dirname, join
 from typing import Any, Optional
 
 from hijack.signals import hijack_started, hijack_ended
-from ipware import get_client_ip
+from ipware import Ipware
 
 from django.apps import apps
 from django.conf import settings
@@ -3102,7 +3102,9 @@ def user_logged_in_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
 
     try:
-        real_ip, is_routable = get_client_ip(request)
+        ipware = Ipware()
+        meta = request.META
+        real_ip, trusted_route = ipware.get_client_ip(meta)
     except:
         real_ip = None
 
@@ -3118,7 +3120,9 @@ def user_logged_out_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
 
     try:
-        real_ip, is_routable = get_client_ip(request)
+        ipware = Ipware()
+        meta = request.META
+        real_ip, trusted_route = ipware.get_client_ip(meta)
     except:
         real_ip = None
 
@@ -3142,7 +3146,9 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
         pass
 
     try:
-        real_ip, is_routable = get_client_ip(request)
+        ipware = Ipware()
+        meta = request.META
+        real_ip, trusted_route = ipware.get_client_ip(meta)
     except:
         real_ip = None
 
@@ -3168,7 +3174,9 @@ def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
         pass
 
     try:
-        real_ip, is_routable = get_client_ip(request)
+        ipware = Ipware()
+        meta = request.META
+        real_ip, trusted_route = ipware.get_client_ip(meta)
     except:
         real_ip = None
 
@@ -3189,7 +3197,9 @@ def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
         pass
 
     try:
-        real_ip, is_routable = get_client_ip(request)
+        ipware = Ipware()
+        meta = request.META
+        real_ip, trusted_route = ipware.get_client_ip(meta)
     except:
         real_ip = None
 
