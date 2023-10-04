@@ -19,6 +19,7 @@ from os.path import dirname, join
 from typing import Any, Optional
 
 from hijack.signals import hijack_started, hijack_ended
+from ipware import get_client_ip
 
 from django.apps import apps
 from django.conf import settings
@@ -3100,9 +3101,14 @@ class History(models.Model):
 def user_logged_in_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
 
+    try:
+        real_ip, is_routable = get_client_ip(request)
+    except:
+        real_ip = None
+
     History.objects.create(
         action=_("User logged in"),
-        ip=ip,
+        ip=real_ip or ip,
         username=user.username if user else None,
         user=f"{user.last_name} {user.first_name}" if user else None,
     )
@@ -3110,9 +3116,15 @@ def user_logged_in_callback(sender, request, user, **kwargs):
 @receiver(user_logged_out)
 def user_logged_out_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
+
+    try:
+        real_ip, is_routable = get_client_ip(request)
+    except:
+        real_ip = None
+
     History.objects.create(
         action=_("User logged out"),
-        ip=ip,
+        ip=real_ip or ip,
         username=user.username if user else None,
         user=f"{user.last_name} {user.first_name}" if user else None,
     )
@@ -3129,6 +3141,11 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
     except AttributeError:
         pass
 
+    try:
+        real_ip, is_routable = get_client_ip(request)
+    except:
+        real_ip = None
+
     if username:
         try:
             user = ImmersionUser.objects.get(username=username.lower().strip())
@@ -3137,7 +3154,7 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
 
     History.objects.create(
         action=_("User login failed"),
-        ip=ip,
+        ip=real_ip or ip,
         username=username,
         user=f"{user.last_name} {user.first_name}" if user else None,
     )
@@ -3150,9 +3167,14 @@ def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
     except AttributeError:
         pass
 
+    try:
+        real_ip, is_routable = get_client_ip(request)
+    except:
+        real_ip = None
+
     History.objects.create(
         action=_("Hijack start"),
-        ip=ip,
+        ip=real_ip or ip,
         username=hijacker.username if hijacker else None,
         user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
         hijacked=hijacked
@@ -3166,9 +3188,14 @@ def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
     except AttributeError:
         pass
 
+    try:
+        real_ip, is_routable = get_client_ip(request)
+    except:
+        real_ip = None
+
     History.objects.create(
         action=_("Hijack end"),
-        ip=ip,
+        ip=real_ip or ip,
         username=hijacker.username if hijacker else None,
         user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
         hijacked=hijacked
