@@ -4396,12 +4396,12 @@ def ajax_can_register_slot(request, slot_id=None):
     """
     Returns registering slot status for a logged user
     GET parameters:
-    immersion_type in "future", "past", "cancelled" or None (= all)
     slot_id
     """
 
     user = request.user
     response = {'msg': '', 'data': []}
+    visit_or_off_offer = False
 
     if not user.is_authenticated:
         response['msg'] = gettext("Error : user not authenticated")
@@ -4423,6 +4423,8 @@ def ajax_can_register_slot(request, slot_id=None):
         'can_register': False,
     }
 
+    visit_or_off_offer= True if (slot.visit or slot.event) else False    
+
     # Check user quota for this period
     if slot.registration_limit_date > now and slot.available_seats() > 0:
         try:
@@ -4435,13 +4437,122 @@ def ajax_can_register_slot(request, slot_id=None):
         remaining_registrations = user.remaining_registrations_count()
         if period and remaining_registrations[period.pk] > 0 and user.can_register_slot(slot):
             slot_data['can_register'] = True
+       
+    # Should not happen !
+    if not slot.published:
+        response['msg'] = _("Registering an unpublished slot is forbidden")
+        return JsonResponse(response, safe=False)
 
+    # Only valid Highschool students
+    if user.is_high_school_student():
+        if not user.is_valid():
+            response['msg'] = _("Cannot register slot due to Highschool student account state")
+            return JsonResponse(response, safe=False)
 
+        record = user.get_high_school_student_record()
+        if not record or not record.is_valid():
+            response['msg'] = _("Cannot register slot due to Highschool student record state")
+            return JsonResponse(response, safe=False)
+
+    # Only valid Visitors records
+    if user.is_visitor():
+        if not user.is_valid():
+            response['msg'] = _("Cannot register slot due to visitor account state")
+            return JsonResponse(response, safe=False)
+
+        record = user.get_visitor_record()
+        if not record or not record.is_valid():
+            response['msg'] = _("Cannot register slot due to visitor record state")
+            return JsonResponse(response, safe=False)
+
+    # Out of date mandatory attestations
+    if user.has_obsolete_attestations():
+        response['msg'] = _("Cannot register slot due to out of date attestations")
+        return JsonResponse(response, safe=False)
+
+    # Check free seat in slot
+    if slot.available_seats() == 0:
+        response['msg'] = _("No seat available for selected slot")
+        return JsonResponse(response, safe=False)
+
+    # Check current student immersions and valid dates
+    if user.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
+        response['msg'] = _("Already registered to this slot")
+        return JsonResponse(response, safe=False)
+        
+    else:
+        remaining_registrations = user.remaining_registrations_count()
+
+        # For courses slots only : training quotas ?
+        if not visit_or_off_offer:
+            try:
+                training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
+                training_quota_active = training_quota['activate']
+                training_quota_count = training_quota['default_quota']
+            except Exception as e:
+                response['msg'] = _(
+                    "ACTIVATE_TRAINING_QUOTAS parameter not found or incorrect : please check the platform settings"
+                )
+                return JsonResponse(response, safe=False)
+
+        # Get period, available period registrations (quota) and the optional training quota
+        try:
+            period = Period.from_date(slot.date)
+            available_registrations = remaining_registrations.get(period.pk, 0)
+
+            # If training quota is active, check registrations for this period/training
+
+            if not visit_or_off_offer and training_quota_active:
+                training_regs_count = user.immersions\
+                    .filter(
+                        slot__date__gte=period.immersion_start_date,
+                        slot__date__lte=period.immersion_end_date,
+                        slot__course__training=slot.course.training,
+                        cancellation_type__isnull=True,
+                    ).count()
+
+                # specific quota for this training ?
+                if slot.course.training.allowed_immersions:
+                    training_quota_count = slot.course.training.allowed_immersions
+
+                available_training_registrations = training_quota_count - training_regs_count
+        except Period.DoesNotExist as e:
+            response['msg'] = _("No period found for slot %s : please check periods settings") % slot
+            return JsonResponse(response, safe=False)
+        except Period.MultipleObjectsReturned as e:
+            response['msg'] = _("Multiple periods found for slot %s : please check periods settings") % slot
+            return JsonResponse(response, safe=False)
+
+        if visit_or_off_offer:
+            slot_data['can_register'] = True
+        elif available_registrations > 0 and available_training_registrations is None:
+            slot_data['can_register'] = True
+        elif available_registrations > 0 and (
+                available_training_registrations is not None and available_training_registrations > 0
+            ):
+            slot_data['can_register'] = True
+
+        elif user.is_high_school_student() or user.is_student() or user.is_visitor():
+            msg = None
+
+            if available_registrations <= 0:
+                msg = _(
+                    """You have no more remaining registration available for this period, """
+                    """you should cancel an immersion or contact immersion service"""
+                )
+            elif available_training_registrations is not None and available_training_registrations <= 0:
+                msg = _(
+                    """You have no more remaining registration available for this training and this period, """
+                    """you should cancel an immersion or contact immersion service"""
+                )
+
+            if msg:
+                response['msg'] = msg
+                return JsonResponse(response, safe=False)
 
     response['data'].append(slot_data.copy())
 
     return JsonResponse(response, safe=False)
-
 
 
 @is_ajax_request
