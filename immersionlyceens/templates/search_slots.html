@@ -63,7 +63,7 @@
         <div id="collapseAdvancedSearch" class="col-ml-4 collapse">
           <div class="card card-body">
             {% if highschool_visit or events_off_offer %}
-            <h5>{% trans "Slot types" %} :</h5>
+            <h5>{% trans "Slot type" %} :</h5>
             <div class="row">
               <div class="col">
                 <label class="checkbox-inline">
@@ -82,6 +82,18 @@
               </div>
             </div>
             {% endif %}
+            <h5>{% trans "Face to face" %} / {% trans "Remote" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="faceToFaceCheckbox" name="faceToFaceSlots" class="filters slotFaceToFaceRemoteSlotsFilter" value="{% trans "Face to face" %}" checked> {% trans "Face to face" %}
+                </label>
+
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="remoteCheckbox" name="remoteSlots" class="filters slotFaceToFaceRemoteSlotsFilter" value="{% trans "Remote" %}" checked> {% trans "Remote" %}
+                </label>
+              </div>
+            </div>            
             <h5>{% trans "Establishments" %} :</h5>
             <div class="row">
               <div class="col">
@@ -202,31 +214,30 @@
     feedback = $("#feedback");
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
-        var showAvailable = false;
-        var showType = false;
         var showDate = false;
         var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
         var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
           return this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "");
         }).get();
-        var slotPlaces = parseInt(searchData[8]);
+        var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
+        var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
+        var face_to_face = rowData['face_to_face'];
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
-        if (slotTypes.length === 0) {
-          showType=false;
-        }
-        if (slotTypes.indexOf(searchData[4]) !== -1) {
-          showType=true;
-        }
-        if (onlyAvailable === 0 || slotPlaces > 0) {
-          showAvailable = true;
-        }
+        var showType = slotTypes.indexOf(searchData[4]) !== -1;
+        var showRemoteFaceToFace = faceToFaceSlots === 0 && face_to_face === false 
+                                   || faceToFaceSlots === 1 && face_to_face === true 
+                                   || remoteSlots === 1 && faceToFaceSlots === 1
+
+        var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;                               
+
         if (start_date == null && end_date == null) { showDate = true; }
         if (start_date == null && startDate <= end_date) { showDate = true; }
         if (end_date == null && startDate >= start_date) { showDate = true; }
         if (startDate <= end_date && startDate >= start_date) { showDate = true; }
-        return showType && showAvailable && showDate;
+
+        return showType && showAvailable && showDate && showRemoteFaceToFace;
       }
     );    
     dt = $('#search_immersions_slots_table').DataTable({
@@ -517,7 +528,6 @@
       }
 
       if (rowData[0].face_to_face === false) {
-          
           if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
