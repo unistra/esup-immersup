@@ -27,3 +27,4 @@ faker
 cairosvg==2.7.0
 py==1.11.0
 python-ipware==1.0.3
+certifi==2023.07.22
