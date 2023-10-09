@@ -987,12 +987,17 @@ class CoreViewsTestCase(TestCase):
             'zip_code': '68100',
             'phone_number': '0388888888',
             'email': 'lycee@domain.fr',
-            'head_teacher_name': 'Headmaster'
+            'head_teacher_name': 'Headmaster',
+            'postbac_immersion': True
         }
 
         response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes').exists())
+        self.high_school.refresh_from_db()
+
+        # This flag shouldn't change
+        self.assertTrue(self.high_school.postbac_immersion)
 
         # These settings can't be updated here
         data.update({
