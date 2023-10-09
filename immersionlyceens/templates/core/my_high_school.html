@@ -21,6 +21,7 @@
     <div class="card-body">
       <form class="" role="form" action="/core/high_school/{{ high_school.id }}" method="POST">
       <input type="hidden" name="active" value="{{ high_school.active }}">
+      <input type="hidden" name="postbac_immersion" value="{{ high_school.postbac_immersion }}">
       {% csrf_token %}
         <div class="card">
           <div class="card-title card-header">

@@ -8,23 +8,30 @@ from wsgiref.util import FileWrapper
 
 import requests
 from django.conf import settings
+from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.files.storage import default_storage
-from django.db.models.query_utils import Q
-from django.http import (
-    FileResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
-    HttpResponseNotFound, StreamingHttpResponse,
-)
+from django.db.models import (BooleanField, Case, CharField, Count, DateField,
+                              Exists, ExpressionWrapper, F, Func, OuterRef, Q,
+                              QuerySet, Subquery, Value, When)
+from django.db.models.functions import Coalesce, Concat, Greatest, JSONObject
+from django.http import (FileResponse, HttpResponse, HttpResponseBadRequest,
+                         HttpResponseForbidden, HttpResponseNotFound,
+                         StreamingHttpResponse)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.utils.translation import gettext, gettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AttestationDocument, Course, Establishment, FaqEntry,
-    HighSchool, InformationText, Period, PublicDocument,
-    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
-)
+from immersionlyceens.apps.core.models import (AccompanyingDocument,
+                                               AttestationDocument, Course,
+                                               Establishment, FaqEntry,
+                                               HighSchool, InformationText,
+                                               Period, PublicDocument,
+                                               PublicType, Slot, Training,
+                                               TrainingSubdomain,
+                                               UserCourseAlert, Visit)
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -589,7 +596,8 @@ def host_establishments(request):
 def highschools(request):
     """ Highschools public view"""
 
-    affiliated_highschools = HighSchool.agreed.values("city", "label", "email")
+    affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=True) \
+                                .values("city", "label", "email")
 
     try:
         affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
@@ -615,3 +623,20 @@ def highschools(request):
         'not_affiliated_highschools_intro_txt': not_affiliated_highschools_intro_txt,
     }
     return render(request, 'highschools.html', context)
+
+
+def search_slots(request):
+    today = timezone.now()
+
+    try:
+        intro_offer_search = InformationText.objects.get(
+            code="INTRO_OFFER_SEARCH", active=True
+        ).content
+    except InformationText.DoesNotExist:
+        # TODO: Default txt value ?
+        intro_offer_search = ""
+
+    context = {
+        "intro_offer_search": intro_offer_search,
+    }
+    return render(request, "search_slots.html", context)

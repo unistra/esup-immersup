@@ -4389,3 +4389,405 @@ def ajax_update_structures_notifications(request):
         response["msg"] = gettext("Nothing to do")
 
     return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+def ajax_can_register_slot(request, slot_id=None):
+    """
+    Returns registering slot status for a logged user
+    GET parameters:
+    slot_id
+    """
+
+    user = request.user
+    response = {'msg': '', 'data': []}
+    visit_or_off_offer = False
+
+    if not user.is_authenticated:
+        response['msg'] = gettext("Error : user not authenticated")
+        return JsonResponse(response, safe=False)
+
+    if not slot_id:
+        response['msg'] = gettext("Error : missing slot id")
+        return JsonResponse(response, safe=False)
+
+    now = timezone.localtime()
+
+    slot = Slot.objects.get(id=slot_id)
+
+    if not slot:
+        response['msg'] = gettext("Error : slot not found")
+        return JsonResponse(response, safe=False)    
+
+    slot_data = {
+        'can_register': False,
+    }
+
+    visit_or_off_offer= True if (slot.visit or slot.event) else False    
+
+    # Check user quota for this period
+    if slot.registration_limit_date > now and slot.available_seats() > 0:
+        try:
+            period = Period.from_date(date=slot.date)
+        except Period.DoesNotExist as e:
+            raise
+        except Period.MultipleObjectsReturned:
+            raise
+
+        remaining_registrations = user.remaining_registrations_count()
+        if period and remaining_registrations[period.pk] > 0 and user.can_register_slot(slot):
+            slot_data['can_register'] = True
+       
+    # Should not happen !
+    if not slot.published:
+        response['msg'] = _("Registering an unpublished slot is forbidden")
+        return JsonResponse(response, safe=False)
+
+    # Only valid Highschool students
+    if user.is_high_school_student():
+        if not user.is_valid():
+            response['msg'] = _("Cannot register slot due to Highschool student account state")
+            return JsonResponse(response, safe=False)
+
+        record = user.get_high_school_student_record()
+        if not record or not record.is_valid():
+            response['msg'] = _("Cannot register slot due to Highschool student record state")
+            return JsonResponse(response, safe=False)
+
+    # Only valid Visitors records
+    if user.is_visitor():
+        if not user.is_valid():
+            response['msg'] = _("Cannot register slot due to visitor account state")
+            return JsonResponse(response, safe=False)
+
+        record = user.get_visitor_record()
+        if not record or not record.is_valid():
+            response['msg'] = _("Cannot register slot due to visitor record state")
+            return JsonResponse(response, safe=False)
+
+    # Out of date mandatory attestations
+    if user.has_obsolete_attestations():
+        response['msg'] = _("Cannot register slot due to out of date attestations")
+        return JsonResponse(response, safe=False)
+
+    # Check free seat in slot
+    if slot.available_seats() == 0:
+        response['msg'] = _("No seat available for selected slot")
+        return JsonResponse(response, safe=False)
+
+    # Check current student immersions and valid dates
+    if user.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
+        response['msg'] = _("Already registered to this slot")
+        return JsonResponse(response, safe=False)
+        
+    else:
+        remaining_registrations = user.remaining_registrations_count()
+
+        # For courses slots only : training quotas ?
+        if not visit_or_off_offer:
+            try:
+                training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
+                training_quota_active = training_quota['activate']
+                training_quota_count = training_quota['default_quota']
+            except Exception as e:
+                response['msg'] = _(
+                    "ACTIVATE_TRAINING_QUOTAS parameter not found or incorrect : please check the platform settings"
+                )
+                return JsonResponse(response, safe=False)
+
+        # Get period, available period registrations (quota) and the optional training quota
+        try:
+            period = Period.from_date(slot.date)
+            available_registrations = remaining_registrations.get(period.pk, 0)
+
+            # If training quota is active, check registrations for this period/training
+
+            if not visit_or_off_offer and training_quota_active:
+                training_regs_count = user.immersions\
+                    .filter(
+                        slot__date__gte=period.immersion_start_date,
+                        slot__date__lte=period.immersion_end_date,
+                        slot__course__training=slot.course.training,
+                        cancellation_type__isnull=True,
+                    ).count()
+
+                # specific quota for this training ?
+                if slot.course.training.allowed_immersions:
+                    training_quota_count = slot.course.training.allowed_immersions
+
+                available_training_registrations = training_quota_count - training_regs_count
+        except Period.DoesNotExist as e:
+            response['msg'] = _("No period found for slot %s : please check periods settings") % slot
+            return JsonResponse(response, safe=False)
+        except Period.MultipleObjectsReturned as e:
+            response['msg'] = _("Multiple periods found for slot %s : please check periods settings") % slot
+            return JsonResponse(response, safe=False)
+
+        if visit_or_off_offer:
+            slot_data['can_register'] = True
+        elif available_registrations > 0 and available_training_registrations is None:
+            slot_data['can_register'] = True
+        elif available_registrations > 0 and (
+                available_training_registrations is not None and available_training_registrations > 0
+            ):
+            slot_data['can_register'] = True
+
+        elif user.is_high_school_student() or user.is_student() or user.is_visitor():
+            msg = None
+
+            if available_registrations <= 0:
+                msg = _(
+                    """You have no more remaining registration available for this period, """
+                    """you should cancel an immersion or contact immersion service"""
+                )
+            elif available_training_registrations is not None and available_training_registrations <= 0:
+                msg = _(
+                    """You have no more remaining registration available for this training and this period, """
+                    """you should cancel an immersion or contact immersion service"""
+                )
+
+            if msg:
+                response['msg'] = msg
+                return JsonResponse(response, safe=False)
+
+    response['data'].append(slot_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+def ajax_search_slots_list(request, slot_id=None):
+
+    today = timezone.now()
+    response = {'msg': '', 'data': []}
+
+    slots = Slot.objects.filter(published=True).filter(
+        Q(date__isnull=True)
+        | Q(date__gte=today.date())
+        | Q(date=today.date(), end_time__gte=today.time())
+    )
+
+    fields = [
+        "id",
+        "slot_type",
+        "published",
+        "label",
+        "course_type_full_label",
+        "establishment_short_label",
+        "establishment_label",
+        "structure_code",
+        "structure_label",
+        "structure_establishment_short_label",
+        "highschool_city",
+        "highschool_label",
+        "event_description",
+        "date",
+        "start_time",
+        "end_time",
+        "campus_label",
+        "city",
+        "building_label",
+        "face_to_face",
+        "room",
+        "meeting_place",
+        "face_to_face",
+        "n_register",
+        "n_places",
+        "speakers_list",
+        "establishments_restrictions",
+        "levels_restrictions",
+        "bachelors_restrictions",
+        "allowed_establishments_list",
+        "allowed_highschools_list",
+        "allowed_highschool_levels_list",
+        "allowed_post_bachelor_levels_list",
+        "allowed_student_levels_list",
+        "allowed_bachelor_types_list",
+        "allowed_bachelor_mentions_list",
+        "allowed_bachelor_teachings_list",
+        "course_training_label",
+        "additional_information",
+        "registration_limit_date",
+        "event_type",       
+    ]
+
+    if request.user.is_authenticated:
+        fields.append('url')
+
+    slots = (
+        slots.annotate(
+            label=Coalesce(F("course__label"), F("visit__purpose"), F("event__label")),
+            slot_type=Case(
+                When(course__isnull=False, then=Value(gettext("Course"))),
+                When(event__isnull=False, then=Value(gettext("Event"))),
+                When(visit__isnull=False, then=Value(gettext("Visit"))),        
+            ),
+
+            course_training_label=Coalesce(
+                F("course__training__label"),
+                Value(''),
+            ),
+            course_type_full_label=Coalesce(
+                F("course_type__full_label"),
+                Value(''),
+            ),
+            event_description=Coalesce(
+                F("event__description"),
+                Value(''),
+            ),
+            building_label=F("building__label"),
+
+            establishment_label=Coalesce(
+                F("course__structure__establishment__label"),
+                F("event__establishment__label"),
+                F("visit__establishment__label"),
+            ),
+            establishment_short_label=Coalesce(
+                F("course__structure__establishment__short_label"),
+                F("event__establishment__short_label"),
+                F("visit__establishment__short_label"),
+            ),
+            structure_code=Coalesce(
+                F("course__structure__code"),
+                F("event__structure__code"),
+                F("visit__structure__code"),
+            ),
+            structure_label=Coalesce(
+                F("course__structure__label"),
+                F("event__structure__label"),
+                F("visit__structure__label"),
+            ),
+            structure_establishment_short_label=Coalesce(
+                F("course__structure__establishment__short_label"),
+                F("event__structure__establishment__short_label"),
+                F("visit__structure__establishment__short_label"),
+            ),
+            highschool_city=Coalesce(
+                F("course__highschool__city"),
+                F("event__highschool__city"),
+                F("visit__highschool__city"),
+            ),
+            highschool_label=Coalesce(
+                F("course__highschool__label"),
+                F("event__highschool__label"),
+                F("visit__highschool__label"),
+            ),
+            campus_label=Coalesce(
+                F('campus__label'),
+                Value(''),
+            ),
+            meeting_place=Case(
+                When(face_to_face=True, then=F('room')),
+                When(face_to_face=False, then=Value(gettext('Remote'))),
+            ),            
+            event_type=Coalesce(
+                F('event__event_type__label'),
+                Value(''),
+            ),            
+            city=Coalesce(
+                F("campus__city"),
+                F("course__highschool__city"),
+                F("event__highschool__city"),
+                F("visit__highschool__city"),                
+            ),
+            n_register=Count(
+                "immersions",
+                filter=Q(immersions__cancellation_type__isnull=True),
+                distinct=True,
+            ),
+            attendances_to_enter=Count(
+                "immersions",
+                filter=Q(
+                    immersions__attendance_status=0,
+                    immersions__cancellation_type__isnull=True,
+                ),
+                distinct=True,
+            ),
+            speakers_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        last_name=F("speakers__last_name"),
+                        first_name=F("speakers__first_name"),
+                        email=F("speakers__email"),
+                    ),
+                    filter=Q(speakers__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_establishments_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_establishments__short_label"),
+                    filter=Q(allowed_establishments__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        city=F("allowed_highschools__city"),
+                        label=F("allowed_highschools__label"),
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschool_levels_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_highschool_levels__label"),
+                    filter=Q(allowed_highschool_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_post_bachelor_levels_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_post_bachelor_levels__label"),
+                    filter=Q(allowed_post_bachelor_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_student_levels_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_student_levels__label"),
+                    filter=Q(allowed_student_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_types_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_bachelor_types__label"),
+                    filter=Q(allowed_bachelor_types__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_mentions_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_bachelor_mentions__label"),
+                    filter=Q(allowed_bachelor_mentions__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_teachings_list=Coalesce(
+                ArrayAgg(
+                    F("allowed_bachelor_teachings__label"),
+                    filter=Q(allowed_bachelor_teachings__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+        )
+        .order_by("date", "start_time")
+        .values(
+            *fields
+        )
+    )
+    response['data'] = {"slots": list(slots)}
+
+    return JsonResponse(response, safe=False)
