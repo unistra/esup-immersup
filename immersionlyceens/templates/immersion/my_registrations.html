@@ -821,6 +821,7 @@
                      "</button>";
             }
 
+            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
             msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
 
             return msg;
