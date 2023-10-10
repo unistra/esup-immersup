@@ -4402,6 +4402,9 @@ def ajax_can_register_slot(request, slot_id=None):
     user = request.user
     response = {'msg': '', 'data': []}
     visit_or_off_offer = False
+    slot_data = {
+        'can_register': False,
+    }
 
     if not user.is_authenticated:
         response['msg'] = gettext("Error : user not authenticated")
@@ -4417,13 +4420,11 @@ def ajax_can_register_slot(request, slot_id=None):
 
     if not slot:
         response['msg'] = gettext("Error : slot not found")
-        return JsonResponse(response, safe=False)    
+        return JsonResponse(response, safe=False)
 
-    slot_data = {
-        'can_register': False,
-    }
 
-    visit_or_off_offer= True if (slot.visit or slot.event) else False    
+    visit_or_off_offer= True if (slot.visit or slot.event) else False
+    can_register_slot, reason = user.can_register_slot(slot)
 
     # Check user quota for this period
     if slot.registration_limit_date > now and slot.available_seats() > 0:
@@ -4435,9 +4436,9 @@ def ajax_can_register_slot(request, slot_id=None):
             raise
 
         remaining_registrations = user.remaining_registrations_count()
-        if period and remaining_registrations[period.pk] > 0 and user.can_register_slot(slot):
+        if period and remaining_registrations[period.pk] > 0 and can_register_slot:
             slot_data['can_register'] = True
-       
+
     # Should not happen !
     if not slot.published:
         response['msg'] = _("Registering an unpublished slot is forbidden")
@@ -4475,11 +4476,21 @@ def ajax_can_register_slot(request, slot_id=None):
         response['msg'] = _("No seat available for selected slot")
         return JsonResponse(response, safe=False)
 
+    # Slot registration limite date
+    if timezone.localtime() > slot.registration_limit_date:
+        response['msg'] = _("Cannot register slot due to passed registration date")
+        return JsonResponse(response, safe=False)
+
+    # Slot registration restrictions
+    if not can_register_slot:
+        response = {'error': True, 'msg': reason}
+        return JsonResponse(response, safe=False)
+
     # Check current student immersions and valid dates
     if user.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
         response['msg'] = _("Already registered to this slot")
         return JsonResponse(response, safe=False)
-        
+
     else:
         remaining_registrations = user.remaining_registrations_count()
 
@@ -4608,7 +4619,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "course_training_label",
         "additional_information",
         "registration_limit_date",
-        "event_type",       
+        "event_type",
     ]
 
     if request.user.is_authenticated:
@@ -4620,7 +4631,7 @@ def ajax_search_slots_list(request, slot_id=None):
             slot_type=Case(
                 When(course__isnull=False, then=Value(gettext("Course"))),
                 When(event__isnull=False, then=Value(gettext("Event"))),
-                When(visit__isnull=False, then=Value(gettext("Visit"))),        
+                When(visit__isnull=False, then=Value(gettext("Visit"))),
             ),
 
             course_training_label=Coalesce(
@@ -4679,16 +4690,16 @@ def ajax_search_slots_list(request, slot_id=None):
             meeting_place=Case(
                 When(face_to_face=True, then=F('room')),
                 When(face_to_face=False, then=Value(gettext('Remote'))),
-            ),            
+            ),
             event_type=Coalesce(
                 F('event__event_type__label'),
                 Value(''),
-            ),            
+            ),
             city=Coalesce(
                 F("campus__city"),
                 F("course__highschool__city"),
                 F("event__highschool__city"),
-                F("visit__highschool__city"),                
+                F("visit__highschool__city"),
             ),
             n_register=Count(
                 "immersions",
