@@ -453,7 +453,7 @@ def visits_offer(request):
 
 
 def offer_off_offer_events(request):
-    """ Visits Offer view """
+    """ Events Offer view """
 
     filters = {}
     today = timezone.now().date()

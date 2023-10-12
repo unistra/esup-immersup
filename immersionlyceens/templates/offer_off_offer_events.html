@@ -59,12 +59,12 @@
           </h5>
         </div>
         <div class="card">
-          <div class="collapse" id="event{{ forloop.counter }}" aria-labelledby="#event{{ forloop.counter }}" data-parent="#accordion">
+          <div class="collapse" id="event{{ forloop.counter }}" aria-labelledby="establishment{{ forloop.counter }}" data-parent="#accordion">
             <div class="card-body" >
             {% regroup e.list by event.event_label as slots_list %}
             {% for slot in slots_list %}
               {% with forloop.counter as slot_i %}
-              <div id="event_label">
+              <div id="event_label_{{slot_i}}">
                 <div class="card-header">
                   <h6 class="mb-5 mb-sm-0 more-less-title">
                     <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Event' %}"></i>
@@ -72,8 +72,8 @@
                   </h6>
                 </div>
               </div>
-              {% for s in slot.list %}
               <div class="collapse" id="slot{{slot_i}}">
+              {% for s in slot.list %}
                 <div class="card">
                   <div class="card-body">
                     <div class="table-responsive">
@@ -245,17 +245,19 @@
                     </div>
                   </div>
                 </div>
+                {% endfor %}
               </div>
-              {% endfor %}
-            {% endwith %}
+              {% endwith %}
             {% endfor %}
             </div>
           </div>
-      </div>
+        </div>
       {% endfor %}
+      </div>
     {% else %}
     <p class="text-center">{% trans 'No off offer event available' %}</p>
     {% endif %}
+    </div>
   </div>
 </section>
 <script>
