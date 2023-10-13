@@ -46,8 +46,8 @@
     <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ events_count }} {% trans 'available events (see below)' %}">{{ events_count }} {% trans 'available events' %}</span></p>
     {% if events %}
     <div id="accordion" class="accordion">
-      {% regroup events by event.event_type.label as events_types_list %}
-      {% for t in events_types_list|dictsortlower:"grouper" %}
+      {% regroup events|dictsort:"event.event_type.label" by event.event_type.label as events_types_list %}
+      {% for t in events_types_list %}
       {% with forloop.counter as type_i %}
       <div class="card">
         <div class="card-header card-events" id="events_type{{ forloop.counter }}_{{type_i}}">
