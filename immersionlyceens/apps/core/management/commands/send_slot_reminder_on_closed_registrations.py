@@ -31,7 +31,7 @@ class Command(BaseCommand, Schedulable):
         today = timezone.now()
 
         slots = Slot.objects.filter(
-            Q(registration_limit_date__lte=today) | Q(date__gte=today),
+            registration_limit_date__lte=today,
             published=True,
             reminder_notification_sent=False,
         )

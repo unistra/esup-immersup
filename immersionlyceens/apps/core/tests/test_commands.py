@@ -139,7 +139,7 @@ class CommandsTestCase(TestCase):
             start_date=cls.today - datetime.timedelta(days=2),
             end_date=cls.today + datetime.timedelta(days=2)
         )
-        cls.structure = Structure.objects.create(label="test structure")
+        cls.structure = Structure.objects.create(label="test structure", establishment=cls.establishment)
         cls.t_domain = TrainingDomain.objects.create(label="test t_domain")
         cls.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=cls.t_domain)
         cls.training = Training.objects.create(label="test training")
@@ -515,33 +515,51 @@ class CommandsTestCase(TestCase):
             management.call_command('send_speaker_slot_reminder', verbosity=0)
             self.assertEqual(len(mail.outbox), 0)            
 
-        slot5 = Slot.objects.create(
-            course=self.course2,
-            course_type=self.course_type,
-            campus=self.campus,
-            building=self.building,
-            room='room 666',
+        # Data for slots creation
+        data = {
+            "course": self.course2,
+            "course_type": self.course_type,
+            "campus": self.campus,
+            "building": self.building,
+            "room": 'room 666',
             # TODO: use default nb days reminder settings (??)
-            date=self.today + datetime.timedelta(days=3),
-            start_time=datetime.time(12, 0),
-            end_time=datetime.time(14, 0),
-            n_places=1,
-            additional_information="Hello there!",
-            registration_limit_delay=24*4,
-        )        
+            "date": self.today + datetime.timedelta(days=3),
+            "start_time": datetime.time(12, 0),
+            "end_time": datetime.time(14, 0),
+            "n_places": 1,
+            "additional_information": "Hello there!",
+            "registration_limit_delay": 24 * 4,
+        }
+
+        slot5 = Slot.objects.create(**data)
         slot5.speakers.add(self.speaker1)
 
-        # No registered student still nothing to do
+        # Same slot but a few days later (notifications should not be sent)
+        data.update({
+            "date": self.today + datetime.timedelta(days=10),
+            "registration_limit_delay": 24 * 7
+        })
+        slot6 = Slot.objects.create(**data)
+        slot6.speakers.add(self.speaker1)
+
+        # No registered student : still nothing to do
         management.call_command("send_speaker_slot_reminder", verbosity=0)
         management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
         self.assertEqual(len(mail.outbox), 0)              
 
-        # One registered student
-        immersion_from_hell = Immersion.objects.create(
+        # Register a student for both slots
+        Immersion.objects.create(
             student=self.highschool_user,
             slot=slot5,
         )
+
+        Immersion.objects.create(
+            student=self.highschool_user,
+            slot=slot6,
+        )
+
         self.assertFalse(slot5.reminder_notification_sent)
+        self.assertFalse(slot6.reminder_notification_sent)
         slot5.registration_limit_delay=0
         slot5.save()
         management.call_command("send_speaker_slot_reminder", verbosity=0)
@@ -549,15 +567,21 @@ class CommandsTestCase(TestCase):
         # Reminder sent for slot !
         self.assertEqual(len(mail.outbox), 1)
         slot5.refresh_from_db()
+        slot6.refresh_from_db()
         self.assertFalse(slot5.reminder_notification_sent)
+        self.assertFalse(slot6.reminder_notification_sent)
+
         # Reminder sent for slot (again) !
         slot5.registration_limit_delay=24*4
         slot5.save()
         management.call_command("send_slot_reminder_on_closed_registrations", verbosity=0)
         self.assertEqual(len(mail.outbox), 2)
         slot5.refresh_from_db()
-        # Reminder notification sent flag set to True
+        slot6.refresh_from_db()
+
+        # Reminder notification sent, reminder_notification_sent flag set to True for slot5, not slot6
         self.assertTrue(slot5.reminder_notification_sent)
+        self.assertFalse(slot6.reminder_notification_sent)
 
         # Add a structure manager 
         slot5.reminder_notification_sent=False
