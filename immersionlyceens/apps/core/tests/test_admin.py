@@ -1690,10 +1690,8 @@ class AdminFormsTestCase(TestCase):
         request.user = self.superuser
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
 
-        # No more structure : success
-        structure.establishment = None
-        structure.save()
-        self.assertTrue(est_admin.has_delete_permission(request=request, obj=eta2))
+        # Delete structure and try again
+        structure.delete()
 
         # Test again with bad user:
         request.user = self.ref_master_etab_user

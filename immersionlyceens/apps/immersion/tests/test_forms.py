@@ -94,7 +94,7 @@ class FormTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
 
         cls.today = datetime.datetime.today()
-        cls.structure = Structure.objects.create(label="test structure")
+        cls.structure = Structure.objects.create(label="test structure", establishment=cls.establishment)
         cls.t_domain = TrainingDomain.objects.create(label="test t_domain")
         cls.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=cls.t_domain)
         cls.training = Training.objects.create(label="test training")
