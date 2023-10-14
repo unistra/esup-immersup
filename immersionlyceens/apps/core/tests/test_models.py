@@ -229,9 +229,26 @@ class TestSlotCase(TestCase):
     def setUpTestData(cls):
         cls.today = timezone.now()
 
+        cls.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
+
     def test_slot__creation(self):
         # Structure
-        c = Structure.objects.create(label='my structure', code='R2D2')
+
+        c = Structure.objects.create(
+            label='my structure',
+            code='R2D2',
+            establishment=self.establishment
+        )
+
         # Training domain
         td = TrainingDomain.objects.create(label='my_domain')
         # Training subdomain
@@ -282,6 +299,17 @@ class TrainingCase(TestCase):
     def setUpTestData(cls):
         cls.today = timezone.now()
 
+        cls.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
+
         cls.hs = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -295,7 +323,7 @@ class TrainingCase(TestCase):
             convention_end_date=cls.today + timedelta(days=10),
             postbac_immersion=True
         )
-        cls.structure = Structure.objects.create(label="test structure")
+        cls.structure = Structure.objects.create(label="test structure", establishment=cls.establishment)
 
     def test_training__is_highschool(self):
         # False
@@ -327,7 +355,7 @@ class TrainingCase(TestCase):
             city='city',
             zip_code= 'zip_code',
             phone_number= '+33666',
-            uai_reference=HigherEducationInstitution.objects.first()
+            uai_reference=HigherEducationInstitution.objects.all()[1]
         )
         establishment2 = Establishment.objects.create(
             code='ETA3',
@@ -341,7 +369,7 @@ class TrainingCase(TestCase):
             city='city',
             zip_code= 'zip_code',
             phone_number= '+33666',
-            uai_reference=HigherEducationInstitution.objects.last()
+            uai_reference=HigherEducationInstitution.objects.all()[2]
         )
         self.structure.establishment = establishment
         self.structure.save()
@@ -388,7 +416,18 @@ class TrainingCase(TestCase):
 class StructureTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.structure = Structure.objects.create(code='test', label="test structure")
+        cls.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
+
+        cls.structure = Structure.objects.create(code='test', label="test structure", establishment=cls.establishment)
 
     def test_str_structure(self):
         self.assertEqual(str(self.structure), 'test : test structure')
@@ -687,8 +726,21 @@ class GeneralBachelorTeachingTestCase(TestCase):
         self.assertTrue(gbt.active)
 
 class CourseTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
+
     def test_str_course(self):
-        c = Structure.objects.create(label='my structure', code='R2D2')
+        c = Structure.objects.create(label='my structure', code='R2D2', establishment=self.establishment)
         # Training domain
         td = TrainingDomain.objects.create(label='my_domain')
         # Training subdomain
@@ -747,8 +799,20 @@ class AttestationDocumentTestCase(TestCase):
         self.assertEqual(attestation2.order, 2)
 
 class RefStructuresNotificationsSettingsTestCase(TestCase):
-    def test_str_ref_structures_notifications_settings(self):
+    @classmethod
+    def setUpTestData(cls):
+        cls.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
 
+    def test_str_ref_structures_notifications_settings(self):
         r = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
@@ -756,10 +820,14 @@ class RefStructuresNotificationsSettingsTestCase(TestCase):
             first_name='ref_str',
             last_name='ref_str',
             date_joined=timezone.now(),
-            establishment=Establishment.objects.first(),
+            establishment=self.establishment,
         )
 
-        s = Structure.objects.create(label='my structure', code='666')
+        s = Structure.objects.create(
+            label='my structure',
+            code='666',
+            establishment=self.establishment
+        )
 
         n = RefStructuresNotificationsSettings.objects.create(
             user = r

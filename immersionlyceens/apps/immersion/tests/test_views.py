@@ -197,7 +197,7 @@ class ImmersionViewsTestCase(TestCase):
 
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
-        cls.structure = Structure.objects.create(label="test structure")
+        cls.structure = Structure.objects.create(label="test structure", establishment=cls.establishment)
         cls.t_domain = TrainingDomain.objects.create(label="test t_domain")
         cls.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=cls.t_domain)
         cls.training = Training.objects.create(label="test training")

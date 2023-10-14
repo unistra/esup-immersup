@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0208_new_information_text_20231015_1046'),
+        ('core', '0207_link_template_variables_20230726_0927'),
     ]
 
     operations = [
