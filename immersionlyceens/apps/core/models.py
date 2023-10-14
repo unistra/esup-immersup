@@ -187,8 +187,14 @@ class Structure(models.Model):
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(StructureQuerySet)()  # returns only activated structures
 
-    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
-        blank=False, null=True, related_name='structures')
+    establishment = models.ForeignKey(
+        Establishment,
+        verbose_name=_("Establishment"),
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False,
+        related_name='structures'
+    )
 
     def __str__(self):
         return f"{self.code} : {self.label}"
