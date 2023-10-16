@@ -60,24 +60,27 @@ class Command(BaseCommand, Schedulable):
                     msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
                     if msg:
                         returns.append(msg)
+
                 # Structures managers
                 slot_structure = slot.get_structure()
-                str_managers = ImmersionUser.objects.filter(
-                    groups__name="REF-STR",
-                    structures__in=[
-                        slot_structure.pk,
-                    ],
-                )
-                for s in str_managers:
-                    if RefStructuresNotificationsSettings.objects.filter(
-                        user=s,
+
+                if slot_structure:
+                    str_managers = ImmersionUser.objects.filter(
+                        groups__name="REF-STR",
                         structures__in=[
                             slot_structure.pk,
                         ],
-                    ).exists():
-                        msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
-                        if msg:
-                            returns.append(msg)
+                    )
+                    for s in str_managers:
+                        if RefStructuresNotificationsSettings.objects.filter(
+                            user=s,
+                            structures__in=[
+                                slot_structure.pk,
+                            ],
+                        ).exists():
+                            msg = s.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
+                            if msg:
+                                returns.append(msg)
 
         if returns:
             for line in returns:
