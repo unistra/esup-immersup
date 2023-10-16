@@ -327,7 +327,7 @@ class Parser:
                         institution_label = record.institution.label if record.institution else record.uai_code
 
                 registered_students.append(
-                    f"""{registration.student.last_name} {registration.student.first_name} """
+                    f"""{registration.student.last_name} {registration.student.first_name} - """
                     f"""{registration.student.email} - {institution_label}"""
                 )
 
