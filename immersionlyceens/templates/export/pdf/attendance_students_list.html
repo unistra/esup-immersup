@@ -45,7 +45,10 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
             <tbody>
                 {% for s in tpl_vars.students %}
                 <tr>
-                    <td style="width:60%; white-space:pre-line;">{{ s.last_name }} {{ s.first_name }}</td>
+                    <td style="width:60%; white-space:pre-line;">
+                        {{ s.last_name }} {{ s.first_name }}
+                        <br>{{ s.email }}
+                    </td>
                     <td style="width:25%; white-space:pre-line;">{{ s.get_high_school_or_student_establishment }}</td>
                     <td style="width:15%; white-space:nowrap;">&nbsp;</td>
                 </tr>
