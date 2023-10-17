@@ -9,7 +9,7 @@ django-filter
 ldap3
 requests
 django-summernote<0.8.20.0
-WeasyPrint==54.1
+WeasyPrint==60.1
 sentry-sdk
 django-json-widget
 jsonschema
