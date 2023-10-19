@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% load immersionlyceens_tags %}
+{% general_settings_get 'ATTENDANCE_PDF_INCLUDE_EMAILS' as include_emails %}
 {% comment %}
 See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for usefull infos
 {% endcomment %}
@@ -47,7 +48,7 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
                 <tr>
                     <td style="width:60%; white-space:break-spaces;">
                         {{ s.last_name }} {{ s.first_name }}
-                        <br>{{ s.email }}
+                        {% if include_emails %}<br>{{ s.email }}{% endif %}
                     </td>
                     <td style="width:25%; white-space:pre-line;">{{ s.get_high_school_or_student_establishment }}</td>
                     <td style="width:15%; white-space:nowrap;">&nbsp;</td>
