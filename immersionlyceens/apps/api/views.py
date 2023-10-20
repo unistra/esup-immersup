@@ -4618,6 +4618,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "allowed_bachelor_mentions_list",
         "allowed_bachelor_teachings_list",
         "course_training_label",
+        "course_training_url",
         "additional_information",
         "registration_limit_date",
         "event_type",
@@ -4634,9 +4635,12 @@ def ajax_search_slots_list(request, slot_id=None):
                 When(event__isnull=False, then=Value(gettext("Event"))),
                 When(visit__isnull=False, then=Value(gettext("Visit"))),
             ),
-
             course_training_label=Coalesce(
                 F("course__training__label"),
+                Value(''),
+            ),
+            course_training_url=Coalesce(
+                F("course__training__url"),
                 Value(''),
             ),
             course_type_full_label=Coalesce(

@@ -454,6 +454,7 @@
       let speakers_array = "";
       let url = null;
       let buildingFull = null;
+      let courseLabelFull = null;
       let slotType = rowData[0].slot_type[0].toLowerCase();
       let etab = [];
       let restrictions = null;
@@ -515,8 +516,11 @@
             filteredRows.push('row_highschool');
           }
       }
-      if (rowData[0].building_url !== null) {
+      if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+      }
+      if (rowData[0].course_training_url !== null && rowData[0].course_training_url !== '') {
+        courseLabelFull = rowData[0].course_training_label + "&nbsp;<a href=\""+rowData[0].course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
       if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {
         filteredRows.push('row_campus');
@@ -545,7 +549,7 @@
         restrictions = "<p>{% trans "Slot open to all" %}</p>";
       }
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
-      $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
+      $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
