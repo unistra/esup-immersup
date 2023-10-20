@@ -93,13 +93,13 @@
                   <input type="checkbox" id="remoteCheckbox" name="remoteSlots" class="filters slotFaceToFaceRemoteSlotsFilter" value="{% trans "Remote" %}" checked> {% trans "Remote" %}
                 </label>
               </div>
-            </div>            
+            </div>
             <h5>{% trans "Establishments" %} :</h5>
             <div class="row">
               <div class="col">
                 <span id="establishments_filter"></span>
               </div>
-            </div>           
+            </div>
             <h5>{% trans "Cities" %} :</h5>
             <div class="row">
               <div class="col">
@@ -111,13 +111,13 @@
               <div class="col">
                 <span id="campus_filter"></span>
               </div>
-            </div>                      
+            </div>
             <h5>{% trans "Slots with available places" %} :</h5>
             <div class="row">
               <div class="col">
                 <label class="checkbox-inline">
                   <input type="checkbox" id="slotsAvailableCheckbox" name="slotsAvailable" class="filters slotsAvailableFilter" value="true"> {% trans "Slots not full only" %}
-                </label>                
+                </label>
               </div>
             </div>
             <h5>{% trans "Dates" %} :</h5>
@@ -136,7 +136,7 @@
                     <span class="input-group-text">{% trans "End date" %}</span>
                   </div>
                   <input type="date" name="end_date" id="end_date" class="filters form-control" />
-                </div>              
+                </div>
               </div>
             </div>
           </div>
@@ -181,8 +181,8 @@
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
-  } 
-  
+  }
+
   function register(slot_id) {
     $.ajax({
       url: "{% url 'SlotRegistration' %}",
@@ -195,7 +195,7 @@
         let msg = json['msg'];
         let error = json['error'];
         $('#modal_search_slots_details').modal("hide");
-        
+
         if (error) {
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
@@ -226,11 +226,11 @@
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
         var showType = slotTypes.indexOf(searchData[4]) !== -1;
-        var showRemoteFaceToFace = faceToFaceSlots === 0 && face_to_face === false 
-                                   || faceToFaceSlots === 1 && face_to_face === true 
+        var showRemoteFaceToFace = faceToFaceSlots === 0 && face_to_face === false
+                                   || faceToFaceSlots === 1 && face_to_face === true
                                    || remoteSlots === 1 && faceToFaceSlots === 1
 
-        var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;                               
+        var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;
 
         if (start_date == null && end_date == null) { showDate = true; }
         if (start_date == null && startDate <= end_date) { showDate = true; }
@@ -239,7 +239,7 @@
 
         return showType && showAvailable && showDate && showRemoteFaceToFace;
       }
-    );    
+    );
     dt = $('#search_immersions_slots_table').DataTable({
       'processing': false,
       'order': [
@@ -269,7 +269,7 @@
       },
       {% endif %}
       'columns': [
-          {  
+          {
               orderable: false, className: 'text-center', width: '20px',
               render: function(data, type, full, meta) {
                   slotType = full['slot_type'][0].toLowerCase();
@@ -279,31 +279,31 @@
                       return '<i class="fa fa-university slot-type-v"></i>';
                   } else {
                       return '<i class="fa fa-calendar slot-type-e"></i>';
-                  } 
+                  }
               }
           },
-          { 
-            data: "establishment_label", 
+          {
+            data: "establishment_label",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-                
+
                 if (full['highschool_label'] !== null) {
                   data = full['highschool_label'];
                 } else {
                   data = '&nbsp;';
                 }
-              }              
+              }
               if(type === "display") {
                 return '<label>'+ '{% trans 'Establishment' %}' +':</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
 
-              }              
+              }
               return data;
             }
           },
-          { 
+          {
             data: "course_training_label", class: 'text-center',
             render: function (data, type, full, meta) {
               slotType = full['slot_type'][0].toLowerCase();
@@ -325,77 +325,79 @@
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-              }              
+              }
               return data;
             }
           },
-          { 
+          {
             data: "label", class: 'text-center',
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
                 data = '&nbsp;';
-              }              
-              if(type === "display") { 
+              }
+              if(type === "display") {
                 return '<label>'+ '{% trans "Label" %}' +':</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-              }              
+              }
               return data;
             }
           },
-          { 
+          {
             data: "slot_type",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
                 data = '&nbsp;';
-              }              
-              if(type === "display") { 
+              }
+              if(type === "display") {
                 return '<label>'+ '{% trans "Type" %}' +':</label>' + data;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-              }              
+              }
               return data;
             }
           },
-          { 
+          {
             data: "date", class: 'text-center',
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
                 data = '&nbsp;';
-              }              
+              }
               if(type === "display") {
                 return '<label>'+ '{% trans "Date" %}' +':</label>' + display_slot_date(data, type, full);
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-              }              
+              }
               return data;
             }
           },
-          { 
+          {
             data: "campus_label",
             render: function (data, type, full, meta) {
-              label = "<label>{% trans 'Campus' %}</label>";
+
               if (data === '' || data === null) {
-                data = '';
-              }              
+                return '';
+              } else {
+                label = "<label>{% trans 'Campus' %}</label>";
+              }
               if(type === "display") {
                 return  label + data;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-              }              
+              }
               return data;
             }
           },
-          { 
+          {
             data: "city",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
                 return ''
-              }              
+              }
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
               if(type === "display") {
                 return '<label>'+ "{% trans 'City' %}" +':</label>' + data
@@ -412,20 +414,20 @@
             {
               if (data === '' || data === null) {
                 return ''
-              }              
+              }
               if(type === "display") {
                 return '<label>'+ "{% trans 'Meeting place' %}" +':</label>' + data
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
               }
-              return data;              
+              return data;
 
             }
           },
-          { 
+          {
             "data": "n_places", title: "register", visible: true,
-            render: function (data, type, full, meta) { 
+            render: function (data, type, full, meta) {
               availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
               if(type === "display") {
                 return '<label>'+ '{% trans "Available places" %}' +':</label>' + availablePlaces;
@@ -457,7 +459,7 @@
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
-      
+
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
       });
@@ -473,7 +475,7 @@
             etab.push(rowData[0].highschool_label)
           }
           $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
-          filteredRows.push('row_highschool', 'row_city'); 
+          filteredRows.push('row_highschool', 'row_city');
       } else if (slotType === 'v') {
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
@@ -490,8 +492,8 @@
             $('#modal_search_slots_details #modal_highschool').html();
             $('#modal_search_slots_details #modal_city').html(rowData[0].city);
             filteredRows.push('row_highschool');
-            
-          }   
+
+          }
       } else {
           if (rowData[0].establishment_label !==null) {
             etab.push(rowData[0].establishment_label)
@@ -512,13 +514,13 @@
             filteredRows.push('row_highschool');
           }
       }
-      if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {             
+      if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {
         filteredRows.push('row_campus');
       }
 
       if (rowData[0].building_label === '' || rowData[0].building_label === null) {
         filteredRows.push('row_building');
-      }      
+      }
 
       if (rowData[0].additional_information === '' || rowData[0].additional_information === null) {
         filteredRows.push('row_additional_information');
@@ -532,12 +534,12 @@
           if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
-      }         
-  
+      }
+
       restrictions = display_slot_restrictions(null, null, rowData[0])
       if (restrictions === '<ul class="list-unstyled"><ul>') {
         restrictions = "<p>{% trans "Slot open to all" %}</p>";
-      } 
+      }
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
@@ -555,7 +557,7 @@
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
       $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
-      $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")      
+      $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
       {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
       $.ajax({
         url: "/api/can_register_slot/" + rowData[0].id,
@@ -571,9 +573,9 @@
       {% endif %}
       $('[data-toggle="tooltip"]').tooltip({placement:"left",});
       // rows to hide
-      selectedRows = filteredRows.map(id => `#${id}`).join(',') 
+      selectedRows = filteredRows.map(id => `#${id}`).join(',')
       $(selectedRows).hide();
-      $('#modal_search_slots_details').modal("show");     
+      $('#modal_search_slots_details').modal("show");
     })
     $('#search_immersions_slots').keyup( function() {
       let slots_search_value = $(this).val().normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -581,32 +583,32 @@
     });
     $('.filters').on('change', function () {
       dt.draw();
-    });    
+    });
     yadcf.init(dt, [
     {
-      column_number: [1], 
-      filter_type: 'multi_select', 
+      column_number: [1],
+      filter_type: 'multi_select',
       select_type: 'chosen',
       select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
-      filter_container_id: 'establishments_filter', 
+      filter_container_id: 'establishments_filter',
       filter_default_label: ' ',
       select_type_options: {width: '190px'},
-    },        
+    },
     {
-      column_number: [6], 
-      filter_type: 'multi_select', 
+      column_number: [6],
+      filter_type: 'multi_select',
       select_type: 'chosen',
       select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
-      filter_container_id: 'campus_filter', 
+      filter_container_id: 'campus_filter',
       filter_default_label: ' ',
       select_type_options: {width: '190px'},
-    },    
+    },
     {
-      column_number: [7], 
-      filter_type: 'multi_select', 
+      column_number: [7],
+      filter_type: 'multi_select',
       select_type: 'chosen',
       select_type_options: {no_results_text: "", placeholder_text_single: "", placeholder_text_multiple: "",},
-      filter_container_id: 'cities_filter', 
+      filter_container_id: 'cities_filter',
       filter_default_label: ' ',
       select_type_options: {width: '190px'},
     }
