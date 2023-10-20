@@ -243,7 +243,7 @@
     dt = $('#search_immersions_slots_table').DataTable({
       'processing': false,
       'order': [
-          [6, "asc"],
+          [5, "asc"],
        ],
       'dom': 'ltpr',
       'pagingType': 'full_numbers',
@@ -453,6 +453,7 @@
       let rowData = dt.rows(indexes).data().toArray()
       let speakers_array = "";
       let url = null;
+      let buildingFull = null;
       let slotType = rowData[0].slot_type[0].toLowerCase();
       let etab = [];
       let restrictions = null;
@@ -514,6 +515,9 @@
             filteredRows.push('row_highschool');
           }
       }
+      if (rowData[0].building_url !== null) {
+        buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+      }
       if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {
         filteredRows.push('row_campus');
       }
@@ -549,7 +553,7 @@
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
       $('#modal_search_slots_details #modal_city').html(rowData[0].city)
-      $('#modal_search_slots_details #modal_building').html(rowData[0].building_label)
+      $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
       $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
       $('#modal_search_slots_details #modal_speakers').html(
         '<ul class="list-group">' + speakers_array + '</ul>'

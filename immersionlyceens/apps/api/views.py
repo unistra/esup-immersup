@@ -4596,6 +4596,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "start_time",
         "end_time",
         "campus_label",
+        "building_url",
         "city",
         "building_label",
         "face_to_face",
@@ -4648,6 +4649,10 @@ def ajax_search_slots_list(request, slot_id=None):
             ),
             building_label=F("building__label"),
 
+            building_url=Coalesce(
+                F("building__url"),
+                Value(''),
+            ),
             establishment_label=Coalesce(
                 F("course__structure__establishment__label"),
                 F("event__establishment__label"),
