@@ -1297,7 +1297,19 @@ class AdminFormsTestCase(TestCase):
         }
         form = VacationForm(data=data, request=request)
         self.assertTrue(form.is_valid())
+        vac = form.save()
+        self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
+
+        # Update label
+        data = {
+            'label': 'Vacation 3',
+            'start_date': self.today + datetime.timedelta(days=5),
+            'end_date': self.today + datetime.timedelta(days=7),
+        }
+        form = VacationForm(instance=vac, data=data, request=request)
+        self.assertTrue(form.is_valid())
         form.save()
+        self.assertFalse(Vacation.objects.filter(label="Vacation 2").exists())
         self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
 
         # Fail : University year has already begun
