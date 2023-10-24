@@ -1043,7 +1043,9 @@ def student_record(request, student_id=None, record_id=None):
 
         try:
             shib_attrs = request.session.get("shib", {})
-            uai_code = shib_attrs.get("uai_code")
+            # UAI code sometimes comes with other information, like {SIRET}
+            # Make sure we only consider the {UAI} part and split the string
+            uai_code = shib_attrs.get("uai_code").split(";")[0]
         except Exception:
             logger.error("Cannot retrieve uai code from shibboleth data")
 
