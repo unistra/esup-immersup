@@ -712,6 +712,7 @@ class VacationForm(forms.ModelForm):
         end_date = cleaned_data.get('end_date')
         now = datetime.now().date()
         valid_user = False
+        excludes = {}
 
         try:
             user = self.request.user
@@ -745,7 +746,10 @@ class VacationForm(forms.ModelForm):
                 if user.is_operator() and now > univ_year.start_date:
                     raise forms.ValidationError(_("Error : the university year has already begun"))
 
-            all_vacations = Vacation.objects.exclude(label=label)
+            if self.instance and self.instance.id:
+                excludes['pk'] = self.instance.id
+
+            all_vacations = Vacation.objects.exclude(**excludes)
             for vac in all_vacations:
                 if vac.date_is_between(start_date):
                     raise forms.ValidationError(_("Vacation start inside another vacation"))
