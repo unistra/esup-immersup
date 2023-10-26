@@ -4251,7 +4251,11 @@ class MailingListGlobalView(APIView):
                     "immersions__slot__date__gte" : period.immersion_start_date,
                     "immersions__slot__date__lte" : period.immersion_end_date
                 })
-            except:
+            except (ValueError, TypeError):
+                # Invalid value for period (or period is None)
+                if period is not None:
+                    response["msg"] = f"Warning : invalid period value ('{period}'), integer expected."
+            except Period.DoesNotExist:
                 response["msg"] = f"Warning : invalid filter : period '{period_id}' not found"
 
         mailing_list = [email for email in ImmersionUser.objects \
