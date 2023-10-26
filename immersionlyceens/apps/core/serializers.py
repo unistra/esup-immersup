@@ -9,7 +9,7 @@ from django.conf import settings
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, UserCourseAlert, Slot, CourseType,
+    HighSchoolLevel, UserCourseAlert, Slot, CourseType, Period
 )
 
 class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
@@ -608,4 +608,9 @@ class UserCourseAlertSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCourseAlert
+        fields = "__all__"
+
+class PeriodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Period
         fields = "__all__"
