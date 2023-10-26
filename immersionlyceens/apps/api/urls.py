@@ -98,6 +98,9 @@ urlpatterns = [
     path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(),
          name="validate_reject_visitor"),
 
+    # Immersion periods
+    path('periods', views.PeriodList.as_view(), name='period_list'),
+
     # User course alerts
     path('course_alerts', views.UserCourseAlertList.as_view(), name='user_course_alert_list'),
 

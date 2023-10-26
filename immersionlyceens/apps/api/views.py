@@ -52,7 +52,7 @@ from immersionlyceens.apps.core.models import (
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer, CourseTypeSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer, HighSchoolSerializer,
-    OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
+    OffOfferEventSerializer, PeriodSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
     TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
 )
@@ -3101,6 +3101,15 @@ class UserCourseAlertList(generics.ListCreateAPIView):
         return queryset
 
 
+class PeriodList(generics.ListAPIView):
+    """
+    Immersion periods
+    """
+    serializer_class = PeriodSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    queryset = Period.objects.all()
+
+
 @is_ajax_request
 @is_post_request
 @groups_required('ETU', 'LYC', 'VIS')
@@ -4221,19 +4230,39 @@ class MailingListGlobalView(APIView):
 
     def get(self, request, *args, **kwargs):
         response: Dict[str, Any] = {"msg": "", "data": None}
+        extra_filter = {}
+        registered_only = request.GET.get("registered_only", False) in (1, "1", "true", "True")
+        period = request.GET.get("period", None)
+
         try:
             global_mail = get_general_setting('GLOBAL_MAILING_LIST')
         except (ValueError, NameError):
             response["msg"] = "'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)"
             return JsonResponse(data=response, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        if registered_only:
+            extra_filter["immersions__isnull"] = False
+
+            # Period filter
+            try:
+                period_id = int(period)
+                period = Period.objects.get(pk=period_id)
+                extra_filter.update({
+                    "immersions__slot__date__gte" : period.immersion_start_date,
+                    "immersions__slot__date__lte" : period.immersion_end_date
+                })
+            except:
+                response["msg"] = f"Warning : invalid filter : period '{period_id}' not found"
+
         mailing_list = [email for email in ImmersionUser.objects \
+              .prefetch_related("student_record", "high_school_student_record", "visitor_record", "immersions__slot") \
               .filter(Q(student_record__isnull=False)
                       | Q(high_school_student_record__validation=2,
                           high_school_student_record__isnull=False) \
                       | Q(visitor_record__validation=2,
-                          visitor_record__isnull=False) \
+                          visitor_record__isnull=False)
                       ) \
+              .filter(**extra_filter) \
               .values_list('email', flat=True).distinct()]
 
         response["data"] = {global_mail: mailing_list}
