@@ -436,6 +436,15 @@
             }
           },
           {
+            "data": "registration_limit_date", title: "Registration limit date", visible: true,
+            render: function (data, type, full, meta) {
+              if(type === "display") {
+                return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' });
+              }
+              return data;
+            }
+          },
+          {
             render: function (data, type, full, meta) {
               return "<button class=\"btn badge badge-pill badge-primary pull-right\">{% trans 'More details' %}</button>"
             }
