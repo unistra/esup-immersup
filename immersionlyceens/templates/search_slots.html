@@ -439,7 +439,12 @@
             "data": "registration_limit_date", title: "Registration limit date", visible: true,
             render: function (data, type, full, meta) {
               if(type === "display") {
-                return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' });
+                {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+                classLabel = full['passed_registration_limit_date'] ? "badge-info" : "badge-danger";
+                return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + '<span class="badge badge-pill '+ classLabel + '">'  + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' }) + '</span>';
+                {% else %}
+                return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' })
+                {% endif %}
               }
               return data;
             }

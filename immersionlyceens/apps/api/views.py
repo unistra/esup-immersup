@@ -4655,6 +4655,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "additional_information",
         "registration_limit_date",
         "event_type",
+        "passed_registration_limit_date",
     ]
 
     if request.user.is_authenticated:
@@ -4834,6 +4835,10 @@ def ajax_search_slots_list(request, slot_id=None):
                     distinct=True,
                 ),
                 Value([]),
+            ),
+            passed_registration_limit_date = ExpressionWrapper(
+                Q(registration_limit_date__gt=timezone.now()),
+                output_field=CharField()
             ),
         )
         .order_by("date", "start_time")
