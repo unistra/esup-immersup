@@ -377,9 +377,13 @@
           {
             data: "campus_label",
             render: function (data, type, full, meta) {
-
               if (data === '' || data === null) {
-                return '&nbsp;';
+                if (full['highschool_address'] != null || full['highschool_address'] != '') {
+                  label = "<label>{% trans 'Address' %} : </label>";
+                  data = full['highschool_address'];
+                } else {
+                  return '&nbsp;';
+                }
               } else {
                 label = "<label>{% trans 'Campus' %} : </label>";
               }
@@ -539,25 +543,23 @@
       if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {
         filteredRows.push('row_campus');
       }
-
+      if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
+        filteredRows.push('row_highschool_address');
+      }
       if (rowData[0].building_label === '' || rowData[0].building_label === null) {
         filteredRows.push('row_building');
       }
-
       if (rowData[0].additional_information === '' || rowData[0].additional_information === null) {
         filteredRows.push('row_additional_information');
       }
-
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
-
       if (rowData[0].face_to_face === false) {
           if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }
-
       restrictions = display_slot_restrictions(null, null, rowData[0])
       if (restrictions === '<ul class="list-unstyled"><ul>') {
         restrictions = "<p>{% trans "Slot open to all" %}</p>";
@@ -570,6 +572,7 @@
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0]));
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
+      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address)
       $('#modal_search_slots_details #modal_city').html(rowData[0].city)
       $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
       $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);

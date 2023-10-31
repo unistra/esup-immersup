@@ -4624,6 +4624,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "structure_establishment_short_label",
         "highschool_city",
         "highschool_label",
+        "highschool_address",
         "event_description",
         "date",
         "start_time",
@@ -4720,6 +4721,11 @@ def ajax_search_slots_list(request, slot_id=None):
                 F("course__highschool__city"),
                 F("event__highschool__city"),
                 F("visit__highschool__city"),
+            ),
+            highschool_address=Coalesce(
+                F("course__highschool__address"),
+                F("event__highschool__address"),
+                F("visit__highschool__address"),
             ),
             highschool_label=Coalesce(
                 F("course__highschool__label"),
