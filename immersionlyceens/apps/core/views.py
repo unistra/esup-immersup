@@ -985,19 +985,16 @@ class CourseSlotList(generic.TemplateView):
             "course_id": kwargs.get('course_id', None)
         })
 
-        if context["course_id"]:
-            try:
-                course = Course.objects.get(pk=context["course_id"])
-                context["course_label_filter"] = course.label
-            except Course.DoesNotExist:
-                pass
+        try:
+            course = Course.objects.get(pk=int(context["course_id"]))
+            context["course_label_filter"] = course.label
+        except (ValueError, TypeError, Course.DoesNotExist):
+            context["course_id"] = None
 
-        if context["training_id"]:
-            try:
-                training = Training.objects.get(pk=context["training_id"])
-                context["training_id"] = training.id
-            except Training.DoesNotExist:
-                pass
+        try:
+            Training.objects.get(pk=int(context["training_id"]))
+        except (ValueError, TypeError, Training.DoesNotExist):
+            context["training_id"] = None
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
