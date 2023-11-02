@@ -4233,7 +4233,7 @@ class MailingListGlobalView(APIView):
         extra_filter = {}
         registered_only = request.GET.get("registered_only", False) in (1, "1", "true", "True")
         period = request.GET.get("period", None)
-        period_id = int(period)
+        period_id = int(period) if period else None
 
         try:
             global_mail = get_general_setting('GLOBAL_MAILING_LIST')
