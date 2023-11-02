@@ -196,6 +196,7 @@
         let error = json['error'];
         $('#modal_search_slots_details').modal("hide");
 
+
         if (error) {
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
@@ -203,6 +204,8 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);
           dt.ajax.reload(null, false);
         }
+        $(document.body).scrollTop($('#message').offset().top);
+        setTimeout(function() { $("#feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
       },
       error: function (json) {
         console.log(json);
