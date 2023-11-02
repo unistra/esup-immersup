@@ -54,6 +54,7 @@ class APITestCase(TestCase):
         """
 
         cls.today = timezone.localtime()
+        cls.today_utc_offset = cls.today.utcoffset()
         cls.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         cls.establishment = Establishment.objects.create(
@@ -785,8 +786,8 @@ class APITestCase(TestCase):
             "allowed_bachelor_teachings":[],
             "registration_limit_delay":24,
             "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+02:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+02:00",
+            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
+            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
             "reminder_notification_sent":False,
         }
 
@@ -795,7 +796,7 @@ class APITestCase(TestCase):
                 print(f"{k} not in results")
             elif v != result[k]:
                 print(f"key {k} : {v} != results {result[k]}")
-
+        self.maxDiff = None
         self.assertEqual(result, {
             "id":slot.pk,
             "room":"salle 113",
@@ -827,8 +828,8 @@ class APITestCase(TestCase):
             "allowed_bachelor_teachings":[],
             "registration_limit_delay":24,
             "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+02:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+02:00",
+            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
+            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
             "reminder_notification_sent":False,
         })
 
