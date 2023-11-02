@@ -4531,39 +4531,10 @@ def ajax_can_register_slot(request, slot_id=None):
     else:
         remaining_registrations = user.remaining_registrations_count()
 
-        # For courses slots only : training quotas ?
-        # if not visit_or_off_offer:
-        #     try:
-        #         training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
-        #         training_quota_active = training_quota['activate']
-        #         training_quota_count = training_quota['default_quota']
-        #     except Exception as e:
-        #         response['msg'] = _(
-        #             "ACTIVATE_TRAINING_QUOTAS parameter not found or incorrect : please check the platform settings"
-        #         )
-        #         return JsonResponse(response, safe=False)
-
-        # Get period, available period registrations (quota) and the optional training quota
         try:
             period = Period.from_date(slot.date)
             available_registrations = remaining_registrations.get(period.pk, 0)
 
-            # If training quota is active, check registrations for this period/training
-
-            # if not visit_or_off_offer and training_quota_active:
-            #     training_regs_count = user.immersions\
-            #         .filter(
-            #             slot__date__gte=period.immersion_start_date,
-            #             slot__date__lte=period.immersion_end_date,
-            #             slot__course__training=slot.course.training,
-            #             cancellation_type__isnull=True,
-            #         ).count()
-
-            #     # specific quota for this training ?
-            #     if slot.course.training.allowed_immersions:
-            #         training_quota_count = slot.course.training.allowed_immersions
-
-            #     available_training_registrations = training_quota_count - training_regs_count
         except Period.DoesNotExist as e:
             response['msg'] = _("No period found for slot %s : please check periods settings") % slot
             return JsonResponse(response, safe=False)
@@ -4597,6 +4568,7 @@ def ajax_search_slots_list(request, slot_id=None):
 
     today = timezone.now()
     response = {'msg': '', 'data': []}
+    user = request.user
 
     slots = Slot.objects.filter(published=True).filter(
         Q(date__isnull=True)
@@ -4652,8 +4624,12 @@ def ajax_search_slots_list(request, slot_id=None):
         "passed_registration_limit_date",
     ]
 
-    if request.user.is_authenticated:
+    if user.is_authenticated:
         fields.append('url')
+        if user.is_student() or user.is_visitor():
+            slots = slots.filter(visit__isnull=True)
+        if user.is_high_school_student():
+            slots = slots.exclude(Q(visit__isnull=False) & ~Q(visit__highschool=user.get_high_school_student_record().highschool))
 
     slots = (
         slots.annotate(
