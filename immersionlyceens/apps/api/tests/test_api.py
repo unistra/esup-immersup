@@ -3055,7 +3055,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
 
         # 2/ Update slot restrictions (bachelor type + a different bachelor mention)
-        self.bachelor_restricted_slot.allowed_bachelor_types.remove()
+        self.bachelor_restricted_slot.allowed_bachelor_types.clear()
         self.bachelor_restricted_slot.allowed_bachelor_types.add(
             BachelorType.objects.get(label__iexact='technologique')
         )

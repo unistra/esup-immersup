@@ -738,11 +738,13 @@ class ImmersionUser(AbstractUser):
                          or record.bachelor_type.technological
                     ),
                     record.bachelor_type.professional,
-                    slot.allowed_bachelor_mentions.exists() and
-                      record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all(),
-                    slot.allowed_bachelor_teachings.exists() and
+                    slot.allowed_bachelor_types.filter(technological=True).exists()
+                      and (not slot.allowed_bachelor_mentions.exists() or
+                      record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all()),
+                    slot.allowed_bachelor_types.filter(general=True).exists()
+                      and (not slot.allowed_bachelor_teachings.exists() or
                       slot.allowed_bachelor_teachings.all().intersection(
-                          record.general_bachelor_teachings.all()).exists()
+                        record.general_bachelor_teachings.all()).exists())
                 ])
             ]
 
