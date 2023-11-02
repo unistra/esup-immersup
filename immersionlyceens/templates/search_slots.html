@@ -591,10 +591,16 @@
         url: "/api/can_register_slot/" + rowData[0].id,
         type: 'GET',
         success: function (data) {
-          if (data['data'] !== undefined && data['data'][0] !== undefined && data['data'][0]['can_register'] === true) {
-            $('#modal_register_btn').html(
-              "<button class=\"btn badge badge-pill badge-primary pull-right\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
-            );
+          if (data['data'] !== undefined && data['data'][0] !== undefined) {
+            if (data['data'][0]['can_register'] === true) {
+              $('#modal_register_btn').html(
+                "<button class=\"btn badge badge-pill badge-primary pull-right\" onclick=\"register("+ rowData[0].id +")\">{% trans 'Register' %}</button>"
+              );
+            } else if (data['data'][0]['already_registered'] === true) {
+              $('#modal_register_btn').html(
+                "<span class=\"badge badge-pill badge-success\">{% trans 'Already registered' %}</span>"
+              );
+            }
           }
         }
       })
