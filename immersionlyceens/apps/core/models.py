@@ -838,6 +838,10 @@ class ImmersionUser(AbstractUser):
     def has_obsolete_attestations(self):
         today = timezone.localdate()
         record = self.get_high_school_student_record() or self.get_visitor_record()
+
+        if not record:
+            return False
+
         return record.attestation.filter(
             mandatory=True,
             archive=False,
