@@ -217,8 +217,9 @@
                                         {% if s.cancelled %}
                                         <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                         {% if s.can_register %}
-                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans
-                                          'Register again' %}</button>
+                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
+                                          {% trans 'Register again' %}
+                                        </button>
                                         <div id="feedback_{{s.pk}}"></div>
                                         {% endif %}
                                         {% elif s.already_registered %}
@@ -230,8 +231,9 @@
                                           {% trans 'Available places' %} : {{ s.available_seats }}
                                         </span><br>
                                         {% if authorized_groups|in_groups:"LYC,ETU,VIS" and s.can_register %}
-                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans
-                                          'Register' %}</button>
+                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">
+                                          {% trans 'Register' %}
+                                        </button>
                                         <div id="feedback_{{s.pk}}"></div>
                                         {% endif %}
                                         {% else %}
