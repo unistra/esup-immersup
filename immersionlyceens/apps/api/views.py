@@ -4428,6 +4428,8 @@ def ajax_update_structures_notifications(request):
 def ajax_can_register_slot(request, slot_id=None):
     """
     Returns registering slot status for a logged user
+    Warning not quota & remaining seats checking !
+
     GET parameters:
     slot_id
     """
@@ -4456,22 +4458,7 @@ def ajax_can_register_slot(request, slot_id=None):
         response['msg'] = gettext("Error : slot not found")
         return JsonResponse(response, safe=False)
 
-
-    visit_or_off_offer= True if (slot.visit or slot.event) else False
     can_register_slot, reason = user.can_register_slot(slot)
-
-    # Check user quota for this period
-    if slot.registration_limit_date > now and slot.available_seats() > 0:
-        try:
-            period = Period.from_date(date=slot.date)
-        except Period.DoesNotExist as e:
-            raise
-        except Period.MultipleObjectsReturned:
-            raise
-
-        remaining_registrations = user.remaining_registrations_count()
-        if period and remaining_registrations[period.pk] > 0 and can_register_slot:
-            slot_data['can_register'] = True
 
     # Should not happen !
     if not slot.published:
@@ -4529,34 +4516,8 @@ def ajax_can_register_slot(request, slot_id=None):
         return JsonResponse(response, safe=False)
 
     else:
-        remaining_registrations = user.remaining_registrations_count()
 
-        try:
-            period = Period.from_date(slot.date)
-            available_registrations = remaining_registrations.get(period.pk, 0)
-
-        except Period.DoesNotExist as e:
-            response['msg'] = _("No period found for slot %s : please check periods settings") % slot
-            return JsonResponse(response, safe=False)
-        except Period.MultipleObjectsReturned as e:
-            response['msg'] = _("Multiple periods found for slot %s : please check periods settings") % slot
-            return JsonResponse(response, safe=False)
-
-        if visit_or_off_offer:
-            slot_data['can_register'] = True
-        elif available_registrations > 0:
-            slot_data['can_register'] = True
-        elif user.is_high_school_student() or user.is_student() or user.is_visitor():
-            msg = None
-
-            if available_registrations <= 0:
-                msg = _(
-                    """You have no more remaining registration available for this period, """
-                    """you should cancel an immersion or contact immersion service"""
-                )
-            if msg:
-                response['msg'] = msg
-                return JsonResponse(response, safe=False)
+        slot_data['can_register'] = True
 
     response['data'].append(slot_data.copy())
 
