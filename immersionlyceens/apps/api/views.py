@@ -2188,6 +2188,7 @@ def get_csv_structures(request):
 def get_csv_highschool(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
+    request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
     hs = request.user.highschool
     h_name = hs.label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
@@ -2237,108 +2238,174 @@ def get_csv_highschool(request):
         ) for k, v in attendance_status_choices.items()
     ]
 
-    agreed_students = students.filter(high_school_student_record__allow_high_school_consultation=True).annotate(
-        student_last_name=F('last_name'),
-        student_first_name=F('first_name'),
-        student_birth_date=ExpressionWrapper(
-            Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
-        ),
-        student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
-        slot_establishment=Coalesce(
-            F('immersions__slot__course__structure__establishment__label'),
-            F('immersions__slot__visit__establishment__label'),
-            F('immersions__slot__event__establishment__label'),
-        ),
-        slot_type=Case(
-            When(immersions__slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
-            When(immersions__slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
-            When(immersions__slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
-            When(immersions__isnull=False, then=Value("")),
-        ),
-        domains=StringAgg(
-            F('immersions__slot__course__training__training_subdomains__training_domain__label'),
-             infield_separator, default=Value(''), output_field=CharField(), distinct=True
-        ),
-        subdomains=StringAgg(
-            F('immersions__slot__course__training__training_subdomains__label'),
-             infield_separator, default=Value(''), output_field=CharField(), distinct=True
-        ),
-        training_label=F('immersions__slot__course__training__label'),
-        slot_label=Coalesce(
-            F('immersions__slot__course__label'),
-            F('immersions__slot__visit__purpose'),
-            F('immersions__slot__event__label'),
-        ),
-        slot_date=ExpressionWrapper(
-            Func(F('immersions__slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
-        ),
-        slot_start_time=F('immersions__slot__start_time'),
-        slot_end_time=F('immersions__slot__end_time'),
-        slot_campus_label=F('immersions__slot__campus__label'),
-        slot_building=F('immersions__slot__building__label'),
-        slot_room=Case(
-            When(immersions__slot__face_to_face=True, then=F('immersions__slot__room')),
-            When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
-        ),
-        attendance=Case(*attendance_status_whens, output_field=CharField()),
-        informations=F('immersions__slot__additional_information'),
-        detail_consultancy=Case(
-            When(high_school_student_record__allow_high_school_consultation=True,then=Value(gettext('Yes'))),
-            When(high_school_student_record__allow_high_school_consultation=False,then=Value(gettext('No'))),
-        ),
-        detail_registrations=Case(
-            When(high_school_student_record__visible_immersion_registrations=True,then=Value(gettext('Yes'))),
-            When(high_school_student_record__visible_immersion_registrations=False,then=Value(gettext('No'))),
-        ),
-    ).values_list(
-        'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
-        'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
-        'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
-        'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
-        'detail_consultancy', 'detail_registrations'
-    )
+    if request_agreement:
 
-    not_agreed_students = students.filter(high_school_student_record__allow_high_school_consultation=False).annotate(
-        student_last_name=F('last_name'),
-        student_first_name=F('first_name'),
-        student_birth_date=ExpressionWrapper(
-            Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
-        ),
-        student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
-        slot_establishment=Value(''),
-        slot_type=Value(''),
-        domains=Value(''),
-        subdomains=Value(''),
-        training_label=Value(''),
-        slot_label=Value(''),
-        slot_date=Value(''),
-        slot_start_time=Value(''),
-        slot_end_time=Value(''),
-        slot_campus_label=Value(''),
-        slot_building=Value(''),
-        slot_room=Value(''),
-        attendance=Value(''),
-        informations=Value(''),
-        detail_consultancy=Case(
-            When(high_school_student_record__allow_high_school_consultation=True, then=Value(gettext('Yes'))),
-            When(high_school_student_record__allow_high_school_consultation=False, then=Value(gettext('No'))),
-        ),
-        detail_registrations=Case(
-            When(high_school_student_record__visible_immersion_registrations=True, then=Value(gettext('Yes'))),
-            When(high_school_student_record__visible_immersion_registrations=False, then=Value(gettext('No'))),
-        ),
-    ).values_list(
-        'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
-        'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
-        'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
-        'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
-        'detail_consultancy', 'detail_registrations'
-    )
+        agreed_students = students.filter(high_school_student_record__allow_high_school_consultation=True).annotate(
+            student_last_name=F('last_name'),
+            student_first_name=F('first_name'),
+            student_birth_date=ExpressionWrapper(
+                Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
+            slot_establishment=Coalesce(
+                F('immersions__slot__course__structure__establishment__label'),
+                F('immersions__slot__visit__establishment__label'),
+                F('immersions__slot__event__establishment__label'),
+            ),
+            slot_type=Case(
+                When(immersions__slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
+                When(immersions__slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
+                When(immersions__slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
+                When(immersions__isnull=False, then=Value("")),
+            ),
+            domains=StringAgg(
+                F('immersions__slot__course__training__training_subdomains__training_domain__label'),
+                infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            subdomains=StringAgg(
+                F('immersions__slot__course__training__training_subdomains__label'),
+                infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            training_label=F('immersions__slot__course__training__label'),
+            slot_label=Coalesce(
+                F('immersions__slot__course__label'),
+                F('immersions__slot__visit__purpose'),
+                F('immersions__slot__event__label'),
+            ),
+            slot_date=ExpressionWrapper(
+                Func(F('immersions__slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            slot_start_time=F('immersions__slot__start_time'),
+            slot_end_time=F('immersions__slot__end_time'),
+            slot_campus_label=F('immersions__slot__campus__label'),
+            slot_building=F('immersions__slot__building__label'),
+            slot_room=Case(
+                When(immersions__slot__face_to_face=True, then=F('immersions__slot__room')),
+                When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
+            ),
+            attendance=Case(*attendance_status_whens, output_field=CharField()),
+            informations=F('immersions__slot__additional_information'),
+            detail_consultancy=Case(
+                When(high_school_student_record__allow_high_school_consultation=True,then=Value(gettext('Yes'))),
+                When(high_school_student_record__allow_high_school_consultation=False,then=Value(gettext('No'))),
+            ),
+            detail_registrations=Case(
+                When(high_school_student_record__visible_immersion_registrations=True,then=Value(gettext('Yes'))),
+                When(high_school_student_record__visible_immersion_registrations=False,then=Value(gettext('No'))),
+            ),
+        ).values_list(
+            'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
+            'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
+            'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
+            'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
+            'detail_consultancy', 'detail_registrations'
+        )
+        not_agreed_students = students.filter(high_school_student_record__allow_high_school_consultation=False).annotate(
+            student_last_name=F('last_name'),
+            student_first_name=F('first_name'),
+            student_birth_date=ExpressionWrapper(
+                Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
+            slot_establishment=Value(''),
+            slot_type=Value(''),
+            domains=Value(''),
+            subdomains=Value(''),
+            training_label=Value(''),
+            slot_label=Value(''),
+            slot_date=Value(''),
+            slot_start_time=Value(''),
+            slot_end_time=Value(''),
+            slot_campus_label=Value(''),
+            slot_building=Value(''),
+            slot_room=Value(''),
+            attendance=Value(''),
+            informations=Value(''),
+            detail_consultancy=Case(
+                When(high_school_student_record__allow_high_school_consultation=True, then=Value(gettext('Yes'))),
+                When(high_school_student_record__allow_high_school_consultation=False, then=Value(gettext('No'))),
+            ),
+            detail_registrations=Case(
+                When(high_school_student_record__visible_immersion_registrations=True, then=Value(gettext('Yes'))),
+                When(high_school_student_record__visible_immersion_registrations=False, then=Value(gettext('No'))),
+            ),
+        ).values_list(
+            'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
+            'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
+            'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
+            'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
+            'detail_consultancy', 'detail_registrations'
+        )
+
+        content = chain(agreed_students, not_agreed_students.distinct())
+
+    else:
+
+        content = students.annotate(
+            student_last_name=F('last_name'),
+            student_first_name=F('first_name'),
+            student_birth_date=ExpressionWrapper(
+                Func(F('high_school_student_record__birth_date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
+            slot_establishment=Coalesce(
+                F('immersions__slot__course__structure__establishment__label'),
+                F('immersions__slot__visit__establishment__label'),
+                F('immersions__slot__event__establishment__label'),
+            ),
+            slot_type=Case(
+                When(immersions__slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
+                When(immersions__slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
+                When(immersions__slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
+                When(immersions__isnull=False, then=Value("")),
+            ),
+            domains=StringAgg(
+                F('immersions__slot__course__training__training_subdomains__training_domain__label'),
+                infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            subdomains=StringAgg(
+                F('immersions__slot__course__training__training_subdomains__label'),
+                infield_separator, default=Value(''), output_field=CharField(), distinct=True
+            ),
+            training_label=F('immersions__slot__course__training__label'),
+            slot_label=Coalesce(
+                F('immersions__slot__course__label'),
+                F('immersions__slot__visit__purpose'),
+                F('immersions__slot__event__label'),
+            ),
+            slot_date=ExpressionWrapper(
+                Func(F('immersions__slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
+            ),
+            slot_start_time=F('immersions__slot__start_time'),
+            slot_end_time=F('immersions__slot__end_time'),
+            slot_campus_label=F('immersions__slot__campus__label'),
+            slot_building=F('immersions__slot__building__label'),
+            slot_room=Case(
+                When(immersions__slot__face_to_face=True, then=F('immersions__slot__room')),
+                When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
+            ),
+            attendance=Case(*attendance_status_whens, output_field=CharField()),
+            informations=F('immersions__slot__additional_information'),
+            detail_consultancy=Case(
+                When(high_school_student_record__allow_high_school_consultation=True,then=Value(gettext('Yes'))),
+                When(high_school_student_record__allow_high_school_consultation=False,then=Value(gettext('No'))),
+            ),
+            detail_registrations=Case(
+                When(high_school_student_record__visible_immersion_registrations=True,then=Value(gettext('Yes'))),
+                When(high_school_student_record__visible_immersion_registrations=False,then=Value(gettext('No'))),
+            ),
+        ).values_list(
+            'student_last_name', 'student_first_name', 'student_birth_date', 'high_school_student_record__level__label',
+            'high_school_student_record__class_name', 'student_bachelor_type', 'slot_establishment',
+            'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date', 'slot_start_time',
+            'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room', 'attendance', 'informations',
+            'detail_consultancy', 'detail_registrations'
+        )
 
     # Forge csv file and return it
     writer = csv.writer(response)
     writer.writerow(header)
-    writer.writerows(list(chain(agreed_students, not_agreed_students.distinct())))
+    writer.writerows(list(content))
 
     return response
 
