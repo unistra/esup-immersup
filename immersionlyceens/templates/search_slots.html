@@ -498,7 +498,7 @@
             etab.push(rowData[0].highschool_label)
           }
           $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
-          filteredRows.push('row_highschool', 'row_city');
+          filteredRows.push('row_highschool');
       } else if (slotType === 'v') {
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
@@ -527,7 +527,7 @@
           if (rowData[0].structure_label !== null) {
             etab.push(rowData[0].structure_label)
           }
-          filteredRows.push('row_course_label', 'row_course_type', 'row_city');
+          filteredRows.push('row_course_label', 'row_course_type');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
           } else if (rowData[0].highschool_label !== null) {
