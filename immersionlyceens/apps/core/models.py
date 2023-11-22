@@ -734,17 +734,19 @@ class ImmersionUser(AbstractUser):
             bachelor_restrictions = [
                 slot.allowed_bachelor_types.exists() and record.bachelor_type in slot.allowed_bachelor_types.all(),
                 any([
-                    not (record.bachelor_type.professional or record.bachelor_type.general
-                         or record.bachelor_type.technological
-                    ),
-                    record.bachelor_type.professional,
+                    not record.bachelor_type or not any([
+                        record.bachelor_type.professional,
+                        record.bachelor_type.general,
+                        record.bachelor_type.technological
+                    ]),
+                    record.bachelor_type and record.bachelor_type.professional,
                     slot.allowed_bachelor_types.filter(technological=True).exists()
-                      and (not slot.allowed_bachelor_mentions.exists() or
-                      record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all()),
+                    and (not slot.allowed_bachelor_mentions.exists() or
+                         record.technological_bachelor_mention in slot.allowed_bachelor_mentions.all()),
                     slot.allowed_bachelor_types.filter(general=True).exists()
-                      and (not slot.allowed_bachelor_teachings.exists() or
-                      slot.allowed_bachelor_teachings.all().intersection(
-                        record.general_bachelor_teachings.all()).exists())
+                    and (not slot.allowed_bachelor_teachings.exists() or
+                         slot.allowed_bachelor_teachings.all().intersection(
+                             record.general_bachelor_teachings.all()).exists())
                 ])
             ]
 
