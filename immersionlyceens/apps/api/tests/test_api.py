@@ -754,7 +754,8 @@ class APITestCase(TestCase):
         slot = Slot.objects.get(date=date, course=self.course.pk)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
+        
+        """
         test_data = {
             "id":slot.pk,
             "room":"salle 113",
@@ -797,6 +798,8 @@ class APITestCase(TestCase):
             elif v != result[k]:
                 print(f"key {k} : {v} != results {result[k]}")
         self.maxDiff = None
+        """
+        
         self.assertEqual(result, {
             "id":slot.pk,
             "room":"salle 113",
