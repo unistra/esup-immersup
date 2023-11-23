@@ -3101,7 +3101,7 @@ class History(models.Model):
     date = models.DateTimeField(_("Date"), auto_now_add=True)
 
     def __str__(self):
-        identity = ", ".join(list(filter(lambda x:x, [self.username, self.last_name, self.first_name])))
+        identity = ", ".join(list(filter(lambda x:x, [self.username, self.user])))
         return f"{self.date} - {identity} - {self.action}"
 
     class Meta:
