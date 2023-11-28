@@ -647,6 +647,17 @@
       select_type_options: {width: '190px'},
     }
     ]);
+    dt.on("draw.dt", function (e, dt, type, indexes) {
+        if ($(this).find(".dataTables_empty").length == 1) {
+          // Dirty hack cause has() is not supported by firefox :(
+          var elm = $(this).find(".dataTables_empty").parent('tr')
+          elm.css('text-align', 'center');
+          elm.css('float', 'none');
+          elm.css('border', 'none');
+          elm.css('box-shadow', 'none');
+          elm.css('border-radius', 'none');
+        }
+    })
   });
 </script>
 {% endblock %}
