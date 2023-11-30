@@ -4300,7 +4300,7 @@ class MailingListGlobalView(APIView):
         extra_filter = {}
         registered_only = request.GET.get("registered_only", False) in (1, "1", "true", "True")
         period = request.GET.get("period", None)
-        period_id = int(period) if period else None
+        period_id = None
 
         try:
             global_mail = get_general_setting('GLOBAL_MAILING_LIST')
@@ -4313,6 +4313,7 @@ class MailingListGlobalView(APIView):
 
             # Period filter
             try:
+                period_id = int(period)
                 period = Period.objects.get(pk=period_id)
                 extra_filter.update({
                     "immersions__slot__date__gte" : period.immersion_start_date,
