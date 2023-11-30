@@ -104,7 +104,7 @@ function init_datatable() {
             }
 
             if (row.can_update_visit_slot) {
-              txt = `<a href="/core/visit/${row.id}">${row.visit_purpose}</a>`
+              txt = `<a href="/core/visit/${data}">${row.visit_purpose}</a>`
             }
 
             return txt

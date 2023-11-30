@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand, Schedulable):
-    """Sends speakers & structures managers notifcations for slots reminders"""
+    """Sends speakers & structures managers notifications for slots reminders"""
 
     def handle(self, *args, **options):
         success = "%s : %s" % (

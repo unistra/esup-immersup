@@ -19,7 +19,7 @@ def add_general_settings(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0209_alter_structure_establishment'),
+        ('core', '0211_merge_20231014_1935'),
     ]
 
     operations = [

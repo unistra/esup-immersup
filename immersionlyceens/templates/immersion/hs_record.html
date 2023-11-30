@@ -437,16 +437,40 @@
         }
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').hide("slow");
+        // Clean following values
+        $('#id_professional_bachelor_mention').val("");
+        $('#id_technological_bachelor_mention').val("");
       }
       else if (is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_technological']) {
         $('#id_general_bachelor_data').hide("slow");
         $('#id_technological_bachelor_data').show("slow");
         $('#id_professional_bachelor_data').hide("slow");
+        // Clean following values
+        $('#id_professional_bachelor_mention').val("");
+        $("#id_general_bachelor_teachings input[type=checkbox]:checked").each(function () {
+          $(this).prop("checked", false);
+        })
       }
       else if (is_set(bachelor_types[parsed_b_type]) && bachelor_types[parsed_b_type]['is_professional']) {
         $('#id_general_bachelor_data').hide("slow");
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').show("slow");
+        // Clean following values
+        $('#id_technological_bachelor_mention').val("");
+        $("#id_general_bachelor_teachings input[type=checkbox]:checked").each(function () {
+          $(this).prop("checked", false);
+        })
+      }
+      else if (is_set(bachelor_types[parsed_b_type])) {
+        $('#id_general_bachelor_data').hide("slow");
+        $('#id_technological_bachelor_data').hide("slow");
+        $('#id_professional_bachelor_data').hide("slow");
+        // Clean following values
+        $('#id_professional_bachelor_mention').val("");
+        $('#id_technological_bachelor_mention').val("");
+        $("#id_general_bachelor_teachings input[type=checkbox]:checked").each(function () {
+          $(this).prop("checked", false);
+        })
       }
     }
 

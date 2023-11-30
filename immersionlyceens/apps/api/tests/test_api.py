@@ -754,52 +754,7 @@ class APITestCase(TestCase):
         slot = Slot.objects.get(date=date, course=self.course.pk)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
-        """
-        test_data = {
-            "id":slot.pk,
-            "room":"salle 113",
-            "date":date,
-            "start_time":"10:00:00",
-            "end_time":"12:00:00",
-            "n_places":30,
-            "additional_information":None,
-            "url":None,
-            "published":False,
-            "face_to_face":True,
-            "establishments_restrictions":False,
-            "levels_restrictions":True,
-            "bachelors_restrictions":False,
-            "course":self.course.pk,
-            "course_type":self.course_type.pk,
-            "visit":None,
-            "event":None,
-            "campus":self.campus.pk,
-            "building":self.building.pk,
-            "speakers":[speaker.id],
-            "allowed_establishments":[],
-            "allowed_highschools":[],
-            "allowed_highschool_levels":[1],
-            "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[],
-            "allowed_bachelor_types":[],
-            "allowed_bachelor_mentions":[],
-            "allowed_bachelor_teachings":[],
-            "registration_limit_delay":24,
-            "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "reminder_notification_sent":False,
-        }
 
-        for k, v in test_data.items():
-            if k not in result.keys():
-                print(f"{k} not in results")
-            elif v != result[k]:
-                print(f"key {k} : {v} != results {result[k]}")
-        self.maxDiff = None
-        """
-        
         self.assertEqual(result, {
             "id":slot.pk,
             "room":"salle 113",
