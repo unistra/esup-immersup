@@ -479,9 +479,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         if not isinstance(level, HighSchoolLevel):
             raise forms.ValidationError(_("Please choose a level"))
 
-        if not isinstance(bachelor_type, BachelorType):
-            raise forms.ValidationError(_("Please choose a bachelor type"))
-
         if level.is_post_bachelor:
             cleaned_data['bachelor_type'] = None
             cleaned_data['general_bachelor_teachings'] = []
@@ -490,6 +487,10 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if not origin_bachelor_type:
                 raise forms.ValidationError(_("Please choose your origin bachelor type"))
         else:
+            # Bachelor type is required if level is not post_bachelor
+            if not isinstance(bachelor_type, BachelorType):
+                raise forms.ValidationError(_("Please choose a bachelor type"))
+
             # Clear post-bachelor level values
             cleaned_data['post_bachelor_level'] = None
             cleaned_data['origin_bachelor_type'] = None
