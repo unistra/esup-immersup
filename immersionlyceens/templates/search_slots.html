@@ -2,6 +2,14 @@
 {% load static i18n immersionlyceens_tags %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static "css/vendor/chosen/chosen.min.css" %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
+<script src="{% static "js/vendor/chosen/chosen.jquery.min.js" %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% endblock %}
 {% block title %}
   {% trans 'Search immersions slots' %}
@@ -163,13 +171,6 @@
       </div>
     </div>
   </section>
-{% block foot-javascript %}
-  <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
-  <script src="{% static "js/vendor/chosen/chosen.jquery.min.js" %}"></script>
-  <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-  <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
-  <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
-{% endblock %}
 <script>
   var feedback;
   var dt;
@@ -450,7 +451,7 @@
                 classLabel = full['passed_registration_limit_date'] ? "badge-info" : "badge-danger";
                 return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + '<span class="badge badge-pill '+ classLabel + '">'  + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' }) + '</span>';
                 {% else %}
-                return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' })
+                return '<label>'+ '{% trans "Registration limit" %}' +' :</label>' + formatDate(data,{ dateStyle: 'long', timeStyle: 'short' });
                 {% endif %}
               }
               return data;
@@ -538,7 +539,7 @@
           }
       }
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
-        buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+        buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
       if (rowData[0].course_training_url !== null && rowData[0].course_training_url !== '') {
         courseLabelFull = rowData[0].course_training_label + "&nbsp;<a href=\""+rowData[0].course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
