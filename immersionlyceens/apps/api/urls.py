@@ -126,5 +126,8 @@ urlpatterns = [
     path('can_register_slot/<int:slot_id>', views.ajax_can_register_slot, name='can_register_slot'),
 
     # Slots list for search slots page
-    path('search_slots_list', views.ajax_search_slots_list, name='search_slots_list')
+    path('search_slots_list', views.ajax_search_slots_list, name='search_slots_list'),
+
+    # Slot restrictions
+    path('get_slot_restrictions/<int:slot_id>', views.ajax_get_slot_restrictions, name='get_slot_restrictions'),
 ]

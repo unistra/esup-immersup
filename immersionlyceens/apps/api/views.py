@@ -4634,17 +4634,6 @@ def ajax_search_slots_list(request, slot_id=None):
         "n_register",
         "n_places",
         "speakers_list",
-        "establishments_restrictions",
-        "levels_restrictions",
-        "bachelors_restrictions",
-        "allowed_establishments_list",
-        "allowed_highschools_list",
-        "allowed_highschool_levels_list",
-        "allowed_post_bachelor_levels_list",
-        "allowed_student_levels_list",
-        "allowed_bachelor_types_list",
-        "allowed_bachelor_mentions_list",
-        "allowed_bachelor_teachings_list",
         "course_training_label",
         "course_training_url",
         "additional_information",
@@ -4773,73 +4762,6 @@ def ajax_search_slots_list(request, slot_id=None):
                 ),
                 Value([]),
             ),
-            allowed_establishments_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_establishments__short_label"),
-                    filter=Q(allowed_establishments__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_highschools_list=Coalesce(
-                ArrayAgg(
-                    JSONObject(
-                        city=F("allowed_highschools__city"),
-                        label=F("allowed_highschools__label"),
-                    ),
-                    filter=Q(allowed_highschools__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_highschool_levels_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_highschool_levels__label"),
-                    filter=Q(allowed_highschool_levels__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_post_bachelor_levels_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_post_bachelor_levels__label"),
-                    filter=Q(allowed_post_bachelor_levels__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_student_levels_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_student_levels__label"),
-                    filter=Q(allowed_student_levels__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_bachelor_types_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_bachelor_types__label"),
-                    filter=Q(allowed_bachelor_types__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_bachelor_mentions_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_bachelor_mentions__label"),
-                    filter=Q(allowed_bachelor_mentions__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
-            allowed_bachelor_teachings_list=Coalesce(
-                ArrayAgg(
-                    F("allowed_bachelor_teachings__label"),
-                    filter=Q(allowed_bachelor_teachings__isnull=False),
-                    distinct=True,
-                ),
-                Value([]),
-            ),
             passed_registration_limit_date = ExpressionWrapper(
                 Q(registration_limit_date__gt=timezone.now()),
                 output_field=CharField()
@@ -4851,5 +4773,104 @@ def ajax_search_slots_list(request, slot_id=None):
         )
     )
     response['data'] = {"slots": list(slots)}
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+def ajax_get_slot_restrictions(request, slot_id=None):
+    """
+    Returns slot's restrictions
+    GET parameters:
+    slot_id
+    """
+
+    response = {'msg': '', 'data': []}
+
+    if not slot_id:
+        response['msg'] = gettext("Error : missing slot id")
+        return JsonResponse(response, safe=False)
+
+    slot = Slot.objects.filter(id=slot_id) \
+            .annotate(
+                allowed_establishments_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_establishments__short_label'),
+                        filter=Q(allowed_establishments__isnull=False),
+                        distinct=True
+                    ),
+                    Value([]),
+                ),
+                allowed_highschools_list=Coalesce(
+                    ArrayAgg(
+                        JSONObject(
+                            city=F('allowed_highschools__city'),
+                            label=F('allowed_highschools__label')
+                        ),
+                        filter=Q(allowed_highschools__isnull=False),
+                        distinct=True),
+                    Value([]),
+                ),
+                allowed_highschool_levels_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_highschool_levels__label'),
+                        filter=Q(allowed_highschool_levels__isnull=False),
+                        distinct=True
+                    ),
+                    Value([]),
+                ),
+                allowed_post_bachelor_levels_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_post_bachelor_levels__label'),
+                        filter=Q(allowed_post_bachelor_levels__isnull=False),
+                        distinct=True
+                    ),
+                    Value([]),
+                ),
+                allowed_student_levels_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_student_levels__label'),
+                        filter=Q(allowed_student_levels__isnull=False),
+                        distinct=True
+                    ),
+                    Value([]),
+                ),
+                allowed_bachelor_types_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_bachelor_types__label'),
+                        filter=Q(allowed_bachelor_types__isnull=False),
+                        distinct=True
+                    ),
+                    Value([])
+                ),
+                allowed_bachelor_mentions_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_bachelor_mentions__label'),
+                        filter=Q(allowed_bachelor_mentions__isnull=False),
+                        distinct=True
+                    ),
+                    Value([])
+                ),
+                allowed_bachelor_teachings_list=Coalesce(
+                    ArrayAgg(
+                        F('allowed_bachelor_teachings__label'),
+                        filter=Q(allowed_bachelor_teachings__isnull=False),
+                        distinct=True
+                    ),
+                    Value([])
+                )
+            ).values(
+                'establishments_restrictions', 'levels_restrictions',
+                'bachelors_restrictions', 'allowed_establishments_list', 'allowed_highschools_list',
+                'allowed_highschool_levels_list', 'allowed_post_bachelor_levels_list',
+                'allowed_student_levels_list', 'allowed_bachelor_types_list', 'allowed_bachelor_mentions_list',
+                'allowed_bachelor_teachings_list',
+            )
+
+    if not slot:
+        response['msg'] = gettext("Error : slot not found")
+        return JsonResponse(response, safe=False)
+
+    response['data'] = {'restrictions': list(slot)}
 
     return JsonResponse(response, safe=False)

@@ -478,7 +478,7 @@
       let courseLabelFull = null;
       let slotType = rowData[0].slot_type[0].toLowerCase();
       let etab = [];
-      let restrictions = null;
+      var restrictions = "";
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
@@ -563,10 +563,19 @@
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }
-      restrictions = display_slot_restrictions(null, null, rowData[0])
-      if (restrictions === '<ul class="list-unstyled"><ul>') {
-        restrictions = "<p>{% trans "Slot open to all" %}</p>";
-      }
+      $.ajax({
+        url: "/api/get_slot_restrictions/" + rowData[0].id,
+        type: 'GET',
+        success: function (data) {
+          if (data['data'] !== undefined && data['data']['restrictions'][0] !== undefined) {
+              restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
+              if (restrictions === '<ul class="list-unstyled"><ul>') {
+                restrictions = "<p>{% trans "Slot open to all" %}</p>";
+              }
+              $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
+            }
+        }
+      })
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
