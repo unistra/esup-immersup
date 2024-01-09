@@ -336,7 +336,7 @@ a.unlink:hover {
 
 /*
 
-Firefox is sadly not supporting :has for now :( 
+Firefox is sadly not supporting :has for now :(
 .results-cards tbody tr:not(:has(td.dataTables_empty)) {
     float: left;
     width: 20rem;
@@ -352,7 +352,7 @@ Firefox is sadly not supporting :has for now :(
 .results-cards tbody tr {
     float: left;
     width: 20rem;
-    height: 34rem;
+    height: 36rem;
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
     border-radius: .15rem;
