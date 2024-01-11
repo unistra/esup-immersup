@@ -4646,8 +4646,9 @@ def ajax_search_slots_list(request, slot_id=None):
         fields.append('url')
         if user.is_student() or user.is_visitor():
             slots = slots.filter(visit__isnull=True)
-        if user.is_high_school_student():
-            slots = slots.exclude(Q(visit__isnull=False) & ~Q(visit__highschool=user.get_high_school_student_record().highschool))
+        if user.is_high_school_student() and user.get_high_school_student_record():
+            # do not display visit slots proposed by the user high school
+            slots = slots.exclude(visit__highschool=user.get_high_school_student_record().highschool)
 
     slots = (
         slots.annotate(
