@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-30 08:04+0100\n"
+"POT-Creation-Date: 2024-01-16 09:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -762,11 +762,11 @@ msgstr "Erreur : l'utilisateur ne partage pas ses immersions avec son lycée"
 #: immersionlyceens/apps/api/views.py:2762
 #: immersionlyceens/apps/api/views.py:2924
 #: immersionlyceens/apps/api/views.py:3089
-#: immersionlyceens/apps/api/views.py:4738
+#: immersionlyceens/apps/api/views.py:4729
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:43
-#: immersionlyceens/templates/search_slots.html:85
 #: immersionlyceens/templates/search_slots.html:93
-#: immersionlyceens/templates/search_slots.html:563
+#: immersionlyceens/templates/search_slots.html:101
+#: immersionlyceens/templates/search_slots.html:564
 msgid "Remote"
 msgstr "Distanciel"
 
@@ -810,7 +810,7 @@ msgid "you don't have enough privileges to set the attendance status"
 msgstr "Vous n'avez pas les droits suffisants pour saisir les émargements"
 
 #: immersionlyceens/apps/api/views.py:1062
-#: immersionlyceens/apps/api/views.py:4532
+#: immersionlyceens/apps/api/views.py:4533
 msgid "Registering an unpublished slot is forbidden"
 msgstr "S'inscrire à un créneau non publié n'est pas possible"
 
@@ -819,27 +819,27 @@ msgid "Sorry, you can't add any registration to this slot"
 msgstr "Désolé, vous ne pouvez pas ajouter d'inscription sur ce créneau"
 
 #: immersionlyceens/apps/api/views.py:1072
-#: immersionlyceens/apps/api/views.py:4538
+#: immersionlyceens/apps/api/views.py:4539
 msgid "Cannot register slot due to Highschool student account state"
 msgstr "Le statut du compte du lycée ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1077
-#: immersionlyceens/apps/api/views.py:4543
+#: immersionlyceens/apps/api/views.py:4544
 msgid "Cannot register slot due to Highschool student record state"
 msgstr "Le statut de la fiche lycéen(ne) ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1083
-#: immersionlyceens/apps/api/views.py:4549
+#: immersionlyceens/apps/api/views.py:4550
 msgid "Cannot register slot due to visitor account state"
 msgstr "Le statut du compte visiteur ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1088
-#: immersionlyceens/apps/api/views.py:4554
+#: immersionlyceens/apps/api/views.py:4555
 msgid "Cannot register slot due to visitor record state"
 msgstr "Le statut de la fiche visiteur ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1093
-#: immersionlyceens/apps/api/views.py:4559
+#: immersionlyceens/apps/api/views.py:4560
 msgid "Cannot register slot due to out of date attestations"
 msgstr "Inscription impossible : vous avez des justificatifs invalides"
 
@@ -852,19 +852,19 @@ msgid "Cannot register slot due to slot's restrictions"
 msgstr "Le créneau est restreint, vous ne pouvez pas vous inscrire"
 
 #: immersionlyceens/apps/api/views.py:1128
-#: immersionlyceens/apps/api/views.py:4569
+#: immersionlyceens/apps/api/views.py:4570
 msgid "Cannot register slot due to passed registration date"
 msgstr ""
 "La date limite d'inscription au créneau est passée, vous ne pouvez plus vous "
 "inscrire"
 
 #: immersionlyceens/apps/api/views.py:1133
-#: immersionlyceens/apps/api/views.py:4564
+#: immersionlyceens/apps/api/views.py:4565
 msgid "No seat available for selected slot"
 msgstr "Pas de place disponible pour le créneau sélectionné"
 
 #: immersionlyceens/apps/api/views.py:1139
-#: immersionlyceens/apps/api/views.py:4579
+#: immersionlyceens/apps/api/views.py:4580
 msgid "Already registered to this slot"
 msgstr "Vous êtes déjà inscrit(e) à ce créneau"
 
@@ -935,7 +935,8 @@ msgid "Registration is not currently allowed"
 msgstr "Les inscriptions ne sont pas encore autorisées"
 
 #: immersionlyceens/apps/api/views.py:1310
-#: immersionlyceens/apps/api/views.py:4525
+#: immersionlyceens/apps/api/views.py:4526
+#: immersionlyceens/apps/api/views.py:4872
 msgid "Error : slot not found"
 msgstr "Erreur : créneau non trouvé"
 
@@ -1150,7 +1151,7 @@ msgstr "visites_anonymisées"
 
 #: immersionlyceens/apps/api/views.py:2677
 msgid "anonymous_events"
-msgstr "évènements_anonymisées"
+msgstr "évènements_anonymisés"
 
 #: immersionlyceens/apps/api/views.py:2697
 #: immersionlyceens/apps/api/views.py:2726
@@ -1332,21 +1333,21 @@ msgstr "Charte signée avec succès"
 msgid "Charter not signed"
 msgstr "Charte non signée"
 
-#: immersionlyceens/apps/api/views.py:4411
+#: immersionlyceens/apps/api/views.py:4412
 msgid "No body for this template provided"
 msgstr "Le corps du message n'est pas présent"
 
-#: immersionlyceens/apps/api/views.py:4417
+#: immersionlyceens/apps/api/views.py:4418
 #, python-format
 msgid "Template #%s can't be found"
 msgstr "Le modèle #%s est introuvable"
 
-#: immersionlyceens/apps/api/views.py:4429
+#: immersionlyceens/apps/api/views.py:4430
 #, python-format
 msgid "A syntax error has been found in template #%s"
 msgstr "Une erreur de syntaxe a été détectée dans le modèle #%s"
 
-#: immersionlyceens/apps/api/views.py:4449
+#: immersionlyceens/apps/api/views.py:4450
 msgid ""
 "An error occurred while running annual purge command. For more details, "
 "please contact the administrator."
@@ -1354,7 +1355,7 @@ msgstr ""
 "Une erreur est survenue lors de l'exécution de la purge annuelle. Pour plus "
 "de détails, merci de contacter l'administrateur."
 
-#: immersionlyceens/apps/api/views.py:4459
+#: immersionlyceens/apps/api/views.py:4460
 msgid ""
 "An error occurred while deleting expired LDAP accounts. For more details, "
 "please contact the administrator."
@@ -1362,23 +1363,24 @@ msgstr ""
 "Une erreur est survenue lors de la suppression des comptes LDAP expirés. "
 "Pour plus de détails, merci de contacter l'administrateur."
 
-#: immersionlyceens/apps/api/views.py:4487
+#: immersionlyceens/apps/api/views.py:4488
 msgid "Settings updated"
 msgstr "Paramètre actualisé"
 
-#: immersionlyceens/apps/api/views.py:4489
+#: immersionlyceens/apps/api/views.py:4490
 msgid "Nothing to do"
 msgstr "Rien à faire"
 
-#: immersionlyceens/apps/api/views.py:4513
+#: immersionlyceens/apps/api/views.py:4514
 msgid "Error : user not authenticated"
 msgstr "Erreur : utilisateur non authentifié"
 
-#: immersionlyceens/apps/api/views.py:4517
+#: immersionlyceens/apps/api/views.py:4518
+#: immersionlyceens/apps/api/views.py:4792
 msgid "Error : missing slot id"
 msgstr "Erreur : identifiant de créneau manquant"
 
-#: immersionlyceens/apps/api/views.py:4666
+#: immersionlyceens/apps/api/views.py:4657
 #: immersionlyceens/apps/core/models.py:1695
 #: immersionlyceens/apps/core/models.py:2426
 #: immersionlyceens/apps/core/models.py:2836
@@ -1390,27 +1392,27 @@ msgstr "Erreur : identifiant de créneau manquant"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:116
 #: immersionlyceens/templates/modals/modal_alerts.html:26
 #: immersionlyceens/templates/offer_subdomains.html:78
-#: immersionlyceens/templates/search_slots.html:70
-#: immersionlyceens/templates/search_slots.html:151
+#: immersionlyceens/templates/search_slots.html:78
+#: immersionlyceens/templates/search_slots.html:159
 msgid "Course"
 msgstr "Cours"
 
-#: immersionlyceens/apps/api/views.py:4667
+#: immersionlyceens/apps/api/views.py:4658
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:12
 #: immersionlyceens/templates/core/off_offer_event_slot.html:48
 #: immersionlyceens/templates/offer_off_offer_events.html:85
-#: immersionlyceens/templates/search_slots.html:74
-#: immersionlyceens/templates/search_slots.html:156
+#: immersionlyceens/templates/search_slots.html:82
+#: immersionlyceens/templates/search_slots.html:164
 #: immersionlyceens/templates/visits_offer.html:69
 msgid "Event"
 msgstr "Évènement"
 
-#: immersionlyceens/apps/api/views.py:4668
+#: immersionlyceens/apps/api/views.py:4659
 #: immersionlyceens/apps/core/models.py:1852
 #: immersionlyceens/apps/core/models.py:2438
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:11
-#: immersionlyceens/templates/search_slots.html:79
-#: immersionlyceens/templates/search_slots.html:153
+#: immersionlyceens/templates/search_slots.html:87
+#: immersionlyceens/templates/search_slots.html:161
 msgid "Visit"
 msgstr "Visite"
 
@@ -1422,7 +1424,7 @@ msgstr "Visite"
 #: immersionlyceens/templates/modals/modal_register_students_list.html:39
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:22
 #: immersionlyceens/templates/offer_off_offer_events.html:69
-#: immersionlyceens/templates/search_slots.html:319
+#: immersionlyceens/templates/search_slots.html:320
 #: immersionlyceens/templates/visits_offer.html:56
 msgid "Highschool"
 msgstr "Lycée"
@@ -1452,7 +1454,7 @@ msgstr "Établissement d'Etudes Supérieures"
 #: immersionlyceens/templates/modals/modal_alerts.html:30
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:16
 #: immersionlyceens/templates/offer_off_offer_events.html:69
-#: immersionlyceens/templates/search_slots.html:300
+#: immersionlyceens/templates/search_slots.html:301
 #: immersionlyceens/templates/visits_offer.html:216
 msgid "Establishment"
 msgstr "Établissement"
@@ -1479,7 +1481,7 @@ msgstr "Domaine/Sous domaine"
 #: immersionlyceens/templates/modals/modal_alerts.html:27
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:34
 #: immersionlyceens/templates/offer_subdomains.html:68
-#: immersionlyceens/templates/search_slots.html:314
+#: immersionlyceens/templates/search_slots.html:315
 msgid "Training"
 msgstr "Formation"
 
@@ -1721,8 +1723,8 @@ msgstr "Ce campus ne peut pas être supprimé car il est utilisé par un bâtime
 #: immersionlyceens/apps/core/admin.py:726
 #: immersionlyceens/apps/core/models.py:173
 #: immersionlyceens/templates/core/common_slots_list.html:180
-#: immersionlyceens/templates/search_slots.html:97
-#: immersionlyceens/templates/search_slots.html:176
+#: immersionlyceens/templates/search_slots.html:105
+#: immersionlyceens/templates/search_slots.html:177
 msgid "Establishments"
 msgstr "Établissements"
 
@@ -1900,7 +1902,7 @@ msgstr ""
 #: immersionlyceens/apps/core/models.py:221
 #: immersionlyceens/templates/core/my_high_school.html:49
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:64
-#: immersionlyceens/templates/search_slots.html:385
+#: immersionlyceens/templates/search_slots.html:386
 msgid "Address"
 msgstr "Adresse"
 
@@ -2034,7 +2036,7 @@ msgstr "Département"
 #: immersionlyceens/templates/modals/modal_register_students_list.html:40
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:70
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:26
-#: immersionlyceens/templates/search_slots.html:410
+#: immersionlyceens/templates/search_slots.html:411
 msgid "City"
 msgstr "Ville"
 
@@ -3078,7 +3080,7 @@ msgstr "Code UAI"
 #: immersionlyceens/templates/immersion/fragments/my_visits.html:63
 #: immersionlyceens/templates/immersion/fragments/my_visits.html:106
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:28
-#: immersionlyceens/templates/search_slots.html:342
+#: immersionlyceens/templates/search_slots.html:343
 msgid "Label"
 msgstr "Libellé"
 
@@ -3457,7 +3459,7 @@ msgstr "Utilisateurs groupés"
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:52
 #: immersionlyceens/templates/offer_off_offer_events.html:99
 #: immersionlyceens/templates/offer_subdomains.html:113
-#: immersionlyceens/templates/search_slots.html:372
+#: immersionlyceens/templates/search_slots.html:373
 #: immersionlyceens/templates/visits_offer.html:83
 msgid "Date"
 msgstr "Date"
@@ -3549,8 +3551,8 @@ msgstr "Un campus de même nom existe déjà dans cet établissement"
 #: immersionlyceens/templates/modals/modal_student_details.html:24
 #: immersionlyceens/templates/offer_off_offer_events.html:256
 #: immersionlyceens/templates/offer_subdomains.html:235
-#: immersionlyceens/templates/search_slots.html:109
-#: immersionlyceens/templates/search_slots.html:391
+#: immersionlyceens/templates/search_slots.html:117
+#: immersionlyceens/templates/search_slots.html:392
 msgid "Campus"
 msgstr "Campus"
 
@@ -3597,7 +3599,7 @@ msgstr "Type de baccalauréat"
 
 #: immersionlyceens/apps/core/models.py:1191
 #: immersionlyceens/templates/core/common_slots_list.html:182
-#: immersionlyceens/templates/search_slots.html:178
+#: immersionlyceens/templates/search_slots.html:179
 msgid "Bachelor types"
 msgstr "Types de baccalauréats"
 
@@ -3690,14 +3692,14 @@ msgstr "Types de public"
 #: immersionlyceens/apps/core/models.py:1350
 #: immersionlyceens/apps/core/models.py:1431
 #: immersionlyceens/templates/immersion/nologin.html:19
-#: immersionlyceens/templates/search_slots.html:128
+#: immersionlyceens/templates/search_slots.html:136
 msgid "Start date"
 msgstr "Date de début"
 
 #: immersionlyceens/apps/core/models.py:1351
 #: immersionlyceens/apps/core/models.py:1432
 #: immersionlyceens/templates/immersion/nologin.html:23
-#: immersionlyceens/templates/search_slots.html:136
+#: immersionlyceens/templates/search_slots.html:144
 msgid "End date"
 msgstr "Date de fin"
 
@@ -3848,7 +3850,7 @@ msgstr ""
 #: immersionlyceens/apps/core/models.py:1696
 #: immersionlyceens/templates/fragments/main_menu.html:47
 #: immersionlyceens/templates/fragments/main_menu.html:71
-#: immersionlyceens/templates/search_slots.html:70
+#: immersionlyceens/templates/search_slots.html:78
 msgid "Courses"
 msgstr "Cours"
 
@@ -3871,7 +3873,7 @@ msgstr "Une visite avec les mêmes éléments et le même objet existe déjà"
 #: immersionlyceens/apps/core/models.py:1853
 #: immersionlyceens/templates/fragments/main_menu.html:52
 #: immersionlyceens/templates/fragments/main_menu.html:91
-#: immersionlyceens/templates/search_slots.html:79
+#: immersionlyceens/templates/search_slots.html:87
 msgid "Visits"
 msgstr "Visites"
 
@@ -3903,7 +3905,7 @@ msgstr "Description"
 #: immersionlyceens/templates/core/off_offer_events_list.html:99
 #: immersionlyceens/templates/core/off_offer_events_slots_list.html:41
 #: immersionlyceens/templates/offer_off_offer_events.html:55
-#: immersionlyceens/templates/search_slots.html:322
+#: immersionlyceens/templates/search_slots.html:323
 msgid "Event type"
 msgstr "Type d'évènement"
 
@@ -4095,8 +4097,8 @@ msgstr "Informations complémentaires"
 #: immersionlyceens/apps/core/models.py:2467
 #: immersionlyceens/templates/core/off_offer_event_slot.html:60
 #: immersionlyceens/templates/core/visit_slot.html:62
-#: immersionlyceens/templates/search_slots.html:85
-#: immersionlyceens/templates/search_slots.html:89
+#: immersionlyceens/templates/search_slots.html:93
+#: immersionlyceens/templates/search_slots.html:97
 msgid "Face to face"
 msgstr "Présentiel"
 
@@ -4183,8 +4185,8 @@ msgstr "Délai pour l'annulation de l'inscription (en heures)"
 #: immersionlyceens/apps/core/models.py:2519
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:112
 #: immersionlyceens/templates/offer_subdomains.html:225
-#: immersionlyceens/templates/search_slots.html:451
-#: immersionlyceens/templates/search_slots.html:453
+#: immersionlyceens/templates/search_slots.html:452
+#: immersionlyceens/templates/search_slots.html:454
 msgid "Registration limit"
 msgstr "Inscription avant le"
 
@@ -5016,23 +5018,23 @@ msgstr "Vous n'êtes pas encore autorisé(e) à envoyer un nouveau fichier"
 msgid "Please choose a level"
 msgstr "Veuillez sélectionner un niveau"
 
-#: immersionlyceens/apps/immersion/forms.py:483
-msgid "Please choose a bachelor type"
-msgstr "Veuillez sélectionner le type de votre baccalauréat"
-
-#: immersionlyceens/apps/immersion/forms.py:491
+#: immersionlyceens/apps/immersion/forms.py:488
 msgid "Please choose your origin bachelor type"
 msgstr "Veuillez sélectionner votre type de baccalauréat d'origine"
 
-#: immersionlyceens/apps/immersion/forms.py:504
+#: immersionlyceens/apps/immersion/forms.py:492
+msgid "Please choose a bachelor type"
+msgstr "Veuillez sélectionner le type de votre baccalauréat"
+
+#: immersionlyceens/apps/immersion/forms.py:505
 msgid "Please choose one or more bachelor teachings"
 msgstr "Veuillez choisir un ou plusieurs enseignements de spécialité"
 
-#: immersionlyceens/apps/immersion/forms.py:512
+#: immersionlyceens/apps/immersion/forms.py:513
 msgid "Please choose a mention for your technological bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat technologique"
 
-#: immersionlyceens/apps/immersion/forms.py:518
+#: immersionlyceens/apps/immersion/forms.py:519
 msgid "Please enter a mention for your professional bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat professionnel"
 
@@ -5716,6 +5718,18 @@ msgstr "Le paramètre '%s' de l'extension LDAP n'a pas été trouvé"
 msgid "not set"
 msgstr "non définie"
 
+#: immersionlyceens/libs/mails/variables_parser.py:130
+msgid "Event N°1"
+msgstr "Évènement N°1"
+
+#: immersionlyceens/libs/mails/variables_parser.py:167
+msgid "My event"
+msgstr "Mon évènement"
+
+#: immersionlyceens/libs/mails/variables_parser.py:168
+msgid "My event description"
+msgstr "Description de mon évènement"
+
 #: immersionlyceens/libs/mails/variables_parser.py:316
 msgid "Unknown home institution"
 msgstr "Établissement d'origine inconnu"
@@ -5819,7 +5833,7 @@ msgstr "Documents utiles"
 #: immersionlyceens/templates/offer.html:24
 #: immersionlyceens/templates/offer_off_offer_events.html:26
 #: immersionlyceens/templates/procedure.html:22
-#: immersionlyceens/templates/search_slots.html:29
+#: immersionlyceens/templates/search_slots.html:37
 #: immersionlyceens/templates/visits_offer.html:26
 msgid "Home"
 msgstr "Accueil"
@@ -5836,7 +5850,9 @@ msgstr "Aucun document disponible"
 msgid ""
 "First, enter an email and some user's informations. Then, you’ll be able to "
 "edit more options."
-msgstr "Saisissez tout d'abord un courriel et quelques informations sur l'utilisateur. Vous pourrez ensuite modifier plus d’options."
+msgstr ""
+"Saisissez tout d'abord un courriel et quelques informations sur "
+"l'utilisateur. Vous pourrez ensuite modifier plus d’options."
 
 #: immersionlyceens/templates/admin/auth/user/add_form.html:8
 msgid "Enter an email."
@@ -5903,7 +5919,7 @@ msgstr "Prévisualisation du modèle de message"
 
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:8
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:40
-#: immersionlyceens/templates/search_slots.html:66
+#: immersionlyceens/templates/search_slots.html:74
 msgid "Slot type"
 msgstr "Type de créneau"
 
@@ -5990,7 +6006,7 @@ msgstr "Niveau des étudiants / catégories"
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:20
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:73
 #: immersionlyceens/templates/modals/modal_student_details.html:75
-#: immersionlyceens/templates/search_slots.html:256
+#: immersionlyceens/templates/search_slots.html:257
 msgid "All"
 msgstr "Tous"
 
@@ -6276,7 +6292,7 @@ msgstr "ou"
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:82
 #: immersionlyceens/templates/offer_off_offer_events.html:115
 #: immersionlyceens/templates/offer_subdomains.html:256
-#: immersionlyceens/templates/search_slots.html:426
+#: immersionlyceens/templates/search_slots.html:427
 #: immersionlyceens/templates/visits_offer.html:92
 msgid "Meeting place"
 msgstr "Lieu de rencontre"
@@ -6417,17 +6433,17 @@ msgid "Remote event"
 msgstr "Distanciel"
 
 #: immersionlyceens/templates/core/common_slots_list.html:181
-#: immersionlyceens/templates/search_slots.html:177
+#: immersionlyceens/templates/search_slots.html:178
 msgid "Levels"
 msgstr "Niveaux"
 
 #: immersionlyceens/templates/core/common_slots_list.html:183
-#: immersionlyceens/templates/search_slots.html:179
+#: immersionlyceens/templates/search_slots.html:180
 msgid "Allowed mentions"
 msgstr "Mentions autorisées"
 
 #: immersionlyceens/templates/core/common_slots_list.html:184
-#: immersionlyceens/templates/search_slots.html:180
+#: immersionlyceens/templates/search_slots.html:181
 msgid "Allowed teachings"
 msgstr "Spécialités autorisées"
 
@@ -7610,10 +7626,10 @@ msgid "Offer"
 msgstr "Offre"
 
 #: immersionlyceens/templates/fragments/main_menu.html:46
-#: immersionlyceens/templates/search_slots.html:7
-#: immersionlyceens/templates/search_slots.html:19
-#: immersionlyceens/templates/search_slots.html:32
-#: immersionlyceens/templates/search_slots.html:57
+#: immersionlyceens/templates/search_slots.html:15
+#: immersionlyceens/templates/search_slots.html:27
+#: immersionlyceens/templates/search_slots.html:40
+#: immersionlyceens/templates/search_slots.html:65
 msgid "Search immersions slots"
 msgstr "Recherche de créneaux d'immersion"
 
@@ -7630,7 +7646,7 @@ msgid "Visits slots list"
 msgstr "Liste des créneaux de visites"
 
 #: immersionlyceens/templates/fragments/main_menu.html:107
-#: immersionlyceens/templates/search_slots.html:74
+#: immersionlyceens/templates/search_slots.html:82
 msgid "Events"
 msgstr "Évènements"
 
@@ -8002,7 +8018,7 @@ msgstr "Structure organisatrice"
 #: immersionlyceens/templates/modals/modal_public_slots.html:19
 #: immersionlyceens/templates/modals/modal_student_details.html:20
 #: immersionlyceens/templates/offer_off_offer_events.html:109
-#: immersionlyceens/templates/search_slots.html:357
+#: immersionlyceens/templates/search_slots.html:358
 msgid "Type"
 msgstr "Type"
 
@@ -8635,7 +8651,7 @@ msgstr "Inscription réussie"
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:106
 #: immersionlyceens/templates/offer_off_offer_events.html:231
 #: immersionlyceens/templates/offer_subdomains.html:217
-#: immersionlyceens/templates/search_slots.html:440
+#: immersionlyceens/templates/search_slots.html:441
 #: immersionlyceens/templates/visits_offer.html:202
 msgid "Available places"
 msgstr "Places restantes"
@@ -8804,7 +8820,7 @@ msgstr "Niveaux lycéens autorisés"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:213
 #: immersionlyceens/templates/offer_subdomains.html:201
-#: immersionlyceens/templates/search_slots.html:568
+#: immersionlyceens/templates/search_slots.html:574
 #: immersionlyceens/templates/visits_offer.html:186
 msgid "Slot open to all"
 msgstr "Créneau ouvert à tous"
@@ -8817,7 +8833,7 @@ msgstr "Inscription annulée"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:226
 #: immersionlyceens/templates/offer_subdomains.html:212
-#: immersionlyceens/templates/search_slots.html:601
+#: immersionlyceens/templates/search_slots.html:611
 #: immersionlyceens/templates/visits_offer.html:197
 msgid "Already registered"
 msgstr "Déjà inscrit(e)"
@@ -8830,14 +8846,14 @@ msgstr "Ouverture prochaine"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:235
 #: immersionlyceens/templates/offer_subdomains.html:221
-#: immersionlyceens/templates/search_slots.html:597
+#: immersionlyceens/templates/search_slots.html:607
 #: immersionlyceens/templates/visits_offer.html:205
 msgid "Register"
 msgstr "S'inscrire"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:267
 #: immersionlyceens/templates/offer_subdomains.html:251
-#: immersionlyceens/templates/search_slots.html:541
+#: immersionlyceens/templates/search_slots.html:542
 msgid "Show map url"
 msgstr "Voir l'adresse de la carte"
 
@@ -8851,7 +8867,7 @@ msgstr "Tout réduire"
 
 #: immersionlyceens/templates/offer_subdomains.html:70
 #: immersionlyceens/templates/offer_subdomains.html:84
-#: immersionlyceens/templates/search_slots.html:544
+#: immersionlyceens/templates/search_slots.html:545
 msgid "Click here for more informations"
 msgstr "Cliquez ici pour plus d'informations"
 
@@ -8875,27 +8891,27 @@ msgstr "Cliquez ici pour revenir sur la selection de l'offre"
 msgid "Please read before you register"
 msgstr "À lire avant toute inscription"
 
-#: immersionlyceens/templates/search_slots.html:62
+#: immersionlyceens/templates/search_slots.html:70
 msgid "Advanced search"
 msgstr "Recherche avancée"
 
-#: immersionlyceens/templates/search_slots.html:103
+#: immersionlyceens/templates/search_slots.html:111
 msgid "Cities"
 msgstr "Villes"
 
-#: immersionlyceens/templates/search_slots.html:115
+#: immersionlyceens/templates/search_slots.html:123
 msgid "Slots with available places"
 msgstr "Créneaux avec des places disponibles"
 
-#: immersionlyceens/templates/search_slots.html:119
+#: immersionlyceens/templates/search_slots.html:127
 msgid "Slots not full only"
 msgstr "Seulement les créneaux non complets"
 
-#: immersionlyceens/templates/search_slots.html:123
+#: immersionlyceens/templates/search_slots.html:131
 msgid "Dates"
 msgstr "Dates"
 
-#: immersionlyceens/templates/search_slots.html:461
+#: immersionlyceens/templates/search_slots.html:462
 msgid "More details"
 msgstr "Plus de détails"
 
