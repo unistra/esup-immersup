@@ -6,80 +6,32 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: 3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-02 09:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: immersionlyceens/templates/core/off_offer_events_list.html:17
-#: immersionlyceens/templates/core/off_offer_events_list.html:30
-#: immersionlyceens/templates/fragments/main_menu.html:85
-msgid "Off offer events list"
-msgstr "Liste des autres évènements"
+msgid "Off offer event successfully deleted"
+msgstr "Activité supprimée avec succès"
 
-#: immersionlyceens/templates/core/off_offer_events_list.html:24
-msgid "Do you really want to delete this event ?"
-msgstr "Voulez-vous vraiment supprimer cet évènement ?"
-
-#: immersionlyceens/templates/core/off_offer_events_list.html:349
-msgid "View slots for this event"
-msgstr "Voir les créneaux de cet évènement"
-
-#: immersionlyceens/templates/core/off_offer_events_list.html:355
-msgid "Add a slot for this event"
-msgstr "Créer un créneau pour cet évènement"
-
-#: immersionlyceens/templates/core/off_offer_events_slots_list.html:7
-#: immersionlyceens/templates/core/off_offer_events_slots_list.html:23
-msgid "Event slots"
-msgstr "Créneaux d'évènements"
-
-#: immersionlyceens/templates/core/off_offer_events_slots_list.html:16
-msgid "Do you really want to delete this event slot ?"
-msgstr "Voulez-vous vraiment supprimer ce créneau d'évènement ?"
-
-#: immersionlyceens/templates/core/off_offer_events_slots_list.html:30
-msgid "Add an event slot"
-msgstr "Ajouter un créneau d'évènement"
-
-#: immersionlyceens/templates/core/off_offer_events_slots_list.html:30
-msgid "New event slot"
-msgstr "Nouveau créneau d'évènement"
-
-#: immersionlyceens/templates/fragments/main_menu.html:36
-msgid "Off offer Events"
-msgstr "Autres évènements"
-
-#: immersionlyceens/templates/fragments/main_menu.html:86
-msgid "Off offer events slots list"
-msgstr "Liste des créneaux d'évènements"
-
-#: immersionlyceens/templates/fragments/main_menu.html:87
-msgid "New off offer event slot"
-msgstr "Nouveau créneau d'évènement"
-
-#: immersionlyceens/apps/core/models.py:1709
 msgid "An off offer event type with this label already exists"
-msgstr "Un type d'autre évènement avec ce nom existe déjà"
+msgstr "Une activité avec ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:1716
 msgid "Off offer event type"
-msgstr "Type d'autre évènement"
+msgstr "Type d'activité"
 
-#: immersionlyceens/apps/core/models.py:1717
 msgid "Off offer event types"
-msgstr "Types d'autres évènements"
+msgstr "Types d'activités"
 
-#: immersionlyceens/apps/core/models.py:1870
 msgid "An off offer event with the same attachments and label already exists"
-msgstr "Un 'autre évènement' avec les mêmes éléments et le même libellé existe déjà"
+msgstr "Une activité avec les mêmes éléments et le même libellé existe déjà"
 
 msgid "Off-offer event"
 msgstr "Activité"
@@ -87,74 +39,58 @@ msgstr "Activité"
 msgid "Off-offer events"
 msgstr "Activités"
 
-#: immersionlyceens/apps/core/models.py:2214
 msgid "Off offer event"
-msgstr "Autre évènement"
+msgstr "Activité"
 
-#: immersionlyceens/apps/core/views.py:1952
 #, python-format
 msgid "Off offer event \"%s\" created."
-msgstr "Autre évènement \"%s\" créé."
+msgstr "Activité \"%s\" créée"
 
-#: immersionlyceens/apps/core/views.py:1963
 msgid "Off offer event not created."
-msgstr "Autre évènement non créé."
+msgstr "Activité \"%s\" non créée"
 
-#: immersionlyceens/apps/core/views.py:2033
 #, python-format
 msgid "Off offer event \"%s\" updated."
-msgstr "Autre évènement \"%s\" mis à jour."
+msgstr "Activité \"%s\" mise à jour"
 
-#: immersionlyceens/apps/core/views.py:2046
 #, python-format
 msgid "Off offer event \"%s\" not updated."
-msgstr "Echec de la mise à jour de l'évènement \"%s\""
+msgstr "Échec de la mise à jour de l'activité \"%s\""
 
-#: immersionlyceens/libs/api/views.py:4329
-msgid "Off offer event successfully deleted"
-msgstr "Autre évènement supprimé avec succès"
-
-#: immersionlyceens/templates/core/off_offer_event.html:10
-#: immersionlyceens/templates/core/off_offer_event.html:28
 msgid "Duplicate an off offer event"
-msgstr "Dupliquer cet évènement"
+msgstr "Dupliquer cette activité"
 
-#: immersionlyceens/templates/core/off_offer_event.html:12
-#: immersionlyceens/templates/core/off_offer_event.html:30
 msgid "Update an off offer event"
-msgstr "Modifier cet évènement"
+msgstr "Modifier cette activité"
 
-#: immersionlyceens/templates/core/off_offer_event.html:14
-#: immersionlyceens/templates/core/off_offer_events_list.html:36
 msgid "New off offer event"
-msgstr "Nouvel évènement"
+msgstr "Nouvelle activité"
 
-#: immersionlyceens/templates/core/off_offer_event.html:32
 msgid "Create a new off offer event"
-msgstr "Créer un 'autre évènement'"
+msgstr "Créer une nouvelle activité"
 
 #: immersionlyceens/templates/core/off_offer_event.html:112
 msgid "Event description"
-msgstr "Description de l'évènement"
+msgstr "Description de l'activité"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:9
 #: immersionlyceens/templates/core/off_offer_event_slot.html:35
 msgid "Duplicate an event slot"
-msgstr "Dupliquer un créneau d'évènement"
+msgstr "Dupliquer un créneau d'activité"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:11
 #: immersionlyceens/templates/core/off_offer_event_slot.html:37
 msgid "Update an event slot"
-msgstr "Mettre à jour un créneau d'évènement"
+msgstr "Mettre à jour un créneau d'activité"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:13
 #: immersionlyceens/templates/core/off_offer_event_slot.html:39
 msgid "Add a new event slot"
-msgstr "Ajouter un créneau d'évènement"
+msgstr "Ajouter un créneau d'activité"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:17
 msgid "Confirm event slot creation"
-msgstr "Confirmer la création du créneau d'évènement"
+msgstr "Confirmer la création du créneau d'activité"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:19
 msgid ""
@@ -162,114 +98,157 @@ msgid ""
 "event slot with this date ?"
 msgstr ""
 "Cette date se situe pendant une période de vacances et/ou est un jour férié. "
-"Êtes-vous sûr(e) de vouloir utiliser cette date pour ce créneau d'évènement ?"
+"Êtes-vous sûr(e) de vouloir utiliser cette date pour ce créneau d'activité ?"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:25
 msgid "Confirm event publication"
-msgstr "Confirmer la publication de l'évènement"
+msgstr "Confirmer la publication de l'activité"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:27
 msgid ""
 "This event is unpublished. By creating this event slot, the associated event "
 "will be published. Do you want to continue?"
 msgstr ""
-"Cet évènement n'est pas publié. En publiant ce créneau d'évènement, "
-"l'évènement associé sera publié. Voulez-vous continuer ?"
+"Cette activité n'est pas publiée. En publiant ce créneau d'activité, "
+"l'activité associée sera publiée. Voulez-vous continuer ?"
+
+msgid "Off offer events list"
+msgstr "Liste des activités"
+
+#: immersionlyceens/templates/core/off_offer_events_list.html:24
+msgid "Do you really want to delete this event ?"
+msgstr "Voulez-vous vraiment supprimer cette activité ?"
+
+#: immersionlyceens/templates/core/off_offer_events_list.html:349
+msgid "View slots for this event"
+msgstr "Voir les créneaux de cette activité"
+
+#: immersionlyceens/templates/core/off_offer_events_list.html:355
+msgid "Add a slot for this event"
+msgstr "Créer un créneau pour cette activité"
+
+#: immersionlyceens/templates/core/off_offer_events_slots_list.html:7
+#: immersionlyceens/templates/core/off_offer_events_slots_list.html:23
+msgid "Event slots"
+msgstr "Créneaux d'activités"
+
+#: immersionlyceens/templates/core/off_offer_events_slots_list.html:16
+msgid "Do you really want to delete this event slot ?"
+msgstr "Voulez-vous vraiment supprimer ce créneau d'activité ?"
+
+#: immersionlyceens/templates/core/off_offer_events_slots_list.html:30
+msgid "Add an event slot"
+msgstr "Ajouter un créneau d'activité"
+
+#: immersionlyceens/templates/core/off_offer_events_slots_list.html:30
+msgid "New event slot"
+msgstr "Nouveau créneau d'activité"
+
+msgid "Off offer Events"
+msgstr "Activités"
+
+msgid "Off offer events slots list"
+msgstr "Liste des créneaux d'activités"
+
+msgid "New off offer event slot"
+msgstr "Nouveau créneau d'activité"
 
 msgid "Events offer"
-msgstr "Offre d'évènements"
+msgstr "Offre d'activités"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:46
 msgid "available events (see below)"
-msgstr "évènements disponibles (voir ci-dessous)"
+msgstr "activités disponibles (voir ci-dessous)"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:46
 msgid "available events"
-msgstr "évènements disponibles"
+msgstr "activités disponibles"
 
-#: immersionlyceens/templates/offer_off_offer_events.html:232
 msgid "No off offer event available"
-msgstr "Pas d'autre évènement disponible"
+msgstr "Aucune activité disponible"
 
 #: immersionlyceens/libs/mails/variables_parser.py:130
 msgid "Event N°1"
-msgstr "Évènement N°1"
+msgstr "Activité N°1"
 
 #: immersionlyceens/libs/mails/variables_parser.py:167
 msgid "My event"
-msgstr "Mon évènement"
+msgstr "Mon activité"
 
 #: immersionlyceens/libs/mails/variables_parser.py:168
 msgid "My event description"
-msgstr "Description de mon évènement"
+msgstr "Description de mon activité"
 
 msgid "Event type"
-msgstr "Type d'évènement"
+msgstr "Type d'activité"
 
 msgid "event type"
-msgstr "type d'évènement"
+msgstr "type d'activité"
+
+msgid "course/event/visit label"
+msgstr "Libellé de cours/activité/visite"
 
 msgctxt "slot type"
 msgid "Event"
-msgstr "Autre évènement"
+msgstr "Activité"
 
 msgid "Event"
-msgstr "Autre évènement"
+msgstr "Activité"
 
 msgid "anonymous_events"
-msgstr "évènements_anonymisés"
+msgstr "activités_anonymisées"
 
 msgid "Some slots are attached to this event: it can't be deleted"
-msgstr "Des créneaux sont liés à cet autre évènement : suppression impossible"
+msgstr "Des créneaux sont liés à cette activité : suppression impossible"
 
 msgid "This account is linked to courses/visits/events, you can't delete it"
 msgstr ""
-"Ce compte est lié à des cours/visites/évènements, il ne peut pas être "
+"Ce compte est lié à des cours/visites/activités, il ne peut pas être "
 "supprimé"
 
 msgid "This event type is used by and event, it cannot be deleted"
 msgstr ""
-"Ce type d'évènement est utilisé par un évènement, il ne peut pas être "
+"Ce type d'activité est utilisé par une activité, il ne peut pas être "
 "supprimé"
 
 msgid "Event published"
-msgstr "Autre évènement publié"
+msgstr "Activité publiée"
 
 #: immersionlyceens/apps/core/forms.py:1007
 msgid "An event with these values already exists"
-msgstr "Un évènement avec ces valeurs existe déjà"
+msgstr "Une activité avec ces valeurs existe déjà"
 
 #: immersionlyceens/apps/core/models.py:2604
 #, python-format
 msgid "Event - %s"
-msgstr "Autre évènement - %s"
+msgstr "Activité - %s"
 
 #: immersionlyceens/apps/core/serializers.py:525
 msgid "A slot requires at least a 'course', a 'visit' or an 'event' object"
-msgstr "Un créneau nécessite un cours, une visite ou un autre évènement"
+msgstr "Un créneau nécessite un cours, une visite ou une activité"
 
 #: immersionlyceens/apps/core/views.py:2339
 #, python-format
 msgid "Event slot \"%s\" created."
-msgstr "Créneau d'évènement \"%s\" créé."
+msgstr "Créneau d'activité \"%s\" créé."
 
 #: immersionlyceens/apps/core/views.py:2346
 msgid "Event slot not created."
-msgstr "Créneau d'évènement non créé."
+msgstr "Créneau d'activité non créé."
 
 #: immersionlyceens/apps/core/views.py:2438
 #, python-format
 msgid "Event slot \"%s\" updated."
-msgstr "Créneau d'évènement \"%s\" mis à jour."
+msgstr "Créneau d'activité \"%s\" mis à jour."
 
 #: immersionlyceens/apps/core/views.py:2485
 #, python-format
 msgid "Event slot \"%s\" not updated."
-msgstr "Échec de la mise jour du créneau d'évènement \"%s\"."
+msgstr "Échec de la mise jour du créneau d'activité \"%s\"."
 
 #: immersionlyceens/libs/mails/variables_parser.py:526
 msgid "event"
-msgstr "autre évènement"
+msgstr "activité"
 
 #: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:9
 msgid ""
@@ -278,63 +257,63 @@ msgid ""
 "events."
 msgstr ""
 "Cette action supprimera toutes les inscriptions, tous les comptes lycéens, "
-"étudiants, visiteurs, tous les créneaux de cours, de visites et d'évènements."
+"étudiants, visiteurs, tous les créneaux de cours, de visites et d'activités."
 
 #: immersionlyceens/templates/core/my_events.html:16
 #: immersionlyceens/templates/core/my_events.html:24
 #: immersionlyceens/templates/fragments/main_menu.html:154
 #: immersionlyceens/templates/immersion/my_registrations.html:69
 msgid "My events"
-msgstr "Mes évènements"
+msgstr "Mes activités"
 
 #: immersionlyceens/templates/core/my_events.html:39
 #: immersionlyceens/templates/core/off_offer_events_list.html:98
 msgctxt "events"
 msgid "Managed by"
-msgstr "Gérés par"
+msgstr "Gérées par"
 
 #: immersionlyceens/templates/core/my_events_slots.html:14
 #: immersionlyceens/templates/core/my_events_slots.html:19
 #: immersionlyceens/templates/fragments/main_menu.html:155
 msgid "My events slots"
-msgstr "Mes créneaux d'évènements"
+msgstr "Mes créneaux d'activités"
 
 #: immersionlyceens/templates/core/my_high_school_speakers.html:44
 msgid "Has courses or events"
-msgstr "A des cours/autres évènements"
+msgstr "A des cours/activités"
 
 #: immersionlyceens/templates/core/stats.html:34
 msgid "Anonymous events data"
-msgstr "Données anonymisées des évènements"
+msgstr "Données anonymisées des activités"
 
 #: immersionlyceens/templates/core/stats.html:49
 #: immersionlyceens/templates/core/stats.html:62
 #: immersionlyceens/templates/core/stats.html:74
 msgid "Extract events data"
-msgstr "Extraire les données des évènements"
+msgstr "Extraire les données des activités"
 
 #: immersionlyceens/templates/fragments/main_menu.html:107
 #: immersionlyceens/templates/search_slots.html:82
 msgid "Events"
-msgstr "Autres évènements"
+msgstr "Activités"
 
 #: immersionlyceens/templates/immersion/fragments/my_events.html:9
 msgid "Events to come"
-msgstr "Autres évènements à venir"
+msgstr "Activités à venir"
 
 #: immersionlyceens/templates/immersion/fragments/my_events.html:50
 msgid "Past events"
-msgstr "Autres évènements passés"
+msgstr "Activités passées"
 
 #: immersionlyceens/templates/immersion/fragments/my_events.html:91
 msgid "Cancelled events"
-msgstr "Autres évènements annulés"
+msgstr "Activités annulées"
 
 #: immersionlyceens/templates/immersion/link_accounts.html:20
 msgid ""
 "Link two or more of your speakers accounts to view all your courses, visits "
 "or events in the same tables."
 msgstr ""
-"Lier vos comptes Intervenant pour voir tous vos cours, visites ou évènements "
+"Lier vos comptes Intervenant pour voir tous vos cours, visites ou activités "
 "dans les mêmes tables"
 

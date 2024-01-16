@@ -127,7 +127,7 @@ class ParserFaker:
         context.update({
             "evenement": {
                 "type": cls.add_tooltip("evenement.type", "Conférence"),
-                "libelle": cls.add_tooltip("evenement.libelle", "Événement N°1"),
+                "libelle": cls.add_tooltip("evenement.libelle", _("Event N°1")),
                 "nbplaceslibre": 27
             }
         })
@@ -139,9 +139,9 @@ class ParserFaker:
                 "estuncours": False,
                 "estunevisite": False,
                 "estunevenement": False,
-                "etablissement": cls.add_tooltip("creneau.etablissement", "Mon Super Établissement"),
+                "etablissement": cls.add_tooltip("creneau.etablissement", "Mon Établissement"),
                 "lycee": cls.add_tooltip("creneau.lycee", "Lycée Frida Kahlo (New York)"),
-                "structure": cls.add_tooltip("creneau.structure", "Ma Super Structure"),
+                "structure": cls.add_tooltip("creneau.structure", "Ma Structure"),
                 "batiment": {
                     "libelle": cls.add_tooltip("creneau.batiment.libelle", "Musée d'art moderne (MoMa)"),
                     "lien": cls.add_tooltip(
@@ -161,15 +161,15 @@ class ParserFaker:
                 "cours": {
                     "libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
                     "type": cls.add_tooltip("creneau.cours.type", "TD"),
-                    "formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
+                    "formation": cls.add_tooltip("creneau.cours.formation", "Ma formation"),
                 },
                 "evenement": {
-                    "libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
-                    "description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
+                    "libelle": cls.add_tooltip("creneau.evenement.libelle", _("My event")),
+                    "description": cls.add_tooltip("creneau.evenement.description", _("My event description")),
                     "type": cls.add_tooltip("creneau.evenement.type", "Conférence")
                 },
                 "visite": {
-                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
+                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", formatted_today),
                 "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
