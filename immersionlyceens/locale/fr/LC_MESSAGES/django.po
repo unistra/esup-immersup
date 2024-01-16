@@ -1150,7 +1150,7 @@ msgstr "visites_anonymisées"
 
 #: immersionlyceens/apps/api/views.py:2677
 msgid "anonymous_events"
-msgstr "événements_anonymisées"
+msgstr "évènements_anonymisées"
 
 #: immersionlyceens/apps/api/views.py:2697
 #: immersionlyceens/apps/api/views.py:2726

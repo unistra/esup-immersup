@@ -1,0 +1,88 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-02 09:07+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Off offer event successfully deleted"
+msgstr "Activité supprimée avec succès"
+
+msgid "An off offer event type with this label already exists"
+msgstr "Une activité avec ce nom existe déjà"
+
+msgid "Off offer event type"
+msgstr "Type d'activité"
+
+msgid "Off offer event types"
+msgstr "Types d'activités"
+
+msgid "An off offer event with the same attachments and label already exists"
+msgstr "Une activité avec les mêmes éléments et le même libellé existe déjà"
+
+msgid "Off-offer event"
+msgstr "Activité"
+
+msgid "Off-offer events"
+msgstr "Activités"
+
+msgid "Off offer event"
+msgstr "Activité"
+
+#, python-format
+msgid "Off offer event \"%s\" created."
+msgstr "Activité \"%s\" créée"
+
+msgid "Off offer event not created."
+msgstr "Activité \"%s\" non créée"
+
+#, python-format
+msgid "Off offer event \"%s\" updated."
+msgstr "Activité \"%s\" mise à jour"
+
+#, python-format
+msgid "Off offer event \"%s\" not updated."
+msgstr "Activité \"%s\" non mise à jour"
+
+msgid "Duplicate an off offer event"
+msgstr "Dupliquer cette activité"
+
+msgid "Update an off offer event"
+msgstr "Modifier cette activité"
+
+msgid "New off offer event"
+msgstr "Nouvelle activité"
+
+msgid "Create a new off offer event"
+msgstr "Créer une nouvelle activité"
+
+msgid "Off offer events list"
+msgstr "Liste des activités"
+
+msgid "Off offer Events"
+msgstr "Activités"
+
+msgid "Off offer events slots list"
+msgstr "Liste des créneaux d'activités"
+
+msgid "New off offer event slot"
+msgstr "Nouveau créneau d'activité"
+
+msgid "Events offer"
+msgstr "Offre d'activités"
+
+msgid "No off offer event available"
+msgstr "Aucune activité disponible"

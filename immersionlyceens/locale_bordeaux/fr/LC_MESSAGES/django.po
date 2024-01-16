@@ -52,6 +52,12 @@ msgstr "Types d'autres évènements"
 msgid "An off offer event with the same attachments and label already exists"
 msgstr "Un 'autre évènement' avec les mêmes éléments et le même libellé existe déjà"
 
+msgid "Off-offer event"
+msgstr "Activité"
+
+msgid "Off-offer events"
+msgstr "Activités"
+
 #: immersionlyceens/apps/core/models.py:2214
 msgid "Off offer event"
 msgstr "Autre évènement"
@@ -97,6 +103,9 @@ msgstr "Nouvel évènement"
 #: immersionlyceens/templates/core/off_offer_event.html:32
 msgid "Create a new off offer event"
 msgstr "Créer un 'autre évènement'"
+
+msgid "Events offer"
+msgstr "Offre d'activités"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:232
 msgid "No off offer event available"
