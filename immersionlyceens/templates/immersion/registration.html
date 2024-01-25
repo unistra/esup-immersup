@@ -52,7 +52,7 @@
             <div class="col-sm-9 col-md-6">
                 <input type="text" id="{{ form.first_name.id_for_label }}" name="{{ form.first_name.html_name }}"
                 {% if form.first_name.field.required %}required{% endif %} class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
-                value="{% if form.last_name.value %}{{ form.last_name.value }}{% endif %}">
+                value="{% if form.first_name.value %}{{ form.first_name.value }}{% endif %}">
                 {% if form.first_name.help_text %}
                 <div class="small text-muted">
                 {{ form.first_name.help_text }}
