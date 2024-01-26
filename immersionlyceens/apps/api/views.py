@@ -4501,6 +4501,8 @@ def ajax_can_register_slot(request, slot_id=None):
     GET parameters:
     slot_id
     """
+    now = timezone.now()
+    today = timezone.localdate()
 
     user = request.user
     response = {'msg': '', 'data': []}
@@ -4559,6 +4561,28 @@ def ajax_can_register_slot(request, slot_id=None):
     if user.has_obsolete_attestations():
         response['msg'] = _("Cannot register slot due to out of date attestations")
         return JsonResponse(response, safe=False)
+
+    # ==========================
+    # Period date
+    try:
+        period = Period.from_date(date=slot.date)
+    except Period.DoesNotExist:
+        # should not happen
+        response['msg'] = _("Immersion is not in a period, please use the contact form")
+        return JsonResponse(response, safe=False)
+    except Period.MultipleObjectsReturned:
+        # should not happen either
+        response['msg'] = _("Multiple periods found for this slot, please use the contact form")
+        return JsonResponse(response, safe=False)
+
+    if today < period.registration_start_date:
+        response['msg'] = _("You can't register to this slot yet")
+        return JsonResponse(response, safe=False)
+
+    if today > period.immersion_end_date or slot.registration_limit_date < now:
+        response['msg'] = _("You can't register to this slot anymore")
+        return JsonResponse(response, safe=False)
+    # ========================
 
     # Check free seat in slot
     if slot.available_seats() == 0:
