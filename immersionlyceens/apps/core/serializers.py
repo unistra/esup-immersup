@@ -2,6 +2,8 @@
 """Serializer"""
 from collections import OrderedDict
 from rest_framework import serializers, status
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext, gettext_lazy as _
 from django.db.models import Q
