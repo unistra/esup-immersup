@@ -7,6 +7,8 @@ from django.utils.translation import gettext, gettext_lazy as _
 from django.db.models import Q
 from django.conf import settings
 
+from immersionlyceens.libs.api.accounts import AccountAPI
+
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
     HighSchoolLevel, UserCourseAlert, Slot, CourseType, Period
@@ -66,19 +68,62 @@ class ImmersionUserSerializer(serializers.ModelSerializer):
 class SpeakerSerializer(ImmersionUserSerializer):
     def validate(self, attrs):
         # Note : email (account) unicity is checked before serializer validation
+        filter = {}
         establishment = attrs.get('establishment', None)
         highschool = attrs.get('highschool', None)
+        email = attrs.get("email")
 
-        if not establishment and not highschool:
+        try:
+            ImmersionUser.objects.get(email__iexact=email.strip())
+            raise serializers.ValidationError(_("A user with this email address already exists"))
+        except ImmersionUser.DoesNotExist:
+            pass
+
+        # check fields depending on establishment / highschool
+        if establishment or highschool:
+            if establishment.data_source_plugin:
+                if not email:
+                    raise serializers.ValidationError(
+                        _("Establishment '%s' has an account plugin, the email is mandatory")
+                        % establishment.short_label
+                    )
+
+                # ================ duplicated code - rewrite this elsewhere ====================== #
+                account_api: AccountAPI = AccountAPI(establishment)
+                ldap_response: Union[bool, List[Any]] = account_api.search_user(
+                    search_value=email.strip(),
+                    search_attr=account_api.EMAIL_ATTR
+                )
+                if not ldap_response:
+                    # not found
+                    raise serializers.ValidationError(
+                        detail=_("Speaker email '%s' not found in establishment '%s'")
+                               % (email, establishment.code),
+                        code=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    speaker = ldap_response[0]
+                    new_attrs = {
+                        "username": speaker['email'],
+                        "last_name": speaker['lastname'],
+                        "first_name": speaker['firstname'],
+                        "email": speaker['email'],
+                    }
+
+                    attrs.update(new_attrs)
+                # =============================================================================== #
+            else:
+                mandatory_fields = ['last_name', 'first_name', 'email']
+                for field in mandatory_fields:
+                    if field not in attrs or attrs.get(field) is None:
+                        raise serializers.ValidationError(
+                            _("These field are mandatory : %s") % ", ".join(mandatory_fields)
+                        )
+        else:
             raise serializers.ValidationError(_("Either an establishment or a high school is mandatory"))
 
-        if establishment and establishment.data_source_plugin:
-            raise serializers.ValidationError(
-                _("Establishment '%s' has an account plugin, please create the speakers in the admin interface")
-                % establishment.short_label
-            )
-
         return super().validate(attrs)
+
 
     def create(self, validated_data):
         try:

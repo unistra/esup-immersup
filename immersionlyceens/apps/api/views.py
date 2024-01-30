@@ -3508,6 +3508,12 @@ class SpeakerList(generics.ListCreateAPIView):
         self.user = request.user
         return super().post(request, *args, **kwargs)
 
+    def perform_create(self, serializer):
+        user = serializer.save()
+
+        if user:
+            user.send_message(self.request, 'CPT_CREATE')
+            # TODO : check send message return
 
 class HighSchoolList(generics.ListCreateAPIView):
     """
