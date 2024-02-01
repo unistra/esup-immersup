@@ -433,6 +433,7 @@ class CourseSerializer(serializers.ModelSerializer):
         speakers = data.get('speakers')
         structure = data.get("structure")
         highschool = data.get("highschool")
+        excludes = {}
 
         if published and not speakers:
             raise serializers.ValidationError(
@@ -452,7 +453,8 @@ class CourseSerializer(serializers.ModelSerializer):
             )
 
         # Unicity test
-        excludes = {'id': data.get('id')} if data.get('id') else {}
+        if self.instance and self.instance.id:
+            excludes = {'id': self.instance.id}
 
         label_filter = {
             'label__iexact': data.get('label'),
