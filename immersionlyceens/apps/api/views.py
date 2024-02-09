@@ -80,6 +80,10 @@ from .utils import get_or_create_user
 
 logger = logging.getLogger(__name__)
 
+# TODO: move to general settings ?
+# Used to generate csv compliant with ms-excel
+CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL}
+
 @is_ajax_request
 @groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR", "REF-LYC", 'REF-TEC')
 def ajax_get_person(request):
@@ -2179,7 +2183,7 @@ def get_csv_structures(request):
 
     # Forge CSV file
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
-    writer = csv.writer(response)
+    writer = csv.writer(response, **CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(content)
 
@@ -2405,7 +2409,7 @@ def get_csv_highschool(request):
         )
 
     # Forge csv file and return it
-    writer = csv.writer(response)
+    writer = csv.writer(response, **CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(list(content))
 
@@ -2937,7 +2941,7 @@ def get_csv_anonymous(request):
 
     # Forge csv
     response['Content-Disposition'] = f'attachment; filename={label}_{today}.csv'
-    writer = csv.writer(response)
+    writer = csv.writer(response, **CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(content)
     return response
