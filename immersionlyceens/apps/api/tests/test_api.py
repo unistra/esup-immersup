@@ -18,6 +18,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _, pgettext
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
+from django.conf import settings
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
@@ -1106,8 +1107,7 @@ class APITestCase(TestCase):
         # type=course
         url = '/api/get_csv_anonymous/?type=course'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
@@ -1133,7 +1133,6 @@ class APITestCase(TestCase):
         ]
 
         n = 0
-
         for row in content:
             # header check
             if n == 0:
@@ -1185,8 +1184,7 @@ class APITestCase(TestCase):
         # ref etab
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1287,8 +1285,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_master_etab', password='pass')
         url = '/api/get_csv_anonymous/?type=visit'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
@@ -1335,8 +1332,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         url = '/api/get_csv_anonymous/?type=visit'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('highschool'),
@@ -1385,8 +1381,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_lyc', password='pass')
         url = '/api/get_csv_highschool/'
         response = self.client.get(url, request)
-
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('last name'),
             _('first name'),
@@ -1473,9 +1468,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         response = self.client.get(url, request)
-
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         n = 0
         for row in content:
             # header check
@@ -1572,8 +1565,7 @@ class APITestCase(TestCase):
         # Ref structure
         self.client.login(username='ref_str', password='pass')
         response = self.client.get(url, request)
-
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1624,7 +1616,7 @@ class APITestCase(TestCase):
 
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1675,7 +1667,7 @@ class APITestCase(TestCase):
 
         self.client.login(username='ref_master_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
