@@ -689,4 +689,4 @@ AWS_QUERYSTRING_EXPIRE = 999999999
 ########################
 # TODO: move to general settings ?
 # Used to generate csv compliant with ms-excel
-CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL}
+CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL, 'dialect': csv.excel}

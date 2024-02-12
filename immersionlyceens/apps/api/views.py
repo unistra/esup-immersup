@@ -7,6 +7,8 @@ import importlib
 import json
 import logging
 import time
+import codecs
+
 from functools import reduce
 from itertools import chain, permutations
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -2180,6 +2182,8 @@ def get_csv_structures(request):
 
     # Forge CSV file
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
+    # Dirty hack for ms-excel to recognize utf-8
+    response.write(codecs.BOM_UTF8)
     writer = csv.writer(response, **settings.CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(content)
@@ -2405,6 +2409,8 @@ def get_csv_highschool(request):
             'detail_consultancy', 'detail_registrations'
         )
 
+    # Dirty hack for ms-excel to recognize utf-8
+    response.write(codecs.BOM_UTF8)
     # Forge csv file and return it
     writer = csv.writer(response, **settings.CSV_OPTIONS)
     writer.writerow(header)
@@ -2938,6 +2944,8 @@ def get_csv_anonymous(request):
 
     # Forge csv
     response['Content-Disposition'] = f'attachment; filename={label}_{today}.csv'
+    # Dirty hack for ms-excel to recognize utf-8a
+    response.write(codecs.BOM_UTF8)
     writer = csv.writer(response, **settings.CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(content)

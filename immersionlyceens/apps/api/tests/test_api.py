@@ -4,6 +4,7 @@ Django API tests suite
 import csv
 import json
 import unittest
+import codecs
 from datetime import datetime, time, timedelta
 from unittest.mock import patch
 
@@ -1107,7 +1108,7 @@ class APITestCase(TestCase):
         # type=course
         url = '/api/get_csv_anonymous/?type=course'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
@@ -1184,7 +1185,7 @@ class APITestCase(TestCase):
         # ref etab
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1285,7 +1286,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_master_etab', password='pass')
         url = '/api/get_csv_anonymous/?type=visit'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
@@ -1332,7 +1333,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         url = '/api/get_csv_anonymous/?type=visit'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('highschool'),
@@ -1381,7 +1382,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_lyc', password='pass')
         url = '/api/get_csv_highschool/'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('last name'),
             _('first name'),
@@ -1411,7 +1412,7 @@ class APITestCase(TestCase):
             if n == 0:
                 for h in headers:
                     self.assertIn(h, row)
-            elif n == 1:
+            if n == 1:
                 self.assertEqual(self.hs_record.student.last_name, row[0])
                 self.assertEqual(self.hs_record.student.first_name, row[1])
                 self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
@@ -1468,7 +1469,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         n = 0
         for row in content:
             # header check
@@ -1565,7 +1566,7 @@ class APITestCase(TestCase):
         # Ref structure
         self.client.login(username='ref_str', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1616,7 +1617,7 @@ class APITestCase(TestCase):
 
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1667,7 +1668,7 @@ class APITestCase(TestCase):
 
         self.client.login(username='ref_master_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'), **settings.CSV_OPTIONS)
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
