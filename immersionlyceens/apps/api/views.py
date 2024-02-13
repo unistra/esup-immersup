@@ -1726,7 +1726,6 @@ def get_csv_structures(request):
     filters = {}
     Q_filters = Q()
     content = []
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
 
     structures = request.user.get_authorized_structures()
@@ -2181,6 +2180,7 @@ def get_csv_structures(request):
         )
 
     # Forge CSV file
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
     # Dirty hack for ms-excel to recognize utf-8
     response.write(codecs.BOM_UTF8)
@@ -2193,7 +2193,7 @@ def get_csv_structures(request):
 
 @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_highschool(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response = HttpResponse(content_type='text/csv')
     today = _date(datetime.datetime.today(), 'Ymd')
     request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
     hs = request.user.highschool
@@ -2421,7 +2421,7 @@ def get_csv_highschool(request):
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_anonymous(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response = HttpResponse(content_type='text/csv')
     today = _date(datetime.datetime.today(), 'Ymd')
     infield_separator = '|'
     t = request.GET.get('type')
