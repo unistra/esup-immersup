@@ -2468,18 +2468,13 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant profile'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'establishment', 'structure', 'domains', 'subdomains', 'training_label',
                 'course_label', 'slot_course_type', 'slot_date', 'slot_start_time', 'slot_end_time',
                 'slot_campus', 'slot_building', 'slot_room', 'slot_speakers', 'registered',
-                'slot_n_places', 'info', 'registrant_profile', 'origin_institution',
-                'level', 'attendance'
+                'slot_n_places', 'info',
             ]
 
         elif request.user.is_establishment_manager():
@@ -2501,17 +2496,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant profile'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'structure', 'domains', 'subdomains', 'training_label', 'course_label', 'slot_course_type',
                 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_campus', 'slot_building',
                 'slot_room', 'slot_speakers', 'registered', 'slot_n_places', 'info',
-                'registrant_profile', 'origin_institution', 'level', 'attendance'
             ]
 
             filters[
@@ -2561,25 +2551,6 @@ def get_csv_anonymous(request):
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
-            registrant_profile=Case(
-                When(
-                    immersions__student__high_school_student_record__isnull=False,
-                    then=Value(pgettext("person type", "High school student"))
-                ),
-                When(immersions__student__student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
-                When(immersions__student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
-                default=Value('')
-            ),
-            origin_institution=Coalesce(
-                F('immersions__student__high_school_student_record__highschool__label'),
-                F('immersions__student__student_record__institution__label'),
-                F('immersions__student__student_record__uai_code'),
-            ),
-            level=Coalesce(
-                F('immersions__student__high_school_student_record__level__label'),
-                F('immersions__student__student_record__level__label'),
-            ),
-            attendance=Case(*attendance_status_whens, output_field=CharField()),
         ).values_list(
             *fields
         )
@@ -2604,14 +2575,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'establishment', 'structure', 'highschool', 'purpose', 'meeting_place',
                 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info', 'level', 'attendance'
+                'registered', 'slot_n_places', 'info'
             ]
 
         elif request.user.is_establishment_manager():
@@ -2628,14 +2597,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'structure', 'highschool', 'purpose', 'meeting_place',
                 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info', 'level', 'attendance'
+                'registered', 'slot_n_places', 'info'
             ]
 
             Q_filters = Q(visit__establishment=request.user.establishment) | Q(
@@ -2671,11 +2638,6 @@ def get_csv_anonymous(request):
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
-            level=Coalesce(
-                F('immersions__student__high_school_student_record__level__label'),
-                F('immersions__student__student_record__level__label'),
-            ),
-            attendance=Case(*attendance_status_whens, output_field=CharField()),
         ).values_list(
             *fields
         )
@@ -2703,16 +2665,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant information'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'establishment', 'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building',
                 'slot_room', 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info', 'registrant_profile', 'institution', 'level', 'attendance'
+                'registered', 'slot_n_places', 'info',
             ]
 
         elif request.user.is_establishment_manager():
@@ -2732,10 +2690,6 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant information'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
             filters[
                 'event__establishment'
@@ -2744,7 +2698,6 @@ def get_csv_anonymous(request):
             fields = [
                 'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building', 'slot_room', 'slot_date',
                 'slot_start_time', 'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info',
-                'registrant_profile', 'institution', 'level', 'attendance'
             ]
 
         content = []
@@ -2782,25 +2735,6 @@ def get_csv_anonymous(request):
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
-            registrant_profile=Case(
-                When(
-                    immersions__student__high_school_student_record__isnull=False,
-                    then=Value(pgettext("person type", "High school student"))
-                ),
-                When(immersions__student__student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
-                When(immersions__student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
-                default=Value('')
-            ),
-            institution=Coalesce(
-                F('immersions__student__high_school_student_record__highschool__label'),
-                F('immersions__student__student_record__institution__label'),
-                F('immersions__student__student_record__uai_code'),
-            ),
-            level=Coalesce(
-                F('immersions__student__high_school_student_record__level__label'),
-                F('immersions__student__student_record__level__label'),
-            ),
-            attendance=Case(*attendance_status_whens, output_field=CharField()),
         ).values_list(
             *fields
         )

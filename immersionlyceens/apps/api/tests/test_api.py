@@ -1127,10 +1127,6 @@ class APITestCase(TestCase):
             _('registration number'),
             _('place number'),
             _('additional information'),
-            _('registrant profile'),
-            _('origin institution'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1158,17 +1154,7 @@ class APITestCase(TestCase):
                 self.assertEqual(str(self.slot.registered_students()), row[14])
                 self.assertEqual(str(self.slot.n_places), row[15])
                 self.assertEqual(self.slot.additional_information, row[16])
-                self.assertEqual(_('High school student'), row[17])
-                self.assertEqual(self.high_school.label, row[18])
-                self.assertEqual(self.hs_record.level.label, row[19])
-                self.assertEqual(self.immersion.get_attendance_status(), row[20])
-            elif n == 2:
-                self.assertEqual(
-                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
-                    row[18]
-                )
-                self.assertEqual(self.student_record.level.label, row[19])
-            elif n == 5:  # high school slot
+            elif n == 1:  # high school slot
                 self.assertEqual(f"{self.high_school.label} - {self.high_school.city}", row[0])
                 self.assertEqual(self.highschool_training.label, row[4])
                 self.assertEqual(self.highschool_course.label, row[5])
@@ -1203,10 +1189,6 @@ class APITestCase(TestCase):
             _('registration number'),
             _('place number'),
             _('additional information'),
-            _('registrant profile'),
-            _('origin institution'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1233,17 +1215,7 @@ class APITestCase(TestCase):
                 self.assertEqual(str(self.slot.registered_students()), row[13])
                 self.assertEqual(str(self.slot.n_places), row[14])
                 self.assertEqual(self.slot.additional_information, row[15])
-                self.assertEqual(_('High school student'), row[16])
-                self.assertEqual(self.high_school.label, row[17])
-                self.assertEqual(self.hs_record.level.label, row[18])
-                self.assertEqual(self.immersion.get_attendance_status(), row[19])
-            elif n == 2:
-                self.assertEqual(
-                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
-                    row[17]
-                )
-                self.assertEqual(self.student_record.level.label, row[18])
-            elif n == 5:  # high school slot
+            elif n == 2:  # high school slot
                 self.assertEqual(self.structure.label, row[0])
                 self.assertEqual(self.training.label, row[3])
                 self.assertEqual(self.highschool_course.label, row[4])
@@ -1298,10 +1270,6 @@ class APITestCase(TestCase):
             _('end_time'),
             _('speakers'),
             _('registration number'),
-            _('place number'),
-            _('additional information'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1324,8 +1292,6 @@ class APITestCase(TestCase):
                 self.assertEqual(str(slot.registered_students()), row[9])
                 self.assertEqual(str(self.slot.n_places), row[10])
                 self.assertEqual(slot.additional_information, row[11])
-                self.assertEqual(self.student_record.level.label, row[12])
-                self.assertEqual(immersion.get_attendance_status(), row[13])
 
             n += 1
 
@@ -1346,8 +1312,6 @@ class APITestCase(TestCase):
             _('registration number'),
             _('place number'),
             _('additional information'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1369,8 +1333,6 @@ class APITestCase(TestCase):
                 self.assertEqual(str(slot.registered_students()), row[8])
                 self.assertEqual(str(self.slot.n_places), row[9])
                 self.assertEqual(slot.additional_information, row[10])
-                self.assertEqual(self.student_record.level.label, row[11])
-                self.assertEqual(immersion.get_attendance_status(), row[12])
 
             n += 1
 
