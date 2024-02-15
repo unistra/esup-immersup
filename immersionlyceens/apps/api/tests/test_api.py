@@ -4,6 +4,7 @@ Django API tests suite
 import csv
 import json
 import unittest
+import codecs
 from datetime import datetime, time, timedelta
 from unittest.mock import patch
 
@@ -18,6 +19,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _, pgettext
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
+from django.conf import settings
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
@@ -1064,8 +1066,7 @@ class APITestCase(TestCase):
         # type=course
         url = '/api/get_csv_anonymous/?type=course'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
@@ -1084,14 +1085,9 @@ class APITestCase(TestCase):
             _('registration number'),
             _('place number'),
             _('additional information'),
-            _('registrant profile'),
-            _('origin institution'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
-
         for row in content:
             # header check
             if n == 0:
@@ -1116,17 +1112,7 @@ class APITestCase(TestCase):
                 self.assertEqual(str(self.slot.registered_students()), row[14])
                 self.assertEqual(str(self.slot.n_places), row[15])
                 self.assertEqual(self.slot.additional_information, row[16])
-                self.assertEqual(_('High school student'), row[17])
-                self.assertEqual(self.high_school.label, row[18])
-                self.assertEqual(self.hs_record.level.label, row[19])
-                self.assertEqual(self.immersion.get_attendance_status(), row[20])
-            elif n == 2:
-                self.assertEqual(
-                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
-                    row[18]
-                )
-                self.assertEqual(self.student_record.level.label, row[19])
-            elif n == 5:  # high school slot
+            elif n == 1:  # high school slot
                 self.assertEqual(f"{self.high_school.label} - {self.high_school.city}", row[0])
                 self.assertEqual(self.highschool_training.label, row[4])
                 self.assertEqual(self.highschool_course.label, row[5])
@@ -1143,8 +1129,7 @@ class APITestCase(TestCase):
         # ref etab
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1162,10 +1147,6 @@ class APITestCase(TestCase):
             _('registration number'),
             _('place number'),
             _('additional information'),
-            _('registrant profile'),
-            _('origin institution'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1192,17 +1173,7 @@ class APITestCase(TestCase):
                 self.assertEqual(str(self.slot.registered_students()), row[13])
                 self.assertEqual(str(self.slot.n_places), row[14])
                 self.assertEqual(self.slot.additional_information, row[15])
-                self.assertEqual(_('High school student'), row[16])
-                self.assertEqual(self.high_school.label, row[17])
-                self.assertEqual(self.hs_record.level.label, row[18])
-                self.assertEqual(self.immersion.get_attendance_status(), row[19])
-            elif n == 2:
-                self.assertEqual(
-                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
-                    row[17]
-                )
-                self.assertEqual(self.student_record.level.label, row[18])
-            elif n == 5:  # high school slot
+            elif n == 2:  # high school slot
                 self.assertEqual(self.structure.label, row[0])
                 self.assertEqual(self.training.label, row[3])
                 self.assertEqual(self.highschool_course.label, row[4])
@@ -1245,8 +1216,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_master_etab', password='pass')
         url = '/api/get_csv_anonymous/?type=visit'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),
@@ -1258,10 +1228,6 @@ class APITestCase(TestCase):
             _('end_time'),
             _('speakers'),
             _('registration number'),
-            _('place number'),
-            _('additional information'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1284,8 +1250,6 @@ class APITestCase(TestCase):
                 self.assertEqual(str(slot.registered_students()), row[9])
                 self.assertEqual(str(self.slot.n_places), row[10])
                 self.assertEqual(slot.additional_information, row[11])
-                self.assertEqual(self.student_record.level.label, row[12])
-                self.assertEqual(immersion.get_attendance_status(), row[13])
 
             n += 1
 
@@ -1293,8 +1257,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         url = '/api/get_csv_anonymous/?type=visit'
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('highschool'),
@@ -1307,8 +1270,6 @@ class APITestCase(TestCase):
             _('registration number'),
             _('place number'),
             _('additional information'),
-            _('student level'),
-            _('attendance status'),
         ]
 
         n = 0
@@ -1330,8 +1291,6 @@ class APITestCase(TestCase):
                 self.assertEqual(str(slot.registered_students()), row[8])
                 self.assertEqual(str(self.slot.n_places), row[9])
                 self.assertEqual(slot.additional_information, row[10])
-                self.assertEqual(self.student_record.level.label, row[11])
-                self.assertEqual(immersion.get_attendance_status(), row[12])
 
             n += 1
 
@@ -1343,8 +1302,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_lyc', password='pass')
         url = '/api/get_csv_highschool/'
         response = self.client.get(url, request)
-
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('last name'),
             _('first name'),
@@ -1374,7 +1332,7 @@ class APITestCase(TestCase):
             if n == 0:
                 for h in headers:
                     self.assertIn(h, row)
-            elif n == 1:
+            if n == 1:
                 self.assertEqual(self.hs_record.student.last_name, row[0])
                 self.assertEqual(self.hs_record.student.first_name, row[1])
                 self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
@@ -1431,9 +1389,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         response = self.client.get(url, request)
-
-        content = csv.reader(response.content.decode().split('\n'))
-
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         n = 0
         for row in content:
             # header check
@@ -1530,8 +1486,7 @@ class APITestCase(TestCase):
         # Ref structure
         self.client.login(username='ref_str', password='pass')
         response = self.client.get(url, request)
-
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1582,7 +1537,7 @@ class APITestCase(TestCase):
 
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('structure'),
             _('training domain'),
@@ -1633,7 +1588,7 @@ class APITestCase(TestCase):
 
         self.client.login(username='ref_master_etab', password='pass')
         response = self.client.get(url, request)
-        content = csv.reader(response.content.decode().split('\n'))
+        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
         headers = [
             _('establishment'),
             _('structure'),

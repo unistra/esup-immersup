@@ -7,6 +7,8 @@ import importlib
 import json
 import logging
 import time
+import codecs
+
 from functools import reduce
 from itertools import chain, permutations
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -76,7 +78,10 @@ from .permissions import (
     IsVisitorPermissions, SpeakersReadOnlyPermissions,
 )
 
+from .utils import get_or_create_user
+
 logger = logging.getLogger(__name__)
+
 
 @is_ajax_request
 @groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR", "REF-LYC", 'REF-TEC')
@@ -1721,7 +1726,6 @@ def get_csv_structures(request):
     filters = {}
     Q_filters = Q()
     content = []
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
 
     structures = request.user.get_authorized_structures()
@@ -2176,8 +2180,11 @@ def get_csv_structures(request):
         )
 
     # Forge CSV file
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
-    writer = csv.writer(response)
+    # Dirty hack for ms-excel to recognize utf-8
+    response.write(codecs.BOM_UTF8)
+    writer = csv.writer(response, **settings.CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(content)
 
@@ -2186,7 +2193,7 @@ def get_csv_structures(request):
 
 @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_highschool(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response = HttpResponse(content_type='text/csv')
     today = _date(datetime.datetime.today(), 'Ymd')
     request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
     hs = request.user.highschool
@@ -2402,8 +2409,10 @@ def get_csv_highschool(request):
             'detail_consultancy', 'detail_registrations'
         )
 
+    # Dirty hack for ms-excel to recognize utf-8
+    response.write(codecs.BOM_UTF8)
     # Forge csv file and return it
-    writer = csv.writer(response)
+    writer = csv.writer(response, **settings.CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(list(content))
 
@@ -2412,7 +2421,7 @@ def get_csv_highschool(request):
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_anonymous(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response = HttpResponse(content_type='text/csv')
     today = _date(datetime.datetime.today(), 'Ymd')
     infield_separator = '|'
     t = request.GET.get('type')
@@ -2459,18 +2468,13 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant profile'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'establishment', 'structure', 'domains', 'subdomains', 'training_label',
                 'course_label', 'slot_course_type', 'slot_date', 'slot_start_time', 'slot_end_time',
                 'slot_campus', 'slot_building', 'slot_room', 'slot_speakers', 'registered',
-                'slot_n_places', 'info', 'registrant_profile', 'origin_institution',
-                'level', 'attendance'
+                'slot_n_places', 'info',
             ]
 
         elif request.user.is_establishment_manager():
@@ -2492,17 +2496,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant profile'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'structure', 'domains', 'subdomains', 'training_label', 'course_label', 'slot_course_type',
                 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_campus', 'slot_building',
                 'slot_room', 'slot_speakers', 'registered', 'slot_n_places', 'info',
-                'registrant_profile', 'origin_institution', 'level', 'attendance'
             ]
 
             filters[
@@ -2552,25 +2551,6 @@ def get_csv_anonymous(request):
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
-            registrant_profile=Case(
-                When(
-                    immersions__student__high_school_student_record__isnull=False,
-                    then=Value(pgettext("person type", "High school student"))
-                ),
-                When(immersions__student__student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
-                When(immersions__student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
-                default=Value('')
-            ),
-            origin_institution=Coalesce(
-                F('immersions__student__high_school_student_record__highschool__label'),
-                F('immersions__student__student_record__institution__label'),
-                F('immersions__student__student_record__uai_code'),
-            ),
-            level=Coalesce(
-                F('immersions__student__high_school_student_record__level__label'),
-                F('immersions__student__student_record__level__label'),
-            ),
-            attendance=Case(*attendance_status_whens, output_field=CharField()),
         ).values_list(
             *fields
         )
@@ -2595,14 +2575,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'establishment', 'structure', 'highschool', 'purpose', 'meeting_place',
                 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info', 'level', 'attendance'
+                'registered', 'slot_n_places', 'info'
             ]
 
         elif request.user.is_establishment_manager():
@@ -2619,14 +2597,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'structure', 'highschool', 'purpose', 'meeting_place',
                 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info', 'level', 'attendance'
+                'registered', 'slot_n_places', 'info'
             ]
 
             Q_filters = Q(visit__establishment=request.user.establishment) | Q(
@@ -2662,11 +2638,6 @@ def get_csv_anonymous(request):
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
-            level=Coalesce(
-                F('immersions__student__high_school_student_record__level__label'),
-                F('immersions__student__student_record__level__label'),
-            ),
-            attendance=Case(*attendance_status_whens, output_field=CharField()),
         ).values_list(
             *fields
         )
@@ -2694,16 +2665,12 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant information'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
 
             fields = [
                 'establishment', 'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building',
                 'slot_room', 'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info', 'registrant_profile', 'institution', 'level', 'attendance'
+                'registered', 'slot_n_places', 'info',
             ]
 
         elif request.user.is_establishment_manager():
@@ -2723,10 +2690,6 @@ def get_csv_anonymous(request):
                 _('registration number'),
                 _('place number'),
                 _('additional information'),
-                _('registrant information'),
-                _('origin institution'),
-                _('student level'),
-                _('attendance status'),
             ]
             filters[
                 'event__establishment'
@@ -2735,7 +2698,6 @@ def get_csv_anonymous(request):
             fields = [
                 'structure', 'type', 'label', 'desc', 'slot_campus', 'slot_building', 'slot_room', 'slot_date',
                 'slot_start_time', 'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info',
-                'registrant_profile', 'institution', 'level', 'attendance'
             ]
 
         content = []
@@ -2773,25 +2735,6 @@ def get_csv_anonymous(request):
             registered=Subquery(registered_students_count),
             slot_n_places=F('n_places'),
             info=(F('additional_information')),
-            registrant_profile=Case(
-                When(
-                    immersions__student__high_school_student_record__isnull=False,
-                    then=Value(pgettext("person type", "High school student"))
-                ),
-                When(immersions__student__student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
-                When(immersions__student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
-                default=Value('')
-            ),
-            institution=Coalesce(
-                F('immersions__student__high_school_student_record__highschool__label'),
-                F('immersions__student__student_record__institution__label'),
-                F('immersions__student__student_record__uai_code'),
-            ),
-            level=Coalesce(
-                F('immersions__student__high_school_student_record__level__label'),
-                F('immersions__student__student_record__level__label'),
-            ),
-            attendance=Case(*attendance_status_whens, output_field=CharField()),
         ).values_list(
             *fields
         )
@@ -2935,7 +2878,9 @@ def get_csv_anonymous(request):
 
     # Forge csv
     response['Content-Disposition'] = f'attachment; filename={label}_{today}.csv'
-    writer = csv.writer(response)
+    # Dirty hack for ms-excel to recognize utf-8a
+    response.write(codecs.BOM_UTF8)
+    writer = csv.writer(response, **settings.CSV_OPTIONS)
     writer.writerow(header)
     writer.writerows(content)
     return response
@@ -3621,96 +3566,6 @@ class CourseList(generics.ListCreateAPIView):
 
         super().__init__(*args, **kwargs)
 
-    def get_or_create_user(self, request, data):
-        """
-        When creating or updating a course :
-        - if a highschool is present, look for existing ImmersionUsers
-        else
-        - if a structure is present (not a highschool),
-        - & if the structure establishment is linked to an account provider (eg. LDAP),
-        - & if data has an 'emails' field (list)
-        then search for existing ImmersionUser accounts matching these emails
-        or
-        look for these accounts in the establishment account provider in order to create new ImmersionUsers
-        :param request: request object
-        :param data: POST data
-        :return: speakers id
-        """
-        highschool_id = data.get("highschool")
-        structure_id = data.get("structure")
-        emails = data.get("emails", [])
-        establishment = None
-        speaker_user = None
-        send_creation_msg = False
-
-        if highschool_id:
-            filter = {'highschool__id': highschool_id}
-        elif structure_id:
-            try:
-                structure = Structure.objects.get(pk=structure_id)
-                establishment = structure.establishment
-                filter = {'establishment__id': establishment.id}
-            except Structure.DoesNotExist:
-                raise
-        else:
-            # Validation exception will be thrown by the serializer
-            return data
-
-        for email in emails:
-            try:
-                speaker_user = ImmersionUser.objects.get(email__iexact=email.strip(), **filter)
-                data.get("speakers", []).append(speaker_user.id)
-            except ImmersionUser.DoesNotExist:
-                if establishment and establishment.provides_accounts():
-                    account_api: AccountAPI = AccountAPI(establishment)
-                    ldap_response: Union[bool, List[Any]] = account_api.search_user(
-                        search_value=email.strip(),
-                        search_attr=account_api.EMAIL_ATTR
-                    )
-                    if not ldap_response:
-                        # not found
-                        raise serializers.ValidationError(
-                            detail=_("Course '%s' : speaker email '%s' not found in establishment '%s'")
-                                % (data.get("label"), email, establishment.code),
-                            code=status.HTTP_400_BAD_REQUEST
-                        )
-                    else:
-                        speaker = ldap_response[0]
-                        speaker_user = ImmersionUser.objects.create(
-                            username=speaker['email'],
-                            last_name=speaker['lastname'],
-                            first_name=speaker['firstname'],
-                            email=speaker['email'],
-                            establishment=establishment
-                        )
-                        send_creation_msg = True
-                else:
-                    # High school or establishment without account provider : reject
-                    raise serializers.ValidationError(
-                        detail=_("Course '%s' : speaker '%s' has to be manually created before using it in a course")
-                            % (data.get("label"), email),
-                        code=status.HTTP_400_BAD_REQUEST
-                    )
-
-            if speaker_user:
-                try:
-                    Group.objects.get(name='INTER').user_set.add(speaker_user)
-                except Exception as e:
-                    raise serializers.ValidationError(
-                        detail=_("Couldn't add group 'INTER' to user '%s' : %s") % (speaker_user.username, e),
-                        code=status.HTTP_400_BAD_REQUEST
-                    )
-
-                if send_creation_msg:
-                    msg = speaker_user.send_message(self.request, 'CPT_CREATE')
-
-                    if msg:
-                        data["status"] = "warning"
-                        data["msg"] = { speaker_user.email: msg }
-
-                data.get("speakers", []).append(speaker_user.pk)
-
-        return data
 
     def get_queryset(self):
         self.user = self.request.user
@@ -3756,12 +3611,12 @@ class CourseList(generics.ListCreateAPIView):
             if many:
                 for course_data in data:
                     try:
-                        course_data = self.get_or_create_user(self.request, course_data)
+                        course_data = get_or_create_user(self.request, course_data)
                     except Exception as e:
                         raise
             else:
                 try:
-                    data = self.get_or_create_user(self.request, data)
+                    data = get_or_create_user(self.request, data)
                 except Exception as e:
                     raise
 
@@ -3778,9 +3633,9 @@ class CourseList(generics.ListCreateAPIView):
             )
 
 
-class CourseDetail(generics.RetrieveDestroyAPIView):
+class CourseDetail(generics.RetrieveUpdateDestroyAPIView):
     """
-    Course detail / destroy
+    Course detail / update / destroy
     """
     serializer_class = CourseSerializer
     permission_classes = [
@@ -3797,11 +3652,13 @@ class CourseDetail(generics.RetrieveDestroyAPIView):
 
         super().__init__(*args, **kwargs)
 
-    def get_queryset(self):
-        return Course.objects.prefetch_related('training__structures', 'training__highschool', 'training__training_subdomains', 'highschool',
+    def get_queryset(self, *args, **kwargs):
+        return Course.objects.prefetch_related(
+            'training__structures', 'training__highschool',
+            'training__training_subdomains', 'highschool',
             'structure', 'speakers').all()
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+    def get_serializer(self, instance=None, data=None, partial=False):
         """
         Look for speaker emails and try to create/add them to serializer data
         """
@@ -3825,9 +3682,15 @@ class CourseDetail(generics.RetrieveDestroyAPIView):
             self.user_filter = True
             self.filters["speakers__in"] = self.user.linked_users()
 
+        try:
+            data = get_or_create_user(self.request, data)
+        except Exception as e:
+            raise
+
         return super().get_serializer(
             instance=instance,
-            many=many,
+            data=data,
+            many=False,
             partial=partial,
             context={
                 'user_courses': self.user_filter,
@@ -4794,7 +4657,7 @@ def ajax_search_slots_list(request, slot_id=None):
                 Value([]),
             ),
             passed_registration_limit_date = ExpressionWrapper(
-                Q(registration_limit_date__gt=timezone.now()),
+                Q(registration_limit_date__lt=timezone.now()),
                 output_field=CharField()
             ),
         )

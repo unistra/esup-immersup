@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import gettext_lazy as _
@@ -683,3 +684,9 @@ COUNTRIES_FIRST = ['FR',]
 # Expiration of S3 url very looooooooooooooong :)
 AWS_QUERYSTRING_EXPIRE = 999999999
 
+########################
+# CSV exports settings #
+########################
+# TODO: move to general settings ?
+# Used to generate csv compliant with ms-excel
+CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL, 'dialect': csv.excel}
