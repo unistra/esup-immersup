@@ -4657,7 +4657,7 @@ def ajax_search_slots_list(request, slot_id=None):
                 Value([]),
             ),
             passed_registration_limit_date = ExpressionWrapper(
-                Q(registration_limit_date__gt=timezone.now()),
+                Q(registration_limit_date__lt=timezone.now()),
                 output_field=CharField()
             ),
         )

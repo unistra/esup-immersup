@@ -8,7 +8,7 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
-<script src="{% static "js/vendor/chosen/chosen.jquery.min.js" %}"></script>
+<script src="{% static 'js/vendor/chosen/chosen.jquery.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% endblock %}
 {% block title %}
@@ -89,6 +89,9 @@
                 {% endif %}
               </div>
             </div>
+            {% else %}
+               <!-- default : course slots only, hidden checkbox to apply the search filter on these slots -->
+               <input type="checkbox" id="coursesCheckbox" name="slotType" class="filters slotTypeFilter" style='display:none' value="{% trans "Course" %}" checked>
             {% endif %}
             <h5>{% trans "Face to face" %} / {% trans "Remote" %} :</h5>
             <div class="row">
