@@ -1010,7 +1010,7 @@ class Training(models.Model):
         TrainingSubdomain, verbose_name=_("Training subdomains"), blank=False, related_name='Trainings',
     )
     structures = models.ManyToManyField(Structure, verbose_name=_("Structures"), blank=True, related_name='Trainings')
-    url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
+    url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     highschool = models.ForeignKey(HighSchool, verbose_name=_("High school"), blank=True, null=True,
