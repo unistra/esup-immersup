@@ -645,7 +645,7 @@ class ImmersionViewsTestCase(TestCase):
         record_data.update({
             f"{prefix}-record": document.record.pk,
             f"{prefix}-attestation": document.attestation.pk,
-            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read(), content_type='application/pdf')],
         })
 
         fd.close()
@@ -692,7 +692,7 @@ class ImmersionViewsTestCase(TestCase):
         # del(record_data[f"{prefix}-validity_date"])
         fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
         record_data.update({
-            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())]
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read(), content_type='application/pdf')]
         })
         fd.close()
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
@@ -1003,7 +1003,7 @@ class ImmersionViewsTestCase(TestCase):
         record_data.update({
             f"{prefix}-record": document.record.pk,
             f"{prefix}-attestation": document.attestation.pk,
-            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read())],
+            f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read(), content_type='application/pdf')],
         })
 
         response = self.client.post('/immersion/visitor_record', record_data, follow=True)

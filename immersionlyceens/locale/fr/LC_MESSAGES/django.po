@@ -3244,7 +3244,7 @@ msgstr "Logo"
 #: immersionlyceens/apps/core/models.py:2931
 #, python-format
 msgid "Only files with type (%(authorized_types)s)"
-msgstr "Seulement des fichiers de type (%(authorized_types)s)"
+msgstr "Uniquement des fichiers de type (%(authorized_types)s)"
 
 #: immersionlyceens/apps/core/models.py:154
 #: immersionlyceens/apps/core/models.py:247
@@ -3972,7 +3972,7 @@ msgstr "Document"
 msgid ""
 "Only files with type (%(authorized_types)s). Max file size : %(max_size)s"
 msgstr ""
-"Seulement des fichiers de type (%(authorized_types)s). Taille max : "
+"Uniquement des fichiers de type (%(authorized_types)s). Taille max : "
 "%(max_size)s"
 
 #: immersionlyceens/apps/core/models.py:2216

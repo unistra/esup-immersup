@@ -1,9 +1,14 @@
+import mimetypes
+
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
+from django.core.files.uploadedfile import UploadedFile
+from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
@@ -14,7 +19,7 @@ from immersionlyceens.apps.core.models import (
 
 from .models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordQuota, HighSchoolStudentRecordDocument,
-    StudentRecord, StudentRecordQuota, VisitorRecord, VisitorRecordDocument,
+    RecordDocument, StudentRecord, StudentRecordQuota, VisitorRecord, VisitorRecordDocument,
     VisitorRecordQuota
 )
 
@@ -340,6 +345,23 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
                 if self.instance.document != "":
                     self.fields["validity_date"].required = True
+
+    def clean_document(self):
+        document = self.cleaned_data['document']
+        if document and isinstance(document, UploadedFile):
+            allowed_content_type = [
+                mimetypes.types_map[f'.{c}'] for c in RecordDocument.ALLOWED_TYPES
+            ]
+
+            if not document.content_type in allowed_content_type:
+                raise forms.ValidationError(_('File type is not allowed'))
+
+            if document.size > int(settings.MAX_UPLOAD_SIZE):
+                raise forms.ValidationError(
+                    _('File is too large (max: %s)') % filesizeformat(settings.MAX_UPLOAD_SIZE)
+                )
+
+        return document
 
     def clean(self):
         cleaned_data = super().clean()
