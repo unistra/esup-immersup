@@ -501,6 +501,8 @@ class RecordDocument(models.Model):
     """
     Abstract base Class for record documents
     """
+    ALLOWED_TYPES = ['png', 'jpeg', 'jpg', 'pdf', 'doc', 'docx', 'odt']
+
     created = models.DateTimeField(_("Creation date"), auto_now_add=True)
     last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
     attestation = models.ForeignKey(core_models.AttestationDocument, on_delete=models.CASCADE)
@@ -511,7 +513,7 @@ class RecordDocument(models.Model):
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
                   % {
-                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'authorized_types': ', '.join(ALLOWED_TYPES),
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )
