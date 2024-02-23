@@ -1310,7 +1310,11 @@ def immersion_attendance_students_list_download(request, slot_id):
         slot = Slot.objects.get(pk=slot_id)
 
         if slot:
-            immersions = Immersion.objects.prefetch_related('student').filter(slot=slot, cancellation_type__isnull=True)
+            immersions = Immersion.objects\
+                .prefetch_related('student')\
+                .filter(slot=slot, cancellation_type__isnull=True)\
+                .order_by("student__last_name", "student__first_name")
+
             slot_entity = slot.get_establishment() \
                 if slot.get_establishment() else slot.get_highschool()
 
@@ -1318,7 +1322,7 @@ def immersion_attendance_students_list_download(request, slot_id):
                 else CertificateLogo.objects.get(pk=1).logo
 
             context = {
-                'students' : [ i.student for i in immersions],
+                'students' : [i.student for i in immersions],
                 'logo' : logo if logo else '',
                 'slot_desc' : slot,
             }
