@@ -304,24 +304,28 @@
           </div>
 
           <div class="form-group row" id="id_div_allowed_establishments">
-            <div class="col-sm-3 offset-sm-3">
+            <div class="col-sm-4 offset-sm-3">
               <label for="id_allowed_establishments" class="col-form-label">
                 {% trans 'Allowed establishments' %}
               </label>
               {{ form.allowed_establishments }}
+              {% if form.allowed_establishments.errors %}
+                <div class="col-sm-4 alert alert-danger">
+                  {{ form.allowed_establishments.errors }}
+                </div>
+              {% endif %}
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-5">
               <label for="id_allowed_highschools" class="col-form-label">
                 {% trans 'Allowed high schools' %}
               </label>
               {{ form.allowed_highschools }}
+              {% if form.allowed_highschools.errors %}
+                <div class="col-sm-5 alert alert-danger">
+                  {{ form.allowed_highschools.errors }}
+                </div>
+              {% endif %}
             </div>
-
-            {% if form.allowed_establishments.errors %}
-              <div class="col-sm-3 alert alert-danger">
-                {{ form.allowed_establishments.errors }}
-              </div>
-            {% endif %}
           </div>
         {% endif %}
 
