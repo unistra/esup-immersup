@@ -187,9 +187,15 @@
       { "data": "record_status",
         "render": function(data, type, row) {
           var txt = "";
-          var labels = ["", "{% trans 'To validate' %}", "{% trans 'Validated' %}", "{% trans 'Rejected' %}"]
+          var labels = [
+              "{% trans 'To complete' %}", 
+              "{% trans 'To validate' %}", 
+              "{% trans 'Validated' %}", 
+              "{% trans 'Rejected' %}",
+              "{% trans 'To revalidate' %}",
+          ]
           $.each(data, function(i, item) {
-            if (txt != "") {
+            if (txt !== "") {
               txt += "<br />";
             }
             txt += labels[item];
@@ -202,7 +208,7 @@
         "render": function(data, type, row) {
           var txt = "";
           $.each(data, function(i, item) {
-            if (txt != "") {
+            if (txt !== "") {
               txt += "<br />";
             }
             txt += item;
