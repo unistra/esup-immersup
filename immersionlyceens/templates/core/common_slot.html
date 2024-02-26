@@ -304,7 +304,7 @@
           </div>
 
           <div class="form-group row" id="id_div_allowed_establishments">
-            <div class="col-sm-4 offset-sm-3">
+            <div class="col-sm-9 offset-sm-3">
               <label for="id_allowed_establishments" class="col-form-label">
                 {% trans 'Allowed establishments' %}
               </label>
@@ -315,7 +315,9 @@
                 </div>
               {% endif %}
             </div>
-            <div class="col-sm-5">
+          </div>
+          <div class="form-group row" id="id_div_allowed_highschools">
+            <div class="col-sm-9 offset-sm-3">
               <label for="id_allowed_highschools" class="col-form-label">
                 {% trans 'Allowed high schools' %}
               </label>
@@ -1207,10 +1209,12 @@
   function toggle_establishments_restrictions() {
     if ($('#id_establishments_restrictions').prop('checked')) {
       $('#id_div_allowed_establishments').show()
+      $('#id_div_allowed_highschools').show()
       $('#establishments_restrictions_hint').show()
     }
     else {
       $('#id_div_allowed_establishments').hide()
+      $('#id_div_allowed_highschools').hide()
       $('#establishments_restrictions_hint').hide()
       $('#id_allowed_establishments').find('option').prop('selected',false)
       $('#id_allowed_highschools').find('option').prop('selected',false)
