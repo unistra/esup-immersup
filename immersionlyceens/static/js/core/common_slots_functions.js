@@ -75,21 +75,21 @@ function display_slot_date(data, type, row) {
 }
 
 function display_slot_restrictions(data, type, row) {
-    let establishment_restrictions = ""
+    let establishments_restrictions = ""
     let levels_restrictions = ""
     let span_txt = ""
     let bachelors_types = ""
     let bachelors_mentions = ""
     let bachelors_teachings = ""
 
-    if(row.establishment_restrictions === true) {
-      establishment_restrictions += `${establishments_txt} :<br>`
+    if(row.establishments_restrictions === true) {
+      establishments_restrictions += `${establishments_txt} :<br>`
       row.allowed_establishments_list.forEach(item => {
-        establishment_restrictions += `- ${item}<br>`
+        establishments_restrictions += `- ${item}<br>`
       })
 
       row.allowed_highschools_list.forEach(json => {
-        establishment_restrictions += `- ${json['city']} - ${json['label']}<br>`
+        establishments_restrictions += `- ${json['city']} - ${json['label']}<br>`
       })
     }
 
@@ -132,8 +132,8 @@ function display_slot_restrictions(data, type, row) {
       }
     }
 
-    if (establishment_restrictions.length > 0) {
-      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${establishment_restrictions}"><i class="fa fas fa-info-circle fa-fw"></i> ${establishments_txt}</li>`
+    if (establishments_restrictions.length > 0) {
+      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${establishments_restrictions}"><i class="fa fas fa-info-circle fa-fw"></i> ${establishments_txt}</li>`
     }
 
     if (levels_restrictions.length > 0) {

@@ -3157,8 +3157,11 @@ def ajax_get_duplicates(request):
         for record_id in t:
             try:
                 record = HighSchoolStudentRecord.objects.get(pk=record_id)
-                immersions_nb = Immersion.objects.prefetch_related('slot').filter(student=record.student.pk,
-                                                                               cancellation_type__isnull=True).count()
+                immersions_nb = Immersion.objects.prefetch_related('slot')\
+                    .filter(
+                        student=record.student.pk,
+                        cancellation_type__isnull=True)\
+                    .count()
 
                 records.append(record)
                 registrations.append(immersions_nb)
