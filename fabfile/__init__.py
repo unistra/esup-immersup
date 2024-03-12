@@ -56,6 +56,9 @@ env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libf
 
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
+
+env.extra_symlink_dirs = ['config', ]
+
 # env.verbose = True # verbose display for pydiploy default value = True
 # env.req_pydiploy_version = "0.9" # required pydiploy version for this fabfile
 # env.no_config_test = False # avoid config checker if True

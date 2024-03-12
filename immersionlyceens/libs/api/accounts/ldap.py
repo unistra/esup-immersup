@@ -1,13 +1,13 @@
 import logging
 import sys
 from typing import Any, Dict, List, Optional, Union
+from os import path
 
-import ldap3
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core.models import Establishment
-from ldap3 import ALL, SUBTREE, Connection, Server
+from ldap3 import ALL, SUBTREE, Connection, Server, Tls
 from ldap3.core.exceptions import LDAPBindError
 
 from .base import BaseAccountsAPI
@@ -20,8 +20,13 @@ class AccountAPI(BaseAccountsAPI):
         'EMAIL_ATTR', 'LASTNAME_ATTR', 'FIRSTNAME_ATTR'
     ]
 
+    optional_attrs_list = [
+        'CACERT'
+    ]
+
     def __init__(self, establishment: Establishment):
         self.establishment = establishment
+        self.tls = self.set_tls()
 
         try:
             self.check_settings()
@@ -29,8 +34,17 @@ class AccountAPI(BaseAccountsAPI):
             raise ImproperlyConfigured(_("Please check establishment LDAP plugin settings : %s") % e)
 
         try:
+            server_settings = {
+                "host": self.HOST,
+                "port": int(self.PORT),
+                "get_info": ALL
+            }
+
+            if self.tls:
+                server_settings['tls'] = self.tls
+
             logger.debug(f"Host: {self.HOST}, port: {self.PORT}, dn: {self.DN}, base: {self.BASE_DN}")
-            ldap_server = Server(self.HOST, port=int(self.PORT), get_info=ALL)
+            ldap_server = Server(**server_settings)
             logger.debug(f"Server: {ldap_server}")
         except Exception as e:
             logger.error("Cannot connect to LDAP server : %s", e)
@@ -54,6 +68,18 @@ class AccountAPI(BaseAccountsAPI):
     @classmethod
     def get_plugin_attrs(self):
         return self.attrs_list
+
+    def set_tls(self):
+        try:
+            return Tls(
+                ca_certs_file=path.join(
+                    settings.BASE_DIR,
+                    "config",
+                    self.establishment.data_source_settings["CACERT"]
+                )
+            )
+        except:
+            return None
 
     def check_settings(self):
         if not isinstance(self.establishment, Establishment):
