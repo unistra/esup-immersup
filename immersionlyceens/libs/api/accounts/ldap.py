@@ -70,10 +70,14 @@ class AccountAPI(BaseAccountsAPI):
         return self.attrs_list
 
     def set_tls(self):
+        """
+        Set LDAP Tls object
+        :return: a Tls object using CACERT file from LDAP config, relative to SITE_ROOT/config symlink
+        """
         try:
             return Tls(
                 ca_certs_file=path.join(
-                    settings.BASE_DIR,
+                    settings.SITE_ROOT,
                     "config",
                     self.establishment.data_source_settings["CACERT"]
                 )
