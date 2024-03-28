@@ -18,7 +18,7 @@ def preprod_lemans():
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_le_mans'
     env.backends = env.roledefs['web']
     env.server_name = 'ambitionsup-preprod.univ-lemans.fr'
     env.short_server_name = 'ambitionsup-preprod'
@@ -67,7 +67,7 @@ def prod_lemans():
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_le_mans'
     env.backends = env.roledefs['web']
     env.server_name = 'ambitionsup.univ-lemans.fr'
     env.short_server_name = 'ambitionsup'

@@ -18,7 +18,7 @@ def preprod_pau():
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_pau'
     env.backends = env.roledefs['web']
     env.server_name = 'preprod.acces-immersion.fr'
     env.short_server_name = 'preprod.acces-immersion'
@@ -67,7 +67,7 @@ def prod_pau():
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_pau'
     env.backends = env.roledefs['web']
     env.server_name = 'acces-immersion.fr'
     env.short_server_name = 'acces-immersion'

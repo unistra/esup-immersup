@@ -18,7 +18,7 @@ def preprod_reims():
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_reims'
     env.backends = env.roledefs['web']
     env.server_name = 'immersions-test.univ-reims.fr'
     env.short_server_name = 'immersions-test'
@@ -67,7 +67,7 @@ def prod_reims():
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_reims'
     env.backends = env.roledefs['web']
     env.server_name = 'immersions.univ-reims.fr'
     env.short_server_name = 'immersions'

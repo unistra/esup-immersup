@@ -3,6 +3,8 @@
 
 import pydiploy
 from fabric.api import env, execute, roles, task
+
+
 # from . import build_env
 
 @roles(['web', 'lb'])
@@ -18,7 +20,7 @@ def preprod_bordeaux():
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_bordeaux'
     env.backends = env.roledefs['web']
     env.server_name = 'immersup-pprd.u-bordeaux.fr'
     env.short_server_name = 'immersup-pprd'
@@ -66,7 +68,7 @@ def prod_bordeaux():
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-
+    env.application_name = 'immersup_bordeaux'
     env.backends = env.roledefs['web']
     env.server_name = 'immersion.u-bordeaux.fr'
     env.short_server_name = 'immersion'
