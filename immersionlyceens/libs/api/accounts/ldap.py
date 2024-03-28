@@ -1,5 +1,5 @@
 import logging
-import sys
+import ssl
 from typing import Any, Dict, List, Optional, Union
 from os import path
 
@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core.models import Establishment
-from ldap3 import ALL, SUBTREE, Connection, Server, Tls
+from ldap3 import ALL, SUBTREE, Connection, Server, SIMPLE, Tls
 from ldap3.core.exceptions import LDAPBindError
 
 from .base import BaseAccountsAPI
@@ -42,6 +42,7 @@ class AccountAPI(BaseAccountsAPI):
 
             if self.tls:
                 server_settings['tls'] = self.tls
+                server_settings['use_ssl'] = True
 
             logger.debug(f"Host: {self.HOST}, port: {self.PORT}, dn: {self.DN}, base: {self.BASE_DN}")
             ldap_server = Server(**server_settings)
@@ -50,12 +51,27 @@ class AccountAPI(BaseAccountsAPI):
             logger.error("Cannot connect to LDAP server : %s", e)
             raise
 
+        # LDAP Connection settings
+        connection_settings = {
+            "server": ldap_server,
+            "user": self.DN,
+            "password": self.PASSWORD
+        }
+
+        if not self.tls:
+            connection_settings["auto_bind"] = "NO_TLS"
+        else:
+            connection_settings["authentication"] = SIMPLE
+
         try:
-            self.ldap_connection = Connection(ldap_server, auto_bind='NO_TLS', user=self.DN, password=self.PASSWORD)
+            self.ldap_connection = Connection(**connection_settings)
+            self.ldap_connection.bind()
         except LDAPBindError:
             bound = False
+
             # For older TLSv1 protocols
-            self.ldap_connection = Connection(ldap_server, auto_bind='NONE', user=self.DN, password=self.PASSWORD)
+            connection_settings["auto_bind"] = "NONE"
+            self.ldap_connection = Connection(**connection_settings)
             tls_success = self.ldap_connection.start_tls()
 
             if tls_success:
@@ -80,9 +96,12 @@ class AccountAPI(BaseAccountsAPI):
                     settings.SITE_ROOT,
                     "config",
                     self.establishment.data_source_settings["CACERT"]
-                )
+                ),
+                validate=ssl.CERT_OPTIONAL
+
             )
-        except:
+        except Exception as e:
+            logger.error(f"LDAP TLS error: {e}")
             return None
 
     def check_settings(self):
