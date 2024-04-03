@@ -21,7 +21,8 @@ RUN BUILD_DEPS=" \
   libcairo2-dev \
   libpango1.0-dev \
   gettext \
-  locales" \
+  locales \
+  git" \
   && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS; \
   sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.txt; \
   pip install --no-cache-dir -r requirements/dev.txt; \

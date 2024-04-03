@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install dependencies
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends gcc libc-dev python3-dev libpcre3 libpcre3-dev; \
+  && apt-get install -y --no-install-recommends gcc libc-dev python3-dev libpcre3 libpcre3-dev git; \
   pip install --upgrade pip
 # TODO: We can lint source code before building container
 #&& pip install flake8==3.9.2
