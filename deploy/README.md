@@ -36,4 +36,10 @@ Uses django/uwsgi/nginx.
     docker compose -f docker-compose.demo.yml up -d --build
     ```
 
+1. Create superuser if needed
+
+    ```sh
+    docker compose exec web python manage.py createsuperuser
+    ```
+
     Reach [http://localhost](http://localhost).
