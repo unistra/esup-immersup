@@ -4,7 +4,7 @@
 VERSION_FILE=./immersionlyceens/__init__.py
 # End of configuration
 
-VERSION=$(git describe --abbrev=0 --tags)
+VERSION=$(git describe --abbrev=0 --tags || echo "0.0.0")
 
 VNUM1=$(echo "$VERSION" | cut -d"." -f1)
 VNUM2=$(echo "$VERSION" | cut -d"." -f2)
