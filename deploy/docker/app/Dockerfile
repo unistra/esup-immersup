@@ -14,7 +14,7 @@ COPY . .
 COPY ./deploy/docker/app/entrypoint.sh /usr/local/bin/
 
 # install dependencies
-RUN BUILD_DEPS=" \
+RUN export BUILD_DEPS=" \
   libxml2-dev \
   libxslt-dev \
   libffi-dev \
@@ -26,7 +26,6 @@ RUN BUILD_DEPS=" \
   && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS; \
   sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.txt; \
   pip install --no-cache-dir -r requirements/dev.txt; \
-  pip install -e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser; \
   apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
   rm -rf '/var/lib/apt/lists/*';\
   sed -i 's/{{ goal }}/docker-dev/g' /usr/src/app/manage.py; \

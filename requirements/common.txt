@@ -1,4 +1,4 @@
--e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser
+https://github.com/t0mab/django-shibboleth-remoteuser/archive/refs/heads/master.zip
 Django<4.0.0
 django-hijack==3.0.4
 django-tinymce
