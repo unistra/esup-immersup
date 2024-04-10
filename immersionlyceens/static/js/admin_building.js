@@ -16,8 +16,12 @@ $(document).ready(function() {
   }
 
   $('#id_establishment').on('change', function () {
-    set_campuses($(this).val());
+    if(this.value !== undefined) {
+      set_campuses(this.value);
+    }
   })
 
-  set_campuses($('#id_establishment').val());
+  if($('#id_establishment').val() !== undefined) {
+    set_campuses($('#id_establishment').val());
+  }
 })
