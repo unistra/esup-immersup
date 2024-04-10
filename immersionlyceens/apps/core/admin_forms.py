@@ -905,7 +905,14 @@ class ImmersionUserCreationForm(UserCreationForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        email = cleaned_data.get("email", "").strip().lower()
+
+        establishment = cleaned_data.get("establishment")
+
+        if establishment and establishment.provides_accounts():
+            # do not transform email and username
+            email = cleaned_data.get("email", "").strip()
+        else:
+            email = cleaned_data.get("email", "").strip().lower()
 
         if ImmersionUser.objects.filter(email__iexact=email).exclude(id=self.instance.id).exists():
             self.add_error('email', _("This email address is already used"))
@@ -1049,7 +1056,12 @@ class ImmersionUserChangeForm(UserChangeForm):
         establishment = cleaned_data.get('establishment')
         highschool = cleaned_data.get('highschool')
         forbidden_msg = _("Forbidden")
-        cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
+
+        if establishment and establishment.provides_accounts():
+            # do not transform email and username
+            cleaned_data["email"] = cleaned_data.get("email", "").strip()
+        else:
+            cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
 
         if groups:
             linked_groups_conditions = [
