@@ -105,91 +105,89 @@ FORCE_EMAIL = environ.get('FORCE_EMAIL', '')
 # FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
 DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', 'no-reply@%s' % socket.getfqdn())
 
-
-# SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
+############
+# CKEDITOR #
+############
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+CUSTOM_TOOLBAR = [
+    {
+        "name": "document",
+        "items": [
+            "Styles",
+            "Format",
+            "Bold",
+            "Italic",
+            "Underline",
+            "Strike",
+            "-",
+            "TextColor",
+            "BGColor",
+            "-",
+            "JustifyLeft",
+            "JustifyCenter",
+            "JustifyRight",
+            "JustifyBlock",
+        ],
     },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
+    {
+        "name": "widgets",
+        "items": [
+            "Undo",
+            "Redo",
+            "-",
+            "NumberedList",
+            "BulletedList",
+            "-",
+            "Outdent",
+            "Indent",
+            "-",
+            "Link",
+            "Unlink",
+            "-",
+            "CodeSnippet",
+            "Table",
+            "HorizontalRule",
+            "SpecialChar",
+            "-",
+            "Blockquote",
+            "-",
+            "Maximize",
+        ],
+    },
+]
+
+CKEDITOR_CONFIGS = {
+    "default": {
+        "skin": "moono-lisa",
+        "toolbar": CUSTOM_TOOLBAR,
+        "toolbarGroups": None,
+        "extraPlugins": ",".join(['codesnippet',]),
+        "removePlugins": ",".join(['image', 'uploadimage', 'uploadwidget', 'elementspath']),
+        "codeSnippet_theme": "xcode",
+        'height': '100%',
+        'width': '100%',
+    },
     'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
+        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
+        ['misc', ['ol', 'ul', 'height', ], ],
+        ['others', ['link', 'table', 'hr'], ],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
         'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
         ],
-    }
+    },
 }
+
+CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
+
+########
+# Misc #
+########
 
 # Use Unistra theme & css
 UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

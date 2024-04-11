@@ -63,8 +63,6 @@
         } else {
             $("#contact_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
             setTimeout(function() { $("#contact_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-
-            $("#id_body").summernote('code', '<p><br></p>');
             $("#id_subject").val("");
 
         }

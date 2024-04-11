@@ -4,7 +4,7 @@ import mimetypes
 import re
 from datetime import datetime
 from typing import Any, Dict
-
+from ckeditor.widgets import CKEditorWidget
 from django import forms, template
 from django.conf import settings
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -19,7 +19,7 @@ from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from django.utils.translation import gettext_lazy as _, pgettext
-from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
+
 
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -500,8 +500,8 @@ class EstablishmentForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': SummernoteWidget(),
-            'certificate_footer': SummernoteWidget(),
+            'certificate_header': CKEditorWidget(),
+            'certificate_footer': CKEditorWidget(),
         }
 
 
@@ -1365,8 +1365,8 @@ class HighSchoolForm(forms.ModelForm):
                   'certificate_footer')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': SummernoteWidget(),
-            'certificate_footer': SummernoteWidget(),
+            'certificate_header': CKEditorWidget(),
+            'certificate_footer': CKEditorWidget(),
         }
 
 
@@ -1465,7 +1465,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': SummernoteWidget(),
+            'body': CKEditorWidget(),
         }
 
 
@@ -1556,7 +1556,7 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
-        widgets = {'content': SummernoteWidget}
+        widgets = {'content': CKEditorWidget}
 
 
 class PublicDocumentForm(forms.ModelForm):
@@ -2024,7 +2024,7 @@ class FaqEntryAdminForm(forms.ModelForm):
     class Meta:
         model = FaqEntry
         fields = '__all__'
-        widgets = {'answer': SummernoteWidget,}
+        widgets = {'answer': CKEditorWidget,}
 
 
 class ProfileForm(forms.ModelForm):

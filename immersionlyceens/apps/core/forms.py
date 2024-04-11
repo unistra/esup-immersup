@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from typing import Any, Dict
 
+from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -11,7 +12,6 @@ from django.forms.widgets import DateInput, TimeInput
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from django_countries.fields import CountryField
-from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from rest_framework.exceptions import ValidationError
 
 from ...libs.utils import get_general_setting
@@ -751,14 +751,7 @@ class ContactForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields['subject'] = forms.CharField(label=_("Subject"), max_length=100, required=True)
-
-        self.fields['body'] = forms.CharField(
-            widget=SummernoteInplaceWidget(
-                attrs={'summernote': {'width': '100%', 'height': '200px', 'rows': 6, 'airMode': False,}}
-            )
-        )
-
-        #
+        self.fields['body'] = forms.CharField(widget=CKEditorWidget())
         self.fields['subject'].widget.attrs['class'] = 'form-control'
 
 
