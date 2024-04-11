@@ -6,7 +6,7 @@ import json
 import unittest
 import codecs
 
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone as datetime_timezone
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -1987,7 +1987,7 @@ class APITestCase(TestCase):
             'attendance_status': 0,
             'cancellable': True,
             'cancellation_limit_date': json.dumps(
-                self.immersion.slot.cancellation_limit_date.astimezone(timezone.utc),
+                self.immersion.slot.cancellation_limit_date.astimezone(datetime_timezone.utc),
                 cls=DjangoJSONEncoder
             ).strip('"'),
             'cancellation_type': '',
@@ -1997,7 +1997,7 @@ class APITestCase(TestCase):
             'face_to_face': True,
             'time_type': 'future',
             'registration_date': json.dumps(
-                self.immersion.registration_date.astimezone(timezone.utc),
+                self.immersion.registration_date.astimezone(datetime_timezone.utc),
                 cls=DjangoJSONEncoder
             ).strip('"'),
             'cancellation_date': "",
