@@ -1006,6 +1006,8 @@ class ImmersionViewsTestCase(TestCase):
             f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read(), content_type='application/pdf')],
         })
 
+        fd.close()
+
         response = self.client.post('/immersion/visitor_record', record_data, follow=True)
         content = response.content.decode('utf-8')
 

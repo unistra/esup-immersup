@@ -1,4 +1,5 @@
 import importlib
+import magic
 import mimetypes
 import re
 from datetime import datetime
@@ -1481,9 +1482,13 @@ class AccompanyingDocumentForm(forms.ModelForm):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
             # See settings content types allowed
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+            # allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
 
-            if document.content_type in allowed_content_type:
+            allowed_mime_types = settings.MIME_TYPES
+
+            print(f"----- document content_type : {document.content_type} -----")
+
+            if document.content_type in allowed_mime_types:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s')

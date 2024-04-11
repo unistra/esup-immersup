@@ -632,6 +632,16 @@ CONTENT_TYPES = [
     'xlsx',
 ]
 
+MIME_TYPES = [
+    "application/msword",
+    "application/pdf",
+    "application/vnd.ms-excel",
+    "application/vnd.oasis.opendocument.spreadsheet",
+    "application/vnd.oasis.opendocument.text",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+]
+
 # Max size
 # 20mo for now !!!
 MAX_UPLOAD_SIZE = "20971520"

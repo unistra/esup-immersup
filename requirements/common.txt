@@ -1,8 +1,8 @@
--e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser
+django-shibboleth-remoteuser @ https://github.com/t0mab/django-shibboleth-remoteuser/archive/refs/heads/master.zip
 Django<4.0.0
 django-hijack==3.0.4
 django-tinymce
-psycopg2==2.8.6
+psycopg2
 django-cas-sso==1.2.7
 django-extensions
 django-filter==23.5
@@ -21,9 +21,10 @@ drf-spectacular==0.26.5
 django-storages[boto3]
 django-admin-sortable2==1.0.4
 pillow<11.0.0
-lxml==4.9.1
+lxml
 django-countries==7.3.2
 faker
 cairosvg==2.7.0
 py==1.11.0
 boto3>=1.4.4
+python-magic==0.4.27

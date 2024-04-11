@@ -2,6 +2,8 @@
 """Serializer"""
 from collections import OrderedDict
 from rest_framework import serializers, status
+from rest_framework.validators import UniqueTogetherValidator
+
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.contrib.auth.models import Group
@@ -193,6 +195,7 @@ class CampusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Campus
         fields = "__all__"
+        validators = []
 
 
 class EstablishmentSerializer(serializers.ModelSerializer):
@@ -253,6 +256,16 @@ class BuildingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Building
         fields = "__all__"
+        validators = []
+        """
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Building.objects.all(),
+                fields=['campus', 'label'],
+                message=_("A Building object with the same campus and label already exists")
+            )
+        ]
+        """
 
 
 class HighSchoolViewSerializer(serializers.ModelSerializer):
@@ -305,6 +318,7 @@ class HighSchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchool
         fields = "__all__"
+        validators = []
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -369,6 +383,7 @@ class TrainingSerializer(serializers.ModelSerializer):
         model = Training
         fields = ("id", "label", "training_subdomains", "nb_courses", "active", "url", "structures",
                   "highschool", "allowed_immersions")
+        validators = []
 
 
 class VisitSerializer(serializers.ModelSerializer):
@@ -386,6 +401,7 @@ class VisitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Visit
         fields = "__all__"
+        validators = []
 
 
 class OffOfferEventSerializer(serializers.ModelSerializer):
@@ -536,6 +552,7 @@ class CourseSerializer(serializers.ModelSerializer):
         fields =  [
             "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by"
         ]
+        validators = []
 
 
 class SlotSerializer(serializers.ModelSerializer):
