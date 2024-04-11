@@ -381,7 +381,7 @@ class TrainingCase(TestCase):
         )
         self.assertQuerySetEqual(
             t.distinct_establishments(),
-            ["<Establishment: ETA2 : Etablissement 2>", ],
+            [establishment],
             ordered=False
         )
 
@@ -390,7 +390,7 @@ class TrainingCase(TestCase):
         self.assertTrue(t.distinct_establishments().count() == 1)
         self.assertQuerySetEqual(
             t.distinct_establishments(),
-            ["<Establishment: ETA2 : Etablissement 2>",],
+            [establishment],
             ordered=False
         )
 
@@ -404,7 +404,7 @@ class TrainingCase(TestCase):
         self.assertTrue(t.distinct_establishments().count() == 2)
         self.assertQuerySetEqual(
             t.distinct_establishments(),
-            ["<Establishment: ETA2 : Etablissement 2>", "<Establishment: ETA3 : Etablissement 3>"],
+            [establishment, establishment2],
             ordered=False
         )
 
