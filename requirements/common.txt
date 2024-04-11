@@ -1,4 +1,4 @@
-django-shibboleth-remoteuser @ https://github.com/t0mab/django-shibboleth-remoteuser/archive/refs/heads/master.zip
+django-shibboleth-remoteuser @ https://github.com/t0mab/django-shibboleth-remoteuser/archive/refs/heads/django4-support.zip
 Django>=5,<6.0
 django-hijack==3.0.4
 psycopg[binary]==3.1.18
