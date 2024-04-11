@@ -10,7 +10,6 @@ from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext, gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
