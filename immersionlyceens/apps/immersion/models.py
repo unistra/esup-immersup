@@ -501,7 +501,16 @@ class RecordDocument(models.Model):
     """
     Abstract base Class for record documents
     """
-    ALLOWED_TYPES = ['png', 'jpeg', 'jpg', 'pdf', 'doc', 'docx', 'odt']
+    # FIXME : move this in settings ?
+    ALLOWED_TYPES = {
+        'png': "image/png",
+        'jpeg': "image/jpeg",
+        'jpg': "image/jpeg",
+        'pdf': "application/pdf",
+        'doc': "application/msword",
+        'docx': "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        'odt': "application/vnd.oasis.opendocument.text",
+    }
 
     created = models.DateTimeField(_("Creation date"), auto_now_add=True)
     last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
@@ -513,7 +522,7 @@ class RecordDocument(models.Model):
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
                   % {
-                      'authorized_types': ', '.join(ALLOWED_TYPES),
+                      'authorized_types': ', '.join(ALLOWED_TYPES.keys()),
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )

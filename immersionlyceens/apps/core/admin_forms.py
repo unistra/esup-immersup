@@ -1484,11 +1484,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
             # See settings content types allowed
             # allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
 
-            allowed_mime_types = settings.MIME_TYPES
-
-            print(f"----- document content_type : {document.content_type} -----")
-
-            if document.content_type in allowed_mime_types:
+            if document.content_type in settings.MIME_TYPES:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s')
@@ -1572,9 +1568,7 @@ class PublicDocumentForm(forms.ModelForm):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
             # See settings content types allowed
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
-
-            if document.content_type in allowed_content_type:
+            if document.content_type in settings.MIME_TYPES:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
@@ -1631,9 +1625,7 @@ class AttestationDocumentForm(forms.ModelForm):
         template = self.cleaned_data['template']
         if template and isinstance(template, UploadedFile):
             # See settings content types allowed
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
-
-            if template.content_type in allowed_content_type:
+            if template.content_type in settings.MIME_TYPES:
                 if template.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
@@ -1835,10 +1827,7 @@ class CertificateLogoForm(forms.ModelForm):
     def clean_logo(self):
         logo = self.cleaned_data['logo']
         if logo and isinstance(logo, UploadedFile):
-
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'gif']]
-
-            if not logo.content_type in allowed_content_type:
+            if not logo.content_type in CertificateLogo.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return logo
@@ -1876,10 +1865,7 @@ class CertificateSignatureForm(forms.ModelForm):
     def clean_signature(self):
         signature = self.cleaned_data['signature']
         if signature and isinstance(signature, UploadedFile):
-
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'gif']]
-
-            if not signature.content_type in allowed_content_type:
+            if not signature.content_type in CertificateSignature.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return signature
@@ -1979,9 +1965,9 @@ class CustomThemeFileForm(forms.ModelForm):
         file = self.cleaned_data['file']
         if file and isinstance(file, UploadedFile):
             # TODO: check later cause text/javascript is deprecated !
-            mimetypes.add_type("text/javascript", ".js")
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
-            if not file.content_type in allowed_content_type:
+            #mimetypes.add_type("text/javascript", ".js")
+            #allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
+            if not file.content_type in CustomThemeFile.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return file

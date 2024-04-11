@@ -1482,10 +1482,11 @@ class VisitorRecordView(FormView):
 
         # Document archives
         archives = defaultdict(list)
-        for archive in VisitorRecordDocument.objects \
-                .filter(Q(validity_date__gte=today) | Q(validity_date__isnull=True), record=record, archive=True) \
-                .order_by("-validity_date"):
-            archives[archive.attestation.id].append(archive)
+        if record.pk:
+            for archive in VisitorRecordDocument.objects \
+                    .filter(Q(validity_date__gte=today) | Q(validity_date__isnull=True), record=record, archive=True) \
+                    .order_by("-validity_date"):
+                archives[archive.attestation.id].append(archive)
 
         context.update({
             "past_immersions": past_immersions,

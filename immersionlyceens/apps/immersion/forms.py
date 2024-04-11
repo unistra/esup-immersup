@@ -1,4 +1,5 @@
 import mimetypes
+import magic
 
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
@@ -349,11 +350,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            allowed_content_type = [
-                mimetypes.types_map[f'.{c}'] for c in RecordDocument.ALLOWED_TYPES
-            ]
-
-            if not document.content_type in allowed_content_type:
+            if not document.content_type in RecordDocument.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
             if document.size > int(settings.MAX_UPLOAD_SIZE):

@@ -2883,6 +2883,12 @@ class CertificateLogo(models.Model):
     """
     CertificateLogo class (singleton)
     """
+    ALLOWED_TYPES = {
+        'png': "image/png",
+        'jpeg': "image/jpeg",
+        'jpg': "image/jpeg",
+        'gif': "image/gif",
+    }
 
     logo = models.ImageField(
         _("Logo"),
@@ -2922,6 +2928,13 @@ class CertificateSignature(models.Model):
     """
     CertificateSignature class (singleton)
     """
+
+    ALLOWED_TYPES = {
+        'png': "image/png",
+        'jpeg': "image/jpeg",
+        'jpg': "image/jpeg",
+        'gif': "image/gif",
+    }
 
     signature = models.ImageField(
         _("Signature"),
@@ -2965,6 +2978,14 @@ class CustomThemeFile(models.Model):
     """
     Any file used to pimp immersup theme
     """
+    ALLOWED_TYPES = {
+        'png': "image/png",
+        'jpeg': "image/jpeg",
+        'jpg': "image/jpeg",
+        'ico': "image/vnd.microsoft.icon",
+        'css': "text/css",
+        'js': "text/javascript",
+    }
 
     FILE_TYPE = [
         ('JS', _('Js')),
