@@ -17,7 +17,6 @@ from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
 from django_json_widget.widgets import JSONEditorWidget
-from django_summernote.admin import SummernoteModelAdmin
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
 
@@ -79,7 +78,7 @@ class CustomAdminSite(admin.AdminSite):
 
         # This should hide apps we don't want :
         # - 'core' because all models are already grouped in virtual apps
-        # - django_summernote
+
         app_list = sorted(
             [app for app in app_dict.values() if app['app_label'] in settings.ADMIN_APPS_ORDER],
             key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
@@ -1588,12 +1587,11 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
-class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
+class MailTemplateAdmin(AdminWithRequest, admin.ModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label', 'active')
     filter_horizontal = ('available_vars',)
     ordering = ('code', )
-    summernote_fields = ('body',)
 
     def has_module_permission(self, request):
         valid_groups = [

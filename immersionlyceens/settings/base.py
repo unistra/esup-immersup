@@ -5,6 +5,8 @@ from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import gettext_lazy as _
 
+from ckeditor.configs import DEFAULT_CONFIG
+
 ######################
 # Path configuration #
 ######################
@@ -280,7 +282,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'hijack',
     'hijack.contrib.admin',
-    'django_summernote',
+    'ckeditor',
     'django_json_widget',
     'django_admin_listfilter_dropdown',
     'adminsortable2',
@@ -580,17 +582,69 @@ HAS_RIGHTS_ON_GROUP = {
     'REF-LYC': ['INTER']
 }
 
-###############
-# SUMMER NOTE #
-###############
-X_FRAME_OPTIONS = "SAMEORIGIN"
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {'lang': 'fr-FR', },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
+
+############
+# CKEDITOR #
+############
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+CUSTOM_TOOLBAR = [
+    {
+        "name": "document",
+        "items": [
+            "Styles",
+            "Format",
+            "Bold",
+            "Italic",
+            "Underline",
+            "Strike",
+            "-",
+            "TextColor",
+            "BGColor",
+            "-",
+            "JustifyLeft",
+            "JustifyCenter",
+            "JustifyRight",
+            "JustifyBlock",
+        ],
+    },
+    {
+        "name": "widgets",
+        "items": [
+            "Undo",
+            "Redo",
+            "-",
+            "NumberedList",
+            "BulletedList",
+            "-",
+            "Outdent",
+            "Indent",
+            "-",
+            "Link",
+            "Unlink",
+            "-",
+            "CodeSnippet",
+            "Table",
+            "HorizontalRule",
+            "SpecialChar",
+            "-",
+            "Blockquote",
+            "-",
+            "Maximize",
+        ],
+    },
+]
+
+CKEDITOR_CONFIGS = {
+    "default": {
+        "skin": "moono-lisa",
+        "toolbar": CUSTOM_TOOLBAR,
+        "toolbarGroups": None,
+        "extraPlugins": ",".join(['codesnippet',]),
+        "removePlugins": ",".join(['image', 'uploadimage', 'uploadwidget', 'elementspath']),
+        "codeSnippet_theme": "xcode",
+        'height': '100%',
+        'width': '100%',
+    },
     'toolbar': [
         ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
         ['font', ['fontsize', 'forecolor', 'paragraph', ]],
@@ -607,6 +661,7 @@ SUMMERNOTE_CONFIG = {
     },
 }
 
+CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 ####################
 # Geo Api settings #
