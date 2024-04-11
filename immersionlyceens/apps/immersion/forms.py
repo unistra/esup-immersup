@@ -567,6 +567,8 @@ class StudentRecordForm(forms.ModelForm):
 
         self.fields['level'].queryset = StudentLevel.objects.filter(active=True).order_by('order')
 
+        self.fields['birth_date'].required = True
+
 
         # CSS
         excludes = ['birth_date']

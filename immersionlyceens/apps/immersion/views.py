@@ -910,16 +910,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
     else:
         # Forms init
-        recordform = HighSchoolStudentRecordForm(request=request, instance=record)
-        studentform = HighSchoolStudentForm(request=request, instance=student)
-
         valid_users = any([
             request.user.is_master_establishment_manager(),
             request.user.is_establishment_manager(),
             request.user.is_operator()
         ])
 
-        if valid_users:
+        if valid_users and record.pk:
             for quota in HighSchoolStudentRecordQuota.objects\
                     .filter(record=record)\
                     .order_by("period__immersion_start_date"):
@@ -930,15 +927,23 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 )
                 quota_forms.append(quota_form)
 
-        for document in HighSchoolStudentRecordDocument.objects\
-                .filter(record=record, archive=False)\
-                .order_by("attestation__order"):
-            document_form = HighSchoolStudentRecordDocumentForm(
-                request=request,
-                instance=document,
-                prefix=f"document_{document.attestation.id}"
-            )
-            document_forms.append(document_form)
+        if record.pk:
+            for document in HighSchoolStudentRecordDocument.objects\
+                    .filter(record=record, archive=False)\
+                    .order_by("attestation__order"):
+                document_form = HighSchoolStudentRecordDocumentForm(
+                    request=request,
+                    instance=document,
+                    prefix=f"document_{document.attestation.id}"
+                )
+                document_forms.append(document_form)
+        else:
+            record.save()
+            record.refresh_from_db()
+
+        recordform = HighSchoolStudentRecordForm(request=request, instance=record)
+        studentform = HighSchoolStudentForm(request=request, instance=student)
+
 
     if request.user.is_high_school_student():
         messages.info(request, _("Your record status : %s") % record.get_validation_display())
@@ -975,10 +980,11 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
     # Document archives
     archives = defaultdict(list)
-    for archive in HighSchoolStudentRecordDocument.objects \
-                .filter(Q(validity_date__gte=today)|Q(validity_date__isnull=True), record=record, archive=True) \
-                .order_by("-validity_date"):
-        archives[archive.attestation.id].append(archive)
+    if record.pk:
+        for archive in HighSchoolStudentRecordDocument.objects \
+                    .filter(Q(validity_date__gte=today)|Q(validity_date__isnull=True), record=record, archive=True) \
+                    .order_by("-validity_date"):
+            archives[archive.attestation.id].append(archive)
 
     context = {
         'student_form': studentform,
@@ -1063,7 +1069,6 @@ def student_record(request, student_id=None, record_id=None):
 
         if not record:
             record = StudentRecord(student=request.user, uai_code=uai_code, institution=institution)
-
         elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
             record.institution = institution
@@ -1081,7 +1086,9 @@ def student_record(request, student_id=None, record_id=None):
         for period in periods.filter(registration_start_date__lte=timezone.localdate()):
             if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
                 StudentRecordQuota.objects.create(
-                    record=record, period=period, allowed_immersions=period.allowed_immersions
+                    record=record,
+                    period=period,
+                    allowed_immersions=period.allowed_immersions
                 )
 
     if request.method == 'POST':
@@ -1132,7 +1139,9 @@ def student_record(request, student_id=None, record_id=None):
             for period in periods.filter(registration_start_date__lte=timezone.localdate()):
                 if not StudentRecordQuota.objects.filter(record=record, period=period).exists():
                     StudentRecordQuota.objects.create(
-                        record=record, period=period, allowed_immersions=period.allowed_immersions
+                        record=record,
+                        period=period,
+                        allowed_immersions=period.allowed_immersions
                     )
 
             # Quota for non-student user
@@ -1163,17 +1172,26 @@ def student_record(request, student_id=None, record_id=None):
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
-
     else:
-        recordform = StudentRecordForm(request=request, instance=record)
-        studentform = StudentForm(request=request, instance=student)
-        for quota in StudentRecordQuota.objects.filter(record=record):
-            quota_form = StudentRecordQuotaForm(
+        if record.pk:
+            recordform = StudentRecordForm(request=request, instance=record)
+
+            for quota in StudentRecordQuota.objects.filter(record=record):
+                quota_form = StudentRecordQuotaForm(
+                    request=request,
+                    instance=quota,
+                    prefix=f"quota_{quota.period.id}"
+                )
+                quota_forms.append(quota_form)
+        else:
+            record.save()
+            record.refresh_from_db()
+            recordform = StudentRecordForm(
                 request=request,
-                instance=quota,
-                prefix=f"quota_{quota.period.id}"
+                instance=record
             )
-            quota_forms.append(quota_form)
+
+        studentform = StudentForm(request=request, instance=student)
 
     if reverse('immersion:student_record') not in request.headers.get('Referer', ""):
         request.session['back'] = request.headers.get('Referer')
@@ -1183,11 +1201,13 @@ def student_record(request, student_id=None, record_id=None):
     now = datetime.today().time()
 
     past_immersions = student.immersions.filter(
-        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
+        cancellation_type__isnull=True
     ).count()
 
     future_immersions = student.immersions.filter(
-        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
+        cancellation_type__isnull=True
     ).count()
 
     # Count immersion registrations for each period

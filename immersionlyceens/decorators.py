@@ -11,8 +11,11 @@ def is_ajax_request(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if request.is_ajax():
+        is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+        if is_ajax:
             return view_func(request, *args, **kwargs)
+        
         return HttpResponseForbidden("<h1>Forbidden</h1>You do not have \
             permission to access this page.")
     return wrapper

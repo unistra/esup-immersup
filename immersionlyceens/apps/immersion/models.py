@@ -48,25 +48,25 @@ class HighSchoolStudentRecord(models.Model):
     highschool = models.ForeignKey(
         core_models.HighSchool,
         verbose_name=_('High school'),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.CASCADE,
         related_name="student_records"
     )
 
-    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
 
     level = models.ForeignKey(
         core_models.HighSchoolLevel,
         verbose_name=_("Level"),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.CASCADE,
         related_name="high_school_student_record"
     )
 
-    class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
+    class_name = models.CharField(_("Class name"), blank=False, null=True, max_length=32)
 
     bachelor_type = models.ForeignKey(
         core_models.BachelorType,
@@ -294,13 +294,13 @@ class StudentRecord(models.Model):
     )
 
     uai_code = models.CharField(_("Home institution code"), blank=False, null=False, max_length=256)
-    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
 
     level = models.ForeignKey(
         core_models.StudentLevel,
         verbose_name=_("Level"),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.CASCADE,
         related_name="student_record"
@@ -318,7 +318,7 @@ class StudentRecord(models.Model):
     origin_bachelor_type = models.ForeignKey(
         core_models.BachelorType,
         verbose_name=_('Bachelor type'),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.PROTECT,
         related_name="+"
@@ -333,7 +333,10 @@ class StudentRecord(models.Model):
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
 
     def __str__(self):
-        return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
+        if hasattr(self, "student"):
+            return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
+        else:
+            return gettext(f"Record for student id {self.student_id}")
 
     def is_valid(self):
         return True
@@ -386,8 +389,8 @@ class VisitorRecord(models.Model):
         related_name="visitor_record"
     )
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
-    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
-    motivation = models.TextField(_("Motivation"), null=False, blank=False)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
+    motivation = models.TextField(_("Motivation"), null=True, blank=False)
 
     attestation_documents = models.ManyToManyField(
         core_models.AttestationDocument,
