@@ -2857,7 +2857,10 @@ def get_csv_anonymous(request):
                 F('slot__visit__purpose'),
                 F('slot__event__label'),
             ),
-            slot_course_type=F('slot__course_type__label'),
+            slot_course_type=Coalesce(
+                F('slot__course_type__label'),
+                F('slot__event__event_type__label'),
+            ),
             slot_date=ExpressionWrapper(
                 Func(F('slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
