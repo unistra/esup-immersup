@@ -15,7 +15,7 @@ before_script:
 unittest:
     stage: test
     tags:
-        - python3.8
+        - python3.12
     script:
         - pip3 install tox
         - tox
@@ -23,7 +23,7 @@ unittest:
 safety:
     stage: test
     tags:
-        - python3.8
+        - python3.12
     script:
         - pip3 install safety
         - pip3 install -r requirements/prod.txt
@@ -36,7 +36,7 @@ safety:
 bandit:
     stage: test
     tags:
-        - python3.8
+        - python3.12
     script:
         - find immersionlyceens -name "*.py" ! -path "**/wsgi.py" ! -path "**/settings/**" ! -path "**/tests/**" ! -path "**/__init__.py" ! -path "**/migrations/**" ! -path "**/urls.py" | tee /tmp/find.txt
         - apt update && apt install -y build-essential libcairo2 libpango1.0-0 libffi-dev shared-mime-info libpq-dev libsasl2-dev python-dev libssl-dev libldap2-dev
@@ -46,7 +46,7 @@ bandit:
 pytype:
     stage: test
     tags:
-        - python3.8
+        - python3.12
     script:
         - pip3 install -r requirements/dev.txt
         - pytype --config=pytype.cfg
