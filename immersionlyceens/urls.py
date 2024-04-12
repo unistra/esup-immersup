@@ -12,7 +12,7 @@ from .views import (
     accompanying, charter_not_signed, faq, highschools, home,
     host_establishments, offer, offer_off_offer_events, offer_subdomain,
     procedure, search_slots, serve_accompanying_document, serve_attestation_document,
-    serve_public_document, visits_offer
+    serve_public_document
 )
 
 admin.autodiscover()
@@ -47,7 +47,6 @@ urlpatterns = [
     path('search_slots', search_slots, name='search_slots'),
     path('shib_secure/', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
-    path('visits_offer', visits_offer, name='visits_offer'),
     path('ckeditor/', include('ckeditor_uploader.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

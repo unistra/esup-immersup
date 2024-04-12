@@ -971,7 +971,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 slot__date__gte=period.immersion_start_date,
                 slot__date__lte=period.immersion_end_date,
                 slot__event__isnull=True,
-                slot__visit__isnull=True,
                 cancellation_type__isnull=True
         ).count()
 
@@ -1217,7 +1216,6 @@ def student_record(request, student_id=None, record_id=None):
             slot__date__gte=period.immersion_start_date,
             slot__date__lte=period.immersion_end_date,
             slot__event__isnull=True,
-            slot__visit__isnull=True,
             cancellation_type__isnull=True
         ).count()
 
@@ -1246,7 +1244,7 @@ def student_record(request, student_id=None, record_id=None):
 @groups_required('LYC', 'ETU', 'VIS')
 def registrations(request):
     """
-    Students : display to come, past and cancelled immersions/events/visits
+    Students : display to come, past and cancelled immersions/events
     Also display the number of active alerts
     """
     cancellation_reasons = CancelType.objects.filter(
@@ -1460,7 +1458,6 @@ class VisitorRecordView(FormView):
                 slot__date__gte=period.immersion_start_date,
                 slot__date__lte=period.immersion_end_date,
                 slot__event__isnull=True,
-                slot__visit__isnull=True,
                 cancellation_type__isnull=True
             ).count()
 

@@ -27,7 +27,7 @@ from ..models import (
     HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday,
     Immersion, ImmersionUser, OffOfferEvent, OffOfferEventType, Period,
     PostBachelorLevel, Slot, Structure, StudentLevel, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Visit,
+    TrainingSubdomain, UniversityYear
 )
 
 request_factory = RequestFactory()
@@ -46,6 +46,8 @@ class CoreViewsTestCase(TestCase):
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
         cls.today = timezone.localdate()
+
+        cls.event_type = OffOfferEventType.objects.create(label="Event type label")
 
         cls.master_establishment = Establishment.objects.create(
             code='ETA1',
@@ -275,25 +277,42 @@ class CoreViewsTestCase(TestCase):
         )
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
+
         cls.slot = Slot.objects.create(
-            course=cls.course, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 1', date=cls.today + datetime.timedelta(days=5),
-            start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
+            course=cls.course,
+            course_type=cls.course_type,
+            campus=cls.campus,
+            building=cls.building, room='room 1',
+            date=cls.today + datetime.timedelta(days=5),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20
         )
         cls.slot.speakers.add(cls.speaker1),
 
         # Add another slot : structure referent shouldn't have access to this one
         cls.slot2 = Slot.objects.create(
-            course=cls.course2, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 12', date=cls.today + datetime.timedelta(days=5),
-            start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
+            course=cls.course2,
+            course_type=cls.course_type,
+            campus=cls.campus,
+            building=cls.building,
+            room='room 12',
+            date=cls.today + datetime.timedelta(days=5),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20
         )
         cls.slot2.speakers.add(cls.speaker2)
 
         cls.slot3 = Slot.objects.create(
-            course=cls.course2, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 12', date=cls.today + datetime.timedelta(days=6),
-            start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
+            course=cls.course2,
+            course_type=cls.course_type,
+            campus=cls.campus,
+            building=cls.building,
+            room='room 12', date=cls.today + datetime.timedelta(days=6),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20
         )
         cls.slot3.speakers.add(cls.speaker2)
 
@@ -327,8 +346,6 @@ class CoreViewsTestCase(TestCase):
             slot=cls.slot,
             attendance_status=1
         )
-
-        cls.event_type = OffOfferEventType.objects.create(label="Event type label")
 
 
     def setUp(self):
@@ -920,15 +937,6 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/mycourses", follow=True)
         self.assertNotIn("My courses", response.content.decode('utf-8'))
 
-    def test_my_visits(self):
-        self.client.login(username='speaker1', password='pass')
-        response = self.client.get("/core/myvisits", follow=True)
-        self.assertIn("My visits", response.content.decode('utf-8'))
-
-        self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/myvisits", follow=True)
-        self.assertNotIn("My visits", response.content.decode('utf-8'))
-
     def test_my_events(self):
         self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/myevents", follow=True)
@@ -946,15 +954,6 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/myslots/courses", follow=True)
         self.assertNotIn("My slots - HER speak", response.content.decode('utf-8'))
-
-    def test_my_visits_slots(self):
-        self.client.login(username='speaker1', password='pass')
-        response = self.client.get("/core/myslots/visits", follow=True)
-        self.assertIn("My visits slots - HER speak", response.content.decode('utf-8'))
-
-        self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/myslots/visits", follow=True)
-        self.assertNotIn("My visits slots - HER speak", response.content.decode('utf-8'))
 
     def test_my_events_slots(self):
         self.client.login(username='speaker1', password='pass')
@@ -1255,222 +1254,6 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.request['PATH_INFO'], '/')
 
 
-    def test_visit(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=True
-        )
-
-        visit.speakers.add(self.speaker1)
-
-        # As a ref_master_etab user
-        self.client.login(username='ref_master_etab', password='pass')
-        response = self.client.get("/core/visits", follow=True)
-        self.assertEqual(response.status_code, 200)
-
-        # Update
-        response = self.client.get(f"/core/visit/{visit.id}", follow=True)
-        self.assertEqual(response.status_code, 200)
-        content = response.content.decode('utf-8')
-        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.purpose}\"", content)
-
-        self.assertEqual(response.context["speakers"], json.dumps([{
-            "username": self.speaker1.username,
-            "lastname": self.speaker1.last_name,
-            "firstname": self.speaker1.first_name,
-            "email": self.speaker1.email,
-            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
-            "is_removable": True
-        }]))
-
-        data = {
-            "establishment": visit.establishment.id,
-            "structure": visit.structure.id,
-            "highschool": visit.highschool.id,
-            "published": True,
-            "purpose": "New visit purpose",
-            "speakers_list": json.dumps([{
-                "email": self.speaker2.email,
-                "username": self.speaker2.username,
-                "lastname": self.speaker2.last_name,
-                "firstname": self.speaker2.first_name,
-            }])
-        }
-
-        response = self.client.post(f"/core/visit/{visit.id}", data, follow=True)
-        self.assertEqual(response.status_code, 200)
-        visit.refresh_from_db()
-        self.assertEqual(visit.purpose, "New visit purpose")
-
-
-        # Duplicate a visit : check form values
-        response = self.client.get(f"/core/visit/{visit.id}/1", follow=True)
-        self.assertEqual(response.status_code, 200)
-        content = response.content.decode('utf-8')
-        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.purpose}\"", content)
-
-        self.assertEqual(response.context["speakers"], json.dumps([{
-            "username": self.speaker2.username,
-            "lastname": self.speaker2.last_name,
-            "firstname": self.speaker2.first_name,
-            "email": self.speaker2.email,
-            "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
-            "is_removable": True
-        }]))
-
-
-    def test_visit_slot(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=False
-        )
-
-        visit.speakers.add(self.speaker1)
-
-        self.assertFalse(Slot.objects.filter(visit=visit).exists())
-
-        # As a ref_master_etab user
-        # slots list
-        self.client.login(username='ref_master_etab', password='pass')
-        response = self.client.get("/core/visits_slots", follow=True)
-        self.assertEqual(response.status_code, 200)
-
-        # Create
-        self.client.login(username='ref_master_etab', password='pass')
-        response = self.client.get("/core/visit_slot", follow=True)
-        self.assertEqual(response.status_code, 200)
-
-        data = {
-            'visit': visit.id,
-            'face_to_face': True,
-            'room': "anywhere",
-            'published': True,
-            'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
-            'start_time': "12:00",
-            'end_time': "14:00",
-            'n_places': 20,
-            'additional_information': 'whatever',
-            'speakers': [self.speaker1.id],
-            'save': "Save",
-        }
-        # Fail with date in the past
-        response = self.client.post("/core/visit_slot", data=data, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
-
-        # Invalid date (not between period dates)
-        date = self.today + datetime.timedelta(days=60)
-        data["date"] = date.strftime("%Y-%m-%d")
-        response = self.client.post("/core/visit_slot", data=data, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "No available period found for slot date &#x27;%s&#x27;, please create one first" % date.strftime("%Y-%m-%d"),
-            response.content.decode('utf-8')
-        )
-
-        # With a valid date, but speakers are still missing
-        data["date"] = (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d")
-        del(data["speakers"])
-        response = self.client.post("/core/visit_slot", data=data, follow=True)
-        self.assertIn("Required fields are not filled in", response.content.decode('utf-8'))
-        self.assertFalse(Slot.objects.filter(visit=visit).exists())
-        self.assertEqual(response.template_name, ['core/visit_slot.html'])
-
-        # With a speaker
-        data["speakers"] = [self.speaker1.id]
-
-        response = self.client.post("/core/visit_slot", data=data, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.template_name, ["core/visits_slots_list.html"])
-
-        self.assertTrue(Slot.objects.filter(visit=visit).exists())
-        slot = Slot.objects.get(visit=visit)
-        self.assertEqual(slot.speakers.first(), self.speaker1)
-        visit.refresh_from_db()
-        self.assertTrue(visit.published)
-
-        # Update
-        response = self.client.get(f"/core/visit_slot/{slot.id}", follow=True)
-        self.assertEqual(response.status_code, 200)
-        content = response.content.decode('utf-8')
-        self.assertIn(f"value=\"{slot.visit.establishment.id}\" selected", content)
-        self.assertIn(f"value=\"{slot.visit.structure.id}\" selected", content)
-        self.assertIn(f"value=\"{slot.visit.highschool.id}\" selected", content)
-        self.assertIn(f"value=\"{slot.visit.id}\"", content)
-
-        self.assertEqual(response.context["speakers"], json.dumps([{
-            "id": self.speaker1.id,
-            "username": self.speaker1.username,
-            "lastname": self.speaker1.last_name,
-            "firstname": self.speaker1.first_name,
-            "email": self.speaker1.email,
-            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
-            "is_removable": True
-        }]))
-
-        # Create an immersion, then update the slot to test mail notification
-        Immersion.objects.create(
-            student=self.highschool_user,
-            slot=slot,
-            attendance_status=1
-        )
-
-        data = {
-            "visit": slot.visit.id,
-            'face_to_face': False,
-            'url': "http://www.whatever.com",
-            'published': True,
-            'date': (self.today + datetime.timedelta(days=7)).strftime("%Y-%m-%d"),
-            'start_time': "10:00",
-            'end_time': "12:00",
-            'n_places': 10,
-            'additional_information': 'whatever',
-            "speakers": [self.speaker1.id],
-            "notify_student": "on",
-            'save': "Save",
-        }
-
-        response = self.client.post(f"/core/visit_slot/{slot.id}", data, follow=True)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
-        self.assertEqual(response.template_name, ["core/visits_slots_list.html"])
-        slot.refresh_from_db()
-
-        self.assertEqual(slot.start_time, datetime.time(10, 0))
-        self.assertEqual(slot.end_time, datetime.time(12, 0))
-        self.assertEqual(slot.n_places, data["n_places"])
-        self.assertFalse(slot.face_to_face)
-        self.assertEqual(slot.url, data["url"])
-        self.assertEqual(slot.speakers.first(), self.speaker1)
-
-
-        # Duplicate a visit slot : check form values
-        response = self.client.get(f"/core/visit_slot/{slot.id}/1", follow=True)
-        self.assertEqual(response.status_code, 200)
-        content = response.content.decode('utf-8')
-
-        self.assertIn(f"value=\"{slot.visit.establishment.id}\" selected>{slot.visit.establishment}<", content)
-        self.assertIn(f"value=\"{slot.visit.structure.id}\" selected>{slot.visit.structure}<", content)
-        self.assertIn(f"value=\"{slot.visit.highschool.id}\" selected>{slot.visit.highschool}<", content)
-
-        # On template load, the full VisitSlot __str__ strings are displayed in the form, but we use javascript to
-        # display only the 'purpose' attribute in the options fields. However, this test doesn't care about javascript.
-        self.assertIn(f"value=\"{slot.visit.id}\" selected>{slot.visit}<", content)
-
-
     def test_off_offer_event(self):
         event = OffOfferEvent.objects.create(
             establishment=self.establishment,
@@ -1529,7 +1312,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(event.description, data["description"])
 
 
-        # Duplicate a visit : check form values
+        # Duplicate an event : check form values
         response = self.client.get(f"/core/off_offer_event/{event.id}/1", follow=True)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')

@@ -14,7 +14,7 @@ from . import Schedulable
 
 from ...models import (
     Course, History, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
-    Period, UniversityYear, UserCourseAlert, Vacation, Visit,
+    Period, UniversityYear, UserCourseAlert, Vacation
 )
 
 logger = logging.getLogger(__name__)
@@ -89,24 +89,19 @@ class Command(BaseCommand, Schedulable):
         else:
             returns.append(_('University year updated'))
 
-        # Update course, visitor, event publishement
+
+        # Update course, and event publishement
         updated = Course.objects.filter(published=True).update(published=False)
         if updated == 0:
             returns.append(_('No course to update'))
         else:
             returns.append(_('{} course(s) updated').format(updated))
 
-        updated = Visit.objects.filter(published=True).update(published=False)
-        if updated == 0:
-            returns.append(_('No visit to update'))
-        else:
-            returns.append(_('{} visit(s) updated').format(updated))
-
         updated = OffOfferEvent.objects.filter(published=True).update(published=False)
         if updated == 0:
-            returns.append(_('No visit to update'))
+            returns.append(_('No event to update'))
         else:
-            returns.append(_('{} visit(s) updated').format(updated))
+            returns.append(_('{} event(s) updated').format(updated))
 
 
         # delete immersion users with group INTER and in an establishment with plugin set

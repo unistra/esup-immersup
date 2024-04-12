@@ -60,7 +60,6 @@ def slots(request):
     structure_id = request.GET.get('structure_id')
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
-    visits = request.GET.get('visits', False) == "true"
     events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
 
@@ -89,7 +88,6 @@ def slots(request):
         user.is_speaker() and not any([
             user.is_master_establishment_manager(),
             user.is_establishment_manager(),
-            user.is_high_school_manager() and visits,
             user.is_structure_manager(),
             user.is_structure_consultant(),
             user.is_operator()
@@ -101,17 +99,7 @@ def slots(request):
         filters["speakers__in"] = user.linked_users()
 
     if not user_filter:
-        if visits and not establishment_id and not structure_id:
-            if user.is_high_school_manager() and user.highschool:
-                filters["visit__highschool__id"] = user.highschool.id
-            else:
-                try:
-                    establishment_id = user.establishment.id
-                except:
-                    response['msg'] = gettext("Error : a valid establishment or structure must be selected")
-                    return JsonResponse(response, safe=False)
-
-        elif events and not establishment_id and not highschool_id:
+        if events and not establishment_id and not highschool_id:
             try:
                 establishment_id = user.establishment.id
             except:
@@ -126,24 +114,12 @@ def slots(request):
                 response['msg'] = gettext("Error : a valid establishment or high school must be selected")
                 return JsonResponse(response, safe=False)
 
-        elif not events and not visits and not establishment_id and not training_id:
+        elif not events and not establishment_id and not training_id:
             response['msg'] = gettext("Error : a valid training must be selected")
             return JsonResponse(response, safe=False)
 
-    if visits:
+    if events:
         filters["course__isnull"] = True
-        filters["event__isnull"] = True
-
-        if establishment_id:
-            filters['visit__establishment__id'] = establishment_id
-
-        if structure_id is not None:
-            filters['visit__structure__id'] = structure_id
-
-        user_filter_key = "visit__structure__in"
-    elif events:
-        filters["course__isnull"] = True
-        filters["visit__isnull"] = True
 
         if establishment_id:
             filters['event__establishment__id'] = establishment_id
@@ -154,7 +130,6 @@ def slots(request):
 
         user_filter_key = "event__structure__in"
     else:
-        filters["visit__isnull"] = True
         filters["event__isnull"] = True
 
         if establishment_id is not None:
@@ -172,9 +147,7 @@ def slots(request):
         'course__training__highschool',
         'course__training__structures__establishment', 'course_type',
         'course__structure__establishment', 'course__highschool',
-        'campus', 'building', 'speakers',
-        'visit__highschool', 'visit__establishment',
-        'visit__structure__establishment', 'event__event_type',
+        'campus', 'building', 'speakers', 'event__event_type',
         'event__establishment', 'event__structure__establishment',
         'event__highschool', 'immersions__cancellation_type',
         'allowed_establishments', 'allowed_highschools',
@@ -207,7 +180,6 @@ def slots(request):
         course_training_label=F('course__training__label'),
         course_type_label=F('course_type__label'),
         course_type_full_label=F('course_type__full_label'),
-        visit_purpose=F('visit__purpose'),
         event_type_label =F('event__event_type__label'),
         event_label=F('event__label'),
         event_description=F('event__description'),
@@ -225,22 +197,6 @@ def slots(request):
             ),
             When(
                 Q(Value(user.is_structure_manager())) & Q(course__structure__in=allowed_structures),
-                then=True
-            ),
-            default=False
-        ),
-        can_update_visit_slot=Case(
-            When(visit__isnull=True, then=False),
-            When(
-                Q(Value(user.is_master_establishment_manager())) | Q(Value(user.is_operator())),
-                then=True
-            ),
-            When(
-                Q(Value(user.is_establishment_manager())) & Q(visit__establishment=user_establishment),
-                then=True
-            ),
-            When(
-                Q(Value(user.is_structure_manager())) & Q(visit__structure__in=allowed_structures),
                 then=True
             ),
             default=False
@@ -300,38 +256,31 @@ def slots(request):
         establishment_code=Coalesce(
             F('course__structure__establishment__code'),
             F('event__establishment__code'),
-            F('visit__establishment__code')
         ),
         establishment_label=Coalesce(
             F('course__structure__establishment__label'),
             F('event__establishment__label'),
-            F('visit__establishment__label')
         ),
         establishment_short_label=Coalesce(
             F('course__structure__establishment__short_label'),
             F('event__establishment__short_label'),
-            F('visit__establishment__short_label')
         ),
         structure_code=Coalesce(
             F('course__structure__code'),
             F('event__structure__code'),
-            F('visit__structure__code')
         ),
         structure_label=Coalesce(
             F('course__structure__label'),
             F('event__structure__label'),
-            F('visit__structure__label')
         ),
         structure_establishment_short_label=Coalesce(
             F('course__structure__establishment__short_label'),
             F('event__structure__establishment__short_label'),
-            F('visit__structure__establishment__short_label')
         ),
         structure_managed_by_me=Case(
             When(
                 Q(course__structure__in=allowed_structures) |
-                Q(event__structure__in=allowed_structures) |
-                Q(visit__structure__in=allowed_structures),
+                Q(event__structure__in=allowed_structures),
                 then=True
             ),
             default=False
@@ -339,20 +288,17 @@ def slots(request):
         highschool_city=Coalesce(
             F('course__highschool__city'),
             F('event__highschool__city'),
-            F('visit__highschool__city')
         ),
         highschool_label=Coalesce(
             F('course__highschool__label'),
             F('event__highschool__label'),
-            F('visit__highschool__label')
         ),
         highschool_managed_by_me=Case(
             When(
                 Q(Value(user.is_establishment_manager())) | Q(Value(user.is_operator()))
               | (Q(Value(user.is_high_school_manager())) &
                  Q(course__highschool=user_highschool)
-               | Q(event__highschool=user_highschool)
-               | Q(visit__highschool=user_highschool)),
+               | Q(event__highschool=user_highschool)),
                 then=True
             ),
             default=False
@@ -375,7 +321,7 @@ def slots(request):
             ),
             When(
                 ~Q(Value(can_update_attendances))
-                | ((Q(Value(events)) | Q(Value(visits))) & Q(face_to_face=False)),
+                | (Q(Value(events)) & Q(face_to_face=False)),
                 then=Value(2)
             ),
             When(
@@ -470,12 +416,12 @@ def slots(request):
     )\
     .order_by('date', 'start_time')\
     .values(
-        'id', 'published', 'can_update_course_slot', 'can_update_visit_slot', 'can_update_event_slot',
+        'id', 'published', 'can_update_course_slot', 'can_update_event_slot',
         'can_update_registrations', 'course_id', 'course_label', 'course_training_label',
         'course_type_label', 'course_type_full_label', 'establishment_code',
         'establishment_short_label', 'establishment_label', 'structure_code', 'structure_label',
         'structure_managed_by_me', 'structure_establishment_short_label', 'highschool_city',
-        'highschool_label', 'highschool_managed_by_me', 'visit_id', 'visit_purpose',
+        'highschool_label', 'highschool_managed_by_me',
         'event_id', 'event_type_label', 'event_label', 'event_description', 'date',
         'start_time', 'end_time', 'campus_label', 'building_label', 'face_to_face', 'url',
         'room', 'n_register', 'n_places', 'additional_information', 'attendances_value',

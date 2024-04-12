@@ -29,7 +29,7 @@ from immersionlyceens.apps.core.models import (
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, OffOfferEventType, Period,
     PostBachelorLevel, Profile, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
+    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
@@ -149,8 +149,6 @@ class APITestCase(TestCase):
             postbac_immersion=True,
             signed_charter=True,
         )
-
-        cls.visit = Visit.objects.first()
 
         cls.visitor = get_user_model().objects.create_user(
             username="visitor",
@@ -421,11 +419,22 @@ class APITestCase(TestCase):
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
 
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+
         self.course = Course.objects.create(
             label="course 1",
             training=self.training,
             structure=self.structure
         )
+        self.course.speakers.add(self.speaker1)
+
+        """
+        self.event = OffOfferEvent.objects.create(
+            label="event 1",
+            event_type=self.event_type,
+            structure=self.structure
+        )
+        """
         self.course.speakers.add(self.speaker1)
 
         self.slot = Slot.objects.create(
@@ -624,8 +633,9 @@ class APITestCase(TestCase):
             validation=1,
         )
 
+        """
         self.slot4 = Slot.objects.create(
-            visit=Visit.objects.first(),
+            event=self.event,
             campus=self.campus,
             building=self.building,
             room='room 2',
@@ -635,6 +645,8 @@ class APITestCase(TestCase):
             n_places=20,
             additional_information="Hello there!"
         )
+        """
+
 
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
@@ -648,10 +660,12 @@ class APITestCase(TestCase):
             student=self.highschool_user,
             slot=self.past_slot,
         )
+        """
         self.immersion4 = Immersion.objects.create(
             student=self.visitor_user,
             slot=self.slot4,
         )
+        """
         self.mail_t = MailTemplate.objects.create(
             code="code",
             label="label",
@@ -669,7 +683,7 @@ class APITestCase(TestCase):
             course=self.course
         )
 
-        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+
 
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         self.token = Token.objects.create(user=self.ref_master_etab_user)
@@ -774,7 +788,6 @@ class APITestCase(TestCase):
             "bachelors_restrictions":False,
             "course":self.course.pk,
             "course_type":self.course_type.pk,
-            "visit":None,
             "event":None,
             "campus":self.campus.pk,
             "building":self.building.pk,
@@ -819,7 +832,6 @@ class APITestCase(TestCase):
             "bachelors_restrictions":False,
             "course":self.course.pk,
             "course_type":self.course_type.pk,
-            "visit":None,
             "event":None,
             "campus":self.campus.pk,
             "building":self.building.pk,
@@ -1231,117 +1243,6 @@ class APITestCase(TestCase):
 
             n += 1
 
-        # type=visit
-
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Visit from hell",
-            published=True
-        )
-
-        slot = Slot.objects.create(
-            visit=visit,
-            room='cool room',
-            date=self.today + timedelta(days=1),
-            start_time=time(12, 0),
-            end_time=time(14, 0),
-            n_places=20,
-            additional_information="Hello there!",
-        )
-
-        slot.speakers.add(self.speaker1),
-
-        immersion = Immersion.objects.create(
-            student=self.student,
-            slot=slot,
-            attendance_status=1
-        )
-
-        self.client.login(username='ref_master_etab', password='pass')
-        url = '/api/get_csv_anonymous/?type=visit'
-        response = self.client.get(url, request)
-        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
-        headers = [
-            _('establishment'),
-            _('structure'),
-            _('highschool'),
-            _('purpose'),
-            _('meeting place'),
-            _('date'),
-            _('start_time'),
-            _('end_time'),
-            _('speakers'),
-            _('registration number'),
-        ]
-
-        n = 0
-
-        for row in content:
-            # header check
-            if n == 0:
-                for h in headers:
-                    self.assertIn(h, row)
-            elif n == 1:
-                self.assertEqual(self.establishment.label, row[0])
-                self.assertEqual(self.structure.label, row[1])
-                self.assertIn(visit.highschool.label, row[2])
-                self.assertEqual(visit.purpose, row[3])
-                self.assertEqual(slot.room, row[4])
-                self.assertEqual(_date(slot.date, 'd/m/Y'), row[5])
-                self.assertIn(slot.start_time.strftime("%H:%M"), row[6])
-                self.assertIn(slot.end_time.strftime("%H:%M"), row[7])
-                self.assertEqual(str(self.speaker1), row[8])
-                self.assertEqual(str(slot.registered_students()), row[9])
-                self.assertEqual(str(self.slot.n_places), row[10])
-                self.assertEqual(slot.additional_information, row[11])
-
-            n += 1
-
-
-        self.client.login(username='ref_etab', password='pass')
-        url = '/api/get_csv_anonymous/?type=visit'
-        response = self.client.get(url, request)
-        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
-        headers = [
-            _('structure'),
-            _('highschool'),
-            _('purpose'),
-            _('meeting place'),
-            _('date'),
-            _('start_time'),
-            _('end_time'),
-            _('speakers'),
-            _('registration number'),
-            _('place number'),
-            _('additional information'),
-        ]
-
-        n = 0
-
-        for row in content:
-            # header check
-            if n == 0:
-                for h in headers:
-                    self.assertIn(h, row)
-            elif n == 1:
-                self.assertEqual(self.structure.label, row[0])
-                self.assertIn(visit.highschool.label, row[1])
-                self.assertEqual(visit.purpose, row[2])
-                self.assertEqual(slot.room, row[3])
-                self.assertEqual(_date(slot.date, 'd/m/Y'), row[4])
-                self.assertIn(slot.start_time.strftime("%H:%M"), row[5])
-                self.assertIn(slot.end_time.strftime("%H:%M"), row[6])
-                self.assertEqual(str(self.speaker1), row[7])
-                self.assertEqual(str(slot.registered_students()), row[8])
-                self.assertEqual(str(self.slot.n_places), row[9])
-                self.assertEqual(slot.additional_information, row[10])
-
-            n += 1
-
-        immersion.delete()
-
 
     def test_API_get_csv_highschool(self):
         # Ref highschool
@@ -1361,7 +1262,7 @@ class APITestCase(TestCase):
             _('training domain'),
             _('training subdomain'),
             _('training'),
-            _('course/event/visit label'),
+            _('course/event label'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1973,7 +1874,6 @@ class APITestCase(TestCase):
                 'type_full': ''
             },
             'event': {},
-            'visit': {},
             'datetime': datetime.combine(
                 self.immersion.slot.date,
                 self.immersion.slot.start_time
@@ -2762,7 +2662,11 @@ class APITestCase(TestCase):
         else:
             student_profile = _('Student')
 
-        i = content['data'][0]
+        # get_students_presence returns an unordered list, careful when testing
+        # a specific immersion
+        i = list(filter(lambda x:x['id'] == self.immersion.id, content['data']))[0]
+
+        # i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
         self.assertEqual(self.immersion.slot.date.strftime("%Y-%m-%d"), i['date'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%H:%M:%S"), i['start_time'])
@@ -3499,39 +3403,6 @@ class APITestCase(TestCase):
             }])
 
 
-    def test_get_visit_speakers(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=True
-        )
-
-        visit.speakers.add(self.speaker1)
-
-        url = f"/api/speakers/visits/{visit.id}"
-
-        # Check access for the following users
-        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
-            self.client.login(username=user.username, password='pass')
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = json.loads(response.content.decode('utf-8'))
-
-            self.assertEqual(content, [{
-                "id": self.speaker1.id,
-                "last_name": self.speaker1.last_name,
-                "first_name": self.speaker1.first_name,
-                "email": self.speaker1.email,
-                "establishment": self.speaker1.establishment.pk,
-                "highschool": self.speaker1.highschool,
-                "is_active": self.speaker1.is_active,
-                "has_courses": self.speaker1.courses.exists(),
-                "can_delete": not self.speaker1.courses.exists()
-            }])
-
-
     def test_get_event_speakers(self):
         event_type = OffOfferEventType.objects.create(
             label="My event type",
@@ -3667,76 +3538,6 @@ class APITestCase(TestCase):
             'highschool': self.highschool_speaker.highschool.pk,
         })
 
-    def test_visit(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=True
-        )
-
-        visit2 = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever 2",
-            published=True
-        )
-
-        client = Client()
-        client.login(username='ref_etab', password='pass')
-
-        # List
-        response = client.get(reverse("visit_list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode('utf-8'))
-
-        self.assertEqual(content[0]['purpose'], 'Whatever')
-        self.assertEqual(content[0]['establishment']['code'], "ETA1")
-        self.assertEqual(content[0]['establishment']['label'], "Etablissement 1")
-
-        # As ref-str (with no structure) : empty
-        self.ref_str.structures.remove(self.structure)
-        client.login(username='ref_str', password='pass')
-        response = client.get(reverse("visit_list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(len(content), 0)
-
-        # Deletion
-        # as ref_str : fail (bad structure)
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
-        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(Visit.objects.count(), 2)
-
-        # as ref_etab
-        client.login(username='ref_etab', password='pass')
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Visit.objects.count(), 1)
-
-        # as master_ref_etab
-        client.login(username='ref_master_etab', password='pass')
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Visit.objects.count(), 0)
-
-        # as operator
-        visit2 = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever 2",
-            published=True
-        )
-
-        client.login(username='operator', password='pass')
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Visit.objects.count(), 0)
-
 
     def test_off_offer_event(self):
         event = OffOfferEvent.objects.create(
@@ -3766,6 +3567,7 @@ class APITestCase(TestCase):
         response = client.get(reverse("off_offer_event_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(content), 1)
         self.assertEqual(content[0]['label'], 'Establishment event')
         self.assertEqual(content[0]['establishment']['id'], self.establishment.id)

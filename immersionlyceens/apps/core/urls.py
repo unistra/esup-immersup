@@ -26,7 +26,6 @@ urlpatterns = [
     ),
     path('my_students', views.MyStudents.as_view(), name='my_students'),
     path('mycourses/', views.mycourses, name='mycourses'),
-    path('myvisits/', views.myvisits, name='myvisits'),
     path('myevents/', views.myevents, name='myevents'),
     path('myslots/<str:slots_type>', views.myslots, name='myslots'),
     path('slots/', views.CourseSlotList.as_view(), name='courses_slots'),
@@ -55,21 +54,6 @@ urlpatterns = [
     path("trainings", views.TrainingList.as_view(), name="trainings"),
     path("training", views.TrainingAdd.as_view(), name="training_add"),
     path("training/<int:pk>/update", views.TrainingUpdate.as_view(), name="training_update"),
-
-    path("visits", views.VisitList.as_view(), name="visits"),
-    path("visit", views.VisitAdd.as_view(), name="add_visit"),
-    path("visit/<int:pk>", views.VisitUpdate.as_view(), name="update_visit"),
-    path('visit/<int:pk>/<int:duplicate>', views.VisitAdd.as_view(), name='duplicate_visit'),
-
-    path('visits_slots/', views.VisitSlotList.as_view(), name='visits_slots'),
-    path('visits_slots/<int:establishment_id>/<str:structure_id>/<int:highschool_id>/<int:visit_id>',
-         views.VisitSlotList.as_view(), name='establishment_filtered_visits_slots_list'),
-
-    path('visit_slot', views.VisitSlot.as_view(), name='add_visit_slot'),
-    path('visit_slot/<int:pk>', views.VisitSlotUpdate.as_view(), name='update_visit_slot'),
-    path('visit_slot/<int:pk>/<int:duplicate>', views.VisitSlot.as_view(), name='duplicate_visit_slot'),
-    path('visit_slot/add/<int:establishment_id>/<str:structure_id>/<int:highschool_id>/<int:visit_id>',
-         views.VisitSlot.as_view(), name='add_establishment_visit_slot'),
 
     path("off_offer_events", views.OffOfferEventsList.as_view(), name="off_offer_events"),
     path("off_offer_event", views.OffOfferEventAdd.as_view(), name="add_off_offer_event"),

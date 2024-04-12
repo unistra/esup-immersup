@@ -1,6 +1,5 @@
 {% load static i18n immersionlyceens_tags %}
 {% authorized_groups request.user %}
-{% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
@@ -48,9 +47,6 @@
             {% if events_off_offer %}
             <a class="dropdown-item" href="{% url 'offer_off_offer_events' %}">{% trans 'Off offer Events' %}</a>
             {% endif %}
-            {% if highschool_visit %}
-            <a class="dropdown-item" href="{% url 'visits_offer' %}">{% trans 'Visits' %}</a>
-            {% endif %}
           </div>
         </div>
         {% if show_accompanying_docs_menu %}
@@ -81,22 +77,6 @@
               {% endif %}
             </div>
           </div>
-        {% endif %}
-
-        {# Visits #}
-        {% if highschool_visit and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" %}
-        <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVisits" role="button" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false">
-            {% trans 'Visits' %}
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownVisits">
-            <a class="dropdown-item" href="{% url 'visits' %}">{% trans 'Visits list' %}</a>
-            <a class="dropdown-item" href="{% url 'add_visit' %}">{% trans 'New visit' %}</a>
-            <a class="dropdown-item" href="{% url 'visits_slots' %}">{% trans 'Visits slots list' %}</a>
-            <a class="dropdown-item" href="{% url 'add_visit_slot' %}">{% trans 'New visit slot' %}</a>
-          </div>
-        </div>
         {% endif %}
 
         {# Off offer events #}
@@ -138,7 +118,7 @@
           </div>
         {% endif %}
         {# Speaker #}
-        {% if authorized_groups|in_groups:"INTER" or authorized_groups|in_groups:"REF-LYC" and highschool_visit %}
+        {% if authorized_groups|in_groups:"INTER" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultSpeaker" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
@@ -147,15 +127,8 @@
               {% if authorized_groups|in_groups:"INTER" %}
                 <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
                 <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
-                {% if not request.user.highschool and highschool_visit %}
-                  <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
-                  <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
-                {% endif %}
                 <a class="dropdown-item" href="{% url 'myevents' %}">{% trans 'My events' %}</a>
                 <a class="dropdown-item" href="{% url 'myslots' slots_type='events' %}">{% trans 'My events slots' %}</a>
-              {% endif %}
-              {% if authorized_groups|in_groups:"REF-LYC" and highschool_visit %}
-                <a class="dropdown-item" href="{% url 'myslots' slots_type='hs_visits' %}">{% trans 'My high school visits slots' %}</a>
               {% endif %}
             </div>
           </div>

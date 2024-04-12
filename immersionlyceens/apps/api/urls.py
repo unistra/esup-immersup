@@ -78,12 +78,7 @@ urlpatterns = [
     # Speakers
     path('speakers', views.SpeakerList.as_view(), name='speaker_list'),
     path('speakers/courses/<int:course_id>', views.SpeakerList.as_view(), name='course_speaker_list'),
-    path('speakers/visits/<int:visit_id>', views.SpeakerList.as_view(), name='visit_speaker_list'),
     path('speakers/events/<int:event_id>', views.SpeakerList.as_view(), name='event_speaker_list'),
-
-    # Visits
-    path('visits', views.VisitList.as_view(), name='visit_list'),
-    path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
 
     # Off offer events
     path('off_offer_events', views.OffOfferEventList.as_view(), name='off_offer_event_list'),

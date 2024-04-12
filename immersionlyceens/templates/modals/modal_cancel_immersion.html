@@ -66,16 +66,6 @@
         if ( $.fn.DataTable.isDataTable('#cancelled_events')) {
           dte_cancelled.ajax.reload();
         }
-        if ( $.fn.DataTable.isDataTable('#visits_to_come' )) {
-          dtv_future.ajax.reload();
-        }
-        if ( $.fn.DataTable.isDataTable('#past_visits')) {
-          dtv_past.ajax.reload();
-        }
-        if ( $.fn.DataTable.isDataTable('#cancelled_visits')) {
-          dtv_cancelled.ajax.reload();
-        }
-
         $('#modal_cancel_immersion').modal('toggle');
       },
       error: function(json) {

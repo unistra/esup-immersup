@@ -6419,13 +6419,13 @@ msgid "View registered students"
 msgstr "Consulter la liste des inscrits"
 
 #: immersionlyceens/templates/core/common_slots_list.html:178
-#: immersionlyceens/templates/offer_off_offer_events.html:119
-#: immersionlyceens/templates/offer_off_offer_events.html:120
 #: immersionlyceens/templates/visits_offer.html:95
 #: immersionlyceens/templates/visits_offer.html:96
 msgid "Remote visit"
 msgstr "Distanciel"
 
+#: immersionlyceens/templates/offer_off_offer_events.html:119
+#: immersionlyceens/templates/offer_off_offer_events.html:120
 #: immersionlyceens/templates/core/common_slots_list.html:179
 msgid "Remote event"
 msgstr "Distanciel"

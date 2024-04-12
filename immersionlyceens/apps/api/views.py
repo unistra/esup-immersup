@@ -49,14 +49,14 @@ from immersionlyceens.apps.core.models import (
     MailTemplateVars, OffOfferEvent, Period, PublicDocument,
     RefStructuresNotificationsSettings, Slot, Structure, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit,
+    UserCourseAlert, Vacation
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer, CourseTypeSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer, HighSchoolSerializer,
     OffOfferEventSerializer, PeriodSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingSerializer,
-    TrainingSubdomainSerializer, UserCourseAlertSerializer, VisitSerializer,
+    TrainingSubdomainSerializer, UserCourseAlertSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
@@ -609,9 +609,9 @@ def ajax_get_immersions(request, user_id=None):
     Returns students immersions
     GET parameters:
     immersion_type in "future", "past", "cancelled" or None (= all)
-    slot_type in "course", "visit", "event" or None (= all)
+    slot_type in "course", "event" or None (= all)
     """
-    all_types = ['course', 'visit', 'event'] # Fixme : do something with this in Slot class
+    all_types = ['course', 'event'] # Fixme : do something with this in Slot class
 
     slot_type = request.GET.get('slot_type') or None
     immersion_type = request.GET.get('immersion_type') or None
@@ -673,8 +673,7 @@ def ajax_get_immersions(request, user_id=None):
             'slot__course',
             'slot__course__training',
             'slot__course_type',
-            'slot__event',
-            'slot__visit',
+            'slot__event'
         ]
 
     if immersion_type == "cancelled":
@@ -746,10 +745,6 @@ def ajax_get_immersions(request, user_id=None):
                 'label': slot.event.label,
                 'type': slot.event.event_type.label
             } if slot.event else {},
-            'visit': {
-                'label': slot.visit.purpose,
-                'purpose': slot.visit.purpose,
-            } if slot.visit else {},
             'datetime': slot_datetime,
             'date': date_format(slot.date),
             'start_time': slot.start_time.strftime("%-Hh%M"),
@@ -1002,7 +997,7 @@ def ajax_slot_registration(request):
     slot, student = None, None
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
-    visit_or_off_offer = False
+    off_offer = False
     training_quota_active = False
     training_quota_count = 0
     available_training_registrations = None
@@ -1027,7 +1022,7 @@ def ajax_slot_registration(request):
     if slot_id:
         try:
             slot = Slot.objects.get(pk=slot_id)
-            visit_or_off_offer= True if (slot.visit or slot.event) else False
+            off_offer= True if slot.event else False
         except Slot.DoesNotExist:
             pass
 
@@ -1151,7 +1146,7 @@ def ajax_slot_registration(request):
         can_register = False
 
         # For courses slots only : training quotas ?
-        if not visit_or_off_offer:
+        if not off_offer:
             try:
                 training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
                 training_quota_active = training_quota['activate']
@@ -1170,7 +1165,7 @@ def ajax_slot_registration(request):
 
             # If training quota is active, check registrations for this period/training
 
-            if not visit_or_off_offer and training_quota_active:
+            if not off_offer and training_quota_active:
                 training_regs_count = student.immersions\
                     .filter(
                         slot__date__gte=period.immersion_start_date,
@@ -1193,7 +1188,7 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': msg}
             return JsonResponse(response, safe=False)
 
-        if visit_or_off_offer:
+        if off_offer:
             can_register = True
         elif available_registrations > 0 and available_training_registrations is None:
             can_register = True
@@ -1336,10 +1331,6 @@ def ajax_get_available_students(request, slot_id):
             validation_string__isnull=True
         ) \
         .exclude(immersions__in=(Immersion.objects.filter(slot__id=slot_id, cancellation_type__isnull=True)))
-
-    # Visit slot : keep only high school students matching the slot's high school
-    if slot.is_visit() and slot.visit.highschool:
-        students = students.filter(high_school_student_record__highschool=slot.visit.highschool)
 
     # Restrictions :
     # Some users will only see a warning about restrictions not met (ref-etab, ref-etab-maitre, ref-tec)
@@ -1917,116 +1908,6 @@ def get_csv_structures(request):
             *fields
         )
 
-    # Export visits
-    if t == 'visit':
-
-        label = _('visits')
-
-        if request.user.is_master_establishment_manager() or request.user.is_operator():
-
-            header = [
-                _('establishment'),
-                _('structure'),
-                _('highschool'),
-                _('purpose'),
-                _('meeting place'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('speakers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-            ]
-
-            fields = [
-                'establishment', 'structure', 'highschool', 'purpose', 'meeting_place',
-                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info'
-            ]
-
-        elif request.user.is_establishment_manager():
-
-            header = [
-                _('structure'),
-                _('highschool'),
-                _('purpose'),
-                _('meeting place'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('speakers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-            ]
-
-            fields = [
-                'structure', 'highschool', 'purpose', 'meeting_place', 'slot_date', 'slot_start_time',
-                'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info'
-            ]
-
-            Q_filters = Q(visit__establishment=request.user.establishment) | Q(
-                visit__structure__in=request.user.establishment.structures.all()
-            )
-
-        elif request.user.is_structure_manager():
-
-            header = [
-                _('structure'),
-                _('highschool'),
-                _('purpose'),
-                _('meeting place'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('speakers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-            ]
-
-            fields = [
-                'structure', 'highschool', 'purpose', 'meeting_place', 'slot_date', 'slot_start_time',
-                'slot_end_time', 'slot_speakers', 'registered', 'slot_n_places', 'info'
-            ]
-
-            filters[
-                'visit__structure__in'
-            ] = structures
-
-        slots = Slot.objects.prefetch_related(
-            'immersions','speakers','visit', 'visit__establishment', 'visit__structure',
-            'visit__highschool'
-        ).filter(
-            Q_filters, **filters, published=True, visit__isnull=False, immersions__cancellation_type__isnull=True
-        ).order_by('date', 'start_time')
-
-        content = slots.annotate(
-            establishment=F('visit__establishment__label'),
-            structure=F('visit__structure__label'),
-            highschool=F('visit__highschool__label'),
-            purpose=F('visit__purpose'),
-            meeting_place=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
-            ),
-            slot_date=ExpressionWrapper(
-                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
-            ),
-            slot_start_time=F('start_time'),
-            slot_end_time=F('end_time'),
-            slot_speakers=StringAgg(
-                Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
-                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
-            ),
-            registered=Subquery(registered_students_count),
-            slot_n_places=F('n_places'),
-            info=(F('additional_information')),
-        ).values_list(
-            *fields
-        )
-
     # Export events
     if t == 'event':
 
@@ -2212,7 +2093,7 @@ def get_csv_highschool(request):
         _('training domain'),
         _('training subdomain'),
         _('training'),
-        _('course/event/visit label'),
+        _('course/event label'),
         _('date'),
         _('start_time'),
         _('end_time'),
@@ -2256,12 +2137,10 @@ def get_csv_highschool(request):
             student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
             slot_establishment=Coalesce(
                 F('immersions__slot__course__structure__establishment__label'),
-                F('immersions__slot__visit__establishment__label'),
                 F('immersions__slot__event__establishment__label'),
             ),
             slot_type=Case(
                 When(immersions__slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
-                When(immersions__slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
                 When(immersions__slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
                 When(immersions__isnull=False, then=Value("")),
             ),
@@ -2276,7 +2155,6 @@ def get_csv_highschool(request):
             training_label=F('immersions__slot__course__training__label'),
             slot_label=Coalesce(
                 F('immersions__slot__course__label'),
-                F('immersions__slot__visit__purpose'),
                 F('immersions__slot__event__label'),
             ),
             slot_date=ExpressionWrapper(
@@ -2357,12 +2235,10 @@ def get_csv_highschool(request):
             student_bachelor_type=F('high_school_student_record__bachelor_type__label'),
             slot_establishment=Coalesce(
                 F('immersions__slot__course__structure__establishment__label'),
-                F('immersions__slot__visit__establishment__label'),
                 F('immersions__slot__event__establishment__label'),
             ),
             slot_type=Case(
                 When(immersions__slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
-                When(immersions__slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
                 When(immersions__slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
                 When(immersions__isnull=False, then=Value("")),
             ),
@@ -2377,7 +2253,6 @@ def get_csv_highschool(request):
             training_label=F('immersions__slot__course__training__label'),
             slot_label=Coalesce(
                 F('immersions__slot__course__label'),
-                F('immersions__slot__visit__purpose'),
                 F('immersions__slot__event__label'),
             ),
             slot_date=ExpressionWrapper(
@@ -2555,93 +2430,6 @@ def get_csv_anonymous(request):
             *fields
         )
 
-    # Export visits
-    if t == 'visit':
-
-        label = _('anonymous_visits')
-
-        if request.user.is_master_establishment_manager() or request.user.is_operator():
-
-            header = [
-                _('establishment'),
-                _('structure'),
-                _('highschool'),
-                _('purpose'),
-                _('meeting place'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('speakers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-            ]
-
-            fields = [
-                'establishment', 'structure', 'highschool', 'purpose', 'meeting_place',
-                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info'
-            ]
-
-        elif request.user.is_establishment_manager():
-
-            header = [
-                _('structure'),
-                _('highschool'),
-                _('purpose'),
-                _('meeting place'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('speakers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-            ]
-
-            fields = [
-                'structure', 'highschool', 'purpose', 'meeting_place',
-                'slot_date', 'slot_start_time', 'slot_end_time', 'slot_speakers',
-                'registered', 'slot_n_places', 'info'
-            ]
-
-            Q_filters = Q(visit__establishment=request.user.establishment) | Q(
-                visit__structure__in=request.user.establishment.structures.all()
-            )
-
-        content = []
-
-        slots = Slot.objects.prefetch_related(
-            'immersions','speakers','visit', 'visit__establishment', 'visit__structure',
-            'visit__highschool', 'student__visitor_record', 'student__student_record',
-            'student__high_school_student_record',
-        ).filter(Q_filters, published=True, visit__isnull=False, immersions__cancellation_type__isnull=True)
-
-        content = slots.annotate(
-            establishment=F('visit__establishment__label'),
-            structure=F('visit__structure__label'),
-            highschool=F('visit__highschool__label'),
-            purpose=F('visit__purpose'),
-            meeting_place=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
-            ),
-            slot_date=ExpressionWrapper(
-                Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
-            ),
-            slot_start_time=F('start_time'),
-            slot_end_time=F('end_time'),
-            slot_speakers=StringAgg(
-                Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
-                 infield_separator, default=Value(''), output_field=CharField(), distinct=True
-            ),
-            registered=Subquery(registered_students_count),
-            slot_n_places=F('n_places'),
-            info=(F('additional_information')),
-        ).values_list(
-            *fields
-        )
-
     # Export events
     if t == 'event':
 
@@ -2777,8 +2565,7 @@ def get_csv_anonymous(request):
 
         immersions = Immersion.objects.prefetch_related(
             'slot','student','slot__event__establishment', 'slot__event__structure',
-            'slot__event__highschool', 'slot__speakers', 'slot__visit__establishment'
-            'slot__visit__structure', 'slot__visit__highschool', 'slot__course__structure',
+            'slot__event__highschool', 'slot__speakers', 'slot__course__structure',
             'slot__course__highschool', 'student__visitor_record',
             'student__student_record__origin_bachelor_type'
             'student__student_record__institution',
@@ -2834,12 +2621,10 @@ def get_csv_anonymous(request):
             ),
             establishment=Coalesce(
                 F('slot__course__structure__establishment__label'),
-                F('slot__visit__establishment__label'),
                 F('slot__event__establishment__label'),
             ),
             slot_type=Case(
                 When(slot__course__isnull=False,then=Value(pgettext("slot type", "Course"))),
-                When(slot__visit__isnull=False, then=Value(pgettext("slot type", "Visit"))),
                 When(slot__event__isnull=False, then=Value(pgettext("slot type", "Event"))),
             ),
             domains=StringAgg(
@@ -2853,7 +2638,6 @@ def get_csv_anonymous(request):
             training_label=F('slot__course__training__label'),
             slot_label=Coalesce(
                 F('slot__course__label'),
-                F('slot__visit__purpose'),
                 F('slot__event__label'),
             ),
             slot_course_type=F('slot__course_type__label'),
@@ -2961,14 +2745,11 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
     if date_until and date_until != "None":
         filters["slot__date__lte"] = date_until
 
-    filters["slot__visit__isnull"] = True
-
     if (
         not request.user.is_superuser
         and(request.user.is_establishment_manager()
         or request.user.is_legal_department_staff())
     ):
-
         structures = request.user.establishment.structures.all()
 
         Q_filters = (
@@ -2977,13 +2758,11 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
         )
 
     elif request.user.is_high_school_manager() and not request.user.is_superuser:
-
         Q_filters = (
             Q(slot__course__highschool=request.user.highschool) |
             Q(slot__event__highschool=request.user.highschool, slot__face_to_face=True)
         )
     else:
-
         Q_filters = (
             Q(slot__event__isnull=False, slot__face_to_face=True) |
             Q(slot__course__isnull=False)
@@ -2993,8 +2772,8 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
     immersions = Immersion.objects\
         .prefetch_related(
             'slot__campus', 'slot__building', 'slot__course__structure__establishment',
-            'slot__visit__establishment', 'slot__event__establishment', 'slot__course__structure',
-            'slot__visit__structure', 'slot__event__structure', 'student__high_school_student_record__highschool',
+            'slot__event__establishment', 'slot__course__structure',
+            'slot__event__structure', 'student__high_school_student_record__highschool',
             'student__student_record__institution', 'student__visitor_record',
         )\
         .filter(Q_filters, **filters, cancellation_type__isnull=True)\
@@ -3037,15 +2816,12 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             ),
             establishment=Coalesce(
                 F('slot__course__structure__establishment__label'),
-                F('slot__visit__establishment__label'),
                 F('slot__event__establishment__label'),
                 F('slot__course__highschool__label'),
-                F('slot__visit__highschool__label'),
                 F('slot__event__highschool__label'),
             ),
             structure=Coalesce(
                 F('slot__course__structure__label'),
-                F('slot__visit__structure__label'),
                 F('slot__event__structure__label'),
             )
         )\
@@ -3430,13 +3206,10 @@ class SpeakerList(generics.ListCreateAPIView):
         self.user = self.request.user
 
         course_id = self.kwargs.get("course_id")
-        visit_id = self.kwargs.get("visit_id")
         event_id = self.kwargs.get("event_id")
 
         if course_id:
             return Course.objects.get(id=course_id).speakers.all()
-        if visit_id:
-            return Visit.objects.get(id=visit_id).speakers.all()
         if event_id:
             return OffOfferEvent.objects.get(id=event_id).speakers.all()
 
@@ -3736,7 +3509,7 @@ class SlotList(generics.ListCreateAPIView):
     serializer_class = SlotSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [CustomDjangoModelPermissions]
-    filterset_fields = ['course', 'course_type', 'visit', 'event', 'campus', 'building', 'room',
+    filterset_fields = ['course', 'course_type', 'event', 'campus', 'building', 'room',
                         'date', 'start_time', 'end_time', 'speakers', 'published', 'face_to_face']
 
     def get_queryset(self):
@@ -3812,101 +3585,6 @@ class TrainingDetail(generics.RetrieveDestroyAPIView):
 
     def get_queryset(self):
         return Training.objects.filter(highschool=self.request.user.highschool)
-
-
-class VisitList(generics.ListAPIView):
-    """
-    Visits list
-    """
-    serializer_class = VisitSerializer
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['establishment', 'structure', 'highschool']
-
-    def get_queryset(self):
-        queryset = Visit.objects.all()
-        user = self.request.user
-
-        user_visits = self.request.GET.get('user_visits', False) == 'true'
-
-        force_user_filter = [
-            user_visits,
-            user.is_speaker() and not any([
-                user.is_master_establishment_manager(),
-                user.is_establishment_manager(),
-                user.is_structure_manager(),
-                user.is_operator()
-            ])
-        ]
-
-        if not user.is_superuser:
-            if any(force_user_filter):
-                queryset = queryset.filter(speakers__in=user.linked_users())
-            elif user.is_establishment_manager() and user.establishment:
-                queryset = Visit.objects.filter(
-                    Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
-                    .distinct()
-            elif user.is_structure_manager():
-                queryset = queryset.filter(structure__in=user.structures.all())
-
-        return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
-
-    def filter_queryset(self, queryset):
-        filters = {}
-        if "structure" in self.request.query_params:
-            structure_id = self.request.query_params.get("structure", None) or None
-            filters["structure"] = structure_id
-
-        if "establishment" in self.request.query_params:
-            establishment_id = self.request.query_params.get("establishment", None) or None
-            filters["establishment"] = establishment_id
-
-        if "highschool" in self.request.query_params:
-            highschool_id = self.request.query_params.get("highschool", None) or None
-            filters["highschool"] = highschool_id
-
-        return queryset.filter(**filters)
-
-
-@method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
-class VisitDetail(generics.DestroyAPIView):
-    """
-    Visit detail
-    """
-    serializer_class = VisitSerializer
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    lookup_fields = ['id']
-    queryset = Visit.objects.all()
-
-    def delete(self, request, *args, **kwargs):
-        obj = self.get_object()
-        user = self.request.user
-
-        if not obj:
-            return JsonResponse(data={"msg": _("Nothing to delete")})
-
-        if not user.is_superuser:
-            valid_conditions = [
-                user.is_master_establishment_manager(),
-                user.is_operator(),
-                user.is_establishment_manager() and obj.establishment == user.establishment,
-                user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),
-            ]
-
-            if not any(valid_conditions):
-                return JsonResponse(
-                    data={"msg": _("Insufficient privileges")},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
-        if obj.slots.exists():
-            return JsonResponse(
-                data={"error": _("Some slots are attached to this visit: it can't be deleted")},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        super().delete(request, *args, **kwargs)
-
-        return JsonResponse(data={"msg": _("Visit successfully deleted")})
 
 
 class OffOfferEventList(generics.ListAPIView):
@@ -4225,7 +3903,6 @@ class MailingListStructuresView(APIView):
             mail = structure.mailing_list
             mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
                     Q(slot__course__structure=structure) \
-                    | Q(slot__visit__structure=structure) \
                     | Q(slot__event__structure=structure)
             ).values_list('student__email', flat=True).distinct()]
             response["data"][mail] = mailing_list
@@ -4242,7 +3919,6 @@ class MailingListEstablishmentsView(APIView):
         for establishment in Establishment.objects.filter(mailing_list__isnull=False):
             mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
                 Q(slot__course__structure__establishment=establishment) \
-                | Q(slot__visit__establishment=establishment) \
                 | Q(slot__event__establishment=establishment)
             ).values_list('student__email', flat=True).distinct()]
             response["data"][establishment.mailing_list] = mailing_list
@@ -4260,7 +3936,6 @@ class MailingListHighSchoolsView(APIView):
         for hs in HighSchool.agreed.filter(mailing_list__isnull=False):
             mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
                 Q(slot__course__highschool=hs) \
-                | Q(slot__visit__highschool=hs) \
                 | Q(slot__event__highschool=hs)
             ).values_list('student__email', flat=True).distinct()]
             response["data"][hs.mailing_list] = mailing_list
@@ -4380,7 +4055,6 @@ def ajax_can_register_slot(request, slot_id=None):
 
     user = request.user
     response = {'msg': '', 'data': []}
-    visit_or_off_offer = False
     slot_data = {
         'can_register': False,
         'already_registered': False,
@@ -4542,19 +4216,13 @@ def ajax_search_slots_list(request, slot_id=None):
 
     if user.is_authenticated:
         fields.append('url')
-        if user.is_student() or user.is_visitor():
-            slots = slots.filter(visit__isnull=True)
-        if user.is_high_school_student() and user.get_high_school_student_record():
-            # do not display visit slots proposed by the user high school
-            slots = slots.exclude(visit__highschool=user.get_high_school_student_record().highschool)
 
     slots = (
         slots.annotate(
-            label=Coalesce(F("course__label"), F("visit__purpose"), F("event__label")),
+            label=Coalesce(F("course__label"), F("event__label")),
             slot_type=Case(
                 When(course__isnull=False, then=Value(gettext("Course"))),
                 When(event__isnull=False, then=Value(gettext("Event"))),
-                When(visit__isnull=False, then=Value(gettext("Visit"))),
             ),
             course_training_label=Coalesce(
                 F("course__training__label"),
@@ -4581,42 +4249,34 @@ def ajax_search_slots_list(request, slot_id=None):
             establishment_label=Coalesce(
                 F("course__structure__establishment__label"),
                 F("event__establishment__label"),
-                F("visit__establishment__label"),
             ),
             establishment_short_label=Coalesce(
                 F("course__structure__establishment__short_label"),
                 F("event__establishment__short_label"),
-                F("visit__establishment__short_label"),
             ),
             structure_code=Coalesce(
                 F("course__structure__code"),
                 F("event__structure__code"),
-                F("visit__structure__code"),
             ),
             structure_label=Coalesce(
                 F("course__structure__label"),
                 F("event__structure__label"),
-                F("visit__structure__label"),
             ),
             structure_establishment_short_label=Coalesce(
                 F("course__structure__establishment__short_label"),
                 F("event__structure__establishment__short_label"),
-                F("visit__structure__establishment__short_label"),
             ),
             highschool_city=Coalesce(
                 F("course__highschool__city"),
                 F("event__highschool__city"),
-                F("visit__highschool__city"),
             ),
             highschool_address=Coalesce(
                 F("course__highschool__address"),
                 F("event__highschool__address"),
-                F("visit__highschool__address"),
             ),
             highschool_label=Coalesce(
                 F("course__highschool__label"),
                 F("event__highschool__label"),
-                F("visit__highschool__label"),
             ),
             campus_label=Coalesce(
                 F('campus__label'),
@@ -4634,7 +4294,6 @@ def ajax_search_slots_list(request, slot_id=None):
                 F("campus__city"),
                 F("course__highschool__city"),
                 F("event__highschool__city"),
-                F("visit__highschool__city"),
             ),
             n_register=Count(
                 "immersions",

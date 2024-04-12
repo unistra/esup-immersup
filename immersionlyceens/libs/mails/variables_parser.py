@@ -11,7 +11,7 @@ from requests import Request
 
 from immersionlyceens.apps.core.models import (
     EvaluationFormLink, GeneralSettings, Immersion, UniversityYear, MailTemplateVars,
-    Slot, ImmersionUser, Course, Visit, OffOfferEvent
+    Slot, ImmersionUser, Course, OffOfferEvent
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
@@ -62,8 +62,8 @@ class ParserFaker:
         today: datetime = timezone.localdate()
         formatted_today: str = today.strftime("%d/%m/%Y")
 
-        cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\hi")
-        registration_date: str = date_format(timezone.now() - timedelta(hours=48), "j F - G\hi")
+        cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\\hi")
+        registration_date: str = date_format(timezone.now() - timedelta(hours=48), "j F - G\\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
@@ -115,14 +115,6 @@ class ParserFaker:
             }
         })
 
-        # visit
-        context.update({
-            "visite": {
-                "libelle": cls.add_tooltip("visite.libelle", "Visite N°1"),
-                "nbplaceslibre": 35
-            }
-        })
-
         # event
         context.update({
             "evenement": {
@@ -137,7 +129,6 @@ class ParserFaker:
             "creneau": {
                 "libelle": cls.add_tooltip("creneau.libelle", "Cours n°2"),
                 "estuncours": False,
-                "estunevisite": False,
                 "estunevenement": False,
                 "etablissement": cls.add_tooltip("creneau.etablissement", "Mon Établissement"),
                 "lycee": cls.add_tooltip("creneau.lycee", "Lycée Frida Kahlo (New York)"),
@@ -167,9 +158,6 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.evenement.libelle", _("My event")),
                     "description": cls.add_tooltip("creneau.evenement.description", _("My event description")),
                     "type": cls.add_tooltip("creneau.evenement.type", "Conférence")
-                },
-                "visite": {
-                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", formatted_today),
                 "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
@@ -298,16 +286,6 @@ class Parser:
             }
         return {}
 
-    @staticmethod
-    def get_visit_context(visit: Optional[Visit]) -> Dict[str, Any]:
-        if visit:
-            return {
-                "visite": {
-                    "libelle": visit.purpose,
-                    "nbplaceslibre": visit.free_seats(),
-                }
-            }
-        return {}
 
     @staticmethod
     def get_slot_context(slot: Optional[Slot]) -> Dict[str, Any]:
@@ -340,17 +318,16 @@ class Parser:
             highschool = slot.get_highschool()
             registered_students = get_registered_students(slot)
 
-            cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\hi") \
+            cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\\hi") \
                 if slot.cancellation_limit_date else ""
 
-            registration_limit = date_format(timezone.localtime(slot.registration_limit_date), "j F - G\hi") \
+            registration_limit = date_format(timezone.localtime(slot.registration_limit_date), "j F - G\\hi") \
                 if slot.registration_limit_date else ""
 
             return {
                 "creneau": {
                     "libelle": slot.get_label(),
                     "estuncours": slot.is_course(),
-                    "estunevisite": slot.is_visit(),
                     "estunevenement": slot.is_event(),
                     "etablissement": establishment.label if establishment else "",
                     "lycee": f"{highschool.label} ({highschool.city})" if highschool else "",
@@ -375,9 +352,6 @@ class Parser:
                         'description': slot.event.description,
                         'type': slot.event.event_type.label,
                     } if slot.event else {},
-                    "visite": {
-                        'libelle': slot.get_label(),
-                    } if slot.visit else {},
                     "date": date_format(slot.date) if slot.date else "",
                     "limite_annulation": cancellation_limit,
                     "limite_inscription": registration_limit,
@@ -520,9 +494,7 @@ class Parser:
                 else:
                     place = _("remote slot")
 
-                if slot.is_visit():
-                    slot_type = _("visit")
-                elif slot.is_event():
+                if slot.is_event():
                     slot_type = _("event")
                 else:
                     slot_type = _("course")
@@ -594,7 +566,6 @@ class Parser:
         slot: Optional[Slot] = kwargs.get('slot')
         slot_list: Optional[List[Slot]] = kwargs.get('slot_list')
         course: Optional[Course] = kwargs.get('course')
-        visit: Optional[Visit] = kwargs.get('visit')
         event: Optional[OffOfferEvent] = kwargs.get('event')
         immersion: Optional[Immersion] = kwargs.get('immersion')
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
@@ -611,7 +582,6 @@ class Parser:
         }
 
         context.update(cls.get_course_context(course))
-        context.update(cls.get_visit_context(visit))
         context.update(cls.get_event_context(event))
         context.update(cls.get_slot_context(slot))
 

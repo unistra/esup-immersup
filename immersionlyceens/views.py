@@ -31,7 +31,7 @@ from immersionlyceens.apps.core.models import (AccompanyingDocument,
                                                Period, PublicDocument,
                                                PublicType, Slot, Training,
                                                TrainingSubdomain,
-                                               UserCourseAlert, Visit)
+                                               UserCourseAlert)
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -102,7 +102,7 @@ def offer(request):
 
     today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = Slot.objects.filter(published=True, visit__isnull=True,event__isnull=True).filter(
+    slots_count = Slot.objects.filter(published=True, event__isnull=True).filter(
         Q(date__isnull=True)
         | Q(date__gte=today.date())
         | Q(date=today.date(), end_time__gte=today.time())
@@ -335,7 +335,7 @@ def offer_subdomain(request, subdomain_id):
     if slot_id:
         try:
             slot = Slot.objects.prefetch_related("course__training").get(pk=slot_id)
-            # TODO: Check for events & visits !!!!
+            # TODO: Check for events !!!!
             if slot.course:
                 open_training_id = slot.course.training.id
                 open_course_id = slot.course.id
@@ -357,99 +357,6 @@ def offer_subdomain(request, subdomain_id):
     }
 
     return render(request, 'offer_subdomains.html', context)
-
-
-def visits_offer(request):
-    """ Visits Offer view """
-
-    filters = {}
-    today = timezone.now().date()
-    student = None
-    record = None
-    Q_filter = None
-
-    try:
-        visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
-    except InformationText.DoesNotExist:
-        visits_txt = ''
-
-    # Published visits only & no course nor event slot
-    filters["course__isnull"] = True
-    filters["event__isnull"] = True
-    filters["visit__published"] = True
-
-    # If user is highschool student filter on highschool
-    try:
-        if request.user.is_high_school_student() and not request.user.is_superuser:
-            student = request.user
-            record = student.get_high_school_student_record()
-            user_highschool = record.highschool
-            filters["visit__highschool"] = user_highschool
-            Q_filter = (Q(levels_restrictions=False) | Q(allowed_highschool_levels__pk__contains=record.level.pk))
-
-    except Exception as e:
-        # AnonymousUser
-        pass
-
-    # TODO: implement class method in model to retrieve >=today slots for visits
-    filters["date__gte"] = today
-    visits = Slot.objects.prefetch_related(
-            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters)\
-            .order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
-
-    if Q_filter:
-        visits = visits.filter(Q_filter)
-
-    # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    now = timezone.now()
-    today = timezone.localdate()
-
-    # If the current user is a higschool student, check whether he can register
-    if student and record:
-        for visit in visits:
-            visit.already_registered = False
-            visit.can_register = False
-            visit.cancelled = False
-            visit.opening_soon = False
-            # Already registered / cancelled ?
-            for immersion in student.immersions.all():
-                if immersion.slot.pk == visit.pk:
-                    visit.already_registered = True
-                    visit.cancelled = immersion.cancellation_type is not None
-
-            # Can register ?
-            # not registered + free seats + dates in range + cancelled to register again
-            if not visit.already_registered or visit.cancelled:
-                can_register, reasons = student.can_register_slot(visit)
-
-                try:
-                    period = Period.from_date(date=visit.date)
-                except Period.MultipleObjectsReturned:
-                    raise
-                except Period.DoesNotExist:
-                    raise
-
-                if visit.available_seats() > 0 and can_register:
-                    if period.registration_start_date <= today <= period.immersion_end_date \
-                            and visit.registration_limit_date >= now:
-                        visit.can_register = True
-                    elif now < visit.registration_limit_date:
-                        visit.opening_soon = True
-    else:
-        for visit in visits:
-            visit.cancelled = False
-            visit.can_register = False
-            visit.already_registered = False
-
-    visits_count = visits.count()
-
-    context = {
-        'visits_count': visits_count,
-        'visits_txt': visits_txt,
-        'visits': visits,
-    }
-    return render(request, 'visits_offer.html', context)
 
 
 def offer_off_offer_events(request):
@@ -482,12 +389,10 @@ def offer_off_offer_events(request):
     except InformationText.DoesNotExist:
         events_txt = ''
 
-    # Published event only & no course nor visit slot
+    # Published event only & no course
     filters["course__isnull"] = True
-    filters["visit__isnull"] = True
     filters["event__published"] = True
 
-    # TODO: implement class method in model to retrieve >=today slots for visits
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \

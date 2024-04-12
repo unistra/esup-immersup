@@ -120,18 +120,6 @@
 },
 {
   "model": "core.generalsettings",
-  "pk": 13,
-  "fields": {
-    "setting": "HIGHSCHOOL_VISIT",
-    "parameters" : {
-      "description": "Activation de visites en Lyc\u00e9e",
-      "type": "boolean",
-      "value": true
-    }
-  }
-},
-{
-  "model": "core.generalsettings",
   "pk": 14,
   "fields": {
     "setting": "EVENTS_OFF_OFFER",

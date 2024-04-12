@@ -646,7 +646,6 @@ class ImmersionUser(AbstractUser):
                 slot__date__lte=period.immersion_end_date,
                 cancellation_type__isnull=True,
                 slot__event__isnull=True,
-                slot__visit__isnull=True,
             ).count()
 
             # Default period quota or student record quota
@@ -983,7 +982,7 @@ class TrainingSubdomain(models.Model):
         slots_count = Slot.objects.filter(
             course__training__training_subdomains=self,
             published=True,
-            visit__isnull=True,event__isnull=True
+            event__isnull=True
         ).prefetch_related('course__training__training_subdomains__training_domain') \
         .filter(
             Q(date__isnull=True)
@@ -1708,151 +1707,6 @@ class Course(models.Model):
         ]
         ordering = ['label', ]
 
-
-class Visit(models.Model):
-    """
-    Visit class
-    """
-
-    purpose = models.CharField(_("Purpose"), max_length=256)
-    published = models.BooleanField(_("Published"), default=True)
-
-    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.CASCADE,
-        blank=False, null=False, related_name='visits')
-
-    structure = models.ForeignKey(Structure, verbose_name=_("Structure"), null=True, blank=True,
-        on_delete=models.SET_NULL, related_name="visits",
-    )
-
-    highschool = models.ForeignKey(HighSchool, verbose_name=_('High school'), null=False, blank=False,
-        on_delete=models.CASCADE, related_name="visits",
-    )
-
-    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='visits')
-
-    def __str__(self):
-        if not self.establishment_id:
-            return super().__str__()
-
-        if not self.structure:
-            return f"{self.establishment.code} - {self.highschool} : {self.purpose}"
-        else:
-            return f"{self.establishment.code} ({self.structure.code}) - {self.highschool} : {self.purpose}"
-
-
-    def can_delete(self):
-        today = timezone.now().date()
-        try:
-            current_year = UniversityYear.objects.get(active=True)
-        except UniversityYear.DoesNotExist:
-            return True
-
-        return current_year.date_is_between(today) and not self.slots.all().exists()
-
-
-    def free_seats(self, speakers=None):
-        """
-        :speakers: optional : only consider slots attached to 'speakers'
-        :return: number of seats as the sum of seats of all slots under this visit
-        """
-        filters = {'published': True}
-
-        if speakers:
-            if not isinstance(speakers, list):
-                speakers = [speakers]
-
-            filters['speakers__in'] = speakers
-
-        d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
-
-        return d['total_seats']
-
-
-    def published_slots_count(self, speakers=None):
-        """
-        :speakers: optional : only consider slots attached to 'speakers'
-        Return number of published slots under this visit
-        """
-        filters = {'published': True}
-
-        if speakers:
-            if not isinstance(speakers, list):
-                speakers = [speakers]
-
-            filters['speakers__in'] = speakers
-
-        return self.slots.filter(**filters).count()
-
-
-    def slots_count(self, speakers=None):
-        """
-        :speakers: optional : only consider slots attached to 'speakers'
-        Return number of slots under this visit, published or not
-        """
-        if speakers:
-            if not isinstance(speakers, list):
-                speakers = [speakers]
-
-            return self.slots.filter(speakers__in=speakers).count()
-        else:
-            return self.slots.all().count()
-
-
-    def registrations_count(self, speakers=None):
-        """
-        :speakers: optional : only consider slots attached to 'speakers'
-        :return: the number of non-cancelled registered students on all the slots
-        under this visit (past and future)
-        """
-        filters = {'slot__visit': self, 'cancellation_type__isnull': True}
-
-        if speakers:
-            if not isinstance(speakers, list):
-                speakers = [speakers]
-
-            filters['slot__speakers__in'] = speakers
-
-        return Immersion.objects.prefetch_related('slot').filter(**filters).count()
-
-
-    def validate_unique(self, exclude=None):
-        """Validate unique"""
-        try:
-            super().validate_unique()
-
-            # Advanced test
-            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
-                excludes = {}
-                if self.pk:
-                    excludes = {'id': self.pk}
-
-                qs = Visit.objects.filter(
-                    establishment__id=self.establishment_id,
-                    structure__id=self.structure_id,
-                    highschool__id=self.highschool_id,
-                    purpose__unaccent__iexact=self.purpose
-                ).exclude(**excludes)
-
-                if qs.exists():
-                    raise ValidationError(
-                        _("A Visit object with the same establishment, structure, high school and purpose already exists")
-                    )
-        except ValidationError as e:
-            raise
-
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['establishment', 'structure', 'highschool', 'purpose'],
-                deferrable=models.Deferrable.IMMEDIATE,
-                name='unique_visit'
-            ),
-        ]
-        verbose_name = _('Visit')
-        verbose_name_plural = _('Visits')
-
-
 class OffOfferEventType(models.Model):
     """Off offer event type"""
 
@@ -2434,10 +2288,6 @@ class Slot(models.Model):
         related_name="slots",
     )
 
-    visit = models.ForeignKey(
-        Visit, verbose_name=_("Visit"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
-    )
-
     event = models.ForeignKey(
         OffOfferEvent, verbose_name=_("Off offer event"), null=True, blank=True, on_delete=models.CASCADE,
         related_name="slots",
@@ -2525,12 +2375,10 @@ class Slot(models.Model):
 
     def get_establishment(self):
         """
-        Get the slot establishment depending on the slot type (visit, course, event)
+        Get the slot establishment depending on the slot type (course, event)
         """
         if self.course_id and self.course.structure_id:
             return self.course.structure.establishment
-        elif self.visit_id and self.visit.establishment_id:
-            return self.visit.establishment
         elif self.event_id and self.event.establishment_id:
             return self.event.establishment
 
@@ -2538,12 +2386,10 @@ class Slot(models.Model):
 
     def get_structure(self):
         """
-        Get the slot structure depending on the slot type (visit, course, event)
+        Get the slot structure depending on the slot type (course, event)
         """
         if self.course_id and self.course.structure_id:
             return self.course.structure
-        elif self.visit_id and self.visit.structure_id:
-            return self.visit.structure
         elif self.event_id and self.event.structure_id:
             return self.event.structure
 
@@ -2551,12 +2397,10 @@ class Slot(models.Model):
 
     def get_highschool(self):
         """
-        Get the slot high school depending on the slot type (visit, course, event)
+        Get the slot high school depending on the slot type (course, event)
         """
         if self.course_id and self.course.highschool_id:
             return self.course.highschool
-        elif self.visit_id and self.visit.highschool_id:
-            return self.visit.highschool
         elif self.event_id and self.event.highschool_id:
             return self.event.highschool
 
@@ -2578,8 +2422,8 @@ class Slot(models.Model):
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
     def clean(self):
-        if [self.course, self.visit, self.event].count(None) != 2:
-            raise ValidationError("You must select one of : Course, Visit or Event")
+        if [self.course, self.event].count(None) != 1:
+            raise ValidationError("You must select one of : Course or Event")
 
     def __str__(self):
         date = _("date unknown")
@@ -2596,9 +2440,7 @@ class Slot(models.Model):
         if self.end_time:
             end_time = self.end_time.isoformat(timespec='minutes')
 
-        if self.visit:
-            slot_type = _("Visit - %s") % self.visit.highschool
-        elif self.course:
+        if self.course:
             slot_type = _("Course - %s %s") % (self.course_type, self.course.label)
         elif self.event:
             slot_type = _("Event - %s") % self.event.label
@@ -2632,12 +2474,10 @@ class Slot(models.Model):
 
     def get_label(self):
         """
-        Returns course label, event label or visit purpose
+        Returns course or event label
         """
         if self.is_course():
             return self.course.label
-        if self.is_visit():
-            return self.visit.purpose
         if self.is_event():
             return self.event.label
 
@@ -2649,12 +2489,6 @@ class Slot(models.Model):
         """
         return True if self.course else False
 
-    def is_visit(self):
-        """
-        Returns True if slot is a visit slot else False
-        """
-        return True if self.visit else False
-
     def is_event(self):
         """
         Returns True if slot is an event slot else False
@@ -2665,13 +2499,10 @@ class Slot(models.Model):
         """
         returns:
         'course' if slot is a course slot
-        'visit' if slot is a visit slot
         'event' if slot is an event slot
         """
         if self.is_course():
             return 'course'
-        if self.is_visit():
-            return 'visit'
         if self.is_event():
             return 'event'
 

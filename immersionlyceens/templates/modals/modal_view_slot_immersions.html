@@ -83,7 +83,7 @@
         {% endif %}
 
         {% comment %}
-          Attendances : same groups but INTER users can also update attendances for their courses/visits/events
+          Attendances : same groups but INTER users can also update attendances for their courses/events
         {% endcomment %}
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
           <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>

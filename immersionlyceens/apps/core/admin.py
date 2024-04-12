@@ -433,10 +433,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 messages.warning(request, no_delete_msg)
                 return False
 
-            if obj.courses.all().exists() or obj.visits.all().exists() or obj.events.all().exists():
+            if obj.courses.all().exists() or obj.events.all().exists():
                 messages.warning(
                     request,
-                    _("This account is linked to courses/visits/events, you can't delete it")
+                    _("This account is linked to courses/events, you can't delete it")
                 )
                 return False
 

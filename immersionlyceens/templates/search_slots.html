@@ -16,8 +16,7 @@
 {% endblock %}
 {% block content %}
   {% authorized_groups request.user %}
-  {% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
-  {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+    {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
   {% include './modals/modal_search_slots_details.html' %}
   <div class="main-title inside text-center">
     <div></div>
@@ -70,7 +69,7 @@
         <a data-toggle="collapse" href="#collapseAdvancedSearch" aria-expanded="false">{% trans 'Advanced search' %} <i class="fa fa-angle-down"></i></a>
         <div id="collapseAdvancedSearch" class="col-ml-4 collapse">
           <div class="card card-body">
-            {% if highschool_visit or events_off_offer %}
+            {% if events_off_offer %}
             <h5>{% trans "Slot type" %} :</h5>
             <div class="row">
               <div class="col">
@@ -80,11 +79,6 @@
                 {% if  events_off_offer%}
                 <label class="checkbox-inline">
                   <input type="checkbox" id="eventsCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Event" %}" checked> {% trans "Events" %}
-                </label>
-                {% endif %}
-                {% if highschool_visit %}
-                <label class="checkbox-inline">
-                  <input type="checkbox" id="visitsCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Visit" %}" checked> {% trans "Visits" %}
                 </label>
                 {% endif %}
               </div>
@@ -157,12 +151,9 @@
         <div class="row">
           <div class="col-md-12 table-responsive">
             <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:95%">
-              {% if highschool_visit or events_off_offer %}
+              {% if events_off_offer %}
               <caption>
                 <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
-                {% if highschool_visit %}
-                <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
-                {% endif %}
                 {% if events_off_offer %}
                 <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
                 {% endif %}

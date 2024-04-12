@@ -22,7 +22,7 @@ from .models import (
     BachelorMention, BachelorType, Building, Campus, Course, CourseType,
     Establishment, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
     ImmersionUser, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
-    Slot, Structure, StudentLevel, Training, UniversityYear, Visit,
+    Slot, Structure, StudentLevel, Training, UniversityYear
 )
 
 
@@ -143,7 +143,7 @@ class SlotForm(forms.ModelForm):
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
-        for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
+        for elem in ['establishment', 'highschool', 'structure', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
             'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
@@ -406,7 +406,7 @@ class SlotForm(forms.ModelForm):
 
     class Meta:
         model = Slot
-        fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'event', 'training', 'course',
+        fields = ('id', 'establishment', 'structure', 'highschool', 'event', 'training', 'course',
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
             'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
@@ -425,132 +425,6 @@ class SlotForm(forms.ModelForm):
         }
 
         localized_fields = ('date', 'repeat')
-
-
-class VisitSlotForm(SlotForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["highschool"].queryset = HighSchool.agreed\
-            .filter(visits__isnull=False)\
-            .distinct()\
-            .order_by('city', 'label')
-
-        self.fields["room"].widget.attrs["placeholder"] = _("Please enter the building and room name")
-
-        allowed_establishments = Establishment.activated.user_establishments(self.request.user)
-        self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
-
-        allowed_structs = self.request.user.get_authorized_structures()
-        self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
-
-        if self.request.user.is_structure_manager():
-            self.fields["structure"].initial = self.fields["structure"].queryset.first()
-            self.fields["structure"].empty_label = None
-        else:
-            self.fields["structure"].initial = None
-            self.fields["structure"].empty_label = "---------"
-
-        visit = self.instance.visit if self.instance and self.instance.visit_id else None
-
-        if visit:
-            self.fields["structure"].initial = visit.structure.id if visit.structure else None
-            self.fields["highschool"].initial = visit.highschool.id
-            self.fields["establishment"].initial = visit.establishment.id
-
-
-    def clean(self):
-        cleaned_data = super(forms.ModelForm, self).clean()
-        visit = cleaned_data.get('visit')
-        published = cleaned_data.get('published', None)
-        face_to_face = cleaned_data.get('face_to_face', None)
-        start_time = cleaned_data.get('start_time', None)
-        n_places = cleaned_data.get('n_places', None)
-        _date = cleaned_data.get('date')
-
-        cleaned_data = self.clean_restrictions(cleaned_data)
-        cleaned_data = self.clean_fields(cleaned_data)
-
-        if published is True:
-            # Mandatory fields, depending on high school / structure slot
-            m_fields = ['visit', 'date', 'start_time', 'end_time', 'speakers']
-
-            if face_to_face:
-                m_fields.append("room")
-            else:
-                m_fields.append("url")
-
-            # Field level error
-            for field in m_fields:
-                if not cleaned_data.get(field):
-                    self.add_error(field, _("This field is required"))
-
-            # Generic field error
-            if not all(cleaned_data.get(e) for e in m_fields):
-                raise forms.ValidationError(_('Required fields are not filled in'))
-
-            # Period check
-            try:
-                period = Period.from_date(date=_date)
-            except Period.DoesNotExist:
-                raise forms.ValidationError(
-                    _("No period found for date '%s' : please check periods settings") % _date
-                )
-            except Period.MultipleObjectsReturned:
-                raise forms.ValidationError(
-                    _("Multiple periods found for date '%s' : please check periods settings") % _date
-                )
-
-            if not period:
-                raise forms.ValidationError(
-                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
-                )
-
-            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
-                raise forms.ValidationError(
-                    {'date': _("Slot date must be between period immersion start and end dates")}
-                )
-
-            if _date < timezone.localdate():
-                raise forms.ValidationError(
-                    {'date': _("You can't set a date in the past")}
-                )
-
-            if _date == timezone.localdate() and start_time <= timezone.now().time():
-                raise forms.ValidationError(
-                    {'start_time': _("Slot is set for today : please enter a valid start_time")}
-                )
-
-            if not n_places or n_places <= 0:
-                raise forms.ValidationError(
-                    {'n_places': _("Please enter a valid number for 'n_places' field")}
-                )
-
-        start_time = cleaned_data.get('start_time')
-        end_time = cleaned_data.get('end_time')
-        if start_time and end_time and start_time >= end_time:
-            raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
-
-        if visit and not visit.published and published:
-            visit.published = True
-            visit.save()
-            messages.success(self.request, _("Visit published"))
-
-        return cleaned_data
-
-
-    def save(self, *args, **kwargs):
-        instance = super().save(*args, **kwargs)
-
-        # Keep this ?
-        self.request.session['current_establishment_id'] = instance.visit.establishment.id
-        self.request.session['current_structure_id'] = instance.visit.structure.id if instance.visit.structure else None
-
-        if instance.visit and not instance.visit.published and instance.published:
-            instance.visit.published = True
-            instance.visit.save()
-            messages.success(self.request, _("Visit published"))
-
-        return instance
 
 
 class OffOfferEventSlotForm(SlotForm):
@@ -789,145 +663,6 @@ class TrainingFormHighSchool(TrainingForm):
             return cleaned_data
 
         return super().clean()
-
-
-
-class VisitForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request")
-        super().__init__(*args, **kwargs)
-
-        for field_name in ["establishment", "structure", "highschool", "purpose"]:
-            self.fields[field_name].widget.attrs.setdefault("class", "")
-            self.fields[field_name].widget.attrs["class"] += " form-control"
-
-        self.fields["highschool"].queryset = HighSchool.agreed.order_by("city", "label")
-        self.fields["establishment"].queryset = Establishment.activated.all()
-        self.fields["establishment"].empty_label = None
-        self.fields["structure"].queryset = Structure.activated.all()
-
-        if not self.request.user.is_superuser:
-            if self.request.user.establishment:
-                self.fields["establishment"].initial = self.request.user.establishment.id
-
-            if self.request.user.is_establishment_manager():
-                self.fields["establishment"].queryset = \
-                    Establishment.objects.filter(pk=self.request.user.establishment.id)
-                self.fields["structure"].queryset = \
-                    self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
-
-            if self.request.user.is_structure_manager():
-                self.fields["establishment"].queryset = \
-                    Establishment.objects.filter(pk=self.request.user.establishment.id)
-                self.fields["structure"].required = True
-                self.fields["structure"].queryset = \
-                    self.fields["structure"].queryset.filter(id__in=self.request.user.structures.all())
-
-        if self.instance and self.instance.establishment_id:
-            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.instance.establishment.id)
-
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        # Uniqueness
-        filters = {
-            'establishment' : cleaned_data.get("establishment", None),
-            'structure' : cleaned_data.get("structure", None),
-            'highschool' : cleaned_data.get("highschool", None),
-            'purpose' : cleaned_data.get("purpose", None)
-        }
-        exclude_filters = {}
-
-        if self.instance.id:
-            exclude_filters = {'id': self.instance.id}
-
-        if Visit.objects.filter(**filters).exclude(**exclude_filters).exists():
-            msg = _("A visit with these values already exists")
-            messages.error(self.request, msg)
-            raise forms.ValidationError(msg)
-
-        try:
-            speakers = json.loads(self.data.get("speakers_list", "[]"))
-        except Exception:
-            speakers = []
-
-        if not speakers:
-            messages.error(self.request, _("Please add at least one speaker."))
-            raise forms.ValidationError(_("Please add at least one speaker."))
-
-        return cleaned_data
-
-
-    def save(self, *args, **kwargs):
-        instance = super().save(*args, **kwargs)
-
-        self.request.session['current_establishment_id'] = instance.establishment.id
-        self.request.session['current_structure_id'] = instance.structure.id if instance.structure else None
-
-        speakers_list = json.loads(self.data.get('speakers_list', []))
-
-        current_speakers = [u for u in instance.speakers.all().values_list('username', flat=True)]
-        new_speakers = [speaker.get('username') for speaker in speakers_list]
-
-        # speakers to add
-        for speaker in speakers_list:
-            if isinstance(speaker, dict):
-                send_creation_msg = False
-
-                try:
-                    speaker_user = ImmersionUser.objects.get(Q(username=speaker['email'])|Q(email=speaker['email']))
-                except ImmersionUser.DoesNotExist:
-                    speaker_user = ImmersionUser.objects.create(
-                        username=speaker['email'],
-                        last_name=speaker['lastname'],
-                        first_name=speaker['firstname'],
-                        email=speaker['email'],
-                        establishment=instance.establishment
-                    )
-                    messages.success(self.request, gettext("User '{}' created").format(speaker['email']))
-                    if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
-                        speaker_user.set_recovery_string()
-                    send_creation_msg = True
-
-                try:
-                    Group.objects.get(name='INTER').user_set.add(speaker_user)
-                except Exception:
-                    messages.error(
-                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['email']),
-                    )
-
-                if send_creation_msg:
-                    return_msg = speaker_user.send_message(self.request, 'CPT_CREATE')
-
-                    if not return_msg:
-                        messages.success(
-                            self.request,
-                            gettext("A confirmation email has been sent to {}").format(speaker['email']),
-                        )
-                        speaker_user.creation_email_sent=True
-                        speaker_user.save()
-                    else:
-                        messages.warning(self.request, gettext("Couldn't send email : %s" % return_msg))
-
-                if speaker_user:
-                    instance.speakers.add(speaker_user)
-
-        # speakers to remove
-        remove_list = set(current_speakers) - set(new_speakers)
-        for username in remove_list:
-            try:
-                user = ImmersionUser.objects.get(username=username)
-                instance.speakers.remove(user)
-            except ImmersionUser.DoesNotExist:
-                pass
-
-        return instance
-
-
-    class Meta:
-        model = Visit
-        fields = ('purpose', 'published', 'structure', 'establishment', 'highschool')
 
 
 class OffOfferEventForm(forms.ModelForm):
