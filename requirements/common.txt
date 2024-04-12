@@ -10,7 +10,7 @@ requests
 WeasyPrint==60.1
 sentry-sdk[django]==1.44.1
 django-json-widget==1.1.1
-jsonschema==4.20.0
+jsonschema==4.17.3
 django-admin-list-filter-dropdown==1.0.3
 djangorestframework<4.0
 djangorestframework-custom-exceptions
