@@ -5,6 +5,9 @@ Mocks for unit tests
 def mocked_ldap_connection(*args, **kwargs):
     pass
 
+def mocked_ldap_bind(*args, **kwargs):
+    pass
+
 def mocked_search_user(search_value, search_attr):
     """
     Return a user
