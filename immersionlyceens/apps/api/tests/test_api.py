@@ -37,7 +37,7 @@ from immersionlyceens.apps.immersion.models import (
 )
 from immersionlyceens.libs.utils import get_general_setting
 
-from .mocks import mocked_ldap_connection, mocked_search_user
+from .mocks import mocked_ldap_connection, mocked_search_user, mocked_ldap_bind
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -4681,9 +4681,10 @@ class APITestCase(TestCase):
         self.assertEqual(c['structure']['id'], self.course.structure.id)
 
 
-    @patch('immersionlyceens.libs.api.accounts.ldap.ldap3.Connection.__init__', side_effect=mocked_ldap_connection)
+    @patch('ldap3.Connection.__init__', side_effect=mocked_ldap_connection)
+    @patch('ldap3.Connection.bind', side_effect=mocked_ldap_bind)
     @patch('immersionlyceens.libs.api.accounts.ldap.AccountAPI.search_user', side_effect=mocked_search_user)
-    def test_course_creation(self, mocked_search_user, mocked_ldap_connection):
+    def test_course_creation(self, mocked_search_user, mocked_account_api, mocked_ldap_connection):
         view_permission = Permission.objects.get(codename='view_course')
         add_permission = Permission.objects.get(codename='add_course')
         url = reverse("course_list")

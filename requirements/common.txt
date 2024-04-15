@@ -14,7 +14,7 @@ sentry-sdk
 django-json-widget
 jsonschema
 django-admin-list-filter-dropdown==1.0.3
-djangorestframework<4.0
+djangorestframework<3.15
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
 drf-spectacular==0.26.5
