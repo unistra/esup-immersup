@@ -42,7 +42,7 @@ Pour créer l'environnement virtuel, se placer dans le répertoire du projet::
 
 Ou en spécifiant la version de python::
 
-    $ mkvirtualenv immersionlyceens -p /usr/bin/python3.6
+    $ mkvirtualenv immersionlyceens -p /usr/bin/python3.8
 
 Configuration du projet
 -----------------------
@@ -76,53 +76,5 @@ Pour finaliser l'installation et lancer le serveur::
     $ chmod u+x manage.py
     $ ./manage.py migrate
     $ ./manage.py runserver
-
-
-Todo:
------
-
-To be continued !
-
-
-Application parameters:
------------------------
-
-**Required:**
-
-* PLATFORM_URL
-* MAIL_CONTACT_SCUIO_IP
-
-**Optional:**
-
-* TWITTER_ACCOUNT_URL
-* CONTACT_FORM_URL (for external contact form use)
-
-Docx file template:
--------------------
-
-**The docx template have several merge fields**
-
-* birth_date  student birth date
-* building    slot's building
-* campus      slot's campus
-* course      slot's course
-* end_time    slot's end time
-* first_name  student first name
-* home_institution  student highschool / university
-* last_name   student last name
-* slot_date   slot's date
-* start_time  slot's start time
-
-Remarque sur nginx:
--------------------
-
-Si nginx est utilisé en frontal. On peut laisser l'application gêrer la taille maximale des fichiers en téléversement.
-Dans la directive server de la configuration du vhost:
-
-:code:`client_max_body_size 0;`
-
-Le paramètre pour la taille maximale (en octets) dans l'application se trouve dans settings/base.py:
-
-* MAX_UPLOAD_SIZE = 2621440
 
 

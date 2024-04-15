@@ -14,14 +14,15 @@ COPY . .
 COPY ./deploy/docker/app/entrypoint.sh /usr/local/bin/
 
 # install dependencies
-RUN BUILD_DEPS=" \
+RUN export BUILD_DEPS=" \
   libxml2-dev \
   libxslt-dev \
   libffi-dev \
   libcairo2-dev \
   libpango1.0-dev \
   gettext \
-  locales" \
+  locales \
+  git" \
   && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS; \
   sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.txt; \
   pip install --no-cache-dir -r requirements/dev.txt; \

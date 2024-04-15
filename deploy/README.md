@@ -13,7 +13,7 @@ Uses the default Django development server.
 1. Build the images and run the containers:
 
     ```sh
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
 
     Reach [http://localhost:8000](http://localhost:8000). The "app" folder is mounted into the container and your code changes apply automatically.
@@ -21,19 +21,25 @@ Uses the default Django development server.
     A command could be executed using :
 
     ```sh
-    docker-compose exec web python manage.py diffsettings --all
+    docker compose exec web python manage.py diffsettings --all
     ```
 
 ### Demo edition
 
 Uses django/uwsgi/nginx.
 
-1. Rename *.env.demo-dist to*.env.demo
+1. Rename *.env.demo-dist to *.env.demo
 1. If needed update the environment variables in the *docker-compose.demo.yml* and *.env.demo* files.
 1. Build the images and run the containers:
 
     ```sh
-    docker-compose -f docker-compose.demo.yml up -d --build
+    docker compose -f docker-compose.demo.yml up -d --build
+    ```
+
+1. Create superuser if needed
+
+    ```sh
+    docker compose exec web python manage.py createsuperuser
     ```
 
     Reach [http://localhost](http://localhost).

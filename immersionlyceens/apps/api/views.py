@@ -2747,15 +2747,16 @@ def get_csv_anonymous(request):
         header = [
             _('anonymous identity'),
             _('registrant profile'),
-            _('student level'),
+            _('level'),
             _('origin institution'),
-            _("Origin bachelor type"),
+            _("bachelor type"),
             _('establishment'),
             _('slot type'),
             _('training domain'),
             _('training subdomain'),
             _('training'),
             _('label'),
+            _('type'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -2828,10 +2829,11 @@ def get_csv_anonymous(request):
 
             ),
             origin_bachelor_type=Coalesce(
+                F('student__high_school_student_record__bachelor_type__label'),
                 F('student__student_record__origin_bachelor_type__label'),
-                F('student__high_school_student_record__origin_bachelor_type__label'),
             ),
             establishment=Coalesce(
+                F('slot__course__highschool__label'),
                 F('slot__course__structure__establishment__label'),
                 F('slot__visit__establishment__label'),
                 F('slot__event__establishment__label'),
@@ -2855,6 +2857,10 @@ def get_csv_anonymous(request):
                 F('slot__visit__purpose'),
                 F('slot__event__label'),
             ),
+            slot_course_type=Coalesce(
+                F('slot__course_type__label'),
+                F('slot__event__event_type__label'),
+            ),
             slot_date=ExpressionWrapper(
                 Func(F('slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
@@ -2871,7 +2877,7 @@ def get_csv_anonymous(request):
 
         ).values_list(
             'fake_name', 'type', 'level', 'institution', 'origin_bachelor_type', 'establishment',
-            'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_date',
+            'slot_type', 'domains', 'subdomains', 'training_label', 'slot_label', 'slot_course_type', 'slot_date',
             'slot_start_time', 'slot_end_time', 'slot_campus_label', 'slot_building', 'slot_room',
             'attendance', 'informations'
         )
