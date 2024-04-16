@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
+from functools import reduce
 
 from django import forms
 from django.conf import settings
@@ -142,22 +143,60 @@ def shibbolethLogin(request, profile=None):
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
     if error:
+        logger.error(f"Shibboleth error : {error}")
         messages.error(request, _("Incomplete data for account creation"))
         return HttpResponseRedirect("/")
-    elif not all([value[1] in shib_attrs for value in settings.SHIBBOLETH_ATTRIBUTE_MAP.values()]):
+
+    mandatory_attributes = [
+        "username",
+        "first_name",
+        "last_name",
+        "email",
+
+    ]
+
+    student_attribute = [
+        "uai_code"
+    ]
+
+    one_of_affiliations = [
+        "affiliation",
+        "unscoped_affiliation",
+        "primary_affiliation",
+    ]
+
+    # Extract all affiliations, clean empty lists and remove domains (something@domain)
+    try:
+        affiliations = set(
+            map(lambda a:a.partition('@')[0],
+                reduce(
+                    lambda a,b:a+b,
+                    filter(
+                        lambda a: a!=[''],
+                        [shib_attrs.get(attr, '').split(";") for attr in one_of_affiliations]
+                    )
+                )
+            )
+        )
+    except Exception as e:
+        logger.warning(e)
+        affiliations = []
+
+    if "student" in affiliations:
+        is_student = True
+        mandatory_attributes += student_attribute
+
+    # parse affiliations:
+    if not any([attr in shib_attrs for attr in one_of_affiliations]) or \
+       not all([attr in shib_attrs for attr in mandatory_attributes]) or \
+       not affiliations:
         messages.error(request,
             _("Missing attributes, account not created." +
              "<br>Your institution may not be aware of the Immersion service." +
              "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
         return HttpResponseRedirect("/")
 
-    try:
-        affiliations = shib_attrs.pop("affiliation", "").split(";")
-    except Exception as e:
-        logger.warning(e)
-        affiliations = []
-
-    is_student = any(list(filter(lambda a: a.startswith("student@"), affiliations)))
+    # need more data for high schools
     is_employee = not is_student
 
     # Account creation confirmed
