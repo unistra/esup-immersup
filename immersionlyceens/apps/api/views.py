@@ -3360,6 +3360,7 @@ class CourseList(generics.ListCreateAPIView):
             self.user.is_speaker() and not any([
                 self.user.is_master_establishment_manager(),
                 self.user.is_establishment_manager(),
+                self.user.is_high_school_manager(),
                 self.user.is_structure_manager(),
                 self.user.is_structure_consultant(),
                 self.user.is_operator()
@@ -3610,6 +3611,7 @@ class OffOfferEventList(generics.ListAPIView):
             user.is_speaker() and not any([
                 user.is_master_establishment_manager(),
                 user.is_establishment_manager(),
+                user.is_high_school_manager(),
                 user.is_structure_manager(),
                 user.is_operator(),
                 user.is_structure_consultant(),
