@@ -89,7 +89,7 @@ def slots(request):
         user.is_speaker() and not any([
             user.is_master_establishment_manager(),
             user.is_establishment_manager(),
-            user.is_high_school_manager() and visits,
+            user.is_high_school_manager(),
             user.is_structure_manager(),
             user.is_structure_consultant(),
             user.is_operator()
