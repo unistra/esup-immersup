@@ -1168,18 +1168,11 @@ class ImmersionUserChangeForm(UserChangeForm):
     def save(self, *args, **kwargs):
         # If REF-LYC is in new groups, send a mail to choose a password
         # if no password has been set yet
-        ref_lyc_group = None
         inter_group = None
         try:
-            ref_lyc_group = Group.objects.get(name='REF-LYC')
             inter_group = Group.objects.get(name='INTER')
         except Group.DoesNotExist:
             pass
-
-        try:
-            current_groups = {str(g.id) for g in self.instance.groups.all()}
-        except Exception:
-            current_groups = set()
 
         new_groups = set(self.data.get('groups', []))
 
