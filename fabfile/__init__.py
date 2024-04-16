@@ -293,7 +293,6 @@ def prod():
         'email_use_tls': "EMAIL_USE_TLS",
         'email_host_user': "EMAIL_HOST_USER",
         'email_host_password': "EMAIL_HOST_PASSWORD",
-        'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
         'matomo_url': "MATOMO_URL",
