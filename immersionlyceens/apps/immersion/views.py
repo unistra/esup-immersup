@@ -185,6 +185,8 @@ def shibbolethLogin(request, profile=None):
     if "student" in affiliations:
         is_student = True
         mandatory_attributes += student_attribute
+    else:
+        is_student = False
 
     # parse affiliations:
     if not any([attr in shib_attrs for attr in one_of_affiliations]) or \
