@@ -1049,7 +1049,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["highschool"].queryset = \
                         HighSchool.objects.filter(pk=user_highschool.id).order_by("city", "label")
 
-
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data.get('groups')
@@ -1072,7 +1071,16 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             if any(linked_groups_conditions):
                 msg = _("This user has linked accounts, you can't update his/her groups")
-                self._errors['groups'] = self.error_class([msg])
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
+
+            # A user can have two groups if one of them is INTER
+            if groups.count() > 2 or groups.count() > 1 and not groups.filter(name='INTER').exists():
+                msg = _("A user cannot have multiple profiles except for the INTER one")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
 
             if groups and groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')).exists():
                 cleaned_data['is_staff'] = True
