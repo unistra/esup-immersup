@@ -93,35 +93,41 @@ class UserNode(template.Node):
 
 @register.tag
 def immersion_filtered_users(parser, token):
-    """ Get filtered users from UserFilteredNode """
+    """Get filtered users from UserFilteredNode"""
     return UserFilteredNode()
 
 
 class UserFilteredNode(template.Node):
-    """ Get filtered users """
+    """Get filtered users"""
+
     def render(self, context):
-        _users = ImmersionUser.objects.all().order_by('username').filter(is_active=True)
+        _users = (
+            ImmersionUser.objects.all().order_by('username').filter(is_active=True).exclude(pk=context.request.user.pk)
+        )
 
         if context.request.user.is_superuser:
             context['immersion_filtered_users'] = _users.exclude(is_superuser=True)
 
         elif context.request.user.is_operator():
-            context['immersion_filtered_users'] = _users.exclude(is_superuser=True)
-
-        elif context.request.user.is_master_establishment_manager():
             context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
                 groups__name__in=['REF-TEC']
             )
 
-        elif context.request.user.is_establishment_manager():
+        elif context.request.user.is_master_establishment_manager():
             context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
                 groups__name__in=['REF-TEC', 'REF-ETAB-MAITRE']
+            )
+
+        elif context.request.user.is_establishment_manager():
+            context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
+                groups__name__in=['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB']
             )
 
         else:
             context['immersion_filtered_users'] = None
 
         return ''
+
 
 @register.tag
 def authorized_groups(parser, token):
