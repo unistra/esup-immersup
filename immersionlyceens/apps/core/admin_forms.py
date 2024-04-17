@@ -1308,6 +1308,19 @@ class HighSchoolForm(forms.ModelForm):
                     self.fields['convention_start_date'].disabled = True
                     self.fields['convention_end_date'].disabled = True
 
+        # Federations fields
+        try:
+            agent_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_FEDERATION_AGENT")
+            educonnect_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_EDUCONNECT")
+        except Exception as e:
+            raise forms.ValidationError(str(e)) from e
+
+        # Disable student identity federation choice if the high school has students
+        if agent_federation_setting and self.instance and self.instance.student_records.exists():
+            self.fields['uses_student_federation'].disabled = True
+            self.fields['uses_student_federation'].help_text = _(
+                "This field cannot be changed because this high school already has student files"
+            )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -1363,7 +1376,7 @@ class HighSchoolForm(forms.ModelForm):
                   'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
-                  'certificate_footer')
+                  'certificate_footer', 'uses_agent_federation', 'uses_student_federation')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
             'certificate_header': CKEditorWidget(),

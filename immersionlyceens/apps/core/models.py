@@ -255,6 +255,8 @@ class HighSchool(models.Model):
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
     with_convention = models.BooleanField(_("Has a convention"), default=True)
+    uses_student_federation = models.BooleanField(_("Uses EduConnect student federation"), default=False)
+    uses_agent_federation = models.BooleanField(_("Uses agent identity federation"), default=False)
 
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
