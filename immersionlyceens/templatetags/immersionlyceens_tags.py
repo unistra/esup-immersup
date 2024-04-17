@@ -1,6 +1,7 @@
 import re
 from decimal import Decimal
 from functools import reduce
+from tkinter import N
 
 from django import template
 from django.conf import settings
@@ -79,13 +80,52 @@ def in_list(value, the_list):
 
 @register.tag
 def immersion_users(parser, token):
+    """ Get all users from UserNode """
     return UserNode()
 
 
 class UserNode(template.Node):
+    """ Get all users """
     def render(self, context):
-        # TODO: uncomment
         context['immersion_users'] = ImmersionUser.objects.all().order_by('username')
+        return ''
+
+
+@register.tag
+def immersion_filtered_users(parser, token):
+    """Get filtered users from UserFilteredNode"""
+    return UserFilteredNode()
+
+
+class UserFilteredNode(template.Node):
+    """Get filtered users"""
+
+    def render(self, context):
+        _users = (
+            ImmersionUser.objects.all().order_by('username').filter(is_active=True).exclude(pk=context.request.user.pk)
+        )
+
+        if context.request.user.is_superuser:
+            context['immersion_filtered_users'] = _users.exclude(is_superuser=True)
+
+        elif context.request.user.is_operator():
+            context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
+                groups__name__in=['REF-TEC']
+            )
+
+        elif context.request.user.is_master_establishment_manager():
+            context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
+                groups__name__in=['REF-TEC', 'REF-ETAB-MAITRE']
+            )
+
+        elif context.request.user.is_establishment_manager():
+            context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
+                groups__name__in=['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB']
+            )
+
+        else:
+            context['immersion_filtered_users'] = None
+
         return ''
 
 
