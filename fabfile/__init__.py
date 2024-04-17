@@ -51,8 +51,11 @@ env.no_circus_web = True
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
 
 # extra debian/ubuntu package(s) to install on remote
-env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
-                            'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev']
+env.extra_pkg_to_install = [
+    'python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
+    'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev',
+    'python3.8-tk'
+]
 
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
