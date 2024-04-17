@@ -15,6 +15,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
 from ..admin import (
     AttestationDocumentAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
     EstablishmentAdmin, PeriodAdmin, StructureAdmin, TrainingAdmin,
@@ -30,10 +32,10 @@ from ..admin_forms import (
     UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
-    Campus, CancelType, CourseType, CustomThemeFile, Establishment,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
+    HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday, ImmersionUser,
     InformationText, MailTemplate, MailTemplateVars, Period,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, Vacation,
@@ -232,6 +234,14 @@ class AdminFormsTestCase(TestCase):
             last_name='STUDENT',
         )
 
+        cls.highschool_user = get_user_model().objects.create_user(
+            username='hs_student',
+            password='pass',
+            email='hs_student@no-reply.com',
+            first_name='hs_student',
+            last_name='hs_student',
+        )
+
         cls.visitor = get_user_model().objects.create_user(
             username='visitor',
             password='pass',
@@ -250,6 +260,7 @@ class AdminFormsTestCase(TestCase):
         Group.objects.get(name='INTER').user_set.add(cls.speaker_user)
         Group.objects.get(name='INTER').user_set.add(cls.speaker_user_2)
         Group.objects.get(name='ETU').user_set.add(cls.student)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user)
         Group.objects.get(name='VIS').user_set.add(cls.visitor)
 
     def setUp(self):
@@ -1112,6 +1123,91 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
+
+    def test_highschool_federation(self):
+        """
+        Test student federation settings update when a high school has linked records
+        """
+        request.user = self.ref_master_etab_user
+        self.assertFalse(self.high_school.uses_student_federation)
+
+        data = {
+            "id": self.high_school.pk,
+            'active': self.high_school.active,
+            'label': self.high_school.label,
+            'country': self.high_school.country,
+            'address': self.high_school.address,
+            'address2': '',
+            'address3': '',
+            'department': self.high_school.department,
+            'city': self.high_school.city,
+            'zip_code': self.high_school.zip_code,
+            'phone_number': self.high_school.phone_number,
+            'fax': self.high_school.fax,
+            'email': "hs@domain.com",
+            'head_teacher_name': self.high_school.head_teacher_name,
+            'with_convention': self.high_school.with_convention,
+            'convention_start_date': self.high_school.convention_start_date,
+            'convention_end_date': self.high_school.convention_end_date,
+            'postbac_immersion': self.high_school.postbac_immersion,
+            'mailing_list': self.high_school.mailing_list,
+            'badge_html_color': '#112233',
+            "uses_student_federation": True
+        }
+
+        form = HighSchoolForm(
+            instance=self.high_school,
+            data=data,
+            request=request
+        )
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.high_school.refresh_from_db()
+
+        # Add a high school record to the high school
+        # check we still can update 'uses_student_federation' (ACTIVATE_EDUCONNECT disabled)
+        hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=self.today,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere S 3',
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
+            professional_bachelor_mention='My spe'
+        )
+
+        data.update({
+            "uses_student_federation": False
+        })
+
+        form = HighSchoolForm(
+            instance=self.high_school,
+            data=data,
+            request=request
+        )
+
+        self.assertTrue(form.is_valid())
+
+        # Update setting and check again : form shouldn't be valid
+        setting = GeneralSettings.objects.get(setting='ACTIVATE_EDUCONNECT')
+        setting.parameters.update({
+            "value": True,
+        })
+        setting.save()
+
+        # Don't forget to refresh to cancel previous form data
+        self.high_school.refresh_from_db()
+
+        form = HighSchoolForm(
+            instance=self.high_school,
+            data=data,
+            request=request
+        )
+
+        self.assertFalse(form.is_valid())
+
 
 
     def test_holiday_creation(self):

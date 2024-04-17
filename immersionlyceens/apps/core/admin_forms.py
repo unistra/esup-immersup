@@ -1368,6 +1368,16 @@ class HighSchoolForm(forms.ModelForm):
                         'convention_end_date': _("Both convention dates are required if 'convention' is checked")
                    })
 
+        # Student identity federation (educonnect) : test only when setting is in use
+        if GeneralSettings.get_setting("ACTIVATE_EDUCONNECT"):
+            if self.has_changed() and "uses_student_federation" in self.changed_data:
+                if self.instance.student_records.exists():
+                    raise forms.ValidationError({
+                        'uses_student_federation': _(
+                            "You can't change this setting because this high school already has records."
+                        ),
+                    })
+
         return cleaned_data
 
     class Meta:
