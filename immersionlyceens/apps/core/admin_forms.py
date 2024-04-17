@@ -1315,12 +1315,24 @@ class HighSchoolForm(forms.ModelForm):
         except Exception as e:
             raise forms.ValidationError(str(e)) from e
 
-        # Disable student identity federation choice if the high school has students
-        if agent_federation_setting and self.instance and self.instance.student_records.exists():
+        if not educonnect_federation_setting:
+            self.fields['uses_student_federation'].disabled = True
+            self.fields['uses_student_federation'].help_text = _(
+                "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
+            )
+        elif self.instance and self.instance.student_records.exists():
+            # Disable student identity federation choice if the high school has students
             self.fields['uses_student_federation'].disabled = True
             self.fields['uses_student_federation'].help_text = _(
                 "This field cannot be changed because this high school already has student files"
             )
+
+        if not agent_federation_setting:
+            self.fields['uses_agent_federation'].disabled = True
+            self.fields['uses_agent_federation'].help_text = _(
+                "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
+            )
+
 
     def clean(self):
         cleaned_data = super().clean()
