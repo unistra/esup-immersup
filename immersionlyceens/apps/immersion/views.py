@@ -172,8 +172,8 @@ def shibbolethLogin(request, profile=None):
                 reduce(
                     lambda a,b:a+b,
                     filter(
-                        lambda a: a!=[''],
-                        [shib_attrs.get(attr, '').split(";") for attr in one_of_affiliations]
+                        lambda a: a != [''],
+                        [shib_attrs.pop(attr, '').split(";") for attr in one_of_affiliations]
                     )
                 )
             )
@@ -189,9 +189,7 @@ def shibbolethLogin(request, profile=None):
         is_student = False
 
     # parse affiliations:
-    if not any([attr in shib_attrs for attr in one_of_affiliations]) or \
-       not all([attr in shib_attrs for attr in mandatory_attributes]) or \
-       not affiliations:
+    if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
         messages.error(request,
             _("Missing attributes, account not created." +
              "<br>Your institution may not be aware of the Immersion service." +
@@ -233,7 +231,9 @@ def shibbolethLogin(request, profile=None):
         messages.success(request, _("Account created. Please check your emails for the activation procedure."))
         return HttpResponseRedirect("/")
 
-
+    # The account does not exist yet
+    # -> auto-creation for students
+    # -> must have been created first for managers (high school, structure, ...)
     if request.user.is_anonymous:
         err = None
 
