@@ -397,18 +397,9 @@ ADMIN_SITE_INDEX_TITLE = _('Welcome to ImmerSup administration page')
 #################
 # Django hijack #
 #################
-
-# TODO: deprecated settings
-# # Bootstrap notification bar that does not overlap with the default navbar.
-# HIJACK_USE_BOOTSTRAP = True
-# # Where admins are redirected to after hijacking a user
-# HIJACK_LOGIN_REDIRECT_URL = '/'
-# # Where admins are redirected to after releasing a user
-# HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
-# HIJACK_ALLOW_GET_REQUESTS = True
-# HIJACK_REGISTER_ADMIN = False
-HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_only"
-#"hijack.permissions.superusers_and_staff"
+# HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_only"
+# HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_and_staff"
+HIJACK_PERMISSION_CHECK = "immersionlyceens.permissions.hijack_permissions"
 
 
 #################
