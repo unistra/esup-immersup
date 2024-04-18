@@ -62,7 +62,7 @@ class CustomAdminSite(admin.AdminSite):
         except ValueError:
             return 999
 
-    def get_app_list(self, request):
+    def get_app_list(self, request, app_label=None):
         """
         Custom apps and models order
         """
@@ -102,7 +102,9 @@ class CustomAdminSite(admin.AdminSite):
                     )
                 )
 
-            yield app
+            # yield app
+
+        return app_list
 
     def app_index(self, request, app_label, extra_context=None):
         """
