@@ -25,7 +25,7 @@ from stetienne import preprod_stetienne, prod_stetienne
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
 
-env.application_name = 'immersup'  # name of webapp
+env.application_name = 'immersupv3'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
