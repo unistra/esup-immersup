@@ -128,7 +128,7 @@ def test():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'test'
-    env.socket_port = '8022'
+    env.socket_port = '8042'
     env.socket_host = '127.0.0.1'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
