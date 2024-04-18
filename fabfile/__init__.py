@@ -119,8 +119,8 @@ def test():
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersup-test.app.unistra.fr'
-    env.short_server_name = 'immersup-test'
+    env.server_name = 'immersupv3-test.app.unistra.fr'
+    env.short_server_name = 'immersupv3-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
     env.no_shared_sessions = False
