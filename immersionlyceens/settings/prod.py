@@ -126,7 +126,7 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 UNISTRA = '{{ use_unistra_theme }}'
 
 # Use hash prefixed static files
-STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageWithoutSourceMap'
 
 # Extra locales
 EXTRA_LOCALE_PATH = '{{ extra_locale_path }}'

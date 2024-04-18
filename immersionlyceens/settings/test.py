@@ -126,7 +126,7 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 # true to use unistra theme (fake boolean ftw)
 UNISTRA = '{{ use_unistra_theme }}'
 
-STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageWithoutSourceMap'
 
 
 # Extra locales
