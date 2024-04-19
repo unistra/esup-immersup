@@ -397,6 +397,7 @@ $(document).ready(function(){
           data: {
             'immersion_ids': JSON.stringify(selectedImmersions),
             'reason_id': selectedCancelType,
+            'slot_id': current_slot_id,
             csrfmiddlewaretoken: '{{ csrf_token }}'
           },
           success: function (json) {

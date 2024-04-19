@@ -548,6 +548,7 @@ def ajax_cancel_registration(request):
     immersion_id = request.POST.get('immersion_id')
     reason_id = request.POST.get('reason_id')
     today = datetime.datetime.today()
+    now = timezone.now()
     user = request.user
     allowed_structures = user.get_authorized_structures()
 
@@ -557,7 +558,10 @@ def ajax_cancel_registration(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
         try:
-            immersion = Immersion.objects.get(pk=immersion_id)
+            immersion = (Immersion.objects
+                 .prefetch_related("slot__course", "student", "slot__speakers")
+                 .get(pk=immersion_id)
+            )
             if immersion.slot.date < today.date() or (immersion.slot.date == today.date()
                                                       and immersion.slot.start_time < today.time()):
                 response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
@@ -588,9 +592,21 @@ def ajax_cancel_registration(request):
 
             cancellation_reason = CancelType.objects.get(pk=reason_id)
             immersion.cancellation_type = cancellation_reason
-            immersion.cancellation_date = datetime.datetime.now()
+            immersion.cancellation_date = timezone.now()
             immersion.save()
-            immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+            ret = immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+            # If slot registrations are over (check limit date), also send a message to speakers
+            # and structure managers
+            if immersion.slot.registration_limit_date < now:
+                for speaker in immersion.slot.speakers.all():
+                    speaker.send_message(request, 'IMMERSION_ANNULATION_INT', slot=immersion.slot)
+
+                # structure managers
+                slot_structure = immersion.slot.get_structure()
+                if slot_structure:
+                    for notify in RefStructuresNotificationsSettings.objects.filter(structures=slot_structure):
+                        ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
         except Immersion.DoesNotExist:
@@ -1297,7 +1313,7 @@ def ajax_get_available_students(request, slot_id):
             "establishments_restrictions": slot.establishments_restrictions,
             "levels_restrictions": slot.levels_restrictions,
             "bachelors_restrictions": slot.bachelors_restrictions,
-            "allowed_establishments": [e.uai_reference for e in slot.allowed_establishments.all()],
+            "allowed_establishments": [e.uai_reference_id for e in slot.allowed_establishments.all()],
             "allowed_highschools": [hs.id for hs in slot.allowed_highschools.all()],
             "allowed_highschool_levels": [level.id for level in slot.allowed_highschool_levels.all()],
             "allowed_student_levels": [level.id for level in slot.allowed_student_levels.all()],
@@ -1397,7 +1413,7 @@ def ajax_get_available_students(request, slot_id):
     students = students.annotate(
         record_highschool_label=F('high_school_student_record__highschool__label'),
         record_highschool_id=F('high_school_student_record__highschool__id'),
-        institution=F('student_record__institution__label'),
+        institution_label=F('student_record__institution__label'),
         institution_uai_code=F('student_record__uai_code'),
         city=F('high_school_student_record__highschool__city'),
         class_name=F('high_school_student_record__class_name'),
@@ -1449,7 +1465,7 @@ def ajax_get_available_students(request, slot_id):
     )
 
     students = students.values(
-        "id", "last_name", "first_name", "record_highschool_label", "record_highschool_id", "institution",
+        "id", "last_name", "first_name", "record_highschool_label", "record_highschool_id", "institution_label",
         "institution_uai_code", "city", "class_name", "profile", "profile_name", "level", "level_id",
         "post_bachelor_level", "post_bachelor_level_id", "bachelor_type_id", "bachelor_type",
         "technological_bachelor_mention_id", "technological_bachelor_mention", "general_bachelor_teachings_ids",
@@ -1643,71 +1659,124 @@ def ajax_batch_cancel_registration(request):
     """
     immersion_ids = request.POST.get('immersion_ids')
     reason_id = request.POST.get('reason_id')
+    slot_id = request.POST.get('slot_id')
 
-    err_msg = None
+    immersion_errors = []
+    cancelled_immersions = 0
+    msg = ""
     warning_msg = ""
     err = False
+    err_msg = None
     today = datetime.datetime.today()
+    now = timezone.now()
     user = request.user
+    mail_returns = set()
     allowed_structures = user.get_authorized_structures()
 
-    if not immersion_ids or not reason_id:
+    if not all([immersion_ids, reason_id, slot_id]):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
+        try:
+            slot = Slot.objects.get(pk=slot_id)
+        except (Slot.DoesNotExist, ValueError):
+            response = {'error': True, 'msg': gettext("Invalid slot id")}
+            return JsonResponse(response, safe=False)
+
         try:
             json_data = json.loads(immersion_ids)
         except json.decoder.JSONDecodeError:
             response = {'error': True, 'msg': gettext("Invalid json decoding")}
             return JsonResponse(response, safe=False)
+
+        # Check user rights on slot
+        slot_establishment = slot.get_establishment()
+        slot_structure = slot.get_structure()
+        slot_highschool = slot.get_highschool()
+
+        # Check authenticated user rights on this registration
+        valid_conditions = [
+            user.is_master_establishment_manager(),
+            user.is_operator(),
+            user.is_establishment_manager() and slot_establishment == user.establishment,
+            user.is_structure_manager() and slot_structure in allowed_structures,
+            user.is_high_school_manager() and (slot.course or slot.event)
+            and slot_highschool and user.highschool == slot_highschool,
+        ]
+
+        if not any(valid_conditions):
+            response = {
+                'error': True,
+                'msg': _("You don't have enough privileges to cancel these registrations")
+            }
+            return JsonResponse(response, safe=False)
+
+        # Check slot date
+        if slot.date < today.date() or (slot.date == today.date() and slot.start_time < today.time()):
+            response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
+            return JsonResponse(response, safe=False)
+
+        # Cancellation reason
+        try:
+            cancellation_reason = CancelType.objects.get(pk=reason_id)
+        except CancelType.DoesNotExist:
+            response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
+            return JsonResponse(response, safe=False)
+
         for immersion_id in json_data:
             try:
-                immersion = Immersion.objects.get(pk=immersion_id)
-                if immersion.slot.date < today.date() or (immersion.slot.date == today.date() and
-                                                          immersion.slot.start_time < today.time()):
-                    response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
-                    return JsonResponse(response, safe=False)
-
-                slot_establishment = immersion.slot.get_establishment()
-                slot_structure = immersion.slot.get_structure()
-                slot_highschool = immersion.slot.get_highschool()
-
-                # Check authenticated user rights on this registration
-                valid_conditions = [
-                    user.is_master_establishment_manager(),
-                    user.is_operator(),
-                    user.is_establishment_manager() and slot_establishment == user.establishment,
-                    user.is_structure_manager() and slot_structure in allowed_structures,
-                    user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
-                        and slot_highschool and user.highschool == slot_highschool,
-                ]
-
-                if not any(valid_conditions):
-                    response = {'error': True, 'msg': _("You don't have enough privileges to cancel these registrations")}
-                    return JsonResponse(response, safe=False)
-
-                cancellation_reason = CancelType.objects.get(pk=reason_id)
+                immersion = Immersion.objects.get(pk=immersion_id, slot=slot)
                 immersion.cancellation_type = cancellation_reason
                 immersion.save()
-                ret = immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+                cancelled_immersions += 1
+
+                ret = immersion.student.send_message(
+                    request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot
+                )
                 if ret:
-                    warning_msg = _("Warning : some confirmation emails have not been sent : %s") % ret
+                    mail_returns.add(ret)
 
             except Immersion.DoesNotExist:
-                # should not happen !
-                err_msg += _("Immersion not found")
-            except CancelType.DoesNotExist:
-                # should not happen as well !
-                response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
-                err = True
+                immersion_errors.append(_("Immersion %s not found") % immersion_id)
 
-        if not err:
-            msg = _("Immersion(s) cancelled")
+        # If slot registrations are over (check limit date), also send a message to speakers
+        # and structure managers
+        if slot.registration_limit_date < now:
+            for speaker in slot.speakers.all():
+                ret = speaker.send_message(request, 'IMMERSION_ANNULATION_INT', slot=slot)
+                if ret:
+                    mail_returns.add(ret)
 
-            if warning_msg:
-                err = True
-                msg += f"<br>{warning_msg}"
+            # structure managers
+            slot_structure = slot.get_structure()
 
-            response = {'error': err, 'msg': msg, 'err_msg': err_msg}
+            if slot_structure:
+                for notify in RefStructuresNotificationsSettings.objects.filter(structures=slot_structure):
+                    ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                    if ret:
+                        mail_returns.add(ret)
+
+        # Return warnings and errors
+        if cancelled_immersions:
+            msg = _("%s immersion(s) cancelled") % cancelled_immersions
+
+        if mail_returns:
+            err = True
+            warning_msg = _("Warning : some confirmation emails have not been sent : <br><ul>")
+            for ret in mail_returns:
+                warning_msg += f"<li>{ret}</li>"
+            warning_msg += "</ul>"
+            msg += f"<br>{warning_msg}"
+
+        if immersion_errors:
+            err = True
+            error_msg = _("Immersions warnings") + " :<br><ul>"
+            for immersion_error in immersion_errors:
+                error_msg += f"<li>{immersion_error}</li>"
+            error_msg += "</ul>"
+            msg += f"<br>{error_msg}"
+
+        response = {'error': err, 'msg': msg}
 
     return JsonResponse(response, safe=False)
 

@@ -12,6 +12,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core import mail
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
@@ -28,7 +29,8 @@ from immersionlyceens.apps.core.models import (
     GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, Slot, Structure, StudentLevel, Training,
+    PostBachelorLevel, Profile, RefStructuresNotificationsSettings,
+    Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.immersion.models import (
@@ -240,6 +242,13 @@ class APITestCase(TestCase):
             last_name='ref_str',
             establishment=cls.establishment,
         )
+
+        cls.notification = RefStructuresNotificationsSettings.objects.create(
+            user=cls.ref_str
+        )
+
+        cls.notification.structures.add(cls.structure)
+
         cls.ref_str2 = get_user_model().objects.create_user(
             username='ref_str2',
             password='pass',
@@ -2104,7 +2113,7 @@ class APITestCase(TestCase):
             'first_name': self.highschool_user2.first_name,
             'record_highschool_label': self.hs_record2.highschool.label,
             'record_highschool_id': self.hs_record2.highschool.id,
-            'institution': None,
+            'institution_label': None,
             'institution_uai_code': None,
             'city': self.hs_record2.highschool.city,
             'class_name': self.hs_record2.class_name,
@@ -2129,7 +2138,7 @@ class APITestCase(TestCase):
             'first_name': self.student2.first_name,
             'record_highschool_label': None,
             'record_highschool_id': None,
-            'institution': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
+            'institution_label': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
             'institution_uai_code': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).uai_code,
             'city': None,
             'class_name': None,
@@ -2388,13 +2397,21 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         self.assertIsNone(self.immersion.cancellation_type)
 
-        # Success
+        self.immersion.slot.date = self.today + timedelta(days=1)
+        self.immersion.slot.registration_limit_delay = 48 # to check emails
+        self.immersion.slot.save()
+
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertFalse(content['error'])
         self.assertEqual(content['msg'], "Immersion cancelled")
 
         self.immersion.refresh_from_db()
         self.assertEqual(self.immersion.cancellation_type.id, self.cancel_type.id)
+
+        # 3 mails sent : student, structure manager (with notification) and speaker
+        self.assertEqual(len(mail.outbox), 3)
+
+        #TODO test as student
 
 
     def test_API_ajax_set_attendance(self):
@@ -2561,11 +2578,22 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid parameters")
 
-        # Invalid json parameters
+        # Invalid slot id
         data = {
             'immersion_ids': 'hello world',
-            'reason_id': self.cancel_type.id
+            'reason_id': self.cancel_type.id,
+            'slot_id': "hi"
         }
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertEqual(content['msg'], "Invalid slot id")
+
+        data.update({
+            "slot_id": self.immersion.slot_id
+        })
+
+        # Invalid json parameters
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         self.assertTrue(content['error'])
@@ -2577,7 +2605,8 @@ class APITestCase(TestCase):
 
         data = {
             'immersion_ids': f'[{self.immersion.id}]',
-            'reason_id': self.cancel_type.id
+            'reason_id': self.cancel_type.id,
+            'slot_id': self.immersion.slot_id
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
@@ -2597,18 +2626,24 @@ class APITestCase(TestCase):
         # Success
         self.client.login(username='ref_etab', password='pass')
         self.assertIsNone(self.immersion.cancellation_type)
-        self.slot.date = self.today + timedelta(days=1)
-        self.slot.save()
+
+        self.immersion.slot.date = self.today + timedelta(days=1)
+        self.immersion.slot.registration_limit_delay = 48
+        self.immersion.slot.save()
 
         data = {
             'immersion_ids': json.dumps([self.immersion.id]),
-            'reason_id': self.cancel_type.id
+            'reason_id': self.cancel_type.id,
+            'slot_id': self.immersion.slot_id
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         # The following test may fail if template syntax has errors
-        self.assertEqual("Immersion(s) cancelled", content['msg'])
-        self.assertIsNone(content['err_msg'])
+        self.assertIn("1 immersion(s) cancelled", content['msg'])
+        self.assertFalse(content['error'])
+
+        # 3 mails sent : student, structure manager (with notification) and speaker
+        self.assertEqual(len(mail.outbox), 3)
 
 
 
