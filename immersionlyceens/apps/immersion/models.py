@@ -19,21 +19,27 @@ class HighSchoolStudentRecord(models.Model):
     High school student class, linked to ImmersionUsers accounts
     """
 
+    TO_COMPLETE = 0
+    TO_VALIDATE = 1
+    VALIDATED = 2
+    REJECTED = 3
+    TO_REVALIDATE = 4
+
     STATUSES = {
-        "TO_COMPLETE": 0,
-        "TO_VALIDATE": 1,
-        "VALIDATED": 2,
-        "REJECTED": 3,
-        "TO_REVALIDATE": 4,
+        "TO_COMPLETE": TO_COMPLETE,
+        "TO_VALIDATE": TO_VALIDATE,
+        "VALIDATED": VALIDATED,
+        "REJECTED": REJECTED,
+        "TO_REVALIDATE": TO_REVALIDATE,
     }
 
     # Display values
     VALIDATION_STATUS = [
-        (0, _('To complete')),
-        (1, _('To validate')),
-        (2, _('Validated')),
-        (3, _('Rejected')),
-        (4, _('To revalidate'))
+        (TO_COMPLETE, _('To complete')),
+        (TO_VALIDATE, _('To validate')),
+        (VALIDATED, _('Validated')),
+        (REJECTED, _('Rejected')),
+        (TO_REVALIDATE, _('To revalidate'))
     ]
 
     student = models.OneToOneField(
@@ -363,21 +369,28 @@ class VisitorRecord(models.Model):
     """
     Visitor record class, linked to ImmersionUsers accounts
     """
+    TO_COMPLETE = 0
+    TO_VALIDATE = 1
+    VALIDATED = 2
+    REJECTED = 3
+    TO_REVALIDATE = 4
+
     STATUSES = {
-        "TO_COMPLETE": 0,
-        "TO_VALIDATE": 1,
-        "VALIDATED": 2,
-        "REJECTED": 3,
-        "TO_REVALIDATE": 4,
+        "TO_COMPLETE": TO_COMPLETE,
+        "TO_VALIDATE": TO_VALIDATE,
+        "VALIDATED": VALIDATED,
+        "REJECTED": REJECTED,
+        "TO_REVALIDATE": TO_REVALIDATE,
     }
 
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
-        (0, _('To complete')),
-        (1, _('To validate')),
-        (2, _('Validated')),
-        (3, _('Rejected')),
-        (4, _('To revalidate'))
+        (TO_COMPLETE, _('To complete')),
+        (TO_VALIDATE, _('To validate')),
+        (VALIDATED, _('Validated')),
+        (REJECTED, _('Rejected')),
+        (TO_REVALIDATE, _('To revalidate'))
     ]
+
     AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png"]
 
     visitor = models.OneToOneField(

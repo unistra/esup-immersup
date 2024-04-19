@@ -651,9 +651,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
     no_quota_form = False
     no_document_form = False
 
-    next = False
+    display_documents_message = False
     quota_form_valid = False
     document_form_valid = False
+
+    validation_needed = False
+    completion_needed = False
 
     quota_forms = []
     document_forms = []
@@ -734,8 +737,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
         if studentform.is_valid():
             if studentform.has_changed():
                 student = studentform.save()
+                if any([
+                    "last_name" in studentform.changed_data,
+                    "first_name" in studentform.changed_data,
+                ]):
+                    validation_needed = True
 
-            # if current_email != student.email:
             if "email" in studentform.changed_data:
                 student.username = student.email
                 student.set_validation_string()
@@ -763,19 +770,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             if recordform.has_changed():
+                validation_needed = True
                 record = recordform.save()
+                record.save()
                 messages.success(request, _("Record successfully saved."))
 
-            # High school or birth date update : new validation required
-            if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
-                if record.validation in [2, 3]:
-                    messages.info(
-                        request,
-                        _("You have updated some important fields, your record needs a new validation")
-                    )
+                messages.info(
+                    request,
+                    _("You have updated your record, it needs to be re-examined for validation.")
+                )
 
-                # Documents update needed
-                create_documents = True
+                # These particular field changes will trigger attestations updates
+                if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
+                    create_documents = True
 
             # Look for duplicated records
             if record.search_duplicates():
@@ -842,6 +849,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     if hsrd.attestation not in attestations:
                         hsrd.delete()
 
+                # Attestations need to be linked to the record
                 if attestations.exists():
                     creations = 0
                     has_mandatory_attestations = False
@@ -864,20 +872,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         creations += 1 if created else 0
 
                     if creations and has_mandatory_attestations:
-                        next = True
-                        # Documents have to be filled -> status = 0
-                        record.set_status("TO_COMPLETE")
+                        display_documents_message = True
+                        completion_needed = True
                     elif creations:
-                        # Optional documents to send
+                        validation_needed = True
+                        # Only optional documents to send
                         messages.warning(
                             request, _("Record saved. Please check the optional documents to send below.")
                         )
-                        record.set_status("TO_VALIDATE")
-                    else:
-                        record.set_status("TO_VALIDATE")
-                else:
-                    # No attestation
-                    record.set_status("TO_VALIDATE")
             else:
                 documents = HighSchoolStudentRecordDocument.objects\
                     .filter(record=record, archive=False)\
@@ -902,20 +904,30 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 document.deposit_date = timezone.now()
                                 document.validity_date = None
                                 document.save()
-                                if record.validation == HighSchoolStudentRecord.STATUSES["VALIDATED"]:
-                                    record.set_status('TO_REVALIDATE')
-                                elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
-                                    record.set_status('TO_VALIDATE')
+                                validation_needed = True
                         else:
                             document_form_valid = False
+                            if document.attestation.mandatory:
+                                completion_needed = True
 
                         document_forms.append(document_form)
 
                     if not document_form_valid:
                         messages.error(request, _("You have errors in Attestations section"))
 
-                elif record.validation == HighSchoolStudentRecord.STATUSES["TO_COMPLETE"]:
-                    record.set_status('TO_VALIDATE')
+            # Evaluate new record status
+            if completion_needed:
+                record.set_status("TO_COMPLETE")
+            elif validation_needed:
+                match record.validation:
+                    case HighSchoolStudentRecord.VALIDATED:
+                        record.set_status("TO_REVALIDATE")
+                    case HighSchoolStudentRecord.TO_REVALIDATE:
+                        pass
+                    case _:
+                        record.set_status("TO_VALIDATE")
+            elif record.validation == HighSchoolStudentRecord.TO_COMPLETE:
+                record.set_status("TO_VALIDATE")
 
             record.save()
         else:
@@ -933,7 +945,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         if valid_forms:
             if request.user.is_high_school_student():
-                if next:
+                if display_documents_message:
                     messages.warning(
                         request, _("Record saved. Please fill all the required attestation documents below.")
                     )
@@ -1593,7 +1605,9 @@ class VisitorRecordView(FormView):
         current_email: Optional[str] = None
         user: Optional[ImmersionUser] = None
         create_documents = False
-        next = False
+        completion_needed = False
+        validation_needed = False
+        display_documents_message = False
         quota_forms = []
         document_forms = []
         periods = Period.objects.filter(immersion_end_date__gte=timezone.localdate())
@@ -1625,13 +1639,14 @@ class VisitorRecordView(FormView):
                         record=record, period=period, allowed_immersions=period.allowed_immersions
                     )
 
-            # birth date update : new validation required
-            if 'birth_date' in form.changed_data:
-                if record.validation in [2, 3]:
-                    messages.info(
-                        request,
-                        _("Your birth date have been updated, your record needs a new validation")
-                    )
+            # any change : validation need
+            if form.has_changed():
+                validation_needed = True
+                record.save()
+                messages.info(
+                    request,
+                    _("Your record have been updated, it needs to be re-examined for validation.")
+                )
 
                 # Documents update needed
                 create_documents = True
@@ -1704,20 +1719,15 @@ class VisitorRecordView(FormView):
                         creations += 1 if created else 0
 
                     if creations and has_mandatory_attestations:
-                        next = True
+                        display_documents_message = True
                         # Documents have to be filled -> status = 0
-                        record.set_status("TO_COMPLETE")
+                        completion_needed = True
                     elif creations:
+                        validation_needed = True
                         # Optional documents to send
                         messages.warning(
                             request, _("Record saved. Please check the optional documents to send below.")
                         )
-                        record.set_status("TO_VALIDATE")
-                    else:
-                        record.set_status("TO_VALIDATE")
-                else:
-                    # No attestation
-                    record.set_status("TO_VALIDATE")
             else:
                 documents = VisitorRecordDocument.objects \
                     .filter(record=record, archive=False) \
@@ -1741,25 +1751,30 @@ class VisitorRecordView(FormView):
                                 document.deposit_date = timezone.now()
                                 document.validity_date = None
                                 document.save()
-                                if record.validation == VisitorRecord.STATUSES["VALIDATED"]:
-                                    record.set_status('TO_REVALIDATE')
-                                else:
-                                    record.set_status('TO_VALIDATE')
+                                validation_needed = True
                         else:
                             document_form_valid = False
+                            if document.attestation.mandatory:
+                                completion_needed = True
 
                         document_forms.append(document_form)
 
                     if not document_form_valid:
                         messages.error(request, _("You have errors in Attestations section"))
-                    else:
-                        if record.validation == VisitorRecord.STATUSES["TO_COMPLETE"]:
-                            record.set_status('TO_VALIDATE')
-                        elif record.validation == VisitorRecord.STATUSES["VALIDATED"]:
-                            record.set_status('TO_REVALIDATE')
 
-                elif record.validation == VisitorRecord.STATUSES["TO_COMPLETE"]:
-                    record.set_status('TO_VALIDATE')
+            # Evaluate new record status
+            if completion_needed:
+                record.set_status("TO_COMPLETE")
+            elif validation_needed:
+                match record.validation:
+                    case VisitorRecord.VALIDATED:
+                        record.set_status("TO_REVALIDATE")
+                    case VisitorRecord.TO_REVALIDATE:
+                        pass
+                    case _:
+                        record.set_status("TO_VALIDATE")
+            elif record.validation == VisitorRecord.TO_COMPLETE:
+                record.set_status("TO_VALIDATE")
 
             record.save()
 
@@ -1774,7 +1789,7 @@ class VisitorRecordView(FormView):
             ])
 
             if valid_forms:
-                if request.user.is_visitor() and next:
+                if request.user.is_visitor() and display_documents_message:
                     messages.warning(
                         request, _("Record saved. Please fill all the required attestation documents below.")
                     )
