@@ -25,7 +25,7 @@ from stetienne import preprod_stetienne, prod_stetienne
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
 
-env.application_name = 'immersupv3'  # name of webapp
+env.application_name = 'immersup'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
@@ -119,6 +119,7 @@ def test():
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
+    env.application_name = 'immersupv3'
     env.server_name = 'immersupv3-test.app.unistra.fr'
     env.short_server_name = 'immersupv3-test'
     env.static_folder = '/site_media/'
@@ -218,6 +219,7 @@ def preprod():
 
     # env.user = 'root'  # user for ssh
 
+    env.application_name = 'immersupv3'
     env.backends = env.roledefs['web']
     env.server_name = 'immersup-pprd.app.unistra.fr'
     env.short_server_name = 'immersup-pprd'
