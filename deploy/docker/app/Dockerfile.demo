@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install dependencies
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends gcc libc-dev python3-dev libpcre3 libpcre3-dev git; \
+  && apt-get install -y --no-install-recommends gcc libc-dev python3-dev libpcre3 libpcre3-dev git tk; \
   pip install --upgrade pip
 # TODO: We can lint source code before building container
 #&& pip install flake8==3.9.2
@@ -58,7 +58,7 @@ RUN sed -i 's/\r$//g'  $APP_HOME/entrypoint-demo.sh; \
   sed -i 's/{{ goal }}/docker-demo/g' $APP_HOME/immersionlyceens/wsgi.py; \
   chown -R immersup:immersup $APP_HOME; \
   apt-get update \
-  && apt-get install -y --no-install-recommends libxml2-dev libxslt-dev libffi-dev libcairo2-dev libpango1.0-dev gettext libpcre3 libpcre3-dev locales;
+  && apt-get install -y --no-install-recommends libxml2-dev libxslt-dev libffi-dev libcairo2-dev libpango1.0-dev gettext libpcre3 libpcre3-dev locales tk;
 
 
 COPY ./deploy/docker/app/uwsgi.ini /etc/uwsgi/uwsgi.ini
