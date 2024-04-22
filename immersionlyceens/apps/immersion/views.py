@@ -1645,7 +1645,7 @@ class VisitorRecordView(FormView):
                 record.save()
                 messages.info(
                     request,
-                    _("Your record have been updated, it needs to be re-examined for validation.")
+                    _("You have updated your record, it needs to be re-examined for validation.")
                 )
 
                 # Documents update needed

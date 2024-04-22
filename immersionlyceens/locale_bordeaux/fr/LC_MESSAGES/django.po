@@ -222,9 +222,9 @@ msgstr "évènements_anonymisés"
 msgid "Some slots are attached to this event: it can't be deleted"
 msgstr "Des créneaux sont liés à cet autre évènement : suppression impossible"
 
-msgid "This account is linked to courses/visits/events, you can't delete it"
+msgid "This account is linked to courses/events, you can't delete it"
 msgstr ""
-"Ce compte est lié à des cours/visites/évènements, il ne peut pas être "
+"Ce compte est lié à des cours/évènements, il ne peut pas être "
 "supprimé"
 
 msgid "This event type is used by and event, it cannot be deleted"
@@ -245,8 +245,8 @@ msgid "Event - %s"
 msgstr "Autre évènement - %s"
 
 #: immersionlyceens/apps/core/serializers.py:525
-msgid "A slot requires at least a 'course', a 'visit' or an 'event' object"
-msgstr "Un créneau nécessite un cours, une visite ou un autre évènement"
+msgid "A slot requires at least a 'course' or an 'event' object"
+msgstr "Un créneau nécessite un cours ou un autre évènement"
 
 #: immersionlyceens/apps/core/views.py:2339
 #, python-format
@@ -274,11 +274,11 @@ msgstr "autre évènement"
 #: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:9
 msgid ""
 "This action delete all registrations, all high school student accounts, all "
-"students accounts, all visitors accounts, all slots, all visits and all "
+"students accounts, all visitors accounts, all slots and all "
 "events."
 msgstr ""
 "Cette action supprimera toutes les inscriptions, tous les comptes lycéens, "
-"étudiants, visiteurs, tous les créneaux de cours, de visites et d'évènements."
+"étudiants, visiteurs, tous les créneaux de cours et d'évènements."
 
 #: immersionlyceens/templates/core/my_events.html:16
 #: immersionlyceens/templates/core/my_events.html:24
@@ -332,9 +332,9 @@ msgstr "Autres évènements annulés"
 
 #: immersionlyceens/templates/immersion/link_accounts.html:20
 msgid ""
-"Link two or more of your speakers accounts to view all your courses, visits "
+"Link two or more of your speakers accounts to view all your courses "
 "or events in the same tables."
 msgstr ""
-"Lier vos comptes Intervenant pour voir tous vos cours, visites ou évènements "
+"Lier vos comptes Intervenant pour voir tous vos cours ou évènements "
 "dans les mêmes tables"
 

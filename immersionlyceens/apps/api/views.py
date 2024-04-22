@@ -1762,7 +1762,7 @@ def ajax_batch_cancel_registration(request):
 
         if mail_returns:
             err = True
-            warning_msg = _("Warning : some confirmation emails have not been sent : <br><ul>")
+            warning_msg = _("Warning : some confirmation emails have not been sent :") + " <br><ul>"
             for ret in mail_returns:
                 warning_msg += f"<li>{ret}</li>"
             warning_msg += "</ul>"
