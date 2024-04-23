@@ -2437,6 +2437,61 @@ class AdminFormsTestCase(TestCase):
             form.errors['__all__']
         )
 
+    def test_general_settings_types(self):
+        """
+        Test general settings types
+        """
+        # Apply proper rights first
+        management.call_command("restore_group_rights")
+
+        setting = GeneralSettings.objects.create(
+            setting='my_setting',
+            parameters= {
+                "type": "text",
+                "value": "initial_value",
+                "description": "my super setting"
+            },
+            setting_type=GeneralSettings.TECHNICAL
+        )
+
+        data = {
+            "setting": setting.setting,
+            "parameters": {
+                "type": "text",
+                "value": "another value",
+                "description": "my super setting"
+            }
+        }
+        request.user = self.ref_master_etab_user
+        form = GeneralSettingsForm(instance=setting, data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        setting.refresh_from_db()
+
+        self.assertEqual(setting.parameters['value'], "initial_value")
+
+        # Allowed
+        setting.setting_type = GeneralSettings.FUNCTIONAL
+        setting.save()
+
+        form = GeneralSettingsForm(instance=setting, data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # As an establishment manager, read only
+        request.user = self.ref_etab_user
+        data = {
+            "setting": setting.setting,
+            "parameters": {
+                "type": "text",
+                "value": "new value",
+                "description": "my super setting"
+            }
+        }
+        form = GeneralSettingsForm(instance=setting, data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+
+
     def test_custom_theme_file_creation(self):
         """
         Test custom theme file creation with group rights

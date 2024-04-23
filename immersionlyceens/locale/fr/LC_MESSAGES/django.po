@@ -3193,8 +3193,8 @@ msgid ""
 "This parameter can't be set to False : some high schools use the student "
 "identity federation to authenticate their students"
 msgstr ""
-"Ce paramètre ne peut pas être désactivé : des lycees utilisent la fédération "
-"d'identité étudiante pour authentifier leurs étudiants"
+"Ce paramètre ne peut pas être désactivé :  des lycées utilisent la fédération "
+"d'identité Educonnect pour authentifier leurs élèves."
 
 #: build/lib/immersionlyceens/apps/core/admin_forms.py:1983
 #: build/lib/immersionlyceens/apps/core/admin_forms.py:2001

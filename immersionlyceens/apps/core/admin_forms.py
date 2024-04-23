@@ -1345,14 +1345,6 @@ class HighSchoolForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         active = cleaned_data.get("active", False)
-        """
-        active = self.data.get("active", False)
-
-        if not active:
-            self.fields['convention_start_date'].required = False
-            self.fields['convention_end_date'].required = False
-        """
-
 
         try:
             user = self.request.user
@@ -1397,7 +1389,7 @@ class HighSchoolForm(forms.ModelForm):
         # Student identity federation (educonnect) : test only when setting is in use
         if GeneralSettings.get_setting("ACTIVATE_EDUCONNECT"):
             if self.has_changed() and "uses_student_federation" in self.changed_data:
-                if self.instance.student_records.exists():
+                if self.instance.pk and self.instance.student_records.exists():
                     raise forms.ValidationError({
                         'uses_student_federation': _(
                             "You can't change this setting because this high school already has records."
@@ -1766,13 +1758,23 @@ class GeneralSettingsForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        user = self.request.user
+
+        if not any([user.is_superuser, user.is_operator()]):
+            self.fields["setting_type"].disabled = True
+            self.fields["setting_type"].help_text = _("Read only")
+
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser or user.is_operator()
+            valid_user = any([
+                user.is_superuser,
+                user.is_operator(),
+                user.is_master_establishment_manager() and self.instance.setting_type == GeneralSettings.FUNCTIONAL
+            ])
         except AttributeError:
             pass
 

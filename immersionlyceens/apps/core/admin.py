@@ -1676,7 +1676,7 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
-    def setting_type(self, obj):
+    def value_type(self, obj):
         if 'type' not in obj.parameters:
             return ""
 
@@ -1702,14 +1702,32 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     def setting_description(self, obj):
         return obj.parameters.get('description', '')
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if not obj:
+            return False
+
+        return any([
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager() and obj.setting_type == obj.FUNCTIONAL,
+        ])
+
     def has_module_permission(self, request):
         return any([
             request.user.is_superuser,
-            request.user.is_operator()
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
         ])
 
     form = GeneralSettingsForm
-    list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
+    list_display = ('setting', 'setting_type', 'setting_value', 'value_type', 'setting_description')
     ordering = ('setting',)
 
     formfield_overrides = {
@@ -1718,7 +1736,7 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
         },
     }
 
-    setting_type.short_description = _('Setting type')
+    value_type.short_description = _('Value type')
     setting_value.short_description = _('Setting value')
     setting_description.short_description = _('Setting description')
 

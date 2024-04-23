@@ -2652,12 +2652,24 @@ class Immersion(models.Model):
 
 
 class GeneralSettings(models.Model):
+    """
+    Global application settings
+    """
+    TECHNICAL = 0
+    FUNCTIONAL = 1
+
+    TYPES = [
+        (TECHNICAL, _('Technical')),
+        (FUNCTIONAL, _('Functional')),
+    ]
+
     setting = models.CharField(_("Setting name"), max_length=128, unique=True)
     parameters = models.JSONField(_("Setting configuration"),
         blank=False,
         default=dict,
         validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
     )
+    setting_type = models.SmallIntegerField(_("Setting type"), choices=TYPES, default=0, blank=True, null=True)
 
     @classmethod
     def get_setting(cls, name:str):
