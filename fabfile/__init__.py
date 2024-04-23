@@ -51,8 +51,11 @@ env.no_circus_web = True
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
 
 # extra debian/ubuntu package(s) to install on remote
-env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
-                            'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev']
+env.extra_pkg_to_install = [
+    'python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
+    'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev',
+    'python3.8-tk'
+]
 
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
@@ -116,8 +119,9 @@ def test():
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersup-test.app.unistra.fr'
-    env.short_server_name = 'immersup-test'
+    env.application_name = 'immersupv3'
+    env.server_name = 'immersupv3-test.app.unistra.fr'
+    env.short_server_name = 'immersupv3-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
     env.no_shared_sessions = False
@@ -215,6 +219,7 @@ def preprod():
 
     # env.user = 'root'  # user for ssh
 
+    env.application_name = 'immersupv3'
     env.backends = env.roledefs['web']
     env.server_name = 'immersup-pprd.app.unistra.fr'
     env.short_server_name = 'immersup-pprd'

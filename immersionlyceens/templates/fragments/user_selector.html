@@ -1,14 +1,32 @@
-{% load immersionlyceens_tags %} {% load i18n %} {% immersion_users %} {% load hijack %}
+{% load immersionlyceens_tags %} {% load i18n %} {% load static %} {% immersion_filtered_users %}{% load hijack %}
 <div class="logo col-auto offset-lg-2">
-  <select id="selectUser" class="form-control selectpicker" name="select-hijack-user">
+  <select id="selectUser" class="form-control" name="select-hijack-user" data-live-search="true">
     <option value="">&nbsp;</option>
-    {% for u in immersion_users  %}
-    <option value="{{ u.id }}">{{ u.username }}</option>
+    {% for u in immersion_filtered_users  %}
+    <option value="{{ u.id }}">{{ u.get_full_name }}</option>
     {% endfor %}
   </select>
 </div>
 {% block foot-javascript %}
+
+<script src="{% static 'js/vendor/select2/select2.min.js' %}"></script>
+<link href="{% static 'css/vendor/select2/select2.min.css' %}" rel="stylesheet" />
+
 <script>
+    $('#selectUser').select2({
+        language:
+        {
+            noResults: function () {
+                return "{% trans "No results found" %}";
+            },
+            searching: function () {
+                return "{% trans "Searching…" %}";
+            },
+            search: function () {
+                return "{% trans "Search" %}";
+            },
+        }
+    });
     $('#selectUser').on('change', function() {
         $.ajax({
             url: '{% url 'hijack:acquire' %}',
@@ -22,5 +40,7 @@
             }
         });
     })
+
+
 </script>
 {% endblock %}

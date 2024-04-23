@@ -1,7 +1,8 @@
 {% load static i18n immersionlyceens_tags %}
 {% general_settings_get 'PLATFORM_URL' as platform_url %}
 {% settings_get 'UNISTRA' as unistra %}
-{% comment %} TODO: Some template string here should be general settings ! {% endcomment %}
+{% general_settings_get 'ACTIVATE_HIJACK' as active_hijack %}
+{% authorized_groups request.user %}
 <header class="page-header py-3 bg-gray">
   <div class="container">
     <div class="row">
@@ -16,8 +17,7 @@
         </a>
         {% endif %}
       </div>
-
-      {% if user.is_superuser %}
+      {% if user.is_superuser or authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,REF-TEC" and active_hijack %}
         {% include "./user_selector.html" %}
       {% endif %}
     </div>
