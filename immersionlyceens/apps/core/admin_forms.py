@@ -1788,7 +1788,7 @@ class GeneralSettingsForm(forms.ModelForm):
                     raise forms.ValidationError(
                         _("Students users exist you can't deactivate students"))
 
-            if cleaned_data['setting']=='ACTIVATE_VISITORS' \
+            if cleaned_data['setting'] == 'ACTIVATE_VISITORS' \
                 and not cleaned_data['parameters']['value']:
 
                 if ImmersionUser.objects.filter(groups__name='VIS').first():
@@ -1859,6 +1859,23 @@ class GeneralSettingsForm(forms.ModelForm):
                 else:
                     cleaned_data['parameters']['value']['activate'] = False
                     cleaned_data['parameters']['value']['default_quota'] = 2
+
+            if cleaned_data['setting'] == 'ACTIVATE_FEDERATION_AGENT':
+                value = cleaned_data['parameters']['value']
+                if not value and HighSchool.objects.filter(uses_agent_federation=True).exists():
+                    raise ValidationError(_(
+                        """This parameter can't be set to False : some high schools """
+                        """use the agent federation to authenticate their users"""
+                    ))
+
+            if cleaned_data['setting'] == 'ACTIVATE_EDUCONNECT':
+                value = cleaned_data['parameters']['value']
+                if not value and HighSchool.objects.filter(uses_student_federation=True).exists():
+                    raise ValidationError(_(
+                        """This parameter can't be set to False : some high schools """
+                        """use the student identity federation to authenticate their students"""
+                    ))
+
         except KeyError:
             raise ValidationError('')
 

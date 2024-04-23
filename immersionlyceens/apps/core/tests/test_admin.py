@@ -2377,6 +2377,66 @@ class AdminFormsTestCase(TestCase):
         training_quotas.refresh_from_db()
         self.assertEqual(training_quotas.parameters["value"]["default_quota"], 2)
 
+    def test_federation_general_settings(self):
+        """
+        Test federations settings
+        """
+        request.user = self.operator_user
+
+        # Agent federation
+        setting = GeneralSettings.objects.get(setting='ACTIVATE_FEDERATION_AGENT')
+        setting.parameters['value'] = True
+        setting.save()
+
+        self.high_school.uses_agent_federation = True
+        self.high_school.save()
+
+        # Check setting cannot be deactivated
+        data = {
+            "id": setting.id,
+            "setting": "ACTIVATE_FEDERATION_AGENT",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "Whatever"
+            }
+        }
+
+        form = GeneralSettingsForm(data=data, instance=setting, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            """This parameter can't be set to False : some high schools """
+            """use the agent federation to authenticate their users""",
+            form.errors['__all__']
+        )
+
+        # Students federation
+        setting = GeneralSettings.objects.get(setting='ACTIVATE_EDUCONNECT')
+        setting.parameters['value'] = True
+        setting.save()
+
+        self.high_school.uses_student_federation = True
+        self.high_school.save()
+
+        # Check setting cannot be deactivated
+        data = {
+            "id": setting.id,
+            "setting": "ACTIVATE_EDUCONNECT",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "Whatever"
+            }
+        }
+
+        form = GeneralSettingsForm(data=data, instance=setting, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            """This parameter can't be set to False : some high schools """
+            """use the student identity federation to authenticate their students""",
+            form.errors['__all__']
+        )
+
     def test_custom_theme_file_creation(self):
         """
         Test custom theme file creation with group rights
