@@ -240,7 +240,8 @@ def global_domains_charts_by_trainings(request):
         .values(
             'domain_label',
             'domain_id') \
-        .annotate(cnt=Count('domain_id'))
+        .annotate(cnt=Count('domain_id')) \
+        .order_by('domain_label')
 
     for d_data in domains_data:
         if d_data['cnt']:

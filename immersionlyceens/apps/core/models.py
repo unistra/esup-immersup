@@ -169,8 +169,8 @@ class Establishment(models.Model):
         return self.data_source_plugin is not None
 
     class Meta:
-        verbose_name = _('Establishment')
-        verbose_name_plural = _('Establishments')
+        verbose_name = _('Higher education establishment')
+        verbose_name_plural = _('Higher education establishments')
         ordering = ['label', ]
 
 
@@ -214,21 +214,28 @@ class Structure(models.Model):
 class HighSchool(models.Model):
     """
     HighSchool class
+    Can also be used to enter secondary (middle) schools
     """
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-    country = CountryField(_("Country"), blank_label=_('select a country'), default='FR')
-    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
+
+    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
+    address = models.CharField(_("Address"), max_length=255, blank=True, null=True)
     address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
     address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
-    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
-    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
-    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
+    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
+    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=True, null=True)
+    phone_number = models.CharField(_("Phone number"), max_length=20, null=True, blank=True)
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
+
     email = models.EmailField(_('Email'))
     head_teacher_name = models.CharField(
-        _("Head teacher name"), max_length=255, blank=False, null=False, help_text=_('civility last name first name'),
+        _("Head teacher name"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_('civility last name first name'),
     )
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
@@ -258,15 +265,23 @@ class HighSchool(models.Model):
     uses_student_federation = models.BooleanField(_("Uses EduConnect student federation"), default=False)
     uses_agent_federation = models.BooleanField(_("Uses agent identity federation"), default=False)
 
+    allow_individual_immersions = models.BooleanField(
+        _("Allow individual immersions"),
+        help_text=_("If unchecked, allow only group immersions by the school manager"),
+        default=True
+    )
+
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
     immersions_proposal = PostBacImmersionManager()
 
     def __str__(self):
-        return f"{self.city} - {self.label}"
+        city = self.city or "(" + gettext("No city") + ")"
+        return f"{city} - {self.label}"
 
     class Meta:
-        verbose_name = _('High school')
+        verbose_name = _('High school / Secondary school')
+        verbose_name_plural = _('High schools / Secondary schools')
         constraints = [
             models.UniqueConstraint(
                 fields=['label', 'city'],
@@ -1513,9 +1528,11 @@ class Period(models.Model):
             raise # Exception(_("Configuration error : some periods overlap")) from e
 
     def __str__(self):
-        return _("Period '%s' : %s - %s") % (
-            self.label, date_format(self.immersion_start_date), date_format(self.immersion_end_date)
-        )
+        return _("Period '%(label)s' : %(begin_date)s - %(end_date)s") % {
+            'label': self.label,
+            'begin_date': date_format(self.immersion_start_date),
+            'end_date' :date_format(self.immersion_end_date)
+        }
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
@@ -2443,7 +2460,10 @@ class Slot(models.Model):
             end_time = self.end_time.isoformat(timespec='minutes')
 
         if self.course:
-            slot_type = _("Course - %s %s") % (self.course_type, self.course.label)
+            slot_type = _("Course - %(type)s %(label)s") % {
+                'type': self.course_type,
+                'label': self.course.label
+            }
         elif self.event:
             slot_type = _("Event - %s") % self.event.label
 
@@ -2855,7 +2875,10 @@ class CustomThemeFile(models.Model):
 
     def __str__(self):
         """str"""
-        return gettext("file : %s (%s)" % (self.file.name, self.type))
+        return gettext("file : %(name)s (%(type)s)" % {
+            'name': self.file.name,
+            'type': self.type
+        })
 
     class Meta:
         """Meta class"""

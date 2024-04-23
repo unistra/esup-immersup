@@ -7,7 +7,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.db.models import JSONField, Q
+from django.db.models import Case, CharField, F, JSONField, Q, Value, When
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
@@ -23,6 +23,8 @@ from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
     VisitorRecordDocument,
 )
+
+from immersionlyceens.fields import UpperCharField
 
 from .admin_forms import (
     AccompanyingDocumentForm, AttestationDocumentForm, BachelorMentionForm,
@@ -157,8 +159,20 @@ class HighschoolWithImmersionsListFilter(admin.SimpleListFilter):
     template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
-        highschools = HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')
-        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+        no_city = gettext("No city")
+
+        highschools = (HighSchool.objects
+            .filter(postbac_immersion=True)
+            .annotate(
+                city_name=Case(
+                    When(Q(city__isnull=True), then=Value(f"({no_city})")),
+                    default=F('city'),
+                    output_field=UpperCharField()
+                )
+            )
+            .order_by('city', 'label')
+        )
+        return [(h.id, f"{h.city_name} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):
         if self.value():
@@ -177,13 +191,24 @@ class HighschoolListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         # Optional : filter high school list by agreement value (see high school student admin filters)
+        no_city = gettext("No city")
         agreement_filter = {}
 
         if request.GET.get("agreement") and request.GET.get("agreement") in ('True', 'False'):
             agreement_filter['with_convention'] = request.GET.get("agreement") == 'True'
 
-        highschools = HighSchool.objects.filter(**agreement_filter).order_by('city', 'label')
-        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+        highschools = (HighSchool.objects
+            .filter(**agreement_filter)
+            .annotate(
+                city_name=Case(
+             When(Q(city__isnull=True), then=Value(f"({no_city})")),
+                    default=F('city'),
+                    output_field=UpperCharField()
+                )
+            )
+            .order_by('city', 'label')
+        )
+        return [(h.id, f"{h.city_name} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):
         if self.value():
@@ -1369,11 +1394,12 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     # Keep the list here to maintain order even when some fields are readonly
     fields = (
-        'active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
-        'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
-        'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
-        'uses_agent_federation', 'uses_student_federation', 'mailing_list', 'badge_html_color',
-        'logo', 'signature', 'certificate_header', 'certificate_footer'
+        'active', 'postbac_immersion', 'allow_individual_immersions', 'label', 'country',
+        'address', 'address2', 'address3', 'department', 'zip_code', 'city', 'phone_number',
+        'fax', 'email', 'head_teacher_name', 'with_convention', 'convention_start_date',
+        'convention_end_date', 'signed_charter', 'uses_agent_federation', 'uses_student_federation',
+        'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'certificate_footer'
     )
 
     @admin.display(description=_('Postbac immersions'), boolean=True)

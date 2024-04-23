@@ -33,16 +33,6 @@ $(document).on('change', 'select#id_city', () => {
   })
 })
 
-$(document).ready(function() {
-  $("#id_postbac_immersion").change(function () {
-    if ($("#id_postbac_immersion").is(':checked')) {
-      $("#id_mailing_list").attr("disabled", false)
-    } else {
-      $("#id_mailing_list").attr("disabled", true)
-    }
-  })
-})
-
 $(document).on('change', 'select#id_country', function() {
 if ($(this).val() != 'FR') {
   $('select#id_department').replaceWith('<input class="form-control" type="text" name="department" id="id_department">')
@@ -87,7 +77,36 @@ $(document).on('change', 'input#id_with_convention', function() {
 
 // init
 $(document).ready(function() {
-   // Hide date fields if convention is not checked
+  function toggle_fields() {
+    if ($("#id_postbac_immersion").is(':checked')) {
+      $("#id_mailing_list").attr("disabled", false)
+
+      $("div.field-badge_html_color").show()
+      $("#id_logo").attr("required", false)
+
+      $("div.field-logo").show()
+      $("div.field-signature").show()
+      $("div.field-certificate_header").show()
+      $("div.field-certificate_footer").show()
+    } else {
+      $("#id_mailing_list").attr("disabled", true)
+
+      $("div.field-badge_html_color").hide()
+      $("#id_logo").attr("required", true)
+
+      $("div.field-logo").hide()
+      $("div.field-signature").hide()
+      $("div.field-certificate_header").hide()
+      $("div.field-certificate_footer").hide()
+    }
+  }
+  $("#id_postbac_immersion").change(function () {
+    toggle_fields()
+  })
+
+  toggle_fields()
+
+  // Hide date fields if convention is not checked
   $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)
   $('.field-convention_end_date').toggle($('#id_with_convention').is(':checked') === true)
 })

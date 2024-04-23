@@ -1261,13 +1261,13 @@ class HighSchoolForm(forms.ModelForm):
                     zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
 
                 self.fields['department'] = forms.TypedChoiceField(
-                    label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+                    label=_("Department"), widget=forms.Select(), choices=department_choices
                 )
                 self.fields['city'] = forms.TypedChoiceField(
-                    label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+                    label=_("City"), widget=forms.Select(), choices=city_choices
                 )
                 self.fields['zip_code'] = forms.TypedChoiceField(
-                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices
                 )
 
         postbac_dependant_fields = ['mailing_list', 'logo', 'signature', 'certificate_header', 'certificate_footer']
@@ -1300,9 +1300,15 @@ class HighSchoolForm(forms.ModelForm):
                     """options in general settings""") % w_agreement
 
                 if w_agreement:
-                    # field disabled and conventions activated : make convention dates required
-                    self.fields['convention_start_date'].required = True
-                    self.fields['convention_end_date'].required = True
+                    # field disabled and conventions activated : make convention dates required if active
+                    try:
+                        active = kwargs['data']['active']
+                    except:
+                        active = False
+
+                    if active:
+                        self.fields['convention_start_date'].required = True
+                        self.fields['convention_end_date'].required = True
                 else:
                     # field disabled and conventions deactivated : disabled convention dates
                     self.fields['convention_start_date'].disabled = True
@@ -1320,7 +1326,7 @@ class HighSchoolForm(forms.ModelForm):
             self.fields['uses_student_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
             )
-        elif self.instance and self.instance.student_records.exists():
+        elif self.instance.pk and self.instance.student_records.exists():
             # Disable student identity federation choice if the high school has students
             self.fields['uses_student_federation'].disabled = True
             self.fields['uses_student_federation'].help_text = _(
@@ -1335,10 +1341,18 @@ class HighSchoolForm(forms.ModelForm):
 
 
     def clean(self):
-        cleaned_data = super().clean()
-        active = cleaned_data.get("active", False)
-
         valid_user = False
+        cleaned_data = super().clean()
+
+        active = cleaned_data.get("active", False)
+        """
+        active = self.data.get("active", False)
+
+        if not active:
+            self.fields['convention_start_date'].required = False
+            self.fields['convention_end_date'].required = False
+        """
+
 
         try:
             user = self.request.user
@@ -1398,7 +1412,8 @@ class HighSchoolForm(forms.ModelForm):
                   'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
-                  'certificate_footer', 'uses_agent_federation', 'uses_student_federation')
+                  'certificate_footer', 'uses_agent_federation', 'uses_student_federation',
+                  'allow_individual_immersions')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
             'certificate_header': CKEditorWidget(),
@@ -1482,7 +1497,10 @@ class MailTemplateForm(forms.ModelForm):
                 line: int = 1 + before.count("<br>") + before.count("</br>")
                 line += before.count("&lt;br&gt;") + before.count("&lt;/br&gt;")
                 body_syntax_error_msg = _("The message body contains syntax error(s) : ")
-                body_syntax_error_msg += _('at "%s" line %s') % (e.template_debug["during"], line)
+                body_syntax_error_msg += _('at "%(pos)s" line %(line)s') % {
+                    'pos': e.template_debug["during"],
+                    'line': line
+                }
                 body_errors_list.append(self.error_class([body_syntax_error_msg]))
             else:
                 body_syntax_error_msg = _("The message body contains syntax error(s) : ") + str(e)
