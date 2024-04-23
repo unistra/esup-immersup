@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 13:33+0200\n"
+"POT-Creation-Date: 2024-04-23 08:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,10 +35,10 @@ msgstr "API ImmerSup"
 msgid "You're not allowed to access this ressource"
 msgstr "Vous n'êtes pas autorisé(e) à accéder à cette ressource"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1113
-#: immersionlyceens/apps/api/tests/test_api.py:1263
-#: immersionlyceens/apps/api/tests/test_api.py:1355
-#: immersionlyceens/apps/api/tests/test_api.py:1635
+#: immersionlyceens/apps/api/tests/test_api.py:1071
+#: immersionlyceens/apps/api/tests/test_api.py:1221
+#: immersionlyceens/apps/api/tests/test_api.py:1313
+#: immersionlyceens/apps/api/tests/test_api.py:1593
 #: immersionlyceens/apps/api/views.py:1755
 #: immersionlyceens/apps/api/views.py:1928
 #: immersionlyceens/apps/api/views.py:2038
@@ -50,13 +50,13 @@ msgstr "Vous n'êtes pas autorisé(e) à accéder à cette ressource"
 msgid "establishment"
 msgstr "établissement"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1114
-#: immersionlyceens/apps/api/tests/test_api.py:1176
-#: immersionlyceens/apps/api/tests/test_api.py:1264
-#: immersionlyceens/apps/api/tests/test_api.py:1304
-#: immersionlyceens/apps/api/tests/test_api.py:1533
-#: immersionlyceens/apps/api/tests/test_api.py:1584
-#: immersionlyceens/apps/api/tests/test_api.py:1636
+#: immersionlyceens/apps/api/tests/test_api.py:1072
+#: immersionlyceens/apps/api/tests/test_api.py:1134
+#: immersionlyceens/apps/api/tests/test_api.py:1222
+#: immersionlyceens/apps/api/tests/test_api.py:1262
+#: immersionlyceens/apps/api/tests/test_api.py:1491
+#: immersionlyceens/apps/api/tests/test_api.py:1542
+#: immersionlyceens/apps/api/tests/test_api.py:1594
 #: immersionlyceens/apps/api/views.py:1756
 #: immersionlyceens/apps/api/views.py:1784
 #: immersionlyceens/apps/api/views.py:1843
@@ -75,12 +75,12 @@ msgstr "établissement"
 msgid "structure"
 msgstr "structure d'établissement"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1115
-#: immersionlyceens/apps/api/tests/test_api.py:1177
-#: immersionlyceens/apps/api/tests/test_api.py:1357
-#: immersionlyceens/apps/api/tests/test_api.py:1534
-#: immersionlyceens/apps/api/tests/test_api.py:1585
-#: immersionlyceens/apps/api/tests/test_api.py:1637
+#: immersionlyceens/apps/api/tests/test_api.py:1073
+#: immersionlyceens/apps/api/tests/test_api.py:1135
+#: immersionlyceens/apps/api/tests/test_api.py:1315
+#: immersionlyceens/apps/api/tests/test_api.py:1492
+#: immersionlyceens/apps/api/tests/test_api.py:1543
+#: immersionlyceens/apps/api/tests/test_api.py:1595
 #: immersionlyceens/apps/api/views.py:1757
 #: immersionlyceens/apps/api/views.py:1785
 #: immersionlyceens/apps/api/views.py:1817
@@ -92,12 +92,12 @@ msgstr "structure d'établissement"
 msgid "training domain"
 msgstr "domaine de formation"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1116
-#: immersionlyceens/apps/api/tests/test_api.py:1178
-#: immersionlyceens/apps/api/tests/test_api.py:1358
-#: immersionlyceens/apps/api/tests/test_api.py:1535
-#: immersionlyceens/apps/api/tests/test_api.py:1586
-#: immersionlyceens/apps/api/tests/test_api.py:1638
+#: immersionlyceens/apps/api/tests/test_api.py:1074
+#: immersionlyceens/apps/api/tests/test_api.py:1136
+#: immersionlyceens/apps/api/tests/test_api.py:1316
+#: immersionlyceens/apps/api/tests/test_api.py:1493
+#: immersionlyceens/apps/api/tests/test_api.py:1544
+#: immersionlyceens/apps/api/tests/test_api.py:1596
 #: immersionlyceens/apps/api/views.py:1758
 #: immersionlyceens/apps/api/views.py:1786
 #: immersionlyceens/apps/api/views.py:1818
@@ -109,12 +109,12 @@ msgstr "domaine de formation"
 msgid "training subdomain"
 msgstr "sous-domaine de formation"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1117
-#: immersionlyceens/apps/api/tests/test_api.py:1179
-#: immersionlyceens/apps/api/tests/test_api.py:1359
-#: immersionlyceens/apps/api/tests/test_api.py:1536
-#: immersionlyceens/apps/api/tests/test_api.py:1587
-#: immersionlyceens/apps/api/tests/test_api.py:1639
+#: immersionlyceens/apps/api/tests/test_api.py:1075
+#: immersionlyceens/apps/api/tests/test_api.py:1137
+#: immersionlyceens/apps/api/tests/test_api.py:1317
+#: immersionlyceens/apps/api/tests/test_api.py:1494
+#: immersionlyceens/apps/api/tests/test_api.py:1545
+#: immersionlyceens/apps/api/tests/test_api.py:1597
 #: immersionlyceens/apps/api/views.py:1759
 #: immersionlyceens/apps/api/views.py:1787
 #: immersionlyceens/apps/api/views.py:1819
@@ -126,11 +126,11 @@ msgstr "sous-domaine de formation"
 msgid "training"
 msgstr "formation"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1118
-#: immersionlyceens/apps/api/tests/test_api.py:1180
-#: immersionlyceens/apps/api/tests/test_api.py:1537
-#: immersionlyceens/apps/api/tests/test_api.py:1588
-#: immersionlyceens/apps/api/tests/test_api.py:1640
+#: immersionlyceens/apps/api/tests/test_api.py:1076
+#: immersionlyceens/apps/api/tests/test_api.py:1138
+#: immersionlyceens/apps/api/tests/test_api.py:1495
+#: immersionlyceens/apps/api/tests/test_api.py:1546
+#: immersionlyceens/apps/api/tests/test_api.py:1598
 #: immersionlyceens/apps/api/views.py:1760
 #: immersionlyceens/apps/api/views.py:1788
 #: immersionlyceens/apps/api/views.py:1820
@@ -141,11 +141,11 @@ msgstr "formation"
 msgid "course"
 msgstr "cours"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1119
-#: immersionlyceens/apps/api/tests/test_api.py:1181
-#: immersionlyceens/apps/api/tests/test_api.py:1538
-#: immersionlyceens/apps/api/tests/test_api.py:1589
-#: immersionlyceens/apps/api/tests/test_api.py:1641
+#: immersionlyceens/apps/api/tests/test_api.py:1077
+#: immersionlyceens/apps/api/tests/test_api.py:1139
+#: immersionlyceens/apps/api/tests/test_api.py:1496
+#: immersionlyceens/apps/api/tests/test_api.py:1547
+#: immersionlyceens/apps/api/tests/test_api.py:1599
 #: immersionlyceens/apps/api/views.py:1761
 #: immersionlyceens/apps/api/views.py:1789
 #: immersionlyceens/apps/api/views.py:1821
@@ -155,14 +155,14 @@ msgstr "cours"
 msgid "course_type"
 msgstr "type de cours"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1120
-#: immersionlyceens/apps/api/tests/test_api.py:1182
-#: immersionlyceens/apps/api/tests/test_api.py:1268
-#: immersionlyceens/apps/api/tests/test_api.py:1308
-#: immersionlyceens/apps/api/tests/test_api.py:1361
-#: immersionlyceens/apps/api/tests/test_api.py:1539
-#: immersionlyceens/apps/api/tests/test_api.py:1590
-#: immersionlyceens/apps/api/tests/test_api.py:1642
+#: immersionlyceens/apps/api/tests/test_api.py:1078
+#: immersionlyceens/apps/api/tests/test_api.py:1140
+#: immersionlyceens/apps/api/tests/test_api.py:1226
+#: immersionlyceens/apps/api/tests/test_api.py:1266
+#: immersionlyceens/apps/api/tests/test_api.py:1319
+#: immersionlyceens/apps/api/tests/test_api.py:1497
+#: immersionlyceens/apps/api/tests/test_api.py:1548
+#: immersionlyceens/apps/api/tests/test_api.py:1600
 #: immersionlyceens/apps/api/views.py:1762
 #: immersionlyceens/apps/api/views.py:1790
 #: immersionlyceens/apps/api/views.py:1822
@@ -185,14 +185,14 @@ msgstr "type de cours"
 msgid "date"
 msgstr "date"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1121
-#: immersionlyceens/apps/api/tests/test_api.py:1183
-#: immersionlyceens/apps/api/tests/test_api.py:1269
-#: immersionlyceens/apps/api/tests/test_api.py:1309
-#: immersionlyceens/apps/api/tests/test_api.py:1362
-#: immersionlyceens/apps/api/tests/test_api.py:1540
-#: immersionlyceens/apps/api/tests/test_api.py:1591
-#: immersionlyceens/apps/api/tests/test_api.py:1643
+#: immersionlyceens/apps/api/tests/test_api.py:1079
+#: immersionlyceens/apps/api/tests/test_api.py:1141
+#: immersionlyceens/apps/api/tests/test_api.py:1227
+#: immersionlyceens/apps/api/tests/test_api.py:1267
+#: immersionlyceens/apps/api/tests/test_api.py:1320
+#: immersionlyceens/apps/api/tests/test_api.py:1498
+#: immersionlyceens/apps/api/tests/test_api.py:1549
+#: immersionlyceens/apps/api/tests/test_api.py:1601
 #: immersionlyceens/apps/api/views.py:1763
 #: immersionlyceens/apps/api/views.py:1791
 #: immersionlyceens/apps/api/views.py:1823
@@ -215,14 +215,14 @@ msgstr "date"
 msgid "start_time"
 msgstr "heure de début"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1122
-#: immersionlyceens/apps/api/tests/test_api.py:1184
-#: immersionlyceens/apps/api/tests/test_api.py:1270
-#: immersionlyceens/apps/api/tests/test_api.py:1310
-#: immersionlyceens/apps/api/tests/test_api.py:1363
-#: immersionlyceens/apps/api/tests/test_api.py:1541
-#: immersionlyceens/apps/api/tests/test_api.py:1592
-#: immersionlyceens/apps/api/tests/test_api.py:1644
+#: immersionlyceens/apps/api/tests/test_api.py:1080
+#: immersionlyceens/apps/api/tests/test_api.py:1142
+#: immersionlyceens/apps/api/tests/test_api.py:1228
+#: immersionlyceens/apps/api/tests/test_api.py:1268
+#: immersionlyceens/apps/api/tests/test_api.py:1321
+#: immersionlyceens/apps/api/tests/test_api.py:1499
+#: immersionlyceens/apps/api/tests/test_api.py:1550
+#: immersionlyceens/apps/api/tests/test_api.py:1602
 #: immersionlyceens/apps/api/views.py:1764
 #: immersionlyceens/apps/api/views.py:1792
 #: immersionlyceens/apps/api/views.py:1824
@@ -245,12 +245,12 @@ msgstr "heure de début"
 msgid "end_time"
 msgstr "heure de fin"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1123
-#: immersionlyceens/apps/api/tests/test_api.py:1185
-#: immersionlyceens/apps/api/tests/test_api.py:1364
-#: immersionlyceens/apps/api/tests/test_api.py:1542
-#: immersionlyceens/apps/api/tests/test_api.py:1593
-#: immersionlyceens/apps/api/tests/test_api.py:1645
+#: immersionlyceens/apps/api/tests/test_api.py:1081
+#: immersionlyceens/apps/api/tests/test_api.py:1143
+#: immersionlyceens/apps/api/tests/test_api.py:1322
+#: immersionlyceens/apps/api/tests/test_api.py:1500
+#: immersionlyceens/apps/api/tests/test_api.py:1551
+#: immersionlyceens/apps/api/tests/test_api.py:1603
 #: immersionlyceens/apps/api/views.py:1765
 #: immersionlyceens/apps/api/views.py:1793
 #: immersionlyceens/apps/api/views.py:1852
@@ -267,12 +267,12 @@ msgstr "heure de fin"
 msgid "campus"
 msgstr "campus"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1124
-#: immersionlyceens/apps/api/tests/test_api.py:1186
-#: immersionlyceens/apps/api/tests/test_api.py:1365
-#: immersionlyceens/apps/api/tests/test_api.py:1543
-#: immersionlyceens/apps/api/tests/test_api.py:1594
-#: immersionlyceens/apps/api/tests/test_api.py:1646
+#: immersionlyceens/apps/api/tests/test_api.py:1082
+#: immersionlyceens/apps/api/tests/test_api.py:1144
+#: immersionlyceens/apps/api/tests/test_api.py:1323
+#: immersionlyceens/apps/api/tests/test_api.py:1501
+#: immersionlyceens/apps/api/tests/test_api.py:1552
+#: immersionlyceens/apps/api/tests/test_api.py:1604
 #: immersionlyceens/apps/api/views.py:1766
 #: immersionlyceens/apps/api/views.py:1794
 #: immersionlyceens/apps/api/views.py:1853
@@ -289,14 +289,14 @@ msgstr "campus"
 msgid "building"
 msgstr "bâtiment"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1125
-#: immersionlyceens/apps/api/tests/test_api.py:1187
-#: immersionlyceens/apps/api/tests/test_api.py:1267
-#: immersionlyceens/apps/api/tests/test_api.py:1307
-#: immersionlyceens/apps/api/tests/test_api.py:1366
-#: immersionlyceens/apps/api/tests/test_api.py:1544
-#: immersionlyceens/apps/api/tests/test_api.py:1595
-#: immersionlyceens/apps/api/tests/test_api.py:1647
+#: immersionlyceens/apps/api/tests/test_api.py:1083
+#: immersionlyceens/apps/api/tests/test_api.py:1145
+#: immersionlyceens/apps/api/tests/test_api.py:1225
+#: immersionlyceens/apps/api/tests/test_api.py:1265
+#: immersionlyceens/apps/api/tests/test_api.py:1324
+#: immersionlyceens/apps/api/tests/test_api.py:1502
+#: immersionlyceens/apps/api/tests/test_api.py:1553
+#: immersionlyceens/apps/api/tests/test_api.py:1605
 #: immersionlyceens/apps/api/views.py:1767
 #: immersionlyceens/apps/api/views.py:1795
 #: immersionlyceens/apps/api/views.py:1825
@@ -319,13 +319,13 @@ msgstr "bâtiment"
 msgid "meeting place"
 msgstr "lieu de rencontre"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1126
-#: immersionlyceens/apps/api/tests/test_api.py:1188
-#: immersionlyceens/apps/api/tests/test_api.py:1271
-#: immersionlyceens/apps/api/tests/test_api.py:1311
-#: immersionlyceens/apps/api/tests/test_api.py:1545
-#: immersionlyceens/apps/api/tests/test_api.py:1596
-#: immersionlyceens/apps/api/tests/test_api.py:1648
+#: immersionlyceens/apps/api/tests/test_api.py:1084
+#: immersionlyceens/apps/api/tests/test_api.py:1146
+#: immersionlyceens/apps/api/tests/test_api.py:1229
+#: immersionlyceens/apps/api/tests/test_api.py:1269
+#: immersionlyceens/apps/api/tests/test_api.py:1503
+#: immersionlyceens/apps/api/tests/test_api.py:1554
+#: immersionlyceens/apps/api/tests/test_api.py:1606
 #: immersionlyceens/apps/api/views.py:1768
 #: immersionlyceens/apps/api/views.py:1796
 #: immersionlyceens/apps/api/views.py:1826
@@ -346,13 +346,13 @@ msgstr "lieu de rencontre"
 msgid "speakers"
 msgstr "intervenants"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1127
-#: immersionlyceens/apps/api/tests/test_api.py:1189
-#: immersionlyceens/apps/api/tests/test_api.py:1272
-#: immersionlyceens/apps/api/tests/test_api.py:1312
-#: immersionlyceens/apps/api/tests/test_api.py:1546
-#: immersionlyceens/apps/api/tests/test_api.py:1597
-#: immersionlyceens/apps/api/tests/test_api.py:1649
+#: immersionlyceens/apps/api/tests/test_api.py:1085
+#: immersionlyceens/apps/api/tests/test_api.py:1147
+#: immersionlyceens/apps/api/tests/test_api.py:1230
+#: immersionlyceens/apps/api/tests/test_api.py:1270
+#: immersionlyceens/apps/api/tests/test_api.py:1504
+#: immersionlyceens/apps/api/tests/test_api.py:1555
+#: immersionlyceens/apps/api/tests/test_api.py:1607
 #: immersionlyceens/apps/api/views.py:1769
 #: immersionlyceens/apps/api/views.py:1797
 #: immersionlyceens/apps/api/views.py:1827
@@ -373,12 +373,12 @@ msgstr "intervenants"
 msgid "registration number"
 msgstr "nombre d'inscrits"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1128
-#: immersionlyceens/apps/api/tests/test_api.py:1190
-#: immersionlyceens/apps/api/tests/test_api.py:1313
-#: immersionlyceens/apps/api/tests/test_api.py:1547
-#: immersionlyceens/apps/api/tests/test_api.py:1598
-#: immersionlyceens/apps/api/tests/test_api.py:1650
+#: immersionlyceens/apps/api/tests/test_api.py:1086
+#: immersionlyceens/apps/api/tests/test_api.py:1148
+#: immersionlyceens/apps/api/tests/test_api.py:1271
+#: immersionlyceens/apps/api/tests/test_api.py:1505
+#: immersionlyceens/apps/api/tests/test_api.py:1556
+#: immersionlyceens/apps/api/tests/test_api.py:1608
 #: immersionlyceens/apps/api/views.py:1770
 #: immersionlyceens/apps/api/views.py:1798
 #: immersionlyceens/apps/api/views.py:1828
@@ -399,13 +399,13 @@ msgstr "nombre d'inscrits"
 msgid "place number"
 msgstr "nombre de places"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1129
-#: immersionlyceens/apps/api/tests/test_api.py:1191
-#: immersionlyceens/apps/api/tests/test_api.py:1314
-#: immersionlyceens/apps/api/tests/test_api.py:1368
-#: immersionlyceens/apps/api/tests/test_api.py:1548
-#: immersionlyceens/apps/api/tests/test_api.py:1599
-#: immersionlyceens/apps/api/tests/test_api.py:1651
+#: immersionlyceens/apps/api/tests/test_api.py:1087
+#: immersionlyceens/apps/api/tests/test_api.py:1149
+#: immersionlyceens/apps/api/tests/test_api.py:1272
+#: immersionlyceens/apps/api/tests/test_api.py:1326
+#: immersionlyceens/apps/api/tests/test_api.py:1506
+#: immersionlyceens/apps/api/tests/test_api.py:1557
+#: immersionlyceens/apps/api/tests/test_api.py:1609
 #: immersionlyceens/apps/api/views.py:1771
 #: immersionlyceens/apps/api/views.py:1799
 #: immersionlyceens/apps/api/views.py:1829
@@ -428,8 +428,8 @@ msgstr "nombre de places"
 msgid "additional information"
 msgstr "informations complémentaires"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1265
-#: immersionlyceens/apps/api/tests/test_api.py:1305
+#: immersionlyceens/apps/api/tests/test_api.py:1223
+#: immersionlyceens/apps/api/tests/test_api.py:1263
 #: immersionlyceens/apps/api/views.py:1930
 #: immersionlyceens/apps/api/views.py:1952
 #: immersionlyceens/apps/api/views.py:1977
@@ -438,8 +438,8 @@ msgstr "informations complémentaires"
 msgid "highschool"
 msgstr "Lycée"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1266
-#: immersionlyceens/apps/api/tests/test_api.py:1306
+#: immersionlyceens/apps/api/tests/test_api.py:1224
+#: immersionlyceens/apps/api/tests/test_api.py:1264
 #: immersionlyceens/apps/api/views.py:1931
 #: immersionlyceens/apps/api/views.py:1953
 #: immersionlyceens/apps/api/views.py:1978
@@ -448,56 +448,56 @@ msgstr "Lycée"
 msgid "purpose"
 msgstr "objet"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1349
+#: immersionlyceens/apps/api/tests/test_api.py:1307
 #: immersionlyceens/apps/api/views.py:2204
 msgid "last name"
 msgstr "nom"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1350
+#: immersionlyceens/apps/api/tests/test_api.py:1308
 #: immersionlyceens/apps/api/views.py:2205
 msgid "first name"
 msgstr "prénom"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1351
+#: immersionlyceens/apps/api/tests/test_api.py:1309
 #: immersionlyceens/apps/api/views.py:2206
 msgid "birthdate"
 msgstr "date de naissance"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1352
+#: immersionlyceens/apps/api/tests/test_api.py:1310
 #: immersionlyceens/apps/api/views.py:2207
 #: immersionlyceens/apps/api/views.py:2750
 msgid "level"
 msgstr "niveau"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1353
+#: immersionlyceens/apps/api/tests/test_api.py:1311
 #: immersionlyceens/apps/api/views.py:2208
 msgid "class name"
 msgstr "classe"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1354
+#: immersionlyceens/apps/api/tests/test_api.py:1312
 #: immersionlyceens/apps/api/views.py:2209
 #: immersionlyceens/apps/api/views.py:2752
 msgid "bachelor type"
 msgstr "type de baccalauréat"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1356
+#: immersionlyceens/apps/api/tests/test_api.py:1314
 #: immersionlyceens/apps/api/views.py:2211
 #: immersionlyceens/apps/api/views.py:2759
 msgid "type"
 msgstr "type"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1360
+#: immersionlyceens/apps/api/tests/test_api.py:1318
 #: immersionlyceens/apps/api/views.py:2215
 msgid "course/event/visit label"
 msgstr "Libellé de cours/évènement/visite"
 
-#: immersionlyceens/apps/api/tests/test_api.py:1367
+#: immersionlyceens/apps/api/tests/test_api.py:1325
 #: immersionlyceens/apps/api/views.py:2222
 #: immersionlyceens/apps/api/views.py:2766
 msgid "attendance status"
 msgstr "émargement"
 
-#: immersionlyceens/apps/api/tests/test_api.py:2207
+#: immersionlyceens/apps/api/tests/test_api.py:2165
 #: immersionlyceens/apps/api/views.py:877
 #: immersionlyceens/apps/api/views.py:1416
 #: immersionlyceens/apps/api/views.py:1545
@@ -507,7 +507,7 @@ msgctxt "person type"
 msgid "High school student"
 msgstr "Lycéen"
 
-#: immersionlyceens/apps/api/tests/test_api.py:2232
+#: immersionlyceens/apps/api/tests/test_api.py:2190
 #: immersionlyceens/apps/api/views.py:886
 #: immersionlyceens/apps/api/views.py:1418
 #: immersionlyceens/apps/api/views.py:1547
@@ -517,7 +517,7 @@ msgctxt "person type"
 msgid "Student"
 msgstr "Étudiant"
 
-#: immersionlyceens/apps/api/tests/test_api.py:2755
+#: immersionlyceens/apps/api/tests/test_api.py:2713
 #: immersionlyceens/apps/core/models.py:582
 #: immersionlyceens/apps/immersion/models.py:382
 #: immersionlyceens/apps/user/models.py:28
@@ -525,13 +525,13 @@ msgstr "Étudiant"
 msgid "Visitor"
 msgstr "Visiteur"
 
-#: immersionlyceens/apps/api/tests/test_api.py:2757
+#: immersionlyceens/apps/api/tests/test_api.py:2715
 #: immersionlyceens/apps/user/models.py:12
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:22
 msgid "High school student"
 msgstr "Lycéen"
 
-#: immersionlyceens/apps/api/tests/test_api.py:2759
+#: immersionlyceens/apps/api/tests/test_api.py:2717
 #: immersionlyceens/apps/core/models.py:2757
 #: immersionlyceens/apps/immersion/models.py:41
 #: immersionlyceens/apps/immersion/models.py:289
@@ -636,7 +636,7 @@ msgid "Error: No high school selected"
 msgstr "Erreur : Aucun lycée sélectionné"
 
 #: immersionlyceens/apps/api/views.py:430
-#: immersionlyceens/apps/api/views.py:4126
+#: immersionlyceens/apps/api/views.py:4128
 msgid "Error: record has missing or invalid attestation dates"
 msgstr "Erreur : la fiche contient des justificatifs sans date de validité"
 
@@ -736,7 +736,7 @@ msgstr "Erreur : l'utilisateur ne partage pas ses immersions avec son lycée"
 #: immersionlyceens/apps/api/views.py:2724
 #: immersionlyceens/apps/api/views.py:2873
 #: immersionlyceens/apps/api/views.py:3040
-#: immersionlyceens/apps/api/views.py:4631
+#: immersionlyceens/apps/api/views.py:4633
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:43
 #: immersionlyceens/templates/search_slots.html:96
 #: immersionlyceens/templates/search_slots.html:104
@@ -782,7 +782,7 @@ msgid "you don't have enough privileges to set the attendance status"
 msgstr "Vous n'avez pas les droits suffisants pour saisir les émargements"
 
 #: immersionlyceens/apps/api/views.py:1067
-#: immersionlyceens/apps/api/views.py:4413
+#: immersionlyceens/apps/api/views.py:4415
 msgid "Registering an unpublished slot is forbidden"
 msgstr "S'inscrire à un créneau non publié n'est pas possible"
 
@@ -791,27 +791,27 @@ msgid "Sorry, you can't add any registration to this slot"
 msgstr "Désolé, vous ne pouvez pas ajouter d'inscription sur ce créneau"
 
 #: immersionlyceens/apps/api/views.py:1077
-#: immersionlyceens/apps/api/views.py:4419
+#: immersionlyceens/apps/api/views.py:4421
 msgid "Cannot register slot due to Highschool student account state"
 msgstr "Le statut du compte du lycée ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1082
-#: immersionlyceens/apps/api/views.py:4424
+#: immersionlyceens/apps/api/views.py:4426
 msgid "Cannot register slot due to Highschool student record state"
 msgstr "Le statut de la fiche lycéen(ne) ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1088
-#: immersionlyceens/apps/api/views.py:4430
+#: immersionlyceens/apps/api/views.py:4432
 msgid "Cannot register slot due to visitor account state"
 msgstr "Le statut du compte visiteur ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1093
-#: immersionlyceens/apps/api/views.py:4435
+#: immersionlyceens/apps/api/views.py:4437
 msgid "Cannot register slot due to visitor record state"
 msgstr "Le statut de la fiche visiteur ne permet pas d'inscription"
 
 #: immersionlyceens/apps/api/views.py:1098
-#: immersionlyceens/apps/api/views.py:4440
+#: immersionlyceens/apps/api/views.py:4442
 msgid "Cannot register slot due to out of date attestations"
 msgstr "Inscription impossible : vous avez des justificatifs invalides"
 
@@ -824,19 +824,19 @@ msgid "Cannot register slot due to slot's restrictions"
 msgstr "Le créneau est restreint, vous ne pouvez pas vous inscrire"
 
 #: immersionlyceens/apps/api/views.py:1133
-#: immersionlyceens/apps/api/views.py:4472
+#: immersionlyceens/apps/api/views.py:4474
 msgid "Cannot register slot due to passed registration date"
 msgstr ""
 "La date limite d'inscription au créneau est passée, vous ne pouvez plus vous "
 "inscrire"
 
 #: immersionlyceens/apps/api/views.py:1138
-#: immersionlyceens/apps/api/views.py:4467
+#: immersionlyceens/apps/api/views.py:4469
 msgid "No seat available for selected slot"
 msgstr "Pas de place disponible pour le créneau sélectionné"
 
 #: immersionlyceens/apps/api/views.py:1144
-#: immersionlyceens/apps/api/views.py:4482
+#: immersionlyceens/apps/api/views.py:4484
 msgid "Already registered to this slot"
 msgstr "Vous êtes déjà inscrit(e) à ce créneau"
 
@@ -907,8 +907,8 @@ msgid "Registration is not currently allowed"
 msgstr "Les inscriptions ne sont pas encore autorisées"
 
 #: immersionlyceens/apps/api/views.py:1315
-#: immersionlyceens/apps/api/views.py:4406
-#: immersionlyceens/apps/api/views.py:4774
+#: immersionlyceens/apps/api/views.py:4408
+#: immersionlyceens/apps/api/views.py:4776
 msgid "Error : slot not found"
 msgstr "Erreur : créneau non trouvé"
 
@@ -1203,58 +1203,58 @@ msgstr "Données de dédoublonnage supprimées"
 msgid "User removed from your group"
 msgstr "Utilisateur supprimé de votre groupe"
 
-#: immersionlyceens/apps/api/views.py:3716
+#: immersionlyceens/apps/api/views.py:3717
 msgid "A valid course must be selected"
 msgstr "Un cours valide doit être sélectionné"
 
-#: immersionlyceens/apps/api/views.py:3719
+#: immersionlyceens/apps/api/views.py:3720
 msgid "You are not allowed to delete this course"
 msgstr "Vous n'êtes pas autorisé(e) à supprimer ce cours"
 
-#: immersionlyceens/apps/api/views.py:3723
+#: immersionlyceens/apps/api/views.py:3724
 msgid "Slots are linked to this course, it can't be deleted"
 msgstr "Des créneaux sont liés à ce cours : suppression impossible"
 
-#: immersionlyceens/apps/api/views.py:3730
+#: immersionlyceens/apps/api/views.py:3731
 msgid "Course successfully deleted"
 msgstr "Cours supprimé avec succès"
 
-#: immersionlyceens/apps/api/views.py:3809
+#: immersionlyceens/apps/api/views.py:3810
 msgid "Some courses are attached to this training: delete not allowed"
 msgstr "Des cours sont rattachés à cette formation : Suppression impossible"
 
-#: immersionlyceens/apps/api/views.py:3814
+#: immersionlyceens/apps/api/views.py:3815
 #, python-format
 msgid "Training #%s deleted"
 msgstr "Formation #%s supprimée."
 
-#: immersionlyceens/apps/api/views.py:3889
-#: immersionlyceens/apps/api/views.py:3991
+#: immersionlyceens/apps/api/views.py:3890
+#: immersionlyceens/apps/api/views.py:3993
 msgid "Nothing to delete"
 msgstr "Aucune visite à supprimer"
 
-#: immersionlyceens/apps/api/views.py:3901
-#: immersionlyceens/apps/api/views.py:4004
+#: immersionlyceens/apps/api/views.py:3902
+#: immersionlyceens/apps/api/views.py:4006
 msgid "Insufficient privileges"
 msgstr "Droits insuffisants"
 
-#: immersionlyceens/apps/api/views.py:3907
+#: immersionlyceens/apps/api/views.py:3908
 msgid "Some slots are attached to this visit: it can't be deleted"
 msgstr "Des créneaux sont liés à cette visite : suppression impossible"
 
-#: immersionlyceens/apps/api/views.py:3913
+#: immersionlyceens/apps/api/views.py:3914
 msgid "Visit successfully deleted"
 msgstr "Visite supprimée avec succès"
 
-#: immersionlyceens/apps/api/views.py:4010
+#: immersionlyceens/apps/api/views.py:4012
 msgid "Some slots are attached to this event: it can't be deleted"
 msgstr "Des créneaux sont liés à cet évènement : suppression impossible"
 
-#: immersionlyceens/apps/api/views.py:4016
+#: immersionlyceens/apps/api/views.py:4018
 msgid "Off offer event successfully deleted"
 msgstr "Évènement hors offre supprimé avec succès"
 
-#: immersionlyceens/apps/api/views.py:4057
+#: immersionlyceens/apps/api/views.py:4059
 msgid ""
 "No operator given or wrong operator (to_validate, validated, rejected, "
 "to_revalidate)"
@@ -1262,39 +1262,39 @@ msgstr ""
 "Opérateur introuvable ou incorrect (to_validate, validated, rejected, "
 "to_revalidate)"
 
-#: immersionlyceens/apps/api/views.py:4112
+#: immersionlyceens/apps/api/views.py:4114
 msgid "Error - Bad operation selected. Allowed: validate, reject"
 msgstr "Erreur - opérateur incorrect. Autorisés : vaidate, reject"
 
-#: immersionlyceens/apps/api/views.py:4135
+#: immersionlyceens/apps/api/views.py:4137
 #, python-format
 msgid "Error - record not found: %s"
 msgstr "Erreur : fiche non trouvée : %s"
 
-#: immersionlyceens/apps/api/views.py:4166
+#: immersionlyceens/apps/api/views.py:4168
 msgid "Charter successfully signed"
 msgstr "Charte signée avec succès"
 
-#: immersionlyceens/apps/api/views.py:4168
+#: immersionlyceens/apps/api/views.py:4170
 #: immersionlyceens/templates/charter_not_signed.html:9
 msgid "Charter not signed"
 msgstr "Charte non signée"
 
-#: immersionlyceens/apps/api/views.py:4290
+#: immersionlyceens/apps/api/views.py:4292
 msgid "No body for this template provided"
 msgstr "Le corps du message n'est pas présent"
 
-#: immersionlyceens/apps/api/views.py:4296
+#: immersionlyceens/apps/api/views.py:4298
 #, python-format
 msgid "Template #%s can't be found"
 msgstr "Le modèle #%s est introuvable"
 
-#: immersionlyceens/apps/api/views.py:4308
+#: immersionlyceens/apps/api/views.py:4310
 #, python-format
 msgid "A syntax error has been found in template #%s"
 msgstr "Une erreur de syntaxe a été détectée dans le modèle #%s"
 
-#: immersionlyceens/apps/api/views.py:4328
+#: immersionlyceens/apps/api/views.py:4330
 msgid ""
 "An error occurred while running annual purge command. For more details, "
 "please contact the administrator."
@@ -1302,7 +1302,7 @@ msgstr ""
 "Une erreur est survenue lors de l'exécution de la purge annuelle. Pour plus "
 "de détails, merci de contacter l'administrateur."
 
-#: immersionlyceens/apps/api/views.py:4338
+#: immersionlyceens/apps/api/views.py:4340
 msgid ""
 "An error occurred while deleting expired LDAP accounts. For more details, "
 "please contact the administrator."
@@ -1310,42 +1310,42 @@ msgstr ""
 "Une erreur est survenue lors de la suppression des comptes LDAP expirés. "
 "Pour plus de détails, merci de contacter l'administrateur."
 
-#: immersionlyceens/apps/api/views.py:4366
+#: immersionlyceens/apps/api/views.py:4368
 msgid "Settings updated"
 msgstr "Paramètre actualisé"
 
-#: immersionlyceens/apps/api/views.py:4368
+#: immersionlyceens/apps/api/views.py:4370
 msgid "Nothing to do"
 msgstr "Rien à faire"
 
-#: immersionlyceens/apps/api/views.py:4394
+#: immersionlyceens/apps/api/views.py:4396
 msgid "Error : user not authenticated"
 msgstr "Erreur : utilisateur non authentifié"
 
-#: immersionlyceens/apps/api/views.py:4398
-#: immersionlyceens/apps/api/views.py:4694
+#: immersionlyceens/apps/api/views.py:4400
+#: immersionlyceens/apps/api/views.py:4696
 msgid "Error : missing slot id"
 msgstr "Erreur : identifiant de créneau manquant"
 
-#: immersionlyceens/apps/api/views.py:4449
+#: immersionlyceens/apps/api/views.py:4451
 msgid "Immersion is not in a period, please use the contact form"
 msgstr ""
 
-#: immersionlyceens/apps/api/views.py:4453
+#: immersionlyceens/apps/api/views.py:4455
 msgid "Multiple periods found for this slot, please use the contact form"
 msgstr ""
 "Plusieurs périodes trouvées pour ce créneau, merci de nous contacter via le "
 "formulaire de contact."
 
-#: immersionlyceens/apps/api/views.py:4457
+#: immersionlyceens/apps/api/views.py:4459
 msgid "You can't register to this slot yet"
 msgstr "Vous ne pouvez pas vous inscrire à ce créneau pour le moment"
 
-#: immersionlyceens/apps/api/views.py:4461
+#: immersionlyceens/apps/api/views.py:4463
 msgid "You can't register to this slot anymore"
 msgstr "Vous ne pouvez plus vous inscrire à ce créneau"
 
-#: immersionlyceens/apps/api/views.py:4559
+#: immersionlyceens/apps/api/views.py:4561
 #: immersionlyceens/apps/core/models.py:1695
 #: immersionlyceens/apps/core/models.py:2426
 #: immersionlyceens/apps/core/models.py:2836
@@ -1363,7 +1363,7 @@ msgstr "Vous ne pouvez plus vous inscrire à ce créneau"
 msgid "Course"
 msgstr "Cours"
 
-#: immersionlyceens/apps/api/views.py:4560
+#: immersionlyceens/apps/api/views.py:4562
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:12
 #: immersionlyceens/templates/core/off_offer_event_slot.html:48
 #: immersionlyceens/templates/offer_off_offer_events.html:85
@@ -1373,7 +1373,7 @@ msgstr "Cours"
 msgid "Event"
 msgstr "Évènement"
 
-#: immersionlyceens/apps/api/views.py:4561
+#: immersionlyceens/apps/api/views.py:4563
 #: immersionlyceens/apps/core/models.py:1852
 #: immersionlyceens/apps/core/models.py:2438
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:11
@@ -1963,22 +1963,22 @@ msgstr "Jours"
 #: immersionlyceens/apps/core/admin_forms.py:667
 #: immersionlyceens/apps/core/admin_forms.py:724
 #: immersionlyceens/apps/core/admin_forms.py:806
-#: immersionlyceens/apps/core/admin_forms.py:1319
-#: immersionlyceens/apps/core/admin_forms.py:1405
-#: immersionlyceens/apps/core/admin_forms.py:1500
-#: immersionlyceens/apps/core/admin_forms.py:1534
-#: immersionlyceens/apps/core/admin_forms.py:1583
-#: immersionlyceens/apps/core/admin_forms.py:1642
-#: immersionlyceens/apps/core/admin_forms.py:1670
-#: immersionlyceens/apps/core/admin_forms.py:1717
-#: immersionlyceens/apps/core/admin_forms.py:1841
-#: immersionlyceens/apps/core/admin_forms.py:1882
-#: immersionlyceens/apps/core/admin_forms.py:1989
+#: immersionlyceens/apps/core/admin_forms.py:1312
+#: immersionlyceens/apps/core/admin_forms.py:1398
+#: immersionlyceens/apps/core/admin_forms.py:1493
+#: immersionlyceens/apps/core/admin_forms.py:1527
+#: immersionlyceens/apps/core/admin_forms.py:1576
+#: immersionlyceens/apps/core/admin_forms.py:1635
+#: immersionlyceens/apps/core/admin_forms.py:1663
+#: immersionlyceens/apps/core/admin_forms.py:1710
+#: immersionlyceens/apps/core/admin_forms.py:1834
+#: immersionlyceens/apps/core/admin_forms.py:1875
+#: immersionlyceens/apps/core/admin_forms.py:1982
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
 #: immersionlyceens/apps/core/admin_forms.py:119
-#: immersionlyceens/apps/core/admin_forms.py:1250
+#: immersionlyceens/apps/core/admin_forms.py:1243
 #: immersionlyceens/apps/core/models.py:97
 #: immersionlyceens/apps/core/models.py:131
 #: immersionlyceens/apps/core/models.py:224
@@ -1989,7 +1989,7 @@ msgid "Department"
 msgstr "Département"
 
 #: immersionlyceens/apps/core/admin_forms.py:122
-#: immersionlyceens/apps/core/admin_forms.py:1253
+#: immersionlyceens/apps/core/admin_forms.py:1246
 #: immersionlyceens/apps/core/models.py:96
 #: immersionlyceens/apps/core/models.py:132
 #: immersionlyceens/apps/core/models.py:225
@@ -2007,7 +2007,7 @@ msgid "City"
 msgstr "Ville"
 
 #: immersionlyceens/apps/core/admin_forms.py:125
-#: immersionlyceens/apps/core/admin_forms.py:1256
+#: immersionlyceens/apps/core/admin_forms.py:1249
 #: immersionlyceens/apps/core/models.py:98
 #: immersionlyceens/apps/core/models.py:133
 #: immersionlyceens/apps/core/models.py:226
@@ -2287,12 +2287,12 @@ msgstr "Vous ne pouvez pas modifier ces groupes : %s"
 msgid "You can't modify the superuser status"
 msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:1266
+#: immersionlyceens/apps/core/admin_forms.py:1259
 msgid "This field is available when 'Offer post-bachelor immersions is enabled"
 msgstr ""
 "Ce champ est activé si 'Propose son offre post-bac à l'immersion' est coché"
 
-#: immersionlyceens/apps/core/admin_forms.py:1285
+#: immersionlyceens/apps/core/admin_forms.py:1278
 #, python-format
 msgctxt "convention"
 msgid ""
@@ -2302,34 +2302,34 @@ msgstr ""
 "Toujours %s : cette option ne peut être changée en raison des options de "
 "conventionnement des lycées dans les paramètres généraux."
 
-#: immersionlyceens/apps/core/admin_forms.py:1340
-#: immersionlyceens/apps/core/admin_forms.py:1341
+#: immersionlyceens/apps/core/admin_forms.py:1333
+#: immersionlyceens/apps/core/admin_forms.py:1334
 msgid "Both convention dates are required if 'convention' is checked"
 msgstr ""
 "Les deux dates de conventions sont obligatoires si l'option 'Conventionné' "
 "est cochée"
 
-#: immersionlyceens/apps/core/admin_forms.py:1417
+#: immersionlyceens/apps/core/admin_forms.py:1410
 msgid "The message body contains forbidden variables : "
 msgstr "Le corps du message contient des variables non autorisées : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1435
-#: immersionlyceens/apps/core/admin_forms.py:1439
+#: immersionlyceens/apps/core/admin_forms.py:1428
+#: immersionlyceens/apps/core/admin_forms.py:1432
 msgid "The message body contains syntax error(s) : "
 msgstr "Le corps du message contient des erreurs de syntaxe : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1436
+#: immersionlyceens/apps/core/admin_forms.py:1429
 #, python-format
 msgid "at \"%s\" line %s"
 msgstr "à \"%s\" ligne %s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1443
+#: immersionlyceens/apps/core/admin_forms.py:1436
 msgid "The message body contains unknown variable(s) : "
 msgstr "Le corps du message contient des variables inconnues : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1477
-#: immersionlyceens/apps/core/admin_forms.py:1563
-#: immersionlyceens/apps/core/admin_forms.py:1622
+#: immersionlyceens/apps/core/admin_forms.py:1470
+#: immersionlyceens/apps/core/admin_forms.py:1556
+#: immersionlyceens/apps/core/admin_forms.py:1615
 #, python-format
 msgid ""
 "Please keep filesize under %(maxupload)s. Current filesize %(current_size)s"
@@ -2337,37 +2337,37 @@ msgstr ""
 "Veuillez téléverser des fichiers dont la taille n'excède pas %(maxupload)s. "
 "Taille actuelle : %(current_size)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1484
-#: immersionlyceens/apps/core/admin_forms.py:1569
-#: immersionlyceens/apps/core/admin_forms.py:1628
-#: immersionlyceens/apps/core/admin_forms.py:1825
-#: immersionlyceens/apps/core/admin_forms.py:1866
-#: immersionlyceens/apps/core/admin_forms.py:1968
+#: immersionlyceens/apps/core/admin_forms.py:1477
+#: immersionlyceens/apps/core/admin_forms.py:1562
+#: immersionlyceens/apps/core/admin_forms.py:1621
+#: immersionlyceens/apps/core/admin_forms.py:1818
+#: immersionlyceens/apps/core/admin_forms.py:1859
+#: immersionlyceens/apps/core/admin_forms.py:1961
 #: immersionlyceens/apps/immersion/forms.py:357
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1645
+#: immersionlyceens/apps/core/admin_forms.py:1638
 msgid "At least one profile is required"
 msgstr "Au moins un profil est requis"
 
-#: immersionlyceens/apps/core/admin_forms.py:1692
+#: immersionlyceens/apps/core/admin_forms.py:1685
 msgid "You are not allowed to create a new Evaluation Form Link"
 msgstr "Vous ne pouvez pas créer de nouveau lien de formulaire d'évaluation"
 
-#: immersionlyceens/apps/core/admin_forms.py:1726
+#: immersionlyceens/apps/core/admin_forms.py:1719
 msgid "Students users exist you can't deactivate students"
 msgstr ""
 "Des étudiants sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1733
+#: immersionlyceens/apps/core/admin_forms.py:1726
 msgid "Visitors users exist you can't deactivate visitors"
 msgstr ""
 "Des visiteurs sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1748
+#: immersionlyceens/apps/core/admin_forms.py:1741
 msgid ""
 "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT general setting is missing or incorrect. "
 "Please fix."
@@ -2375,7 +2375,7 @@ msgstr ""
 "Le paramètre ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT est absent ou incorrect. "
 "Veuillez l'ajouter ou corriger sa valeur."
 
-#: immersionlyceens/apps/core/admin_forms.py:1756
+#: immersionlyceens/apps/core/admin_forms.py:1749
 msgid ""
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT general setting is missing or "
 "incorrect. Please fix."
@@ -2383,7 +2383,7 @@ msgstr ""
 "Le paramètre ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT est absent ou incorrect. "
 "Veuillez l'ajouter ou corriger sa valeur."
 
-#: immersionlyceens/apps/core/admin_forms.py:1766
+#: immersionlyceens/apps/core/admin_forms.py:1759
 msgid ""
 "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and "
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT cannot be both set to False "
@@ -2392,7 +2392,7 @@ msgstr ""
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT ne peuvent pas être tous les deux "
 "désactivés."
 
-#: immersionlyceens/apps/core/admin_forms.py:1773
+#: immersionlyceens/apps/core/admin_forms.py:1766
 msgid ""
 "This parameter can't be set to False : there are high schools with "
 "agreements in database, please update or delete these first"
@@ -2400,7 +2400,7 @@ msgstr ""
 "Ce paramètre ne peut pas être désactivé : des lycées conventionnés existent "
 "en base, veuillez d'abord les mettre à jour ou les supprimer"
 
-#: immersionlyceens/apps/core/admin_forms.py:1780
+#: immersionlyceens/apps/core/admin_forms.py:1773
 msgid ""
 "This parameter can't be set to False : there are high schools without "
 "agreements in database, please update or delete these first"
@@ -2408,39 +2408,39 @@ msgstr ""
 "Ce paramètre ne peut pas être désactivé : des lycées non conventionnés "
 "existent en base, veuillez d'abord les mettre à jour ou les supprimer"
 
-#: immersionlyceens/apps/core/admin_forms.py:1792
+#: immersionlyceens/apps/core/admin_forms.py:1785
 msgid "A default quota value is mandatory"
 msgstr "La valeur du quota par défaut est obligatoire"
 
-#: immersionlyceens/apps/core/admin_forms.py:1795
+#: immersionlyceens/apps/core/admin_forms.py:1788
 msgid "The default quota value must be a positive integer > 0"
 msgstr ""
 "La valeur du quota par défaut doit être un entier positif supérieur à 0"
 
-#: immersionlyceens/apps/core/admin_forms.py:1909
-#: immersionlyceens/apps/core/admin_forms.py:1927
+#: immersionlyceens/apps/core/admin_forms.py:1902
+#: immersionlyceens/apps/core/admin_forms.py:1920
 msgid "Field locked : a high school record uses this level"
 msgstr "Verrouillé : une fiche lycéen(ne) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1945
+#: immersionlyceens/apps/core/admin_forms.py:1938
 msgid "Field locked : a student record uses this level"
 msgstr "Verrouillé : une fiche étudiant(te) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1985
+#: immersionlyceens/apps/core/admin_forms.py:1978
 msgid "A favicon already exists"
 msgstr "Un favicon est déjà utilisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:2058
+#: immersionlyceens/apps/core/admin_forms.py:2051
 msgid "If not empty, uses 'Execution time' field for the first execution"
 msgstr ""
 "Si non vide, utilise l'Heure d'exécution pour le premier lancement de la "
 "journée"
 
-#: immersionlyceens/apps/core/admin_forms.py:2063
+#: immersionlyceens/apps/core/admin_forms.py:2056
 msgid "Minutes will be rounded to force 5 min steps"
 msgstr "Les minutes seront arrondies par tranches de 5 minutes"
 
-#: immersionlyceens/apps/core/admin_forms.py:2070
+#: immersionlyceens/apps/core/admin_forms.py:2063
 msgid "Date and frequency can't be both set"
 msgstr "La date et la fréquence ne peuvent être paramétrées en même temps"
 
@@ -5321,7 +5321,7 @@ msgstr "Fiche visiteur / Justificatif"
 msgid "Visitor record / Attestation documents"
 msgstr "Fiche visiteur / Justificatifs"
 
-#: immersionlyceens/apps/immersion/views.py:91
+#: immersionlyceens/apps/immersion/views.py:92
 msgid ""
 "Sorry, the university year has not begun (or already over), you can't login "
 "yet."
@@ -5329,20 +5329,20 @@ msgstr ""
 "Désolé, l'année universitaire n'a pas encore commencé (ou déjà terminée), "
 "vous ne pouvez pas vous connecter pour le moment."
 
-#: immersionlyceens/apps/immersion/views.py:108
-#: immersionlyceens/apps/immersion/views.py:227
+#: immersionlyceens/apps/immersion/views.py:109
+#: immersionlyceens/apps/immersion/views.py:268
 msgid "Your account hasn't been enabled yet."
 msgstr "Votre compte n'est pas encore activé"
 
-#: immersionlyceens/apps/immersion/views.py:113
+#: immersionlyceens/apps/immersion/views.py:114
 msgid "Authentication error"
 msgstr "Erreur d'identification"
 
-#: immersionlyceens/apps/immersion/views.py:145
+#: immersionlyceens/apps/immersion/views.py:147
 msgid "Incomplete data for account creation"
 msgstr "Données incomplètes pour la création du compte"
 
-#: immersionlyceens/apps/immersion/views.py:149
+#: immersionlyceens/apps/immersion/views.py:194
 msgid ""
 "Missing attributes, account not created.<br>Your institution may not be "
 "aware of the Immersion service.<br>Please use the 'contact' link at the "
@@ -5353,38 +5353,38 @@ msgstr ""
 "<br>Merci d'utiliser le lien 'Contact' en bas de page, en précisant cette "
 "erreur et le nom de votre établissement."
 
-#: immersionlyceens/apps/immersion/views.py:166
+#: immersionlyceens/apps/immersion/views.py:205
 msgid "Students deactivated"
 msgstr "Étudiants désactivés"
 
-#: immersionlyceens/apps/immersion/views.py:180
-#: immersionlyceens/apps/immersion/views.py:291
+#: immersionlyceens/apps/immersion/views.py:219
+#: immersionlyceens/apps/immersion/views.py:332
 msgid "Group error"
 msgstr "Erreur d'attribution de groupe"
 
-#: immersionlyceens/apps/immersion/views.py:186
-#: immersionlyceens/apps/immersion/views.py:189
-#: immersionlyceens/apps/immersion/views.py:297
-#: immersionlyceens/apps/immersion/views.py:301
-#: immersionlyceens/apps/immersion/views.py:347
-#: immersionlyceens/apps/immersion/views.py:496
-#: immersionlyceens/apps/immersion/views.py:554
-#: immersionlyceens/apps/immersion/views.py:705
-#: immersionlyceens/apps/immersion/views.py:1110
-#: immersionlyceens/apps/immersion/views.py:1119
-#: immersionlyceens/apps/immersion/views.py:1514
-#: immersionlyceens/apps/immersion/views.py:1526
+#: immersionlyceens/apps/immersion/views.py:225
+#: immersionlyceens/apps/immersion/views.py:228
+#: immersionlyceens/apps/immersion/views.py:338
+#: immersionlyceens/apps/immersion/views.py:342
+#: immersionlyceens/apps/immersion/views.py:388
+#: immersionlyceens/apps/immersion/views.py:537
+#: immersionlyceens/apps/immersion/views.py:595
+#: immersionlyceens/apps/immersion/views.py:746
+#: immersionlyceens/apps/immersion/views.py:1151
+#: immersionlyceens/apps/immersion/views.py:1160
+#: immersionlyceens/apps/immersion/views.py:1555
+#: immersionlyceens/apps/immersion/views.py:1567
 msgid "Cannot send email. The administrators have been notified."
 msgstr ""
 "Erreur lors de l'envoi du courriel. Les administrateurs ont été notifiés."
 
-#: immersionlyceens/apps/immersion/views.py:192
-#: immersionlyceens/apps/immersion/views.py:303
+#: immersionlyceens/apps/immersion/views.py:231
+#: immersionlyceens/apps/immersion/views.py:344
 msgid "Account created. Please check your emails for the activation procedure."
 msgstr ""
 "Compte créé. Veuillez consulter vos courriels pour la procédure d'activation"
 
-#: immersionlyceens/apps/immersion/views.py:200
+#: immersionlyceens/apps/immersion/views.py:241
 msgid ""
 "Your account must be first created by a master establishment manager or an "
 "operator."
@@ -5392,13 +5392,13 @@ msgstr ""
 "Votre compte doit être créé au préalable par un référent établissement "
 "maître ou un référent technique."
 
-#: immersionlyceens/apps/immersion/views.py:202
+#: immersionlyceens/apps/immersion/views.py:243
 msgid "The attributes sent by Shibboleth show you may not be a student."
 msgstr ""
 "Les attributs envoyés par Shibboleth indiquent que vous n'êtes pas "
 "étudiant(e)."
 
-#: immersionlyceens/apps/immersion/views.py:205
+#: immersionlyceens/apps/immersion/views.py:246
 msgid ""
 "<br>If you think this is a mistake, please use the 'contact' link at the "
 "<br>bottom of this page, specifying your institution."
@@ -5406,100 +5406,100 @@ msgstr ""
 "<br>Si vous pensez qu'il s'agit d'une erreur, veuillez utiliser le lien "
 "'contact'<br>en bas de cette page, en précisant votre établissement."
 
-#: immersionlyceens/apps/immersion/views.py:222
+#: immersionlyceens/apps/immersion/views.py:263
 msgid "Unable to find a matching user in database"
 msgstr "Utilisateur introuvable"
 
-#: immersionlyceens/apps/immersion/views.py:256
+#: immersionlyceens/apps/immersion/views.py:297
 msgid "Sorry, you can't register right now."
 msgstr "Désolé, vous ne pouvez pas vous inscrire maintenant."
 
-#: immersionlyceens/apps/immersion/views.py:339
+#: immersionlyceens/apps/immersion/views.py:380
 msgid "Please use your establishment credentials."
 msgstr "Merci de vous connecter avec vos identifiants Établissement"
 
-#: immersionlyceens/apps/immersion/views.py:345
-#: immersionlyceens/apps/immersion/views.py:353
+#: immersionlyceens/apps/immersion/views.py:386
+#: immersionlyceens/apps/immersion/views.py:394
 msgid "An email has been sent with the procedure to set a new password."
 msgstr "Un courriel contenant la procédure a été envoyé à cette adresse."
 
-#: immersionlyceens/apps/immersion/views.py:355
-#: immersionlyceens/apps/immersion/views.py:394
+#: immersionlyceens/apps/immersion/views.py:396
+#: immersionlyceens/apps/immersion/views.py:435
 msgid "Error : please contact the establishment referent"
 msgstr "Erreur : merci de contacter le référent établissement"
 
-#: immersionlyceens/apps/immersion/views.py:369
-#: immersionlyceens/apps/immersion/views.py:391
+#: immersionlyceens/apps/immersion/views.py:410
+#: immersionlyceens/apps/immersion/views.py:432
 msgid "Password recovery : invalid data"
 msgstr "Réinitialisation du mot de passe : clé invalide"
 
-#: immersionlyceens/apps/immersion/views.py:380
+#: immersionlyceens/apps/immersion/views.py:421
 msgid "Password successfully updated."
 msgstr "Mot de passe mis à jour."
 
-#: immersionlyceens/apps/immersion/views.py:427
+#: immersionlyceens/apps/immersion/views.py:468
 msgid "Password successfully updated"
 msgstr "Mot de passe mis à jour avec succès."
 
-#: immersionlyceens/apps/immersion/views.py:454
+#: immersionlyceens/apps/immersion/views.py:495
 msgid "Your account is now enabled. Thanks !"
 msgstr "Votre compte est désormais activé. Merci !"
 
-#: immersionlyceens/apps/immersion/views.py:460
+#: immersionlyceens/apps/immersion/views.py:501
 msgid "Invalid activation data"
 msgstr "Données d'activation invalides"
 
-#: immersionlyceens/apps/immersion/views.py:463
-#: immersionlyceens/apps/immersion/views.py:594
+#: immersionlyceens/apps/immersion/views.py:504
+#: immersionlyceens/apps/immersion/views.py:635
 msgid "Something went wrong"
 msgstr "Erreur"
 
-#: immersionlyceens/apps/immersion/views.py:487
-#: immersionlyceens/apps/immersion/views.py:499
+#: immersionlyceens/apps/immersion/views.py:528
+#: immersionlyceens/apps/immersion/views.py:540
 msgid "The activation message has been resent."
 msgstr "Le courriel d'activation a été renvoyé"
 
-#: immersionlyceens/apps/immersion/views.py:490
+#: immersionlyceens/apps/immersion/views.py:531
 msgid "This account has already been activated, please login."
 msgstr "Ce compte a déjà été activé, veuillez vous connecter."
 
-#: immersionlyceens/apps/immersion/views.py:523
+#: immersionlyceens/apps/immersion/views.py:564
 msgid "No account found with this email address"
 msgstr "Aucun compte n'a été trouvé avec cette adresse"
 
-#: immersionlyceens/apps/immersion/views.py:527
+#: immersionlyceens/apps/immersion/views.py:568
 msgid "This account is not a speaker-only one, it can't be linked"
 msgstr "Ce compte n'est pas uniquement 'Intervenant', il ne peut pas être lié"
 
-#: immersionlyceens/apps/immersion/views.py:529
+#: immersionlyceens/apps/immersion/views.py:570
 msgid "These accounts are already linked"
 msgstr "Ces comptes sont déjà liés"
 
-#: immersionlyceens/apps/immersion/views.py:557
+#: immersionlyceens/apps/immersion/views.py:598
 msgid "The link message has been sent to this email address"
 msgstr "Le message de confirmation a été envoyé à cette adresse"
 
-#: immersionlyceens/apps/immersion/views.py:560
+#: immersionlyceens/apps/immersion/views.py:601
 msgid "This account has not been validated (yet)"
 msgstr "Ce compte n'a pas encore été (ou n'est plus) activé"
 
-#: immersionlyceens/apps/immersion/views.py:588
+#: immersionlyceens/apps/immersion/views.py:629
 msgid "Your accounts have been linked"
 msgstr "Vos comptes ont été liés"
 
-#: immersionlyceens/apps/immersion/views.py:591
+#: immersionlyceens/apps/immersion/views.py:632
 msgid "Invalid link data"
 msgstr "Données de liaison invalides"
 
-#: immersionlyceens/apps/immersion/views.py:643
-#: immersionlyceens/apps/immersion/views.py:687
-#: immersionlyceens/apps/immersion/views.py:1033
-#: immersionlyceens/apps/immersion/views.py:1094
+#: immersionlyceens/apps/immersion/views.py:684
+#: immersionlyceens/apps/immersion/views.py:728
+#: immersionlyceens/apps/immersion/views.py:1074
+#: immersionlyceens/apps/immersion/views.py:1135
 msgid "Invalid student id"
 msgstr "#id invalide"
 
-#: immersionlyceens/apps/immersion/views.py:710
-#: immersionlyceens/apps/immersion/views.py:1520
+#: immersionlyceens/apps/immersion/views.py:751
+#: immersionlyceens/apps/immersion/views.py:1561
 msgid ""
 "You have updated the email.<br>Warning : the new email is also the new login."
 "<br>A new activation email has been sent."
@@ -5508,91 +5508,91 @@ msgstr ""
 "aussi le nouvel identifiant. <br>Une nouvelle procédure d'activation a a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:726
-#: immersionlyceens/apps/immersion/views.py:1129
+#: immersionlyceens/apps/immersion/views.py:767
+#: immersionlyceens/apps/immersion/views.py:1170
 msgid "Record successfully saved."
 msgstr "Fiche enregistrée avec succès"
 
-#: immersionlyceens/apps/immersion/views.py:733
+#: immersionlyceens/apps/immersion/views.py:774
 msgid ""
 "You have updated some important fields, your record needs a new validation"
 msgstr ""
 "Vous avez modifié certains champs critiques, votre fiche doit à nouveau être "
 "validée"
 
-#: immersionlyceens/apps/immersion/views.py:744
+#: immersionlyceens/apps/immersion/views.py:785
 msgid ""
 "A record already exists with this identity, please contact the establishment "
 "referent."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de contacter le référent établissement."
 
-#: immersionlyceens/apps/immersion/views.py:748
+#: immersionlyceens/apps/immersion/views.py:789
 msgid "A record already exists with this identity, look at duplicate records."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de consulter la liste des doublons."
 
-#: immersionlyceens/apps/immersion/views.py:778
-#: immersionlyceens/apps/immersion/views.py:1158
-#: immersionlyceens/apps/immersion/views.py:1600
+#: immersionlyceens/apps/immersion/views.py:819
+#: immersionlyceens/apps/immersion/views.py:1199
+#: immersionlyceens/apps/immersion/views.py:1641
 msgid "You have errors in Immersion periods section"
 msgstr "Erreurs dans la secion 'Quota d'immersions'"
 
-#: immersionlyceens/apps/immersion/views.py:832
-#: immersionlyceens/apps/immersion/views.py:1654
+#: immersionlyceens/apps/immersion/views.py:873
+#: immersionlyceens/apps/immersion/views.py:1695
 msgid "Record saved. Please check the optional documents to send below."
 msgstr ""
 "Fiche enregistrée. Veuillez verifier les documents facultatifs à joindre ci-"
 "dessous"
 
-#: immersionlyceens/apps/immersion/views.py:874
-#: immersionlyceens/apps/immersion/views.py:1695
+#: immersionlyceens/apps/immersion/views.py:915
+#: immersionlyceens/apps/immersion/views.py:1736
 msgid "You have errors in Attestations section"
 msgstr "Erreurs ou informations manquantes dans la section 'Justificatifs'"
 
-#: immersionlyceens/apps/immersion/views.py:897
-#: immersionlyceens/apps/immersion/views.py:1720
+#: immersionlyceens/apps/immersion/views.py:938
+#: immersionlyceens/apps/immersion/views.py:1761
 msgid "Record saved. Please fill all the required attestation documents below."
 msgstr ""
 "Fiche enregistrée. Veuillez joindre tous les documents requis dans la "
 "section 'Justificatifs'"
 
-#: immersionlyceens/apps/immersion/views.py:902
+#: immersionlyceens/apps/immersion/views.py:943
 msgid ""
 "Thank you. Your record is awaiting validation from your high-school referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent du lycée."
 
-#: immersionlyceens/apps/immersion/views.py:906
+#: immersionlyceens/apps/immersion/views.py:947
 msgid ""
 "Thank you. Your record is awaiting validation by the establishment referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent "
 "établissement."
 
-#: immersionlyceens/apps/immersion/views.py:944
-#: immersionlyceens/apps/immersion/views.py:1473
+#: immersionlyceens/apps/immersion/views.py:985
+#: immersionlyceens/apps/immersion/views.py:1514
 #, python-format
 msgid "Your record status : %s"
 msgstr "Statut de votre fiche : %s"
 
-#: immersionlyceens/apps/immersion/views.py:946
-#: immersionlyceens/apps/immersion/views.py:1475
+#: immersionlyceens/apps/immersion/views.py:987
+#: immersionlyceens/apps/immersion/views.py:1516
 #, python-format
 msgid "Current record status : %s"
 msgstr "Statut de la fiche : %s"
 
-#: immersionlyceens/apps/immersion/views.py:1115
+#: immersionlyceens/apps/immersion/views.py:1156
 msgid "You have updated the email.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:1404
+#: immersionlyceens/apps/immersion/views.py:1445
 msgid "Invalid visitor record id"
 msgstr "Id de visiteur invalide"
 
-#: immersionlyceens/apps/immersion/views.py:1574
+#: immersionlyceens/apps/immersion/views.py:1615
 msgid "Your birth date have been updated, your record needs a new validation"
 msgstr ""
 "Vous avez modifié votre date de naissance, votre fiche doit à nouveau être "
@@ -6472,6 +6472,7 @@ msgstr "Libellé de cours"
 #: immersionlyceens/templates/core/course.html:128
 #: immersionlyceens/templates/core/off_offer_event.html:136
 #: immersionlyceens/templates/core/visit.html:107
+#: immersionlyceens/templates/fragments/user_selector.html:26
 msgid "Search"
 msgstr "Rechercher"
 
@@ -7875,6 +7876,14 @@ msgstr "Ouvrir dans une nouvelle fenêtre"
 #: immersionlyceens/templates/fragments/main_share.html:28
 msgid "Share on"
 msgstr "Partager sur"
+
+#: immersionlyceens/templates/fragments/user_selector.html:20
+msgid "No results found"
+msgstr "Aucun résultat trouvé"
+
+#: immersionlyceens/templates/fragments/user_selector.html:23
+msgid "Searching…"
+msgstr "Searching…"
 
 #: immersionlyceens/templates/highschools.html:41
 msgid "Affiliated high schools"
