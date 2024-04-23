@@ -1,6 +1,7 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
 from collections import OrderedDict
+from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers, status
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -101,8 +102,10 @@ class SpeakerSerializer(ImmersionUserSerializer):
                 if not ldap_response:
                     # not found
                     raise serializers.ValidationError(
-                        detail=_("Speaker email '%s' not found in establishment '%s'")
-                               % (email, establishment.code),
+                        detail=_("Speaker email '%(mail)s' not found in establishment '%(code)s'") % {
+                            'email': email,
+                            'code': establishment.code
+                        },
                         code=status.HTTP_400_BAD_REQUEST
                     )
                 else:
@@ -290,7 +293,7 @@ class TrainingSubdomainSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class HighSchoolSerializer(serializers.ModelSerializer):
+class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
     def validate(self, attrs):
         # Advanced test
         excludes = {}
@@ -616,7 +619,10 @@ class SlotSerializer(serializers.ModelSerializer):
                         details["speakers"] = []
 
                     details["speakers"].append(
-                        _("Speaker '%s' is not linked to course '%s'") % (speaker, course)
+                        _("Speaker '%(speaker)s' is not linked to course '%(course)s'") % {
+                            'speaker': speaker,
+                            'course': course
+                        }
                     )
 
         if details:

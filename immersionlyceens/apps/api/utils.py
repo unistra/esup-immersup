@@ -55,8 +55,8 @@ def get_or_create_user(request, data):
                 if not ldap_response:
                     # not found
                     raise serializers.ValidationError(
-                        detail=_("Course '%s' : speaker email '%s' not found in establishment '%s'")
-                               % (data.get("label"), email, establishment.code),
+                        detail=_("Course '%(label)s' : speaker email '%(email)s' not found in establishment '%(code)s'")
+                               % {'label': data.get("label"), 'email': email, 'code': establishment.code},
                         code=status.HTTP_400_BAD_REQUEST
                     )
                 else:
@@ -72,8 +72,8 @@ def get_or_create_user(request, data):
             else:
                 # High school or establishment without account provider : reject
                 raise serializers.ValidationError(
-                    detail=_("Course '%s' : speaker '%s' has to be manually created before using it in a course")
-                           % (data.get("label"), email),
+                    detail=_("Course '%(label)s' : speaker '%(email)s' has to be manually created before using it in a course")
+                           % {'label': data.get("label"), 'email': email},
                     code=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -82,7 +82,8 @@ def get_or_create_user(request, data):
                 Group.objects.get(name='INTER').user_set.add(speaker_user)
             except Exception as e:
                 raise serializers.ValidationError(
-                    detail=_("Couldn't add group 'INTER' to user '%s' : %s") % (speaker_user.username, e),
+                    detail=_("Couldn't add group 'INTER' to user '%(username)s' : %(exception)s")
+                           % {'username': speaker_user.username, 'exception': e},
                     code=status.HTTP_400_BAD_REQUEST
                 )
 

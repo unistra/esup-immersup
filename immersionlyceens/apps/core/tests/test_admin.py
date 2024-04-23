@@ -1098,8 +1098,8 @@ class AdminFormsTestCase(TestCase):
         data.update({
             'id': highschool.id,
             'active': False,
-            'convention_start_date': None,
-            'convention_end_date': None
+            'convention_start_date': '',
+            'convention_end_date': ''
         })
 
         form = HighSchoolForm(instance=highschool, data=data, request=request)
@@ -1117,9 +1117,14 @@ class AdminFormsTestCase(TestCase):
 
         data.pop('id') # remove id
         data['label'] = 'Another high school'
+
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
+
+        form.is_valid()
+        print(form.errors)
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())

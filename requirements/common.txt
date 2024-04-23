@@ -20,7 +20,7 @@ django-storages[boto3]
 django-admin-sortable2==2.1.5
 pillow<11.0.0
 lxml==5.0.0
-django-countries==7.3.2
+django-countries==7.6.1
 faker
 cairosvg==2.7.0
 py==1.11.0
