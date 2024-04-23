@@ -1369,6 +1369,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
+    list_per_page = 25
     form = HighSchoolForm
     list_display = (
         'label',
@@ -1381,7 +1382,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'custom_convention_dates',
         'active',
         'custom_postbac_immersion',
-        'signed_charter',
+        'signed_charter'
     )
     list_filter = (
         'active',
@@ -1390,6 +1391,8 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         ('country', DropdownFilter),
         ('city', DropdownFilter),
         HighschoolConventionFilter,
+        'uses_agent_federation',
+        'uses_student_federation'
     )
 
     # Keep the list here to maintain order even when some fields are readonly
