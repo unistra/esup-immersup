@@ -46,7 +46,7 @@ bandit:
 pytype:
     stage: test
     tags:
-        - python3.12
+        - python3.11
     script:
         - pip3 install -r requirements/dev.txt
         - pytype --config=pytype.cfg
