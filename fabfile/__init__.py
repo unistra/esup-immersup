@@ -54,7 +54,7 @@ env.no_circus_web = True
 env.extra_pkg_to_install = [
     'python3.12-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
     'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev', 'libmagic1',
-    'python3.12-tk'
+    'libtk8.6', 'python3.12-tk'
 ]
 
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
