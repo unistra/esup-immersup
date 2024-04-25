@@ -7,6 +7,7 @@ from django import template
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.formats import number_format
@@ -14,11 +15,17 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from immersionlyceens.libs.utils import (
-    get_custom_theme_files, get_general_setting, get_information_text,
+    get_custom_theme_files,
+    get_general_setting,
+    get_information_text,
 )
 
 from ..apps.core.models import (
-    AccompanyingDocument, FaqEntry, GeneralSettings, HighSchool, ImmersionUser,
+    AccompanyingDocument,
+    FaqEntry,
+    GeneralSettings,
+    HighSchool,
+    ImmersionUser,
 )
 
 register = template.Library()
@@ -80,12 +87,13 @@ def in_list(value, the_list):
 
 @register.tag
 def immersion_users(parser, token):
-    """ Get all users from UserNode """
+    """Get all users from UserNode"""
     return UserNode()
 
 
 class UserNode(template.Node):
-    """ Get all users """
+    """Get all users"""
+
     def render(self, context):
         context['immersion_users'] = ImmersionUser.objects.all().order_by('username')
         return ''
@@ -119,8 +127,16 @@ class UserFilteredNode(template.Node):
             )
 
         elif context.request.user.is_establishment_manager():
-            context['immersion_filtered_users'] = _users.exclude(is_superuser=True).exclude(
-                groups__name__in=['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB']
+            e = context.request.user.establishment
+
+            context['immersion_filtered_users'] = (
+                _users.exclude(is_superuser=True)
+                .exclude(groups__name__in=['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB'])
+                .filter(
+                    Q(groups__name__in=['REF-LYC', 'LYC', 'ETU', 'CONS-STR', 'SRV-JUR', 'REF-STR'])
+                    | Q(structures__establishment=e)
+                    | Q(establishment=e)
+                )
             )
 
         else:
@@ -168,7 +184,7 @@ def information_text_get(code):
 @register.filter
 def fix_lang_code(code):
     # Dirty fix for safari and old browsers
-    if code == 'fr-fr' or code =='fr':
+    if code == 'fr-fr' or code == 'fr':
         return 'fr-FR'
     # TODO: other languages here ?
     else:
@@ -187,11 +203,11 @@ def grouper_sort_reversed(grouper):
     return grouper
 
 
-@register.simple_tag(takes_context = True)
+@register.simple_tag(takes_context=True)
 def get_logout_url(context):
     backend = context.request.session.get(BACKEND_SESSION_KEY)
 
-    #TODO: check if other backends needed and use them
+    # TODO: check if other backends needed and use them
     if backend == 'django_cas.backends.CASBackend':
         return reverse('django_cas:logout')
     elif backend == 'shibboleth.backends.ShibbolethRemoteUserBackend':
@@ -202,12 +218,15 @@ def get_logout_url(context):
     else:
         return ''
 
-@register.simple_tag(takes_context = True)
+
+@register.simple_tag(takes_context=True)
 def is_local_superuser(context):
-    #TODO: check if other backends needed and use them
-    return context.request.session[BACKEND_SESSION_KEY] \
-        not in ('shibboleth.backends.ShibbolethRemoteUserBackend', 'django_cas.backends.CASBackend') \
+    # TODO: check if other backends needed and use them
+    return (
+        context.request.session[BACKEND_SESSION_KEY]
+        not in ('shibboleth.backends.ShibbolethRemoteUserBackend', 'django_cas.backends.CASBackend')
         and context.request.user.is_superuser
+    )
 
 
 @register.filter()
@@ -238,12 +257,14 @@ def get_custom_css_files():
     except:
         return ""
 
+
 @register.simple_tag
 def get_custom_js_files():
     try:
         return get_custom_theme_files("JS")
     except:
         return ""
+
 
 @register.simple_tag
 def get_custom_images_files():
@@ -252,15 +273,17 @@ def get_custom_images_files():
     except:
         return ""
 
+
 @register.filter(is_safe=False)
 def dictsortlower(value, sortkey):
     keys = sortkey.split(".")
-    return sorted(value, key=lambda x:reduce(lambda y, z:getattr(y, z), [x] + keys).lower())
+    return sorted(value, key=lambda x: reduce(lambda y, z: getattr(y, z), [x] + keys).lower())
 
 
 @register.simple_tag
 def active_accompanying_docs():
     return AccompanyingDocument.objects.filter(active=True)
+
 
 @register.simple_tag
 def active_faq_entries():
