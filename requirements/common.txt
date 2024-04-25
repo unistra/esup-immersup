@@ -8,9 +8,9 @@ django-filter==23.5
 ldap3
 requests
 WeasyPrint==60.1
-sentry-sdk[django]==1.44.1
-django-json-widget==1.1.1
-jsonschema==4.17.3
+sentry-sdk
+django-json-widget==2.0.1
+jsonschema
 django-admin-list-filter-dropdown==1.0.3
 djangorestframework<4.0
 djangorestframework-custom-exceptions
