@@ -1190,7 +1190,12 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     """
     form = PeriodForm
     list_display = (
-        'label', 'registration_start_date', 'immersion_start_date', 'immersion_end_date', 'allowed_immersions'
+        'label',
+        'registration_start_date',
+        'registration_end_date',
+        'immersion_start_date',
+        'immersion_end_date',
+        'allowed_immersions'
     )
     search_fields = ('label',)
     order = ('immersion_start_date', )
@@ -1223,12 +1228,27 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
                 'registration_start_date',
                 'allowed_immersions',
             ]
-        elif obj.registration_start_date < today < obj.immersion_end_date:
+        elif obj.immersion_start_date < today < obj.immersion_end_date:
             fields = [
                 'label',
                 'immersion_start_date',
                 'registration_start_date',
             ]
+        elif obj.immersion_start_date >= today:
+            if obj.registration_start_date.date() < today:
+                fields += [
+                    'label',
+                    'registration_start_date',
+                    'registration_end_date_policy'
+                ]
+
+            """
+            fields += [
+                'label',
+                'immersion_start_date',
+                'registration_start_date',
+            ]
+            """
 
         return list(set(fields))
 
@@ -1313,6 +1333,13 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         if not obj:
             return False
 
+        # Period is over
+        if obj.immersion_end_date and obj.immersion_end_date < today:
+            self.details['ERROR'].add(
+                _("The period is already overt, it cannot be updated anymore.")
+            )
+            return False
+
         try:
             uy = UniversityYear.get_active()
         except Exception as e:
@@ -1327,20 +1354,15 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             )
             return False
 
-        # University year not begun | period registration date is in the future
-        year_condition = [
-            uy.start_date > today,
-            today < uy.end_date,
-            obj.immersion_start_date > today,
-        ]
 
+        # Slots
         slots_exist = Slot.objects.filter(
             date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
         ).exists()
 
-        if slots_exist or any(year_condition):
+        if slots_exist:
             self.details['WARNING'].add(
-                _("This period has slots or has already begun, it can't be updated")
+                _("This period has slots, it can't be updated")
             )
             return False
 

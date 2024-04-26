@@ -322,12 +322,14 @@ class CoreViewsTestCase(TestCase):
             immersion_start_date=cls.today - datetime.timedelta(days=10),
             immersion_end_date=cls.today - datetime.timedelta(days=8),
             registration_start_date=cls.today - datetime.timedelta(days=12),
+            registration_end_date=cls.today - datetime.timedelta(days=11),
             allowed_immersions=4
         )
 
         cls.period1 = Period.objects.create(
             label='Period 1',
             registration_start_date=cls.today + datetime.timedelta(days=2),
+            registration_end_date=cls.today - datetime.timedelta(days=4),
             immersion_start_date=cls.today + datetime.timedelta(days=5),
             immersion_end_date=cls.today + datetime.timedelta(days=40),
             allowed_immersions=4
@@ -561,6 +563,7 @@ class CoreViewsTestCase(TestCase):
         # These slots days will be kept : +12, 19, 26, 33, 40, 61
         # Not created : 47, 54, 68
         data = {
+            'period': self.period1,
             'structure': self.structure.id,
             'training': self.training.id,
             'course': self.course.id,
@@ -595,7 +598,7 @@ class CoreViewsTestCase(TestCase):
             'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('order').first().pk],
             'save': 1
         }
-        # All dates have been selected : initial slot created + 6 copie, 3 won't be created
+        # All dates have been selected : initial slot created + 5 copies (period ends), 4 won't be created
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -605,7 +608,7 @@ class CoreViewsTestCase(TestCase):
         delta = 5 # initial slot day
         while delta < 75:
             d = self.today + datetime.timedelta(days=delta)
-            if delta in [5, 12, 19, 26, 33, 40, 61]:
+            if delta in [5, 12, 19, 26, 33, 40]:
                 slot = Slot.objects.get(room="REPEAT_TEST", date=d)
                 self.assertEqual(slot.speakers.all().count(), 2)
             else:
@@ -631,14 +634,13 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 5)
+        self.assertEqual(slots.count(), 4)
 
         dates = [
             self.today + datetime.timedelta(days=5),
             self.today + datetime.timedelta(days=12),
             self.today + datetime.timedelta(days=26),
-            self.today + datetime.timedelta(days=33),
-            self.today + datetime.timedelta(days=61)
+            self.today + datetime.timedelta(days=33)
         ]
         dates_idx = 0
         for slot in slots:
@@ -1358,6 +1360,7 @@ class CoreViewsTestCase(TestCase):
         date = self.today + datetime.timedelta(days=60)
 
         data = {
+            'period': self.period1,
             'event': event.id,
             'face_to_face': True,
             'campus': self.campus.id,
@@ -1372,14 +1375,6 @@ class CoreViewsTestCase(TestCase):
             'additional_information': 'whatever',
             'save': "Save",
         }
-
-        # Invalid date
-        response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "No available period found for slot date &#x27;%s&#x27;, please create one first" % date.strftime("%Y-%m-%d"),
-            response.content.decode('utf-8')
-        )
 
         # Date in the past
         data["date"] = (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d")
@@ -1414,10 +1409,6 @@ class CoreViewsTestCase(TestCase):
         content = response.content.decode('utf-8')
         self.assertIn(f"value=\"{slot.event.establishment.id}\" selected", content)
 
-        #self.assertIn(f"value=\"{slot.campus.id}\" selected", content)
-        #self.assertIn(f"value=\"{slot.building.id}\" selected", content)
-        #self.assertIn(f"value=\"{slot.event.id}\"", content)
-
         self.assertEqual(response.context["speakers"], json.dumps([{
             "id": self.speaker1.id,
             "username": self.speaker1.username,
@@ -1436,6 +1427,7 @@ class CoreViewsTestCase(TestCase):
         )
 
         data = {
+            "period": self.period1,
             "event": event.id,
             'face_to_face': False,
             'url': "http://www.whatever.com",

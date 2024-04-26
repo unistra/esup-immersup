@@ -141,13 +141,16 @@ class SlotForm(forms.ModelForm):
         except AttributeError:
             self.slot_dates = []
 
+        self.fields["period"].required = True
+
         course = self.instance.course if self.instance and self.instance.course_id else None
 
         for elem in ['establishment', 'highschool', 'structure', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
             'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
-            'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay']:
+            'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay',
+            'period']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # Disable autocomplete for date fields
@@ -229,6 +232,11 @@ class SlotForm(forms.ModelForm):
         if instance:
             self.fields['date'].value = instance.date
 
+            if instance.pk:
+                # can't change the period if the slot already has immersions
+                if instance.immersions.exists():
+                    self.fields['period'].disabled = True
+
         self.fields["repeat"].widget = forms.DateInput(
             format='%d/%m/%Y',
             attrs={
@@ -300,10 +308,16 @@ class SlotForm(forms.ModelForm):
         n_places = cleaned_data.get('n_places', 0)
         face_to_face = cleaned_data.get('face_to_face', True)
         _date = cleaned_data.get('date')
+        period = cleaned_data.get('period')
         start_time = cleaned_data.get('start_time', 0)
 
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
+
+        # date VS period
+        if _date and period:
+            if not period.immersion_start_date <= _date <= period.immersion_end_date:
+                raise forms.ValidationError(_("The slot date doesn't match the period immersion dates"))
 
         # Slot repetition
         if cleaned_data.get('repeat'):
@@ -412,7 +426,7 @@ class SlotForm(forms.ModelForm):
             'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
             'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
             'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
-            'cancellation_limit_delay')
+            'cancellation_limit_delay', 'period')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200}),

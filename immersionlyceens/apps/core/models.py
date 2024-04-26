@@ -67,18 +67,6 @@ def validate_slot_date(date: datetime.date):
     :param date: the slot date to validate
     :return: Raises ValidationError Exception or nothing
     """
-    # Period
-    try:
-        Period.from_date(date)
-    except Period.DoesNotExist:
-        raise ValidationError(
-            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
-        )
-    except Period.MultipleObjectsReturned:
-        raise ValidationError(
-            _("Multiple periods found for date '%s' : please check your periods settings") % date.strftime("%Y-%m-%d")
-        )
-
     # Past
     if date < timezone.localdate():
         raise ValidationError(
@@ -1505,10 +1493,29 @@ class Period(models.Model):
     """
     Period class. Replaces the semesters
     """
+    REGISTRATION_END_DATE_PERIOD = 0
+    REGISTRATION_END_DATE_SLOT = 1
+
+    REGISTRATION_END_DATE_CHOICES = [
+        (REGISTRATION_END_DATE_PERIOD, gettext("Use this period regisration end date")),
+        (REGISTRATION_END_DATE_SLOT, gettext("Use slots registration end dates"))
+    ]
+
     label = models.CharField(_("Label"), max_length=256, unique=True, null=False, blank=False)
-    registration_start_date = models.DateField(_("Registrations start date"), null=False, blank=False)
+    registration_start_date = models.DateTimeField(_("Registrations start date"), null=False, blank=False)
+    registration_end_date = models.DateTimeField(_("Registrations end date"), null=True, blank=True)
+
+    registration_end_date_policy = models.SmallIntegerField(
+        _("Registration end date policy"),
+        null=False,
+        blank=False,
+        default=REGISTRATION_END_DATE_SLOT,
+        choices=REGISTRATION_END_DATE_CHOICES
+    )
+
     immersion_start_date = models.DateField(_("Immersions start date"), null=False, blank=False)
     immersion_end_date = models.DateField(_("Immersions end date"), null=False, blank=False)
+
     allowed_immersions = models.PositiveIntegerField(
         _('Allowed immersions per student'), null=False, blank=False, default=1
     )
@@ -2295,6 +2302,10 @@ class Slot(models.Model):
     Slot class
     """
 
+    period = models.ForeignKey(
+        Period, verbose_name=_("Period"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
+    )
+
     course = models.ForeignKey(
         Course, verbose_name=_("Course"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
@@ -2318,6 +2329,7 @@ class Slot(models.Model):
     building = models.ForeignKey(
         Building, verbose_name=_("Building"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
+
     room = models.CharField(_("Room"), max_length=128, blank=True, null=True)
 
     date = models.DateField(_('Date'), blank=True, null=True, validators=[validate_slot_date])
