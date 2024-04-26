@@ -1760,7 +1760,7 @@ class GeneralSettingsForm(forms.ModelForm):
 
         user = self.request.user
 
-        if not any([user.is_superuser, user.is_operator()]):
+        if not any([user.is_superuser, user.is_operator()]) and "settings_type" in self.fields:
             self.fields["setting_type"].disabled = True
             self.fields["setting_type"].help_text = _("Read only")
 
