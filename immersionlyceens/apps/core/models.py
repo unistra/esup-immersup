@@ -229,7 +229,8 @@ class HighSchool(models.Model):
     phone_number = models.CharField(_("Phone number"), max_length=20, null=True, blank=True)
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
 
-    email = models.EmailField(_('Email'))
+    email = models.EmailField(_('Email'), null=True, blank=True)
+
     head_teacher_name = models.CharField(
         _("Head teacher name"),
         max_length=255,
