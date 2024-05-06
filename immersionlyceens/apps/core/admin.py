@@ -1220,6 +1220,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             return []
 
         # passed period : can't modify
+        """
         if obj.immersion_end_date < today:
             fields = [
                 'label',
@@ -1228,28 +1229,22 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
                 'registration_start_date',
                 'allowed_immersions',
             ]
-        elif obj.immersion_start_date < today < obj.immersion_end_date:
+        elif obj.immersion_start_date <= today <= obj.immersion_end_date:
             fields = [
                 'label',
                 'immersion_start_date',
+                'registration_end_date_policy',
                 'registration_start_date',
+                'registration_end_date',
             ]
-        elif obj.immersion_start_date >= today:
+        elif obj.immersion_start_date > today:
             if obj.registration_start_date.date() < today:
                 fields += [
                     'label',
                     'registration_start_date',
                     'registration_end_date_policy'
                 ]
-
-            """
-            fields += [
-                'label',
-                'immersion_start_date',
-                'registration_start_date',
-            ]
-            """
-
+        """
         return list(set(fields))
 
 
@@ -1336,7 +1331,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         # Period is over
         if obj.immersion_end_date and obj.immersion_end_date < today:
             self.details['ERROR'].add(
-                _("The period is already overt, it cannot be updated anymore.")
+                _("The period is already over, it cannot be updated anymore.")
             )
             return False
 
@@ -1354,8 +1349,8 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             )
             return False
 
-
         # Slots
+        """
         slots_exist = Slot.objects.filter(
             date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
         ).exists()
@@ -1365,6 +1360,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
                 _("This period has slots, it can't be updated")
             )
             return False
+        """
 
         # Group permissions
         return super().has_change_permission(request, obj)

@@ -465,6 +465,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=3),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -477,6 +478,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=3),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -757,6 +759,7 @@ class APITestCase(TestCase):
             "building": self.building.pk,
             "campus": self.campus.pk,
             "date": date,
+            "period": self.period.pk,
             "start_time": "10:00",
             "end_time": "12:00",
             "face_to_face": True,
@@ -776,15 +779,15 @@ class APITestCase(TestCase):
         self.api_user.user_permissions.add(add_permission)
         response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
-
-        slot = Slot.objects.get(date=date, course=self.course.pk)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        slot = Slot.objects.get(period=self.period, date=date, course=self.course.pk)
 
         test_data = {
             "id":slot.pk,
             "room":"salle 113",
             "date":date,
+            "period":self.period.pk,
             "start_time":"10:00:00",
             "end_time":"12:00:00",
             "n_places":30,
@@ -829,6 +832,7 @@ class APITestCase(TestCase):
             "id":slot.pk,
             "room":"salle 113",
             "date":date,
+            "period": self.period.pk,
             "start_time":"10:00:00",
             "end_time":"12:00:00",
             "n_places":30,
@@ -873,7 +877,7 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data2)
         result = json.loads(response.content.decode('utf-8'))
 
-        for field in ["n_places", "date", "start_time", "end_time", "speakers"]:
+        for field in ["n_places", "date", "period", "start_time", "end_time", "speakers"]:
             self.assertEqual(
                 [f"Field '{field}' is required for a new published slot"],
                 result['error'][field]
@@ -898,6 +902,7 @@ class APITestCase(TestCase):
             "building": self.building.pk,
             "course_type": self.course_type.pk,
             "date": (self.today + timedelta(days=11)).strftime("%Y-%m-%d"),
+            "period":self.period.pk,
             "n_places": "30",
             "start_time": "14:00",
             "end_time": "12:00",
@@ -924,8 +929,10 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
 
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
         self.assertEqual(
-            ["No available period found for slot date '%s', please create one first" % data["date"]],
+            ["Invalid date for selected period : please check periods settings"],
             result['error']['date']
         )
 

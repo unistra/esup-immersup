@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block dates_selection %}
-<div id="dates-selection-form" style='z-index:3000;' title='{% trans "Select slots date" %}'>
+<div id="dates-selection-form" style='z-index:3000;' title='{% trans "Select slots date within selected period" %}'>
   <div id="id_days_div"></div>
 </div>
 {% endblock %}
@@ -98,7 +98,7 @@
 {% block slot_repetition_field %}
   {% if not form.instance.id %}
     <div class="form-group row" id="id_div_repeat">
-      <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
+      <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat slot weekly until' %} :</label>
       <div class="col-sm-3">
           {{ form.repeat }}
       </div>

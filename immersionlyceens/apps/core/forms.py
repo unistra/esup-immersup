@@ -141,7 +141,22 @@ class SlotForm(forms.ModelForm):
         except AttributeError:
             self.slot_dates = []
 
-        self.fields["period"].required = True
+        if "published" in self.data:
+            self.fields["period"].required = self.data.get("published", False)
+        elif self.instance and self.instance.published:
+            self.fields["period"].required = True
+
+        """
+        if self.instance and self.instance.date:
+            self.fields["period"].queryset = Period.objects.filter(
+                immersion_start_date__lte=self.instance.date,
+                immersion_end_date__gte=self.instance.date
+            )
+        else:
+            self.fields["period"].queryset = Period.objects.none()
+        """
+        if self.instance and self.instance.date:
+            self.fields["period"].help_text = _("Selection depends on the slot date")
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
@@ -314,18 +329,13 @@ class SlotForm(forms.ModelForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
-        # date VS period
-        if _date and period:
-            if not period.immersion_start_date <= _date <= period.immersion_end_date:
-                raise forms.ValidationError(_("The slot date doesn't match the period immersion dates"))
-
         # Slot repetition
         if cleaned_data.get('repeat'):
             self.slot_dates = self.request.POST.getlist("slot_dates")
 
         if published:
             # Mandatory fields, depending on high school / structure slot
-            m_fields = ['course', 'course_type', 'date', 'start_time', 'end_time', 'speakers']
+            m_fields = ['course', 'course_type', 'date', 'period', 'start_time', 'end_time', 'speakers']
 
             if face_to_face:
                 if structure:
@@ -338,23 +348,37 @@ class SlotForm(forms.ModelForm):
                 if not cleaned_data.get(field):
                     self.add_error(field, _("This field is required"))
 
+            if period and _date:
+                try:
+                    period = Period.from_date(pk=period.pk, date=_date)
+                except Period.DoesNotExist:
+                    raise forms.ValidationError(
+                        _("Invalid date for selected period : please check periods settings")
+                    )
+
             # Generic field error
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
             if _date == timezone.localdate() and start_time <= timezone.now().time():
-                raise forms.ValidationError(
-                    {'start_time': _("Slot is set for today : please enter a valid start_time")}
+                self.add_error(
+                    'start_time',
+                    _("Slot is set for today : please enter a valid start_time")
                 )
 
             if not n_places or n_places <= 0:
-                msg = _("Please enter a valid number for 'n_places' field")
-                raise forms.ValidationError({'n_places': msg})
+                self.add_error(
+                    'n_places',
+                    _("Please enter a valid number for 'n_places' field")
+                )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
         if start_time and end_time and start_time >= end_time:
-            raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
+            self.add_error(
+                'start_time',
+                _('Error: Start time must be set before end time')
+            )
 
         return cleaned_data
 
@@ -367,7 +391,8 @@ class SlotForm(forms.ModelForm):
             messages.success(self.request, _("Course published"))
 
         if self.data.get("repeat"):
-            new_dates = self.data.getlist("slot_dates[]")
+            repeat_limit_date = datetime.strptime(self.data.get("repeat"), "%Y-%m-%d").date()
+            new_dates = self.data.getlist("slot_dates")
 
             try:
                 university_year = UniversityYear.objects.get(active=True)
@@ -388,18 +413,23 @@ class SlotForm(forms.ModelForm):
                 slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
 
                 for new_date in new_dates:
-                    parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
-
                     try:
-                        period = Period.from_date(parsed_date)
-                    except Period.DoesNotExist as e:
-                        # No period for this date : not an error, just ignore
+                        parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
+                        period = instance.period
+                        if not period.immersion_start_date <= parsed_date <= period.immersion_end_date:
+                            continue
+                    except (TypeError, ValueError):
+                        # Invalid date
                         pass
-                    except Period.MultipleObjectsReturned:
-                        # THIS is always an error
-                        raise
                     else:
-                        if parsed_date <= university_year.end_date:
+                        # Duplicate slot only if new dates match the current period
+                        conditions = [
+                            parsed_date <= university_year.end_date,
+                            parsed_date <= instance.period.immersion_end_date,
+                            parsed_date <= repeat_limit_date
+                        ]
+
+                        if all(conditions):
                             new_slot_template.pk = None
                             new_slot_template.date = parsed_date
                             new_slot_template.save()
@@ -480,6 +510,7 @@ class OffOfferEventSlotForm(SlotForm):
         event = cleaned_data.get('event')
         published = cleaned_data.get('published', None)
         face_to_face = cleaned_data.get('face_to_face', None)
+        period = cleaned_data.get('period', None)
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
@@ -489,7 +520,7 @@ class OffOfferEventSlotForm(SlotForm):
 
         if published is True:
             # Mandatory fields, depending on high school / structure slot
-            m_fields = ['event', 'date', 'start_time', 'end_time', 'speakers']
+            m_fields = ['event', 'date', 'period', 'start_time', 'end_time', 'speakers']
 
             if face_to_face:
                 m_fields.append("room")
@@ -507,31 +538,20 @@ class OffOfferEventSlotForm(SlotForm):
 
             # Period check
             try:
-                period = Period.from_date(date=_date)
+                period = Period.from_date(pk=period.pk, date=_date)
             except Period.DoesNotExist:
                 raise forms.ValidationError(
-                    _("No period found for date '%s' : please check periods settings") % _date
-                )
-            except Period.MultipleObjectsReturned:
-                raise forms.ValidationError(
-                    _("Multiple periods found for date '%s' : please check periods settings") % _date
-                )
-
-            if not period:
-                raise forms.ValidationError(
-                    {'date': _("No available period found for slot date '%s', please create one first") % _date}
-                )
-
-            if not (period.immersion_start_date <= _date <= period.immersion_end_date):
-                raise forms.ValidationError(
-                    {'date': _("Slot date must be between period immersion start and end dates")}
+                    _("Invalid date for selected period : please check periods settings")
                 )
 
             if _date < timezone.localdate():
                 self.add_error('date', _("You can't set a date in the past"))
 
             if _date == timezone.localdate() and start_time <= timezone.now().time():
-                self.add_error('start_time', _("Slot is set for today : please enter a valid start_time"))
+                self.add_error(
+                    'start_time',
+                    _("Slot is set for today : please enter a valid start_time")
+                )
 
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
@@ -540,7 +560,8 @@ class OffOfferEventSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
         if start_time and end_time and start_time >= end_time:
-            raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
+            self.add_error('start_time', _("Error: Start time must be set before end time"))
+            # raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
 
         if event and not event.published and published:
             event.published = True

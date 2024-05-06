@@ -1521,18 +1521,17 @@ class Period(models.Model):
     )
 
     @classmethod
-    def from_date(cls, date:datetime.date):
+    def from_date(cls, pk:models.BigAutoField, date:datetime.date):
         """
+        :param pk: period primary key.
         :param date: the date.
         :return: the period that matches start_date < date < end_date
         """
 
         try:
-            return Period.objects.get(immersion_start_date__lte=date, immersion_end_date__gte=date)
+            return Period.objects.get(pk=pk, immersion_start_date__lte=date, immersion_end_date__gte=date)
         except Period.DoesNotExist as e:
-            raise # Exception(_("Period not found for date %s") % date) from e
-        except Period.MultipleObjectsReturned as e:
-            raise # Exception(_("Configuration error : some periods overlap")) from e
+            raise
 
     def __str__(self):
         return _("Period '%(label)s' : %(begin_date)s - %(end_date)s") % {

@@ -549,6 +549,8 @@ class SlotSerializer(serializers.ModelSerializer):
         """
         For now, only create course slots
         """
+        period = data.get("period")
+        date = data.get("date")
         course = data.get("course")
         course_type = data.get("course_type")
         campus = data.get("campus")
@@ -577,7 +579,8 @@ class SlotSerializer(serializers.ModelSerializer):
             )
 
         if published:
-            required_fields = ["n_places", "date", "start_time", "end_time", "speakers"]
+            #TODO put required fields list when published (or not) in model
+            required_fields = ["n_places", "date", "period", "start_time", "end_time", "speakers"]
 
             if face_to_face:
                 required_fields.append("room")
@@ -587,6 +590,9 @@ class SlotSerializer(serializers.ModelSerializer):
             for rfield in required_fields:
                 if not data.get(rfield):
                     details[rfield] = _("Field '%s' is required for a new published slot") % rfield
+
+        if period and date and not period.immersion_start_date <= date <= period.immersion_end_date:
+            details["date"] = _("Invalid date for selected period : please check periods settings")
 
         if start_time and end_time and end_time <= start_time:
             details["end_time"] = _("end_time can't be set before or equal to start_time")

@@ -185,6 +185,21 @@
             {% endif %}
         </div>
 
+        <div class="form-group row">
+            <label for="period" class="col-form-label col-sm-3">
+              <i id='id_mandatory_period' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Period' %}
+            </label>
+            <div class="col-sm-3">
+                {{ form.period }}
+            </div>
+            {% if form.period.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.period.errors }}
+            </div>
+            {% endif %}
+        </div>
+
         {% block slot_repetition_field %}{% endblock %}
 
         <div class="form-group row">
@@ -478,8 +493,12 @@
   var course_id = parseInt("{{ form.course.value }}") || "{{ course_id }}";
   var event_id = parseInt("{{ form.event.value }}") || "{{ event_id }}";
 
+  var period_id = parseInt("{{ form.period.value }}") || "{{ period_id }}";
+
   var events = Array();
   var courses = Array();
+
+  var periods = Array();
 
   let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
   let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
@@ -796,6 +815,35 @@
     }
   }
 
+  function set_periods(date=$('#id_date').val()) {
+    $.ajax({
+      url: "{% url 'period_list' %}",
+      type: 'GET',
+      data: {
+        'date': date === "" ? null : date,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        periods = Array()
+        let options = '<option value="">---------</option>'
+
+        for (let i = 0; i < json.length; i++) {
+          let selected = json[i]['id'] === parseInt(period_id) ? "selected='selected'" : ""
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} - ${json[i]['immersion_start_date']} - ${json[i]['immersion_end_date']}</option>`
+          periods[json[i]['id']] = json[i]
+        }
+        $('select#id_period').html(options)
+
+        if(period_id) {
+          $("#id_period").val(period_id);
+        }
+        else {
+          $("#id_period").val($("#id_period option:first").val());
+        }
+      }
+    })
+  }
+
   function get_new_date(from_date, start_time, delta_hours) {
       const options = {
             weekday: "short",
@@ -856,11 +904,6 @@
   }
 
   $("#id_start_time").change(function() {
-      display_registration_limit_delay()
-      display_cancellation_limit_delay()
-  })
-
-  $("#id_date").change(function() {
       display_registration_limit_delay()
       display_cancellation_limit_delay()
   })
@@ -1032,7 +1075,7 @@
     let face_to_face = $('#id_face_to_face').prop('checked') || $('#id_face_to_face').val() === "1";
 
     if (published) {
-      let mandatory = ['date', 'start_time', 'end_time', 'speakers', 'n_places']
+      let mandatory = ['date', 'period', 'start_time', 'end_time', 'speakers', 'n_places']
       let not_mandatory = Array()
 
       if(slot_mode === "events") {
@@ -1089,8 +1132,8 @@
     }
     else {
       let not_mandatory = [
-        'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url', 'date', 'start_time',
-        'end_time', 'speakers', 'n_places'
+        'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url',
+        'date', 'period', 'start_time', 'end_time', 'speakers', 'n_places'
       ];
 
       let mandatory = Array()
@@ -1254,6 +1297,7 @@
       url: '/api/validate_slot_date',
       data: {
         date: date,
+        period: $('#id_period').val()
       },
       success: function(data) {
         if ( data['data'] ) {
@@ -1287,8 +1331,15 @@
       $("#id_div_repeat_button").hide()
     }
 
-    if(first_date && end_date) {
-      for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
+    let period = periods[$('#id_period').val()]
+    let real_end_date = Date.parse(period.immersion_end_date)
+
+    if(end_date < real_end_date) {
+      real_end_date = end_date
+    }
+
+    if(first_date && real_end_date) {
+      for (let d = addDays(first_date, 7); d <= real_end_date; d = addDays(d, 7)) {
         let checked = 'checked'
         let string_date = d.toLocaleDateString()
 
@@ -1329,7 +1380,7 @@
   }
 
   function toggle_repeat_divs() {
-    if($("#id_date").val()) {
+    if($("#id_date").val() && $("#id_period").val()) {
       $("#id_div_repeat").show()
 
       if($("#id_repeat").val()) {
@@ -1346,7 +1397,13 @@
     }
   }
 
+  // this will load available dates
   $('#id_repeat').change( function() {
+    toggle_repeat_divs()
+  })
+
+  // with slot date selection, this will allow slot repetition
+  $('#id_period').change( function() {
     toggle_repeat_divs()
   })
 
@@ -1616,8 +1673,15 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    set_periods();
+    display_registration_limit_delay()
+    display_cancellation_limit_delay()
     toggle_repeat_divs()
   });
+
+  $('id_period').on('change', function() {
+   toggle_repeat_divs();
+  })
 
   // Back button + confirm
   $('.back_btn').click(function (event) {

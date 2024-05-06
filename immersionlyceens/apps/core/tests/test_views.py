@@ -46,6 +46,7 @@ class CoreViewsTestCase(TestCase):
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
         cls.today = timezone.localdate()
+        cls.now = timezone.now()
 
         cls.event_type = OffOfferEventType.objects.create(label="Event type label")
 
@@ -278,7 +279,27 @@ class CoreViewsTestCase(TestCase):
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
 
+        # Periods
+        cls.period_past = Period.objects.create(
+            label="Past period",
+            immersion_start_date=cls.today - datetime.timedelta(days=10),
+            immersion_end_date=cls.today - datetime.timedelta(days=8),
+            registration_start_date=cls.now - datetime.timedelta(days=12),
+            registration_end_date=cls.now - datetime.timedelta(days=11),
+            allowed_immersions=4
+        )
+
+        cls.period1 = Period.objects.create(
+            label='Period 1',
+            immersion_start_date=cls.today + datetime.timedelta(days=5),
+            immersion_end_date=cls.today + datetime.timedelta(days=40),
+            registration_start_date=cls.now + datetime.timedelta(days=2),
+            registration_end_date=cls.now - datetime.timedelta(days=4),
+            allowed_immersions=4
+        )
+
         cls.slot = Slot.objects.create(
+            period=cls.period1,
             course=cls.course,
             course_type=cls.course_type,
             campus=cls.campus,
@@ -292,6 +313,7 @@ class CoreViewsTestCase(TestCase):
 
         # Add another slot : structure referent shouldn't have access to this one
         cls.slot2 = Slot.objects.create(
+            period=cls.period1,
             course=cls.course2,
             course_type=cls.course_type,
             campus=cls.campus,
@@ -305,6 +327,7 @@ class CoreViewsTestCase(TestCase):
         cls.slot2.speakers.add(cls.speaker2)
 
         cls.slot3 = Slot.objects.create(
+            period=cls.period1,
             course=cls.course2,
             course_type=cls.course_type,
             campus=cls.campus,
@@ -315,25 +338,6 @@ class CoreViewsTestCase(TestCase):
             n_places=20
         )
         cls.slot3.speakers.add(cls.speaker2)
-
-        # Periods
-        cls.period_past = Period.objects.create(
-            label="Past period",
-            immersion_start_date=cls.today - datetime.timedelta(days=10),
-            immersion_end_date=cls.today - datetime.timedelta(days=8),
-            registration_start_date=cls.today - datetime.timedelta(days=12),
-            registration_end_date=cls.today - datetime.timedelta(days=11),
-            allowed_immersions=4
-        )
-
-        cls.period1 = Period.objects.create(
-            label='Period 1',
-            registration_start_date=cls.today + datetime.timedelta(days=2),
-            registration_end_date=cls.today - datetime.timedelta(days=4),
-            immersion_start_date=cls.today + datetime.timedelta(days=5),
-            immersion_end_date=cls.today + datetime.timedelta(days=40),
-            allowed_immersions=4
-        )
 
         cls.university_year = UniversityYear.objects.create(
             label='2020-2021',
@@ -437,6 +441,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': True,
             'room': "212",
             'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
+            'period': self.period1.pk,
             'start_time': "12:00",
             'end_time': "14:00",
             'speakers': [self.speaker1.id],
@@ -457,7 +462,7 @@ class CoreViewsTestCase(TestCase):
         response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn(
-            "No available period found for slot date &#x27;%s&#x27;, please create one first" % date.strftime("%Y-%m-%d"),
+            "Invalid date for selected period : please check periods settings",
             response.content.decode('utf-8')
         )
 
@@ -504,6 +509,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': True,
             'room': "S40",
             'date': (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d"),
+            'period': self.period1.pk,
             'start_time': "16:00",
             'end_time': "18:00",
             'speakers': [self.speaker1.id],
@@ -563,7 +569,7 @@ class CoreViewsTestCase(TestCase):
         # These slots days will be kept : +12, 19, 26, 33, 40, 61
         # Not created : 47, 54, 68
         data = {
-            'period': self.period1,
+            'period': self.period1.pk,
             'structure': self.structure.id,
             'training': self.training.id,
             'course': self.course.id,
@@ -574,7 +580,7 @@ class CoreViewsTestCase(TestCase):
             'room': "REPEAT_TEST",
             'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
             'repeat': (self.today + datetime.timedelta(days=33)).strftime("%Y-%m-%d"),
-            'slot_dates[]': [
+            'slot_dates': [
                 (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=19)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
@@ -590,7 +596,7 @@ class CoreViewsTestCase(TestCase):
             'speakers': [self.speaker1.id, self.speaker2.id],
             'n_places': 33,
             'additional_information': "Here is additional data.",
-            'published': "on",
+            'published': True,
             'allowed_establishments': [self.establishment.id, self.master_establishment.id],
             'allowed_highschools': [self.high_school.id, self.high_school2.id],
             'allowed_highschool_levels': [HighSchoolLevel.objects.order_by('order').first().pk],
@@ -598,17 +604,18 @@ class CoreViewsTestCase(TestCase):
             'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('order').first().pk],
             'save': 1
         }
+
         # All dates have been selected : initial slot created + 5 copies (period ends), 4 won't be created
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 7)
+        self.assertEqual(slots.count(), 5)
 
         delta = 5 # initial slot day
         while delta < 75:
             d = self.today + datetime.timedelta(days=delta)
-            if delta in [5, 12, 19, 26, 33, 40]:
+            if delta in [5, 12, 19, 26, 33]:
                 slot = Slot.objects.get(room="REPEAT_TEST", date=d)
                 self.assertEqual(slot.speakers.all().count(), 2)
             else:
@@ -616,14 +623,14 @@ class CoreViewsTestCase(TestCase):
 
             delta += 7
 
-        # Delete slots and do it again with unchecked dates (d+19 and d+40)
-        # The following dates will be kept : 12, 26, 33, 61
+        # Delete slots and do it again with unchecked dates (d+19 and d+26)
+        # The following dates will be kept : 5 (initial), 12, 33
         Slot.objects.filter(room="REPEAT_TEST").delete()
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
-        data['slot_dates[]'] = [
+        data['slot_dates'] = [
             (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
-            (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=40)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=47)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=54)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=61)).strftime("%d/%m/%Y"),
@@ -634,12 +641,11 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 4)
+        self.assertEqual(slots.count(), 3)
 
         dates = [
             self.today + datetime.timedelta(days=5),
             self.today + datetime.timedelta(days=12),
-            self.today + datetime.timedelta(days=26),
             self.today + datetime.timedelta(days=33)
         ]
         dates_idx = 0
@@ -689,6 +695,7 @@ class CoreViewsTestCase(TestCase):
 
         # Get slot data and update a few fields
         data = {
+            'period': self.period1,
             'structure': self.slot.course.structure.id,
             'training': self.slot.course.training.id,
             'course': self.slot.course.id,
@@ -1360,7 +1367,7 @@ class CoreViewsTestCase(TestCase):
         date = self.today + datetime.timedelta(days=60)
 
         data = {
-            'period': self.period1,
+            'period': self.period1.pk,
             'event': event.id,
             'face_to_face': True,
             'campus': self.campus.id,
@@ -1394,6 +1401,7 @@ class CoreViewsTestCase(TestCase):
         data["speakers"] = [self.speaker1.id]
 
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template_name, ["core/off_offer_events_slots_list.html"])
 
