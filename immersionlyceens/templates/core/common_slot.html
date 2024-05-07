@@ -825,7 +825,12 @@
       },
       success: function (json) {
         periods = Array()
-        let options = '<option value="">---------</option>'
+        let options = ''
+
+        // More than one period : add an empty choice
+        if(json.length > 1) {
+          options += '<option value="">---------</option>'
+        }
 
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(period_id) ? "selected='selected'" : ""
@@ -1293,25 +1298,26 @@
   }
 
   function check_date(date=$('#id_date').val(), dialog=true, callback) {
-    return $.ajax({
-      url: '/api/validate_slot_date',
-      data: {
-        date: date,
-        period: $('#id_period').val()
-      },
-      success: function(data) {
-        if ( data['data'] ) {
-          if (data['data']['is_between']) {
-            if(dialog) {
-              dateDialog.dialog('open');
-            }
-            else if (callback) {
-              callback(data['data']['is_between'])
+    if(date && $('#id_period').val()) {
+      return $.ajax({
+        url: '/api/validate_slot_date',
+        data: {
+          date: date,
+          period: $('#id_period').val()
+        },
+        success: function (data) {
+          if (data['data']) {
+            if (data['data']['is_between']) {
+              if (dialog) {
+                dateDialog.dialog('open');
+              } else if (callback) {
+                callback(data['data']['is_between'])
+              }
             }
           }
-        }
-      },
-    });
+        },
+      });
+    }
   }
 
   function addDays(date, days) {
