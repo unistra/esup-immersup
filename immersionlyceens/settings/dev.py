@@ -79,6 +79,11 @@ INSTALLED_APPS += [
 # Debug toolbar #
 #################
 
+# TODO: check this settings because django debug toolbar reduce apps perfs in dev mode
+# DEBUG_TOOLBAR_CONFIG = {
+#     "PRETTIFY_SQL": False,
+#     "ENABLE_STACKTRACES": False
+# }
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 MIDDLEWARE += [
     'debug_toolbar.middleware.DebugToolbarMiddleware',

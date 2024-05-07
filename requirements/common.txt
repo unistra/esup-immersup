@@ -11,7 +11,7 @@ requests
 django-summernote<0.8.20.0
 WeasyPrint==60.1
 sentry-sdk
-django-json-widget
+django-json-widget==2.0.1
 jsonschema
 django-admin-list-filter-dropdown==1.0.3
 djangorestframework<3.15
