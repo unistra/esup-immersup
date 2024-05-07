@@ -396,7 +396,8 @@ def offer_off_offer_events(request):
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date' )
+            .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', \
+                                        'date', 'start_time' )
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     now = timezone.now()
