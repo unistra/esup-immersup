@@ -360,6 +360,14 @@ class APITestCase(TestCase):
             allowed_immersions=4,
         )
 
+        cls.period2 = Period.objects.create(
+            label="Period 2",
+            registration_start_date=cls.today,  # + timedelta(days=1),
+            immersion_start_date=cls.today - timedelta(days=1),
+            immersion_end_date=cls.today + timedelta(days=1),
+            allowed_immersions=4,
+        )
+
         cls.vac = Vacation.objects.create(
             label="vac",
             start_date=cls.today - timedelta(days=2),
@@ -453,6 +461,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 1',
             date=self.today,
+            period=self.period2,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -489,6 +498,7 @@ class APITestCase(TestCase):
             course_type=self.course_type,
             room='room 212',
             date=self.today,
+            period=self.period2,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -501,6 +511,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=3),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=0,
@@ -513,6 +524,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today - timedelta(days=1),
+            period=self.period2,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -525,6 +537,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=2),
+            period=self.period,
             registration_limit_delay=72,
             cancellation_limit_delay=72,
             start_time=time(12, 0),
@@ -539,6 +552,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=2),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -556,6 +570,7 @@ class APITestCase(TestCase):
             course_type=self.course_type,
             room='room 237',
             date=self.today + timedelta(days=2),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -573,6 +588,7 @@ class APITestCase(TestCase):
             course_type=self.course_type,
             room='room 1',
             date=self.today + timedelta(days=2),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -644,21 +660,6 @@ class APITestCase(TestCase):
             validation=1,
         )
 
-        """
-        self.slot4 = Slot.objects.create(
-            event=self.event,
-            campus=self.campus,
-            building=self.building,
-            room='room 2',
-            date=self.today + timedelta(days=2),
-            start_time=time(12, 0),
-            end_time=time(14, 0),
-            n_places=20,
-            additional_information="Hello there!"
-        )
-        """
-
-
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
             slot=self.slot,
@@ -671,12 +672,6 @@ class APITestCase(TestCase):
             student=self.highschool_user,
             slot=self.past_slot,
         )
-        """
-        self.immersion4 = Immersion.objects.create(
-            student=self.visitor_user,
-            slot=self.slot4,
-        )
-        """
         self.mail_t = MailTemplate.objects.create(
             code="code",
             label="label",
@@ -693,8 +688,6 @@ class APITestCase(TestCase):
             email=self.student.email,
             course=self.course
         )
-
-
 
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         self.token = Token.objects.create(user=self.ref_master_etab_user)
@@ -2859,6 +2852,7 @@ class APITestCase(TestCase):
             {
                 self.past_period.pk: 1,
                 self.period.pk: 1,
+                self.period2.pk: 3
             }
         )
 
@@ -2881,6 +2875,7 @@ class APITestCase(TestCase):
             {
                 self.past_period.pk: 1,
                 self.period.pk: 0,
+                self.period2.pk: 3
             }
         )
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())

@@ -2575,23 +2575,36 @@ class Slot(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Parse registration and cancellation dates based on slot date and delays
+        Parse registration and cancellation dates based on :
+          - period registration policy & period registrations end date
+          - slot date and delays
         """
-        if self.date and self.start_time:
-            self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
-            self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
 
-            if timezone.is_naive(self.registration_limit_date):
-                self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+        # period is only mandatory when slot is published
+        if self.period:
+            if self.period.registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+                # period date
+                self.registration_limit_date = self.period.registration_end_date
 
-            if timezone.is_naive(self.cancellation_limit_date):
-                self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+                if timezone.is_naive(self.registration_limit_date):
+                    self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+            else:
+                # Slot date
+                if self.date and self.start_time:
+                    self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
+                    self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
 
-            if self.registration_limit_delay and self.registration_limit_delay > 0:
-                self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
+                    if timezone.is_naive(self.registration_limit_date):
+                        self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
 
-            if self.cancellation_limit_delay and self.cancellation_limit_delay > 0:
-                self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
+                    if timezone.is_naive(self.cancellation_limit_date):
+                        self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+
+                    if self.registration_limit_delay and self.registration_limit_delay > 0:
+                        self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
+
+                    if self.cancellation_limit_delay and self.cancellation_limit_delay > 0:
+                        self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
 
         else:
             self.registration_limit_date = None

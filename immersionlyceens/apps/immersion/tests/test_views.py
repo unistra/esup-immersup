@@ -213,12 +213,6 @@ class ImmersionViewsTestCase(TestCase):
         cls.campus = Campus.objects.create(label='Esplanade')
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
-        cls.slot = Slot.objects.create(
-            course=cls.course, course_type=cls.course_type, campus=cls.campus,
-            building=cls.building, room='room 1', date=cls.today,
-            start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
-        )
-        cls.slot.speakers.add(cls.speaker1)
 
         cls.period1 = Period.objects.create(
             label='Period 1',
@@ -235,6 +229,20 @@ class ImmersionViewsTestCase(TestCase):
             registration_start_date=cls.today - datetime.timedelta(days=1),
             active=True,
         )
+
+        cls.slot = Slot.objects.create(
+            course=cls.course,
+            course_type=cls.course_type,
+            campus=cls.campus,
+            building=cls.building,
+            room='room 1',
+            date=cls.today,
+            period=cls.period1,
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20
+        )
+        cls.slot.speakers.add(cls.speaker1)
 
         cls.immersion = Immersion.objects.create(
             student=cls.highschool_user,
