@@ -293,8 +293,8 @@ class CoreViewsTestCase(TestCase):
             label='Period 1',
             immersion_start_date=cls.today + datetime.timedelta(days=5),
             immersion_end_date=cls.today + datetime.timedelta(days=40),
-            registration_start_date=cls.now + datetime.timedelta(days=2),
-            registration_end_date=cls.now - datetime.timedelta(days=4),
+            registration_start_date=cls.now - datetime.timedelta(days=2),
+            registration_end_date=cls.now + datetime.timedelta(days=4),
             allowed_immersions=4
         )
 

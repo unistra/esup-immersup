@@ -1559,6 +1559,24 @@ class Period(models.Model):
         except ValidationError as e:
             raise
 
+    def save(self, *args, **kwargs):
+        """
+        When updating registration_end_date, if registration policy is REGISTRATION_END_DATE_PERIOD,
+        update all related slots registration limit date
+        """
+        current_registration_end_date = None
+
+        if self.pk:
+            current_registration_end_date = Period.objects.get(pk=self.pk).registration_end_date
+
+        super().save(*args, **kwargs)
+
+        # registration_end_date updated : update the slots
+        if self.registration_end_date_policy == self.REGISTRATION_END_DATE_PERIOD \
+           and self.registration_end_date != current_registration_end_date:
+            for slot in self.slots.all():
+                slot.save()
+
     class Meta:
         verbose_name = _('Period')
         verbose_name_plural = _('Periods')
