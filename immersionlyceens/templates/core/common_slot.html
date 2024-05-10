@@ -185,7 +185,7 @@
             {% endif %}
         </div>
 
-        <div class="form-group row">
+        <div class="form-group row" id="id_div_period">
             <label for="period" class="col-form-label col-sm-3">
               <i id='id_mandatory_period' class="fa fas fa-asterisk" style="display:none"></i>
               {% trans 'Period' %}
@@ -498,7 +498,8 @@
   var events = Array();
   var courses = Array();
 
-  var periods = Array();
+  // var periods = Array();
+  var periods = is_set('{{ periods|safe }}') ? JSON.parse('{{ periods|safe }}') : Array();
 
   let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
   let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
@@ -819,13 +820,18 @@
     $.ajax({
       url: "{% url 'period_list' %}",
       type: 'GET',
+      async: false,
       data: {
         'date': date === "" ? null : date,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        periods = Array()
+        // periods = Array()
         let options = ''
+
+        if(json.length === 0) {
+          options += '<option value="">{% trans "No available period for this date" %}</option>'
+        }
 
         // More than one period : add an empty choice
         if(json.length > 1) {
@@ -835,7 +841,7 @@
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(period_id) ? "selected='selected'" : ""
           options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} - ${json[i]['immersion_start_date']} - ${json[i]['immersion_end_date']}</option>`
-          periods[json[i]['id']] = json[i]
+          // periods[json[i]['id']] = json[i]
         }
         $('select#id_period').html(options)
 
@@ -876,17 +882,54 @@
       let date = $("#id_date").datepicker("getDate")
       let start_time = $("#id_start_time").val()
       let registration_limit_delay = $("#id_registration_limit_delay").val()
+      let period_id = $("#id_period").val()
+      let registration_end_date_policy = null
+      let registration_end_date = null
+      let end_date = null
 
-      if(is_set(date) && is_set(start_time) && is_set(registration_limit_delay)) {
+      const options = {
+            weekday: "short",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+      };
+
+      // if we use period registration end date
+      if(is_set(period_id)) {
+        let period = periods[period_id]
+        registration_end_date_policy = period.registration_end_date_policy
+        registration_end_date = period.registration_end_date
+
+        end_date = new Date(registration_end_date)
+        end_date = formatDate(end_date, date_options=options)
+      }
+      else {
+          $("#id_registration_limit_text").hide()
+          $("#id_registration_limit_value").hide()
+      }
+
+      if(registration_end_date_policy === 0) {
+          $("#id_registration_limit_delay").prop('disabled', true)
+
+          $("#id_registration_limit_text").show()
+          $("#id_registration_limit_value").text(end_date)
+          $("#id_registration_limit_value").show()
+      }
+      else {
+        $("#id_registration_limit_delay").prop('disabled', false)
+
+        if (is_set(date) && is_set(start_time) && is_set(registration_limit_delay)) {
           let new_date = get_new_date(date, start_time, registration_limit_delay)
 
           $("#id_registration_limit_text").show()
           $("#id_registration_limit_value").text(new_date)
           $("#id_registration_limit_value").show()
-      }
-      else {
+        } else {
           $("#id_registration_limit_text").hide()
           $("#id_registration_limit_value").hide()
+        }
       }
   }
 
@@ -1403,6 +1446,19 @@
     }
   }
 
+  function toggle_period_display() {
+    if(!is_set($("#id_date").val())) {
+      $("#id_div_period").hide()
+    }
+    else {
+      $("#id_div_period").show()
+
+      if(is_set($("#id_period").val())) {
+        display_registration_limit_delay()
+      }
+    }
+  }
+
   // this will load available dates
   $('#id_repeat').change( function() {
     toggle_repeat_divs()
@@ -1411,6 +1467,7 @@
   // with slot date selection, this will allow slot repetition
   $('#id_period').change( function() {
     toggle_repeat_divs()
+    display_registration_limit_delay()
   })
 
 
@@ -1724,6 +1781,8 @@ $(document).ready(function(){
     toggle_bachelors_options(selectedVals);
   });
 
+  set_periods();
+  toggle_period_display();
 
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });

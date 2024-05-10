@@ -145,18 +145,25 @@ class SlotForm(forms.ModelForm):
             self.fields["period"].required = self.data.get("published", False)
         elif self.instance and self.instance.published:
             self.fields["period"].required = True
-
         """
-        if self.instance and self.instance.date:
-            self.fields["period"].queryset = Period.objects.filter(
-                immersion_start_date__lte=self.instance.date,
-                immersion_end_date__gte=self.instance.date
-            )
+        period_date = self.data.get("date") or (self.instance.date if self.instance else None)
+
+        if period_date:
+            try:
+                self.fields["period"].queryset = Period.objects.filter(
+                    immersion_start_date__lte=period_date,
+                    immersion_end_date__gte=period_date
+                )
+            except Exception as e:
+                # Invalid date ?
+                print(f"Invalid date : {e}")
+                self.fields["period"].queryset = Period.objects.none()
         else:
             self.fields["period"].queryset = Period.objects.none()
         """
+
         if self.instance and self.instance.date:
-            self.fields["period"].help_text = _("Selection depends on the slot date")
+            self.fields["period"].help_text = _("Available periods depend on the slot date")
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 

@@ -2965,8 +2965,8 @@ class PeriodList(generics.ListAPIView):
 
         if "date" in self.request.query_params:
             _date = self.request.query_params.get("date")
-
             error = False
+
             try:
                 formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
             except ValueError:
