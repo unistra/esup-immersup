@@ -1447,10 +1447,6 @@ class OffOfferEventAdd(generic.CreateView):
         context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
         context["structure_id"] = get_session_value(self.request, "events", 'current_structure_id')
 
-        context["periods"] = json.dumps({
-            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
-        })
-
         return context
 
 
@@ -1535,10 +1531,6 @@ class OffOfferEventUpdate(generic.UpdateView):
                 self.form = OffOfferEventForm(request=self.request)
 
         context["can_update"] = True  # FixMe
-
-        context["periods"] = json.dumps({
-            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
-        })
 
         return context
 
@@ -1782,6 +1774,11 @@ class OffOfferEventSlot(generic.CreateView):
             } for bt in BachelorType.objects.filter(active=True)
         })
 
+        # Periods
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
     def get_form_kwargs(self):
@@ -1875,6 +1872,12 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 
         context["slot_mode"] = "events"
         context["can_update"] = True # FixMe
+
+        # Periods
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
 
