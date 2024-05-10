@@ -776,25 +776,71 @@ class PeriodForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        today = timezone.localdate()
+        now = timezone.now()
 
         if self.instance and self.instance.pk:
             # Lock start date update if in the past
-            if self.instance.id and self.instance.immersion_start_date < timezone.localdate():
+            if self.instance.immersion_start_date < today:
                  self.fields["immersion_start_date"] = forms.DateField(disabled=True)
 
-            # If registrations have already begun, lock the immersions quota value
-            if self.instance.registration_start_date >= timezone.localdate():
-                # self.fields["allowed_immersions"].widget.attrs['readonly'] = 'readonly'
+                 # Cannot change registration end date
+                 if self.instance.registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+                    self.fields["registration_end_date"] = forms.DateTimeField(disabled=True)
+
+            if self.instance.registration_start_date < now:
+                self.fields["registration_start_date"] = forms.DateTimeField(disabled=True)
+
+            """
+            OBSOLETE
+            if self.instance.registration_start_date >= today:
                 self.fields["allowed_immersions"] = forms.IntegerField(disabled=True)
                 self.fields["allowed_immersions"].help_text = _("Registrations have begun, this field can't be updated")
+            """
+
+            readonly_fields = []
+
+            if self.instance.immersion_end_date < today:
+                readonly_fields = [
+                    'label',
+                    'immersion_start_date',
+                    'immersion_end_date',
+                    'registration_start_date',
+                    'allowed_immersions',
+                ]
+            elif self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
+                readonly_fields = [
+                    'label',
+                    'immersion_start_date',
+                    'registration_end_date_policy',
+                    'registration_start_date',
+                    'registration_end_date',
+                ]
+            elif self.instance.immersion_start_date > today:
+                if self.instance.registration_start_date.date() < today:
+                    readonly_fields += [
+                        'label',
+                        'registration_start_date',
+                        'registration_end_date_policy'
+                    ]
+
+            for field in readonly_fields:
+                self.fields[field].disabled = True
 
 
     def clean(self):
+        today = timezone.localdate()
+        now = timezone.now()
+
         cleaned_data = super().clean()
 
-        start_date = cleaned_data.get('immersion_start_date')
-        end_date = cleaned_data.get('immersion_end_date')
+        immersion_start_date = cleaned_data.get('immersion_start_date')
+        immersion_end_date = cleaned_data.get('immersion_end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
+        registration_end_date = cleaned_data.get('registration_end_date')
+        registration_end_date_policy = cleaned_data.get('registration_end_date_policy')
+        allowed_immersions = cleaned_data.get('allowed_immersions')
+
         valid_user = False
 
         # Test user group
@@ -812,46 +858,71 @@ class PeriodForm(forms.ModelForm):
         if not univ_year:
             raise forms.ValidationError(_("An active university year is required to create a period"))
 
-        # Date checks
+        # Mandatory dates
         period_dates = [
-            start_date, end_date, registration_start_date,
+            immersion_start_date, immersion_end_date, registration_start_date
         ]
+
+        if registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+            period_dates.append(registration_end_date)
 
         if not all(period_dates):
             raise forms.ValidationError(_("A period requires all dates to be filled in"))
 
+        # Dates check
         dates_conditions = [
-            not (univ_year.start_date <= registration_start_date < univ_year.end_date),
-            not (univ_year.start_date < start_date < univ_year.end_date),
-            not (univ_year.start_date < end_date <= univ_year.end_date),
+            not (univ_year.start_date <= registration_start_date.date() < univ_year.end_date),
+            registration_end_date and not (univ_year.start_date <= registration_end_date.date() < univ_year.end_date),
+            not (univ_year.start_date < immersion_start_date < univ_year.end_date),
+            not (univ_year.start_date < immersion_end_date <= univ_year.end_date),
         ]
 
         if any(dates_conditions):
             raise forms.ValidationError(_("All period dates must be between university year start/end dates"))
 
-        if not self.instance.id and start_date < timezone.now().date():
+        if not self.instance.id and immersion_start_date < today:
             raise forms.ValidationError(_("A new period can't be set with a start_date in the past"))
 
-        if registration_start_date >= start_date:
+        if registration_start_date.date() >= immersion_start_date:
             raise forms.ValidationError(_("Registration start date must be before the immersions start date"))
 
-        # start < end
-        if start_date and end_date and start_date >= end_date:
-            raise forms.ValidationError(_("Start date is after end date"))
+        if registration_end_date and registration_end_date.date() >= immersion_start_date:
+            raise forms.ValidationError(_("Registration end date must be before the immersions start date"))
 
-        # Label unicity and dates overlap test
-        excludes = {'pk':self.instance.id } if self.instance else {}
+        if registration_end_date and registration_start_date and registration_end_date <= registration_start_date:
+            raise forms.ValidationError(_("Registration end date must be after the registration start date"))
 
-        periods_qs = Period.objects.filter(
-                Q(immersion_start_date__lte=end_date, immersion_end_date__gte=end_date)
-               |Q(immersion_start_date__lte=start_date, immersion_end_date__gte=start_date)
-            ).exclude(**excludes)
+        # check immersions start < end
+        if immersion_start_date and immersion_end_date and immersion_start_date >= immersion_end_date:
+            raise forms.ValidationError(_("Immersions end date must be after immersions start date"))
 
-        if periods_qs.exists():
-            periods = ", ".join(p.label for p in periods_qs)
-            raise forms.ValidationError(
-                _("At least one existing period (%s) overlaps this one, please check the dates") % periods
-            )
+        # Fields that can be updated with conditions
+        if self.instance and self.instance.pk:
+            if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
+                if self.has_changed():
+                    if 'immersion_end_date' in self.changed_data:
+                        # change end date only for a future date
+                        if immersion_end_date < self.instance.immersion_end_date:
+                            raise forms.ValidationError(_("Immersions end date can only be set after the actual one"))
+                    if 'allowed_immersions' in self.changed_data:
+                        if allowed_immersions < self.instance.allowed_immersions:
+                            raise forms.ValidationError(
+                                _("New allowed immersions value can only be higher than the previous one")
+                            )
+            if self.instance.immersion_start_date > today:
+                if self.has_changed():
+                    slots_exist = self.instance.slots.exists()
+                    if 'immersion_start_date' in self.changed_data:
+                        if slots_exist and immersion_start_date > self.instance.immersion_start_date:
+                            raise forms.ValidationError(
+                                _("Immersions start date can only be set before the actual one")
+                            )
+                    if 'immersion_end_date' in self.changed_data:
+                        if slots_exist and immersion_end_date < self.instance.immersion_end_date:
+                            raise forms.ValidationError(
+                                _("Immersions start date can only be set after the actual one")
+                            )
+
 
         return cleaned_data
 

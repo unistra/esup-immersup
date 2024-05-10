@@ -40,9 +40,11 @@ from .forms import (
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
     HighSchool, Holiday, Immersion, ImmersionUser, InformationText,
-    OffOfferEvent, RefStructuresNotificationsSettings, Slot, Structure,
-    Training, UniversityYear
+    OffOfferEvent, Period, RefStructuresNotificationsSettings, Slot,
+    Structure, Training, UniversityYear
 )
+
+from .serializers import PeriodSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -1154,6 +1156,10 @@ class CourseSlot(generic.CreateView):
             } for bt in BachelorType.objects.filter(active=True)
         })
 
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
     def get_form_kwargs(self):
@@ -1162,8 +1168,8 @@ class CourseSlot(generic.CreateView):
         return kw
 
     def form_valid(self, form):
-        self.duplicate = self.request.POST.get("duplicate", False) != False
-        self.add_new = self.request.POST.get("save_add", False) != False
+        self.duplicate = self.request.POST.get("duplicate", False) is not False
+        self.add_new = self.request.POST.get("save_add", False) is not False
         messages.success(self.request, _("Course slot \"%s\" created.") % form.instance)
 
         repeat_until = self.request.POST.get('repeat')
@@ -1262,6 +1268,10 @@ class CourseSlotUpdate(generic.UpdateView):
                 'is_technological': bt.technological,
                 'is_professional': bt.professional,
             } for bt in BachelorType.objects.filter(active=True)
+        })
+
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
         })
 
         return context
@@ -1436,6 +1446,7 @@ class OffOfferEventAdd(generic.CreateView):
         context["can_update"] = True  # FixMe
         context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
         context["structure_id"] = get_session_value(self.request, "events", 'current_structure_id')
+
         return context
 
 
@@ -1520,6 +1531,7 @@ class OffOfferEventUpdate(generic.UpdateView):
                 self.form = OffOfferEventForm(request=self.request)
 
         context["can_update"] = True  # FixMe
+
         return context
 
 
@@ -1762,6 +1774,11 @@ class OffOfferEventSlot(generic.CreateView):
             } for bt in BachelorType.objects.filter(active=True)
         })
 
+        # Periods
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
     def get_form_kwargs(self):
@@ -1855,6 +1872,12 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 
         context["slot_mode"] = "events"
         context["can_update"] = True # FixMe
+
+        # Periods
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
 

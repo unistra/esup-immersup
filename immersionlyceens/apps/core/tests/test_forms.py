@@ -245,6 +245,7 @@ class FormTestCase(TestCase):
 
         data = {
             'label': 'Period 2',
+            'registration_end_date_policy': Period.REGISTRATION_END_DATE_SLOT,
             'registration_start_date': self.today - datetime.timedelta(days=8),
             'immersion_start_date': self.today - datetime.timedelta(days=6),
             'immersion_end_date': self.today + datetime.timedelta(days=1),
@@ -267,33 +268,6 @@ class FormTestCase(TestCase):
         form = PeriodForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("A new period can't be set with a start_date in the past", form.errors["__all__"])
-
-        # Fail : start date overlaps an existing period
-        data.update({
-            "registration_start_date": self.today + datetime.timedelta(days=25),
-            "immersion_start_date": self.today + datetime.timedelta(days=35),
-            "immersion_end_date": self.today + datetime.timedelta(days=60),
-        })
-
-        form = PeriodForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
-            form.errors["__all__"]
-        )
-
-        # Fail : end date overlaps an existing period
-        data.update({
-            "registration_start_date": self.today + datetime.timedelta(days=2),
-            "immersion_start_date": self.today + datetime.timedelta(days=8),
-            "immersion_end_date": self.today + datetime.timedelta(days=21),
-        })
-        form = PeriodForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
-            form.errors["__all__"]
-        )
 
         # Fail : end date out of university year dates
         data.update({
@@ -342,7 +316,7 @@ class FormTestCase(TestCase):
         })
         form = PeriodForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Start date is after end date", form.errors["__all__"])
+        self.assertIn("Immersions end date must be after immersions start date", form.errors["__all__"])
 
         # Fail : registration date after immersions start_date
         data.update({
@@ -427,6 +401,7 @@ class FormTestCase(TestCase):
             'building': self.building.id,
             'room': 'room 1',
             'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -467,6 +442,7 @@ class FormTestCase(TestCase):
             'building': self.building.id,
             'room': 'room 1',
             'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -496,6 +472,7 @@ class FormTestCase(TestCase):
             'building': self.building.id,
             'room': 'room 1',
             'date': self.today - datetime.timedelta(days=10),
+            'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -512,9 +489,10 @@ class FormTestCase(TestCase):
         invalid_data["date"] = i_date
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
+
         self.assertIn(
-            "No available period found for slot date '%s', please create one first" % i_date.strftime("%Y-%m-%d"),
-            form.errors["date"]
+            "Invalid date for selected period : please check periods settings",
+            form.errors["__all__"]
         )
 
         # Fail : time errors
@@ -528,13 +506,13 @@ class FormTestCase(TestCase):
         )
 
         invalid_data["date"] = self.today
+        invalid_data["period"] = period_now
         invalid_data["start_time"] = datetime.time(hour=0)
         invalid_data["end_time"] = datetime.time(hour=1)
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
 
-        invalid_data["date"] = self.today + datetime.timedelta(days=21)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
         form = SlotForm(data=invalid_data, request=request)
@@ -760,6 +738,7 @@ class FormTestCase(TestCase):
             'room': "anywhere",
             'published': True,
             'date': self.today + datetime.timedelta(days=30),
+            'period': self.period1,
             'start_time': datetime.time(10, 0),
             'end_time': datetime.time(12, 0),
             'n_places':20,
@@ -772,16 +751,6 @@ class FormTestCase(TestCase):
         self.assertIn("This field is required", form.errors["speakers"])
 
         data["speakers"] = [self.speaker1]
-
-        # Fail : date not in periods limit
-        data["date"] = self.today + datetime.timedelta(days=101)
-
-        form = OffOfferEventSlotForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
-            form.errors["date"]
-        )
 
         # Fail : date in the past
         data["date"] = self.today - datetime.timedelta(days=10)

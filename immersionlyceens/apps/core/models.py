@@ -67,18 +67,6 @@ def validate_slot_date(date: datetime.date):
     :param date: the slot date to validate
     :return: Raises ValidationError Exception or nothing
     """
-    # Period
-    try:
-        Period.from_date(date)
-    except Period.DoesNotExist:
-        raise ValidationError(
-            _("No available period found for slot date '%s', please create one first") % date.strftime("%Y-%m-%d")
-        )
-    except Period.MultipleObjectsReturned:
-        raise ValidationError(
-            _("Multiple periods found for date '%s' : please check your periods settings") % date.strftime("%Y-%m-%d")
-        )
-
     # Past
     if date < timezone.localdate():
         raise ValidationError(
@@ -1506,27 +1494,45 @@ class Period(models.Model):
     """
     Period class. Replaces the semesters
     """
+    REGISTRATION_END_DATE_PERIOD = 0
+    REGISTRATION_END_DATE_SLOT = 1
+
+    REGISTRATION_END_DATE_CHOICES = [
+        (REGISTRATION_END_DATE_PERIOD, gettext("Use this period regisration end date")),
+        (REGISTRATION_END_DATE_SLOT, gettext("Use slots registration end dates"))
+    ]
+
     label = models.CharField(_("Label"), max_length=256, unique=True, null=False, blank=False)
-    registration_start_date = models.DateField(_("Registrations start date"), null=False, blank=False)
+    registration_start_date = models.DateTimeField(_("Registrations start date"), null=False, blank=False)
+    registration_end_date = models.DateTimeField(_("Registrations end date"), null=True, blank=True)
+
+    registration_end_date_policy = models.SmallIntegerField(
+        _("Registration end date policy"),
+        null=False,
+        blank=False,
+        default=REGISTRATION_END_DATE_SLOT,
+        choices=REGISTRATION_END_DATE_CHOICES
+    )
+
     immersion_start_date = models.DateField(_("Immersions start date"), null=False, blank=False)
     immersion_end_date = models.DateField(_("Immersions end date"), null=False, blank=False)
+
     allowed_immersions = models.PositiveIntegerField(
         _('Allowed immersions per student'), null=False, blank=False, default=1
     )
 
     @classmethod
-    def from_date(cls, date:datetime.date):
+    def from_date(cls, pk:models.BigAutoField, date:datetime.date):
         """
+        :param pk: period primary key.
         :param date: the date.
         :return: the period that matches start_date < date < end_date
         """
 
         try:
-            return Period.objects.get(immersion_start_date__lte=date, immersion_end_date__gte=date)
+            return Period.objects.get(pk=pk, immersion_start_date__lte=date, immersion_end_date__gte=date)
         except Period.DoesNotExist as e:
-            raise # Exception(_("Period not found for date %s") % date) from e
-        except Period.MultipleObjectsReturned as e:
-            raise # Exception(_("Configuration error : some periods overlap")) from e
+            raise
 
     def __str__(self):
         return _("Period '%(label)s' : %(begin_date)s - %(end_date)s") % {
@@ -1553,6 +1559,24 @@ class Period(models.Model):
                     )
         except ValidationError as e:
             raise
+
+    def save(self, *args, **kwargs):
+        """
+        When updating registration_end_date, if registration policy is REGISTRATION_END_DATE_PERIOD,
+        update all related slots registration limit date
+        """
+        current_registration_end_date = None
+
+        if self.pk:
+            current_registration_end_date = Period.objects.get(pk=self.pk).registration_end_date
+
+        super().save(*args, **kwargs)
+
+        # registration_end_date updated : update the slots
+        if self.registration_end_date_policy == self.REGISTRATION_END_DATE_PERIOD \
+           and self.registration_end_date != current_registration_end_date:
+            for slot in self.slots.all():
+                slot.save()
 
     class Meta:
         verbose_name = _('Period')
@@ -2296,6 +2320,10 @@ class Slot(models.Model):
     Slot class
     """
 
+    period = models.ForeignKey(
+        Period, verbose_name=_("Period"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
+    )
+
     course = models.ForeignKey(
         Course, verbose_name=_("Course"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
@@ -2319,6 +2347,7 @@ class Slot(models.Model):
     building = models.ForeignKey(
         Building, verbose_name=_("Building"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
+
     room = models.CharField(_("Room"), max_length=128, blank=True, null=True)
 
     date = models.DateField(_('Date'), blank=True, null=True, validators=[validate_slot_date])
@@ -2565,23 +2594,36 @@ class Slot(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Parse registration and cancellation dates based on slot date and delays
+        Parse registration and cancellation dates based on :
+          - period registration policy & period registrations end date
+          - slot date and delays
         """
-        if self.date and self.start_time:
-            self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
-            self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
 
-            if timezone.is_naive(self.registration_limit_date):
-                self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+        # period is only mandatory when slot is published
+        if self.period:
+            if self.period.registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+                # period date
+                self.registration_limit_date = self.period.registration_end_date
 
-            if timezone.is_naive(self.cancellation_limit_date):
-                self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+                if timezone.is_naive(self.registration_limit_date):
+                    self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
+            else:
+                # Slot date
+                if self.date and self.start_time:
+                    self.registration_limit_date = datetime.datetime.combine(self.date, self.start_time)
+                    self.cancellation_limit_date = datetime.datetime.combine(self.date, self.start_time)
 
-            if self.registration_limit_delay and self.registration_limit_delay > 0:
-                self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
+                    if timezone.is_naive(self.registration_limit_date):
+                        self.registration_limit_date = timezone.make_aware(self.registration_limit_date)
 
-            if self.cancellation_limit_delay and self.cancellation_limit_delay > 0:
-                self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
+                    if timezone.is_naive(self.cancellation_limit_date):
+                        self.cancellation_limit_date = timezone.make_aware(self.cancellation_limit_date)
+
+                    if self.registration_limit_delay and self.registration_limit_delay > 0:
+                        self.registration_limit_date -= datetime.timedelta(hours=self.registration_limit_delay)
+
+                    if self.cancellation_limit_delay and self.cancellation_limit_delay > 0:
+                        self.cancellation_limit_date -= datetime.timedelta(hours=self.cancellation_limit_delay)
 
         else:
             self.registration_limit_date = None

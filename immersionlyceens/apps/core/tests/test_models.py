@@ -834,3 +834,98 @@ class RefStructuresNotificationsSettingsTestCase(TestCase):
         )
         n.structures.add(s)
         self.assertEqual(str(n), "%s (%s)" % (str(r), str(s.label)))
+
+
+class PeriodTestCase(TestCase):
+    fixtures = ['images', 'higher']
+
+    def test_periode_update(self):
+        today = timezone.localdate()
+        now = timezone.now()
+
+        establishment = Establishment.objects.create(
+            code='ETA',
+            label='Etablissement',
+            short_label='Eta',
+            active=True,
+            master=False,
+            email='test@domain.tld',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.last()
+        )
+
+        structure = Structure.objects.create(
+            code='C1',
+            label="test structure",
+            establishment=establishment
+        )
+
+        campus = Campus.objects.create(
+            label='Esplanade',
+            department='67',
+            zip_code='67000',
+            city='STRASBOURG',
+            active=True
+        )
+
+        speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
+            password='pass',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
+            last_name='HER',
+            establishment=establishment,
+        )
+
+        training = Training.objects.create(label="test training")
+        building = Building.objects.create(label='Le portique', campus=campus)
+        course_type = CourseType.objects.create(label='CM')
+        course = Course.objects.create(label="course 1", training=training, structure=structure)
+        course.speakers.add(speaker1)
+
+        period = Period.objects.create(
+            label='Period 1',
+            immersion_start_date=today + timedelta(days=5),
+            immersion_end_date=today + timedelta(days=10),
+            registration_start_date=now - timedelta(days=2),
+            registration_end_date=now + timedelta(days=4),
+            registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
+            allowed_immersions=4
+        )
+
+        slot = Slot.objects.create(
+            period=period,
+            course=course,
+            course_type=course_type,
+            campus=campus,
+            building=building, room='room 1',
+            date=today + timedelta(days=5),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20
+        )
+
+        slot2 = Slot.objects.create(
+            period=period,
+            course=course,
+            course_type=course_type,
+            campus=campus,
+            building=building, room='room 1',
+            date=today + timedelta(days=8),
+            start_time=time(10, 0),
+            end_time=time(12, 0),
+            n_places=20
+        )
+
+        self.assertEqual(slot.registration_limit_date, period.registration_end_date)
+        self.assertEqual(slot2.registration_limit_date, period.registration_end_date)
+
+        # Update period registration end date and check slots again
+        period.registration_end_date = now + timedelta(days=3)
+        period.save()
+
+        slot.refresh_from_db()
+        slot2.refresh_from_db()
+
+        self.assertEqual(slot.registration_limit_date, period.registration_end_date)
+        self.assertEqual(slot2.registration_limit_date, period.registration_end_date)

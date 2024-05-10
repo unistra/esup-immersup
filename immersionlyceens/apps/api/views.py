@@ -248,6 +248,7 @@ def validate_slot_date(request):
     response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
+    period = request.GET.get('period')
 
     if _date:
         # two format date
@@ -278,12 +279,9 @@ def validate_slot_date(request):
 
         # Period
         try:
-            period = Period.from_date(formated_date)
+            period = Period.from_date(pk=period, date=formated_date)
         except Period.DoesNotExist as e:
             details.append(_("Outside valid period"))
-        except Period.MultipleObjectsReturned:
-            response['msg'] = gettext('Configuration error, please check your immersions periods dates')
-            return JsonResponse(response, safe=False)
 
         response['data'] = {
             'date': _date,
@@ -793,13 +791,7 @@ def ajax_get_immersions(request, user_id=None):
 
             # Check user quota for this period
             if slot.registration_limit_date > now and slot.available_seats() > 0:
-                try:
-                    period = Period.from_date(date=slot.date)
-                except Period.DoesNotExist as e:
-                    raise
-                except Period.MultipleObjectsReturned:
-                    raise
-
+                period = slot.period
                 if period and remaining_registrations[period.pk] > 0:
                     immersion_data['can_register'] = True
 
@@ -1175,8 +1167,9 @@ def ajax_slot_registration(request):
                 return JsonResponse(response, safe=False)
 
         # Get period, available period registrations (quota) and the optional training quota
-        try:
-            period = Period.from_date(slot.date)
+        period = slot.period
+
+        if period:
             available_registrations = remaining_registrations.get(period.pk, 0)
 
             # If training quota is active, check registrations for this period/training
@@ -1195,12 +1188,8 @@ def ajax_slot_registration(request):
                     training_quota_count = slot.course.training.allowed_immersions
 
                 available_training_registrations = training_quota_count - training_regs_count
-        except Period.DoesNotExist as e:
+        else:
             msg = _("No period found for slot %s : please check periods settings") % slot
-            response = {'error': True, 'msg': msg}
-            return JsonResponse(response, safe=False)
-        except Period.MultipleObjectsReturned as e:
-            msg = _("Multiple periods found for slot %s : please check periods settings") % slot
             response = {'error': True, 'msg': msg}
             return JsonResponse(response, safe=False)
 
@@ -2970,7 +2959,31 @@ class PeriodList(generics.ListAPIView):
     """
     serializer_class = PeriodSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    queryset = Period.objects.all()
+
+    def get_queryset(self):
+        queryset = Period.objects.all()
+
+        if "date" in self.request.query_params:
+            _date = self.request.query_params.get("date")
+            error = False
+
+            try:
+                formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
+            except ValueError:
+                error = True
+
+            if error:
+                try:
+                    formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+                except ValueError:
+                    return Period.objects.none()
+
+            queryset = queryset.filter(
+                immersion_start_date__lte=formated_date,
+                immersion_end_date__gte=formated_date
+            )
+
+        return queryset
 
 
 @is_ajax_request
@@ -4187,24 +4200,16 @@ def ajax_can_register_slot(request, slot_id=None):
 
     # ==========================
     # Period date
-    try:
-        period = Period.from_date(date=slot.date)
-    except Period.DoesNotExist:
-        # should not happen
-        response['msg'] = _("Immersion is not in a period, please use the contact form")
-        return JsonResponse(response, safe=False)
-    except Period.MultipleObjectsReturned:
-        # should not happen either
-        response['msg'] = _("Multiple periods found for this slot, please use the contact form")
-        return JsonResponse(response, safe=False)
+    period = slot.period
 
-    if today < period.registration_start_date:
-        response['msg'] = _("You can't register to this slot yet")
-        return JsonResponse(response, safe=False)
+    if period:
+        if today < period.registration_start_date:
+            response['msg'] = _("You can't register to this slot yet")
+            return JsonResponse(response, safe=False)
 
-    if today > period.immersion_end_date or slot.registration_limit_date < now:
-        response['msg'] = _("You can't register to this slot anymore")
-        return JsonResponse(response, safe=False)
+        if today > period.immersion_end_date or slot.registration_limit_date < now:
+            response['msg'] = _("You can't register to this slot anymore")
+            return JsonResponse(response, safe=False)
     # ========================
 
     # Check free seat in slot

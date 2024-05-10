@@ -293,7 +293,7 @@ def offer_subdomain(request, subdomain_id):
 
                     # get slot period (for dates)
                     try:
-                        period = Period.from_date(date=slot.date)
+                        period = Period.from_date(pk=slot.period.pk, date=slot.date)
                         remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
                     except Period.DoesNotExist:
                         raise
@@ -423,9 +423,7 @@ def offer_off_offer_events(request):
                 can_register, reasons = student.can_register_slot(event)
 
                 try:
-                    period = Period.from_date(date=event.date)
-                except Period.MultipleObjectsReturned:
-                    raise
+                    period = Period.from_date(pk=event.period.pk, date=event.date)
                 except Period.DoesNotExist:
                     raise
 
