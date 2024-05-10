@@ -1498,7 +1498,7 @@ class Period(models.Model):
     REGISTRATION_END_DATE_SLOT = 1
 
     REGISTRATION_END_DATE_CHOICES = [
-        (REGISTRATION_END_DATE_PERIOD, gettext("Use this period regisration end date")),
+        (REGISTRATION_END_DATE_PERIOD, gettext("Use this period registration end date")),
         (REGISTRATION_END_DATE_SLOT, gettext("Use slots registration end dates"))
     ]
 

@@ -920,9 +920,8 @@ class PeriodForm(forms.ModelForm):
                     if 'immersion_end_date' in self.changed_data:
                         if slots_exist and immersion_end_date < self.instance.immersion_end_date:
                             raise forms.ValidationError(
-                                _("Immersions start date can only be set after the actual one")
+                                _("Immersions end date can only be set after the actual one")
                             )
-
 
         return cleaned_data
 
