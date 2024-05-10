@@ -1736,6 +1736,7 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    toggle_period_display();
     set_periods();
     display_registration_limit_delay()
     display_cancellation_limit_delay()
