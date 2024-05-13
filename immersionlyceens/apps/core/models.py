@@ -2319,6 +2319,13 @@ class Slot(models.Model):
     """
     Slot class
     """
+    ONE_GROUP = 0
+    BY_PLACES = 1
+
+    GROUP_MODES = [
+        (ONE_GROUP, _("One group")),
+        (BY_PLACES, _("By number of places")),
+    ]
 
     period = models.ForeignKey(
         Period, verbose_name=_("Period"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
@@ -2356,7 +2363,9 @@ class Slot(models.Model):
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots', blank=True)
 
-    n_places = models.PositiveIntegerField(_('Number of places'), null=True, blank=True)
+    n_places = models.PositiveIntegerField(_('Number of individual places'), null=True, blank=True)
+    n_group_places = models.PositiveIntegerField(_('Number of places for groups'), null=True, blank=True)
+
     additional_information = models.TextField(_('Additional information'), null=True, blank=True)
 
     url = models.URLField(_("Website address"), max_length=512, blank=True, null=True)
@@ -2420,6 +2429,19 @@ class Slot(models.Model):
 
     reminder_notification_sent = models.BooleanField(
         _("Slot reminder notification sent"), default=False, null=False, blank=True
+    )
+
+    allow_individual_registrations = models.BooleanField(
+        _("Allow individual registrations"), default=True, null=True, blank=True
+    )
+    allow_group_registrations = models.BooleanField(
+        _("Allow group registrations"), default=True, null=True, blank=True
+    )
+
+    group_mode = models.SmallIntegerField(_("Group mode"), default=0, choices=GROUP_MODES, null=True, blank=True)
+
+    public_group = models.BooleanField(
+        _("Public group regisrations"), null=True, blank=True
     )
 
     def get_establishment(self):
@@ -2692,6 +2714,79 @@ class Immersion(models.Model):
         verbose_name = _('Immersion')
         verbose_name_plural = _('Immersions')
 
+
+class ImmersionGroupRecord(models.Model):
+    """
+    Group registration to a slot
+    """
+    ALLOWED_TYPES = {
+        'pdf': "application/pdf",
+        'doc': "application/msword",
+        'docx': "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        'odt': "application/vnd.oasis.opendocument.text",
+        'xls': "application/vnd.ms-excel",
+        'xlsx': "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }
+
+    registration_date = models.DateTimeField(_("Registration date"), auto_now_add=True)
+    last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
+
+    slot = models.ForeignKey(
+        Slot,
+        verbose_name=_("Slot"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="group_immersions",
+    )
+
+    cancellation_date = models.DateTimeField(_("Cancellation date"), null=True, blank=True)
+
+    cancellation_type = models.ForeignKey(
+        CancelType,
+        verbose_name=_("Cancellation type"),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="group_immersions",
+    )
+
+    # FIXME: useful ?
+    survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
+
+    highschool = models.ForeignKey(
+        HighSchool,
+        verbose_name=_("High school"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="group_immersions",
+    )
+
+    students_count = models.SmallIntegerField(_("Registered students count"), null=False, blank=False)
+    guides_count = models.SmallIntegerField(_("Student guides count"), null=False, blank=False)
+
+    file = models.FileField(
+        _("File"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+          % {
+              'authorized_types': ', '.join(ALLOWED_TYPES.keys()),
+              'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+          },
+    )
+
+    comments = models.TextField(_('Comments'), blank=True, null=True)
+    emails = models.TextField(_('Comments'), blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.highschool} - {self.slot}"
+
+    class Meta:
+        verbose_name = _('Group immersion')
+        verbose_name_plural = _('Group immersions')
 
 class GeneralSettings(models.Model):
     """
