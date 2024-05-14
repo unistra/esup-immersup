@@ -1200,6 +1200,13 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
     order = ('immersion_start_date', )
 
+    fields = (
+        'label', 'registration_end_date_policy', 'registration_start_date',
+        'registration_end_date', 'immersion_start_date', "immersion_end_date",
+        'cancellation_limit_delay', 'allowed_immersions'
+    )
+
+    """
     def get_readonly_fields(self, request, obj=None):
         today = timezone.localdate()
 
@@ -1219,34 +1226,8 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         if uy is None or request.user.is_superuser:
             return []
 
-        # passed period : can't modify
-        """
-        if obj.immersion_end_date < today:
-            fields = [
-                'label',
-                'immersion_start_date',
-                'immersion_end_date',
-                'registration_start_date',
-                'allowed_immersions',
-            ]
-        elif obj.immersion_start_date <= today <= obj.immersion_end_date:
-            fields = [
-                'label',
-                'immersion_start_date',
-                'registration_end_date_policy',
-                'registration_start_date',
-                'registration_end_date',
-            ]
-        elif obj.immersion_start_date > today:
-            if obj.registration_start_date.date() < today:
-                fields += [
-                    'label',
-                    'registration_start_date',
-                    'registration_end_date_policy'
-                ]
-        """
         return list(set(fields))
-
+    """
 
     def has_add_permission(self, request):
         uy = None
@@ -1349,19 +1330,6 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             )
             return False
 
-        # Slots
-        """
-        slots_exist = Slot.objects.filter(
-            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
-        ).exists()
-
-        if slots_exist:
-            self.details['WARNING'].add(
-                _("This period has slots, it can't be updated")
-            )
-            return False
-        """
-
         # Group permissions
         return super().has_change_permission(request, obj)
 
@@ -1385,6 +1353,11 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             request, object_id, form_url, extra_context=extra_context,
         )
 
+    class Media:
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_period.min.js',
+        )
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_per_page = 25

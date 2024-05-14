@@ -860,13 +860,25 @@ class PeriodForm(forms.ModelForm):
 
         # Mandatory dates
         period_dates = [
-            immersion_start_date, immersion_end_date, registration_start_date
+            "immersion_start_date", "immersion_end_date", "registration_start_date"
         ]
 
         if registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
-            period_dates.append(registration_end_date)
+            period_dates.append("registration_end_date")
 
-        if not all(period_dates):
+            try:
+                if int(cleaned_data.get("cancellation_limit_delay")) < 0:
+                    raise ValueError
+            except (ValueError, TypeError):
+                self.add_error("cancellation_limit_delay", _("A null or positive value is required"))
+
+        date_error = False
+        for d in period_dates:
+            if not cleaned_data.get(d):
+                date_error = True
+                self.add_error(d, _("A value is required"))
+
+        if date_error:
             raise forms.ValidationError(_("A period requires all dates to be filled in"))
 
         # Dates check

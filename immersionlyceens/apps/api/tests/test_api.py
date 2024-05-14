@@ -748,6 +748,7 @@ class APITestCase(TestCase):
         data = {
             "course": self.course.id,
             "n_places": "30",
+            "n_group_places": "",
             "course_type": self.course_type.id,
             "building": self.building.pk,
             "campus": self.campus.pk,
@@ -761,7 +762,11 @@ class APITestCase(TestCase):
             "allowed_highschool_levels": [1],
             "registration_limit_delay": 24,
             "cancellation_limit_delay": 48,
-            "speakers": [speaker.pk]
+            "speakers": [speaker.pk],
+            "allow_individual_registrations": True,
+            "allow_group_registrations": False,
+            "group_mode": 0,
+            "public_group": ""
         }
 
         response = self.api_client_token.post(url, data)
@@ -784,6 +789,7 @@ class APITestCase(TestCase):
             "start_time":"10:00:00",
             "end_time":"12:00:00",
             "n_places":30,
+            "n_group_places": None,
             "additional_information":None,
             "url":None,
             "published":False,
@@ -797,6 +803,10 @@ class APITestCase(TestCase):
             "campus":self.campus.pk,
             "building":self.building.pk,
             "speakers":[speaker.id],
+            "allow_individual_registrations": True,
+            "allow_group_registrations": False,
+            "group_mode": 0,
+            "public_group": None,
             "allowed_establishments":[],
             "allowed_highschools":[],
             "allowed_highschool_levels":[1],
@@ -813,14 +823,10 @@ class APITestCase(TestCase):
         }
 
         """
-        for k, v in test_data.items():
-            if k not in result.keys():
-                print(f"{k} not in results")
-            elif v != result[k]:
-                print(f"key {k} : {v} != results {result[k]}")
-        
-        self.maxDiff = None
+        import dictdiffer
+        print([x for x in dictdiffer.diff(test_data, result)])
         """
+
         self.assertEqual(result, {
             "id":slot.pk,
             "room":"salle 113",
@@ -829,6 +835,7 @@ class APITestCase(TestCase):
             "start_time":"10:00:00",
             "end_time":"12:00:00",
             "n_places":30,
+            "n_group_places": None,
             "additional_information":None,
             "url":None,
             "published":False,
@@ -842,6 +849,10 @@ class APITestCase(TestCase):
             "campus":self.campus.pk,
             "building":self.building.pk,
             "speakers":[speaker.id],
+            "allow_individual_registrations": True,
+            "allow_group_registrations": False,
+            "group_mode": 0,
+            "public_group": None,
             "allowed_establishments":[],
             "allowed_highschools":[],
             "allowed_highschool_levels":[1],
