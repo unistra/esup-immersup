@@ -936,7 +936,28 @@
   function display_cancellation_limit_delay() {
       let date = $("#id_date").datepicker("getDate")
       let start_time = $("#id_start_time").val()
-      let cancellation_limit_delay = $("#id_cancellation_limit_delay").val()
+      let cancellation_limit_delay = $("#id_cancellation_limit_delay").val() // when slot controlled
+      let period_id = $("#id_period").val()
+      let registration_end_date_policy = null
+      let period;
+
+      // if we use period registration end date
+      if(is_set(period_id)) {
+        period = periods[period_id]
+        registration_end_date_policy = period.registration_end_date_policy
+      }
+      else {
+          $("#id_cancellation_limit_text").hide()
+          $("#id_cancellation_limit_value").hide()
+      }
+
+      if(is_set(period) && registration_end_date_policy === 0) {
+        cancellation_limit_delay = period.cancellation_limit_delay
+        $("#id_cancellation_limit_delay").prop('disabled', true)
+      }
+      else {
+        $("#id_cancellation_limit_delay").prop('disabled', false)
+      }
 
       if(is_set(date) && is_set(start_time) && is_set(cancellation_limit_delay)) {
           let new_date = get_new_date(date, start_time, cancellation_limit_delay)
@@ -1455,6 +1476,7 @@
 
       if(is_set($("#id_period").val())) {
         display_registration_limit_delay()
+        display_cancellation_limit_delay()
       }
     }
   }
@@ -1468,6 +1490,7 @@
   $('#id_period').change( function() {
     toggle_repeat_divs()
     display_registration_limit_delay()
+    display_cancellation_limit_delay()
   })
 
 
