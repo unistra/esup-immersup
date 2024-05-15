@@ -17,6 +17,8 @@
 {% endblock %}
 
 {% block content %}
+{% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
+
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   {% block confirm_slot_creation %}{% endblock %}
@@ -281,10 +283,85 @@
           {% endif %}
         </div>
 
-        <div class="form-group row">
+        {% if enabled_groups_registrations %}
+        <div class="form-group row" id="id_div_allow_group_registrations">
+          <label for="allow_group_registrations" class="col-form-label col-sm-3">
+            {% trans 'Allow group registrations' %} ?
+          </label>
+          <div class="col-sm-1">
+            {{ form.allow_group_registrations }}
+          </div>
+          {% if form.allow_group_registrations.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.allow_group_registrations.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_group_mode">
+          <label for="group_mode" class="col-form-label col-sm-3">
+            <i id='id_mandatory_group_mode' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Group management mode' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.group_mode }}
+          </div>
+          {% if form.group_mode.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.group_mode.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_n_group_places">
+          <label for="n_group_places" class="col-form-label col-sm-3">
+            <i id='id_mandatory_n_group_places' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Number of places for groups' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.n_group_places }}
+          </div>
+          {% if form.n_group_places.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.n_group_places.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_public_group">
+          <label for="public_group" class="col-form-label col-sm-3">
+            <i id='id_public_group' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Public group registrations' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.public_group }}
+          </div>
+          {% if form.public_group.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.public_group.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_allow_individual_registrations">
+          <label for="allow_individual_registrations" class="col-form-label col-sm-3">
+            {% trans 'Allow individual registrations' %} ?
+          </label>
+          <div class="col-sm-1">
+            {{ form.allow_individual_registrations }}
+          </div>
+          {% if form.allow_group_registrations.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.allow_individual_registrations.errors }}
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="form-group row" id="id_div_n_places">
           <label for="id_n_places" class="col-form-label col-sm-3">
             <i id='id_mandatory_n_places' class="fa fas fa-asterisk" style="display:none"></i>
-            {% trans 'Number of places' %}
+            {% trans 'Number of individual places' %}
           </label>
           <div class="col-sm-3">
             {{ form.n_places }}
@@ -1140,12 +1217,29 @@
   }
 
   function toggle_required_fields () {
+    const ONE_GROUP="0"
+    const BY_PLACES="1"
+
     let published = $('#id_published').prop('checked');
     let face_to_face = $('#id_face_to_face').prop('checked') || $('#id_face_to_face').val() === "1";
+    let allow_group_registrations = $('#id_allow_group_registrations').prop('checked')
+    let allow_individual_registrations = $('#id_allow_individual_registrations').prop('checked')
+    let group_mode = $('#id_group_mode').val()
 
     if (published) {
-      let mandatory = ['date', 'period', 'start_time', 'end_time', 'speakers', 'n_places']
+      let mandatory = ['date', 'period', 'start_time', 'end_time', 'speakers']
       let not_mandatory = Array()
+
+      // Depends on group registrations
+      if((!is_set(allow_group_registrations)
+          || allow_group_registrations === false)
+          || allow_individual_registrations === true) {
+          mandatory.push('n_places')
+      }
+
+      if(allow_group_registrations === true && group_mode === BY_PLACES) {
+          mandatory.push('n_group_places')
+      }
 
       if(slot_mode === "events") {
         mandatory.push('event')
@@ -1202,7 +1296,7 @@
     else {
       let not_mandatory = [
         'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url',
-        'date', 'period', 'start_time', 'end_time', 'speakers', 'n_places'
+        'date', 'period', 'start_time', 'end_time', 'speakers', 'n_places', 'n_group_places'
       ];
 
       let mandatory = Array()
@@ -1238,6 +1332,50 @@
         $('#id_mandatory_' + e).show();
       });
     }
+  }
+
+  function toggle_group_fields() {
+    const ONE_GROUP="0"
+    const BY_PLACES="1"
+
+    let allow_group_registrations = $("#id_allow_group_registrations").prop('checked')
+    let allow_individual_registrations = $("#id_allow_individual_registrations").prop('checked')
+    let group_mode = $("#id_group_mode").val()
+    // let published = $("#id_published").prop('checked')
+
+    if(allow_group_registrations === true) {
+      $("#id_div_allow_individual_registrations").show()
+      $("#id_div_group_mode").show()
+      $("#id_div_public_group").show()
+
+      if(allow_individual_registrations === true) {
+        $("#id_div_n_places").show()
+        $('#id_mandatory_n_places').show()
+      }
+      else {
+        $("#id_div_n_places").hide()
+        $('#id_mandatory_n_places').hide()
+      }
+
+      if(group_mode === ONE_GROUP) {
+        $("#id_div_n_group_places").hide()
+        $('#id_mandatory_n_group_places').hide()
+      }
+      else {
+        $("#id_div_n_group_places").show()
+        $('#id_mandatory_n_group_places').show()
+      }
+    }
+    else {
+      $("#id_div_allow_individual_registrations").hide()
+      $("#id_allow_individual_registrations").prop('checked', true)
+      $("#id_div_n_places").show()
+      $("#id_div_group_mode").hide()
+      $("#id_div_n_group_places").hide()
+      $("#id_div_public_group").hide()
+    }
+
+    toggle_required_fields()
   }
 
   function open_slot_repetition_modal() {
@@ -1766,8 +1904,21 @@ $(document).ready(function(){
     toggle_repeat_divs()
   });
 
-  $('id_period').on('change', function() {
-   toggle_repeat_divs();
+  $('#id_period').on('change', function() {
+    toggle_repeat_divs();
+  })
+
+  // groups registrations
+  $('#id_allow_group_registrations').on('change', function() {
+    toggle_group_fields()
+  })
+
+  $('#id_allow_individual_registrations').on('change', function() {
+    toggle_group_fields()
+  })
+
+  $('#id_group_mode').on('change', function() {
+    toggle_group_fields()
   })
 
   // Back button + confirm
@@ -1816,6 +1967,8 @@ $(document).ready(function(){
   // Be sure to run the following functions _after_ datepicker initialization above
   display_registration_limit_delay();
   display_cancellation_limit_delay();
+
+  toggle_group_fields();
 
   {% if slot or request.POST.structure %}
     {% if slot %}

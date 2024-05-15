@@ -1075,6 +1075,7 @@ class CourseSlot(generic.CreateView):
                     'start_time': slot.start_time,
                     'end_time': slot.end_time,
                     'n_places': slot.n_places,
+                    'n_group_places': slot.n_group_places,
                     'additional_information': slot.additional_information,
                     'face_to_face': slot.face_to_face,
                     'establishments_restrictions': slot.establishments_restrictions,
@@ -1088,7 +1089,11 @@ class CourseSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()]
+                    'speakers': [s.id for s in slot.speakers.all()],
+                    'allow_group_registrations': slot.allow_group_registrations,
+                    'allow_individual_registrations': slot.allow_individual_registrations,
+                    'group_mode': slot.group_mode,
+                    'public_group': slot.public_group,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1719,6 +1724,7 @@ class OffOfferEventSlot(generic.CreateView):
                     'start_time': slot.start_time,
                     'end_time': slot.end_time,
                     'n_places': slot.n_places,
+                    'n_group_places': slot.n_group_places,
                     'additional_information': slot.additional_information,
                     'face_to_face': slot.face_to_face,
                     'establishments_restrictions': slot.establishments_restrictions,
@@ -1732,7 +1738,11 @@ class OffOfferEventSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()]
+                    'speakers': [s.id for s in slot.speakers.all()],
+                    'allow_group_registrations': slot.allow_group_registrations,
+                    'allow_individual_registrations': slot.allow_individual_registrations,
+                    'group_mode': slot.group_mode,
+                    'public_group': slot.public_group,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())

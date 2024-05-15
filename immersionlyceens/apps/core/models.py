@@ -2448,16 +2448,25 @@ class Slot(models.Model):
     )
 
     allow_individual_registrations = models.BooleanField(
-        _("Allow individual registrations"), default=True, null=True, blank=True
+        _("Allow individual registrations"), default=True, null=False, blank=False
     )
     allow_group_registrations = models.BooleanField(
-        _("Allow group registrations"), default=False, null=True, blank=True
+        _("Allow group registrations"), default=False, null=False, blank=False
     )
 
-    group_mode = models.SmallIntegerField(_("Group mode"), default=0, choices=GROUP_MODES, null=True, blank=True)
+    group_mode = models.SmallIntegerField(
+        _("Group management mode"),
+        default=0,
+        choices=GROUP_MODES,
+        null=True,
+        blank=True
+    )
 
     public_group = models.BooleanField(
-        _("Public group registrations"), null=True, blank=True
+        _("Public group registrations"),
+        default=False,
+        null=False,
+        blank=False
     )
 
     def get_establishment(self):

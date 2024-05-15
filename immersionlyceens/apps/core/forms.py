@@ -312,13 +312,29 @@ class SlotForm(forms.ModelForm):
         structure = cleaned_data.get('structure')
         published = cleaned_data.get('published', None)
         n_places = cleaned_data.get('n_places', 0)
+        n_group_places = cleaned_data.get('n_group_places', 0)
         face_to_face = cleaned_data.get('face_to_face', True)
         _date = cleaned_data.get('date')
         period = cleaned_data.get('period')
         start_time = cleaned_data.get('start_time', 0)
+        allow_individual_registrations = cleaned_data.get('allow_individual_registrations')
+        allow_group_registrations = cleaned_data.get('allow_group_registrations')
+        group_mode = cleaned_data.get('group_mode')
 
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
+
+        # Groups settings
+        try:
+            enabled_groups = get_general_setting("ACTIVATE_COHORT")
+        except (ValueError, NameError):
+            enabled_groups = False
+
+        if not enabled_groups:
+            cleaned_data["group_mode"] = None
+            cleaned_data["allow_group_registrations"] = False
+            cleaned_data["allow_individual_registrations"] = True
+            cleaned_data["n_group_places"] = None
 
         # Slot repetition
         if cleaned_data.get('repeat'):
@@ -357,10 +373,17 @@ class SlotForm(forms.ModelForm):
                     _("Slot is set for today : please enter a valid start_time")
                 )
 
-            if not n_places or n_places <= 0:
+            if (not enabled_groups or allow_individual_registrations) and (not n_places or n_places <= 0):
                 self.add_error(
                     'n_places',
                     _("Please enter a valid number for 'n_places' field")
+                )
+
+            if (enabled_groups and allow_group_registrations and group_mode == Slot.BY_PLACES
+                and (not n_group_places or n_group_places <= 0)):
+                self.add_error(
+                    'n_group_places',
+                    _("Please enter a valid number for 'n_group_places' field")
                 )
 
         start_time = cleaned_data.get('start_time')
@@ -447,7 +470,9 @@ class SlotForm(forms.ModelForm):
             'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
             'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
             'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
-            'cancellation_limit_delay', 'period')
+            'cancellation_limit_delay', 'period', 'n_group_places', 'allow_individual_registrations',
+            'allow_group_registrations', 'group_mode', 'public_group'
+        )
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200}),
