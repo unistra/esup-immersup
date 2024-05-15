@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.conf import settings
 
 from immersionlyceens.libs.api.accounts import AccountAPI
+from immersionlyceens.libs.utils import get_general_setting
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, OffOfferEvent, ImmersionUser,
@@ -561,6 +562,8 @@ class SlotSerializer(serializers.ModelSerializer):
         face_to_face = data.get("face_to_face", True)
         published = data.get("published", False)
         speakers = data.get("speakers")
+        n_places = data.get('n_places')
+        n_group_places = data.get('n_group_places')
         allowed_establishments = data.get("allowed_establishments")
         allowed_highschools = data.get("allowed_highschools")
         allowed_highschool_levels = data.get("allowed_highschool_levels")
@@ -569,7 +572,12 @@ class SlotSerializer(serializers.ModelSerializer):
         allowed_bachelor_types = data.get("allowed_bachelor_types")
         allowed_bachelor_mentions = data.get("allowed_bachelor_mentions")
         allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
+        allow_individual_registrations = data.get('allow_individual_registrations')
+        allow_group_registrations = data.get('allow_group_registrations')
+        group_mode = data.get('group_mode')
         details = {}
+
+        enabled_groups = get_general_setting("ACTIVATE_COHORT")
 
         # Slot type
         if not any([course, event]):
@@ -580,7 +588,15 @@ class SlotSerializer(serializers.ModelSerializer):
 
         if published:
             #TODO put required fields list when published (or not) in model
-            required_fields = ["n_places", "date", "period", "start_time", "end_time", "speakers"]
+            required_fields = ["date", "period", "start_time", "end_time", "speakers"]
+
+            if enabled_groups:
+                if allow_individual_registrations or not allow_group_registrations:
+                    required_fields.append("n_places")
+                elif allow_group_registrations and group_mode == Slot.BY_PLACES:
+                    required_fields.append("n_group_places")
+            else:
+                required_fields.append("n_places")
 
             if face_to_face:
                 required_fields.append("room")

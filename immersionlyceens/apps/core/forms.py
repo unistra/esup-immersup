@@ -336,6 +336,11 @@ class SlotForm(forms.ModelForm):
             cleaned_data["allow_individual_registrations"] = True
             cleaned_data["n_group_places"] = None
 
+        if enabled_groups and not any([allow_individual_registrations, allow_group_registrations]):
+            raise forms.ValidationError(
+                _("You must allow at least one of individual or group registrations")
+            )
+
         # Slot repetition
         if cleaned_data.get('repeat'):
             self.slot_dates = self.request.POST.getlist("slot_dates")

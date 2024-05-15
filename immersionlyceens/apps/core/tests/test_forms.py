@@ -29,7 +29,7 @@ from ..forms import (
 from ..models import (
     AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
     Building, Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
@@ -525,6 +525,112 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("Required fields are not filled in", form.errors["__all__"])
 
+    def test_group_slot_form(self):
+        """
+        Slot form tests with groups attributes
+        """
+        activate_cohort = GeneralSettings.objects.get(setting="ACTIVATE_COHORT")
+        activate_cohort.parameters["value"] = True
+        activate_cohort.save()
+
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        data = {
+            'course': self.course.id,
+            'published': False,
+            'allow_group_registrations': True,
+            'allow_individual_registrations': True,
+        }
+
+        ###########
+        # Success #
+        ###########
+        # Unpublished slot
+        form = SlotForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # Published slot
+        valid_data = {
+            'face_to_face': True,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': 'room 1',
+            'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
+            'start_time': datetime.time(hour=12),
+            'end_time': datetime.time(hour=14),
+            'n_places': 10,
+            'speakers': [self.speaker1.id],
+            'published': True,
+            'allow_group_registrations': True,
+            'allow_individual_registrations': True,
+            'n_group_places': None,
+            'group_mode': Slot.ONE_GROUP,
+            'public_group': True
+        }
+
+        form = SlotForm(data=valid_data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # 'by_places' mode and correct n_group_places
+        valid_data.update({
+            'n_group_places': 10,
+            'group_mode': Slot.BY_PLACES,
+        })
+
+        form = SlotForm(data=valid_data, request=request)
+        self.assertTrue(form.is_valid())
+
+        #########
+        # FAILS #
+        #########
+        request.user = self.ref_master_etab_user
+        invalid_data = {
+            'face_to_face': True,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': 'room 1',
+            'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
+            'start_time': datetime.time(hour=12),
+            'end_time': datetime.time(hour=14),
+            'n_places': 10,
+            'speakers': [self.speaker1.id],
+            'published': True,
+            'allow_group_registrations': True,
+            'allow_individual_registrations': True,
+            'n_group_places': 0,
+            'group_mode': Slot.BY_PLACES,
+            'public_group': True
+        }
+        # Fail : group places is incorrect
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please enter a valid number for 'n_group_places' field", form.errors["n_group_places"])
+
+        # Fail : allow_individual_registrations and incorrect n_places
+        invalid_data.update({
+            'n_group_places': 10,
+            'n_places': 0,
+        })
+
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please enter a valid number for 'n_places' field", form.errors["n_places"])
+
+        # Fail : allow_individual_registrations and incorrect n_places
+        invalid_data.update({
+            'allow_group_registrations': False,
+            'allow_individual_registrations': False,
+        })
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You must allow at least one of individual or group registrations", form.errors["__all__"])
 
     def test_HighSchoolStudentImmersionUserForm(self):
         """
