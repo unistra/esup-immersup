@@ -7,7 +7,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.forms.widgets import DateInput, TimeInput
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _, ngettext
@@ -331,15 +331,30 @@ class SlotForm(forms.ModelForm):
             enabled_groups = False
 
         if not enabled_groups:
-            cleaned_data["group_mode"] = None
-            cleaned_data["allow_group_registrations"] = False
-            cleaned_data["allow_individual_registrations"] = True
-            cleaned_data["n_group_places"] = None
+            cleaned_data["group_mode"], group_mode = None, None
+            cleaned_data["allow_group_registrations"], allow_group_registrations = False, False
+            cleaned_data["allow_individual_registrations"], allow_individual_registrations = True, True
+            cleaned_data["n_group_places"], n_group_places = None, None
 
         if enabled_groups and not any([allow_individual_registrations, allow_group_registrations]):
             raise forms.ValidationError(
                 _("You must allow at least one of individual or group registrations")
             )
+
+        # Can't deactivate individual registrations if slot has one immersion
+        if self.instance.pk:
+            if self.instance.immersions.exists() and not allow_individual_registrations:
+                self.add_error(
+                    'allow_individual_registrations',
+                    _("The slot already has registered students, individual registrations can't be disabled")
+                )
+
+            # Can't deactivate group registrations if slot has one group
+            if self.instance.group_immersions.exists() and not allow_group_registrations:
+                self.add_error(
+                    'allow_group_registrations',
+                    _("The slot already has registered groups, groups registrations can't be disabled")
+                )
 
         # Slot repetition
         if cleaned_data.get('repeat'):
@@ -390,6 +405,29 @@ class SlotForm(forms.ModelForm):
                     'n_group_places',
                     _("Please enter a valid number for 'n_group_places' field")
                 )
+
+            # Can't set n_places lower than actual immersions
+            if self.instance.pk:
+                if allow_individual_registrations and n_places and n_places < self.instance.immersions.count():
+                    self.add_error(
+                        'n_places',
+                        _("You can't set places value lower than actual individual immersions")
+                    )
+
+                # Can't set n_group_places lower than actual group immersions
+                if enabled_groups and allow_group_registrations and group_mode == Slot.BY_PLACES and n_group_places:
+                    group_queryset = self.instance.group_immersions.aggregate(
+                        students_count=Sum('students_count'),
+                        guides_count=Sum('guides_count')
+                    )
+
+                    people_count = (group_queryset['students_count'] or 0) + (group_queryset['guides_count'] or 0)
+
+                    if people_count > n_group_places:
+                        self.add_error(
+                            'n_group_places',
+                            _("You can't set group places value lower than actual registered group(s) people count")
+                        )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')

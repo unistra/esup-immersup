@@ -30,7 +30,7 @@ from ..models import (
     AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
     Building, Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
-    Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
+    Holiday, Immersion, ImmersionGroupRecord, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
     HigherEducationInstitution
@@ -106,6 +106,14 @@ class FormTestCase(TestCase):
             username='hs',
             password='pass',
             email='hs@no-reply.com',
+            first_name='high',
+            last_name='SCHOOL',
+        )
+
+        cls.highschool_user2 = get_user_model().objects.create_user(
+            username='hs2',
+            password='pass',
+            email='hs2@no-reply.com',
             first_name='high',
             last_name='SCHOOL',
         )
@@ -584,11 +592,36 @@ class FormTestCase(TestCase):
         form = SlotForm(data=valid_data, request=request)
         self.assertTrue(form.is_valid())
 
+        slot = form.save()
+
         #########
         # FAILS #
         #########
         request.user = self.ref_master_etab_user
+
+        # try to lower n_places under immersions count
+        immersion1 = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=slot,
+            attendance_status=1
+        )
+
+        immersion2 = Immersion.objects.create(
+            student=self.highschool_user2,
+            slot=slot,
+            attendance_status=1
+        )
+
+        group_immersion = ImmersionGroupRecord.objects.create(
+            slot=slot,
+            highschool=self.high_school,
+            students_count=20,
+            guides_count=2,
+        )
+
+
         invalid_data = {
+            'id': slot.id,
             'face_to_face': True,
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -599,21 +632,77 @@ class FormTestCase(TestCase):
             'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
-            'n_places': 10,
+            'n_places': 1,
             'speakers': [self.speaker1.id],
             'published': True,
             'allow_group_registrations': True,
             'allow_individual_registrations': True,
-            'n_group_places': 0,
-            'group_mode': Slot.BY_PLACES,
+            'n_group_places': None,
+            'group_mode': Slot.ONE_GROUP,
             'public_group': True
         }
+
+        form = SlotForm(instance=slot, data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You can't set places value lower than actual individual immersions",
+            form.errors["n_places"]
+        )
+
+        # Fail : can't deactivate individual registrations
+        invalid_data.update({
+            'n_places': 10,
+            'allow_individual_registrations': False,
+        })
+
+        form = SlotForm(instance=slot, data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "The slot already has registered students, individual registrations can't be disabled",
+            form.errors["allow_individual_registrations"]
+        )
+
+        # Fail : group places lower than registered groups people (students + guides = 22)
+        invalid_data.update({
+            'allow_individual_registrations': True,
+            'n_group_places': 20,
+            'group_mode': Slot.BY_PLACES,
+        })
+
+        form = SlotForm(instance=slot, data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You can't set group places value lower than actual registered group(s) people count",
+            form.errors["n_group_places"]
+        )
+
+        # Fail : can't deactivate group registrations
+        invalid_data.update({
+            'n_group_places': 22,
+            'allow_group_registrations': False,
+        })
+
+        form = SlotForm(instance=slot, data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "The slot already has registered groups, groups registrations can't be disabled",
+            form.errors["allow_group_registrations"]
+        )
+
+        # Clean actual slot for the next tests
+        slot.delete()
+
         # Fail : group places is incorrect
+        invalid_data.update({
+            'n_group_places': 0,
+            'allow_group_registrations': True,
+        })
+
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Please enter a valid number for 'n_group_places' field", form.errors["n_group_places"])
 
-        # Fail : allow_individual_registrations and incorrect n_places
+        # Fail : allow_individual_registrations and invalid n_places
         invalid_data.update({
             'n_group_places': 10,
             'n_places': 0,
@@ -623,7 +712,7 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("Please enter a valid number for 'n_places' field", form.errors["n_places"])
 
-        # Fail : allow_individual_registrations and incorrect n_places
+        # Fail : allow_individual_registrations and invalid n_places
         invalid_data.update({
             'allow_group_registrations': False,
             'allow_individual_registrations': False,
