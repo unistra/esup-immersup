@@ -175,6 +175,13 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+  let places_txt = "{% trans 'Places' %}"
+  let individual_registrations_txt = "{% trans 'Individual registrations' %}"
+  let group_registrations_txt = "{% trans 'Group registrations' %}"
+  let mode_txt = "{% trans 'Mode' %}"
+  let one_group_txt = "{% trans 'One group' %}"
+  let by_places_txt ="{% trans 'By number of places' %}"
+
   {% if request.user.is_structure_consultant %}
   let show_modify_btn = show_delete_btn = show_duplicate_btn = false
   {% endif %}

@@ -195,6 +195,11 @@ function init_datatable() {
           return display_slot_restrictions(data, type, row)
         }
       },
+      { data: '',
+        render: function(data, type, row) {
+          return display_group_informations(row)
+        }
+      }
     ],
     "columnDefs": init_column_defs(),
 

@@ -430,7 +430,8 @@ def slots(request):
         'bachelors_restrictions', 'allowed_establishments_list', 'allowed_highschools_list',
         'allowed_highschool_levels_list', 'allowed_post_bachelor_levels_list',
         'allowed_student_levels_list', 'allowed_bachelor_types_list', 'allowed_bachelor_mentions_list',
-        'allowed_bachelor_teachings_list', 'is_past', 'can_update_attendances'
+        'allowed_bachelor_teachings_list', 'is_past', 'can_update_attendances', 'group_mode',
+        'allow_individual_registrations', 'allow_group_registrations', 'n_group_places', 'public_group'
     )
 
     response['data'] = list(slots)

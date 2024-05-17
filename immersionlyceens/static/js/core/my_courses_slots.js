@@ -141,6 +141,11 @@ function init_datatable() {
         // Use common slots function
         return display_slot_restrictions(data, type, row)
       }
+    },
+    { data: '',
+      render: function(data, type, row) {
+        return display_group_informations(row)
+      }
     }],
     columnDefs: [{
         defaultContent: '-',

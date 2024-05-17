@@ -154,3 +154,44 @@ function display_slot_restrictions(data, type, row) {
 
     return `<ul class="list-unstyled">${span_txt}<ul>`
 }
+
+function display_group_informations(row) {
+  let span = ""
+
+  if(row.allow_individual_registrations === true) {
+    let individual_data = `${individual_registrations_txt}
+      <br>${places_txt} : ${row.n_places}`
+
+    span += `<span
+        data-toggle="tooltip"
+        data-html="true" 
+        data-contrainer="body"
+        title="${individual_data}">
+        <i class="fa fas fa-user pr-2"></i>
+    </span>`
+  }
+
+  if(row.allow_group_registrations === true) {
+    const ONE_GROUP = 0
+    let group_data = `${group_registrations_txt}`
+    let details = ''
+
+    if(row.group_mode === ONE_GROUP) {
+      group_data += `<br>${mode_txt} : ${one_group_txt}`
+    }
+    else {
+      group_data += `<br>${mode_txt} : ${by_places_txt}
+                     <br>${places_txt} : ${row.n_group_places}`
+    }
+
+    span += `<span
+        data-toggle="tooltip"
+        data-html="true" 
+        data-contrainer="body"
+        title="${group_data}">
+        <i class="fa fas fa-users"></i>
+    </span>`
+  }
+
+  return span
+}
