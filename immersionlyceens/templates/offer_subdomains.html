@@ -79,14 +79,14 @@
                       <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
                     {% endif %}
                     {{ d.course.label }}
-                    {% if d.course.url %}
-                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
-                    {% endif %}
                     {% if not d.slots %}
                       <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
                     {% endif %}
                     {% if d.slots %}
                       </button>
+                    {% if d.course.url %}
+                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
+                    {% endif %}
                     {% endif %}
                     {% if True in d.alert or d.alert == True %}
                       {% if request.user.is_anonymous or request.user.email and d.course.id not in course_alerts and authorized_groups|in_groups:"LYC,ETU,VIS" %}
