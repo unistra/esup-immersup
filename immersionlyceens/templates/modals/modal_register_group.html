@@ -1,0 +1,74 @@
+{% load static i18n immersionlyceens_tags %}
+<div class="modal fade" id="modal_register_group" tabindex="-1" role="dialog" aria-labelledby="modal_register_group_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <form id="register_group_form" class="needs-validation">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_register_group_title">{% trans 'Register a group' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="register_group_feedback"></div>
+        <input id="id_slot" type="hidden" name="slot" class="form-control" required="required">
+
+        <div class="controls">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="highschool">{% trans 'Educational establishment' %} *</label>
+                <input id="highschool" type="text" name="highschool" class="form-control" required="required">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="students_count">{% trans 'Students count' %} *</label>
+                <input id="students_count" type="text" name="students_count" class="form-control" required="required">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="guides_count">{% trans 'Guides count' %} *</label>
+                <input id="guides_count" type="text" name="guides_count" class="form-control" required="required">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="file">{% trans 'File' %} *</label>
+                <input id="file" type="file" name="file" class="form-control">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="emails">{% trans 'Emails' %} *</label>
+                <input id="emails" type="text" name="emails" class="form-control" placeholder="{% trans 'A list of emails separated by a comma' %}">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="comments">{% trans 'Comments' %} *</label>
+                <textarea id="comments" name="comments" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" name="register" onclick="">{% trans 'Add this group' %}</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Cancel' %}</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
