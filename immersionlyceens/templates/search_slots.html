@@ -378,7 +378,7 @@
               if (data === '' || data === null) {
                 if (full['highschool_address'] != null || full['highschool_address'] != '') {
                   label = "<label>{% trans 'Address' %} : </label>";
-                  data = full['highschool_address'];
+                  data = full['highschool_address'] ? full['highschool_address'] : '&nbsp;';
                 } else {
                   return '&nbsp;';
                 }
