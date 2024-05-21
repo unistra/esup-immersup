@@ -1034,8 +1034,9 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
-    list_display = ('code', 'label', 'active', 'system')
+    list_display = ('code', 'label', 'active', 'students', 'groups', 'system')
     list_display_links = ('code', 'label', )
+    list_filter = ('students', 'groups', 'system')
     ordering = ('label',)
 
     def has_change_permission(self, request, obj=None):

@@ -1241,6 +1241,9 @@ class CancelType(models.Model):
     active = models.BooleanField(_("Active"), default=True)
     system = models.BooleanField(_("System reserved"), default=False)
 
+    students = models.BooleanField(_("Usable for students"), default=True)
+    groups = models.BooleanField(_("Usable for groups"), default=False)
+
     def __str__(self):
         """str"""
         return self.label
@@ -2755,6 +2758,12 @@ class ImmersionGroupRecord(models.Model):
     """
     Group registration to a slot
     """
+    ATT_STATUS = [
+        (0, _('Not entered')),
+        (1, _('Present')),
+        (2, _('Absent')),
+    ]
+
     ALLOWED_TYPES = {
         'pdf': "application/pdf",
         'doc': "application/msword",
@@ -2814,11 +2823,22 @@ class ImmersionGroupRecord(models.Model):
           },
     )
 
+    attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
     comments = models.TextField(_('Comments'), blank=True, null=True)
     emails = models.TextField(_('Comments'), blank=True, null=True)
 
     def __str__(self):
         return f"{self.highschool} - {self.slot}"
+
+    def get_attendance_status(self) -> str:
+        """
+        get attendance status
+        :return: status
+        """
+        try:
+            return self.ATT_STATUS[self.attendance_status][1]
+        except KeyError:
+            return ''
 
     class Meta:
         verbose_name = _('Group immersion')
