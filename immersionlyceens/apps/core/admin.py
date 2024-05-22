@@ -1192,6 +1192,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PeriodForm
     list_display = (
         'label',
+        'registration_end_date_policy',
         'registration_start_date',
         'registration_end_date',
         'immersion_start_date',

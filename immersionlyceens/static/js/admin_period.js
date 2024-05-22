@@ -17,13 +17,11 @@ function set_fields(period_mode) {
 // init
 $(document).ready(function() {
 
-  $("#id_registration_end_date_policy").change(function () {
-    set_fields($(this).val())
-  })
+  if($("name=_save")) {
+    $("#id_registration_end_date_policy").change(function () {
+      set_fields($(this).val())
+    })
 
-  set_fields($("#id_registration_end_date_policy").val())
-
-  // Hide date fields if convention is not checked
-  // $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)
-  // $('.field-convention_end_date').toggle($('#id_with_convention').is(':checked') === true)
+    set_fields($("#id_registration_end_date_policy").val())
+  }
 })

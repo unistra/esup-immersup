@@ -45,7 +45,7 @@ from rest_framework.views import APIView
 from immersionlyceens.apps.core.models import (
     Building, Campus, CancelType, Course, CourseType, Establishment, GeneralSettings,
     HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday,
-    Immersion, ImmersionUser, ImmersionUserGroup, MailTemplate,
+    Immersion, ImmersionGroupRecord, ImmersionUser, ImmersionUserGroup, MailTemplate,
     MailTemplateVars, OffOfferEvent, Period, PublicDocument,
     RefStructuresNotificationsSettings, Slot, Structure, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear,
@@ -850,7 +850,8 @@ def ajax_get_other_registrants(request, immersion_id):
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC', 'CONS-STR')
 def ajax_get_slot_registrations(request, slot_id):
-    #TODO: should be optimized to avoid loops on queryset
+    # TODO: should be optimized to avoid loops on queryset
+    # USE ANNOTATIONS
     slot = None
     response = {'msg': '', 'data': []}
 
@@ -900,6 +901,43 @@ def ajax_get_slot_registrations(request, slot_id):
 
     return JsonResponse(response, safe=False)
 
+
+@is_ajax_request
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC', 'CONS-STR')
+def ajax_get_slot_groups_registrations(request, slot_id):
+    # TODO: should be optimized to avoid loops on queryset
+    # USE ANNOTATIONS
+    slot = None
+    response = {'msg': '', 'data': []}
+
+    try:
+        slot = Slot.objects.get(pk=slot_id)
+    except ObjectDoesNotExist:
+        response['msg'] = gettext("Error : invalid slot id")
+
+    if slot:
+        immersions = (
+            ImmersionGroupRecord.objects
+            .prefetch_related('highschool')
+            .filter(slot=slot, cancellation_type__isnull=True)
+        )
+
+        for immersion in immersions:
+            immersion_data = {
+                'id': immersion.id,
+                'school': immersion.highschool.label,
+                'city': immersion.highschool.city,
+                'people': '',
+                'file': immersion.file.name, #FIXME
+                'comments': immersion.comments,
+                'attendance': immersion.get_attendance_status_display(),
+                'attendance_status': immersion.attendance_status,
+                'registration_date': immersion.registration_date,
+            }
+
+            response['data'].append(immersion_data.copy())
+
+    return JsonResponse(response, safe=False)
 
 @is_ajax_request
 @is_post_request
@@ -1715,6 +1753,7 @@ def ajax_batch_cancel_registration(request):
             try:
                 immersion = Immersion.objects.get(pk=immersion_id, slot=slot)
                 immersion.cancellation_type = cancellation_reason
+                immersion.cancellation_date = timezone.now()
                 immersion.save()
 
                 cancelled_immersions += 1
@@ -1727,6 +1766,141 @@ def ajax_batch_cancel_registration(request):
 
             except Immersion.DoesNotExist:
                 immersion_errors.append(_("Immersion %s not found") % immersion_id)
+
+        # If slot registrations are over (check limit date), also send a message to speakers
+        # and structure managers
+        if slot.registration_limit_date < now:
+            for speaker in slot.speakers.all():
+                ret = speaker.send_message(request, 'IMMERSION_ANNULATION_INT', slot=slot)
+                if ret:
+                    mail_returns.add(ret)
+
+            # structure managers
+            slot_structure = slot.get_structure()
+
+            if slot_structure:
+                for notify in RefStructuresNotificationsSettings.objects.filter(structures=slot_structure):
+                    ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                    if ret:
+                        mail_returns.add(ret)
+
+        # Return warnings and errors
+        if cancelled_immersions:
+            msg = _("%s immersion(s) cancelled") % cancelled_immersions
+
+        if mail_returns:
+            err = True
+            warning_msg = _("Warning : some confirmation emails have not been sent :") + " <br><ul>"
+            for ret in mail_returns:
+                warning_msg += f"<li>{ret}</li>"
+            warning_msg += "</ul>"
+            msg += f"<br>{warning_msg}"
+
+        if immersion_errors:
+            err = True
+            error_msg = _("Immersions warnings") + " :<br><ul>"
+            for immersion_error in immersion_errors:
+                error_msg += f"<li>{immersion_error}</li>"
+            error_msg += "</ul>"
+            msg += f"<br>{error_msg}"
+
+        response = {'error': err, 'msg': msg}
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@is_post_request
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+def ajax_groups_batch_cancel_registration(request):
+    """
+    Cancel registrations to groups immersions slots
+    """
+    groups_immersion_ids = request.POST.get('groups_immersion_ids')
+    reason_id = request.POST.get('reason_id')
+    slot_id = request.POST.get('slot_id')
+
+    immersion_errors = []
+    cancelled_immersions = 0
+    msg = ""
+    warning_msg = ""
+    err = False
+    err_msg = None
+    today = datetime.datetime.today()
+    now = timezone.now()
+    user = request.user
+    mail_returns = set()
+    allowed_structures = user.get_authorized_structures()
+
+    if not all([groups_immersion_ids, reason_id, slot_id]):
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+    else:
+        try:
+            slot = Slot.objects.get(pk=slot_id)
+        except (Slot.DoesNotExist, ValueError):
+            response = {'error': True, 'msg': gettext("Invalid slot id")}
+            return JsonResponse(response, safe=False)
+
+        try:
+            json_data = json.loads(groups_immersion_ids)
+        except json.decoder.JSONDecodeError:
+            response = {'error': True, 'msg': gettext("Invalid json decoding")}
+            return JsonResponse(response, safe=False)
+
+        # Check user rights on slot
+        slot_establishment = slot.get_establishment()
+        slot_structure = slot.get_structure()
+        slot_highschool = slot.get_highschool()
+
+        # Check authenticated user rights on this registration
+        valid_conditions = [
+            user.is_master_establishment_manager(),
+            user.is_operator(),
+            user.is_establishment_manager() and slot_establishment == user.establishment,
+            user.is_structure_manager() and slot_structure in allowed_structures,
+            user.is_high_school_manager() and (slot.course or slot.event)
+            and slot_highschool and user.highschool == slot_highschool,
+        ]
+
+        if not any(valid_conditions):
+            response = {
+                'error': True,
+                'msg': _("You don't have enough privileges to cancel these registrations")
+            }
+            return JsonResponse(response, safe=False)
+
+        # Check slot date
+        if slot.date < today.date() or (slot.date == today.date() and slot.start_time < today.time()):
+            response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
+            return JsonResponse(response, safe=False)
+
+        # Cancellation reason
+        # TODO : check that the reason is compatible with groups immersions
+        try:
+            cancellation_reason = CancelType.objects.get(pk=reason_id)
+        except CancelType.DoesNotExist:
+            response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
+            return JsonResponse(response, safe=False)
+
+        for immersion_id in json_data:
+            try:
+                group_immersion = ImmersionGroupRecord.objects.get(pk=immersion_id, slot=slot)
+                group_immersion.cancellation_type = cancellation_reason
+                group_immersion.cancellation_date = timezone.now()
+                group_immersion.save()
+
+                cancelled_immersions += 1
+
+                # FIXME : send message to group contacts
+                """
+                ret = immersion.student.send_message(
+                    request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot
+                )
+                if ret:
+                    mail_returns.add(ret)
+                """
+
+            except ImmersionGroupRecord.DoesNotExist:
+                immersion_errors.append(_("Group immersion %s not found") % immersion_id)
 
         # If slot registrations are over (check limit date), also send a message to speakers
         # and structure managers

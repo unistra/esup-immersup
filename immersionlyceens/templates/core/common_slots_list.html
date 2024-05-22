@@ -29,6 +29,7 @@
 {% block content %}
 {% include '../modals/modal_view_slot_immersions.html' %}
 {% include '../modals/modal_register_students_list.html' %}
+{% include '../modals/modal_register_group.html' %}
 {% include '../modals/modal_contact.html' %}
 <div id="top_indicator" class="hide w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
@@ -150,7 +151,7 @@
   event_type_filter = decodeHTMLEntities(event_type_filter)
   event_label_filter = decodeHTMLEntities(event_label_filter)
   course_label_filter = decodeHTMLEntities(course_label_filter)
-    highschool_filter = decodeHTMLEntities(highschool_filter)
+  highschool_filter = decodeHTMLEntities(highschool_filter)
   managed_by_filter = decodeHTMLEntities(managed_by_filter)
 
   // datatables variables
@@ -180,7 +181,8 @@
   let group_registrations_txt = "{% trans 'Group registrations' %}"
   let mode_txt = "{% trans 'Mode' %}"
   let one_group_txt = "{% trans 'One group' %}"
-  let by_places_txt ="{% trans 'By number of places' %}"
+  let by_places_txt = "{% trans 'By number of places' %}"
+  let no_city_txt = "{% trans 'No city' %}"
 
   {% if request.user.is_structure_consultant %}
   let show_modify_btn = show_delete_btn = show_duplicate_btn = false
@@ -210,26 +212,31 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, is_past=false, update_registrations=false, is_face_to_face=false) {
+  function open_modal(slot_id, edit_mode, n_places, n_group_places, is_past=false, update_registrations=false, is_face_to_face=false) {
     can_update_registrations = update_registrations
     current_slot_id = slot_id;
     face_to_face = is_face_to_face;
     slot_places = n_places;
+    slot_groups_places = n_group_places;
 
     if(face_to_face === true) {
         $("#id_attendances").show()
+        $("#id_groups_attendances").show()
     }
     else {
         $("#id_attendances").hide()
+        $("#id_groups_attendances").hide()
     }
 
     if(edit_mode === 1) {
       can_update_attendances = true;
       $('#id_update_attendances').show();
+      $('#id_groups_update_attendances').show();
     }
     else {
       can_update_attendances = false;
       $('#id_update_attendances').hide();
+      $('#id_groups_update_attendances').hide();
     }
     // put slot id in register button in modal
     $('#btn_register_student').data('id', slot_id);

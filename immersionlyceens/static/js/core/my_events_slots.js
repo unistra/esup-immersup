@@ -171,12 +171,12 @@ function init_datatable() {
 
           if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
             edit_mode = 1
-            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
                   `<i class='fa fas fa-edit fa-2x'></i>` +
                   `</button>`;
           }
           else if (row.attendances_value !== -1) {
-            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places})" title="${registered_text}">` +
+            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.n_group_places})" title="${registered_text}">` +
                   `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                   `</button>`;
           }

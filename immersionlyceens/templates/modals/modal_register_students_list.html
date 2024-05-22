@@ -124,7 +124,11 @@ dtl = $('#register_students_list').DataTable({
        return ""
      }
     },
-    {"data": "city"},
+    {"data": "city",
+      render: function(data, type, row) {
+        return is_set(data) ? data : "-"
+      }
+    },
     {"data": "",
      render: function (data, type, row) {
        if(type !== 'display') {

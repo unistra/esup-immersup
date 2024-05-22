@@ -935,7 +935,8 @@ class CourseSlotList(generic.TemplateView):
             "can_update": True, # FixMe
             "slot_mode": "courses",
             "contact_form": ContactForm(),
-            "cancel_types": CancelType.objects.filter(active=True),
+            "cancel_types": CancelType.objects.filter(active=True, students=True),
+            "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
             "establishments": Establishment.activated.all(),
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
@@ -1576,7 +1577,8 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["can_update"] = True #FixMe
         context["slot_mode"] = "events"
         context["contact_form"] = ContactForm()
-        context["cancel_types"] = CancelType.objects.filter(active=True)
+        context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
+        context["groups_cancel_types"]: CancelType.objects.filter(active=True, groups=True)
 
         # Defaults
         context["establishments"] = Establishment.activated.all()

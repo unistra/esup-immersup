@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 {% load static i18n immersionlyceens_tags %}
+
 {% block title %}
-{% trans "Events offer" %}
+  {% trans "Events offer" %}
 {% endblock %}
+
 {% block head-javascript %}
-<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+  <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
+
 {% block content %}
 {% authorized_groups request.user %}
+
+{% trans 'No city' as no_city %}
+
 <div class="main-title inside text-center">
   <div></div>
   <div class="container">
@@ -151,7 +157,7 @@
                                         <h6>{% trans "Allowed highschools" %} :</h6>
                                         <ul>
                                           {% for h in s.allowed_highschools.all %}
-                                          <li>{{ h.label }} - {{ h.city }}</li>
+                                          <li>{{ h.label }} - {% firstof h.city no_city %}</li>
                                           {% endfor %}
                                         </ul>
                                         {% endif %}

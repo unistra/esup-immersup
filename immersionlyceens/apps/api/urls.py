@@ -8,6 +8,7 @@ from . import views
 
 urlpatterns = [
     path('batch_cancel_registration', views.ajax_batch_cancel_registration, name='BatchCancelRegistration'),
+    path('groups_batch_cancel_registration', views.ajax_groups_batch_cancel_registration, name='GroupsBatchCancelRegistration'),
     path('cancel_alert', views.ajax_cancel_alert, name='cancel_alert'),
     path('cancel_registration', views.ajax_cancel_registration, name='CancelRegistration'),
 
@@ -28,6 +29,11 @@ urlpatterns = [
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
+    path(
+        'get_slot_groups_registrations/<int:slot_id>',
+        views.ajax_get_slot_groups_registrations,
+        name='get_slot_groups_registrations'
+    ),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_students_presence', views.ajax_get_student_presence, name='ajax_get_student_presence'),
     path(
