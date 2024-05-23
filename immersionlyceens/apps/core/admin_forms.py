@@ -782,17 +782,14 @@ class PeriodForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             # Lock start date update if in the past
             if self.instance.immersion_start_date < today:
-                self.fields["immersion_start_date"] = forms.DateField(disabled=True)
-                self.fields["registration_start_date"].label = pgettext("period", "Registration start date")
+                 self.fields["immersion_start_date"] = forms.DateField(disabled=True)
 
-                # Cannot change registration end date
-                if self.instance.registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+                 # Cannot change registration end date
+                 if self.instance.registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
                     self.fields["registration_end_date"] = forms.DateTimeField(disabled=True)
-                    self.fields["registration_end_date"].label = pgettext("period", "Registration end date")
 
             if self.instance.registration_start_date < now:
                 self.fields["registration_start_date"] = forms.DateTimeField(disabled=True)
-                self.fields["registration_start_date"].label = pgettext("period", "Registration start date")
 
             """
             OBSOLETE
@@ -828,7 +825,9 @@ class PeriodForm(forms.ModelForm):
                     ]
 
             for field in readonly_fields:
-                self.fields[field].disabled = True
+                if field in self.fields:
+                    self.fields[field].disabled = True
+
 
     def clean(self):
         today = timezone.localdate()

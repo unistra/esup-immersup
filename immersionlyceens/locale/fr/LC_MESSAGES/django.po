@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 11:03+0200\n"
+"POT-Creation-Date: 2024-05-23 10:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -953,7 +953,7 @@ msgstr "Évènement"
 #: immersionlyceens/apps/core/admin.py:311
 #: immersionlyceens/apps/core/admin.py:325
 #: immersionlyceens/apps/core/admin.py:337
-#: immersionlyceens/apps/core/admin.py:1689
+#: immersionlyceens/apps/core/admin.py:1691
 #: immersionlyceens/apps/user/admin.py:31
 #: immersionlyceens/apps/user/admin.py:51
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:34
@@ -995,7 +995,7 @@ msgstr "Oui"
 #: immersionlyceens/apps/core/admin.py:313
 #: immersionlyceens/apps/core/admin.py:325
 #: immersionlyceens/apps/core/admin.py:337
-#: immersionlyceens/apps/core/admin.py:1689
+#: immersionlyceens/apps/core/admin.py:1691
 #: immersionlyceens/apps/user/admin.py:31
 #: immersionlyceens/apps/user/admin.py:51
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:35
@@ -1673,7 +1673,7 @@ msgstr ""
 
 #: immersionlyceens/apps/core/admin.py:1241
 #: immersionlyceens/apps/core/admin.py:1265
-#: immersionlyceens/apps/core/admin.py:1323
+#: immersionlyceens/apps/core/admin.py:1325
 msgid ""
 "Multiple active years found. Please check your university years settings."
 msgstr ""
@@ -1682,34 +1682,34 @@ msgstr ""
 
 #: immersionlyceens/apps/core/admin.py:1247
 #: immersionlyceens/apps/core/admin.py:1271
-#: immersionlyceens/apps/core/admin.py:1329
+#: immersionlyceens/apps/core/admin.py:1331
 msgid "Active year not found. Please check your university years settings."
 msgstr ""
 "Année universitaire active non trouvée. Merci de vérifier le paramétrage."
 
-#: immersionlyceens/apps/core/admin.py:1281
+#: immersionlyceens/apps/core/admin.py:1283
 msgid "This period has slots, it cannot be deleted"
 msgstr "Des créneaux sont rattachés à cette période : suppression impossible"
 
-#: immersionlyceens/apps/core/admin.py:1287
+#: immersionlyceens/apps/core/admin.py:1289
 msgid "The active university year is over, the period cannot be deleted"
 msgstr ""
 "L'année universitaire active est terminée, la periode ne peut pas être "
 "supprimée"
 
-#: immersionlyceens/apps/core/admin.py:1293
+#: immersionlyceens/apps/core/admin.py:1295
 msgid "This period has already begun, it cannot be deleted"
 msgstr "Cette période a déjà commencé : suppression impossible"
 
-#: immersionlyceens/apps/core/admin.py:1315
+#: immersionlyceens/apps/core/admin.py:1317
 msgid "The period is already over, it cannot be updated anymore."
 msgstr "Cette période est déjà terminée : elle ne peut plus être modifiée"
 
-#: immersionlyceens/apps/core/admin.py:1399
+#: immersionlyceens/apps/core/admin.py:1401
 msgid "Postbac immersions"
 msgstr "Immersions postbac"
 
-#: immersionlyceens/apps/core/admin.py:1403
+#: immersionlyceens/apps/core/admin.py:1405
 #: immersionlyceens/templates/core/my_high_school.html:204
 #: immersionlyceens/templates/core/student_validation.html:57
 #: immersionlyceens/templates/core/student_validation.html:82
@@ -1719,30 +1719,30 @@ msgstr "Immersions postbac"
 msgid "Convention"
 msgstr "Convention"
 
-#: immersionlyceens/apps/core/admin.py:1407
+#: immersionlyceens/apps/core/admin.py:1409
 #, python-format
 msgid "From %s"
 msgstr "Du %s"
 
-#: immersionlyceens/apps/core/admin.py:1407
+#: immersionlyceens/apps/core/admin.py:1409
 #, python-format
 msgid "to %s"
 msgstr "au %s"
 
-#: immersionlyceens/apps/core/admin.py:1423
+#: immersionlyceens/apps/core/admin.py:1425
 msgid "Referents"
 msgstr "Référents"
 
-#: immersionlyceens/apps/core/admin.py:1453
+#: immersionlyceens/apps/core/admin.py:1455
 msgid ""
 "Some users or records are linked to this high school, it cannot be deleted"
 msgstr ""
 "Des utilisateurs ou des dossiers sont liés à ce lycée, il ne peut pas être "
 "supprimé"
 
-#: immersionlyceens/apps/core/admin.py:1516
-#: immersionlyceens/apps/core/admin.py:1551
-#: immersionlyceens/apps/core/admin.py:1594
+#: immersionlyceens/apps/core/admin.py:1518
+#: immersionlyceens/apps/core/admin.py:1553
+#: immersionlyceens/apps/core/admin.py:1596
 #: immersionlyceens/apps/core/models.py:116
 #: immersionlyceens/apps/core/models.py:211
 #: immersionlyceens/templates/core/my_high_school.html:49
@@ -1751,83 +1751,83 @@ msgstr ""
 msgid "Address"
 msgstr "Adresse"
 
-#: immersionlyceens/apps/core/admin.py:1552
+#: immersionlyceens/apps/core/admin.py:1554
 msgid "Used in"
 msgstr "Utilisé dans"
 
-#: immersionlyceens/apps/core/admin.py:1559
+#: immersionlyceens/apps/core/admin.py:1561
 msgid "This document is used in public interface : it cannot be deleted"
 msgstr ""
 "Ce document est utilisé dans la partie publique : suppression impossible"
 
-#: immersionlyceens/apps/core/admin.py:1593
+#: immersionlyceens/apps/core/admin.py:1595
 #: immersionlyceens/apps/core/models.py:2237
 msgid "Profiles"
 msgstr "Profils"
 
-#: immersionlyceens/apps/core/admin.py:1601
+#: immersionlyceens/apps/core/admin.py:1603
 msgid "This attestation can't be deleted because it is used by some records"
 msgstr ""
 "Ce justificatif ne peut être supprimé car il est utilisé dans des fiches"
 
-#: immersionlyceens/apps/core/admin.py:1675
+#: immersionlyceens/apps/core/admin.py:1677
 msgid "boolean"
 msgstr "booléen"
 
-#: immersionlyceens/apps/core/admin.py:1677
+#: immersionlyceens/apps/core/admin.py:1679
 msgid "text"
 msgstr "texte"
 
-#: immersionlyceens/apps/core/admin.py:1679
+#: immersionlyceens/apps/core/admin.py:1681
 msgid "integer"
 msgstr "entier"
 
-#: immersionlyceens/apps/core/admin.py:1730
+#: immersionlyceens/apps/core/admin.py:1732
 msgid "Value type"
 msgstr "Type de valeur"
 
-#: immersionlyceens/apps/core/admin.py:1731
+#: immersionlyceens/apps/core/admin.py:1733
 msgid "Setting value"
 msgstr "Valeur du paramètre"
 
-#: immersionlyceens/apps/core/admin.py:1732
+#: immersionlyceens/apps/core/admin.py:1734
 msgid "Setting description"
 msgstr "Description du paramètre"
 
-#: immersionlyceens/apps/core/admin.py:1788
+#: immersionlyceens/apps/core/admin.py:1790
 msgid "Certificate logo"
 msgstr "Logo du certificat"
 
-#: immersionlyceens/apps/core/admin.py:1804
+#: immersionlyceens/apps/core/admin.py:1806
 msgid "Certificate signature"
 msgstr "Signature du certificat"
 
-#: immersionlyceens/apps/core/admin.py:1826
+#: immersionlyceens/apps/core/admin.py:1828
 msgid "This event type is used by and event, it cannot be deleted"
 msgstr ""
 "Ce type d'évènement est utilisé par un évènement, il ne peut pas être "
 "supprimé"
 
-#: immersionlyceens/apps/core/admin.py:1852
+#: immersionlyceens/apps/core/admin.py:1854
 msgid "This high school level is in use, it cannot be deleted"
 msgstr "Ce niveau est utilisé dans une fiche, il ne peut pas être supprimé"
 
-#: immersionlyceens/apps/core/admin.py:1881
+#: immersionlyceens/apps/core/admin.py:1883
 msgid "This post bachelor level is in use, it cannot be deleted"
 msgstr ""
 "Ce niveau post-bac est utilisé dans une fiche, il ne peut pas être supprimé"
 
-#: immersionlyceens/apps/core/admin.py:1910
+#: immersionlyceens/apps/core/admin.py:1912
 msgid "This student level is in use, it cannot be deleted"
 msgstr ""
 "Ce niveau étudiant est utilisé dans une fiche, il ne peut pas être supprimé"
 
-#: immersionlyceens/apps/core/admin.py:1949
-#: immersionlyceens/apps/core/admin.py:1957
+#: immersionlyceens/apps/core/admin.py:1951
+#: immersionlyceens/apps/core/admin.py:1959
 msgid "Copy file link"
 msgstr "Copier le lien du fichier"
 
-#: immersionlyceens/apps/core/admin.py:2013
+#: immersionlyceens/apps/core/admin.py:2015
 msgid "Days"
 msgstr "Jours"
 
@@ -1841,23 +1841,23 @@ msgstr "Jours"
 #: immersionlyceens/apps/core/admin_forms.py:602
 #: immersionlyceens/apps/core/admin_forms.py:668
 #: immersionlyceens/apps/core/admin_forms.py:725
-#: immersionlyceens/apps/core/admin_forms.py:854
-#: immersionlyceens/apps/core/admin_forms.py:1447
-#: immersionlyceens/apps/core/admin_forms.py:1544
-#: immersionlyceens/apps/core/admin_forms.py:1642
-#: immersionlyceens/apps/core/admin_forms.py:1676
-#: immersionlyceens/apps/core/admin_forms.py:1723
-#: immersionlyceens/apps/core/admin_forms.py:1780
-#: immersionlyceens/apps/core/admin_forms.py:1808
-#: immersionlyceens/apps/core/admin_forms.py:1865
-#: immersionlyceens/apps/core/admin_forms.py:2003
-#: immersionlyceens/apps/core/admin_forms.py:2041
-#: immersionlyceens/apps/core/admin_forms.py:2148
+#: immersionlyceens/apps/core/admin_forms.py:853
+#: immersionlyceens/apps/core/admin_forms.py:1446
+#: immersionlyceens/apps/core/admin_forms.py:1543
+#: immersionlyceens/apps/core/admin_forms.py:1641
+#: immersionlyceens/apps/core/admin_forms.py:1675
+#: immersionlyceens/apps/core/admin_forms.py:1722
+#: immersionlyceens/apps/core/admin_forms.py:1779
+#: immersionlyceens/apps/core/admin_forms.py:1807
+#: immersionlyceens/apps/core/admin_forms.py:1864
+#: immersionlyceens/apps/core/admin_forms.py:2002
+#: immersionlyceens/apps/core/admin_forms.py:2040
+#: immersionlyceens/apps/core/admin_forms.py:2147
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
 #: immersionlyceens/apps/core/admin_forms.py:120
-#: immersionlyceens/apps/core/admin_forms.py:1347
+#: immersionlyceens/apps/core/admin_forms.py:1346
 #: immersionlyceens/apps/core/models.py:85
 #: immersionlyceens/apps/core/models.py:119
 #: immersionlyceens/apps/core/models.py:214
@@ -1868,7 +1868,7 @@ msgid "Department"
 msgstr "Département"
 
 #: immersionlyceens/apps/core/admin_forms.py:123
-#: immersionlyceens/apps/core/admin_forms.py:1350
+#: immersionlyceens/apps/core/admin_forms.py:1349
 #: immersionlyceens/apps/core/models.py:84
 #: immersionlyceens/apps/core/models.py:120
 #: immersionlyceens/apps/core/models.py:215
@@ -1887,7 +1887,7 @@ msgid "City"
 msgstr "Ville"
 
 #: immersionlyceens/apps/core/admin_forms.py:126
-#: immersionlyceens/apps/core/admin_forms.py:1353
+#: immersionlyceens/apps/core/admin_forms.py:1352
 #: immersionlyceens/apps/core/models.py:86
 #: immersionlyceens/apps/core/models.py:121
 #: immersionlyceens/apps/core/models.py:216
@@ -2041,77 +2041,77 @@ msgstr "La période de congés termine dans une autre période de congés"
 msgid "A vacation exists inside this vacation"
 msgstr "Une période de vacances existe à l'intérieur de celle-ci"
 
-#: immersionlyceens/apps/core/admin_forms.py:860
+#: immersionlyceens/apps/core/admin_forms.py:859
 msgid "An active university year is required to create a period"
 msgstr "Une année universitaire active est obligatoire pour créer une période"
 
-#: immersionlyceens/apps/core/admin_forms.py:874
+#: immersionlyceens/apps/core/admin_forms.py:873
 msgid "A null or positive value is required"
 msgstr "Un nombre entier nul ou positif est requis"
 
-#: immersionlyceens/apps/core/admin_forms.py:880
+#: immersionlyceens/apps/core/admin_forms.py:879
 msgid "A value is required"
 msgstr "Erreur: Une date est requise"
 
-#: immersionlyceens/apps/core/admin_forms.py:883
+#: immersionlyceens/apps/core/admin_forms.py:882
 msgid "A period requires all dates to be filled in"
 msgstr "Toutes les dates sont obligatoires"
 
-#: immersionlyceens/apps/core/admin_forms.py:894
+#: immersionlyceens/apps/core/admin_forms.py:893
 msgid "All period dates must be between university year start/end dates"
 msgstr ""
 "Toutes les dates de la période doivent se situer entre les dates de l'année "
 "universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:897
+#: immersionlyceens/apps/core/admin_forms.py:896
 msgid "A new period can't be set with a start_date in the past"
 msgstr "Une nouvelle période ne peut pas avoir une date de début dans le passé"
 
-#: immersionlyceens/apps/core/admin_forms.py:900
+#: immersionlyceens/apps/core/admin_forms.py:899
 msgid "Registration start date must be before the immersions start date"
 msgstr ""
 "La date de début des inscriptions doit être antérieure à la date de début "
 "des immersions"
 
-#: immersionlyceens/apps/core/admin_forms.py:903
+#: immersionlyceens/apps/core/admin_forms.py:902
 msgid "Registration end date must be before the immersions start date"
 msgstr ""
 "La date de fin des inscriptions doit être antérieure à la date de début des "
 "immersions"
 
-#: immersionlyceens/apps/core/admin_forms.py:906
+#: immersionlyceens/apps/core/admin_forms.py:905
 msgid "Registration end date must be after the registration start date"
 msgstr ""
 "La date de fin des inscriptions doit être postérieure à la date de début des "
 "inscriptions"
 
-#: immersionlyceens/apps/core/admin_forms.py:910
+#: immersionlyceens/apps/core/admin_forms.py:909
 msgid "Immersions end date must be after immersions start date"
 msgstr ""
 "La date de début des immersions doit être antérieure à la date de fin des "
 "immersions"
 
-#: immersionlyceens/apps/core/admin_forms.py:919
-#: immersionlyceens/apps/core/admin_forms.py:936
+#: immersionlyceens/apps/core/admin_forms.py:918
+#: immersionlyceens/apps/core/admin_forms.py:935
 msgid "Immersions end date can only be set after the actual one"
 msgstr ""
 "La nouvelle date de fin des immersions doit être postérieure à l'actuelle"
 
-#: immersionlyceens/apps/core/admin_forms.py:923
+#: immersionlyceens/apps/core/admin_forms.py:922
 msgid "New allowed immersions value can only be higher than the previous one"
 msgstr "Le nouveau quota d'immersion doit être supérieur à l'actuel"
 
-#: immersionlyceens/apps/core/admin_forms.py:931
+#: immersionlyceens/apps/core/admin_forms.py:930
 msgid "Immersions start date can only be set before the actual one"
 msgstr ""
 "La nouvelle date de début des immersions doit être antérieure à la date "
 "actuelle"
 
-#: immersionlyceens/apps/core/admin_forms.py:949
+#: immersionlyceens/apps/core/admin_forms.py:948
 msgid "User search"
 msgstr "Rechercher un utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:951
+#: immersionlyceens/apps/core/admin_forms.py:950
 msgid ""
 "This field is only useful if the selected establishment has a source plugin "
 "set"
@@ -2119,33 +2119,33 @@ msgstr ""
 "Ce champ n'est nécessaire que si une extension est utilisée pour les comptes "
 "utilisateurs"
 
-#: immersionlyceens/apps/core/admin_forms.py:966
+#: immersionlyceens/apps/core/admin_forms.py:965
 msgid "The user email will be used as username"
 msgstr "L'identifiant sera le courriel de l'utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:1002
+#: immersionlyceens/apps/core/admin_forms.py:1001
 msgid "This email address is already used"
 msgstr "Un compte avec ce courriel existe déjà"
 
-#: immersionlyceens/apps/core/admin_forms.py:1076
+#: immersionlyceens/apps/core/admin_forms.py:1075
 msgid "The establishment cannot be updated once the user created"
 msgstr "L'établissement ne peut pas être modifié une fois l'utilisateur créé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1141
+#: immersionlyceens/apps/core/admin_forms.py:1140
 msgid "Forbidden"
 msgstr "Non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1156
+#: immersionlyceens/apps/core/admin_forms.py:1155
 msgid "This user has linked accounts, you can't update his/her groups"
 msgstr ""
 "Ce compte est lié à d'autres comptes 'Intervenant', les groupes ne peuvent "
 "pas être modifiés"
 
-#: immersionlyceens/apps/core/admin_forms.py:1163
+#: immersionlyceens/apps/core/admin_forms.py:1162
 msgid "A user cannot have multiple profiles except for the INTER one"
 msgstr "Un utilisateur ne peut avoir qu'un seul profil (sauf INTER)"
 
-#: immersionlyceens/apps/core/admin_forms.py:1173
+#: immersionlyceens/apps/core/admin_forms.py:1172
 msgid ""
 "Please select a non-master establishment for a user belonging to the 'REF-"
 "ETAB' group"
@@ -2153,7 +2153,7 @@ msgstr ""
 "Veuillez sélectionner un établissement non-maître pour un utilisateur du "
 "groupe 'REF-ETAB'"
 
-#: immersionlyceens/apps/core/admin_forms.py:1179
+#: immersionlyceens/apps/core/admin_forms.py:1178
 msgid ""
 "Please select a master establishment for a user belonging to the 'REF-ETAB-"
 "MAITRE' group"
@@ -2161,49 +2161,49 @@ msgstr ""
 "Veuillez sélectionner un établissement maître pour un utilisateur du groupe "
 "'REF-ETAB-MAITRE'"
 
-#: immersionlyceens/apps/core/admin_forms.py:1184
+#: immersionlyceens/apps/core/admin_forms.py:1183
 msgid "This field is mandatory for a user belonging to 'REF-STR' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-STR'"
 
-#: immersionlyceens/apps/core/admin_forms.py:1189
+#: immersionlyceens/apps/core/admin_forms.py:1188
 msgid "This field is mandatory for a user belonging to 'REF-CONS' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-CONS'"
 
-#: immersionlyceens/apps/core/admin_forms.py:1194
+#: immersionlyceens/apps/core/admin_forms.py:1193
 msgid "The group 'REF-STR' or 'CONS-STR' is mandatory when you add a structure"
 msgstr ""
 "Le groupe 'REF-STR' ou 'CONS-STR' est obligatoire lorsqu'une structure est "
 "sélectionnée"
 
-#: immersionlyceens/apps/core/admin_forms.py:1201
+#: immersionlyceens/apps/core/admin_forms.py:1200
 msgid "This field is mandatory for a user belonging to 'REF-LYC' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-LYC'"
 
-#: immersionlyceens/apps/core/admin_forms.py:1208
+#: immersionlyceens/apps/core/admin_forms.py:1207
 msgid "The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool"
 msgstr ""
 "Le groupe 'REF-LYC' ou 'INTER' est obligatoire lorsque vous sélectionnez un "
 "lycée"
 
-#: immersionlyceens/apps/core/admin_forms.py:1219
+#: immersionlyceens/apps/core/admin_forms.py:1218
 msgid "You don't have enough privileges to modify this account"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce compte"
 
-#: immersionlyceens/apps/core/admin_forms.py:1240
+#: immersionlyceens/apps/core/admin_forms.py:1239
 #, python-format
 msgid "You can't modify these groups : %s"
 msgstr "Vous ne pouvez pas modifier ces groupes : %s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1246
+#: immersionlyceens/apps/core/admin_forms.py:1245
 msgid "You can't modify the superuser status"
 msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:1363
+#: immersionlyceens/apps/core/admin_forms.py:1362
 msgid "This field is available when 'Offer post-bachelor immersions is enabled"
 msgstr ""
 "Ce champ est activé si 'Propose son offre post-bac à l'immersion' est coché"
 
-#: immersionlyceens/apps/core/admin_forms.py:1382
+#: immersionlyceens/apps/core/admin_forms.py:1381
 #, python-format
 msgctxt "convention"
 msgid ""
@@ -2213,13 +2213,13 @@ msgstr ""
 "Toujours %s : cette option ne peut être changée en raison des options de "
 "conventionnement des lycées dans les paramètres généraux."
 
-#: immersionlyceens/apps/core/admin_forms.py:1410
+#: immersionlyceens/apps/core/admin_forms.py:1409
 msgid "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
 msgstr ""
 "Ce champ ne peut pas être modifié car le paramètre ACTIVATE_EDUCONNECT n'est "
 "pas activé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1416
+#: immersionlyceens/apps/core/admin_forms.py:1415
 msgid ""
 "This field cannot be changed because this high school already has student "
 "records"
@@ -2227,48 +2227,48 @@ msgstr ""
 "Ce champ ne peut pas être modifié car des dossiers sont déjà rattachés à ce "
 "lycée"
 
-#: immersionlyceens/apps/core/admin_forms.py:1422
+#: immersionlyceens/apps/core/admin_forms.py:1421
 msgid ""
 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
 msgstr ""
 "Ce champ ne peut pas être modifié car le paramètre ACTIVATE_FEDERATION_AGENT "
 "n'est pas activé"
 
+#: immersionlyceens/apps/core/admin_forms.py:1467
 #: immersionlyceens/apps/core/admin_forms.py:1468
-#: immersionlyceens/apps/core/admin_forms.py:1469
 msgid "Both convention dates are required if 'convention' is checked"
 msgstr ""
 "Les deux dates de conventions sont obligatoires si l'option 'Conventionné' "
 "est cochée"
 
-#: immersionlyceens/apps/core/admin_forms.py:1478
+#: immersionlyceens/apps/core/admin_forms.py:1477
 msgid ""
 "You can't change this setting because this high school already has records."
 msgstr ""
 "Ce paramètre ne peut pas être modifié car des dossiers sont déjà rattachés à "
 "ce lycée"
 
-#: immersionlyceens/apps/core/admin_forms.py:1556
+#: immersionlyceens/apps/core/admin_forms.py:1555
 msgid "The message body contains forbidden variables : "
 msgstr "Le corps du message contient des variables non autorisées : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1574
-#: immersionlyceens/apps/core/admin_forms.py:1581
+#: immersionlyceens/apps/core/admin_forms.py:1573
+#: immersionlyceens/apps/core/admin_forms.py:1580
 msgid "The message body contains syntax error(s) : "
 msgstr "Le corps du message contient des erreurs de syntaxe : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1575
+#: immersionlyceens/apps/core/admin_forms.py:1574
 #, python-format
 msgid "at \"%(pos)s\" line %(line)s"
 msgstr "à \"%(pos)s\" ligne %(line)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1585
+#: immersionlyceens/apps/core/admin_forms.py:1584
 msgid "The message body contains unknown variable(s) : "
 msgstr "Le corps du message contient des variables inconnues : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1619
-#: immersionlyceens/apps/core/admin_forms.py:1703
-#: immersionlyceens/apps/core/admin_forms.py:1760
+#: immersionlyceens/apps/core/admin_forms.py:1618
+#: immersionlyceens/apps/core/admin_forms.py:1702
+#: immersionlyceens/apps/core/admin_forms.py:1759
 #, python-format
 msgid ""
 "Please keep filesize under %(maxupload)s. Current filesize %(current_size)s"
@@ -2276,41 +2276,41 @@ msgstr ""
 "Veuillez téléverser des fichiers dont la taille n'excède pas %(maxupload)s. "
 "Taille actuelle : %(current_size)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1626
-#: immersionlyceens/apps/core/admin_forms.py:1709
-#: immersionlyceens/apps/core/admin_forms.py:1766
-#: immersionlyceens/apps/core/admin_forms.py:1987
-#: immersionlyceens/apps/core/admin_forms.py:2025
-#: immersionlyceens/apps/core/admin_forms.py:2127
+#: immersionlyceens/apps/core/admin_forms.py:1625
+#: immersionlyceens/apps/core/admin_forms.py:1708
+#: immersionlyceens/apps/core/admin_forms.py:1765
+#: immersionlyceens/apps/core/admin_forms.py:1986
+#: immersionlyceens/apps/core/admin_forms.py:2024
+#: immersionlyceens/apps/core/admin_forms.py:2126
 #: immersionlyceens/apps/immersion/forms.py:354
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1783
+#: immersionlyceens/apps/core/admin_forms.py:1782
 msgid "At least one profile is required"
 msgstr "Au moins un profil est requis"
 
-#: immersionlyceens/apps/core/admin_forms.py:1830
+#: immersionlyceens/apps/core/admin_forms.py:1829
 msgid "You are not allowed to create a new Evaluation Form Link"
 msgstr "Vous ne pouvez pas créer de nouveau lien de formulaire d'évaluation"
 
-#: immersionlyceens/apps/core/admin_forms.py:1848
+#: immersionlyceens/apps/core/admin_forms.py:1847
 msgid "Read only"
 msgstr "Lecture seule"
 
-#: immersionlyceens/apps/core/admin_forms.py:1874
+#: immersionlyceens/apps/core/admin_forms.py:1873
 msgid "Students users exist you can't deactivate students"
 msgstr ""
 "Des étudiants sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1881
+#: immersionlyceens/apps/core/admin_forms.py:1880
 msgid "Visitors users exist you can't deactivate visitors"
 msgstr ""
 "Des visiteurs sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1896
+#: immersionlyceens/apps/core/admin_forms.py:1895
 msgid ""
 "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT general setting is missing or incorrect. "
 "Please fix."
@@ -2318,7 +2318,7 @@ msgstr ""
 "Le paramètre ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT est absent ou incorrect. "
 "Veuillez l'ajouter ou corriger sa valeur."
 
-#: immersionlyceens/apps/core/admin_forms.py:1904
+#: immersionlyceens/apps/core/admin_forms.py:1903
 msgid ""
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT general setting is missing or "
 "incorrect. Please fix."
@@ -2326,7 +2326,7 @@ msgstr ""
 "Le paramètre ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT est absent ou incorrect. "
 "Veuillez l'ajouter ou corriger sa valeur."
 
-#: immersionlyceens/apps/core/admin_forms.py:1914
+#: immersionlyceens/apps/core/admin_forms.py:1913
 msgid ""
 "ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT and "
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT cannot be both set to False "
@@ -2335,7 +2335,7 @@ msgstr ""
 "ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT ne peuvent pas être tous les deux "
 "désactivés."
 
-#: immersionlyceens/apps/core/admin_forms.py:1921
+#: immersionlyceens/apps/core/admin_forms.py:1920
 msgid ""
 "This parameter can't be set to False : there are high schools with "
 "agreements in database, please update or delete these first"
@@ -2343,7 +2343,7 @@ msgstr ""
 "Ce paramètre ne peut pas être désactivé : des lycées conventionnés existent "
 "en base, veuillez d'abord les mettre à jour ou les supprimer"
 
-#: immersionlyceens/apps/core/admin_forms.py:1928
+#: immersionlyceens/apps/core/admin_forms.py:1927
 msgid ""
 "This parameter can't be set to False : there are high schools without "
 "agreements in database, please update or delete these first"
@@ -2351,16 +2351,16 @@ msgstr ""
 "Ce paramètre ne peut pas être désactivé : des lycées non conventionnés "
 "existent en base, veuillez d'abord les mettre à jour ou les supprimer"
 
-#: immersionlyceens/apps/core/admin_forms.py:1940
+#: immersionlyceens/apps/core/admin_forms.py:1939
 msgid "A default quota value is mandatory"
 msgstr "La valeur du quota par défaut est obligatoire"
 
-#: immersionlyceens/apps/core/admin_forms.py:1943
+#: immersionlyceens/apps/core/admin_forms.py:1942
 msgid "The default quota value must be a positive integer > 0"
 msgstr ""
 "La valeur du quota par défaut doit être un entier positif supérieur à 0"
 
-#: immersionlyceens/apps/core/admin_forms.py:1952
+#: immersionlyceens/apps/core/admin_forms.py:1951
 msgid ""
 "This parameter can't be set to False : some high schools use the agent "
 "federation to authenticate their users"
@@ -2368,7 +2368,7 @@ msgstr ""
 "Ce paramètre ne peut pas être désactivé : des lycées utilisent la fédération "
 "d'agents pour authentifier leurs utilisateurs"
 
-#: immersionlyceens/apps/core/admin_forms.py:1960
+#: immersionlyceens/apps/core/admin_forms.py:1959
 msgid ""
 "This parameter can't be set to False : some high schools use the student "
 "identity federation to authenticate their students"
@@ -2376,30 +2376,30 @@ msgstr ""
 "Ce paramètre ne peut pas être désactivé :  des lycées utilisent la "
 "fédération d'identité Educonnect pour authentifier leurs élèves."
 
-#: immersionlyceens/apps/core/admin_forms.py:2068
-#: immersionlyceens/apps/core/admin_forms.py:2086
+#: immersionlyceens/apps/core/admin_forms.py:2067
+#: immersionlyceens/apps/core/admin_forms.py:2085
 msgid "Field locked : a high school record uses this level"
 msgstr "Verrouillé : une fiche lycéen(ne) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:2104
+#: immersionlyceens/apps/core/admin_forms.py:2103
 msgid "Field locked : a student record uses this level"
 msgstr "Verrouillé : une fiche étudiant(te) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:2144
+#: immersionlyceens/apps/core/admin_forms.py:2143
 msgid "A favicon already exists"
 msgstr "Un favicon est déjà utilisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:2217
+#: immersionlyceens/apps/core/admin_forms.py:2216
 msgid "If not empty, uses 'Execution time' field for the first execution"
 msgstr ""
 "Si non vide, utilise l'Heure d'exécution pour le premier lancement de la "
 "journée"
 
-#: immersionlyceens/apps/core/admin_forms.py:2222
+#: immersionlyceens/apps/core/admin_forms.py:2221
 msgid "Minutes will be rounded to force 5 min steps"
 msgstr "Les minutes seront arrondies par tranches de 5 minutes"
 
-#: immersionlyceens/apps/core/admin_forms.py:2229
+#: immersionlyceens/apps/core/admin_forms.py:2228
 msgid "Date and frequency can't be both set"
 msgstr "La date et la fréquence ne peuvent être paramétrées en même temps"
 
