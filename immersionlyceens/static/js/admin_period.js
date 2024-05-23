@@ -9,6 +9,15 @@ function set_fields(period_mode) {
   $('#id_cancellation_limit_delay').prop("disabled", period_mode === REGISTRATION_END_DATE_SLOT)
   $('#id_cancellation_limit_delay').prop("required", period_mode === REGISTRATION_END_DATE_PERIOD)
 
+  if(period_mode === REGISTRATION_END_DATE_PERIOD) {
+    $('.field-registration_end_date label').addClass('required')
+    $('.field-cancellation_limit_delay label').addClass('required')
+  }
+  else {
+    $('.field-registration_end_date label').removeClass('required')
+    $('.field-cancellation_limit_delay label').removeClass('required')
+  }
+
   // Hide date fields
   $('.field-registration_end_date').toggle(period_mode === REGISTRATION_END_DATE_PERIOD)
   $('.field-cancellation_limit_delay').toggle(period_mode === REGISTRATION_END_DATE_PERIOD)
@@ -17,7 +26,7 @@ function set_fields(period_mode) {
 // init
 $(document).ready(function() {
 
-  if($("name=_save")) {
+  if($("input[name='_save']")) {
     $("#id_registration_end_date_policy").change(function () {
       set_fields($(this).val())
     })
