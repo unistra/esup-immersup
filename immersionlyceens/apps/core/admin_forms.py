@@ -825,7 +825,8 @@ class PeriodForm(forms.ModelForm):
                     ]
 
             for field in readonly_fields:
-                self.fields[field].disabled = True
+                if field in self.fields:
+                    self.fields[field].disabled = True
 
 
     def clean(self):
