@@ -494,7 +494,14 @@ groups_dtr = $('#groups_list').DataTable({
         return data
       }
     },
-    {"data": "people"},
+    {"data": "students_count",
+     "render": function(data, type, row) {
+        let students = "{% trans "Students" %} " + row.students_count
+        let guides = "{% trans "Guides" %} " + row.guides_count
+
+        return `${students}<br>${guides}`
+     }
+    },
     {"data": "file"},
     {"data": "comments"},
     {"data": "attendance",

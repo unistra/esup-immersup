@@ -2520,6 +2520,31 @@ class Slot(models.Model):
         # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
+    def registered_groups(self):
+        """
+        :return: number of registered students for instance slot
+        """
+        # TODO: check if we need to filter published slots only ???
+        return ImmersionGroupRecord.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
+
+    def registered_groups_people_count(self):
+        """
+        :return: number of registered students for instance slot
+        """
+        # TODO: check if we need to filter published slots only ???
+        group_queryset = (ImmersionGroupRecord.objects
+            .filter(slot=self.pk, cancellation_type__isnull=True)
+            .aggregate(
+                students=Sum('students_count'),
+                guides=Sum('guides_count')
+            )
+        )
+
+        return {
+            'students': group_queryset.get('students_count', 0) or 0,
+            'guides': group_queryset.get('guides_count', 0) or 0
+        }
+
     def clean(self):
         if [self.course, self.event].count(None) != 1:
             raise ValidationError("You must select one of : Course or Event")

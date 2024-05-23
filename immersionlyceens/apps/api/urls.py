@@ -44,6 +44,7 @@ urlpatterns = [
 
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),
     path('register', views.ajax_slot_registration, name='SlotRegistration'),
+    path('group_register', views.ajax_group_slot_registration, name='GroupSlotRegistration'),
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
     path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
     path('send_email', views.ajax_send_email, name='SendEmail'),

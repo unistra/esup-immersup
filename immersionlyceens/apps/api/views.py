@@ -15,11 +15,12 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import django_filters.rest_framework
 from django.conf import settings
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
-from django.core.exceptions import FieldError, ObjectDoesNotExist
+from django.core.exceptions import FieldError, ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db.models import (
     BooleanField, Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
@@ -927,7 +928,8 @@ def ajax_get_slot_groups_registrations(request, slot_id):
                 'id': immersion.id,
                 'school': immersion.highschool.label,
                 'city': immersion.highschool.city,
-                'people': '',
+                'students_count': immersion.students_count,
+                'guides_count': immersion.guides_count,
                 'file': immersion.file.name, #FIXME
                 'comments': immersion.comments,
                 'attendance': immersion.get_attendance_status_display(),
@@ -1319,6 +1321,143 @@ def ajax_slot_registration(request):
         else:
             response = {'error': True, 'msg': _("Registration is not currently allowed")}
 
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@login_required
+@is_post_request
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+def ajax_group_slot_registration(request):
+    """
+    Register a group to a slot
+    """
+    slot_id = request.POST.get('slot_id', None)
+    highschool_id = request.POST.get('highschool_id', None)
+    students_count = request.POST.get('students_count', None)
+    guides_count = request.POST.get('guides_count', None)
+    file = request.POST.get('file', None)
+    emails = request.POST.get('emails', None)
+    comments = request.POST.get('comments', None)
+    feedback = request.POST.get('feedback', True)
+
+    error = False
+    cleaned_emails = []
+    user = request.user
+
+    slot, student = None, None
+    today = timezone.localdate()
+    today_time = timezone.now()
+    off_offer = False
+
+    activate_groups = GeneralSettings.get_setting("ACTIVATE_COHORT")
+    if not activate_groups:
+        response = {'error': True, 'msg': _("Groups registrations are disabled")}
+        return JsonResponse(response, safe=False)
+
+    try:
+        students_count = int(students_count)
+        assert students_count > 0
+    except:
+        response = {'error': True, 'msg': _("Invalid value for students count")}
+        return JsonResponse(response, safe=False)
+
+    try:
+        guides_count = int(guides_count)
+        assert guides_count > 0
+    except:
+        response = {'error': True, 'msg': _("Invalid value for guides count")}
+        return JsonResponse(response, safe=False)
+
+    try:
+        slot = Slot.objects.get(pk=slot_id)
+    except:
+        response = {'error': True, 'msg': _("Invalid slot")}
+        return JsonResponse(response, safe=False)
+
+    if not slot.allow_group_registrations:
+        response = {'error': True, 'msg': _("This slot doesn't allow group registrations")}
+        return JsonResponse(response, safe=False)
+
+    if slot.group_mode == Slot.ONE_GROUP:
+        if slot.group_immersions.filter(cancellation_type__isnull=False).count()>0:
+            response = {'error': True, 'msg': _("This slot accepts only one registered group")}
+            return JsonResponse(response, safe=False)
+
+    if slot.group_mode == Slot.BY_PLACES:
+        people_dict = slot.registered_groups_people_count()
+
+        if (students_count + guides_count) > (slot.n_group_places - sum(people_dict.values())):
+            response = {'error': True, 'msg': _("There is not enough available places for this group")}
+            return JsonResponse(response, safe=False)
+
+    # Valid user conditions to register a group
+    allowed_structures = user.get_authorized_structures()
+    user_establishment = user.establishment
+    user_highschool = user.highschool
+
+    establishment = slot.get_establishment()
+    slot_structure = slot.get_structure()
+
+    # Fixme : add slot restrictions here
+    unpublished_slot_update_conditions = [
+        user.is_master_establishment_manager(),
+        user.is_operator(),
+        user.is_establishment_manager() and establishment == user_establishment
+    ]
+
+    published_slot_update_conditions = [
+        any(unpublished_slot_update_conditions),
+        user.is_structure_manager() and slot_structure in allowed_structures,
+        user.is_high_school_manager(),
+    ]
+
+    # Check registration rights depending on the (not student) authenticated user
+    if not slot.published and not any(unpublished_slot_update_conditions):
+        response = {'error': True, 'msg': _("Registering to an unpublished slot is forbidden")}
+        return JsonResponse(response, safe=False)
+
+    if slot.published and not any(published_slot_update_conditions):
+        response = {'error': True, 'msg': _("Sorry, you can't add any group registration to this slot")}
+        return JsonResponse(response, safe=False)
+
+    # Validate emails format
+    if emails:
+        for email in map(lambda a: a.strip(), emails.split(',')):
+            try:
+                validate_email(email)
+                cleaned_emails.append(email.lower())
+            except ValidationError:
+                response = {
+                    'error': True,
+                    'msg': _("This email seems invalid : %s. Please check the field format.") % email
+                }
+                return JsonResponse(response, safe=False)
+        else:
+            emails = ",".join(cleaned_emails)
+
+    try:
+        ImmersionGroupRecord.objects.create(
+            slot=slot,
+            highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
+            students_count=students_count,
+            guides_count=guides_count,
+            comments=comments,
+            emails=emails,
+            file=file
+        )
+        msg = _("Group successfully registered.")
+    except Exception as e:
+        msg = _("Registration error : %s") % e
+        error = True
+
+    if feedback == True:
+        if error:
+            messages.warning(request, msg)
+        else:
+            messages.success(request, msg)
+
+    response = {'error': error, 'msg': msg}
     return JsonResponse(response, safe=False)
 
 

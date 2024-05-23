@@ -922,8 +922,6 @@ class TrainingUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-
-
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class CourseSlotList(generic.TemplateView):
     template_name = "core/courses_slots_list.html"
@@ -940,6 +938,7 @@ class CourseSlotList(generic.TemplateView):
             "establishments": Establishment.activated.all(),
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+            "group_highschools": HighSchool.agreed.order_by('city', 'label'),
             "establishment_id": kwargs.get(
                 'establishment_id',
                 get_session_value(self.request, "courses", "current_establishment_id")
