@@ -906,6 +906,8 @@
         // periods = Array()
         let options = ''
 
+        let period_date_options = { dateStyle: 'short' };
+
         if(json.length === 0) {
           options += '<option value="">{% trans "No available period for this date" %}</option>'
         }
@@ -917,7 +919,11 @@
 
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(period_id) ? "selected='selected'" : ""
-          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} - ${json[i]['immersion_start_date']} - ${json[i]['immersion_end_date']}</option>`
+
+          let start_date = formatDate(json[i]['immersion_start_date'], period_date_options)
+          let end_date = formatDate(json[i]['immersion_end_date'], period_date_options)
+
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} - ${start_date} - ${end_date}</option>`
           // periods[json[i]['id']] = json[i]
         }
         $('select#id_period').html(options)
