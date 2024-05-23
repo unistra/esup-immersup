@@ -1273,9 +1273,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         # Slots and university year conditions
-        slots_exist = Slot.objects.filter(
-            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
-        ).exists()
+        slots_exist = obj.slots.exists()
 
         if slots_exist:
             messages.warning(
