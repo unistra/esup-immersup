@@ -1243,7 +1243,7 @@
           mandatory.push('n_places')
       }
 
-      if(allow_group_registrations === true && group_mode === BY_PLACES) {
+      if(allow_group_registrations === true) {
           mandatory.push('n_group_places')
       }
 
@@ -1354,6 +1354,9 @@
       $("#id_div_group_mode").show()
       $("#id_div_public_group").show()
 
+      $("#id_div_n_group_places").show()
+      $('#id_mandatory_n_group_places').show()
+
       if(allow_individual_registrations === true) {
         $("#id_div_n_places").show()
         $('#id_mandatory_n_places').show()
@@ -1361,15 +1364,6 @@
       else {
         $("#id_div_n_places").hide()
         $('#id_mandatory_n_places').hide()
-      }
-
-      if(group_mode === ONE_GROUP) {
-        $("#id_div_n_group_places").hide()
-        $('#id_mandatory_n_group_places').hide()
-      }
-      else {
-        $("#id_div_n_group_places").show()
-        $('#id_mandatory_n_group_places').show()
       }
     }
     else {

@@ -134,6 +134,8 @@
   var current_highschool_id = "{{ highschool_id }}";
   var current_training_id = "{{ training_id }}";
   var slot_places = 0;
+  var slot_groups_places = 0;
+
   let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   let is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
   let is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"

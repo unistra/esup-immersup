@@ -180,9 +180,10 @@ function display_group_informations(row) {
       group_data += `<br>${mode_txt} : ${one_group_txt}`
     }
     else {
-      group_data += `<br>${mode_txt} : ${by_places_txt}
-                     <br>${places_txt} : ${row.n_group_places}`
+      group_data += `<br>${mode_txt} : ${by_places_txt}`
     }
+
+    group_data += `<br>${places_txt} : ${row.n_group_places}`
 
     span += `<span
         data-toggle="tooltip"

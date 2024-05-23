@@ -581,11 +581,21 @@ class FormTestCase(TestCase):
         }
 
         form = SlotForm(data=valid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Please enter a valid number for 'n_group_places' field",
+            form.errors["n_group_places"]
+        )
+
+        # Valid n_group_places
+        valid_data.update({
+            'n_group_places': 10,
+        })
+        form = SlotForm(data=valid_data, request=request)
         self.assertTrue(form.is_valid())
 
         # 'by_places' mode and correct n_group_places
         valid_data.update({
-            'n_group_places': 10,
             'group_mode': Slot.BY_PLACES,
         })
 
@@ -597,8 +607,6 @@ class FormTestCase(TestCase):
         #########
         # FAILS #
         #########
-        request.user = self.ref_master_etab_user
-
         # try to lower n_places under immersions count
         immersion1 = Immersion.objects.create(
             student=self.highschool_user,

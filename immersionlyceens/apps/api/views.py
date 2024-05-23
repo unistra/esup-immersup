@@ -1384,12 +1384,12 @@ def ajax_group_slot_registration(request):
             response = {'error': True, 'msg': _("This slot accepts only one registered group")}
             return JsonResponse(response, safe=False)
 
-    if slot.group_mode == Slot.BY_PLACES:
-        people_dict = slot.registered_groups_people_count()
+    # available places
+    people_dict = slot.registered_groups_people_count()
 
-        if (students_count + guides_count) > (slot.n_group_places - sum(people_dict.values())):
-            response = {'error': True, 'msg': _("There is not enough available places for this group")}
-            return JsonResponse(response, safe=False)
+    if (students_count + guides_count) > (slot.n_group_places - sum(people_dict.values())):
+        response = {'error': True, 'msg': _("There is not enough available places for this group")}
+        return JsonResponse(response, safe=False)
 
     # Valid user conditions to register a group
     allowed_structures = user.get_authorized_structures()

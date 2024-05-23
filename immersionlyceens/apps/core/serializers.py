@@ -593,7 +593,7 @@ class SlotSerializer(serializers.ModelSerializer):
             if enabled_groups:
                 if allow_individual_registrations or not allow_group_registrations:
                     required_fields.append("n_places")
-                elif allow_group_registrations and group_mode == Slot.BY_PLACES:
+                elif allow_group_registrations:
                     required_fields.append("n_group_places")
             else:
                 required_fields.append("n_places")

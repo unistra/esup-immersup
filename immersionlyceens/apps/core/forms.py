@@ -399,8 +399,7 @@ class SlotForm(forms.ModelForm):
                     _("Please enter a valid number for 'n_places' field")
                 )
 
-            if (enabled_groups and allow_group_registrations and group_mode == Slot.BY_PLACES
-                and (not n_group_places or n_group_places <= 0)):
+            if (enabled_groups and allow_group_registrations and (not n_group_places or n_group_places <= 0)):
                 self.add_error(
                     'n_group_places',
                     _("Please enter a valid number for 'n_group_places' field")
@@ -415,7 +414,7 @@ class SlotForm(forms.ModelForm):
                     )
 
                 # Can't set n_group_places lower than actual group immersions
-                if enabled_groups and allow_group_registrations and group_mode == Slot.BY_PLACES and n_group_places:
+                if enabled_groups and allow_group_registrations and n_group_places:
                     group_queryset = self.instance.group_immersions.aggregate(
                         students_count=Sum('students_count'),
                         guides_count=Sum('guides_count')
