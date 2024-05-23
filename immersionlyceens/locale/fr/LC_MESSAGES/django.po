@@ -8416,7 +8416,7 @@ msgstr "Inscrire un groupe"
 #: immersionlyceens/templates/modals/modal_register_group.html:20
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:114
 msgid "Educational establishment"
-msgstr "Etablissement scolaire"
+msgstr "Établissement scolaire"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:40
 msgid "Students count"
@@ -8436,7 +8436,7 @@ msgstr "Une liste de courriels séparés par une virgule"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:80
 msgid "Add this group"
-msgstr "Enregistrer ce groupe"
+msgstr "Inscrire ce groupe"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:113
 #: immersionlyceens/templates/modals/modal_register_students_list.html:341
@@ -8623,7 +8623,7 @@ msgstr "Aucun groupe inscrit"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:572
 msgid "Send an email to registered groups contacts"
-msgstr "Envoi d'un mail aux contacts du groupe"
+msgstr "Envoi d'un courriel aux contacts des groupes inscrits"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:582
 msgid "group(s) present on "
