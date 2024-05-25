@@ -12,7 +12,7 @@ from .views import (
     accompanying, charter_not_signed, faq, highschools, home,
     host_establishments, offer, offer_off_offer_events, offer_subdomain,
     procedure, search_slots, serve_accompanying_document, serve_attestation_document,
-    serve_public_document
+    serve_immersion_group_document, serve_public_document
 )
 
 admin.autodiscover()
@@ -35,6 +35,7 @@ urlpatterns = [
     path('dl/accdoc/<int:accompanying_document_id>', serve_accompanying_document, name='accompanying_document',),
     path('dl/pubdoc/<int:public_document_id>', serve_public_document, name='public_document',),
     path('dl/attestation/<int:attestation_document_id>', serve_attestation_document, name='attestation_document',),
+    path('dl/immersiongroup/<int:immersion_group_id>', serve_immersion_group_document, name='group_document',),
     path('faq', faq, name='faq'),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('hijack/', include('hijack.urls', namespace='hijack')),

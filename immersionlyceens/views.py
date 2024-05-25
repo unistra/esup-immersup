@@ -24,14 +24,12 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from immersionlyceens.apps.core.models import (AccompanyingDocument,
-                                               AttestationDocument, Course,
-                                               Establishment, FaqEntry,
-                                               HighSchool, InformationText,
-                                               Period, PublicDocument,
-                                               PublicType, Slot, Training,
-                                               TrainingSubdomain,
-                                               UserCourseAlert)
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, AttestationDocument, Course, Establishment,
+    FaqEntry, HighSchool, ImmersionGroupRecord, InformationText, Period,
+    PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
+    UserCourseAlert
+)
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -217,6 +215,20 @@ def serve_attestation_document(request, attestation_document_id):
             return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
         else:
             return redirect(doc.template.url)
+
+    except Exception:
+        return HttpResponseNotFound()
+
+
+def serve_immersion_group_document(request, immersion_group_id):
+    """Serve attestation documents files"""
+    try:
+        immersion = get_object_or_404(ImmersionGroupRecord, pk=immersion_group_id)
+        if isinstance(default_storage, S3Boto3Storage):
+            response = requests.get(immersion.file.url, stream=True)
+            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
+        else:
+            return redirect(immersion.file.url)
 
     except Exception:
         return HttpResponseNotFound()

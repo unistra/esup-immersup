@@ -63,7 +63,7 @@
         </div>
         <span id="count" class="pull-right mt-4"></span>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer pb-0">
         <div class="form-group row justify-content-center">
         {% comment %}
           The following groups can update (add/cancel) registrations
@@ -92,7 +92,6 @@
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
           <button type="button" id="btn_attendance_pdf" class="btn btn-primary mr-2 mb-2 resp-btn">{% trans 'Attendance list' %}</button>
         {% endif %}
-          <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
         </div>
       </div>
 
@@ -150,7 +149,7 @@
         </div>
         <span id="groups_count" class="pull-right mt-4"></span>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer pb-0">
         <div class="form-group row justify-content-center">
         {% comment %}
           The following groups can update (add/cancel) registrations
@@ -179,6 +178,10 @@
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
           <button type="button" id="groups_btn_attendance_pdf" class="btn btn-primary mr-2 mb-2 resp-btn">{% trans 'Attendance list' %}</button>
         {% endif %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="form-group row justify-content-center">
           <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
         </div>
       </div>
@@ -502,7 +505,15 @@ groups_dtr = $('#groups_list').DataTable({
         return `${students}<br>${guides}`
      }
     },
-    {"data": "file"},
+    {"data": "file_name",
+     "render": function(data, type, row) {
+        if(is_set(data)) {
+          return `<a href="${row.file_link}" class="sun-row">${data}</a>`
+        }
+
+        return ""
+     }
+    },
     {"data": "comments"},
     {"data": "attendance",
      "render": function(data, type, row) {

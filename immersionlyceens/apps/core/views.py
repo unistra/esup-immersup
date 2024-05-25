@@ -39,9 +39,9 @@ from .forms import (
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText,
-    OffOfferEvent, Period, RefStructuresNotificationsSettings, Slot,
-    Structure, Training, UniversityYear
+    HighSchool, Holiday, Immersion, ImmersionGroupRecord, ImmersionUser,
+    InformationText, OffOfferEvent, Period, RefStructuresNotificationsSettings,
+    Slot, Structure, Training, UniversityYear
 )
 
 from .serializers import PeriodSerializer
@@ -955,7 +955,8 @@ class CourseSlotList(generic.TemplateView):
                 'training_id',
                 get_session_value(self.request, "courses", "current_training_id")
             ),
-            "course_id": kwargs.get('course_id', None)
+            "course_id": kwargs.get('course_id', None),
+            "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
         })
 
         try:
@@ -1577,7 +1578,8 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["slot_mode"] = "events"
         context["contact_form"] = ContactForm()
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
-        context["groups_cancel_types"]: CancelType.objects.filter(active=True, groups=True)
+        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
         # Defaults
         context["establishments"] = Establishment.activated.all()

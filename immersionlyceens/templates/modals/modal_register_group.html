@@ -53,15 +53,16 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="file">{% trans 'File' %} *</label>
+                <label for="file">{% trans 'File' %}</label>
                 <input id="file" type="file" name="file" class="form-control">
+                <small>{{ group_file_help_text }}</small>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="emails">{% trans 'Emails' %} *</label>
+                <label for="emails">{% trans 'Contact emails' %}</label>
                 <input id="emails" type="text" name="emails" class="form-control" placeholder="{% trans 'A list of emails separated by a comma' %}">
               </div>
             </div>
@@ -69,7 +70,7 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="comments">{% trans 'Comments' %} *</label>
+                <label for="comments">{% trans 'Comments' %}</label>
                 <textarea id="comments" name="comments" class="form-control"></textarea>
               </div>
             </div>
@@ -87,33 +88,61 @@
 
 <script>
   function register_group() {
-    $.ajax({
-      url: "{% url 'GroupSlotRegistration' %}",
-      type: 'POST',
-      data: {
+    let upload_file = $('#file')[0].files[0];
+    let formData = new FormData();
+
+    formData.append('slot_id', current_slot_id)
+    formData.append('highschool_id', $("#id_group_highschool").val())
+    formData.append('students_count', $("#students_count").val())
+    formData.append('guides_count', $("#guides_count").val())
+    formData.append('comments', $("#comments").val())
+    formData.append('file', upload_file)
+    formData.append('emails', $("#emails").val())
+    formData.append('feedback', true)
+    formData.append('middlewaretoken', '{{ csrf_token }}')
+
+    /*
+    {
         'slot_id': current_slot_id,
         'highschool_id': $("#id_group_highschool").val(),
         'students_count': $("#students_count").val(),
         'guides_count': $("#guides_count").val(),
         'comments': $("#comments").val(),
-        'file': $("#file").val(),
+        'file': upload_file,
         'emails': $("#emails").val(),
         'feedback': true,
         csrfmiddlewaretoken: '{{ csrf_token }}'
-      },
+      }
+     */
+
+    $.ajax({
+      url: "{% url 'GroupSlotRegistration' %}",
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
       success: function (json) {
         if(json['error']) {
           $("#register_group_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
 
-          groups_dtr.ajax.reload();
+          reload_groups_table();
+          // groups_dtr.ajax.reload();
           dt.ajax.reload();
         }
         else {
           $("#register_group_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
-          groups_dtr.ajax.reload();
+          // groups_dtr.ajax.reload();
+          reload_groups_table();
           dt.ajax.reload();
+
+          let fields = ['#id_group_highschool', '#students_count', '#guides_count', '#id_file', '#emails',
+                        '#comments']
+
+          $.each(fields, function(i, item) {
+            $(item).val('');
+          })
         }
       },
       error: function(json) {

@@ -930,7 +930,8 @@ def ajax_get_slot_groups_registrations(request, slot_id):
                 'city': immersion.highschool.city,
                 'students_count': immersion.students_count,
                 'guides_count': immersion.guides_count,
-                'file': immersion.file.name, #FIXME
+                'file_link': reverse('group_document', kwargs={'immersion_group_id': immersion.id}) if immersion.file else "",
+                'file_name': immersion.file.name if immersion.file else "",
                 'comments': immersion.comments,
                 'attendance': immersion.get_attendance_status_display(),
                 'attendance_status': immersion.attendance_status,
@@ -1336,10 +1337,12 @@ def ajax_group_slot_registration(request):
     highschool_id = request.POST.get('highschool_id', None)
     students_count = request.POST.get('students_count', None)
     guides_count = request.POST.get('guides_count', None)
-    file = request.POST.get('file', None)
+    file = request.FILES.get('file', None)
     emails = request.POST.get('emails', None)
     comments = request.POST.get('comments', None)
     feedback = request.POST.get('feedback', True)
+
+    print(file)
 
     error = False
     cleaned_emails = []
