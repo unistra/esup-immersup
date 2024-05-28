@@ -12,6 +12,7 @@
       <div class="modal-body">
         <div id="register_group_feedback"></div>
         <input id="id_slot" type="hidden" name="slot" class="form-control" required="required">
+        <input id="id_group_registration" type="hidden" name="slot" class="form-control" required="required">
 
         <div class="controls">
           <div class="row">
@@ -91,6 +92,7 @@
     let upload_file = $('#file')[0].files[0];
     let formData = new FormData();
 
+    formData.append('id', $("#id_group_registration").val())
     formData.append('slot_id', current_slot_id)
     formData.append('highschool_id', $("#id_group_highschool").val())
     formData.append('students_count', $("#students_count").val())
@@ -100,20 +102,6 @@
     formData.append('emails', $("#emails").val())
     formData.append('feedback', true)
     formData.append('middlewaretoken', '{{ csrf_token }}')
-
-    /*
-    {
-        'slot_id': current_slot_id,
-        'highschool_id': $("#id_group_highschool").val(),
-        'students_count': $("#students_count").val(),
-        'guides_count': $("#guides_count").val(),
-        'comments': $("#comments").val(),
-        'file': upload_file,
-        'emails': $("#emails").val(),
-        'feedback': true,
-        csrfmiddlewaretoken: '{{ csrf_token }}'
-      }
-     */
 
     $.ajax({
       url: "{% url 'GroupSlotRegistration' %}",
@@ -131,14 +119,14 @@
           dt.ajax.reload();
         }
         else {
-          $("#register_group_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
+          $("#register_group_feedback").html('<div class="alert alert-success">' + json['msg'] + '</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
           // groups_dtr.ajax.reload();
           reload_groups_table();
           dt.ajax.reload();
 
-          let fields = ['#id_group_highschool', '#students_count', '#guides_count', '#id_file', '#emails',
-                        '#comments']
+          let fields = ['#id_group_highschool', '#id_group_registration', '#students_count', '#guides_count',
+                        '#file', '#emails', '#comments']
 
           $.each(fields, function(i, item) {
             $(item).val('');
@@ -150,5 +138,31 @@
       }
     })
   };
+
+  $('#modal_register_group').on('show.bs.modal', function (e) {
+    if(!$("#id_group_registration").val()) {
+      $('#id_group_registration').val('')
+      $('#id_group_highschool').val('')
+      $('#students_count').val('')
+      $('#guides_count').val('')
+      $('#file').val('')
+      $('#emails').val('')
+      $('#comments').val('')
+
+      $('button[name="register"]').html(register_group_txt)
+    }
+  })
+
+  $('#modal_register_group').on('hidden.bs.modal', function (e) {
+    $('#id_group_registration').val('')
+    $('#id_group_highschool').val('')
+    $('#students_count').val('')
+    $('#guides_count').val('')
+    $('#file').val('')
+    $('#emails').val('')
+    $('#comments').val('')
+
+    $('button[name="register"]').html(register_group_txt)
+  })
 
 </script>

@@ -926,12 +926,14 @@ def ajax_get_slot_groups_registrations(request, slot_id):
         for immersion in immersions:
             immersion_data = {
                 'id': immersion.id,
+                'highschool_id': immersion.highschool.id,
                 'school': immersion.highschool.label,
                 'city': immersion.highschool.city,
                 'students_count': immersion.students_count,
                 'guides_count': immersion.guides_count,
                 'file_link': reverse('group_document', kwargs={'immersion_group_id': immersion.id}) if immersion.file else "",
                 'file_name': immersion.file.name if immersion.file else "",
+                'emails': immersion.emails,
                 'comments': immersion.comments,
                 'attendance': immersion.get_attendance_status_display(),
                 'attendance_status': immersion.attendance_status,
@@ -1333,6 +1335,7 @@ def ajax_group_slot_registration(request):
     """
     Register a group to a slot
     """
+    id = request.POST.get('id', None)
     slot_id = request.POST.get('slot_id', None)
     highschool_id = request.POST.get('highschool_id', None)
     students_count = request.POST.get('students_count', None)
@@ -1342,13 +1345,10 @@ def ajax_group_slot_registration(request):
     comments = request.POST.get('comments', None)
     feedback = request.POST.get('feedback', True)
 
-    print(file)
-
     error = False
     cleaned_emails = []
     user = request.user
 
-    slot, student = None, None
     today = timezone.localdate()
     today_time = timezone.now()
     off_offer = False
@@ -1371,6 +1371,13 @@ def ajax_group_slot_registration(request):
     except:
         response = {'error': True, 'msg': _("Invalid value for guides count")}
         return JsonResponse(response, safe=False)
+
+    try:
+        # Update
+        immersion_group_record = ImmersionGroupRecord.objects.get(pk=id)
+    except:
+        # Creation
+        immersion_group_record = None
 
     try:
         slot = Slot.objects.get(pk=slot_id)
@@ -1439,20 +1446,32 @@ def ajax_group_slot_registration(request):
         else:
             emails = ",".join(cleaned_emails)
 
-    try:
-        ImmersionGroupRecord.objects.create(
-            slot=slot,
-            highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
-            students_count=students_count,
-            guides_count=guides_count,
-            comments=comments,
-            emails=emails,
-            file=file
-        )
-        msg = _("Group successfully registered.")
-    except Exception as e:
-        msg = _("Registration error : %s") % e
-        error = True
+    if immersion_group_record:
+        immersion_group_record.highschool_id = user_highschool.id if user.is_high_school_manager() else highschool_id
+        immersion_group_record.students_count = students_count
+        immersion_group_record.guides_count = guides_count
+        immersion_group_record.comments = comments
+        immersion_group_record.emails = emails
+        if file:
+            immersion_group_record.file = file
+
+        immersion_group_record.save()
+        msg = _("Group successfully updated.")
+    else:
+        try:
+            ImmersionGroupRecord.objects.create(
+                slot=slot,
+                highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
+                students_count=students_count,
+                guides_count=guides_count,
+                comments=comments,
+                emails=emails,
+                file=file
+            )
+            msg = _("Group successfully registered.")
+        except Exception as e:
+            msg = _("Registration error : %s") % e
+            error = True
 
     if feedback == True:
         if error:

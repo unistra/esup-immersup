@@ -258,6 +258,20 @@ function reload_groups_table() {
   groups_dtr.ajax.url("/api/get_slot_groups_registrations/" + current_slot_id).load();
 }
 
+function open_group_modal(id, highschool_id, students_count, guides_count, file_link, file_name, emails, comments) {
+  $('#id_group_registration').val(id)
+  $('#id_slot').val(current_slot_id)
+  $('#id_group_highschool').val(highschool_id)
+  $('#students_count').val(students_count)
+  $('#guides_count').val(guides_count)
+  // $('#file').val(file_name)
+  $('#emails').val(emails)
+  $('#comments').val(comments)
+
+  $('button[name="register"]').html(update_group_txt)
+  $('#modal_register_group').modal('show');
+}
+
 $.fn.dataTableExt.errMode = 'console';
 
 dtr = $('#students_list').DataTable({
@@ -468,11 +482,15 @@ groups_dtr = $('#groups_list').DataTable({
      "class": "checkcell",
      "orderable": false,
      "title": '<input id="groups_checkall" type="checkbox" style="text-align: center">',
-     "render": function (dataItem) {
-        if (dataItem)
-            return '<input class="chk" checked type="checkbox">';
-        else
-            return '<input class="chk" type="checkbox">';
+     "render": function (data, type, row) {
+
+        let update = `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_group_modal('${row.id}', '${row.highschool_id}', '${row.students_count}', '${row.guides_count}', '${row.file_link}', '${row.file_name}', '${row.emails}', '${row.comments}')" title="${update_group_txt}">`
+                   + `<i class='fa fas fa-edit fa-2x centered-icon'></i>`
+                   + `</button>`
+
+        let input = data ? '<input class="chk" checked type="checkbox">' : '<input class="chk" type="checkbox">';
+
+        return `${input} ${update}`
       }
     },
     { "data": "school",
