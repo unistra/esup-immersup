@@ -46,7 +46,7 @@ from .managers import (
     HighSchoolAgreedManager, StructureQuerySet,
 )
 
-#from ordered_model.models import OrderedModel
+# from ordered_model.models import OrderedModel
 
 logger = logging.getLogger(__name__)
 
@@ -971,11 +971,9 @@ class TrainingSubdomain(models.Model):
     objects = models.Manager()  # default manager
     activated = ActiveManager()
 
-
     def __str__(self):
         domain = self.training_domain or _("No domain")
         return f"{domain} - {self.label}"
-
 
     def validate_unique(self, exclude=None):
         try:
@@ -988,7 +986,8 @@ class TrainingSubdomain(models.Model):
         slots_count = Slot.objects.filter(
             course__training__training_subdomains=self,
             published=True,
-            event__isnull=True
+            event__isnull=True,
+            allow_group_registrations=False
         ).prefetch_related('course__training__training_subdomains__training_domain') \
         .filter(
             Q(date__isnull=True)
@@ -998,6 +997,22 @@ class TrainingSubdomain(models.Model):
 
         return slots_count
 
+    def count_group_public_subdomain_slots(self):
+        today = datetime.datetime.today()
+        slots_count = (
+            Slot.objects.filter(
+                course__training__training_subdomains=self,
+                published=True,
+                event__isnull=True,
+                allow_group_registrations=True,
+                public_group=True
+            )
+            .prefetch_related('course__training__training_subdomains__training_domain')
+            .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
+            .count()
+        )
+
+        return slots_count
 
     class Meta:
         verbose_name = _('Training sub domain')
@@ -3135,7 +3150,6 @@ class FaqEntry(models.Model):
         verbose_name = _('Faq entry')
         verbose_name_plural = _('Faq entries')
         ordering = ['order']
-
 
 
 class RefStructuresNotificationsSettings(models.Model):

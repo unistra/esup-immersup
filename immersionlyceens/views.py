@@ -556,3 +556,88 @@ def search_slots(request):
         "intro_offer_search": intro_offer_search,
     }
     return render(request, "search_slots.html", context)
+
+
+def cohort_offer(request):
+    """Cohort offer view"""
+
+    filters = {}
+    try:
+        cohort_offer_txt = InformationText.objects.get(code="INTRO_OFFER_COHORT", active=True).content
+    except InformationText.DoesNotExist:
+        cohort_offer_txt = ''
+
+    today = datetime.datetime.today()
+    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
+    slots_count = (
+        Slot.objects.filter(published=True, event__isnull=True, allow_group_registrations=True, public_group=True)
+        .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
+        .distinct()
+        .count()
+    )
+
+    today = timezone.now().date()
+    # Published event only & no course
+
+    filters["course__isnull"] = True
+    filters["event__published"] = True
+    filters["allow_group_registrations"] = True
+    filters["public_group"] = True
+    filters["date__gte"] = today
+    events = (
+        Slot.objects.prefetch_related(
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions'
+        )
+        .filter(**filters)
+        .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
+    )
+
+    context = {
+        'subdomains': subdomains,
+        'slots_count': slots_count,
+        'cohort_offer_txt': cohort_offer_txt,
+        'events_count': events.count(),
+        'events': events,
+    }
+    return render(request, 'cohort_offer.html', context)
+
+
+def cohort_offer_subdomain(request, subdomain_id):
+    """Cohort subdomain offer view"""
+
+    trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
+    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
+    data = []
+    today = timezone.localdate()
+
+    for training in trainings:
+        training_courses = (
+            Course.objects.prefetch_related('training')
+            .filter(training__id=training.id, published=True)
+            .order_by('label')
+        )
+
+        for course in training_courses:
+            slots = Slot.objects.filter(course__id=course.id, published=True, date__gte=today).order_by(
+                'date', 'start_time', 'end_time'
+            )
+
+            training_data = {
+                'training': training,
+                'course': course,
+                'slots': None,
+            }
+
+            training_data['slots'] = slots
+
+            data.append(training_data.copy())
+
+    context = {
+        'subdomain': subdomain,
+        'data': data,
+        'today': today,
+        'is_anonymous': request.user.is_anonymous,
+    }
+
+    return render(request, 'cohort_offer_subdomains.html', context)
+

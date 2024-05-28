@@ -5,6 +5,7 @@
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
 {% general_settings_get 'CONTACT_FORM_URL' as external_contact_form_url %}
 {% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as activated_training_quotas %}
+{% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
 {% settings_get 'USE_CAS' as use_cas %}
 {% active_accompanying_docs as show_accompanying_docs_menu %}
 {% active_faq_entries as show_faq_menu %}
@@ -46,6 +47,9 @@
             <a class="dropdown-item" href="{% url 'offer' %}">{% trans 'Courses' %}</a>
             {% if events_off_offer %}
             <a class="dropdown-item" href="{% url 'offer_off_offer_events' %}">{% trans 'Off offer Events' %}</a>
+            {% endif %}
+            {% if activated_cohort %}
+            <a class="dropdown-item" href="{% url 'cohort_offer' %}">{% trans "Cohort immersions" %}</a>
             {% endif %}
           </div>
         </div>
