@@ -618,9 +618,9 @@ def cohort_offer_subdomain(request, subdomain_id):
         )
 
         for course in training_courses:
-            slots = Slot.objects.filter(course__id=course.id, published=True, date__gte=today).order_by(
-                'date', 'start_time', 'end_time'
-            )
+            slots = Slot.objects.filter(
+                course__id=course.id, published=True, date__gte=today, allow_group_registrations=True, public_group=True
+            ).order_by('date', 'start_time', 'end_time')
 
             training_data = {
                 'training': training,
@@ -640,4 +640,3 @@ def cohort_offer_subdomain(request, subdomain_id):
     }
 
     return render(request, 'cohort_offer_subdomains.html', context)
-
