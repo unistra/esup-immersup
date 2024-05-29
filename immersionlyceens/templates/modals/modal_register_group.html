@@ -55,6 +55,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label for="file">{% trans 'File' %}</label>
+                <a id="file_link" href="" class="sun-row" style='display:none;'></a>
                 <input id="file" type="file" name="file" class="form-control">
                 <small>{{ group_file_help_text }}</small>
               </div>
@@ -131,6 +132,10 @@
           $.each(fields, function(i, item) {
             $(item).val('');
           })
+
+          $("#file_link").prop("href", "")
+          $("#file_link").html('')
+          $("#file_link").hide()
         }
       },
       error: function(json) {
@@ -146,6 +151,9 @@
       $('#students_count').val('')
       $('#guides_count').val('')
       $('#file').val('')
+      $("#file_link").prop("href", "")
+      $("#file_link").html('')
+      $("#file_link").hide()
       $('#emails').val('')
       $('#comments').val('')
 
@@ -159,6 +167,9 @@
     $('#students_count').val('')
     $('#guides_count').val('')
     $('#file').val('')
+    $("#file_link").prop("href", "")
+    $("#file_link").html('')
+    $("#file_link").hide()
     $('#emails').val('')
     $('#comments').val('')
 

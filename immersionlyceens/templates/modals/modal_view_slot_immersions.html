@@ -175,9 +175,6 @@
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
           <button type="button" id="btn_contact_groups" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
-          <button type="button" id="groups_btn_attendance_pdf" class="btn btn-primary mr-2 mb-2 resp-btn">{% trans 'Attendance list' %}</button>
-        {% endif %}
         </div>
       </div>
       <div class="modal-footer">
@@ -264,7 +261,9 @@ function open_group_modal(id, highschool_id, students_count, guides_count, file_
   $('#id_group_highschool').val(highschool_id)
   $('#students_count').val(students_count)
   $('#guides_count').val(guides_count)
-  // $('#file').val(file_name)
+  $("#file_link").prop("href", file_link)
+  $("#file_link").html(file_name)
+  $("#file_link").show()
   $('#emails').val(emails)
   $('#comments').val(comments)
 
@@ -589,14 +588,10 @@ $('#groups_list').on('draw.dt', function () {
   if(groups_count == 0) {
     $("#btn_contact_groups").prop('disabled', true);
     $("#btn_contact_groups").prop('title', "{% trans 'No registered groups' %}");
-    $('#groups_btn_attendance_pdf').prop("disabled", true);
-    $('#groups_btn_attendance_pdf').prop('title', "{% trans 'No registered groups' %}");
   }
   else {
     $("#btn_contact_groups").prop('disabled', false);
     $("#btn_contact_groups").prop('title', "{% trans 'Send an email to registered groups contacts' %}");
-    $('#groups_btn_attendance_pdf').prop("disabled", false);
-    $('#groups_btn_attendance_pdf').prop('title', "{% trans 'Download attendance list' %}");
   }
 
   let presents = dtr.rows(function (idx, data, node) {
@@ -711,11 +706,9 @@ $(document).ready(function(){
       if (groups_counterChecked > 0) {
         $('#groups_btn_cancel_registrations').prop("disabled", false);
         $('#groups_select_cancel_type').prop("disabled", false);
-        $('#groups_btn_attendance_pdf').prop("disabled", false);
       } else {
         $('#groups_btn_cancel_registrations').prop("disabled", true);
         $('#groups_select_cancel_type').prop("disabled", true);
-        $('#groups_btn_attendance_pdf').prop("disabled", true);
       }
   });
 
@@ -805,18 +798,5 @@ $(document).ready(function(){
     link.click();
     link.remove();
   });
-
-  /*
-  Needed ?
-
-  $('#groups_btn_attendance_pdf').on('click', function() {
-    var link = document.createElement("a");
-    link.setAttribute('download', 'attendance_list');
-    link.href = " url 'immersion:groups_attendance_list_download' slot_id=123456 }}".replace(/123456/, current_slot_id);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  });
-  */
 });
 </script>

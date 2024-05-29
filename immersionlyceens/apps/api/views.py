@@ -1349,10 +1349,6 @@ def ajax_group_slot_registration(request):
     cleaned_emails = []
     user = request.user
 
-    today = timezone.localdate()
-    today_time = timezone.now()
-    off_offer = False
-
     activate_groups = GeneralSettings.get_setting("ACTIVATE_COHORT")
     if not activate_groups:
         response = {'error': True, 'msg': _("Groups registrations are disabled")}
@@ -1453,6 +1449,8 @@ def ajax_group_slot_registration(request):
         immersion_group_record.comments = comments
         immersion_group_record.emails = emails
         if file:
+            # Remove previous file from FS
+            immersion_group_record.file.storage.delete(immersion_group_record.file.name)
             immersion_group_record.file = file
 
         immersion_group_record.save()
