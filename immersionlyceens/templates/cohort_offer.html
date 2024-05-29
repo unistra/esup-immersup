@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% load static i18n immersionlyceens_tags %}
 {% block title %}
-  {% trans 'Cohort immersions' %}
+{% trans 'Cohort immersions' %}
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block content %}
   {% settings_get 'UNISTRA' as unistra %}
@@ -45,7 +48,7 @@
   </section>
   {% endif %}
   <section class="py-5 bg-gray">
-    <div class="container">
+    <div class="container-fluid">
       <nav class="nav nav-pills">
         <a class="nav-item nav-link active" href="#courses" data-toggle="tab">{% trans 'Courses' %}</a>
         {% if events_off_offer %}
@@ -58,7 +61,7 @@
           <p class="text-center">
             <span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_count }} {% trans 'available slots divided in subdomains (see below)' %}">{{ slots_count }} {% trans 'available slots' %}</span>
           </p>
-          <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
+          <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-6 justify-content-center">
             {% if subdomains %}
               {% regroup subdomains by training_domain.label as subdomains_list %}
               {% for subdomain in subdomains_list %}
@@ -352,4 +355,15 @@
       </div>
     </div>
   </section>
+  <script>
+  $(document).ready(function() {
+    initFeedback();
+    initBadge();
+    feedback = $("#feedback");
+
+    $(".close-button").on("click", function() {
+      $("div.collapse").collapse('hide');
+    });
+  });
+  </script>
 {% endblock %}

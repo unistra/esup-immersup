@@ -40,9 +40,9 @@
 </section>
 
 <section class="py-5 bg-gray ">
-  <div class="container ">
+  <div class="container-fluid">
     <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_count }} {% trans 'available slots divided in subdomains (see below)' %}">{{ slots_count }} {% trans 'available slots' %}</span></p>
-    <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
+    <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-6 justify-content-center">
     {% if subdomains %}
     {% regroup subdomains by training_domain.label as subdomains_list %}
     {% for subdomain in subdomains_list %}
