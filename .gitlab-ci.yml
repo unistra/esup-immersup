@@ -28,6 +28,7 @@ safety:
     - pip3 install safety
     - pip3 install -r requirements/prod.txt
     - pip3 install -U setuptools
+    - pip3 install -U pip
     - safety check -i 51457 -i 51499 -i 67599
   only:
     - develop
