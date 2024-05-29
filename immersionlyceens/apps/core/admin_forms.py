@@ -1424,7 +1424,8 @@ class HighSchoolForm(forms.ModelForm):
             self.fields['uses_agent_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
             )
-
+            
+        
 
     def clean(self):
         valid_user = False
@@ -1846,9 +1847,11 @@ class GeneralSettingsForm(forms.ModelForm):
 
         user = self.request.user
 
-        if not any([user.is_superuser, user.is_operator()]) and "settings_type" in self.fields:
+        # setting_type field only writable by admins and REF-TECs
+        if not any([user.is_superuser, user.is_operator()]) and "setting_type" in self.fields:
             self.fields["setting_type"].disabled = True
             self.fields["setting_type"].help_text = _("Read only")
+        
 
     def clean(self):
         cleaned_data = super().clean()
