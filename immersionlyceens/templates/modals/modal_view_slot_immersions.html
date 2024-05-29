@@ -191,6 +191,8 @@ var dtr;
 var groups_dtr;
 var counterChecked = 0;
 var groups_counterChecked = 0;
+var n_group_places = 0;
+var total_registered = 0;
 
 function set_attendance(immersion_id, value) {
   $.ajax({
@@ -459,6 +461,8 @@ groups_dtr = $('#groups_list').DataTable({
     url: "",
     dataSrc: function (json) {
       if (json['data'] !== undefined) {
+        total_registered = json['total_registered']
+        n_group_places = json['n_group_places']
         return json['data'];
       }
     }
@@ -516,10 +520,11 @@ groups_dtr = $('#groups_list').DataTable({
     },
     {"data": "students_count",
      "render": function(data, type, row) {
-        let students = "{% trans "Students" %} " + row.students_count
-        let guides = "{% trans "Guides" %} " + row.guides_count
+        let students = `{% trans "Students" %} : ${row.students_count}`
+        let guides = `{% trans "Guides" %} : ${row.guides_count}`
+        let total = `{% trans "Total" %} : ${row.total_count}`
 
-        return `${students}<br>${guides}`
+        return `${students}<br>${guides}<br>${total}`
      }
     },
     {"data": "file_name",
@@ -580,11 +585,6 @@ $('#groups_list').on('draw.dt', function () {
   if (typeof slot_groups_places == 'undefined') slot_groups_places = 0;
   if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
 
-  var groups_count = groups_dtr.rows().count()
-
-  // FIXME : free places depend on group mode and students+guides count
-  // var free_places = slot_groups_places - students_count;
-
   if(groups_count == 0) {
     $("#btn_contact_groups").prop('disabled', true);
     $("#btn_contact_groups").prop('title', "{% trans 'No registered groups' %}");
@@ -594,18 +594,17 @@ $('#groups_list').on('draw.dt', function () {
     $("#btn_contact_groups").prop('title', "{% trans 'Send an email to registered groups contacts' %}");
   }
 
-  let presents = dtr.rows(function (idx, data, node) {
+  let presents = groups_dtr.rows(function (idx, data, node) {
     return data.attendance_status == 1 ? true : false;
   }).count();
 
   if (can_update_attendances == true) {
     $('#groups_count').html(presents + " {% trans 'group(s) present on ' %}" + groups_count + " {% trans 'registered' %}");
   }
-  /*
   else {
-    $('#groups_count').html(free_places + " {% trans 'free places out of' %} " + slot_groups_places);
+    $('#groups_count').html(n_group_places-total_registered + " {% trans 'free places out of' %} " + n_group_places);
   }
-  */
+
 });
 
 
@@ -641,8 +640,6 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
 
 $(document).ready(function(){
   $('#checkall').change(function() {
-    console.log(this.checked)
-
     let isChecked = $(this).prop('checked');
     isChecked ? dtr.rows().select() : dtr.rows().deselect();
     let d = $('#students_list').DataTable().rows().data();
@@ -660,8 +657,6 @@ $(document).ready(function(){
   });
 
   $('#groups_checkall').change(function() {
-    console.log(this.checked)
-
     let isChecked = $(this).prop('checked');
     isChecked ? groups_dtr.rows().select() : groups_dtr.rows().deselect();
     let d = $('#groups_list').DataTable().rows().data();

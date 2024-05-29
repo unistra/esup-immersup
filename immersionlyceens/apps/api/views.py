@@ -909,10 +909,11 @@ def ajax_get_slot_groups_registrations(request, slot_id):
     # TODO: should be optimized to avoid loops on queryset
     # USE ANNOTATIONS
     slot = None
-    response = {'msg': '', 'data': []}
+    response = {'msg': '', 'data': [], 'n_group_places': 0, 'total_registered': 0}
 
     try:
         slot = Slot.objects.get(pk=slot_id)
+        response['n_group_places'] = slot.n_group_places
     except ObjectDoesNotExist:
         response['msg'] = gettext("Error : invalid slot id")
 
@@ -924,6 +925,7 @@ def ajax_get_slot_groups_registrations(request, slot_id):
         )
 
         for immersion in immersions:
+            total_count = (immersion.students_count or 0) + (immersion.guides_count or 0)
             immersion_data = {
                 'id': immersion.id,
                 'highschool_id': immersion.highschool.id,
@@ -931,6 +933,7 @@ def ajax_get_slot_groups_registrations(request, slot_id):
                 'city': immersion.highschool.city,
                 'students_count': immersion.students_count,
                 'guides_count': immersion.guides_count,
+                'total_count': total_count,
                 'file_link': reverse('group_document', kwargs={'immersion_group_id': immersion.id}) if immersion.file else "",
                 'file_name': immersion.file.name if immersion.file else "",
                 'emails': immersion.emails,
@@ -941,6 +944,7 @@ def ajax_get_slot_groups_registrations(request, slot_id):
             }
 
             response['data'].append(immersion_data.copy())
+            response['total_registered'] += total_count
 
     return JsonResponse(response, safe=False)
 

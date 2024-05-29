@@ -8819,7 +8819,7 @@ msgstr "Contact"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:102
 msgid "Group slot registrations"
-msgstr "Inscriptions en cohortes"
+msgstr "Cohortes inscrites à ce créneau"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:115
 msgid "People"
