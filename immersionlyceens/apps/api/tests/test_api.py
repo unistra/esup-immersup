@@ -2563,14 +2563,15 @@ class APITestCase(TestCase):
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         self.assertTrue(content['error'])
-        self.assertEqual(content['msg'], "Invalid parameters")
+        self.assertEqual(content['msg'], "mode param ('group' or 'student') is required")
 
         # Success
         data = {
             'slot_id': self.slot.id,
             'send_copy': 'true',
             'subject': 'hello',
-            'body': 'Hello world'
+            'body': 'Hello world',
+            'mode': 'student',
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 

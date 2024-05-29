@@ -1795,37 +1795,65 @@ def ajax_get_highschool_students(request):
 @groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'CONS-STR')
 def ajax_send_email(request):
     """
-    Send an email to all students registered to a specific slot
+    Send an email to all students registered to a specific slot, or all contacts of all groups
+    depending on the value of 'mode'
     """
     slot_id = request.POST.get('slot_id', None)
     send_copy = request.POST.get('send_copy', False) == "true"
     subject = request.POST.get('subject', "")
     body = request.POST.get('body', "")
+    mode = request.POST.get('mode', "")
 
     response = {'error': False, 'msg': ''}
 
-    if not slot_id or not body.strip() or not subject.strip():
-        response = {'error': True, 'msg': gettext("Invalid parameters")}
+    if mode not in ['student', 'group']:
+        response = {'error': True, 'msg': gettext("mode param ('group' or 'student') is required")}
         return JsonResponse(response, safe=False)
 
-    immersions = Immersion.objects.filter(slot_id=slot_id, cancellation_type__isnull=True)
+    if not slot_id:
+        response = {'error': True, 'msg': gettext("Slot id is missing")}
+        return JsonResponse(response, safe=False)
 
-    if immersions:
-        # Add slot label, date and time to email's subject
-        s = immersions.first().slot
-        slot_label = s.get_label()
-        date = date_format(s.date, format='l d F Y', use_l10n=True)
-        start_time = s.start_time.isoformat(timespec='minutes')
-        end_time = s.end_time.isoformat(timespec='minutes')
+    if not body.strip():
+        response = {'error': True, 'msg': gettext("Body is missing")}
+        return JsonResponse(response, safe=False)
+
+    if not subject.strip():
+        response = {'error': True, 'msg': gettext("Subject is missing")}
+        return JsonResponse(response, safe=False)
+
+    try:
+        slot = Slot.objects.get(pk=slot_id)
+
+        slot_label = slot.get_label()
+        date = date_format(slot.date, format='l d F Y', use_l10n=True)
+        start_time = slot.start_time.isoformat(timespec='minutes')
+        end_time = slot.end_time.isoformat(timespec='minutes')
         subject = f"{slot_label} : {date} ({start_time}-{end_time}) - {subject}"
+    except Slot.DoesNotExist:
+        response = {'error': True, 'msg': gettext("Invalid slot id")}
+        return JsonResponse(response, safe=False)
 
-    for immersion in immersions:
-        recipient = immersion.student.email
-        try:
-            send_email(recipient, subject, body)
-        except Exception:
-            response['error'] = True
-            response['msg'] += _("%s : error") % recipient
+    if mode == 'student':
+        immersions = Immersion.objects.filter(slot_id=slot_id, cancellation_type__isnull=True)
+
+        for immersion in immersions:
+            recipient = immersion.student.email
+            try:
+                send_email(recipient, subject, body)
+            except Exception:
+                response['error'] = True
+                response['msg'] += _("%s : error") % recipient
+    else:
+        # group mode
+        immersions = ImmersionGroupRecord.objects.filter(slot_id=slot_id, cancellation_type__isnull=True)
+        for immersion in immersions:
+            for recipient in immersion.emails.split(","):
+                try:
+                    send_email(recipient, subject, body)
+                except Exception:
+                    response['error'] = True
+                    response['msg'] += _("%s : error") % recipient
 
     # Send a copy to the sender if requested - append "(copy)" to the subject
     if send_copy:
