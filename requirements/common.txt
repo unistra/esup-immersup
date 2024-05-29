@@ -28,3 +28,4 @@ boto3>=1.4.4
 python-magic==0.4.27
 django-ckeditor==6.7.0
 dictdiffer
+idna==3.7
