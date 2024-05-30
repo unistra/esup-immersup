@@ -26,7 +26,7 @@ function set_fields(period_mode) {
 // init
 $(document).ready(function() {
 
-  if($("input[name='_save']")) {
+  if($("input[name='_save']")[0]) {
     $("#id_registration_end_date_policy").change(function () {
       set_fields($(this).val())
     })
