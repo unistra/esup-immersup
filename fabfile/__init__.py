@@ -162,7 +162,7 @@ def preprod():
     env.roledefs = {
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
+        'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],
     }
 
     # env.user = 'root'  # user for ssh
@@ -171,7 +171,7 @@ def preprod():
     env.server_name = 'immersup-pprd.app.unistra.fr'
     env.short_server_name = 'immersup-pprd'
     env.static_folder = '/site_media/'
-    env.server_ip = '130.79.245.212'
+    env.server_ip = '77.72.45.206'
     env.no_shared_sessions = False
     env.server_ssl_on = True
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
