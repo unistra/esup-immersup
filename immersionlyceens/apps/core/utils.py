@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.db.models import (
     BooleanField, Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
-    OuterRef, Q, QuerySet, Subquery, Value, When,
+    OuterRef, Q, QuerySet, Subquery, Sum, Value, When,
 )
 from django.db.models.functions import Coalesce, JSONObject
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -305,6 +305,21 @@ def slots(request):
             default=False
         ),
         n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
+        n_group_register=Count(
+            'group_immersions',
+            filter=Q(group_immersions__cancellation_type__isnull=True),
+            distinct=True
+        ),
+        n_group_students=Sum(
+            'group_immersions__students_count',
+            filter=Q(group_immersions__cancellation_type__isnull=True),
+            distinct=True
+        ),
+        n_group_guides=Sum(
+            'group_immersions__guides_count',
+            filter=Q(group_immersions__cancellation_type__isnull=True),
+            distinct=True
+        ),
         is_past=ExpressionWrapper(
             Q(date__lt=today)|Q(date=today, start_time__lt=now),
             output_field=BooleanField()
@@ -431,7 +446,8 @@ def slots(request):
         'allowed_highschool_levels_list', 'allowed_post_bachelor_levels_list',
         'allowed_student_levels_list', 'allowed_bachelor_types_list', 'allowed_bachelor_mentions_list',
         'allowed_bachelor_teachings_list', 'is_past', 'can_update_attendances', 'group_mode',
-        'allow_individual_registrations', 'allow_group_registrations', 'n_group_places', 'public_group'
+        'allow_individual_registrations', 'allow_group_registrations', 'n_group_places', 'public_group',
+        'n_group_register', 'n_group_students', 'n_group_guides'
     )
 
     response['data'] = list(slots)

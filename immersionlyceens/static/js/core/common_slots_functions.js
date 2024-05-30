@@ -15,19 +15,50 @@ function display_additional_information(data) {
 
 function display_n_register(data, type, row) {
     // display registered persons with a progress bar
-    let current = data;
-    let n = row['n_places'];
-    let element = '<span>' + current + '/' + n + '</span>' +
+    let current_students = data;
+    let n_places = row['n_places'];
+
+    let n_group_register = row['n_group_register'] || 0;
+    let n_group_students = row['n_group_students'] || 0;
+    let n_group_guides = row['n_group_guides'] || 0;
+    let n_group_total = n_group_students + n_group_guides
+    let n_group_places = row['n_group_places'];
+    let group_mode = row['group_mode'];
+
+    let allow_group_registrations = row['allow_group_registrations'];
+
+    let element = '<span>Ind. ' + current_students + '/' + n_places + '</span>' +
         '<div class="progress">' +
         '    <div' +
         '       class="progress-bar"' +
         '       role="progressbar"' +
-        '       aria-valuenow="' + current + '"' +
+        '       aria-valuenow="' + current_students + '"' +
         '       aria-valuemin="0"' +
-        '       aria-valuemax="' + n + '"' +
-        '       style="width: ' + Math.round(current/n * 100) + '%"' +
+        '       aria-valuemax="' + n_places + '"' +
+        '       style="width: ' + Math.round(current_students/n_places * 100) + '%"' +
         '></div>' +
         '</div>';
+
+    if(allow_group_registrations) {
+        let full_txt = ""
+
+        if(group_mode === 0 && n_group_register > 0) {
+          full_txt = ` - (${group_full_txt})`
+        }
+
+        element += `<span>Gr. ${n_group_total}/${n_group_places}${full_txt}</span>` +
+            '<div class="progress">' +
+            '    <div' +
+            '       class="progress-bar"' +
+            '       role="progressbar"' +
+            '       aria-valuenow="' + n_group_total + '"' +
+            '       aria-valuemin="0"' +
+            '       aria-valuemax="' + n_group_places + '"' +
+            '       style="width: ' + Math.round(n_group_total/n_group_places * 100) + '%"' +
+            '></div>' +
+            '</div>';
+    }
+
     return element;
   }
 
@@ -175,6 +206,8 @@ function display_group_informations(row) {
     const ONE_GROUP = 0
     let group_data = `${group_registrations_txt}`
     let details = ''
+    let public_private = row.public_group ? public_group_txt : private_group_txt;
+    let public_private_icon = row.public_group ? "fa-eye" : "fa-eye-slash"
 
     if(row.group_mode === ONE_GROUP) {
       group_data += `<br>${mode_txt} : ${one_group_txt}`
@@ -190,9 +223,40 @@ function display_group_informations(row) {
         data-html="true" 
         data-contrainer="body"
         title="${group_data}">
-        <i class="fa fas fa-users"></i>
+        <i class="fa fas fa-users pr-2"></i>
+    </span>`
+
+      span += `<span
+        data-toggle="tooltip"
+        data-html="true" 
+        data-contrainer="body"
+        title="${public_private}">
+        <i class="fa fas ${public_private_icon}"></i>
     </span>`
   }
 
   return span
+}
+
+function set_group_filter(row, type) {
+  let group_regs = row.allow_group_registrations ? 2 : 0;
+  let indiv_regs = row.allow_individual_registrations ? 1 : 0;
+  let sum = group_regs + indiv_regs
+
+  if(type === "sort") {
+    return sum
+  }
+
+  if (sum === 0) {
+    return regs_none_txt;
+  }
+  else if (sum === 1) {
+    return regs_individual_only_txt;
+  }
+  else if (sum === 2) {
+    return regs_groups_only_txt;
+  }
+  else if (sum === 3) {
+    return regs_groups_and_individual_txt;
+  }
 }

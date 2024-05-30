@@ -69,12 +69,12 @@ function init_datatable() {
           }
           if (row['can_update_attendances']) {
             if(row.attendances_value === 1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
                          `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                          `</button>`;
             }
             else if (row.attendances_value !== -1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
                          `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                          `</button>`;
             }
@@ -169,9 +169,16 @@ function init_datatable() {
           return display_slot_restrictions(data, type, row)
         }
       },
-      { data: '',
+      { data: 'allow_group_registrations',
         render: function(data, type, row) {
-          return display_group_informations(row)
+          if(type === "display") {
+            return display_group_informations(row)
+          }
+          else if(type === "filter" || type === "sort") {
+            return set_group_filter(row, type)
+          }
+
+          return data
         }
       }
     ],
@@ -298,6 +305,14 @@ function init_datatable() {
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "registration_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 11,
+        filter_default_label: "",
+        filter_match_mode: "exact",
+        filter_container_id: "groups_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },

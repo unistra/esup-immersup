@@ -51,7 +51,15 @@ function init_yadcf_filter() {
       style_class: "form-control form-control-sm",
       filter_container_id: "attendances_filter",
       filter_reset_button_text: false,
-    }
+    },
+    {
+      column_number: 10,
+      filter_default_label: "",
+      filter_match_mode: "exact",
+      filter_container_id: "groups_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
   ]
 
   return filter
@@ -171,12 +179,12 @@ function init_datatable() {
 
           if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
             edit_mode = 1
-            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
                   `<i class='fa fas fa-edit fa-2x'></i>` +
                   `</button>`;
           }
           else if (row.attendances_value !== -1) {
-            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.n_group_places})" title="${registered_text}">` +
+            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places})" title="${registered_text}">` +
                   `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                   `</button>`;
           }
@@ -195,9 +203,16 @@ function init_datatable() {
           return display_slot_restrictions(data, type, row)
         }
       },
-      { data: '',
+      { data: 'allow_group_registrations',
         render: function(data, type, row) {
-          return display_group_informations(row)
+          if(type === "display") {
+            return display_group_informations(row)
+          }
+          else if(type === "filter" || type === "sort") {
+            return set_group_filter(row, type)
+          }
+
+          return data
         }
       }
     ],

@@ -1390,7 +1390,7 @@ def ajax_group_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     if slot.group_mode == Slot.ONE_GROUP:
-        if slot.group_immersions.filter(cancellation_type__isnull=False).count()>0:
+        if slot.group_immersions.filter(cancellation_type__isnull=True).count() > 0:
             response = {'error': True, 'msg': _("This slot accepts only one registered group")}
             return JsonResponse(response, safe=False)
 

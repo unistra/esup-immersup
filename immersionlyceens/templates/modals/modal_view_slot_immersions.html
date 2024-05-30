@@ -6,7 +6,9 @@
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal_view_slot_immersions_title">{% trans 'Slot registrations' %}</h5>
+        <h5 class="modal-title" id="modal_view_slot_immersions_title">
+          {% trans 'Slot registrations' %} - <span id="count"></span>
+        </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -61,9 +63,8 @@
             </div>
           </div>
         </div>
-        <span id="count" class="pull-right mt-4"></span>
       </div>
-      <div class="modal-footer pb-0">
+      <div class="modal-footer pt-0 pb-0">
         <div class="form-group row justify-content-center">
         {% comment %}
           The following groups can update (add/cancel) registrations
@@ -96,93 +97,93 @@
       </div>
 
       {% if enabled_groups_registrations %}
-      <div class="modal-header pt-0">
-        <h5 class="modal-title" id="modal_view_slot_groups_immersions_title">{% trans 'Group slot registrations' %}</h5>
-      </div>
-      <div class="modal-body">
-        <div id="groups_cancel_feedback"></div>
-        <div class="row">
-          <div class="col">
-            <div class="table-responsive">
-              <table id="groups_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th scope="col">{% trans 'Educational establishment' %}</th>
-                  <th scope="col">{% trans 'City' %}</th>
-                  <th scope="col">{% trans 'People' %}</th>
-                  <th scope="col">{% trans 'File' %}</th>
-                  <th scope="col">{% trans 'Comments' %}</th>
-                  <th scope="col">{% trans 'Attendances' %}</th>
-                  <th scope="col">{% trans 'Date of registration' %}</th>
-                </tr>
-                <tr id="id_groups_attendances">
-                  <th colspan='6'></th>
-                  <th>
-                    <div id="id_groups_update_attendances" style="display:none">
-                      <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_groups_attendances(1)" title="{% trans 'Set all present' %}">
-                        <i class='fa fas fa-check'></i>
-                      </button>
-                      <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_groups_attendances(2)" title="{% trans 'Set all not Present' %}">
-                        <i class='fa fas fa-times'></i>
-                      </button>
-                    </div>
-                  </th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-              </table>
+      <div id="id_div_group_registrations">
+        <div class="modal-header pt-0">
+          <h5 class="modal-title" id="modal_view_slot_groups_immersions_title">
+            {% trans 'Group slot registrations' %} - <span id="groups_count"></span>
+          </h5>
+        </div>
+        <div class="modal-body">
+          <div id="groups_cancel_feedback"></div>
+          <div class="row">
+            <div class="col">
+              <div class="table-responsive">
+                <table id="groups_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th scope="col">{% trans 'Educational establishment' %}</th>
+                    <th scope="col">{% trans 'City' %}</th>
+                    <th scope="col">{% trans 'People' %}</th>
+                    <th scope="col">{% trans 'File' %}</th>
+                    <th scope="col">{% trans 'Comments' %}</th>
+                    <th scope="col">{% trans 'Attendances' %}</th>
+                    <th scope="col">{% trans 'Date of registration' %}</th>
+                  </tr>
+                  <tr id="id_groups_attendances">
+                    <th colspan='6'></th>
+                    <th>
+                      <div id="id_groups_update_attendances" style="display:none">
+                        <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_groups_attendances(1)" title="{% trans 'Set all present' %}">
+                          <i class='fa fas fa-check'></i>
+                        </button>
+                        <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_groups_attendances(2)" title="{% trans 'Set all not Present' %}">
+                          <i class='fa fas fa-times'></i>
+                        </button>
+                      </div>
+                    </th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-        <span id="groups_count" class="pull-right mt-4"></span>
-      </div>
-      <div class="modal-footer pb-0">
-        <div class="form-group row justify-content-center">
-        {% comment %}
-          The following groups can update (add/cancel) registrations
-        {% endcomment %}
+        <div class="modal-footer pt-0 pb-0">
+          <div class="form-group row justify-content-center">
+          {% comment %}
+            The following groups can update (add/cancel) registrations
+          {% endcomment %}
 
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
-          <label id="groups_lbl_select_cancel_type" for="groups_select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
-          <div class="col">
-            <select class="form-control form-control mr-2 mb-2" name="groups-cancel-type" id="groups_select_cancel_type" disabled>
-              <option value="" label=" "></option>
-              {% for type in groups_cancel_types  %}
-                <option value="{{ type.pk }}">{{ type.label }}</option>
-              {% endfor %}
-            </select>
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
+            <label id="groups_lbl_select_cancel_type" for="groups_select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
+            <div class="col">
+              <select class="form-control form-control mr-2 mb-2" name="groups-cancel-type" id="groups_select_cancel_type" disabled>
+                <option value="" label=" "></option>
+                {% for type in groups_cancel_types  %}
+                  <option value="{{ type.pk }}">{{ type.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="button" id="groups_btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
+            <button type="button" id="btn_register_group" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_group">{% trans 'Add registration' %}</button>
+          {% endif %}
+
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
+            <button type="button" id="btn_contact_groups" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-mode="group" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
+          {% endif %}
           </div>
-          <button type="button" id="groups_btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
-          <button type="button" id="btn_register_group" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_group">{% trans 'Add registration' %}</button>
-        {% endif %}
-
-        {% comment %}
-          Attendances : same groups but INTER users can also update attendances for their courses/events
-        {% endcomment %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
-          <button type="button" id="btn_contact_groups" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-mode="group" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
-        {% endif %}
         </div>
       </div>
-      <div class="modal-footer">
+      {% endif %}
+      <div class="modal-footer pt-0 pb-0">
         <div class="form-group row justify-content-center">
           <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
         </div>
       </div>
-      {% endif %}
     </div>
   </div>
 </div>
@@ -193,6 +194,7 @@ var counterChecked = 0;
 var groups_counterChecked = 0;
 var n_group_places = 0;
 var total_registered = 0;
+var n_groups = 0;
 
 function set_attendance(immersion_id, value) {
   $.ajax({
@@ -296,6 +298,8 @@ dtr = $('#students_list').DataTable({
   'rowId': 'id',
   'searching': true,
   'paging': true,
+  'pageLength': 5,
+  'lengthMenu': [[5,10,15,20], [5,10,15,20]],
   'ordering': true,
   'select': {
     style: 'multi',
@@ -463,6 +467,7 @@ groups_dtr = $('#groups_list').DataTable({
       if (json['data'] !== undefined) {
         total_registered = json['total_registered']
         n_group_places = json['n_group_places']
+        n_groups = json['data'].length;
         return json['data'];
       }
     }
@@ -470,6 +475,8 @@ groups_dtr = $('#groups_list').DataTable({
   'rowId': 'id',
   'searching': true,
   'paging': true,
+  'pageLength': 5,
+  'lengthMenu': [[5,10], [5,10]],
   'ordering': true,
   'select': {
     style: 'multi',
@@ -524,7 +531,7 @@ groups_dtr = $('#groups_list').DataTable({
         let guides = `{% trans "Guides" %} : ${row.guides_count}`
         let total = `{% trans "Total" %} : ${row.total_count}`
 
-        return `${students}<br>${guides}<br>${total}`
+        return `${students} / ${guides} / ${total}`
      }
     },
     {"data": "file_name",
@@ -585,7 +592,7 @@ $('#groups_list').on('draw.dt', function () {
   if (typeof slot_groups_places == 'undefined') slot_groups_places = 0;
   if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
 
-  if(groups_count == 0) {
+  if(n_groups == 0) {
     $("#btn_contact_groups").prop('disabled', true);
     $("#btn_contact_groups").prop('title', "{% trans 'No registered groups' %}");
   }
@@ -605,6 +612,14 @@ $('#groups_list').on('draw.dt', function () {
     $('#groups_count').html(n_group_places-total_registered + " {% trans 'free places out of' %} " + n_group_places);
   }
 
+  if(slot_group_mode == '0' && n_groups == 1) {
+    $("#btn_register_group").prop('disabled', true);
+    $("#btn_register_group").prop('title', "{% trans 'Only one group allowed' %}");
+  }
+  else {
+    $("#btn_register_group").prop('disabled', false);
+    $("#btn_register_group").prop('title', "{% trans 'Register a new group' %}");
+  }
 });
 
 
