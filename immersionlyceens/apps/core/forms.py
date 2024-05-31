@@ -335,12 +335,6 @@ class SlotForm(forms.ModelForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
-        print(f"period : {period}")
-        print(f"group_mode : {group_mode}")
-        print(f"n_group_places : {n_group_places}")
-        print(f"allow_individual_registrations : {allow_individual_registrations}")
-        print(f"allow_group_registrations : {allow_group_registrations}")
-
         # Groups settings
         try:
             enabled_groups = get_general_setting("ACTIVATE_COHORT")
