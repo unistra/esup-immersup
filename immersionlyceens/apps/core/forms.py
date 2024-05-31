@@ -485,9 +485,7 @@ class SlotForm(forms.ModelForm):
                 slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
                 slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
                 slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
-                print("nds:",new_dates)
                 for new_date in new_dates:
-                    print("new_date", new_date)
                     try:
                         parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
                         period = instance.period
