@@ -270,26 +270,40 @@
                                                               {% endif %}
                                                             </td>
                                                             <td>
-                                                              {% if s.cancelled %}
+                                                              {% if s.allow_individual_registrations %}
+                                                              <i class="fa fas fa-user text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Individual immersions' %}"></i>
+                                                                {% trans 'Individual immersions' %}
+                                                                {% if s.cancelled %}
                                                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                                                                {% if s.can_register %}
-                                                                  <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
-                                                                  <div id="feedback_{{ s.pk }}"></div>
                                                                 {% endif %}
-                                                              {% comment "TODO: changed later" %}{% endcomment %}
-                                                              {% elif s.already_registered %}
+                                                                {% if s.can_register %}
+                                                                  <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register again' %}</button>
+                                                                  <div id="feedback_{{ s.pk }}"></div>
+                                                                {% elif s.already_registered %}
                                                                 <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                                                              {% elif s.opening_soon %}
+                                                                {% elif s.opening_soon %}
                                                                 <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                                                              {% elif s.available_seats > 0 %}
-                                                                <span class="badge badge-primary badge-pill">{% if s.group_mode == 0 %}{% blocktrans with grp_places=s.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}{% else %}{% trans 'Available places' %} : {{ s.available_seats }}{% endif %}</span><br />
+                                                                {% elif s.available_seats > 0 %}
+                                                                <span class="badge badge-primary badge-pill">{% trans 'Available places' %} : {{ s.available_seats }}{% endif %}</span><br />
                                                                 {% comment "TODO: register route changed later !!!" %}{% endcomment %}
-                                                                {% if authorized_groups|in_groups:'LYC,ETU,VIS' and s.can_register %}
+                                                                  {% if authorized_groups|in_groups:'LYC,ETU,VIS' and s.can_register %}
                                                                   <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
                                                                   <div id="feedback_{{ s.pk }}"></div>
-                                                                {% endif %}
-                                                              {% else %}
+                                                                  {% endif %}
+                                                                {% else %}
                                                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                                              {% endif %}
+
+                                                              {% if s.allow_group_registrations %}
+                                                              <i class="fa fas fa-group text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Cohort immersions' %}"></i>
+                                                                {% trans 'Cohort immersions' %}
+                                                                {% if s.n_group_places > 0 %}
+                                                                <span class="badge badge-primary badge-pill">
+                                                                {% if s.group_mode == 0 %}{% blocktrans with grp_places=s.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}{% else %}{% trans 'Available places' %} : {{ s.available_seats }}{% endif %}
+                                                                </span>
+                                                                {% else %}
+                                                                <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                                                {% endif %}
                                                               {% endif %}
                                                             </td>
                                                           </tr>

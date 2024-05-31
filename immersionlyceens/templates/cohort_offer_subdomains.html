@@ -206,29 +206,48 @@
                             {% endif %}
                           </td>
                           <td>
-                            {% if slot.cancelled %}
+                            {% if slot.allow_individual_registrations %}
+                            <i class="fa fas fa-user text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Individual immersions' %}"></i>
+                              {% trans 'Individual immersions' %}
+                              {% if slot.cancelled %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                              {% endif %}
                               {% if slot.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
                                 <div id="feedback_{{slot.pk}}" ></div>
-                              {% endif %}
-                            {% elif slot.already_registered %}
+                              {% elif slot.already_registered %}
                                 <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                            {% elif slot.opening_soon %}
+                              {% elif slot.opening_soon %}
                                 <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                            {% elif slot.available_seats > 0 %}
+                              {% elif slot.available_seats > 0 %}
                                 <span class="badge badge-primary badge-pill">
-                                {% if slot.group_mode == 0 %}{% blocktrans with grp_places=slot.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}{% else %}{% trans 'Available places' %} : {{ slot.available_seats }}{% endif %}
+                                {% trans 'Available places' %} : {{ slot.available_seats }}
                                 </span><br>
-                              {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                                {% if slot.can_register %}
+                                {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+                                  {% if slot.can_register %}
                                   <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
                                   <div id="feedback_{{slot.pk}}" ></div>
+                                  {% endif %}
                                 {% endif %}
-                              {% endif %}
-                              <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span>
-                            {% else %}
+                                <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
+                              {% else %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                              {% endif %}
+                            {% endif %}
+                            {% if slot.allow_group_registrations %}
+                                <i class="fa fas fa-group text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Cohort immersions' %}"></i>
+                                  {% trans 'Cohort immersions' %}
+                              {% if slot.n_group_places > 0 %}
+                              <span class="badge badge-primary badge-pill">
+                                {% if slot.group_mode == 0 %}
+                                  {% blocktrans with grp_places=slot.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}
+                                {% else %}
+                                  {% trans 'Available places' %} : {{ slot.n_group_places }}
+                                {% endif %}
+                              </span><br>
+                              {% else %}
+                              <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                              {% endif %}
                             {% endif %}
                           </td>
                         </tr>
