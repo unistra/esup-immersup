@@ -25,19 +25,24 @@ function display_n_register(data, type, row) {
     let n_group_places = row['n_group_places'];
     let group_mode = row['group_mode'];
 
+    let allow_individual_registrations = row['allow_individual_registrations'];
     let allow_group_registrations = row['allow_group_registrations'];
 
-    let element = '<span>Ind. ' + current_students + '/' + n_places + '</span>' +
-        '<div class="progress">' +
-        '    <div' +
-        '       class="progress-bar"' +
-        '       role="progressbar"' +
-        '       aria-valuenow="' + current_students + '"' +
-        '       aria-valuemin="0"' +
-        '       aria-valuemax="' + n_places + '"' +
-        '       style="width: ' + Math.round(current_students/n_places * 100) + '%"' +
-        '></div>' +
-        '</div>';
+    let element = ""
+
+    if(allow_individual_registrations) {
+        element += '<span>Ind. ' + current_students + '/' + n_places + '</span>' +
+            '<div class="progress">' +
+            '    <div' +
+            '       class="progress-bar"' +
+            '       role="progressbar"' +
+            '       aria-valuenow="' + current_students + '"' +
+            '       aria-valuemin="0"' +
+            '       aria-valuemax="' + n_places + '"' +
+            '       style="width: ' + Math.round(current_students / n_places * 100) + '%"' +
+            '></div>' +
+            '</div>';
+    }
 
     if(allow_group_registrations) {
         let full_txt = ""
