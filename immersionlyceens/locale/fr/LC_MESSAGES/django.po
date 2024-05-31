@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-31 10:25+0200\n"
+"POT-Creation-Date: 2024-05-31 10:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1138,7 +1138,7 @@ msgid "Mail sent by %s from contact form"
 msgstr "Courriel envoyé par %s depuis le formulaire de contact"
 
 #: immersionlyceens/apps/api/views.py:3155
-#: immersionlyceens/apps/core/forms.py:903
+#: immersionlyceens/apps/core/forms.py:916
 #: immersionlyceens/apps/core/models.py:513
 #: immersionlyceens/apps/core/views.py:373
 #: immersionlyceens/apps/core/views.py:578
@@ -1607,7 +1607,7 @@ msgstr "Groupes"
 #: immersionlyceens/apps/core/models.py:1632
 #: immersionlyceens/apps/core/models.py:1829
 #: immersionlyceens/templates/charts/global_trainings_charts.html:48
-#: immersionlyceens/templates/cohort_offer.html:297
+#: immersionlyceens/templates/cohort_offer.html:299
 #: immersionlyceens/templates/core/common_slot.html:78
 #: immersionlyceens/templates/core/course.html:69
 #: immersionlyceens/templates/core/off_offer_event.html:76
@@ -2520,22 +2520,22 @@ msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 msgid "Available periods depend on the slot date"
 msgstr "Les périodes proposées dépendent de la date du créneau"
 
-#: immersionlyceens/apps/core/forms.py:247
-#: immersionlyceens/apps/core/forms.py:251
+#: immersionlyceens/apps/core/forms.py:249
+#: immersionlyceens/apps/core/forms.py:254
 msgid "Read only - slot already has registrations"
 msgstr "Lecture seule - des inscriptions existent"
 
-#: immersionlyceens/apps/core/forms.py:257
-#: immersionlyceens/apps/core/forms.py:529
+#: immersionlyceens/apps/core/forms.py:262
+#: immersionlyceens/apps/core/forms.py:542
 msgid "dd/mm/yyyy"
 msgstr "jj/mm/aaaa"
 
-#: immersionlyceens/apps/core/forms.py:347
+#: immersionlyceens/apps/core/forms.py:352
 msgid "You must allow at least one of individual or group registrations"
 msgstr ""
 "Vous devez autoriser au moins un type d'inscription (individuelle ou groupe)"
 
-#: immersionlyceens/apps/core/forms.py:355
+#: immersionlyceens/apps/core/forms.py:360
 msgid ""
 "The slot already has registered students, individual registrations can't be "
 "disabled"
@@ -2543,7 +2543,7 @@ msgstr ""
 "Ce créneau a déjà des immersions, les inscriptions individuelles ne peuvent "
 "pas être désactivées"
 
-#: immersionlyceens/apps/core/forms.py:362
+#: immersionlyceens/apps/core/forms.py:367
 msgid ""
 "The slot already has registered groups, groups registrations can't be "
 "disabled"
@@ -2551,51 +2551,51 @@ msgstr ""
 "Ce créneau a déjà des immersions de groupe, les inscriptions en cohortes ne "
 "peuvent pas être désactivées"
 
-#: immersionlyceens/apps/core/forms.py:382
-#: immersionlyceens/apps/core/forms.py:597
+#: immersionlyceens/apps/core/forms.py:387
+#: immersionlyceens/apps/core/forms.py:610
 msgid "This field is required"
 msgstr "Ce champs est obligatoire"
 
-#: immersionlyceens/apps/core/forms.py:389
-#: immersionlyceens/apps/core/forms.py:608
+#: immersionlyceens/apps/core/forms.py:394
+#: immersionlyceens/apps/core/forms.py:621
 #: immersionlyceens/apps/core/serializers.py:611
 msgid "Invalid date for selected period : please check periods settings"
 msgstr ""
 "Date invalide pour la période sélectionnée : merci de vérifier les dates des "
 "périodes."
 
-#: immersionlyceens/apps/core/forms.py:394
-#: immersionlyceens/apps/core/forms.py:601
+#: immersionlyceens/apps/core/forms.py:399
+#: immersionlyceens/apps/core/forms.py:614
 msgid "Required fields are not filled in"
 msgstr "Champs obligatoires non renseignés"
 
-#: immersionlyceens/apps/core/forms.py:399
-#: immersionlyceens/apps/core/forms.py:617
+#: immersionlyceens/apps/core/forms.py:404
+#: immersionlyceens/apps/core/forms.py:630
 msgid "Slot is set for today : please enter a valid start_time"
 msgstr ""
 "Le créneau a lieu aujourd'hui : veuillez sélectionner une heure de début "
 "valide"
 
-#: immersionlyceens/apps/core/forms.py:405
-#: immersionlyceens/apps/core/forms.py:621
+#: immersionlyceens/apps/core/forms.py:410
+#: immersionlyceens/apps/core/forms.py:634
 msgid "Please enter a valid number for 'n_places' field"
 msgstr ""
 "Veuillez entrer un nombre positif non nul dans le champ 'Nombre maximum de "
 "places' "
 
-#: immersionlyceens/apps/core/forms.py:411
+#: immersionlyceens/apps/core/forms.py:416
 msgid "Please enter a valid number for 'n_group_places' field"
 msgstr ""
 "Veuillez entrer un nombre positif non nul dans le champ 'Nombre de places "
 "pour les cohortes'"
 
-#: immersionlyceens/apps/core/forms.py:419
+#: immersionlyceens/apps/core/forms.py:424
 msgid "You can't set places value lower than actual individual immersions"
 msgstr ""
 "Vous ne pouvez pas baisser le nombre de places sous le nombre d'étudiants "
 "déjà inscrits"
 
-#: immersionlyceens/apps/core/forms.py:434
+#: immersionlyceens/apps/core/forms.py:447
 msgid ""
 "You can't set group places value lower than actual registered group(s) "
 "people count"
@@ -2603,77 +2603,77 @@ msgstr ""
 "Vous ne pouvez pas baisser les places réservées aux groupes sous les "
 "effectifs des groupes déjà inscrits (étudiants et accompagnateurs)"
 
-#: immersionlyceens/apps/core/forms.py:442
-#: immersionlyceens/apps/core/forms.py:627
+#: immersionlyceens/apps/core/forms.py:455
+#: immersionlyceens/apps/core/forms.py:640
 msgid "Error: Start time must be set before end time"
 msgstr "Erreur: L'heure de fin doit être postérieure à l'heure de début"
 
-#: immersionlyceens/apps/core/forms.py:452
+#: immersionlyceens/apps/core/forms.py:465
 #: immersionlyceens/apps/core/views.py:1313
 msgid "Course published"
 msgstr "Cours publié"
 
-#: immersionlyceens/apps/core/forms.py:509
+#: immersionlyceens/apps/core/forms.py:522
 #: immersionlyceens/apps/core/views.py:1180
 #, python-format
 msgid "Course slot \"%s\" created."
 msgstr "Créneau de cours \"%s\" créé."
 
-#: immersionlyceens/apps/core/forms.py:525
+#: immersionlyceens/apps/core/forms.py:538
 msgid "Enter additional information"
 msgstr "Écrivez des informations complémentaires"
 
-#: immersionlyceens/apps/core/forms.py:527
+#: immersionlyceens/apps/core/forms.py:540
 msgid "Enter the room name"
 msgstr "Entrez le nom d'une salle"
 
-#: immersionlyceens/apps/core/forms.py:612
+#: immersionlyceens/apps/core/forms.py:625
 #: immersionlyceens/apps/core/models.py:73
 msgid "You can't set a date in the past"
 msgstr "Vous ne pouvez pas paramétrer de date dans le passé"
 
-#: immersionlyceens/apps/core/forms.py:633
-#: immersionlyceens/apps/core/forms.py:652
+#: immersionlyceens/apps/core/forms.py:646
+#: immersionlyceens/apps/core/forms.py:665
 #: immersionlyceens/apps/core/views.py:1923
 msgid "Event published"
 msgstr "Évènement publié"
 
-#: immersionlyceens/apps/core/forms.py:713
-#: immersionlyceens/apps/core/forms.py:715
+#: immersionlyceens/apps/core/forms.py:726
+#: immersionlyceens/apps/core/forms.py:728
 msgid "This field must be filled"
 msgstr "Ce champs doit être rempli"
 
-#: immersionlyceens/apps/core/forms.py:728
+#: immersionlyceens/apps/core/forms.py:741
 #: immersionlyceens/apps/core/models.py:2009
 #: immersionlyceens/templates/modals/modal_contact_us.html:44
 msgid "Subject"
 msgstr "Sujet"
 
-#: immersionlyceens/apps/core/forms.py:763
+#: immersionlyceens/apps/core/forms.py:776
 msgid "This field is required."
 msgstr "Ce champs doit être rempli"
 
-#: immersionlyceens/apps/core/forms.py:836
+#: immersionlyceens/apps/core/forms.py:849
 msgid "An event with these values already exists"
 msgstr "Un évènement avec ces valeurs existe déjà"
 
-#: immersionlyceens/apps/core/forms.py:846
-#: immersionlyceens/apps/core/forms.py:847
+#: immersionlyceens/apps/core/forms.py:859
+#: immersionlyceens/apps/core/forms.py:860
 msgid "Please add at least one speaker."
 msgstr "Veuillez ajouter au moins un intervenant."
 
-#: immersionlyceens/apps/core/forms.py:879
+#: immersionlyceens/apps/core/forms.py:892
 #: immersionlyceens/apps/core/views.py:350
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/forms.py:889
+#: immersionlyceens/apps/core/forms.py:902
 #: immersionlyceens/apps/core/views.py:359
 #, python-format
 msgid "Couldn't add group 'INTER' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'INTER' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/forms.py:898
+#: immersionlyceens/apps/core/forms.py:911
 #: immersionlyceens/apps/core/views.py:368
 #: immersionlyceens/apps/core/views.py:573
 msgid "A confirmation email has been sent to {}"
@@ -3569,7 +3569,7 @@ msgstr "Un campus de même nom existe déjà dans cet établissement"
 #: immersionlyceens/apps/core/models.py:1151
 #: immersionlyceens/apps/core/models.py:1222
 #: immersionlyceens/apps/core/models.py:2386
-#: immersionlyceens/templates/cohort_offer.html:304
+#: immersionlyceens/templates/cohort_offer.html:306
 #: immersionlyceens/templates/cohort_offer_subdomains.html:240
 #: immersionlyceens/templates/core/common_slot.html:109
 #: immersionlyceens/templates/core/students_presence.html:54
@@ -3647,7 +3647,7 @@ msgstr "Un bâtiment avec ce nom existe déjà pour ce campus"
 
 #: immersionlyceens/apps/core/models.py:1238
 #: immersionlyceens/apps/core/models.py:2389
-#: immersionlyceens/templates/cohort_offer.html:311
+#: immersionlyceens/templates/cohort_offer.html:313
 #: immersionlyceens/templates/cohort_offer_subdomains.html:253
 #: immersionlyceens/templates/core/common_slot.html:133
 #: immersionlyceens/templates/core/students_presence.html:55
@@ -4138,7 +4138,7 @@ msgid "Number of places for groups"
 msgstr "Nombre de places pour les groupes"
 
 #: immersionlyceens/apps/core/models.py:2403
-#: immersionlyceens/templates/cohort_offer.html:320
+#: immersionlyceens/templates/cohort_offer.html:322
 #: immersionlyceens/templates/cohort_offer_subdomains.html:267
 #: immersionlyceens/templates/core/common_slot.html:510
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:94
@@ -6462,7 +6462,7 @@ msgstr "Inscription annulée"
 msgid "Register again"
 msgstr "Se réinscrire"
 
-#: immersionlyceens/templates/cohort_offer.html:280
+#: immersionlyceens/templates/cohort_offer.html:281
 #: immersionlyceens/templates/cohort_offer_subdomains.html:217
 #: immersionlyceens/templates/offer_off_offer_events.html:232
 #: immersionlyceens/templates/offer_subdomains.html:217
@@ -6470,14 +6470,19 @@ msgstr "Se réinscrire"
 msgid "Already registered"
 msgstr "Déjà inscrit(e)"
 
-#: immersionlyceens/templates/cohort_offer.html:282
+#: immersionlyceens/templates/cohort_offer.html:283
 #: immersionlyceens/templates/cohort_offer_subdomains.html:219
 #: immersionlyceens/templates/offer_off_offer_events.html:234
 #: immersionlyceens/templates/offer_subdomains.html:219
 msgid "Opening soon"
 msgstr "Ouverture prochaine"
 
-#: immersionlyceens/templates/cohort_offer.html:284
+#: immersionlyceens/templates/cohort_offer.html:285
+#: immersionlyceens/templates/cohort_offer_subdomains.html:222
+msgid "Only one group of"
+msgstr "Un seul groupe de"
+
+#: immersionlyceens/templates/cohort_offer.html:285
 #: immersionlyceens/templates/cohort_offer_subdomains.html:222
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:106
 #: immersionlyceens/templates/offer_off_offer_events.html:237
@@ -6486,7 +6491,12 @@ msgstr "Ouverture prochaine"
 msgid "Available places"
 msgstr "Places restantes"
 
-#: immersionlyceens/templates/cohort_offer.html:286
+#: immersionlyceens/templates/cohort_offer.html:285
+#: immersionlyceens/templates/cohort_offer_subdomains.html:222
+msgid "people max"
+msgstr "personnes max"
+
+#: immersionlyceens/templates/cohort_offer.html:288
 #: immersionlyceens/templates/cohort_offer_subdomains.html:226
 #: immersionlyceens/templates/offer_off_offer_events.html:241
 #: immersionlyceens/templates/offer_subdomains.html:226
@@ -6494,7 +6504,7 @@ msgstr "Places restantes"
 msgid "Register"
 msgstr "S'inscrire"
 
-#: immersionlyceens/templates/cohort_offer.html:290
+#: immersionlyceens/templates/cohort_offer.html:292
 #: immersionlyceens/templates/cohort_offer_subdomains.html:232
 #: immersionlyceens/templates/immersion/my_registrations.html:432
 #: immersionlyceens/templates/immersion/my_registrations.html:712
@@ -6503,7 +6513,7 @@ msgstr "S'inscrire"
 msgid "Full"
 msgstr "Complet"
 
-#: immersionlyceens/templates/cohort_offer.html:314
+#: immersionlyceens/templates/cohort_offer.html:316
 #: immersionlyceens/templates/cohort_offer_subdomains.html:256
 #: immersionlyceens/templates/offer_off_offer_events.html:273
 #: immersionlyceens/templates/offer_subdomains.html:256
@@ -6511,7 +6521,7 @@ msgstr "Complet"
 msgid "Show map url"
 msgstr "Voir l'adresse de la carte"
 
-#: immersionlyceens/templates/cohort_offer.html:349
+#: immersionlyceens/templates/cohort_offer.html:351
 #: immersionlyceens/templates/offer_off_offer_events.html:304
 msgid "No off offer event available"
 msgstr "Pas d'offre d'évènements hors offre disponible"
