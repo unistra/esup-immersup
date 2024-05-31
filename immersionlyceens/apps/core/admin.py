@@ -775,7 +775,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # establishment manager : can't delete a building if it's not attached to his/her own establishment
         if obj and request.user.establishment and request.user.is_establishment_manager() and not \
-                request.user.establishment == obj.establishment:
+                request.user.establishment == obj.campus.establishment:
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
