@@ -218,7 +218,7 @@
                                 <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
                             {% elif slot.available_seats > 0 %}
                                 <span class="badge badge-primary badge-pill">
-                                {% if slot.group_mode == 0 %}{% trans "Only one group of" %}{% else %}{% trans 'Available places' %} :{% endif %} {{ slot.available_seats }} {% if slot.group_mode == 0 %}{% trans "people max" %}{% endif %}
+                                {% if slot.group_mode == 0 %}{% blocktrans with grp_places=slot.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}{% else %}{% trans 'Available places' %} : {{ slot.available_seats }}{% endif %}
                                 </span><br>
                               {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                                 {% if slot.can_register %}
