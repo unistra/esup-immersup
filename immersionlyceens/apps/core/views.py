@@ -1580,6 +1580,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["contact_form"] = ContactForm()
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
         context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
         context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
         # Defaults

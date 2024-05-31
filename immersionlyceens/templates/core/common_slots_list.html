@@ -139,9 +139,15 @@
   var slot_allow_individual_registrations = false;
   var slot_group_mode;
 
-  let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
-  let is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
-  let is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
+  var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+  var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
+  var is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
+  var is_speaker = "{{ request.user.is_speaker }}" === "True"
+  var is_master_establishment_manager = "{{ request.user.is_master_establishment_manager }}" === "True"
+  var is_establishment_manager = "{{ request.user.is_establishment_manager }}" === "True"
+  var is_operator = "{{ request.user.is_operator }}" === "True"
+  var user_highschool = "{{ request.user.highschool_id }}"
+  var user_establishment = "{{ request.user.establishment_id }}"
 
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
