@@ -276,12 +276,14 @@
                                                                   <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
                                                                   <div id="feedback_{{ s.pk }}"></div>
                                                                 {% endif %}
+                                                              {% comment "TODO: changed later" %}{% endcomment %}
                                                               {% elif s.already_registered %}
                                                                 <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
                                                               {% elif s.opening_soon %}
                                                                 <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
                                                               {% elif s.available_seats > 0 %}
-                                                                <span class="badge badge-primary badge-pill">{% trans 'Available places' %}: {{ s.available_seats }}</span><br />
+                                                                <span class="badge badge-primary badge-pill">{% if s.group_mode == 0 %}{% trans "Only one group of" %}{% else %}{% trans 'Available places' %} :{% endif %} {{ s.available_seats }} {% if s.group_mode == 0 %}{% trans "people max" %}{% endif %}</span><br />
+                                                                {% comment "TODO: register route changed later !!!" %}{% endcomment %}
                                                                 {% if authorized_groups|in_groups:'LYC,ETU,VIS' and s.can_register %}
                                                                   <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
                                                                   <div id="feedback_{{ s.pk }}"></div>
