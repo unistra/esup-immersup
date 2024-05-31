@@ -242,14 +242,19 @@ class SlotForm(forms.ModelForm):
                 # can't change some fields if the slot already has immersions
                 if instance.immersions.exists() or instance.group_immersions.exists():
                     self.fields['period'].disabled = True
-                    self.fields['allow_group_registrations'].disabled = True
-                    self.fields['allow_group_registrations'].help_text = gettext(
-                        "Read only - slot already has registrations"
-                    )
+
+                if instance.immersions.exists():
                     self.fields['allow_individual_registrations'].disabled = True
                     self.fields['allow_individual_registrations'].help_text = gettext(
                         "Read only - slot already has registrations"
                     )
+                if instance.group_immersions.exists():
+                    self.fields['allow_group_registrations'].disabled = True
+                    self.fields['allow_group_registrations'].help_text = gettext(
+                        "Read only - slot already has registrations"
+                    )
+                    self.fields['group_mode'].disabled = True
+
 
         self.fields["repeat"].widget = forms.DateInput(
             format='%d/%m/%Y',
