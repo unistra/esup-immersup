@@ -1354,17 +1354,22 @@
     if(allow_group_registrations === true) {
       $("#id_div_allow_individual_registrations").show()
       $("#id_div_group_mode").show()
+      $("#id_group_mode").attr('required', 'required');
       $("#id_div_public_group").show()
+      $("#id_public_group").attr('required', 'required');
 
       $("#id_div_n_group_places").show()
+      $("#id_n_group_places").attr('required', 'required');
       $('#id_mandatory_n_group_places').show()
 
       if(allow_individual_registrations === true) {
         $("#id_div_n_places").show()
+        $("#id_n_places").attr('required', 'required');
         $('#id_mandatory_n_places').show()
       }
       else {
         $("#id_div_n_places").hide()
+        $("#id_n_places").removeAttr('required');
         $('#id_mandatory_n_places').hide()
       }
     }
@@ -1372,9 +1377,14 @@
       $("#id_div_allow_individual_registrations").hide()
       $("#id_allow_individual_registrations").prop('checked', true)
       $("#id_div_n_places").show()
+      $("#id_n_places").attr('required', 'required');
+
       $("#id_div_group_mode").hide()
+      $("#id_group_mode").removeAttr('required');
       $("#id_div_n_group_places").hide()
+      $("#id_group_n_places").removeAttr('required');
       $("#id_div_public_group").hide()
+      $("#id_public_group").removeAttr('required');
     }
 
     toggle_required_fields()
