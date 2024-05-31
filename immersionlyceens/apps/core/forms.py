@@ -335,6 +335,12 @@ class SlotForm(forms.ModelForm):
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
 
+        print(f"period : {period}")
+        print(f"group_mode : {group_mode}")
+        print(f"n_group_places : {n_group_places}")
+        print(f"allow_individual_registrations : {allow_individual_registrations}")
+        print(f"allow_group_registrations : {allow_group_registrations}")
+
         # Groups settings
         try:
             enabled_groups = get_general_setting("ACTIVATE_COHORT")
@@ -427,8 +433,16 @@ class SlotForm(forms.ModelForm):
                 # Can't set n_group_places lower than actual group immersions
                 if enabled_groups and allow_group_registrations and n_group_places:
                     group_queryset = self.instance.group_immersions.aggregate(
-                        students_count=Sum('students_count'),
-                        guides_count=Sum('guides_count')
+                        students_count=Sum(
+                            'students_count',
+                            filter=Q(cancellation_type__isnull=True),
+                            distinct=True
+                        ),
+                        guides_count=Sum(
+                            'guides_count',
+                            filter=Q(cancellation_type__isnull=True),
+                            distinct=True
+                        )
                     )
 
                     people_count = (group_queryset['students_count'] or 0) + (group_queryset['guides_count'] or 0)
