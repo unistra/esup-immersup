@@ -136,6 +136,7 @@
   var slot_places = 0;
   var slot_groups_places = 0;
   var slot_allow_group_registrations = false;
+  var slot_allow_individual_registrations = false;
   var slot_group_mode;
 
   let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
@@ -227,13 +228,14 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, is_face_to_face=false) {
+  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, is_face_to_face=false) {
     can_update_registrations = update_registrations
     current_slot_id = slot_id;
     face_to_face = is_face_to_face;
     slot_places = n_places;
     slot_groups_places = n_group_places;
     slot_allow_group_registrations = allowed_group_registrations;
+    slot_allow_individual_registrations = allowed_individual_registrations;
     slot_group_mode = group_mode;
 
     if(face_to_face === true) {
@@ -261,6 +263,15 @@
     }
     else {
       $('#id_div_group_registrations').hide();
+    }
+
+    if(slot_allow_individual_registrations) {
+      $('#id_div_individual_registrations').show();
+      $('#id_modal_group_header').addClass("pt-0");
+    }
+    else {
+      $('#id_div_individual_registrations').hide();
+      $('#id_modal_group_header').removeClass("pt-0");
     }
 
     // put slot id in register button in modal

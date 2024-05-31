@@ -288,8 +288,9 @@
           <label for="allow_group_registrations" class="col-form-label col-sm-3">
             {% trans 'Allow group registrations' %} ?
           </label>
-          <div class="col-sm-1">
+          <div class="col-sm-3">
             {{ form.allow_group_registrations }}
+            {{ form.allow_group_registrations.help_text }}
           </div>
           {% if form.allow_group_registrations.errors %}
             <div class="col-sm-3 alert alert-danger">
@@ -347,8 +348,9 @@
           <label for="allow_individual_registrations" class="col-form-label col-sm-3">
             {% trans 'Allow individual registrations' %} ?
           </label>
-          <div class="col-sm-1">
+          <div class="col-sm-3">
             {{ form.allow_individual_registrations }}
+            {{ form.allow_individual_registrations.help_text }}
           </div>
           {% if form.allow_individual_registrations.errors %}
             <div class="col-sm-3 alert alert-danger">
