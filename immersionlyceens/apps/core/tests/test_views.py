@@ -353,10 +353,8 @@ class CoreViewsTestCase(TestCase):
             attendance_status=1
         )
 
-
     def setUp(self):
         self.client = Client()
-
 
     def test_import_holidays(self):
         self.assertFalse(Holiday.objects.all().exists())
@@ -372,7 +370,6 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/admin/holiday/import", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Holiday.objects.all().exists())
-
 
     def test_slots(self):
         # First test simple get with no structure or training parameter
@@ -579,7 +576,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': True,
             'room': "REPEAT_TEST",
             'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
-            'repeat': (self.today + datetime.timedelta(days=33)).strftime("%Y-%m-%d"),
+            'repeat': (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
             'slot_dates': [
                 (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=19)).strftime("%d/%m/%Y"),
@@ -602,7 +599,7 @@ class CoreViewsTestCase(TestCase):
             'allowed_highschool_levels': [HighSchoolLevel.objects.order_by('order').first().pk],
             'allowed_student_levels': [StudentLevel.objects.order_by('order').first().pk],
             'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('order').first().pk],
-            'save': 1
+            'save': 1,
         }
 
         # All dates have been selected : initial slot created + 5 copies (period ends), 4 won't be created
@@ -774,7 +771,6 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.content.decode('utf-8'), "ok")
         self.assertFalse(Slot.objects.filter(pk=self.slot.id).exists())
 
-
     def test_courses_list(self):
         # As any other user
         self.client.login(username='hs', password='pass')
@@ -809,7 +805,6 @@ class CoreViewsTestCase(TestCase):
         self.assertNotIn(self.structure2, response.context["structures"])
         self.assertEqual(self.structure.id, response.context["structure_id"])
         self.assertTrue(response.context["can_update_courses"])
-
 
     def test_course(self):
         # As any other user
@@ -866,7 +861,6 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Enter a valid URL.", response.content.decode('utf-8'))
 
         data['url'] = "http://new-course.test.fr"
-
 
         ###############
         # Success
@@ -935,7 +929,6 @@ class CoreViewsTestCase(TestCase):
         response = self.client.post("/core/course/%s" % self.course2.id, data, follow=True)
         self.assertEqual(response.request['PATH_INFO'], '/core/courses_list')
         self.assertFalse(Course.objects.filter(label="This shouldn't happen").exists())
-
 
     def test_my_courses(self):
         self.client.login(username='speaker1', password='pass')
@@ -1021,7 +1014,6 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(self.high_school.convention_start_date, self.today - datetime.timedelta(days=10))
         self.assertTrue(self.high_school.convention_end_date, self.today + datetime.timedelta(days=10))
 
-
     def test_my_high_school_speakers(self):
         self.client.login(username='lycref', password='pass')
 
@@ -1034,7 +1026,6 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("My high school - %s" % self.high_school.label, response.content.decode('utf-8'))
         self.assertIn(self.speaker1, response.context["speakers"])
         self.assertNotIn(self.speaker2, response.context["speakers"])
-
 
     def test_speaker(self):
         """
@@ -1066,7 +1057,6 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(speaker.email, data["email"])
         self.assertTrue(speaker.creation_email_sent)
 
-
     def test_my_students(self):
         # As high school referent
         self.client.login(username='lycref', password='pass')
@@ -1083,7 +1073,6 @@ class CoreViewsTestCase(TestCase):
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], None)
         self.assertTrue(response.context['can_show_users_without_record'])
-
 
     def test_student_validation(self):
         # As a ref_etab user
@@ -1113,7 +1102,6 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/student_validation/99", follow=True)
         self.assertIn('high_school', response.context)
         self.assertEqual(response.context['high_school'], self.lyc_ref.highschool)
-
 
     def test_highschool_student_record_form_manager(self):
         # As a high school referent
@@ -1181,8 +1169,6 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/hs_record_manager/999", follow=True)
         self.assertEqual(response.request['PATH_INFO'], '/core/student_validation/')
 
-
-
     def test_structure(self):
         # As a REF-STR user
         self.client.login(username='ref_str', password='pass')
@@ -1213,7 +1199,6 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/structure", follow=True)
         self.assertEqual(response.request['PATH_INFO'], '/')
 
-
     # def test_stats(self):
     #     # As a ref_etab user
     #     self.client.login(username='ref_etab', password='pass')
@@ -1235,7 +1220,6 @@ class CoreViewsTestCase(TestCase):
     #     self.assertIn('high_school_id', response.context)
     #     self.assertEqual(response.context['high_school_id'], self.high_school.id)
 
-
     def test_students_presence(self):
         # As a ref_etab user
         self.client.login(username='ref_etab', password='pass')
@@ -1246,7 +1230,6 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.context['min_date'], self.slot.date.strftime("%Y-%m-%d"))
         # last slot date
         self.assertEqual(response.context['max_date'], self.slot3.date.strftime("%Y-%m-%d"))
-
 
     def test_duplicated_accounts(self):
         # As a ref_etab user
@@ -1261,7 +1244,6 @@ class CoreViewsTestCase(TestCase):
 
         response = self.client.get("/core/duplicates", follow=True)
         self.assertEqual(response.request['PATH_INFO'], '/')
-
 
     def test_off_offer_event(self):
         event = OffOfferEvent.objects.create(
@@ -1320,7 +1302,6 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(event.label, data["label"])
         self.assertEqual(event.description, data["description"])
 
-
         # Duplicate an event : check form values
         response = self.client.get(f"/core/off_offer_event/{event.id}/1", follow=True)
         self.assertEqual(response.status_code, 200)
@@ -1338,7 +1319,6 @@ class CoreViewsTestCase(TestCase):
             "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
             "is_removable": True
         }]))
-
 
     def test_off_offer_event_slot(self):
         event = OffOfferEvent.objects.create(
@@ -1495,14 +1475,12 @@ class CoreViewsTestCase(TestCase):
         slot.building = None
         slot.save()
 
-
         response = self.client.get(f"/core/off_offer_event_slot/{slot.id}/1", follow=True)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
 
         self.assertIn(f"value=\"{slot.event.highschool_id}\" selected>{slot.event.highschool}<", content)
         self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
-
 
     def test_structures_notifications(self):
         # Check user is not REF-STR
@@ -1516,4 +1494,3 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get(reverse('structures_notifications'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/structures_notifications.html")
-

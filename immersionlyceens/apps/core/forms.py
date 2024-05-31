@@ -295,7 +295,6 @@ class SlotForm(forms.ModelForm):
 
         return cleaned_data
 
-
     def clean_fields(self, cleaned_data):
         # Remote slot : remove unnecessary fields
         if not cleaned_data.get('face_to_face', True):
@@ -305,7 +304,6 @@ class SlotForm(forms.ModelForm):
             cleaned_data['url'] = None
 
         return cleaned_data
-
 
     def clean(self):
         cleaned_data = super().clean()
@@ -358,7 +356,7 @@ class SlotForm(forms.ModelForm):
 
         # Slot repetition
         if cleaned_data.get('repeat'):
-            self.slot_dates = self.request.POST.getlist("slot_dates")
+            self.slot_dates = self.request.POST.getlist("slot_dates[]")
 
         if published:
             # Mandatory fields, depending on high school / structure slot
@@ -440,14 +438,13 @@ class SlotForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
-
         if instance.course and not instance.course.published and instance.published:
             instance.course.published = True
             instance.course.save()
             messages.success(self.request, _("Course published"))
 
         if self.data.get("repeat"):
-            repeat_limit_date = datetime.strptime(self.data.get("repeat"), "%Y-%m-%d").date()
+            repeat_limit_date = datetime.strptime(self.data.get("repeat"), "%d/%m/%Y").date()
             new_dates = self.data.getlist("slot_dates")
 
             try:
@@ -467,14 +464,16 @@ class SlotForm(forms.ModelForm):
                 slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
                 slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
                 slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
-
+                print("nds:",new_dates)
                 for new_date in new_dates:
+                    print("new_date", new_date)
                     try:
                         parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
                         period = instance.period
                         if not period.immersion_start_date <= parsed_date <= period.immersion_end_date:
                             continue
                     except (TypeError, ValueError):
+                        print("err new date", new_date)
                         # Invalid date
                         pass
                     else:
@@ -502,7 +501,6 @@ class SlotForm(forms.ModelForm):
                             messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
 
         return instance
-
 
     class Meta:
         model = Slot
