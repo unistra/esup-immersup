@@ -16,11 +16,8 @@ function getCookie(name) {
 }
 
 const load_preview = () => {
-  // get content of data ifram
-  let frame = document.getElementById("id_body_iframe")
-  let content = frame.contentWindow.document.getElementsByClassName("note-editable")[0].innerHTML
-
-  // reset modal
+  // get content of ckeditor window
+  let content = document.getElementById("id_body").value
   let item = document.getElementById("template_preview_content")
   item.innerHTML = gettext("<p>Waiting for content</p>")
 
@@ -32,35 +29,35 @@ const load_preview = () => {
 
   fetch(url, {
     method: "POST",
-    headers: {"X-CSRFToken": getCookie("csrftoken")},
+    headers: { "X-CSRFToken": getCookie("csrftoken") },
     body: form
   })
-      .then(r => r.json())
-      .then(response => {
-        if ( response.data === null ) {
-          item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + response.msg + "</h3>"
-        } else {
-          item.innerHTML = response.data
-        }
-      })
-      .catch(error => {
-        item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + gettext("An unexpected error occur") + "</h3>"
-      })
+    .then(r => r.json())
+    .then(response => {
+      if (response.data === null) {
+        item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + response.msg + "</h3>"
+      } else {
+        item.innerHTML = response.data
+      }
+    })
+    .catch(error => {
+      item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + gettext("An unexpected error occur") + "</h3>"
+    })
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
   // Append buttons
-  $('#id_body_iframe').before(
+  $('#id_body').before(
     '<div><button type=\'button\' id=\'toggle-modal\' class="button default" style="float: None; padding: 10px;">' +
-      gettext('View available variables') +
-     '</button>' +
-      '<button type=\'button\' id=\'toggle-preview-modal\' class="button default" style="float: None; padding: 10px; margin-left: 20px;">' +
-        gettext('Preview') +
-     '</button></div>'
+    gettext('View available variables') +
+    '</button>' +
+    '<button type=\'button\' id=\'toggle-preview-modal\' class="button default" style="float: None; padding: 10px; margin-left: 20px;">' +
+    gettext('Preview') +
+    '</button></div>'
   )
 
-  $('#id_body_iframe').css('position', 'relative')
-  $('#id_body_iframe').css('top', '20px')
+  $('#id_body').css('position', 'relative')
+  $('#id_body').css('top', '20px')
   // $('#template_vars_modal').modal('hide');
 
   $('#template_vars_dialog').dialog({
@@ -78,7 +75,7 @@ $(document).ready(function() {
     width: 1000,
   })
 
-  $('#toggle-modal').click(function() {
+  $('#toggle-modal').click(function () {
     $('#template_vars_dialog').dialog('open')
   })
 
@@ -88,7 +85,7 @@ $(document).ready(function() {
   })
 
   // add handler for preview reload
-  let change_handler = () => {load_preview()}
+  let change_handler = () => { load_preview() }
   let slot_type_input = document.getElementById("slot_type_input")
   let user_group_input = document.getElementById("user_group_input")
   let local_user_input = document.getElementById("local_user_input")
