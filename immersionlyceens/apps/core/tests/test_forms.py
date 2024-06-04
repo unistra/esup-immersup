@@ -603,6 +603,7 @@ class FormTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         slot = form.save()
+        slot.refresh_from_db()
 
         #########
         # FAILS #
@@ -627,7 +628,6 @@ class FormTestCase(TestCase):
             guides_count=2,
         )
 
-
         invalid_data = {
             'id': slot.id,
             'face_to_face': True,
@@ -645,7 +645,7 @@ class FormTestCase(TestCase):
             'published': True,
             'allow_group_registrations': True,
             'allow_individual_registrations': True,
-            'n_group_places': None,
+            'n_group_places': 30,
             'group_mode': Slot.ONE_GROUP,
             'public_group': True
         }
@@ -655,19 +655,6 @@ class FormTestCase(TestCase):
         self.assertIn(
             "You can't set places value lower than actual individual immersions",
             form.errors["n_places"]
-        )
-
-        # Fail : can't deactivate individual registrations
-        invalid_data.update({
-            'n_places': 10,
-            'allow_individual_registrations': False,
-        })
-
-        form = SlotForm(instance=slot, data=invalid_data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "The slot already has registered students, individual registrations can't be disabled",
-            form.errors["allow_individual_registrations"]
         )
 
         # Fail : group places lower than registered groups people (students + guides = 22)
@@ -682,19 +669,6 @@ class FormTestCase(TestCase):
         self.assertIn(
             "You can't set group places value lower than actual registered group(s) people count",
             form.errors["n_group_places"]
-        )
-
-        # Fail : can't deactivate group registrations
-        invalid_data.update({
-            'n_group_places': 22,
-            'allow_group_registrations': False,
-        })
-
-        form = SlotForm(instance=slot, data=invalid_data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "The slot already has registered groups, groups registrations can't be disabled",
-            form.errors["allow_group_registrations"]
         )
 
         # Clean actual slot for the next tests

@@ -21,8 +21,8 @@ from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     BachelorMention, BachelorType, Building, Campus, Course, CourseType,
     Establishment, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
-    ImmersionUser, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
-    Slot, Structure, StudentLevel, Training, UniversityYear
+    Immersion, ImmersionUser, OffOfferEvent, OffOfferEventType, Period,
+    PostBachelorLevel, Slot, Structure, StudentLevel, Training, UniversityYear
 )
 
 
@@ -354,7 +354,8 @@ class SlotForm(forms.ModelForm):
 
         # Can't deactivate individual registrations if slot has one immersion
         if self.instance.pk:
-            if self.instance.immersions.exists() and not allow_individual_registrations:
+            if Immersion.objects.filter(slot=self.instance) and not allow_individual_registrations:
+                # if self.instance.immersions.exists() and not allow_individual_registrations:
                 self.add_error(
                     'allow_individual_registrations',
                     _("The slot already has registered students, individual registrations can't be disabled")
@@ -492,8 +493,6 @@ class SlotForm(forms.ModelForm):
                         if not period.immersion_start_date <= parsed_date <= period.immersion_end_date:
                             continue
                     except (TypeError, ValueError):
-                        print("err new date", new_date)
-                        # Invalid date
                         pass
                     else:
                         # Duplicate slot only if new dates match the current period
