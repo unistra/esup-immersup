@@ -390,6 +390,13 @@ class HijackingTestCase(TestCase):
 
         response = self.client.post(
             self.hijack_url,
+            {"user_pk": self.lyc_ref.pk},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.client.post(self.release_url)
+
+        response = self.client.post(
+            self.hijack_url,
             {"user_pk": self.speaker1.pk},
         )
         self.assertEqual(response.status_code, 302)
