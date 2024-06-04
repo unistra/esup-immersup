@@ -229,7 +229,6 @@
                                   <div id="feedback_{{slot.pk}}" ></div>
                                   {% endif %}
                                 {% endif %}
-                                <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                               {% else %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                               {% endif %}
@@ -248,6 +247,9 @@
                               {% else %}
                               <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                               {% endif %}
+                            {% endif %}
+                            {% if slot.n_group_places > 0 or slot.available_seats > 0 %}
+                              <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                             {% endif %}
                           </td>
                         </tr>
