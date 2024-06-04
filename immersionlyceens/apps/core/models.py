@@ -489,7 +489,7 @@ class ImmersionUser(AbstractUser):
         user_filter = {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
 
-    def send_message(self, request, template_code, **kwargs):
+    def send_message(self, request, template_code, copies=None, **kwargs):
         """
         Get a MailTemplate by its code, replace variables and send
         :param message_code: Code of message to send
@@ -503,11 +503,14 @@ class ImmersionUser(AbstractUser):
             logger.error(msg)
             return msg
 
+        # Multiple recipients ?
+        other_recipients = copies if copies and isinstance(copies, list) else []
+
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
             from immersionlyceens.libs.mails.variables_parser import Parser
             logger.debug("Message body : %s" % message_body)
-            send_email(self.email, template.subject, message_body)
+            send_email(self.email, template.subject, message_body, copies=other_recipients)
         except Exception as e:
             logger.exception(e)
             msg = gettext("Couldn't send email : %s" % e)

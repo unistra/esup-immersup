@@ -1461,7 +1461,7 @@ def ajax_group_slot_registration(request):
         msg = _("Group successfully updated.")
     else:
         try:
-            ImmersionGroupRecord.objects.create(
+            immersion_group_record = ImmersionGroupRecord.objects.create(
                 slot=slot,
                 highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
                 students_count=students_count,
@@ -1474,6 +1474,24 @@ def ajax_group_slot_registration(request):
         except Exception as e:
             msg = _("Registration error : %s") % e
             error = True
+
+    if not error:
+        high_school_managers = ImmersionUser.objects.filter(groups__name='REF-LYC', highschool_id=highschool_id)
+        main_manager = user if user.is_high_school_manager() else high_school_managers.first()
+        contacts = emails.split(',')
+        recipients = list(
+            set(contacts).union(set(hsm.email for hsm in high_school_managers if hsm.email != main_manager.email))
+        )
+
+        # Send a confirmation message to highschool managers and all contacts
+        ret = main_manager.send_message(request, 'IMMERSION_CONFIRM', slot=slot, copies=recipients)
+        if not ret:
+            msg = _("Registration successfully added, confirmation email sent to high school managers and contacts")
+        else:
+            msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
+            error = True
+
+        response = {'error': error, 'msg': msg}
 
     if feedback == True:
         if error:

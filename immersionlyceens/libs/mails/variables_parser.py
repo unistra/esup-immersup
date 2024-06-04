@@ -11,7 +11,7 @@ from requests import Request
 
 from immersionlyceens.apps.core.models import (
     EvaluationFormLink, GeneralSettings, Immersion, UniversityYear, MailTemplateVars,
-    Slot, ImmersionUser, Course, OffOfferEvent
+    Slot, ImmersionUser, ImmersionGroupRecord, Course, OffOfferEvent
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
@@ -22,17 +22,28 @@ from django.utils.html import format_html
 logger = logging.getLogger(__name__)
 
 
-def parser(message_body, available_vars=None, user=None, request=None, **kwargs):
+def parser(message_body, available_vars=None, user=None, group=None, recipient=None, request=None, **kwargs):
+    """
+    :param message_body: the message body
+    :param available_vars: variables that can be used in this template
+    :param user: the ImmersionUser the mail will be sent to
+    :param group: the ImmersionGroupRecord the mail will be sent to
+    :param recipient: the recipient type, 'user' or 'group'
+    :param request: request
+    :return: parsed mail template
+    """
+
     return Parser.parser(
         message_body=message_body,
         available_vars=available_vars,
         user=user,
+        recipent=recipient,
         request=request,
         **kwargs
     )
 
 
-def parser_faker(message_body, context_params, available_vars=None, user=None, request=None, **kwargs):
+def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, recipient=None, request=None, **kwargs):
     return ParserFaker.parser(
         message_body=message_body,
         context_params=context_params,
@@ -46,7 +57,8 @@ def parser_faker(message_body, context_params, available_vars=None, user=None, r
 class ParserFaker:
     @classmethod
     def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]], context_params: Dict[str, Any],
-               user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
+               user: Optional[ImmersionUser] = None, group: Optional[ImmersionGroupRecord] = None,
+               request: Optional[Request] = None, recipient=None, **kwargs) -> str:
 
         context: Dict[str, Any] = cls.get_context(request, **context_params)
         return render_text(template_data=message_body, data=context)
@@ -216,6 +228,26 @@ class ParserFaker:
             ),
         })
 
+        # Group data
+        context.update({
+            "cohorte": {
+                "etablissementInscrit": cls.add_tooltip("cohorte.etablissementInscrit", "Etablissement du groupe inscrit"),
+                "nbEleves": cls.add_tooltip("cohorte.nbEleves", "12"),
+                "nbAccompagnateurs": cls.add_tooltip("cohorte.nbEleves", "2"),
+                "nbPlaces": cls.add_tooltip("cohorte.nbEleves", "14"),
+                "fichierJoint": cls.add_tooltip("cohorte.fichierJoint", "<lien vers un fichier>"),
+                "commentaires": cls.add_tooltip("cohorte.fichierJoint", "Commentaires ..."),
+            }
+        })
+
+        # Recipient data
+        context.update({
+            "destinataire": {
+                "estCohorte": cls.add_tooltip("cohorte.estCohorte", "vrai/faux"),
+                "estIndividu": cls.add_tooltip("cohorte.estIndividu", "vrai/faux"),
+            }
+        })
+
         return context
 
 
@@ -311,12 +343,33 @@ class Parser:
 
             return registered_students
 
+        def get_registered_groups(slot):
+            registered_groups: List[str] = []
+            for group_reg in slot.group_immersions.filter(cancellation_type__isnull=True):
+                registered_group = (f"""{group_reg.highschool.label}"""
+                                   f"""<br>{group_reg.students_count} {_('students')}"""
+                                   f"""<br>{group_reg.guides_count} {_('guides')}""")
+
+                if group_reg.file:
+                    registered_group += f"<br> {_('File')} : " + format_html(
+                        '<a href="{0}">{1}</a>',
+                        reverse('group_document', kwargs={'immersion_group_id': group_reg.id}),
+                        group_reg.file.name
+                    )
+
+                if group_reg.comments:
+                    registered_group += f"<br> {_('Comments')} : " + format_html(group_reg.comments)
+
+                registered_groups.append(registered_group)
+
+            return registered_groups
 
         if slot:
             establishment = slot.get_establishment()
             structure = slot.get_structure()
             highschool = slot.get_highschool()
             registered_students = get_registered_students(slot)
+            registered_groups = get_registered_groups(slot)
 
             cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\\hi") \
                 if slot.cancellation_limit_date else ""
@@ -362,6 +415,7 @@ class Parser:
                     "salle": slot.room,
                     "nbplaceslibres": slot.available_seats(),
                     "listeInscrits": format_html("<br>".join(sorted(registered_students)) if registered_students else ""),
+                    "listeCohortes": format_html("<br><br>".join(registered_groups) if registered_groups else ""),
                     "limite_annulation_depassee": slot.is_cancellation_limit_date_due(),
                     "limite_inscription_depassee": slot.is_registration_limit_date_due(),
                 }
@@ -444,6 +498,31 @@ class Parser:
 
             return context
         return {}
+
+    @staticmethod
+    def get_recipient_context(recipient):
+        return {
+            "destinataire": {
+                "estCohorte": recipient == "group",
+                "estIndividu": recipient == "user",
+            }
+        }
+    @staticmethod
+    def get_group_context(immersion_group: Optional[ImmersionGroupRecord]):
+        if immersion_group:
+            return {
+                "cohorte": {
+                    "etablissementInscrit": immersion_group.highschool.label,
+                    "nbEleves": immersion_group.students_count,
+                    "nbAccompagnateurs": immersion_group.guides_count,
+                    "nbPlaces": immersion_group.students_count or 0 + immersion_group.guides_count or 0,
+                    "fichierJoint": format_html('<a href="{0}">{1}</a>', reverse(
+                        'group_document',
+                        kwargs={'immersion_group_id': immersion_group.id}
+                    ), immersion_group.file.name) if immersion_group.file else "",
+                    "commentaires": immersion_group.comments or _("None")
+                }
+            }
 
     @staticmethod
     def get_cancellation_type_context(immersion: Optional[Immersion]) -> Dict[str, Any]:
@@ -570,6 +649,7 @@ class Parser:
         immersion: Optional[Immersion] = kwargs.get('immersion')
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
         link_source_user: Optional[str] = kwargs.get('link_source_user', '')
+        recipient: [str] = kwargs.get('recipient', 'user')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
@@ -584,6 +664,8 @@ class Parser:
         context.update(cls.get_course_context(course))
         context.update(cls.get_event_context(event))
         context.update(cls.get_slot_context(slot))
+
+        context.update(cls.get_recipient_context(recipient))
 
         context.update(cls.get_cancellation_type_context(immersion))
 
