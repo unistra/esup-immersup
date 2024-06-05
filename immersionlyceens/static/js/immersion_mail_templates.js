@@ -58,6 +58,7 @@ $(document).ready(function () {
 
   $('#id_body').css('position', 'relative')
   $('#id_body').css('top', '20px')
+
   // $('#template_vars_modal').modal('hide');
 
   $('#template_vars_dialog').dialog({
@@ -67,12 +68,18 @@ $(document).ready(function () {
     // height: 550,
     width: 1000,
   })
+
   $('#template_preview_dialog').dialog({
     // dialogClass: "no-close",
     autoOpen: false,
     modal: true,
-    // height: 550,
+    height: 800,
     width: 1000,
+    position: {
+            my: "center",
+            at: "center",
+            of: $('#content')
+        },
   })
 
   $('#toggle-modal').click(function () {
