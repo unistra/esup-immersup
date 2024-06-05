@@ -1,21 +1,17 @@
 {% load immersionlyceens_tags i18n static %}
 <div id="template_preview_dialog" title="{% trans 'Mail template preview' %}">
-  <div class="module aligned">
+  <div class="module">
 
-    <form id="preview_control_form">
-      <div class="form-row field-code">
-        <div>
-          <label for="slot_type">{% trans "Slot type" %}</label>
+    <form id="preview_control_form" class="form-inline">
+      <div class="form-group form-row field-code mb-2">
+          <label for="slot_type_input">{% trans "Slot type" %}</label>
           <select name="slot_type" id="slot_type_input">
             <option value="estuncours" selected>{% trans "Course" %}</option>
             <option value="estunevenement">{% trans "Event" %}</option>
           </select>
-        </div>
       </div>
-
-      <div class="form-row field-code">
-        <div>
-          <label for="user_group">{% trans "User type" %}</label>
+      <div class="form-group form-row field-code mb-2">
+          <label for="user_group_input">{% trans "User type" %}</label>
           <select name="user_group" id="user_group_input">
             <option value="estetudiant" selected>{% trans "Student" %}</option>
             <option value="estlyceen">{% trans "High school student" %}</option>
@@ -24,30 +20,29 @@
             <option value="estreflycee">{% trans "High school manager" %}</option>
             <option value="estrefstructure">{% trans "Structure manager" %}</option>
           </select>
-    </div>
       </div>
-
-      <div class="form-row field-code">
-        <div>
-          <label for="local_user">{% trans "Local account" %}</label>
+      <div class="form-group form-row field-code mb-2">
+          <label for="local_user_input">{% trans "Local account" %}</label>
           <select name="local_user" id="local_user_input">
             <option value="true" selected>{% trans "Yes" %}</option>
             <option value="false">{% trans "No" %}</option>
           </select>
-        </div>
       </div>
-
-      <div class="form-row field-code">
-        <div>
-          <label for="remote">{% trans "Remote" %}</label>
+      <div class="form-group form-row field-code mb-2">
+          <label for="face_to_face_input">{% trans "Remote" %}</label>
           <select name="remote" id="face_to_face_input">
             <option value="true" selected>{% trans "Yes" %}</option>
             <option value="false">{% trans "No" %}</option>
           </select>
-        </div>
+     </div>
+      <div class="form-group form-row field-code mb-2">
+          <label for="recipient_input">{% trans "Recipient" %}</label>
+          <select name="recipient" id="recipient_input">
+            <option value="user" selected>{% trans "User" %}</option>
+            <option value="group">{% trans "Group" %}</option>
+          </select>
       </div>
-
     </form>
   </div>
-  <div id="template_preview_content" class="selector"></div>
+  <div id="template_preview_content" ></div>
 </div>

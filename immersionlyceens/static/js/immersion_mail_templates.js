@@ -90,10 +90,12 @@ $(document).ready(function () {
   let user_group_input = document.getElementById("user_group_input")
   let local_user_input = document.getElementById("local_user_input")
   let face_to_face_input = document.getElementById("face_to_face_input")
+  let recipient_input = document.getElementById("recipient_input")
 
   slot_type_input.addEventListener("change", change_handler)
   user_group_input.addEventListener("change", change_handler)
   local_user_input.addEventListener("change", change_handler)
   face_to_face_input.addEventListener("change", change_handler)
+  recipient_input.addEventListener("change", change_handler)
 })
 

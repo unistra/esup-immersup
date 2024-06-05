@@ -37,18 +37,20 @@ def parser(message_body, available_vars=None, user=None, group=None, recipient=N
         message_body=message_body,
         available_vars=available_vars,
         user=user,
+        group=group,
         recipent=recipient,
         request=request,
         **kwargs
     )
 
 
-def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, recipient=None, request=None, **kwargs):
+def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, request=None, **kwargs):
     return ParserFaker.parser(
         message_body=message_body,
         context_params=context_params,
         available_vars=available_vars,
         user=user,
+        group=group,
         request=request,
         **kwargs
     )
@@ -58,7 +60,7 @@ class ParserFaker:
     @classmethod
     def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]], context_params: Dict[str, Any],
                user: Optional[ImmersionUser] = None, group: Optional[ImmersionGroupRecord] = None,
-               request: Optional[Request] = None, recipient=None, **kwargs) -> str:
+               request: Optional[Request] = None, **kwargs) -> str:
 
         context: Dict[str, Any] = cls.get_context(request, **context_params)
         return render_text(template_data=message_body, data=context)
@@ -70,7 +72,7 @@ class ParserFaker:
         return format_html(text)
 
     @classmethod
-    def get_context(cls, request, user_is, slot_type, local_account, remote):
+    def get_context(cls, request, user_is, slot_type, local_account, remote, recipient):
         today: datetime = timezone.localdate()
         formatted_today: str = today.strftime("%d/%m/%Y")
 
@@ -231,20 +233,29 @@ class ParserFaker:
         # Group data
         context.update({
             "cohorte": {
-                "etablissementInscrit": cls.add_tooltip("cohorte.etablissementInscrit", "Etablissement du groupe inscrit"),
+                "etablissementInscrit": cls.add_tooltip(
+                    "cohorte.etablissementInscrit",
+                    "École Européenne de Strasbourg"
+                ),
                 "nbEleves": cls.add_tooltip("cohorte.nbEleves", "12"),
                 "nbAccompagnateurs": cls.add_tooltip("cohorte.nbEleves", "2"),
                 "nbPlaces": cls.add_tooltip("cohorte.nbEleves", "14"),
-                "fichierJoint": cls.add_tooltip("cohorte.fichierJoint", "<lien vers un fichier>"),
-                "commentaires": cls.add_tooltip("cohorte.fichierJoint", "Commentaires ..."),
+                "fichierJoint": cls.add_tooltip(
+                    "cohorte.fichierJoint",
+                    "<a href=''>Composition du groupe.pdf</a>"
+                ),
+                "commentaires": cls.add_tooltip(
+                    "cohorte.fichierJoint",
+                    "Le groupe viendra en bus, merci de prévoir un emplacement pour le stationnement."
+                ),
             }
         })
 
         # Recipient data
         context.update({
             "destinataire": {
-                "estCohorte": cls.add_tooltip("cohorte.estCohorte", "vrai/faux"),
-                "estIndividu": cls.add_tooltip("cohorte.estIndividu", "vrai/faux"),
+                "estCohorte": recipient == 'group',
+                "estIndividu": recipient == 'user',
             }
         })
 
