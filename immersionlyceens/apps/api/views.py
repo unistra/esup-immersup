@@ -1476,22 +1476,8 @@ def ajax_group_slot_registration(request):
             error = True
 
     if not error:
-        high_school_managers = ImmersionUser.objects.filter(groups__name='REF-LYC', highschool_id=highschool_id)
-        main_manager = user if user.is_high_school_manager() else high_school_managers.first()
-        contacts = emails.split(',')
-        recipients = list(
-            set(contacts).union(set(hsm.email for hsm in high_school_managers if hsm.email != main_manager.email))
-        )
-
-        # Send a confirmation message to highschool managers and all contacts
-        ret = main_manager.send_message(request, 'IMMERSION_CONFIRM', slot=slot, copies=recipients)
-        if not ret:
-            msg = _("Registration successfully added, confirmation email sent to high school managers and contacts")
-        else:
-            msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
-            error = True
-
-        response = {'error': error, 'msg': msg}
+        # Send message to group contacts
+        msg, error = immersion_group_record.send_message(request, 'IMMERSION_ANNUL')
 
     if feedback == True:
         if error:
@@ -2099,14 +2085,11 @@ def ajax_groups_batch_cancel_registration(request):
 
                 cancelled_immersions += 1
 
-                # FIXME : send message to group contacts
-                """
-                ret = immersion.student.send_message(
-                    request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot
-                )
-                if ret:
-                    mail_returns.add(ret)
-                """
+                # Send message to group contacts
+                msg, error = group_immersion.send_message(request, 'IMMERSION_ANNUL')
+
+                if error:
+                    mail_returns.add(msg)
 
             except ImmersionGroupRecord.DoesNotExist:
                 immersion_errors.append(_("Group immersion %s not found") % immersion_id)

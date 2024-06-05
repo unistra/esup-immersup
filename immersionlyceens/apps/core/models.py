@@ -489,7 +489,7 @@ class ImmersionUser(AbstractUser):
         user_filter = {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
 
-    def send_message(self, request, template_code, copies=None, **kwargs):
+    def send_message(self, request, template_code, copies=None, recipient='user', **kwargs):
         """
         Get a MailTemplate by its code, replace variables and send
         :param message_code: Code of message to send
@@ -507,7 +507,7 @@ class ImmersionUser(AbstractUser):
         other_recipients = copies if copies and isinstance(copies, list) else []
 
         try:
-            message_body = template.parse_vars(user=self, request=request, **kwargs)
+            message_body = template.parse_vars(user=self, request=request, recipient=recipient, **kwargs)
             from immersionlyceens.libs.mails.variables_parser import Parser
             logger.debug("Message body : %s" % message_body)
             send_email(self.email, template.subject, message_body, copies=other_recipients)
@@ -2882,6 +2882,32 @@ class ImmersionGroupRecord(models.Model):
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
+
+    def send_message(self, request, template):
+        """
+        Get group high school referents and contacts,
+        then send the message to the first referent and all others in CC
+        """
+        user = request.user if request else None
+        error = False
+
+        high_school_managers = ImmersionUser.objects.filter(groups__name='REF-LYC', highschool_id=self.highschool.id)
+        main_manager = user if user and user.is_high_school_manager() else high_school_managers.first()
+        contacts = self.emails.split(',')
+        recipients = list(
+            set(contacts).union(set(hsm.email for hsm in high_school_managers if hsm.email != main_manager.email))
+        )
+
+        # Send a confirmation message to highschool managers and all contacts
+        ret = main_manager.send_message(request, template, slot=self.slot, copies=recipients)
+        if not ret:
+            msg = _(
+                "Registration successfully added, confirmation email sent to high school managers and contacts")
+        else:
+            msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
+            error = True
+
+        return msg, error
 
     class Meta:
         verbose_name = _('Group immersion')
