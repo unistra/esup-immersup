@@ -273,23 +273,11 @@
                                                               {% if s.allow_individual_registrations %}
                                                               <i class="fa fas fa-user text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Individual immersions' %}"></i>
                                                                 {% trans 'Individual immersions' %}
-                                                                {% if s.cancelled %}
-                                                                <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                                                                {% endif %}
-                                                                {% if s.can_register %}
-                                                                  <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register again' %}</button>
-                                                                  <div id="feedback_{{ s.pk }}"></div>
-                                                                {% elif s.already_registered %}
-                                                                <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                                                                {% elif s.opening_soon %}
+
+                                                                {% if s.opening_soon %}
                                                                 <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
                                                                 {% elif s.available_seats > 0 %}
                                                                 <span class="badge badge-primary badge-pill">{% trans 'Available places' %} : {{ s.available_seats }}{% endif %}</span><br />
-                                                                {% comment "TODO: register route changed later !!!" %}{% endcomment %}
-                                                                  {% if authorized_groups|in_groups:'LYC,ETU,VIS' and s.can_register %}
-                                                                  <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
-                                                                  <div id="feedback_{{ s.pk }}"></div>
-                                                                  {% endif %}
                                                                 {% else %}
                                                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                                               {% endif %}
@@ -301,6 +289,11 @@
                                                                 <span class="badge badge-primary badge-pill">
                                                                 {% if s.group_mode == 0 %}{% blocktrans with grp_places=s.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}{% else %}{% trans 'Available places' %} : {{ s.available_seats }}{% endif %}
                                                                 </span>
+                                                                  {% if authorized_groups|in_groups:'REF-LYC' %}
+                                                                  {% comment %} <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register a group' %}</button> {% endcomment %}
+                                                                  <button type="button" id="btn_register_group" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ s.id }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
+                                                                  <div id="feedback_{{ s.pk }}"></div>
+                                                                  {% endif %}
                                                                 {% else %}
                                                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                                                 {% endif %}
@@ -372,14 +365,18 @@
     </div>
   </section>
   <script>
-  $(document).ready(function() {
-    initFeedback();
-    initBadge();
-    feedback = $("#feedback");
+    let register_group_txt = "{% trans 'Register this group' %}"
+    var current_slot_id;
+    $(document).ready(function() {
 
-    $(".close-button").on("click", function() {
-      $("div.collapse").collapse('hide');
+      initFeedback();
+      initBadge();
+      feedback = $("#feedback");
+
+      $(".close-button").on("click", function() {
+        $("div.collapse").collapse('hide');
     });
   });
-  </script>
+</script>
+{% include 'modals/modal_register_group.html' %}
 {% endblock %}

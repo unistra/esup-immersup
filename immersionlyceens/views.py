@@ -598,6 +598,7 @@ def cohort_offer(request):
         'cohort_offer_txt': cohort_offer_txt,
         'events_count': events.count(),
         'events': events,
+        'highschool': request.user.highschool if request.user.is_high_school_manager() else None,
     }
     return render(request, 'cohort_offer.html', context)
 
