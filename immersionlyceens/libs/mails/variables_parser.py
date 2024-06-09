@@ -72,7 +72,7 @@ class ParserFaker:
         return format_html(text)
 
     @classmethod
-    def get_context(cls, request, user_is, slot_type, local_account, remote, recipient):
+    def get_context(cls, request, user_is, slot_type, local_account, remote, recipient, educonnect):
         today: datetime = timezone.localdate()
         formatted_today: str = today.strftime("%d/%m/%Y")
 
@@ -115,7 +115,8 @@ class ParserFaker:
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
-            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations))
+            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations)),
+            "educonnect": educonnect,
         })
         context[user_is] = True
 
@@ -471,7 +472,8 @@ class Parser:
 
                     context.update({
                         "lycee": record.highschool.label if record and record.highschool else _("unknown"),
-                        "datedenaissance": date_format(record.birth_date, 'd/m/Y'),
+                        "educonnect": record.highschool.uses_student_federation if record and record.highschool else False,
+                        "datedenaissance": date_format(record.birth_date, 'd/m/Y') if record.birth_date else "",
                         "justificatifs_expires": format_html("<br>".join(attestations))
                     })
 

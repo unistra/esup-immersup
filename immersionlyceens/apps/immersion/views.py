@@ -37,9 +37,9 @@ from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorType, CancelType, CertificateLogo,
     CertificateSignature, GeneralSettings, HigherEducationInstitution,
-    HighSchoolLevel, Immersion, ImmersionUser, MailTemplate, PendingUserGroup,
-    Period, PostBachelorLevel, Slot, StudentLevel, UniversityYear,
-    UserCourseAlert,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
+    PendingUserGroup, Period, PostBachelorLevel, Slot, StudentLevel,
+    UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -316,6 +316,17 @@ def register(request, profile=None):
             new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
+            new_user.refresh_from_db()
+
+            # High school selected : create the Record
+            record_highschool = form.cleaned_data.get('record_highschool')
+
+            if record_highschool:
+                HighSchoolStudentRecord.objects.create(
+                    highschool=record_highschool,
+                    student=new_user
+                )
+
             group_name: str = "LYC"
 
             try:
@@ -343,16 +354,20 @@ def register(request, profile=None):
 
             messages.success(request, _("Account created. Please check your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
-        # Not used anymore using form.errors displaying instead
-        # else:
-        #     for err_field, err_list in form.errors.get_json_data().items():
-        #         for error in err_list:
-        #             if error.get("message"):
-        #                 messages.error(request, error.get("message"))
     else:
-        form = RegistrationForm()
+        form = RegistrationForm(required_highschool=(profile == 'lyc'))
 
-    context = {'form': form, 'profile': profile}
+    highschools = (HighSchool.agreed
+        .values('id', 'city', 'label', 'uses_student_federation')
+        .order_by('city', 'label')
+    )
+
+    context = {
+        'form': form,
+        'profile': profile,
+        'highschools_values': json.dumps({h['id']: h for h in highschools}),
+        'highschools': HighSchool.agreed.all().order_by('city', 'label')
+    }
 
     return render(request, 'immersion/registration.html', context)
 

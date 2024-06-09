@@ -4409,7 +4409,8 @@ class MailTemplatePreviewAPI(View):
             "slot_type": request.POST.get("slot_type", "estuncours"),
             "local_account": request.POST.get("local_user", "true").strip().lower() == "true",
             "remote": request.POST.get("remote", "true").strip().lower() == "true",
-            "recipient": request.POST.get("recipient", "user")
+            "recipient": request.POST.get("recipient", "user"),
+            "educonnect": request.POST.get("educonnect", False) == "true",
         }
 
         if not body:

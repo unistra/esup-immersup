@@ -54,19 +54,32 @@ class LoginForm(forms.Form):
 
 class RegistrationForm(UserCreationForm):
     email2 = forms.EmailField(
-        label=_("Email"), max_length=100,
+        label=_("Email"),
+        max_length=100,
         required=True
     )
 
+    record_highschool = forms.ModelChoiceField(
+        label=_("Your high school"),
+        queryset=HighSchool.agreed.order_by('city', 'label'),
+        required=False
+    )
+
     def __init__(self, *args, **kwargs):
+        required_highschool = kwargs.pop('required_highschool', False)
+
         super().__init__(*args, **kwargs)
+
+        self.fields['record_highschool'].required = required_highschool
+
+        self.fields['password1'].required = False
+        self.fields['password2'].required = False
 
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
     def clean(self):
         cleaned_data = super().clean()
-
         cleaned_data["email"] = cleaned_data.get('email', '').strip().lower()
         cleaned_data["email2"] = cleaned_data.get('email2', '').strip().lower()
 
