@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        {% if highschools %}
+        {% if highschools and profile == 'lyc' %}
         <div class="form-group row justify-content-center">
           <label for="{{ form.record_highschool.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Your high school' %} :</label>
           <div class="col-sm-9 col-md-6">
@@ -193,7 +193,7 @@ function decodeHTMLEntities(text) {
 function toggle_password_fields() {
     let highschool_id = $("#id_record_highschool").val()
 
-    if(is_set(highschool_id)) {
+    if(is_set(highschool_id) || profile == "lyc") {
       let uses_federation = highschools_uses_student_federation[highschool_id].uses_student_federation
 
       if (uses_federation === false) {
@@ -215,7 +215,7 @@ function toggle_password_fields() {
 
 
 var highschools_uses_student_federation = is_set('{{ highschools_values }}') ? JSON.parse(decodeHTMLEntities('{{ highschools_values }}')) : Array()
-
+var profile = "{{ profile }}"
 
 $(document).ready(function() {
     $("#view_button1").focusout(function(){
