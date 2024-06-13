@@ -924,6 +924,9 @@ def ajax_get_slot_groups_registrations(request, slot_id):
             .filter(slot=slot, cancellation_type__isnull=True)
         )
 
+        response['total_groups_registered'] = immersions.count()
+        response['group_mode'] = slot.group_mode
+
         for immersion in immersions:
             total_count = (immersion.students_count or 0) + (immersion.guides_count or 0)
             immersion_data = {

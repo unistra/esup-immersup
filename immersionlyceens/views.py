@@ -638,6 +638,7 @@ def cohort_offer_subdomain(request, subdomain_id):
         'data': data,
         'today': today,
         'is_anonymous': request.user.is_anonymous,
+        'highschool': request.user.highschool if request.user.is_high_school_manager() else None,
     }
 
     return render(request, 'cohort_offer_subdomains.html', context)
