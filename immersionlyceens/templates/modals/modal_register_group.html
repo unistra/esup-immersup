@@ -89,21 +89,20 @@
 </div>
 
 <script>
+  var current_url = "{{ request.path }}";
   function register_group() {
     let upload_file = $('#file')[0].files[0];
     let formData = new FormData();
-
-    formData.append('id', $("#id_group_registration").val())
-    formData.append('slot_id', current_slot_id)
-    formData.append('highschool_id', $("#id_group_highschool").val())
-    formData.append('students_count', $("#students_count").val())
-    formData.append('guides_count', $("#guides_count").val())
-    formData.append('comments', $("#comments").val())
-    formData.append('file', upload_file)
-    formData.append('emails', $("#emails").val())
-    formData.append('feedback', true)
-    formData.append('middlewaretoken', '{{ csrf_token }}')
-
+    formData.append('id', $("#id_group_registration").val());
+    formData.append('slot_id', current_slot_id);
+    formData.append('highschool_id', $("#id_group_highschool").val());
+    formData.append('students_count', $("#students_count").val());
+    formData.append('guides_count', $("#guides_count").val());
+    formData.append('comments', $("#comments").val());
+    formData.append('file', upload_file);
+    formData.append('emails', $("#emails").val());
+    formData.append('feedback', true);
+    formData.append('middlewaretoken', '{{ csrf_token }}');
     $.ajax({
       url: "{% url 'GroupSlotRegistration' %}",
       type: 'POST',
@@ -114,66 +113,95 @@
         if(json['error']) {
           $("#register_group_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
-
-          reload_groups_table();
+          if (typeof reload_groups_table === 'function') {
+            reload_groups_table();
+          }
           // groups_dtr.ajax.reload();
-          dt.ajax.reload();
+          if (typeof dt != "undefined") {
+            dt.ajax.reload();
+          }
         }
         else {
           $("#register_group_feedback").html('<div class="alert alert-success">' + json['msg'] + '</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
           // groups_dtr.ajax.reload();
-          reload_groups_table();
-          dt.ajax.reload();
-
+          if (typeof reload_groups_table === 'function') {
+            reload_groups_table();
+          }
+          if (typeof dt != "undefined") {
+            dt.ajax.reload();
+          }
           let fields = ['#id_group_highschool', '#id_group_registration', '#students_count', '#guides_count',
-                        '#file', '#emails', '#comments']
+                        '#file', '#emails', '#comments'];
+          if  ( current_url.search("cohort_offer") ) {
+            $.ajax({
+              url: `/api/get_slot_groups_registrations/${current_slot_id}`,
+              type: 'GET',
+              success: function (json) {
+                if(json['error']) {
+                  $("#register_group_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+                  setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
+                }
+                else {
+                  if ('group_mode' in json && json['group_mode'] === 0 && 'total_groups_registered' in json && json['total_groups_registered'] == 1) {
+                    $(`#group_registrations_infos_${current_slot_id}`).html(
+                      `<span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>`
+                    );
+                  }
+                }
+              }
+            })
+            fields = fields.filter(function (v) {
+              return v !== '#id_group_highschool';
+            });
+          }
 
           $.each(fields, function(i, item) {
             $(item).val('');
           })
 
-          $("#file_link").prop("href", "")
-          $("#file_link").html('')
-          $("#file_link").hide()
+          $("#file_link").prop("href", "");
+          $("#file_link").html('');
+          $("#file_link").hide();
         }
       },
       error: function(json) {
-        console.log(json)
+        console.log(json);
       }
     })
   };
 
   $('#modal_register_group').on('show.bs.modal', function (e) {
     if(!$("#id_group_registration").val()) {
-      $('#id_group_registration').val('')
-      $('#id_group_highschool').val('')
-      $('#students_count').val('')
-      $('#guides_count').val('')
-      $('#file').val('')
-      $("#file_link").prop("href", "")
-      $("#file_link").html('')
-      $("#file_link").hide()
-      $('#emails').val('')
-      $('#comments').val('')
-
-      $('button[name="register"]').html(register_group_txt)
+      $('#id_group_registration').val('');
+      if ( current_url.search('/cohort_offer') === false ) {
+        $('#id_group_highschool').val('');
+      }
+      $('#students_count').val('');
+      $('#guides_count').val('');
+      $('#file').val('');
+      $("#file_link").prop("href", "");
+      $("#file_link").html('');
+      $("#file_link").hide();
+      $('#emails').val('');
+      $('#comments').val('');
+      $('button[name="register"]').html(register_group_txt);
     }
   })
 
   $('#modal_register_group').on('hidden.bs.modal', function (e) {
-    $('#id_group_registration').val('')
-    $('#id_group_highschool').val('')
-    $('#students_count').val('')
-    $('#guides_count').val('')
-    $('#file').val('')
-    $("#file_link").prop("href", "")
-    $("#file_link").html('')
-    $("#file_link").hide()
-    $('#emails').val('')
-    $('#comments').val('')
-
-    $('button[name="register"]').html(register_group_txt)
+    $('#id_group_registration').val('');
+    if ( current_url.search('/cohort_offer') === false ) {
+        $('#id_group_highschool').val('');
+    }
+    $('#students_count').val('');
+    $('#guides_count').val('');
+    $('#file').val('');
+    $("#file_link").prop("href", "");
+    $("#file_link").html('');
+    $("#file_link").hide();
+    $('#emails').val('');
+    $('#comments').val('');
+    $('button[name="register"]').html(register_group_txt);
   })
-
 </script>

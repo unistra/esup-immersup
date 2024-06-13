@@ -25,6 +25,7 @@
 {% block content %}
 {% authorized_groups request.user %}
 {% include 'modals/modal_course_alert.html' %}
+{% include 'modals/modal_register_group.html' %}
 
 {% trans 'No city' as no_city %}
 
@@ -223,6 +224,7 @@
                                 <span class="badge badge-primary badge-pill">
                                 {% trans 'Available places' %} : {{ slot.available_seats }}
                                 </span><br>
+                                <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                                 {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                                   {% if slot.can_register %}
                                   <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
@@ -233,23 +235,37 @@
                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                               {% endif %}
                             {% endif %}
+
                             {% if slot.allow_group_registrations %}
+                              <div id="group_registrations_{{ slot.pk }}">
                                 <i class="fa fas fa-group text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Cohort immersions' %}"></i>
-                                  {% trans 'Cohort immersions' %}
-                              {% if slot.n_group_places > 0 %}
-                              <span class="badge badge-primary badge-pill">
-                                {% if slot.group_mode == 0 %}
-                                  {% blocktrans with grp_places=slot.n_group_places %}Only one group of {{ grp_places }} persons max{% endblocktrans %}
+                              {% trans 'Cohort immersions' %}
+                              {% with  total_groups_places=slot.n_group_places total_reg_groups=slot.registered_groups total_groups=slot.n_group_places|sub:slot.registered_groups  %}
+                                <div id="group_registrations_infos_{{ slot.pk }}">
+                              {% if slot.group_mode == 0 %}
+                                {% if total_reg_groups > 0 %}
+                                  <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                 {% else %}
-                                  {% trans 'Available places' %} : {{ slot.n_group_places }}
+                                  <span class="badge badge-primary badge-pill" id="group_feedback_">
+                                {% blocktrans %}Only one group of {{ total_groups_places }} persons max{% endblocktrans %}
+                                  </span>
+                                  {% if authorized_groups|in_groups:'REF-LYC' %}
+                                  <button type="button" id="btn_register_group_{{ slot.id }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ slot.id }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
+                                  <div id="feedback_{{ slot.id }}"></div>
+                                  {% endif %}
                                 {% endif %}
-                              </span><br>
                               {% else %}
-                              <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                  <span class="badge badge-primary badge-pill" id="group_reg_counter">
+                                  {% blocktrans  %}group(s) of {{ total_groups_places }} persons max{% endblocktrans %}
+                                  </span>
+                                  {% if authorized_groups|in_groups:'REF-LYC' %}
+                                  <button type="button" id="btn_register_group_{{ slot.id }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ slot.id }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
+                                  <div id="feedback_{{ slot.id }}"></div>
+                                  {% endif %}
                               {% endif %}
-                            {% endif %}
-                            {% if slot.n_group_places > 0 or slot.available_seats > 0 %}
-                              <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
+                                </div>
+                              {% endwith %}
+                              </div>
                             {% endif %}
                           </td>
                         </tr>
@@ -314,6 +330,8 @@ var open_course_id = "{{ open_course_id }}";
 var open_training_id = "{{ open_training_id }}";
 var current_course_id = "";
 var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
+let register_group_txt = "{% trans 'Register this group' %}"
+var current_slot_id;
 
 function register(slot_id) {
   $.ajax({
@@ -346,10 +364,21 @@ function open_alert_modal(course_id) {
   $('#modal_course_alert').modal('show');
 }
 
+function csrfSafeMethod(method) {
+  return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
 $(document).ready(function() {
   initFeedback();
   initBadge();
   feedback = $("#feedback");
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+      }
+    }
+  });
 
   $(".close-button").on("click", function() {
     $("div.collapse").collapse('hide');
