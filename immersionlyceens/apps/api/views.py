@@ -4626,7 +4626,7 @@ def ajax_search_slots_list(request, slot_id=None):
         Q(date__isnull=True)
         | Q(date__gte=today.date())
         | Q(date=today.date(), end_time__gte=today.time())
-    )
+    ).exclude(Q(allow_group_registrations=True) & Q(public_group=False))
 
     fields = [
         "id",
@@ -4653,7 +4653,6 @@ def ajax_search_slots_list(request, slot_id=None):
         "face_to_face",
         "room",
         "meeting_place",
-        "face_to_face",
         "n_register",
         "n_places",
         "speakers_list",
@@ -4663,6 +4662,8 @@ def ajax_search_slots_list(request, slot_id=None):
         "registration_limit_date",
         "event_type",
         "passed_registration_limit_date",
+        "allow_individual_registrations",
+        "allow_group_registrations",
     ]
 
     if user.is_authenticated:

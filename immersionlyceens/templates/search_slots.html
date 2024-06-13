@@ -15,6 +15,7 @@
   {% trans 'Search immersions slots' %}
 {% endblock %}
 {% block content %}
+  {% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
   {% authorized_groups request.user %}
     {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
   {% include './modals/modal_search_slots_details.html' %}
@@ -144,6 +145,20 @@
                 </div>
               </div>
             </div>
+            {% if activated_cohort %}
+            <h5>{% trans "Individual immersions" %} / {% trans "Cohort immersions" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="individualCheckbox" name="individualSlots" class="filters slotIndividualGroupsSlotsFilter" value="{% trans "Face to face" %}" checked> {% trans "Individual immersions" %}
+                </label>
+
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="groupsCheckbox" name="groupsSlots" class="filters slotIndividualGroupsSlotsFilter" value="{% trans "Remote" %}" checked> {% trans "Cohort immersions" %}
+                </label>
+              </div>
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -153,7 +168,7 @@
             <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:95%">
               {% if events_off_offer %}
               <caption>
-                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
+                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1" ></i>{% trans 'Course' %}</span>
                 {% if events_off_offer %}
                 <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
                 {% endif %}
@@ -220,6 +235,10 @@
         var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
         var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
         var face_to_face = rowData['face_to_face'];
+        var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
+        var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
+        var individual = rowData['allow_individual_registrations'];
+        var group = rowData['allow_group_registrations'];
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
@@ -229,13 +248,16 @@
                                    || remoteSlots === 1 && faceToFaceSlots === 1
 
         var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;
+        var showIndividualGroup = individualSlots === 0 && individual === false
+                                   || individualSlots === 1 && individual === true
+                                   || groupSlots === 1 && group === true
 
         if (start_date == null && end_date == null) { showDate = true; }
         if (start_date == null && startDate <= end_date) { showDate = true; }
         if (end_date == null && startDate >= start_date) { showDate = true; }
         if (startDate <= end_date && startDate >= start_date) { showDate = true; }
 
-        return showType && showAvailable && showDate && showRemoteFaceToFace;
+        return showType && showAvailable && showDate && showRemoteFaceToFace && showIndividualGroup;
       }
     );
     dt = $('#search_immersions_slots_table').DataTable({
@@ -270,14 +292,21 @@
           {
               orderable: false, className: 'text-center', width: '20px',
               render: function(data, type, full, meta) {
-                  slotType = full['slot_type'][0].toLowerCase();
+                  slotType = full['slot_type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                   if (slotType === 'c') {
-                      return '<i class="fa fa-graduation-cap slot-type-c"></i>';
-                  } else if (slotType === 'v') {
-                      return '<i class="fa fa-university slot-type-v"></i>';
+                      label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
                   } else {
-                      return '<i class="fa fa-calendar slot-type-e"></i>';
+                      label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
                   }
+                  {% if activated_cohort %}
+                  if (full['allow_individual_registrations'] === true) {
+                    label += `&nbsp;<i class="fa fas fa-user slot-type-${slotType}" data-toggle="tooltip" title="{% trans "An individual immersion is available to anyone with a valid account to come to the immersion" %}"></i>`;
+                  }
+                  if (full['allow_group_registrations'] === true) {
+                    label += `&nbsp;<i class="fa fas fa-users slot-type-${slotType}" data-toggle="tooltip" title="{% trans "Cohort immersion is reserved for establishments wishing to enrol a group of students in immersion" %}"></i>`;
+                  }
+                  {% endif %}
+                  return label;
               }
           },
           {
@@ -652,6 +681,7 @@
     }
     ]);
     dt.on("draw.dt", function (e, dt, type, indexes) {
+        $('[data-toggle="tooltip"]').tooltip({placement:"left",});
         if ($(this).find(".dataTables_empty").length == 1) {
           // Dirty hack cause has() is not supported by firefox :(
           var elm = $(this).find(".dataTables_empty").parent('tr')
