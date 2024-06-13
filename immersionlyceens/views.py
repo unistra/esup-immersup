@@ -598,7 +598,9 @@ def cohort_offer(request):
         'cohort_offer_txt': cohort_offer_txt,
         'events_count': events.count(),
         'events': events,
-        'highschool': request.user.highschool if request.user.is_high_school_manager() else None,
+        'highschool': (
+            request.user.highschool if request.user.is_authenticated and request.user.is_high_school_manager() else None
+        ),
     }
     return render(request, 'cohort_offer.html', context)
 
@@ -638,7 +640,7 @@ def cohort_offer_subdomain(request, subdomain_id):
         'data': data,
         'today': today,
         'is_anonymous': request.user.is_anonymous,
-        'highschool': request.user.highschool if request.user.is_high_school_manager() else None,
+        'highschool': request.user.highschool if request.user.is_authenticated and request.user.is_high_school_manager() else None,
     }
 
     return render(request, 'cohort_offer_subdomains.html', context)
