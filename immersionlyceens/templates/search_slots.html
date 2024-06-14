@@ -235,10 +235,17 @@
         var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
         var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
         var face_to_face = rowData['face_to_face'];
+        {% if activated_cohort %}
         var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
         var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
         var individual = rowData['allow_individual_registrations'];
         var group = rowData['allow_group_registrations'];
+        var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
+                                   || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
+                                   ||  individualSlots === 1 && (individual === true || individual === false )&& groupSlots === 1 && (group === true || group === false);
+        {% else %}
+        var showIndividualGroup = true;
+        {% endif %}
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
@@ -248,9 +255,7 @@
                                    || remoteSlots === 1 && faceToFaceSlots === 1
 
         var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;
-        var showIndividualGroup = individualSlots === 0 && individual === false
-                                   || individualSlots === 1 && individual === true
-                                   || groupSlots === 1 && group === true
+
 
         if (start_date == null && end_date == null) { showDate = true; }
         if (start_date == null && startDate <= end_date) { showDate = true; }
