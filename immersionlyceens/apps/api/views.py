@@ -2814,7 +2814,7 @@ def get_csv_anonymous(request):
             'immersions','speakers','course', 'course__establishment', 'course__structure',
             'course__highschool', 'student__visitor_record', 'student__student_record',
             'student__high_school_student_record', 'course__training__training_subdomains'
-        ).filter(**filters, published=True, course__isnull=False, immersions__cancellation_type__isnull=True)
+        ).filter(**filters, published=True, course__isnull=False)
 
         content = slots.annotate(
             establishment=Coalesce(
@@ -2919,7 +2919,7 @@ def get_csv_anonymous(request):
             'immersions','speakers','event', 'event__establishment', 'event__structure',
             'event__highschool', 'student__visitor_record', 'student__student_record',
             'student__high_school_student_record',
-        ).filter(**filters, published=True, event__isnull=False, immersions__cancellation_type__isnull=True)
+        ).filter(**filters, published=True, event__isnull=False)
 
         content = slots.annotate(
             establishment=Coalesce(
