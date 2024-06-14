@@ -2289,8 +2289,7 @@ def get_csv_structures(request):
         slots = Slot.objects.prefetch_related(
             'immersions','speakers','course', 'course__establishment', 'course__structure',
             'course__highschool', 'course__training__training_subdomains'
-        ).filter(**filters, published=True, course__isnull=False, immersions__cancellation_type__isnull=True
-        ).order_by('date', 'start_time')
+        ).filter(**filters, published=True, course__isnull=False).order_by('date', 'start_time')
 
         content = slots.annotate(
             establishment=Coalesce(
@@ -2453,8 +2452,7 @@ def get_csv_structures(request):
         slots = Slot.objects.prefetch_related(
             'immersions','speakers','event', 'event__establishment', 'event__structure',
             'event__highschool'
-        ).filter(Q_filters, **filters, published=True, event__isnull=False, immersions__cancellation_type__isnull=True
-        ).order_by('date', 'start_time')
+        ).filter(Q_filters, **filters, published=True, event__isnull=False).order_by('date', 'start_time')
 
         content = slots.annotate(
             establishment=Coalesce(
