@@ -1871,8 +1871,7 @@ def get_csv_structures(request):
         slots = Slot.objects.prefetch_related(
             'immersions','speakers','course', 'course__establishment', 'course__structure',
             'course__highschool', 'course__training__training_subdomains'
-        ).filter(**filters, published=True, course__isnull=False, immersions__cancellation_type__isnull=True
-        ).order_by('date', 'start_time')
+        ).filter(**filters, published=True, course__isnull=False).order_by('date', 'start_time')
 
         content = slots.annotate(
             establishment=Coalesce(
@@ -1998,9 +1997,7 @@ def get_csv_structures(request):
         slots = Slot.objects.prefetch_related(
             'immersions','speakers','visit', 'visit__establishment', 'visit__structure',
             'visit__highschool'
-        ).filter(
-            Q_filters, **filters, published=True, visit__isnull=False, immersions__cancellation_type__isnull=True
-        ).order_by('date', 'start_time')
+        ).filter(Q_filters, **filters, published=True, visit__isnull=False).order_by('date', 'start_time')
 
         content = slots.annotate(
             establishment=F('visit__establishment__label'),
@@ -2145,8 +2142,7 @@ def get_csv_structures(request):
         slots = Slot.objects.prefetch_related(
             'immersions','speakers','event', 'event__establishment', 'event__structure',
             'event__highschool'
-        ).filter(Q_filters, **filters, published=True, event__isnull=False, immersions__cancellation_type__isnull=True
-        ).order_by('date', 'start_time')
+        ).filter(Q_filters, **filters, published=True, event__isnull=False).order_by('date', 'start_time')
 
         content = slots.annotate(
             establishment=Coalesce(
@@ -2514,7 +2510,7 @@ def get_csv_anonymous(request):
             'immersions','speakers','course', 'course__establishment', 'course__structure',
             'course__highschool', 'student__visitor_record', 'student__student_record',
             'student__high_school_student_record', 'course__training__training_subdomains'
-        ).filter(**filters, published=True, course__isnull=False, immersions__cancellation_type__isnull=True)
+        ).filter(**filters, published=True, course__isnull=False)
 
         content = slots.annotate(
             establishment=Coalesce(
@@ -2615,7 +2611,7 @@ def get_csv_anonymous(request):
             'immersions','speakers','visit', 'visit__establishment', 'visit__structure',
             'visit__highschool', 'student__visitor_record', 'student__student_record',
             'student__high_school_student_record',
-        ).filter(Q_filters, published=True, visit__isnull=False, immersions__cancellation_type__isnull=True)
+        ).filter(Q_filters, published=True, visit__isnull=False)
 
         content = slots.annotate(
             establishment=F('visit__establishment__label'),
@@ -2706,7 +2702,7 @@ def get_csv_anonymous(request):
             'immersions','speakers','event', 'event__establishment', 'event__structure',
             'event__highschool', 'student__visitor_record', 'student__student_record',
             'student__high_school_student_record',
-        ).filter(**filters, published=True, event__isnull=False, immersions__cancellation_type__isnull=True)
+        ).filter(**filters, published=True, event__isnull=False)
 
         content = slots.annotate(
             establishment=Coalesce(
