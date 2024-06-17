@@ -398,7 +398,7 @@
                 data = '&nbsp;';
               }
               if(type === "display") {
-                return '<label>'+ '{% trans "Date" %}' + ' :</label>' + display_slot_date(data, type, full);
+                return '<label>'+ '{% trans "Date" %}' + ' :</label>' + display_slot_date(data, type, full, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -610,7 +610,7 @@
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
-      $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0]));
+      $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
       $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address)

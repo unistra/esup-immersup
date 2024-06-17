@@ -1,9 +1,9 @@
 function display_additional_information(data) {
     if(data) {
       data = data.replace(/(?:\r\n|\r|\n)/g, '<br>').replace(/"/g, '\'');
-      return `<span 
+      return `<span
         data-toggle="tooltip"
-        data-html="true" 
+        data-html="true"
         data-contrainer="body"
         title="${data}">
         <i class="fa fas fa-info-circle fa-2x centered-icon"></i>
@@ -84,14 +84,8 @@ function display_slot_speakers(data, type, row) {
     return element;
 }
 
-function display_slot_date(data, type, row) {
+function display_slot_date(data, type, row, date_options = {year: "numeric", month: "numeric", day: "numeric", weekday: "long"}) {
     // data : datetime serialized by django
-    const date_options = {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      weekday: "long",
-    };
     let date = is_set(data) ? data : ''
     let start_time = is_set(row.start_time) ? row.start_time.slice(0, -3) : ''
     let end_time = is_set(row.end_time) ? row.end_time.slice(0, -3) : ''
@@ -200,7 +194,7 @@ function display_group_informations(row) {
 
     span += `<span
         data-toggle="tooltip"
-        data-html="true" 
+        data-html="true"
         data-contrainer="body"
         title="${individual_data}">
         <i class="fa fas fa-user pr-2"></i>
@@ -225,7 +219,7 @@ function display_group_informations(row) {
 
     span += `<span
         data-toggle="tooltip"
-        data-html="true" 
+        data-html="true"
         data-contrainer="body"
         title="${group_data}">
         <i class="fa fas fa-users pr-2"></i>
@@ -233,7 +227,7 @@ function display_group_informations(row) {
 
       span += `<span
         data-toggle="tooltip"
-        data-html="true" 
+        data-html="true"
         data-contrainer="body"
         title="${public_private}">
         <i class="fa fas ${public_private_icon}"></i>
