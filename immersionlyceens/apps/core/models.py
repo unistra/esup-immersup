@@ -2559,8 +2559,8 @@ class Slot(models.Model):
         )
 
         return {
-            'students': group_queryset.get('students_count', 0) or 0,
-            'guides': group_queryset.get('guides_count', 0) or 0
+            'students': group_queryset.get('students', 0) or 0,
+            'guides': group_queryset.get('guides', 0) or 0
         }
 
     def clean(self):

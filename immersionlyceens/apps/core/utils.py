@@ -312,13 +312,11 @@ def slots(request):
         ),
         n_group_students=Sum(
             'group_immersions__students_count',
-            filter=Q(group_immersions__cancellation_type__isnull=True),
-            distinct=True
+            filter=Q(group_immersions__cancellation_type__isnull=True)
         ),
         n_group_guides=Sum(
             'group_immersions__guides_count',
-            filter=Q(group_immersions__cancellation_type__isnull=True),
-            distinct=True
+            filter=Q(group_immersions__cancellation_type__isnull=True)
         ),
         is_past=ExpressionWrapper(
             Q(date__lt=today)|Q(date=today, start_time__lt=now),

@@ -576,8 +576,8 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': True,
             'room': "REPEAT_TEST",
             'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
-            'repeat': (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
-            'slot_dates': [
+            'repeat': (self.today + datetime.timedelta(days=33)).strftime("%Y-%m-%d"),
+            'slot_dates[]': [
                 (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=19)).strftime("%d/%m/%Y"),
                 (self.today + datetime.timedelta(days=26)).strftime("%d/%m/%Y"),
@@ -624,7 +624,8 @@ class CoreViewsTestCase(TestCase):
         # The following dates will be kept : 5 (initial), 12, 33
         Slot.objects.filter(room="REPEAT_TEST").delete()
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
-        data['slot_dates'] = [
+
+        data.update({'slot_dates[]': [
             (self.today + datetime.timedelta(days=12)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=33)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=40)).strftime("%d/%m/%Y"),
@@ -632,7 +633,7 @@ class CoreViewsTestCase(TestCase):
             (self.today + datetime.timedelta(days=54)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=61)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=68)).strftime("%d/%m/%Y"),
-        ]
+        ]})
 
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)

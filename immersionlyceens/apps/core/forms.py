@@ -255,7 +255,6 @@ class SlotForm(forms.ModelForm):
                     )
                     self.fields['group_mode'].disabled = True
 
-
         self.fields["repeat"].widget = forms.DateInput(
             format='%d/%m/%Y',
             attrs={
@@ -320,6 +319,7 @@ class SlotForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
         structure = cleaned_data.get('structure')
         published = cleaned_data.get('published', None)
         n_places = cleaned_data.get('n_places', 0)
@@ -466,8 +466,13 @@ class SlotForm(forms.ModelForm):
             messages.success(self.request, _("Course published"))
 
         if self.data.get("repeat"):
-            repeat_limit_date = datetime.strptime(self.data.get("repeat"), "%d/%m/%Y").date()
-            new_dates = self.data.getlist("slot_dates")
+            # Careful with date formats, especially with unit tests
+            try:
+                repeat_limit_date = datetime.strptime(self.data.get("repeat"), "%d/%m/%Y").date()
+            except:
+                repeat_limit_date = datetime.strptime(self.data.get("repeat"), "%Y-%m-%d").date()
+
+            new_dates = self.slot_dates
 
             try:
                 university_year = UniversityYear.objects.get(active=True)
@@ -486,6 +491,7 @@ class SlotForm(forms.ModelForm):
                 slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
                 slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
                 slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
+
                 for new_date in new_dates:
                     try:
                         parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()

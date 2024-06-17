@@ -1181,7 +1181,7 @@ class CourseSlot(generic.CreateView):
 
         repeat_until = self.request.POST.get('repeat')
         if repeat_until:
-            self.slot_dates = self.request.POST.getlist('slot_dates')
+            self.slot_dates = self.request.POST.getlist('slot_dates[]')
 
         return super().form_valid(form)
 
