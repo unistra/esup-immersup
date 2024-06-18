@@ -6,6 +6,8 @@
 {% general_settings_get 'CONTACT_FORM_URL' as external_contact_form_url %}
 {% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as activated_training_quotas %}
 {% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
+{% general_settings_get 'ACTIVATE_EDUCONNECT' as activated_educonnect %}
+{% general_settings_get 'ACTIVATE_FEDERATION_AGENT' as activated_agent_federation %}
 {% settings_get 'USE_CAS' as use_cas %}
 {% active_accompanying_docs as show_accompanying_docs_menu %}
 {% active_faq_entries as show_faq_menu %}
@@ -289,15 +291,24 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownUser">
               <span class="dropdown-item text-center">{% trans "You are"%} : </span>
+              {% if activated_educonnect %}
+              <a class="dropdown-item" href="{% url 'immersion:login_choice' profile='lyc' %}">{% trans 'Highschool member' %}</a>
+              {% else %}
               <a class="dropdown-item" href="{% url 'immersion:login' profile='lyc'%}">{% trans 'Highschool member' %}</a>
+              {% endif %}
               {% if students_activated %}
               <a class="dropdown-item" href="{% url 'shibboleth_login' %}">{% trans 'Student' context "login" %}</a>
               {% endif %}
               {% if visitors_activated %}
               <a class="dropdown-item" href="{% url 'immersion:login' profile='vis' %}">{% trans 'Visitor' context "login" %}</a>
               {% endif %}
-              <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
-              <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
+              {% if activated_agent_federation %}
+                <a class="dropdown-item" href="{% url 'immersion:login_choice' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
+                <a class="dropdown-item" href="{% url 'immersion:login_choice' profile='speaker' %}">{% trans 'External speaker' %}</a>
+              {% else %}
+                <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
+                <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
+              {% endif %}
               {% if use_cas == 'True' %}
                   <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
               {% endif %}

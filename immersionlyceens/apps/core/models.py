@@ -859,6 +859,30 @@ class ImmersionUser(AbstractUser):
             validity_date__lt=today
         ).exists()
 
+    def uses_federation(self):
+        """
+        For high school students, high school managers and speakers,
+        if federations are enabled, check if the user has to use
+        a federation to authenticate
+        :return: boolean
+        """
+
+        if not any([self.is_high_school_manager(), self.is_speaker(), self.is_high_school_student()]):
+            return False
+
+        student_federation_enabled = get_general_setting('ACTIVATE_EDUCONNECT')
+        agent_federation_enabled = get_general_setting('ACTIVATE_FEDERATION_AGENT')
+
+        if (self.is_high_school_manager() or self.is_speaker()) and agent_federation_enabled:
+            return self.highschool and self.highschool.uses_agent_federation
+
+        if self.is_high_school_student() and student_federation_enabled:
+            return (hasattr(self, 'high_school_student_record')
+                    and self.high_school_student_record.highschool
+                    and self.high_school_student_record.highschool.uses_student_federation)
+
+        return False
+
 
     class Meta:
         verbose_name = _('User')

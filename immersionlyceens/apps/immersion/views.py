@@ -101,6 +101,22 @@ class CustomLoginView(FormView):
         username = form.cleaned_data['login'].strip().lower()
         password = form.cleaned_data['password']
 
+        # Must use federation ?
+        try:
+            user = ImmersionUser.objects.get(username=username)
+
+            if (user.is_high_school_manager() or user.is_speaker()) and user.uses_federation():
+                messages.error(self.request, _("Please use the Agent Federation to authenticate"))
+                return self.form_invalid(form)
+
+            if user.is_high_school_student() and user.uses_federation():
+                messages.error(self.request, _("Please use EduConnect to authenticate"))
+                return self.form_invalid(form)
+
+        except ImmersionUser.DoesNotExist:
+            # let 'authenticate' below handle the issue
+            pass
+
         user: Optional[ImmersionUser] = authenticate(self.request, username=username, password=password)
 
         self.user = user
@@ -134,6 +150,33 @@ class CustomLoginView(FormView):
             return reverse('home')
         else:
             return super().get_success_url()
+
+
+def loginChoice(request, profile=None):
+    """
+    :param request:
+    :param profile:
+    :return:
+    """
+
+    match profile:
+        case 'lyc':
+            federation_name = _("EduConnect")
+        case 'ref-lyc':
+            federation_name = _("the agent federation")
+        case 'speaker':
+            federation_name = _("the agent federation")
+        case _:
+            federation_name = ''
+
+    context = {
+        'federation_name': federation_name,
+        'profile': profile
+    }
+
+    template = "immersion/login_choice.html" if federation_name else "immersion/login.html"
+
+    return render(request, template, context)
 
 
 @login_optional
@@ -393,6 +436,10 @@ class RecoveryView(TemplateView):
 
             if use_external_auth:
                 messages.warning(request, _("Please use your establishment credentials."))
+            elif (user.is_high_school_manager() or user.is_speaker()) and user.uses_federation():
+                messages.warning(request, _("Please use the Agent Federation to authenticate"))
+            elif user.is_high_school_student() and user.uses_federation():
+                messages.warning(request, _("Please use EduConnect to authenticate"))
             else:
                 user.set_recovery_string()
                 msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
