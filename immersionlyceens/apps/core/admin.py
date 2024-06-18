@@ -1392,7 +1392,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'address', 'address2', 'address3', 'department', 'zip_code', 'city', 'phone_number',
         'fax', 'email', 'head_teacher_name', 'with_convention', 'convention_start_date',
         'convention_end_date', 'signed_charter', 'uses_agent_federation', 'uses_student_federation',
-        'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'uai_code', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
         'certificate_footer'
     )
 

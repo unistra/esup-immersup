@@ -68,11 +68,11 @@ $(document).on('change', 'input#id_with_convention', function() {
    // Hide date fields
   $('.field-convention_start_date').toggle($(this).is(':checked') === true)
   $('.field-convention_end_date').toggle($(this).is(':checked') === true)
+})
 
-  /*
-  $('#id_convention_start_date').next('.datetimeshortcuts').toggle($(this).is(':checked') === true)
-  $('#id_convention_end_date').next('.datetimeshortcuts').toggle($(this).is(':checked') === true)
-  */
+$(document).on('change', 'input#id_uses_student_federation', function() {
+  // uai_code field is mandatory when the high school uses the student federation
+  $('#id_uai_code').prop("required", $(this).is(':checked'))
 })
 
 // init
@@ -100,11 +100,21 @@ $(document).ready(function() {
       $("div.field-certificate_footer").hide()
     }
   }
+
+  function toggle_uai_code() {
+    $('#id_uai_code').attr("required", $("#id_uses_student_federation").is(':checked'))
+  }
+
   $("#id_postbac_immersion").change(function () {
     toggle_fields()
   })
 
+  $("#id_uses_student_federation").change(function () {
+    toggle_uai_code()
+  })
+
   toggle_fields()
+  toggle_uai_code()
 
   // Hide date fields if convention is not checked
   $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)

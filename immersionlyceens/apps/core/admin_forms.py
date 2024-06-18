@@ -1424,8 +1424,7 @@ class HighSchoolForm(forms.ModelForm):
             self.fields['uses_agent_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
             )
-            
-        
+
 
     def clean(self):
         valid_user = False
@@ -1471,7 +1470,7 @@ class HighSchoolForm(forms.ModelForm):
                     raise forms.ValidationError({
                         'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
                         'convention_end_date': _("Both convention dates are required if 'convention' is checked")
-                   })
+                    })
 
         # Student identity federation (educonnect) : test only when setting is in use
         if GeneralSettings.get_setting("ACTIVATE_EDUCONNECT"):
@@ -1483,6 +1482,12 @@ class HighSchoolForm(forms.ModelForm):
                         ),
                     })
 
+            if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_code', ''):
+                raise forms.ValidationError({
+                    'uai_code': _("This field is mandatory when using the student federation"),
+                })
+
+
         return cleaned_data
 
     class Meta:
@@ -1492,7 +1497,7 @@ class HighSchoolForm(forms.ModelForm):
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
                   'certificate_footer', 'uses_agent_federation', 'uses_student_federation',
-                  'allow_individual_immersions')
+                  'allow_individual_immersions', 'uai_code')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
             'certificate_header': CKEditorWidget(),

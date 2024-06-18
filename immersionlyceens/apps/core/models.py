@@ -260,6 +260,8 @@ class HighSchool(models.Model):
         default=True
     )
 
+    uai_code = models.CharField(_("UAI Code"), max_length=20, unique=True, blank=True, null=True)
+
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
     immersions_proposal = PostBacImmersionManager()
