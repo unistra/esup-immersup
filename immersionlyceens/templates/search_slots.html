@@ -413,6 +413,7 @@
                 if (full['highschool_address'] != null || full['highschool_address'] != '') {
                   label = "<label>{% trans 'Address' %} : </label>";
                   data = full['highschool_address'] ? full['highschool_address'] : '&nbsp;';
+                  data += full['city'] ? ` (${full['city'][0].toUpperCase() + full['city'].substring(1).toLowerCase()})` : '&nbsp;';
                 } else {
                   return '&nbsp;';
                 }
@@ -420,7 +421,7 @@
                 label = "<label>{% trans 'Campus' %} : </label>";
               }
               if(type === "display") {
-                return  label + data;
+                return  label + data ;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
