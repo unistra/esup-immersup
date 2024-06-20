@@ -143,10 +143,19 @@
                   setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
                 }
                 else {
-                  if ('group_mode' in json && json['group_mode'] === 0 && 'total_groups_registered' in json && json['total_groups_registered'] == 1) {
-                    $(`#group_registrations_infos_${current_slot_id}`).html(
-                      `<span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>`
-                    );
+                  if ('group_mode' in json && 'total_groups_registered' in json && 'total_registered' in json && 'n_group_places' in json) {
+                    if (json['group_mode'] === 0 && json['total_groups_registered'] == 1) {
+                      $(`#group_registrations_infos_${current_slot_id}`).html(
+                        `<span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>`
+                      );
+                    } else if (json['group_mode'] === 1 && parseInt(json['total_registered']) < parseInt(json['n_group_places'])) {
+                      available_persons = (parseInt(json['n_group_places'])-parseInt(json['total_registered']))
+                      $(`#group_registrations_counter_${current_slot_id}`).html(available_persons);
+                    } else if (json['group_mode'] === 1 && parseInt(json['total_registered']) === parseInt(json['n_group_places'])) {
+                      $(`#group_registrations_infos_${current_slot_id}`).html(
+                        `<span class="badge badge-pill badge-danger">{% trans 'Full' %} ${json['total_groups_registered']} {% trans "group(s) registered" %}</span>`
+                      );
+                    }
                   }
                 }
               }

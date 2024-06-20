@@ -12,7 +12,7 @@ from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.files.storage import default_storage
 from django.db.models import (BooleanField, Case, CharField, Count, DateField,
                               Exists, ExpressionWrapper, F, Func, OuterRef, Q,
-                              QuerySet, Subquery, Value, When)
+                              QuerySet, Subquery, Value, When, Sum, IntegerField)
 from django.db.models.functions import Coalesce, Concat, Greatest, JSONObject
 from django.http import (FileResponse, HttpResponse, HttpResponseBadRequest,
                          HttpResponseForbidden, HttpResponseNotFound,
@@ -26,9 +26,9 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, AttestationDocument, Course, Establishment,
-    FaqEntry, HighSchool, ImmersionGroupRecord, InformationText, Period,
+    FaqEntry, HighSchool, Immersion, ImmersionGroupRecord, InformationText, Period,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
-    UserCourseAlert
+    UserCourseAlert, ImmersionGroupRecord
 )
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
@@ -579,6 +579,13 @@ def cohort_offer(request):
     today = timezone.now().date()
     # Published event only & no course
 
+    group_registered_persons_query = ImmersionGroupRecord.objects.filter(
+        slot=OuterRef("pk"), cancellation_type__isnull=True
+    )\
+    .annotate(group_registered_persons=(F('students_count') + F('guides_count')))\
+    .annotate(total=Coalesce(Func('group_registered_persons', function='SUM'),0))\
+    .values('total')
+
     filters["course__isnull"] = True
     filters["event__published"] = True
     filters["allow_group_registrations"] = True
@@ -590,6 +597,9 @@ def cohort_offer(request):
         )
         .filter(**filters)
         .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
+        .annotate(
+            group_registered_persons=Subquery(group_registered_persons_query),
+        )
     )
 
     context = {
@@ -613,6 +623,13 @@ def cohort_offer_subdomain(request, subdomain_id):
     data = []
     today = timezone.localdate()
 
+    group_registered_persons_query = (
+        ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
+        .annotate(group_registered_persons=(F('students_count') + F('guides_count')))
+        .annotate(total=Coalesce(Func('group_registered_persons', function='SUM'), 0))
+        .values('total')
+    )
+
     for training in trainings:
         training_courses = (
             Course.objects.prefetch_related('training')
@@ -621,9 +638,19 @@ def cohort_offer_subdomain(request, subdomain_id):
         )
 
         for course in training_courses:
-            slots = Slot.objects.filter(
-                course__id=course.id, published=True, date__gte=today, allow_group_registrations=True, public_group=True
-            ).order_by('date', 'start_time', 'end_time')
+            slots = (
+                Slot.objects.filter(
+                    course__id=course.id,
+                    published=True,
+                    date__gte=today,
+                    allow_group_registrations=True,
+                    public_group=True,
+                )
+                .order_by('date', 'start_time', 'end_time')
+                .annotate(
+                    group_registered_persons=Subquery(group_registered_persons_query),
+                )
+            )
 
             training_data = {
                 'training': training,
