@@ -662,7 +662,7 @@ class Parser:
         immersion: Optional[Immersion] = kwargs.get('immersion')
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
         link_source_user: Optional[str] = kwargs.get('link_source_user', '')
-        recipient: [str] = kwargs.get('recipient', 'user')
+        recipient: Union[List[str], str] = kwargs.get('recipient', 'user')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
