@@ -284,7 +284,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     add_form = ImmersionUserCreationForm
 
     list_display = [
-        'username',
+        'get_username',
         'email',
         'first_name',
         'last_name',
@@ -313,6 +313,21 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return _('No')
         else:
             return ''
+
+    def get_username(self, obj):
+        # Display real username except for high school students using EduConnect
+        exceptions = [
+            not obj.is_high_school_student(),
+            not obj.get_high_school_student_record(),
+            obj.get_high_school_student_record()
+                and obj.high_school_student_record.highschool
+                and not obj.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            return obj.username
+
+        return _("<EduConnect id>")
 
     def get_edited_record(self, obj):
         if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
@@ -389,6 +404,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     get_groups_list.short_description = _('Groups')
     get_structure.short_description = _('Structure')
     get_highschool.short_description = _('High school')
+    get_username.short_description = _('username')
 
     filter_horizontal = ('structures', 'groups', 'user_permissions')
 

@@ -204,6 +204,7 @@ MIDDLEWARE = [
     'django_cas.middleware.CASMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
     'middlewares.charter_management.ImmersionCharterManagement.ImmersionCharterManagement',
+    'middlewares.email_check.EmailCheck.EmailCheck',
     'hijack.middleware.HijackUserMiddleware',
 
 ]
@@ -440,6 +441,8 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_AFFILIATION": (False, "affiliation"),
     "HTTP_UNSCOPED_AFFILIATION": (False, "unscoped_affiliation"),
     "HTTP_PRIMARY_AFFILIATION": (False, "primary_affiliation"),
+    "HTTP_SUPANNETUETAPE": (False, 'etu_stage'),
+    "HTTP_SUPANNOIDCDATEDENAISSANCE": (False, 'birth_date'),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout?return=%s"

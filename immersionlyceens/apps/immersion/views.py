@@ -11,7 +11,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (
-    authenticate, login, update_session_auth_hash, views as auth_views,
+    authenticate, login, logout, update_session_auth_hash, views as auth_views,
 )
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -47,7 +47,7 @@ from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordDocumentForm,
+    EmailForm, HighSchoolStudentForm, HighSchoolStudentRecordDocumentForm,
     HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm, LoginForm,
     NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
     StudentRecordQuotaForm, VisitorForm, VisitorRecordDocumentForm,
@@ -183,22 +183,47 @@ def loginChoice(request, profile=None):
 def shibbolethLogin(request, profile=None):
     """
     """
+    enabled_students = get_general_setting('ACTIVATE_STUDENTS')
+    enabled_student_federation = get_general_setting('ACTIVATE_EDUCONNECT')
+    enabled_agent_federation = get_general_setting('ACTIVATE_FEDERATION_AGENT')
+    group_name = None
+    record_highschool = None
+
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
+
+    # Uncomment this to fake Shibboleth data for DEV purpose
+    """
+    shib_attrs.update({
+        "username": "4831bc053bcb491889ba182a11d6b7ee1e60cf30843ed055e6ce67b24899e0dd1d6830091a51328d5b844d41fb7cdfc7",
+        "first_name": "Jean-Jacques",
+        "last_name": "TEST",
+        "uai_code": "{UAI}0287686E",
+        "etu_stage": "{SIREN:110043015:MEFSTAT4}2212",
+        "birth_date": "2005-05-07",
+        "unscoped_affiliation": "student"
+    })
+    """
 
     if error:
         logger.error(f"Shibboleth error : {error}")
         messages.error(request, _("Incomplete data for account creation"))
         return HttpResponseRedirect("/")
 
+    # Defaults
     mandatory_attributes = [
         "username",
         "first_name",
         "last_name",
         "email",
-
     ]
 
     student_attribute = [
+        "uai_code"
+    ]
+
+    high_school_student_attribute = [
+        "birth_date",
+        "etu_stage",
         "uai_code"
     ]
 
@@ -208,7 +233,9 @@ def shibbolethLogin(request, profile=None):
         "primary_affiliation",
     ]
 
-    # Extract all affiliations, clean empty lists and remove domains (something@domain)
+    optional_attributes = []
+
+    # Extract all affiliations, clean empty lists and remove scopes (something@domain)
     try:
         affiliations = set(
             map(lambda a:a.partition('@')[0],
@@ -225,11 +252,40 @@ def shibbolethLogin(request, profile=None):
         logger.warning(e)
         affiliations = []
 
+    is_high_school_student = False
+    is_student = False
+
     if "student" in affiliations:
-        is_student = True
-        mandatory_attributes += student_attribute
-    else:
-        is_student = False
+        """
+        Can be a student or a high school student
+        """
+        # Common field for students and high school students
+        uai_code = shib_attrs.get("uai_code", "")
+
+        if shib_attrs.get('birth_date'):
+            # High school student using EduConnect : email becomes optionnal
+            is_high_school_student = True
+            optional_attributes.append('email')
+            mandatory_attributes.remove('email')
+            mandatory_attributes += high_school_student_attribute
+            group_name = 'LYC'
+
+            try:
+                clean_uai_code = uai_code.replace('{UAI}', '')
+                record_highschool = HighSchool.objects.get(
+                    Q(uai_code__iexact=uai_code)|Q(uai_code__iexact=clean_uai_code),
+                    uses_student_federation=True
+                )
+            except HighSchool.DoesNotExist as e:
+                messages.error(request,
+                   _("Your high school has not been found or is not configured to use EduConnect." +
+                     "<br>Please use the 'contact' link at the bottom of this page, specifying your institution.")
+                )
+
+        else:
+            is_student = True
+            mandatory_attributes += student_attribute
+            group_name = 'ETU'
 
     # parse affiliations:
     if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
@@ -239,50 +295,93 @@ def shibbolethLogin(request, profile=None):
              "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
         return HttpResponseRedirect("/")
 
-    # need more data for high schools
-    is_employee = not is_student
+    is_employee = not is_student and not is_high_school_student
 
     # Account creation confirmed
-    if is_student and request.POST.get('submit'):
-        if not get_general_setting('ACTIVATE_STUDENTS'):
+    if request.POST.get('submit'):
+        if is_student and not enabled_students:
             messages.error(request, _("Students deactivated"))
             return HttpResponseRedirect("/")
 
-        shib_attrs.pop("uai_code", None)
+        if is_high_school_student:
+            # we have to fake a unique email to create the account
+            # then the user will be redirected to the email form
+            fake_email = f"{shib_attrs['username']}@domain.tld"
+            shib_attrs['email'] = fake_email
+
+        # Store unneeded attributes from shib_attrs for account creation
+        other_fields = {
+            k: shib_attrs.pop(k, '') for k in ['uai_code', 'birth_date', 'etu_stage']
+        }
 
         new_user = ImmersionUser.objects.create(**shib_attrs)
         new_user.set_validation_string()
         new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
         new_user.save()
 
+        # Add group
         try:
-            Group.objects.get(name='ETU').user_set.add(new_user)
+            Group.objects.get(name=group_name).user_set.add(new_user)
         except Exception:
-            logger.exception(f"Cannot add 'ETU' group to user {new_user}")
+            logger.exception(f"Cannot add '{group_name}' group to user {new_user}")
             messages.error(request, _("Group error"))
 
-        try:
-            msg = new_user.send_message(request, 'CPT_MIN_CREATE')
+        if is_high_school_student:
+            HighSchoolStudentRecord.objects.create(
+                highschool=record_highschool,
+                student=new_user,
+                birth_date=other_fields.get('birth_date', None)
+            )
 
-            if msg:
+        new_user = authenticate(request, remote_user=new_user.username, shib_meta=shib_attrs)
+        if new_user:
+            request.user = new_user
+            login(request, new_user)
+
+        # A high school user may not have an email yet
+        if not is_high_school_student and shib_attrs.get("email"):
+            try:
+                msg = new_user.send_message(request, 'CPT_MIN_CREATE')
+
+                if msg:
+                    messages.error(request, _("Cannot send email. The administrators have been notified."))
+                    logger.error(f"Error while sending activation email : {msg}")
+            except Exception as e:
                 messages.error(request, _("Cannot send email. The administrators have been notified."))
-                logger.error(f"Error while sending activation email : {msg}")
-        except Exception as e:
-            messages.error(request, _("Cannot send email. The administrators have been notified."))
-            logger.exception("Cannot send activation message : %s", e)
+                logger.exception("Cannot send activation message : %s", e)
 
-        messages.success(request, _("Account created. Please check your emails for the activation procedure."))
-        return HttpResponseRedirect("/")
+            messages.success(request, _("Account created. Please check your emails for the activation procedure."))
+            return HttpResponseRedirect("/")
+        else:
+            messages.success(
+                request,
+                _("Your account is almost ready, please enter you email address for the activation procedure")
+            )
+            return HttpResponseRedirect("/immersion/set_email")
+
 
     # The account does not exist yet
-    # -> auto-creation for students
+    # -> auto-creation for students and high school students after confirmation
     # -> must have been created first for managers (high school, structure, ...)
+
+    # Already authenticated
+    is_authenticated = request.user.is_authenticated
+    if is_authenticated:
+        if request.user.username == shib_attrs.get("username"):
+            return HttpResponseRedirect("/")
+
+    user = authenticate(request, remote_user=shib_attrs.get("username"), shib_meta=shib_attrs)
+
+    if user:
+        request.user = user
+        login(request, user)
+
     if request.user.is_anonymous:
         err = None
 
         if is_employee:
             err = _("Your account must be first created by a master establishment manager or an operator.")
-        elif not is_student:
+        elif not is_student and not is_high_school_student:
             err = _("The attributes sent by Shibboleth show you may not be a student.")
 
         if err:
@@ -299,7 +398,10 @@ def shibbolethLogin(request, profile=None):
             user = ImmersionUser.objects.get(username=shib_attrs["username"])
             user.last_name = shib_attrs["last_name"]
             user.first_name = shib_attrs["first_name"]
-            user.email = shib_attrs["email"]
+
+            if not user.is_high_school_student():
+                user.email = shib_attrs["email"]
+
             user.username = shib_attrs["username"]
             user.save()
         except (ImmersionUser.DoesNotExist, KeyError):
@@ -322,14 +424,80 @@ def shibbolethLogin(request, profile=None):
 
             if is_employee and any(staff_accounts):
                 return HttpResponseRedirect("/")
+
             elif is_student and request.user.is_student():
                 # If student has filled his record
                 if request.user.get_student_record():
-                    return HttpResponseRedirect("/immersion")
+                    return HttpResponseRedirect("/")
                 else:
                     return HttpResponseRedirect("/immersion/student_record")
 
+            elif is_high_school_student and request.user.is_high_school_student():
+                return HttpResponseRedirect("/immersion/hs_record")
+                """
+                if request.user.get_high_school_student_record():
+                    return HttpResponseRedirect("/")
+                else:
+                    return HttpResponseRedirect("/immersion/hs_record")
+                """
+
     return HttpResponseRedirect("/")
+
+
+@login_required
+@groups_required("LYC")
+def setEmail(request):
+    """
+    This form must be used by high school students after first connection from EduConnect
+    to add their email to their account
+    """
+    redirect_url_name: str = "/"
+
+    if (not request.user or not request.user.get_high_school_student_record()
+            or not request.user.high_school_student_record.highschool
+            or not request.user.high_school_student_record.highschool.uses_student_federation):
+        return HttpResponseRedirect(redirect_url_name)
+
+    if request.method == 'POST':
+        form = EmailForm(request.POST, instance=request.user)
+
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_validation_string()
+            user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            user.save()
+
+            user.refresh_from_db()
+
+            try:
+                msg = user.send_message(request, 'CPT_MIN_CREATE')
+
+                if msg:
+                    messages.error(request, _("Cannot send email. The administrators have been notified."))
+                    logger.error(f"Error while sending activation email : {msg}")
+            except Exception as e:
+                logger.exception("Cannot send activation message : %s", e)
+                messages.error(request, _("Cannot send email. The administrators have been notified."))
+
+            messages.success(request, _("Account created. Please check your emails for the activation procedure."))
+
+            # The account must be activated
+            logout(request)
+
+            return HttpResponseRedirect(redirect_url_name)
+        else:
+            for err_field, err_list in form.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
+    else:
+        form = EmailForm(request=request, instance=request.user)
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'immersion/email_form.html', context)
 
 
 def register(request, profile=None):
@@ -397,6 +565,11 @@ def register(request, profile=None):
 
             messages.success(request, _("Account created. Please check your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
+        else:
+            for err_field, err_list in form.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
     else:
         form = RegistrationForm(required_highschool=(profile == 'lyc'))
 
@@ -806,7 +979,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     validation_needed = True
 
             if "email" in studentform.changed_data:
-                student.username = student.email
+                # Update username only if High school doesn't use student federation
+                if not student.uses_federation():
+                    student.username = student.email
+
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')

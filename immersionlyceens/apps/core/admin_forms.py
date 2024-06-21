@@ -1267,8 +1267,17 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-        # Username override
-        self.instance.username = self.instance.email
+        # Username override except for high school students using EduConnect
+        exceptions = [
+            not self.instance.is_high_school_student(),
+            not self.instance.get_high_school_student_record(),
+            self.instance.get_high_school_student_record()
+                and self.instance.high_school_student_record.highschool
+                and not self.instance.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            self.instance.username = self.instance.email
 
         # New account : send an account creation message
         user = self.instance
