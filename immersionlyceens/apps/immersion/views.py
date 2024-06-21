@@ -277,10 +277,13 @@ def shibbolethLogin(request, profile=None):
                     uses_student_federation=True
                 )
             except HighSchool.DoesNotExist as e:
-                messages.error(request,
-                   _("Your high school has not been found or is not configured to use EduConnect." +
-                     "<br>Please use the 'contact' link at the bottom of this page, specifying your institution.")
+                messages.error(
+                    request,
+                    _("Your high school has not been found or is not configured to use EduConnect." +
+                      "<br>Please use the 'contact' link at the bottom of this page, specifying your institution.")
                 )
+
+                return HttpResponseRedirect("/")
 
         else:
             is_student = True
@@ -364,12 +367,8 @@ def shibbolethLogin(request, profile=None):
     # -> auto-creation for students and high school students after confirmation
     # -> must have been created first for managers (high school, structure, ...)
 
-    # Already authenticated
+    # Already authenticated ?
     is_authenticated = request.user.is_authenticated
-    if is_authenticated:
-        if request.user.username == shib_attrs.get("username"):
-            return HttpResponseRedirect("/")
-
     user = authenticate(request, remote_user=shib_attrs.get("username"), shib_meta=shib_attrs)
 
     if user:
@@ -411,6 +410,7 @@ def shibbolethLogin(request, profile=None):
         # Activated account ?
         if not request.user.is_valid():
             messages.error(request, _("Your account hasn't been enabled yet."))
+            logout(request)
         else:
             # Existing account or external student
             staff_accounts = [
