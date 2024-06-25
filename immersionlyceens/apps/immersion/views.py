@@ -38,7 +38,7 @@ from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorType, CancelType, CertificateLogo,
     CertificateSignature, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
-    PendingUserGroup, Period, PostBachelorLevel, Slot, StudentLevel,
+    MefStat, PendingUserGroup, Period, PostBachelorLevel, Slot, StudentLevel,
     UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
@@ -270,6 +270,22 @@ def shibbolethLogin(request, profile=None):
             mandatory_attributes += high_school_student_attribute
             group_name = 'LYC'
 
+            # Check allowed etu_stages
+            try:
+                etu_stage = shib_attrs.get('etu_stage').split("}")[1]
+            except:
+                # Not found or incorrect
+                etu_stage = ""
+
+            if not MefStat.objects.filter(code__iexact=etu_stage, level__active=True).exists():
+                messages.error(
+                    request,
+                    _("Sorry, your high school level does not allow you to register or connect to this platform.")
+                )
+
+                return HttpResponseRedirect("/")
+
+            # Check UAI
             try:
                 clean_uai_code = uai_code.replace('{UAI}', '')
                 record_highschool = HighSchool.objects.get(

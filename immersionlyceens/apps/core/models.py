@@ -3284,6 +3284,28 @@ class History(models.Model):
         verbose_name = _('History')
         verbose_name_plural = _('History')
 
+class MefStat(models.Model):
+    """
+    Mef Stat 4 nomenclature for high school students levels from EduConnect
+    """
+    code = models.CharField(_("Code"), primary_key=True, null=False, blank=False)
+    label = models.CharField(_("Label"), max_length=256, null=False)
+    level = models.ForeignKey(
+        HighSchoolLevel,
+        verbose_name=_("Level"),
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False,
+        related_name='mefstat'
+    )
+
+    def __str__(self):
+        return f"{self.code} - {self.label}"
+
+    class Meta:
+        verbose_name = _('MefStat - High school level')
+        verbose_name_plural = _('MefStat - High school levels')
+
 
 ####### SIGNALS #########
 @receiver(user_logged_in)

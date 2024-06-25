@@ -526,6 +526,7 @@ ADMIN_MODELS_ORDER = {
         'GeneralBachelorTeaching',
         'BachelorMention',
         'HighSchoolLevel',
+        'MefStat',
         'PostBachelorLevel',
         'StudentLevel',
     ],

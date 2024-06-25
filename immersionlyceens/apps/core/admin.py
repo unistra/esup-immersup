@@ -45,7 +45,7 @@ from .models import (
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, History, Holiday, Immersion, ImmersionUser,
-    InformationText, MailTemplate, OffOfferEventType, Period,
+    InformationText, MailTemplate, MefStat, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
@@ -1876,6 +1876,20 @@ class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmi
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
+class MefStatAdmin(admin.ModelAdmin):
+    list_display = ('code', 'label', 'level', )
+    ordering = ('level', 'label', )
+    sortable_by = ('level', 'label', 'code')
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+
 class PostBachelorLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = PostBachelorLevelForm
     list_display = ('id', 'order', 'label', 'active')
@@ -2113,6 +2127,7 @@ admin.site.register(CertificateLogo, CertificateLogoAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
+admin.site.register(MefStat, MefStatAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
