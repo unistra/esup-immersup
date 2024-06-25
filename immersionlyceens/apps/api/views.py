@@ -4626,6 +4626,13 @@ def ajax_search_slots_list(request, slot_id=None):
         | Q(date=today.date(), end_time__gte=today.time())
     ).exclude(Q(allow_group_registrations=True) & Q(public_group=False))
 
+    group_registered_persons_query = (
+        ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
+        .annotate(group_registered_persons=(F('students_count') + F('guides_count')))
+        .annotate(total=Coalesce(Func('group_registered_persons', function='SUM'), 0))
+        .values('total')
+    )
+
     fields = [
         "id",
         "slot_type",
@@ -4653,6 +4660,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "meeting_place",
         "n_register",
         "n_places",
+        "n_group_places",
         "speakers_list",
         "course_training_label",
         "course_training_url",
@@ -4774,10 +4782,12 @@ def ajax_search_slots_list(request, slot_id=None):
                 Q(registration_limit_date__lt=timezone.now()),
                 output_field=CharField()
             ),
+        ).annotate(
+            group_registered_persons=Subquery(group_registered_persons_query),
         )
         .order_by("date", "start_time")
         .values(
-            *fields
+            *fields, 'group_registered_persons'
         )
     )
     response['data'] = {"slots": list(slots)}

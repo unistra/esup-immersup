@@ -463,13 +463,28 @@
             }
           },
           {
-            "data": "n_places", title: "register", visible: true,
             render: function (data, type, full, meta) {
-              availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
-              if(type === "display") {
-                return '<label>'+ '{% trans "Available places" %}' +' :</label>' + availablePlaces;
+              label = type === "display"  ? '<label>{% trans "Available places" %} :</label><ul class="list-unstyled">' : "";
+              if ( full['allow_individual_registrations'] === true) {
+                availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
+                if (type === "display") {
+
+                  label += "<li>Ind. " + availablePlaces + "</li>";
+                } else {
+                  label += "i:" + availablePlaces + ";";
+                }
               }
-              return availablePlaces;
+              {% if activated_cohort %}
+              if ( full['allow_group_registrations'] === true) {
+                availableGroupPlaces = parseInt(full['n_group_places'])-parseInt(full['group_registered_persons']);
+                if (type === "display") {
+                  label += "<li>Gr. " + availableGroupPlaces + "</li>";
+                } else {
+                  label += "g:" + availableGroupPlaces + ";";
+                }
+              }
+              {% endif %}
+              return type === "display" ? label + "</ul>" : label;
             }
           },
           {
@@ -512,6 +527,14 @@
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
+      let availablesSeatslabel = '<ul class="list-unstyled">';
+      if (rowData[0].allow_individual_registrations === true) {
+        availablesSeatslabel += "<li>Ind. " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
+      }
+      if (rowData[0].allow_group_registrations === true) {
+        availablesSeatslabel += "<li>Gr. " + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
+      }
+      availablesSeatslabel += '</ul>';
 
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
@@ -599,7 +622,7 @@
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'][0] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"><ul>') {
+              if (restrictions === '<ul class="list-unstyled"><>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
               }
               $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
@@ -622,7 +645,7 @@
         '<ul class="list-group">' + speakers_array + '</ul>'
       )
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
-      $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
+      $('#modal_search_slots_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
       {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
