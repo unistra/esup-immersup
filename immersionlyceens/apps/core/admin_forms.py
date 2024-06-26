@@ -1434,12 +1434,19 @@ class HighSchoolForm(forms.ModelForm):
                 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
             )
 
+    def clean_uses_student_federation(self):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            return instance.uses_student_federation
+        else:
+            return self.cleaned_data['uses_student_federation']
 
     def clean(self):
         valid_user = False
         cleaned_data = super().clean()
 
         active = cleaned_data.get("active", False)
+        uses_student_federation = cleaned_data.get("uses_student_federation")
 
         try:
             user = self.request.user
@@ -1483,13 +1490,13 @@ class HighSchoolForm(forms.ModelForm):
 
         # Student identity federation (educonnect) : test only when setting is in use
         if GeneralSettings.get_setting("ACTIVATE_EDUCONNECT"):
-            if self.has_changed() and "uses_student_federation" in self.changed_data:
-                if self.instance.pk and self.instance.student_records.exists():
-                    raise forms.ValidationError({
-                        'uses_student_federation': _(
-                            "You can't change this setting because this high school already has records."
-                        ),
-                    })
+            if (self.instance.pk and self.instance.student_records.exists()
+                and uses_student_federation != self.instance.uses_student_federation):
+                raise forms.ValidationError({
+                    'uses_student_federation': _(
+                        "You can't change this setting because this high school already has records."
+                    ),
+                })
 
             if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_code', ''):
                 raise forms.ValidationError({

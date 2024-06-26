@@ -1196,6 +1196,8 @@ class AdminFormsTestCase(TestCase):
 
         self.assertTrue(form.is_valid())
 
+        self.high_school = form.save()
+
         # Update setting and check again : form shouldn't be valid
         setting = GeneralSettings.objects.get(setting='ACTIVATE_EDUCONNECT')
         setting.parameters.update({
@@ -1206,13 +1208,21 @@ class AdminFormsTestCase(TestCase):
         # Don't forget to refresh to cancel previous form data
         self.high_school.refresh_from_db()
 
+        data.update({
+            "uses_student_federation": True
+        })
+
         form = HighSchoolForm(
             instance=self.high_school,
             data=data,
             request=request
         )
 
-        self.assertFalse(form.is_valid())
+        # The form is still valid because clean will ignore the change
+        self.assertTrue(form.is_valid())
+        self.high_school = form.save()
+        self.high_school.refresh_from_db()
+        self.assertFalse(self.high_school.uses_student_federation)
 
 
 

@@ -77,6 +77,8 @@ $(document).on('change', 'input#id_uses_student_federation', function() {
 
 // init
 $(document).ready(function() {
+  var uai_results = Object()
+
   function toggle_fields() {
     if ($("#id_postbac_immersion").is(':checked')) {
       $("#id_mailing_list").attr("disabled", false)
@@ -119,4 +121,38 @@ $(document).ready(function() {
   // Hide date fields if convention is not checked
   $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)
   $('.field-convention_end_date').toggle($('#id_with_convention').is(':checked') === true)
+
+  $('input#id_label').on('input', function() {
+    if(!$("#id_uses_student_federation").is(':checked')) return
+
+    let search_label = $(this).val()
+
+    $('#id_uai_code').replaceWith('<select name="uai_code" id="id_uai_code"></select>')
+    $('#id_uai_code').attr("required", true)
+
+    if(search_label.length > 3) {
+      $.ajax({
+        url: `/uaiapi/establishments/${search_label}`,
+        type: 'GET',
+        success(data) {
+          let options = '<option value="">---------</option>'
+
+          $.each( data, function( code, establishment ) {
+            uai_results[code] = establishment['label']
+            options += `<option value="${code}">${code} - ${establishment['label']} (${establishment['academy']} - ${establishment['city']})</option>`
+          })
+
+          $('select#id_uai_code').html(options)
+        },
+      })
+    }
+  })
+
+  $(document).on('change', '#id_uai_code', function() {
+    if(!$("#id_uses_student_federation").is(':checked')) return
+
+    if(uai_results[this.value] !== undefined) {
+      $("#id_label").val(uai_results[this.value])
+    }
+  })
 })

@@ -149,3 +149,11 @@ if EXTRA_LOCALE_PATH:
         LOCALE_PATHS = [ EXTRA_LOCALE_DIR ] + LOCALE_PATHS
     else:
         print(f"Warning : EXTRA_LOCALE_DIR {EXTRA_LOCALE_DIR} directory does not exist")
+
+
+###########################
+#  SEARCH PLUGIN FOR UAI  #
+###########################
+UAI_API_URL = environ.get("UAI_API_URL", "")
+UAI_API_AUTH_HEADER = environ.get("UAI_API_AUTH_HEADER", "")
+UAI_API_SEARCH_ATTR = environ.get("UAI_API_SEARCH_ATTR", "")

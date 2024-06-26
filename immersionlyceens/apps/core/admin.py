@@ -1404,11 +1404,11 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     # Keep the list here to maintain order even when some fields are readonly
     fields = (
-        'active', 'postbac_immersion', 'allow_individual_immersions', 'label', 'country',
-        'address', 'address2', 'address3', 'department', 'zip_code', 'city', 'phone_number',
-        'fax', 'email', 'head_teacher_name', 'with_convention', 'convention_start_date',
-        'convention_end_date', 'signed_charter', 'uses_agent_federation', 'uses_student_federation',
-        'uai_code', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'active', 'postbac_immersion', 'allow_individual_immersions', 'uses_agent_federation',
+        'uses_student_federation', 'label', 'uai_code', 'country', 'address', 'address2',
+        'address3', 'department', 'zip_code', 'city', 'phone_number', 'fax', 'email',
+        'head_teacher_name', 'with_convention', 'convention_start_date', 'convention_end_date',
+        'signed_charter', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
         'certificate_footer'
     )
 

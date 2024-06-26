@@ -752,3 +752,11 @@ AWS_QUERYSTRING_EXPIRE = 999999999
 # TODO: move to general settings ?
 # Used to generate csv compliant with ms-excel
 CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL, 'dialect': csv.excel}
+
+
+###########################
+#  SEARCH PLUGIN FOR UAI  #
+###########################
+# Configure this on deployment since it will contain API Key
+UAI_API_URL = ""
+UAI_API_AUTH_HEADER = ""
