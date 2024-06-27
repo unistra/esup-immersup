@@ -8377,14 +8377,12 @@ msgstr ""
 #: immersionlyceens/templates/immersion/hs_record.html:181
 msgid "Make the current immersion registrations visible ?"
 msgstr ""
-"Rendre visibles les inscriptions aux immersions aux lycéens du même lycée "
-"(s'ils sont inscrits aux mêmes immersions)"
+"Rendre visible mes inscriptions aux immersions aux lycéens de mon lycée (s'ils sont inscrits aux mêmes immersions)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:188
 msgid "Make the email visible ?"
 msgstr ""
-"Rendre visible le courriel aux lycéens du même lycée (s'ils sont inscrits "
-"aux mêmes immersions)"
+"Rendre visible mon courriel aux lycéens de mon lycée (s'ils sont inscrits aux mêmes immersions)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:196
 #: immersionlyceens/templates/immersion/visitor_record.html:89
@@ -8425,7 +8423,7 @@ msgstr "immersions autorisées"
 #: immersionlyceens/templates/immersion/hs_record.html:331
 #: immersionlyceens/templates/immersion/visitor_record.html:218
 msgid "Status"
-msgstr "Status"
+msgstr "Statuts"
 
 #: immersionlyceens/templates/immersion/hs_record.html:358
 #: immersionlyceens/templates/immersion/visitor_record.html:248
