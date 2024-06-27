@@ -40,10 +40,10 @@ class HighSchoolAgreedManager(models.Manager):
     Return all the 'valid' high schools:
     - active = True
     - conventions depending on General Settings
-    - with allow_individual_immersions = True
+    - with allow
     """
     def get_queryset(self):
-        from .models import GeneralSettings
+        from immersionlyceens.apps.core.models import GeneralSettings
 
         # Convention General Settings
         today = timezone.localdate()
@@ -60,7 +60,7 @@ class HighSchoolAgreedManager(models.Manager):
         except GeneralSettings.DoesNotExist:
             hs_wo_convention = False
 
-        highschool_filters = {'active': True}
+        highschool_filters = {'active': True, }
 
         date_filters = {
             'convention_start_date__lte': today,
