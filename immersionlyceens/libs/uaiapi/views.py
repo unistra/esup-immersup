@@ -3,6 +3,9 @@ UAI API Views
 """
 
 import logging
+import unicodedata
+
+from operator import attrgetter
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -23,8 +26,6 @@ def ajax_get_establishments(request, value=None):
     if not all([url, header, search_attr, value]):
         return JsonResponse(results)
 
-    print(f"settings header : {settings.UAI_API_AUTH_HEADER}")
-
     # convert headers to dict
     try:
         headers = {header.split(':')[0].strip():header.split(':')[1].strip()}
@@ -33,15 +34,13 @@ def ajax_get_establishments(request, value=None):
 
     try:
         results = get_json_from_url(f"{url}/?{search_attr}={value}", headers=headers)
-
-        #FIXME Add a mapping for search results fields in settings ?
-        results = {
-            r['code']: {
-                'label': r['label'],
-                'academy':r['academy'],
-                'city': r['city']
-            } for r in results
-        }
+        results = sorted(
+            results,
+            key=lambda x: (unicodedata.normalize("NFD", x['city']),
+                           unicodedata.normalize("NFD", x['academy']),
+                           unicodedata.normalize("NFD", x['label'])
+            )
+        )
 
     except Exception as e:
         logger.error("Error %s" % (e))

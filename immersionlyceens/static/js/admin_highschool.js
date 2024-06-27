@@ -135,11 +135,18 @@ $(document).ready(function() {
         url: `/uaiapi/establishments/${search_label}`,
         type: 'GET',
         success(data) {
+          let option_txt = ""
           let options = '<option value="">---------</option>'
 
-          $.each( data, function( code, establishment ) {
-            uai_results[code] = establishment['label']
-            options += `<option value="${code}">${code} - ${establishment['label']} (${establishment['academy']} - ${establishment['city']})</option>`
+          $.each( data, function( item, establishment ) {
+            uai_results[establishment['code']] = establishment['label']
+
+            option_txt = establishment['city'] !== "" ? establishment['city'] : "";
+            option_txt += establishment['academy'] !== "" ? ` (ac. ${establishment['academy']})` : "";
+            option_txt += option_txt !== "" ? " - " : "";
+            option_txt += `${establishment['code']} - ${establishment['label']}`
+
+            options += `<option value="${establishment['code']}">${option_txt}</option>`
           })
 
           $('select#id_uai_code').html(options)
@@ -148,6 +155,7 @@ $(document).ready(function() {
     }
   })
 
+  // $('#id_uai_code').on('change', function() {
   $(document).on('change', '#id_uai_code', function() {
     if(!$("#id_uses_student_federation").is(':checked')) return
 
