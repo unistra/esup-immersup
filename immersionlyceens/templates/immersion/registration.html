@@ -8,6 +8,7 @@
 
 {% block head-javascript %}
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+
 {% endblock %}
 
 <div class="main-title inside text-center">
@@ -184,6 +185,8 @@
       </form>
     </div>
 </section>
+<script src="{% static 'js/vendor/select2/select2.min.js' %}"></script>
+<link href="{% static 'css/vendor/select2/select2.min.css' %}" rel="stylesheet" />
 <script>
 
 function decodeHTMLEntities(text) {
@@ -194,28 +197,28 @@ function toggle_password_fields() {
     let highschool_id = $("#id_record_highschool").val()
 
     if(is_set(highschool_id) || profile == "lyc") {
-      let uses_federation = highschools_uses_student_federation[highschool_id].uses_student_federation
+      let uses_federation = highschools_uses_student_federation[highschool_id] ? highschools_uses_student_federation[highschool_id].uses_student_federation : false
 
       if (uses_federation === false) {
-        $("#id_div_password").show()
+        $("#id_div_password").show();
         $("#id_password1").attr('required', 'required');
         $("#id_password2").attr('required', 'required');
       } else {
-        $("#id_div_password").hide()
+        $("#id_div_password").hide();
         $("#id_password1").removeAttr('required');
         $("#id_password2").removeAttr('required');
       }
     }
     else {
-      $("#id_div_password").show()
+      $("#id_div_password").show();
       $("#id_password1").attr('required', 'required');
       $("#id_password2").attr('required', 'required');
     }
 }
 
 
-var highschools_uses_student_federation = is_set('{{ highschools_values }}') ? JSON.parse(decodeHTMLEntities('{{ highschools_values }}')) : Array()
-var profile = "{{ profile }}"
+var highschools_uses_student_federation = is_set('{{ highschools_values }}') ? JSON.parse(decodeHTMLEntities('{{ highschools_values }}')) : Array();
+var profile = "{{ profile }}";
 
 $(document).ready(function() {
     $("#view_button1").focusout(function(){
@@ -238,9 +241,25 @@ $(document).ready(function() {
     });
 
     $("#id_record_highschool").change( function() {
-      toggle_password_fields()
+      toggle_password_fields();
     })
 
-    toggle_password_fields()
+    toggle_password_fields();
+
+
+    $('#id_record_highschool').select2({
+        language:
+        {
+            noResults: function () {
+                return "{% trans "No results found" %}";
+            },
+            searching: function () {
+                return "{% trans "Searching…" %}";
+            },
+            search: function () {
+                return "{% trans "Search" %}";
+            },
+        }
+    });
 </script>
 {% endblock %}
