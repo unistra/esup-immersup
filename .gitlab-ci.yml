@@ -5,7 +5,7 @@ services:
   - postgres
 
 variables:
-  POSTGRES_DB: immersionlyceens-test
+  POSTGRES_DB: immersionlyceens
   POSTGRES_USER: immersionlyceens
   POSTGRES_PASSWORD: immersionlyceens
 
