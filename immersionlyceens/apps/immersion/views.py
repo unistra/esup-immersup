@@ -403,13 +403,13 @@ def register(request, profile=None):
     highschools = (HighSchool.agreed
         .values('id', 'city', 'label', 'uses_student_federation')
         .order_by('city', 'label')
-    )
+    ).filter(allow_individual_immersions=True)
 
     context = {
         'form': form,
         'profile': profile,
         'highschools_values': json.dumps({h['id']: h for h in highschools}),
-        'highschools': HighSchool.agreed.all().order_by('city', 'label')
+        'highschools': HighSchool.agreed.all().order_by('city', 'label').filter(allow_individual_immersions=True)
     }
 
     return render(request, 'immersion/registration.html', context)

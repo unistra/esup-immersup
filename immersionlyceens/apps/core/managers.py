@@ -60,7 +60,7 @@ class HighSchoolAgreedManager(models.Manager):
         except GeneralSettings.DoesNotExist:
             hs_wo_convention = False
 
-        highschool_filters = {'active': True,  'allow_individual_immersions': True}
+        highschool_filters = {'active': True}
 
         date_filters = {
             'convention_start_date__lte': today,
