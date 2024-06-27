@@ -512,8 +512,9 @@ def host_establishments(request):
 def highschools(request):
     """ Highschools public view"""
 
-    affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=True) \
-                                .values("city", "label", "email")
+    affiliated_highschools = HighSchool.objects.filter(
+        active=True, with_convention=True, allow_individual_immersions=True
+    ).values("city", "label", "email")
 
     try:
         affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
@@ -529,8 +530,9 @@ def highschools(request):
         # TODO: Default txt value ?
         not_affiliated_highschools_intro_txt = ''
 
-    not_affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=False) \
-                                .values("city", "label", "email")
+    not_affiliated_highschools = HighSchool.objects.filter(
+        active=True, with_convention=False, allow_individual_immersions=True
+    ).values("city", "label", "email")
 
     context = {
         'affiliated_highschools': json.dumps(list(affiliated_highschools)),
@@ -538,6 +540,7 @@ def highschools(request):
         'not_affiliated_highschools': json.dumps(list(not_affiliated_highschools)),
         'not_affiliated_highschools_intro_txt': not_affiliated_highschools_intro_txt,
     }
+
     return render(request, 'highschools.html', context)
 
 
@@ -647,9 +650,9 @@ def cohort_offer_subdomain(request, subdomain_id):
                     public_group=True,
                 )
                 .order_by('date', 'start_time', 'end_time')
-                .annotate(
-                    group_registered_persons=Subquery(group_registered_persons_query),
-                )
+                    .annotate(
+                        group_registered_persons=Subquery(group_registered_persons_query),
+                    )
             )
 
             training_data = {
