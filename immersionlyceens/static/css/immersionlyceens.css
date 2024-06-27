@@ -352,7 +352,9 @@ Firefox is sadly not supporting :has for now :(
 .results-cards tbody tr {
     float: left;
     width: 20rem;
-    height: 36rem;
+    /* max-height: max-content; */
+    /* height: max-content; */
+    /* max-height: 100%; */
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
     border-radius: .15rem;
@@ -369,9 +371,9 @@ Firefox is sadly not supporting :has for now :(
     position: relative;
     float: left;
     color: #808080;
-    min-width: 4rem;
+    min-width: 2rem;
     margin-left: 0;
-    margin-right: 1rem;
+    margin-right: 0.2rem;
     text-align: left;
 }
 
