@@ -325,6 +325,7 @@
             {% endfor %}
           </div>
       {% endif %}
+      {% if record.creation_date %}
       <div class="card-header text-white bg-secondary">
         {% trans "Status" %}
       </div>
@@ -342,7 +343,8 @@
         <div class="form-group row align-items-center">
           <label class="col-sm-4 col-form-label">{% trans "Validation" %} :</label>
           <div class="form-group  col-sm-4">
-            {% if record.validation == 1 %}
+
+            {% if record.validation == 1 or record.validation == 0 %}
               <span class="badge badge-pill badge-warning" id="record_status">
               {% trans "Waiting validation" %}
             {% elif record.validation == 2 %}
@@ -369,6 +371,7 @@
           </div>
         {% endif %}
       </div>
+      {% endif %}
     </div>
     <div class="row mt-4">
         <input type="submit"

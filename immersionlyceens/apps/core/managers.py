@@ -3,6 +3,8 @@ import datetime
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.apps import apps
+
 
 class ActiveManager(models.Manager):
     """
@@ -43,7 +45,7 @@ class HighSchoolAgreedManager(models.Manager):
     - with allow
     """
     def get_queryset(self):
-        from immersionlyceens.apps.core.models import GeneralSettings
+        GeneralSettings = apps.get_model('core', 'GeneralSettings')
 
         # Convention General Settings
         today = timezone.localdate()
