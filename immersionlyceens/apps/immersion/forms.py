@@ -61,7 +61,7 @@ class RegistrationForm(UserCreationForm):
 
     record_highschool = forms.ModelChoiceField(
         label=_("Your high school"),
-        queryset=HighSchool.agreed.order_by('city', 'label'),
+        queryset=None,
         required=False
     )
 
@@ -70,7 +70,9 @@ class RegistrationForm(UserCreationForm):
 
         super().__init__(*args, **kwargs)
 
+        self.fields['record_highschool'].queryset = HighSchool.agreed.order_by('city', 'label')
         self.fields['record_highschool'].required = required_highschool
+
 
         self.fields['password1'].required = False
         self.fields['password2'].required = False
