@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-20 14:16+0200\n"
+"POT-Creation-Date: 2024-06-28 14:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -652,12 +652,12 @@ msgstr "Erreur : l'utilisateur ne partage pas ses immersions avec son lycée"
 #: immersionlyceens/apps/api/views.py:2937
 #: immersionlyceens/apps/api/views.py:3082
 #: immersionlyceens/apps/api/views.py:3244
-#: immersionlyceens/apps/api/views.py:4737
+#: immersionlyceens/apps/api/views.py:4745
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:33
 #: immersionlyceens/templates/search_slots.html:91
 #: immersionlyceens/templates/search_slots.html:99
 #: immersionlyceens/templates/search_slots.html:157
-#: immersionlyceens/templates/search_slots.html:592
+#: immersionlyceens/templates/search_slots.html:616
 msgid "Remote"
 msgstr "Distanciel"
 
@@ -877,7 +877,7 @@ msgstr "Erreur à l'inscription : %s"
 
 #: immersionlyceens/apps/api/views.py:1523
 #: immersionlyceens/apps/api/views.py:4533
-#: immersionlyceens/apps/api/views.py:4879
+#: immersionlyceens/apps/api/views.py:4889
 msgid "Error : slot not found"
 msgstr "Erreur : créneau non trouvé"
 
@@ -1299,7 +1299,7 @@ msgid "Error : user not authenticated"
 msgstr "Erreur : utilisateur non authentifié"
 
 #: immersionlyceens/apps/api/views.py:4525
-#: immersionlyceens/apps/api/views.py:4799
+#: immersionlyceens/apps/api/views.py:4809
 msgid "Error : missing slot id"
 msgstr "Erreur : identifiant de créneau manquant"
 
@@ -1311,7 +1311,7 @@ msgstr "Vous ne pouvez pas vous inscrire à ce créneau pour le moment"
 msgid "You can't register to this slot anymore"
 msgstr "Vous ne pouvez plus vous inscrire à ce créneau"
 
-#: immersionlyceens/apps/api/views.py:4674
+#: immersionlyceens/apps/api/views.py:4682
 #: immersionlyceens/apps/core/models.py:1801
 #: immersionlyceens/apps/core/models.py:2398
 #: immersionlyceens/apps/core/models.py:2989
@@ -1331,7 +1331,7 @@ msgstr "Vous ne pouvez plus vous inscrire à ce créneau"
 msgid "Course"
 msgstr "Cours"
 
-#: immersionlyceens/apps/api/views.py:4675
+#: immersionlyceens/apps/api/views.py:4683
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:11
 #: immersionlyceens/templates/cohort_offer.html:147
 #: immersionlyceens/templates/core/off_offer_event_slot.html:48
@@ -1597,6 +1597,7 @@ msgstr "Fiche renseignée"
 
 #: immersionlyceens/apps/core/admin.py:387
 #: immersionlyceens/apps/user/admin.py:27
+#: immersionlyceens/templates/immersion/hs_record.html:354
 msgid "Validated record"
 msgstr "Fiche validée"
 
@@ -1970,7 +1971,7 @@ msgstr "Département"
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:70
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:31
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:121
-#: immersionlyceens/templates/search_slots.html:439
+#: immersionlyceens/templates/search_slots.html:440
 msgid "City"
 msgstr "Ville"
 
@@ -2374,7 +2375,7 @@ msgstr ""
 #: immersionlyceens/apps/core/admin_forms.py:1998
 #: immersionlyceens/apps/core/admin_forms.py:2036
 #: immersionlyceens/apps/core/admin_forms.py:2138
-#: immersionlyceens/apps/immersion/forms.py:367
+#: immersionlyceens/apps/immersion/forms.py:369
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
@@ -2949,7 +2950,7 @@ msgid "Send attestation expiration warnings"
 msgstr "Envoi des alertes d'expiration des justificatifs"
 
 #: immersionlyceens/apps/core/management/commands/send_attestation_expiration_warning.py:33
-#: immersionlyceens/apps/immersion/forms.py:296
+#: immersionlyceens/apps/immersion/forms.py:298
 msgid ""
 "ATTESTATION_DOCUMENT_DEPOSIT_DELAY setting is missing, please check your "
 "configuration."
@@ -3171,7 +3172,7 @@ msgstr "Couleur de badge (HTML)"
 #: immersionlyceens/templates/establishments_under_agreement.html:54
 #: immersionlyceens/templates/immersion/confirm_creation.html:36
 #: immersionlyceens/templates/immersion/hs_record.html:64
-#: immersionlyceens/templates/immersion/registration.html:72
+#: immersionlyceens/templates/immersion/registration.html:73
 #: immersionlyceens/templates/immersion/student_record.html:55
 #: immersionlyceens/templates/immersion/visitor_record.html:56
 #: immersionlyceens/templates/modals/modal_contact_us.html:38
@@ -3596,7 +3597,7 @@ msgstr "Un campus de même nom existe déjà dans cet établissement"
 #: immersionlyceens/templates/offer_off_offer_events.html:262
 #: immersionlyceens/templates/offer_subdomains.html:240
 #: immersionlyceens/templates/search_slots.html:115
-#: immersionlyceens/templates/search_slots.html:420
+#: immersionlyceens/templates/search_slots.html:421
 msgid "Campus"
 msgstr "Campus"
 
@@ -4253,8 +4254,8 @@ msgstr "Délai pour l'inscription (en heures)"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:228
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:112
 #: immersionlyceens/templates/offer_subdomains.html:230
-#: immersionlyceens/templates/search_slots.html:480
-#: immersionlyceens/templates/search_slots.html:482
+#: immersionlyceens/templates/search_slots.html:496
+#: immersionlyceens/templates/search_slots.html:498
 msgid "Registration limit"
 msgstr "Inscription avant le"
 
@@ -5076,84 +5077,84 @@ msgstr "Identifiant"
 #: immersionlyceens/apps/immersion/forms.py:36
 #: immersionlyceens/templates/immersion/change_password.html:29
 #: immersionlyceens/templates/immersion/login.html:29
-#: immersionlyceens/templates/immersion/registration.html:123
+#: immersionlyceens/templates/immersion/registration.html:124
 #: immersionlyceens/templates/immersion/reset_password.html:19
 msgid "Password"
 msgstr "Mot de passe"
 
 #: immersionlyceens/apps/immersion/forms.py:63
-#: immersionlyceens/templates/immersion/registration.html:106
+#: immersionlyceens/templates/immersion/registration.html:107
 msgid "Your high school"
 msgstr "Votre lycée"
 
-#: immersionlyceens/apps/immersion/forms.py:88
-#: immersionlyceens/apps/immersion/forms.py:89
+#: immersionlyceens/apps/immersion/forms.py:90
+#: immersionlyceens/apps/immersion/forms.py:91
 msgid "Emails do not match"
 msgstr "Les courriels ne correspondent pas"
 
-#: immersionlyceens/apps/immersion/forms.py:93
+#: immersionlyceens/apps/immersion/forms.py:95
 msgid "An account already exists with this email address"
 msgstr "Un compte est déjà enregistré avec ce courriel"
 
-#: immersionlyceens/apps/immersion/forms.py:99
+#: immersionlyceens/apps/immersion/forms.py:101
 msgid "Error : duplicated account detected"
 msgstr "Erreur : un compte avec cet identifiant existe déjà"
 
-#: immersionlyceens/apps/immersion/forms.py:120
-#: immersionlyceens/apps/immersion/forms.py:165
-#: immersionlyceens/apps/immersion/forms.py:193
+#: immersionlyceens/apps/immersion/forms.py:122
+#: immersionlyceens/apps/immersion/forms.py:167
+#: immersionlyceens/apps/immersion/forms.py:195
 msgid "Warning : changing the email will require an account reactivation"
 msgstr ""
 "Avertissement : un changement de courriel demandera une nouvelle activation "
 "du compte"
 
-#: immersionlyceens/apps/immersion/forms.py:131
-#: immersionlyceens/apps/immersion/forms.py:213
+#: immersionlyceens/apps/immersion/forms.py:133
+#: immersionlyceens/apps/immersion/forms.py:215
 msgid "Error : an account already exists with this email address"
 msgstr "Erreur : un compte est déjà enregistré avec ce courriel"
 
-#: immersionlyceens/apps/immersion/forms.py:323
+#: immersionlyceens/apps/immersion/forms.py:325
 msgid "Please renew this attestation"
 msgstr "Veuillez renouveler ce justificatif"
 
-#: immersionlyceens/apps/immersion/forms.py:371
+#: immersionlyceens/apps/immersion/forms.py:373
 #, python-format
 msgid "File is too large (max: %s)"
 msgstr "Le fichier est trop gros (max: %s)"
 
-#: immersionlyceens/apps/immersion/forms.py:387
+#: immersionlyceens/apps/immersion/forms.py:389
 msgid "The validity date can't be set in the past"
 msgstr "La date de validité doit être dans le futur"
 
-#: immersionlyceens/apps/immersion/forms.py:399
+#: immersionlyceens/apps/immersion/forms.py:401
 msgid "The validity date is required if the attestation is provided"
 msgstr "La date de validité est requise si le justificatif a été fourni"
 
-#: immersionlyceens/apps/immersion/forms.py:411
+#: immersionlyceens/apps/immersion/forms.py:413
 msgid "You are not allowed to send a new file yet"
 msgstr "Vous n'êtes pas encore autorisé(e) à envoyer un nouveau fichier"
 
-#: immersionlyceens/apps/immersion/forms.py:512
+#: immersionlyceens/apps/immersion/forms.py:514
 msgid "Please choose a level"
 msgstr "Veuillez sélectionner un niveau"
 
-#: immersionlyceens/apps/immersion/forms.py:520
+#: immersionlyceens/apps/immersion/forms.py:522
 msgid "Please choose your origin bachelor type"
 msgstr "Veuillez sélectionner votre type de baccalauréat d'origine"
 
-#: immersionlyceens/apps/immersion/forms.py:524
+#: immersionlyceens/apps/immersion/forms.py:526
 msgid "Please choose a bachelor type"
 msgstr "Veuillez sélectionner le type de votre baccalauréat"
 
-#: immersionlyceens/apps/immersion/forms.py:537
+#: immersionlyceens/apps/immersion/forms.py:539
 msgid "Please choose one or more bachelor teachings"
 msgstr "Veuillez choisir un ou plusieurs enseignements de spécialité"
 
-#: immersionlyceens/apps/immersion/forms.py:545
+#: immersionlyceens/apps/immersion/forms.py:547
 msgid "Please choose a mention for your technological bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat technologique"
 
-#: immersionlyceens/apps/immersion/forms.py:551
+#: immersionlyceens/apps/immersion/forms.py:553
 msgid "Please enter a mention for your professional bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat professionnel"
 
@@ -5173,7 +5174,6 @@ msgstr "À valider"
 #: immersionlyceens/apps/immersion/models.py:389
 #: immersionlyceens/templates/core/duplicated_accounts.html:193
 #: immersionlyceens/templates/core/hs_record_manager.html:73
-#: immersionlyceens/templates/immersion/hs_record.html:352
 #: immersionlyceens/templates/immersion/visitor_record.html:242
 msgid "Validated"
 msgstr "Validé"
@@ -5182,7 +5182,7 @@ msgstr "Validé"
 #: immersionlyceens/apps/immersion/models.py:390
 #: immersionlyceens/templates/core/duplicated_accounts.html:194
 #: immersionlyceens/templates/core/hs_record_manager.html:76
-#: immersionlyceens/templates/immersion/hs_record.html:355
+#: immersionlyceens/templates/immersion/hs_record.html:357
 #: immersionlyceens/templates/immersion/visitor_record.html:245
 msgid "Rejected"
 msgstr "Rejeté"
@@ -5284,7 +5284,7 @@ msgstr ""
 #: immersionlyceens/apps/immersion/models.py:413
 #: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:5
 #: immersionlyceens/templates/core/hs_record_manager.html:66
-#: immersionlyceens/templates/immersion/hs_record.html:345
+#: immersionlyceens/templates/immersion/hs_record.html:346
 #: immersionlyceens/templates/immersion/visitor_record.html:233
 msgid "Validation"
 msgstr "Validation"
@@ -6458,7 +6458,7 @@ msgstr "Type"
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:82
 #: immersionlyceens/templates/offer_off_offer_events.html:121
 #: immersionlyceens/templates/offer_subdomains.html:261
-#: immersionlyceens/templates/search_slots.html:455
+#: immersionlyceens/templates/search_slots.html:456
 msgid "Meeting place"
 msgstr "Lieu de rencontre"
 
@@ -6523,7 +6523,7 @@ msgstr "Niveaux lycéens autorisés"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:207
 #: immersionlyceens/templates/offer_off_offer_events.html:219
 #: immersionlyceens/templates/offer_subdomains.html:206
-#: immersionlyceens/templates/search_slots.html:602
+#: immersionlyceens/templates/search_slots.html:626
 msgid "Slot open to all"
 msgstr "Créneau ouvert à tous"
 
@@ -6548,7 +6548,7 @@ msgstr "Ouverture prochaine"
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:106
 #: immersionlyceens/templates/offer_off_offer_events.html:237
 #: immersionlyceens/templates/offer_subdomains.html:222
-#: immersionlyceens/templates/search_slots.html:469
+#: immersionlyceens/templates/search_slots.html:467
 msgid "Available places"
 msgstr "Places restantes"
 
@@ -6587,7 +6587,10 @@ msgstr "Inscrire un groupe"
 msgid ""
 "group(s) of <span "
 "id=\"group_registrations_counter_%(pk)s\">%(total_groups)s</span> persons max"
-msgstr "groupe(s) de <span id=\"group_registrations_counter_%(pk)s\">%(total_groups)s</span> personnes max"
+msgstr ""
+"groupe(s) de <span "
+"id=\"group_registrations_counter_%(pk)s\">%(total_groups)s</span> personnes "
+"max"
 
 #: immersionlyceens/templates/cohort_offer.html:313
 #: immersionlyceens/templates/cohort_offer_subdomains.html:268
@@ -6599,7 +6602,7 @@ msgstr "groupe(s) inscrit(s)"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:297
 #: immersionlyceens/templates/offer_off_offer_events.html:273
 #: immersionlyceens/templates/offer_subdomains.html:256
-#: immersionlyceens/templates/search_slots.html:570
+#: immersionlyceens/templates/search_slots.html:594
 msgid "Show map url"
 msgstr "Voir l'adresse de la carte"
 
@@ -6636,7 +6639,7 @@ msgstr "Accueil"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:95
 #: immersionlyceens/templates/offer_subdomains.html:75
 #: immersionlyceens/templates/offer_subdomains.html:94
-#: immersionlyceens/templates/search_slots.html:573
+#: immersionlyceens/templates/search_slots.html:597
 msgid "Click here for more informations"
 msgstr "Cliquez ici pour plus d'informations"
 
@@ -6667,14 +6670,14 @@ msgstr "Se réinscrire"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:221
 #: immersionlyceens/templates/offer_off_offer_events.html:232
 #: immersionlyceens/templates/offer_subdomains.html:217
-#: immersionlyceens/templates/search_slots.html:639
+#: immersionlyceens/templates/search_slots.html:663
 msgid "Already registered"
 msgstr "Déjà inscrit(e)"
 
 #: immersionlyceens/templates/cohort_offer_subdomains.html:231
 #: immersionlyceens/templates/offer_off_offer_events.html:241
 #: immersionlyceens/templates/offer_subdomains.html:226
-#: immersionlyceens/templates/search_slots.html:635
+#: immersionlyceens/templates/search_slots.html:659
 msgid "Register"
 msgstr "S'inscrire"
 
@@ -6986,6 +6989,7 @@ msgstr "Libellé de cours"
 #: immersionlyceens/templates/core/course.html:128
 #: immersionlyceens/templates/core/off_offer_event.html:136
 #: immersionlyceens/templates/fragments/user_selector.html:26
+#: immersionlyceens/templates/immersion/registration.html:260
 msgid "Search"
 msgstr "Rechercher"
 
@@ -7286,7 +7290,7 @@ msgstr "Lycéen"
 #: immersionlyceens/templates/core/my_high_school_speakers.html:41
 #: immersionlyceens/templates/core/speaker.html:39
 #: immersionlyceens/templates/immersion/confirm_creation.html:30
-#: immersionlyceens/templates/immersion/registration.html:56
+#: immersionlyceens/templates/immersion/registration.html:57
 #: immersionlyceens/templates/modals/modal_register_students_list.html:35
 msgid "First name"
 msgstr "Prénom"
@@ -7296,31 +7300,31 @@ msgstr "Prénom"
 #: immersionlyceens/templates/core/my_high_school_speakers.html:40
 #: immersionlyceens/templates/core/speaker.html:28
 #: immersionlyceens/templates/immersion/confirm_creation.html:24
-#: immersionlyceens/templates/immersion/registration.html:40
+#: immersionlyceens/templates/immersion/registration.html:41
 #: immersionlyceens/templates/modals/modal_register_students_list.html:34
 msgid "Last name"
 msgstr "Nom"
 
 #: immersionlyceens/templates/core/hs_record_manager.html:59
-#: immersionlyceens/templates/immersion/hs_record.html:337
+#: immersionlyceens/templates/immersion/hs_record.html:338
 #: immersionlyceens/templates/immersion/visitor_record.html:224
 msgid "Record creation date"
 msgstr "Date de création"
 
 #: immersionlyceens/templates/core/hs_record_manager.html:70
-#: immersionlyceens/templates/immersion/hs_record.html:349
+#: immersionlyceens/templates/immersion/hs_record.html:351
 #: immersionlyceens/templates/immersion/visitor_record.html:239
 msgid "Waiting validation"
-msgstr "Validation en attente"
+msgstr "En attente de validation"
 
 #: immersionlyceens/templates/core/hs_record_manager.html:92
 #: immersionlyceens/templates/core/speaker.html:76
 #: immersionlyceens/templates/immersion/confirm_creation.html:49
-#: immersionlyceens/templates/immersion/hs_record.html:381
+#: immersionlyceens/templates/immersion/hs_record.html:384
 #: immersionlyceens/templates/immersion/login.html:38
 #: immersionlyceens/templates/immersion/nologin.html:35
 #: immersionlyceens/templates/immersion/recovery.html:31
-#: immersionlyceens/templates/immersion/registration.html:181
+#: immersionlyceens/templates/immersion/registration.html:182
 #: immersionlyceens/templates/immersion/resend_activation.html:31
 #: immersionlyceens/templates/immersion/resend_activation.html:33
 #: immersionlyceens/templates/immersion/student_record.html:175
@@ -7548,8 +7552,8 @@ msgstr "Données de l'intervenant"
 #: immersionlyceens/templates/core/speaker.html:77
 #: immersionlyceens/templates/immersion/change_password.html:41
 #: immersionlyceens/templates/immersion/confirm_creation.html:48
-#: immersionlyceens/templates/immersion/hs_record.html:379
-#: immersionlyceens/templates/immersion/registration.html:180
+#: immersionlyceens/templates/immersion/hs_record.html:382
+#: immersionlyceens/templates/immersion/registration.html:181
 #: immersionlyceens/templates/immersion/reset_password.html:36
 #: immersionlyceens/templates/immersion/student_record.html:174
 #: immersionlyceens/templates/immersion/visitor_record.html:270
@@ -8210,10 +8214,12 @@ msgid "Share on"
 msgstr "Partager sur"
 
 #: immersionlyceens/templates/fragments/user_selector.html:20
+#: immersionlyceens/templates/immersion/registration.html:254
 msgid "No results found"
 msgstr "Aucun résultat trouvé"
 
 #: immersionlyceens/templates/fragments/user_selector.html:23
+#: immersionlyceens/templates/immersion/registration.html:257
 msgid "Searching…"
 msgstr "Recherche en cours…"
 
@@ -8278,7 +8284,7 @@ msgid "Old password"
 msgstr "Ancien mot de passe"
 
 #: immersionlyceens/templates/immersion/change_password.html:35
-#: immersionlyceens/templates/immersion/registration.html:149
+#: immersionlyceens/templates/immersion/registration.html:150
 #: immersionlyceens/templates/immersion/reset_password.html:28
 msgid "Password (confirmation)"
 msgstr "Mot de passe (confirmation)"
@@ -8377,12 +8383,14 @@ msgstr ""
 #: immersionlyceens/templates/immersion/hs_record.html:181
 msgid "Make the current immersion registrations visible ?"
 msgstr ""
-"Rendre visible mes inscriptions aux immersions aux lycéens de mon lycée (s'ils sont inscrits aux mêmes immersions)"
+"Rendre visible mes inscriptions aux immersions aux lycéens de mon lycée "
+"(s'ils sont inscrits aux mêmes immersions)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:188
 msgid "Make the email visible ?"
 msgstr ""
-"Rendre visible mon courriel aux lycéens de mon lycée (s'ils sont inscrits aux mêmes immersions)"
+"Rendre visible mon courriel aux lycéens de mon lycée (s'ils sont inscrits "
+"aux mêmes immersions)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:196
 #: immersionlyceens/templates/immersion/visitor_record.html:89
@@ -8420,26 +8428,26 @@ msgstr "Périodes d'immersions et quotas"
 msgid "allowed immersions"
 msgstr "immersions autorisées"
 
-#: immersionlyceens/templates/immersion/hs_record.html:331
+#: immersionlyceens/templates/immersion/hs_record.html:332
 #: immersionlyceens/templates/immersion/visitor_record.html:218
 msgid "Status"
 msgstr "Statuts"
 
-#: immersionlyceens/templates/immersion/hs_record.html:358
+#: immersionlyceens/templates/immersion/hs_record.html:360
 #: immersionlyceens/templates/immersion/visitor_record.html:248
 msgid "Waiting revalidation"
 msgstr "Revalidation en attente"
 
-#: immersionlyceens/templates/immersion/hs_record.html:366
+#: immersionlyceens/templates/immersion/hs_record.html:368
 #: immersionlyceens/templates/immersion/visitor_record.html:260
 msgid "Record validation date"
 msgstr "Date de validation de la fiche"
 
-#: immersionlyceens/templates/immersion/hs_record.html:379
+#: immersionlyceens/templates/immersion/hs_record.html:382
 msgid "Next"
 msgstr "Suivant"
 
-#: immersionlyceens/templates/immersion/hs_record.html:384
+#: immersionlyceens/templates/immersion/hs_record.html:387
 #: immersionlyceens/templates/immersion/student_record.html:177
 #: immersionlyceens/templates/immersion/visitor_record.html:273
 msgid "Delete this account"
@@ -8557,19 +8565,19 @@ msgstr "Mon courriel"
 msgid "Send me instructions !"
 msgstr "Envoyer les instructions"
 
-#: immersionlyceens/templates/immersion/registration.html:19
+#: immersionlyceens/templates/immersion/registration.html:20
 msgid "Immersion Lycéens - New visitor account"
 msgstr "Immersion Lycéens - Nouveau compte visiteur"
 
-#: immersionlyceens/templates/immersion/registration.html:21
+#: immersionlyceens/templates/immersion/registration.html:22
 msgid "Immersion Lycéens - New high school student account"
 msgstr "Immersion Lycéens - Nouveau compte lycéen"
 
-#: immersionlyceens/templates/immersion/registration.html:29
+#: immersionlyceens/templates/immersion/registration.html:30
 msgid "Please fill this form to create your account"
 msgstr "Veuillez compléter le formulaire suivant pour créer votre compte"
 
-#: immersionlyceens/templates/immersion/registration.html:88
+#: immersionlyceens/templates/immersion/registration.html:89
 msgid "Email (confirmation)"
 msgstr "Courriel (confirmation)"
 
@@ -9124,6 +9132,6 @@ msgstr ""
 "Une immersion en cohorte est réservée aux établissements scolaires qui "
 "souhaitent inscrire un groupe d'élève en immersion"
 
-#: immersionlyceens/templates/search_slots.html:490
+#: immersionlyceens/templates/search_slots.html:506
 msgid "More details"
 msgstr "Plus de détails"
