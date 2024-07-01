@@ -219,6 +219,24 @@ class HighschoolListFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+class HasUAIFilter(admin.SimpleListFilter):
+    title = _('Has UAI code(s)')
+    parameter_name = 'uai_code'
+
+    def lookups(self, request, model_admin):
+        return (
+            (True, _('Yes')),
+            (False, _('No'))
+        )
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        bool = self.value() == 1
+
+        return queryset.filter(uai_code__isnull=bool).distinct()
+
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
     title = _('Conventions')
@@ -1399,8 +1417,10 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         ('city', DropdownFilter),
         HighschoolConventionFilter,
         'uses_agent_federation',
-        'uses_student_federation'
+        'uses_student_federation',
+        HasUAIFilter,
     )
+    filter_horizontal = ('uai_code', )
 
     # Keep the list here to maintain order even when some fields are readonly
     fields = (

@@ -54,7 +54,6 @@ urlpatterns = [
     ),
     path('faq', faq, name='faq'),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
-    path('uaiapi/', include('immersionlyceens.libs.uaiapi.urls')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('host_establishments/', host_establishments, name='host_establishments'),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),

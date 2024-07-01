@@ -121,46 +121,4 @@ $(document).ready(function() {
   // Hide date fields if convention is not checked
   $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)
   $('.field-convention_end_date').toggle($('#id_with_convention').is(':checked') === true)
-
-  $('input#id_label').on('input', function() {
-    if(!$("#id_uses_student_federation").is(':checked')) return
-
-    let search_label = $(this).val()
-
-    $('#id_uai_code').replaceWith('<select name="uai_code" id="id_uai_code"></select>')
-    $('#id_uai_code').attr("required", true)
-
-    if(search_label.length > 3) {
-      $.ajax({
-        url: `/uaiapi/establishments/${search_label}`,
-        type: 'GET',
-        success(data) {
-          let option_txt = ""
-          let options = '<option value="">---------</option>'
-
-          $.each( data, function( item, establishment ) {
-            uai_results[establishment['code']] = establishment['label']
-
-            option_txt = establishment['city'] !== "" ? establishment['city'] : "";
-            option_txt += establishment['academy'] !== "" ? ` (ac. ${establishment['academy']})` : "";
-            option_txt += option_txt !== "" ? " - " : "";
-            option_txt += `${establishment['code']} - ${establishment['label']}`
-
-            options += `<option value="${establishment['code']}">${option_txt}</option>`
-          })
-
-          $('select#id_uai_code').html(options)
-        },
-      })
-    }
-  })
-
-  // $('#id_uai_code').on('change', function() {
-  $(document).on('change', '#id_uai_code', function() {
-    if(!$("#id_uses_student_federation").is(':checked')) return
-
-    if(uai_results[this.value] !== undefined) {
-      $("#id_label").val(uai_results[this.value])
-    }
-  })
 })

@@ -77,6 +77,7 @@ def validate_slot_date(date: datetime.date):
 class HigherEducationInstitution(models.Model):
     """
     Database of french higher education schools (based on UAI codes)
+    @TODO : merge with UAI model ?
     """
 
     uai_code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
@@ -94,6 +95,25 @@ class HigherEducationInstitution(models.Model):
         verbose_name_plural = _('Higher education institutions')
         ordering = ['city', 'label', ]
 
+
+class UAI(models.Model):
+    """
+    UAI codes for establishments, mainly used for high schools
+    """
+
+    uai_code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
+    label = models.CharField(_("Label"), max_length=512, null=True, blank=True)
+    city = models.CharField(_("City"), max_length=128, null=True, blank=True)
+    academy = models.CharField(_("City"), max_length=128, null=True, blank=True)
+
+    def __str__(self):
+        academy = f"ac. {self.academy}" if self.academy else ""
+        return " - ".join([self.city, academy, self.uai_code, self.label])
+
+    class Meta:
+        verbose_name = _('Establishment with UAI')
+        verbose_name_plural = _('Establishments with UAI')
+        ordering = ['city', 'label', ]
 
 class Establishment(models.Model):
     """
@@ -260,7 +280,7 @@ class HighSchool(models.Model):
         default=True
     )
 
-    uai_code = models.CharField(_("UAI Code"), max_length=20, unique=True, blank=True, null=True)
+    uai_code = models.ManyToManyField(UAI, verbose_name=_("UAI Code"), blank=True, related_name='highschools')
 
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools

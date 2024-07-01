@@ -188,13 +188,14 @@ def shibbolethLogin(request, profile=None):
     enabled_agent_federation = get_general_setting('ACTIVATE_FEDERATION_AGENT')
     group_name = None
     record_highschool = None
+    level = None
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
     # Uncomment this to fake Shibboleth data for DEV purpose
     """
     shib_attrs.update({
-        "username": "4831bc053bcb491889ba182a11d6b7ee1e60cf30843ed055e6ce67b24899e0dd1d6830091a51328d5b844d41fb7cdfc7",
+        "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
         "first_name": "Jean-Jacques",
         "last_name": "TEST",
         "uai_code": "{UAI}0287686E",
@@ -277,7 +278,10 @@ def shibbolethLogin(request, profile=None):
                 # Not found or incorrect
                 etu_stage = ""
 
-            if not MefStat.objects.filter(code__iexact=etu_stage, level__active=True).exists():
+            try:
+                mefstat = MefStat.objects.get(code__iexact=etu_stage, level__active=True)
+                level = mefstat.level
+            except MefStat.DoesNotExist:
                 messages.error(
                     request,
                     _("Sorry, your high school level does not allow you to register or connect to this platform.")
@@ -285,11 +289,12 @@ def shibbolethLogin(request, profile=None):
 
                 return HttpResponseRedirect("/")
 
+
             # Check UAI
             try:
                 clean_uai_code = uai_code.replace('{UAI}', '')
                 record_highschool = HighSchool.objects.get(
-                    Q(uai_code__iexact=uai_code)|Q(uai_code__iexact=clean_uai_code),
+                    Q(uai_code=uai_code)|Q(uai_code=clean_uai_code),
                     uses_student_federation=True
                 )
             except HighSchool.DoesNotExist as e:
@@ -349,6 +354,7 @@ def shibbolethLogin(request, profile=None):
             HighSchoolStudentRecord.objects.create(
                 highschool=record_highschool,
                 student=new_user,
+                level=level,
                 birth_date=other_fields.get('birth_date', None)
             )
 
@@ -735,7 +741,7 @@ def change_password(request):
 
 
 class ActivateView(View):
-    redirect_url: str = "/immersion/login"
+    redirect_url: str = "/"
 
     def get(self, request, *args, **kwargs):
         hash = kwargs.get("hash", None)

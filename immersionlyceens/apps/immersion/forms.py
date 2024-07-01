@@ -208,7 +208,14 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["email"].required = True
 
         self.fields["email"].help_text = _(
-            "Warning : changing the email will require an account reactivation")
+            "Warning : changing the email will require an account reactivation"
+        )
+
+        if self.instance and self.instance.pk:
+            record = self.instance.get_high_school_student_record()
+            if record and record.highschool and record.highschool.uses_student_federation:
+                self.fields["last_name"].disabled = True
+                self.fields["first_name"].disabled = True
 
         # CSS
         for field in self.fields:
@@ -565,6 +572,12 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if self.instance and self.instance.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
                 for field in ["highschool", "birth_date", "level", "class_name"]:
                     self.fields[field].disabled = True
+
+        # Lock fields if high school uses student federation
+        if self.instance and self.instance.highschool and self.instance.highschool.uses_student_federation:
+            for field in ["highschool", "level", "birth_date"]:
+                self.fields[field].disabled = True
+
 
     def clean(self):
         cleaned_data = super().clean()

@@ -35,7 +35,7 @@ from .models import (
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UAI, UniversityYear, Vacation,
 )
 
 
@@ -1328,6 +1328,9 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        if self.fields and self.fields.get('uai_code'):
+            self.fields['uai_code'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
 
         if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
             city_choices = [
