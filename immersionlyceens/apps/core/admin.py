@@ -45,7 +45,7 @@ from .models import (
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, History, Holiday, Immersion, ImmersionUser,
-    InformationText, MailTemplate, OffOfferEventType, Period,
+    InformationText, MailTemplate, MefStat, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
@@ -219,6 +219,24 @@ class HighschoolListFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+class HasUAIFilter(admin.SimpleListFilter):
+    title = _('Has UAI code(s)')
+    parameter_name = 'uai_code'
+
+    def lookups(self, request, model_admin):
+        return (
+            (True, _('Yes')),
+            (False, _('No'))
+        )
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        bool = self.value() == 1
+
+        return queryset.filter(uai_code__isnull=bool).distinct()
+
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
     title = _('Conventions')
@@ -284,7 +302,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     add_form = ImmersionUserCreationForm
 
     list_display = [
-        'username',
+        'get_username',
         'email',
         'first_name',
         'last_name',
@@ -313,6 +331,21 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return _('No')
         else:
             return ''
+
+    def get_username(self, obj):
+        # Display real username except for high school students using EduConnect
+        exceptions = [
+            not obj.is_high_school_student(),
+            not obj.get_high_school_student_record(),
+            obj.get_high_school_student_record()
+                and obj.high_school_student_record.highschool
+                and not obj.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            return obj.username
+
+        return _("<EduConnect id>")
 
     def get_edited_record(self, obj):
         if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
@@ -389,6 +422,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     get_groups_list.short_description = _('Groups')
     get_structure.short_description = _('Structure')
     get_highschool.short_description = _('High school')
+    get_username.short_description = _('username')
 
     filter_horizontal = ('structures', 'groups', 'user_permissions')
 
@@ -1383,16 +1417,18 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         ('city', DropdownFilter),
         HighschoolConventionFilter,
         'uses_agent_federation',
-        'uses_student_federation'
+        'uses_student_federation',
+        HasUAIFilter,
     )
+    filter_horizontal = ('uai_code', )
 
     # Keep the list here to maintain order even when some fields are readonly
     fields = (
-        'active', 'postbac_immersion', 'allow_individual_immersions', 'label', 'country',
-        'address', 'address2', 'address3', 'department', 'zip_code', 'city', 'phone_number',
-        'fax', 'email', 'head_teacher_name', 'with_convention', 'convention_start_date',
-        'convention_end_date', 'signed_charter', 'uses_agent_federation', 'uses_student_federation',
-        'uai_code', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'active', 'postbac_immersion', 'allow_individual_immersions', 'uses_agent_federation',
+        'uses_student_federation', 'label', 'uai_code', 'country', 'address', 'address2',
+        'address3', 'department', 'zip_code', 'city', 'phone_number', 'fax', 'email',
+        'head_teacher_name', 'with_convention', 'convention_start_date', 'convention_end_date',
+        'signed_charter', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
         'certificate_footer'
     )
 
@@ -1860,6 +1896,20 @@ class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmi
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
+class MefStatAdmin(admin.ModelAdmin):
+    list_display = ('code', 'label', 'level', )
+    ordering = ('level', 'label', )
+    sortable_by = ('level', 'label', 'code')
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+
 class PostBachelorLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = PostBachelorLevelForm
     list_display = ('id', 'order', 'label', 'active')
@@ -2097,6 +2147,7 @@ admin.site.register(CertificateLogo, CertificateLogoAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
+admin.site.register(MefStat, MefStatAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)

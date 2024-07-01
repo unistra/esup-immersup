@@ -204,6 +204,7 @@ MIDDLEWARE = [
     'django_cas.middleware.CASMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
     'middlewares.charter_management.ImmersionCharterManagement.ImmersionCharterManagement',
+    'middlewares.email_check.EmailCheck.EmailCheck',
     'hijack.middleware.HijackUserMiddleware',
 
 ]
@@ -440,6 +441,8 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_AFFILIATION": (False, "affiliation"),
     "HTTP_UNSCOPED_AFFILIATION": (False, "unscoped_affiliation"),
     "HTTP_PRIMARY_AFFILIATION": (False, "primary_affiliation"),
+    "HTTP_SUPANNETUETAPE": (False, 'etu_stage'),
+    "HTTP_SUPANNOIDCDATEDENAISSANCE": (False, 'birth_date'),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout?return=%s"
@@ -523,6 +526,7 @@ ADMIN_MODELS_ORDER = {
         'GeneralBachelorTeaching',
         'BachelorMention',
         'HighSchoolLevel',
+        'MefStat',
         'PostBachelorLevel',
         'StudentLevel',
     ],
@@ -748,3 +752,11 @@ AWS_QUERYSTRING_EXPIRE = 999999999
 # TODO: move to general settings ?
 # Used to generate csv compliant with ms-excel
 CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL, 'dialect': csv.excel}
+
+
+###########################
+#  SEARCH PLUGIN FOR UAI  #
+###########################
+# Configure this on deployment since it will contain API Key
+UAI_API_URL = ""
+UAI_API_AUTH_HEADER = ""

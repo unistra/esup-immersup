@@ -31,6 +31,7 @@ urlpatterns = [
 
     path('register', views.register, name='register'),
     path('register/<profile>', views.register, name='register'),
+    path('set_email', views.setEmail, name='set_email'),
 
     path('resend_activation', views.ResendActivationView.as_view(), name='resend_activation'),
 

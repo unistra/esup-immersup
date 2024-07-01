@@ -77,6 +77,8 @@ $(document).on('change', 'input#id_uses_student_federation', function() {
 
 // init
 $(document).ready(function() {
+  var uai_results = Object()
+
   function toggle_fields() {
     if ($("#id_postbac_immersion").is(':checked')) {
       $("#id_mailing_list").attr("disabled", false)

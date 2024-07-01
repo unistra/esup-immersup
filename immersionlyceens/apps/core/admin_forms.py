@@ -35,7 +35,7 @@ from .models import (
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UAI, UniversityYear, Vacation,
 )
 
 
@@ -1267,8 +1267,17 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-        # Username override
-        self.instance.username = self.instance.email
+        # Username override except for high school students using EduConnect
+        exceptions = [
+            not self.instance.is_high_school_student(),
+            not self.instance.get_high_school_student_record(),
+            self.instance.get_high_school_student_record()
+                and self.instance.high_school_student_record.highschool
+                and not self.instance.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            self.instance.username = self.instance.email
 
         # New account : send an account creation message
         user = self.instance
@@ -1319,6 +1328,9 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        if self.fields and self.fields.get('uai_code'):
+            self.fields['uai_code'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
 
         if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
             city_choices = [
@@ -1425,12 +1437,19 @@ class HighSchoolForm(forms.ModelForm):
                 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
             )
 
+    def clean_uses_student_federation(self):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            return instance.uses_student_federation
+        else:
+            return self.cleaned_data['uses_student_federation']
 
     def clean(self):
         valid_user = False
         cleaned_data = super().clean()
 
         active = cleaned_data.get("active", False)
+        uses_student_federation = cleaned_data.get("uses_student_federation")
 
         try:
             user = self.request.user
@@ -1474,13 +1493,13 @@ class HighSchoolForm(forms.ModelForm):
 
         # Student identity federation (educonnect) : test only when setting is in use
         if GeneralSettings.get_setting("ACTIVATE_EDUCONNECT"):
-            if self.has_changed() and "uses_student_federation" in self.changed_data:
-                if self.instance.pk and self.instance.student_records.exists():
-                    raise forms.ValidationError({
-                        'uses_student_federation': _(
-                            "You can't change this setting because this high school already has records."
-                        ),
-                    })
+            if (self.instance.pk and self.instance.student_records.exists()
+                and uses_student_federation != self.instance.uses_student_federation):
+                raise forms.ValidationError({
+                    'uses_student_federation': _(
+                        "You can't change this setting because this high school already has records."
+                    ),
+                })
 
             if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_code', ''):
                 raise forms.ValidationError({

@@ -62,7 +62,7 @@ class AgreementHighSchoolFilter(admin.SimpleListFilter):
 
 class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
-        'username',
+        'get_username',
         'email',
         'first_name',
         'last_name',
@@ -80,6 +80,24 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         AgreementHighSchoolFilter,
         HighschoolListFilter,
     )
+
+    # Custom fields
+    def get_username(self, obj):
+        # Display real username except for high school students using EduConnect
+        exceptions = [
+            not obj.is_high_school_student(),
+            not obj.get_high_school_student_record(),
+            obj.get_high_school_student_record()
+                and obj.high_school_student_record.highschool
+                and not obj.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            return obj.username
+
+        return _("<EduConnect id>")
+
+    get_username.short_description = _('username')
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='LYC').order_by('last_name', 'first_name')
