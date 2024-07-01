@@ -461,7 +461,9 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields["student"].widget = forms.HiddenInput()
 
         # HighSchool choices : depends on conventions general settings:
-        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label')
+        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label').filter(
+            allow_individual_immersions=True
+        )
 
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
         self.fields['current_diploma'].widget.attrs['size'] = 80
@@ -551,7 +553,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                 cleaned_data['technological_bachelor_mention'] = None
                 if not professional_bachelor_mention:
                     raise forms.ValidationError(_("Please enter a mention for your professional bachelor"))
-
 
         return cleaned_data
 
