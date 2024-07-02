@@ -153,7 +153,7 @@ def courses_list(request):
 
     if request.user.is_master_establishment_manager() or request.user.is_operator():
         allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
-        allowed_establishments = Establishment.activated.all()
+        allowed_establishments = Establishment.activated.filter(is_host_establishment=True)
         allowed_strs = request.user.get_authorized_structures()
     elif request.user.is_establishment_manager():
         allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
@@ -838,7 +838,7 @@ class TrainingList(generic.TemplateView):
 
         if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
             context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True)
-            context["establishments"] = Establishment.activated.all()
+            context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
             context["structures"] = self.request.user.get_authorized_structures()
         elif self.request.user.is_establishment_manager():
             context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
@@ -935,7 +935,7 @@ class CourseSlotList(generic.TemplateView):
             "contact_form": ContactForm(),
             "cancel_types": CancelType.objects.filter(active=True, students=True),
             "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
-            "establishments": Establishment.activated.all(),
+            "establishments": Establishment.activated.filter(is_host_establishment=True),
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
             "group_highschools": HighSchool.agreed.order_by('city', 'label'),
@@ -1359,7 +1359,7 @@ class OffOfferEventsList(generic.TemplateView):
         context["can_update"] = True # FixMe
 
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by("city", "label")
-        context["establishments"] = Establishment.activated.all()
+        context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
         context["structures"] = Structure.activated.all()
 
         context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
@@ -1584,7 +1584,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
         # Defaults
-        context["establishments"] = Establishment.activated.all()
+        context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
         context["structures"] = Structure.activated.all()
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
