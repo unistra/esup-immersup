@@ -1,5 +1,10 @@
+import logging
 import requests
+import sys
 from typing import Optional
+
+logger = logging.getLogger(__name__)
+
 
 def get_json_from_url(url, headers: Optional[dict] = {}):
     connect_timeout = 1.0
