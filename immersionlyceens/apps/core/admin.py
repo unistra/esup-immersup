@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext, gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
-    DropdownFilter, RelatedDropdownFilter,
+    ChoiceDropdownFilter, DropdownFilter, RelatedDropdownFilter,
 )
 from django_json_widget.widgets import JSONEditorWidget
 from rest_framework.authtoken.admin import TokenAdmin
@@ -233,7 +233,7 @@ class HasUAIFilter(admin.SimpleListFilter):
         if not self.value():
             return queryset
 
-        bool = self.value() == 1
+        bool = self.value() == 0
 
         return queryset.filter(uai_code__isnull=bool).distinct()
 
@@ -1412,10 +1412,11 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = (
         'active',
         'postbac_immersion',
+        'allow_individual_immersions',
         'with_convention',
+        HighschoolConventionFilter,
         ('country', DropdownFilter),
         ('city', DropdownFilter),
-        HighschoolConventionFilter,
         'uses_agent_federation',
         'uses_student_federation',
         HasUAIFilter,
