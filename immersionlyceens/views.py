@@ -496,7 +496,7 @@ def faq(request):
 def host_establishments(request):
     """Host establishments view"""
 
-    establishments = Establishment.activated.all().values('city', 'label', 'email')
+    establishments = Establishment.activated.filter(is_host_establishment=True).values('city', 'label', 'email')
     immersion_highschools = HighSchool.immersions_proposal\
             .filter(signed_charter=True)\
             .values('city', 'label', 'email')

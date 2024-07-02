@@ -47,7 +47,9 @@ class CourseForm(forms.ModelForm):
             ])
 
             if can_choose_establishment:
-                allowed_establishments = Establishment.activated.user_establishments(self.request.user)
+                allowed_establishments = Establishment.activated.filter(
+                    is_host_establishment=True
+                ).user_establishments(self.request.user)
                 self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
             else:
                 allowed_establishments = Establishment.objects.none()
@@ -190,7 +192,9 @@ class SlotForm(forms.ModelForm):
 
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)
-            self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
+            self.fields["establishment"].queryset = allowed_establishments.filter(
+                is_host_establishment=True
+            ).order_by('code', 'label')
         else:
             allowed_establishments = Establishment.objects.none()
 
@@ -483,7 +487,9 @@ class SlotForm(forms.ModelForm):
             else:
                 # Store current slot related objects
                 slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
-                slot_allowed_establishments = [e for e in new_slot_template.allowed_establishments.all()]
+                slot_allowed_establishments = [
+                    e for e in new_slot_template.allowed_establishments.filter(is_host_establishment=True)
+                ]
                 slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
                 slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
                 slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
@@ -559,7 +565,9 @@ class OffOfferEventSlotForm(SlotForm):
             .distinct()\
             .order_by('city', 'label')
 
-        allowed_establishments = Establishment.activated.user_establishments(self.request.user)
+        allowed_establishments = Establishment.activated.user_establishments(self.request.user).filter(
+            is_host_establishment=True
+        )
         self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
 
         allowed_structs = self.request.user.get_authorized_structures()
@@ -792,7 +800,7 @@ class OffOfferEventForm(forms.ModelForm):
             self.fields[field_name].widget.attrs["class"] += " form-control"
 
         self.fields["highschool"].queryset = HighSchool.agreed.none()
-        self.fields["establishment"].queryset = Establishment.activated.all()
+        self.fields["establishment"].queryset = Establishment.activated.filter(is_host_establishment=True)
         self.fields["structure"].queryset = Structure.activated.all()
         self.fields["event_type"].queryset = OffOfferEventType.activated.all()
 
