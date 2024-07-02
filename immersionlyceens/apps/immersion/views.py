@@ -294,7 +294,7 @@ def shibbolethLogin(request, profile=None):
             try:
                 clean_uai_code = uai_code.replace('{UAI}', '')
                 record_highschool = HighSchool.objects.get(
-                    Q(uai_code=uai_code)|Q(uai_code=clean_uai_code),
+                    Q(uai_codes=uai_code)|Q(uai_codes=clean_uai_code),
                     uses_student_federation=True
                 )
             except HighSchool.DoesNotExist as e:

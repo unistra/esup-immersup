@@ -17,7 +17,7 @@ from immersionlyceens.libs.utils import get_general_setting
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, UserCourseAlert, Slot, CourseType, Period
+    HighSchoolLevel, UserCourseAlert, Slot, CourseType, Period, UAI
 )
 
 class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
@@ -293,8 +293,29 @@ class TrainingSubdomainSerializer(serializers.ModelSerializer):
         model = TrainingSubdomain
         fields = "__all__"
 
+class UAISerializer(serializers.ModelSerializer):
+    """High schools UAI serializer"""
+    class Meta:
+        model = UAI
+        fields = "__all__"
 
 class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
+    uai_codes = AsymetricRelatedField.from_serializer(UAISerializer)(required=False, many=True)
+
+    def create(self, validated_data):
+        """
+        Create the high school then add UAIs (m2m)
+        """
+        try:
+            highschool = super().create(validated_data)
+
+            for uai in self._validated_data.get("uai_codes", []):
+                highschool.uai_codes.add(uai)
+        except Exception as e:
+            raise
+
+        return highschool
+
     def validate(self, attrs):
         # Advanced test
         excludes = {}
@@ -317,12 +338,28 @@ class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
                 _("A high school object with the same label and city already exists")
             )
 
+        # Student federation and UAI
+        if attrs.get('uses_student_federation', False) is True:
+            if not attrs.get('uai_codes', []):
+                raise serializers.ValidationError(
+                    _("You have to add at least one UAI code when using student federation")
+                )
+            else:
+                for uai in attrs.get('uai_codes'):
+                    try:
+                        UAI.objects.get(pk=uai.code)
+                    except UAI.DoesNotExist:
+                        raise serializers.ValidationError(
+                            _("UAI code %s not found") % uai.code
+                        )
+
         return super().validate(attrs)
 
     class Meta:
         model = HighSchool
         fields = "__all__"
         validators = []
+        depth = 1
 
 
 class TrainingSerializer(serializers.ModelSerializer):

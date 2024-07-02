@@ -101,14 +101,14 @@ class UAI(models.Model):
     UAI codes for establishments, mainly used for high schools
     """
 
-    uai_code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
+    code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
     label = models.CharField(_("Label"), max_length=512, null=True, blank=True)
     city = models.CharField(_("City"), max_length=128, null=True, blank=True)
     academy = models.CharField(_("City"), max_length=128, null=True, blank=True)
 
     def __str__(self):
         academy = f"ac. {self.academy}" if self.academy else ""
-        return " - ".join([self.city, academy, self.uai_code, self.label])
+        return " - ".join([self.city, academy, self.code, self.label])
 
     class Meta:
         verbose_name = _('Establishment with UAI')
@@ -281,7 +281,7 @@ class HighSchool(models.Model):
         default=True
     )
 
-    uai_code = models.ManyToManyField(UAI, verbose_name=_("UAI Code"), blank=True, related_name='highschools')
+    uai_codes = models.ManyToManyField(UAI, verbose_name=_("UAI Code"), blank=True, related_name='highschools')
 
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools

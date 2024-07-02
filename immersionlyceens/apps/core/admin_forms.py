@@ -1329,8 +1329,8 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        if self.fields and self.fields.get('uai_code'):
-            self.fields['uai_code'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
+        if self.fields and self.fields.get('uai_codes'):
+            self.fields['uai_codes'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
 
         if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
             city_choices = [
@@ -1501,9 +1501,9 @@ class HighSchoolForm(forms.ModelForm):
                     ),
                 })
 
-            if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_code', ''):
+            if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_codes', ''):
                 raise forms.ValidationError({
-                    'uai_code': _("This field is mandatory when using the student federation"),
+                    'uai_codes': _("This field is mandatory when using the student federation"),
                 })
 
 
@@ -1516,7 +1516,7 @@ class HighSchoolForm(forms.ModelForm):
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
                   'certificate_footer', 'uses_agent_federation', 'uses_student_federation',
-                  'allow_individual_immersions', 'uai_code')
+                  'allow_individual_immersions', 'uai_codes')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
             'certificate_header': CKEditorWidget(),

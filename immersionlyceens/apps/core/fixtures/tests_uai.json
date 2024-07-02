@@ -1,0 +1,6392 @@
+[
+{
+    "model": "core.uai",
+    "pk": "0650609J",
+    "fields": {
+        "label": "INSTITUT THERAPEUTIQUE EDUCATIF ET PEDAGOGIQUE ASTAZOU-SAINTE MARIE",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650619V",
+    "fields": {
+        "label": "INSTITUT MEDICO-EDUCATIF CAMPAN",
+        "city": "Campan",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650621X",
+    "fields": {
+        "label": "INSTITUT MEDICO-EDUCATIF CHATEAU D'URAC BORDERES-  SUR-L'ECHEZ",
+        "city": "Bordères-sur-l'Echez",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650622Y",
+    "fields": {
+        "label": "INSTITUT MEDICO-EDUCATIF LASCAZERES",
+        "city": "Lascazères",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650623Z",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Jules Ferry",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650668Y",
+    "fields": {
+        "label": "Ecole de formation technique Normale Atelier Construction",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650688V",
+    "fields": {
+        "label": "Cours privés promotion professionnelle Pôle formation CCI Tarbes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650690X",
+    "fields": {
+        "label": "INSTITUT THERAPEUTIQUE EDUCATIF ET PEDAGOGIQUE LAGARRIGUE TARBES",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650691Y",
+    "fields": {
+        "label": "INSTITUT D'EDUCATION MOTRICE TOURNAY",
+        "city": "Tournay",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650738Z",
+    "fields": {
+        "label": "Collège Saint-Vincent",
+        "city": "Bagnères-de-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650740B",
+    "fields": {
+        "label": "Collège Pyrénées",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650773M",
+    "fields": {
+        "label": "Cours privés promotion professionnelle Laboratoire de langues CCI Tarbes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650792H",
+    "fields": {
+        "label": "Ecole AS, auxiliaire de puériculture",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650798P",
+    "fields": {
+        "label": "INSTITUT MEDICO-EDUCATIF LES HIRONDELLES MONTASTRUC",
+        "city": "Montastruc",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650799R",
+    "fields": {
+        "label": "INSTITUT THERAPEUTIQUE EDUCATIF ET PEDAGOGIQUE LE BEROI LOURDES",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650812E",
+    "fields": {
+        "label": "INSTITUT MEDICO-EDUCATIF LES HIRONDELLES TARBES",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650834D",
+    "fields": {
+        "label": "Collège Marie Curie",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650835E",
+    "fields": {
+        "label": "Collège Victor Hugo",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650836F",
+    "fields": {
+        "label": "Collège climatique René Billères",
+        "city": "Argelès-Gazost",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650837G",
+    "fields": {
+        "label": "Collège Victor Duruy",
+        "city": "Bagnères-de-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650838H",
+    "fields": {
+        "label": "Collège Pierre Mendès France",
+        "city": "Vic-en-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650843N",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Paul Baratgin",
+        "city": "Lannemezan",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650860G",
+    "fields": {
+        "label": "INSTITUT MEDICO-EDUCATIF MAS LE CLOS FLEURI ORDIZAN",
+        "city": "Ordizan",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650862J",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Lourdes",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650874X",
+    "fields": {
+        "label": "Lycée professionnel Lautréamont",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650877A",
+    "fields": {
+        "label": "Collège Peyramale Saint-Joseph",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650878B",
+    "fields": {
+        "label": "Collège Notre-Dame de Garaison",
+        "city": "Monléon-Magnoac",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650879C",
+    "fields": {
+        "label": "Collège privé Saint Pierre",
+        "city": "Saint-Pé-de-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650880D",
+    "fields": {
+        "label": "Collège Jeanne d'Arc",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650881E",
+    "fields": {
+        "label": "Collège privé Saint-Dominique",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650882F",
+    "fields": {
+        "label": "Collège privé Notre-Dame de La Sède",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650883G",
+    "fields": {
+        "label": "Lycée professionnel privé Peyramale Saint Joseph",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650885J",
+    "fields": {
+        "label": "Lycée polyvalent privé Notre-Dame de Garaison",
+        "city": "Monléon-Magnoac",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650886K",
+    "fields": {
+        "label": "Lycée professionnel privé Saint-Pierre Pradeau La Sède",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650921Y",
+    "fields": {
+        "label": "Lycée technologique privé Saint-Pierre",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650948C",
+    "fields": {
+        "label": "Pôle de formation de la CCI Tarbes et Hautes-Pyrénées",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650961S",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée polyvalent Victor Duruy",
+        "city": "Bagnères-de-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650971C",
+    "fields": {
+        "label": "Section professionnelle du Lycée polyvalent privé Notre-Dame de Garaison",
+        "city": "Monléon-Magnoac",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650984S",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Voltaire",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650985T",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Gaston Fébus",
+        "city": "Lannemezan",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650986U",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Victor Hugo",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650987V",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Mendès France",
+        "city": "Vic-en-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650988W",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Serre de Sarsan",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650989X",
+    "fields": {
+        "label": "Section d'enseignement technologique du Lycée professionnel Fernand Durand",
+        "city": "Saint-Pé-de-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650990Y",
+    "fields": {
+        "label": "Section d'enseignement technologique du Lycée professionnel Sixte Vignon",
+        "city": "Aureilhan",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650991Z",
+    "fields": {
+        "label": "Section d'enseignement technologique du Lycée professionnel Reffye",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650992A",
+    "fields": {
+        "label": "Section d'enseignement technologique du Lycée professionnel Mendès France",
+        "city": "Vic-en-Bigorre",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0650993B",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Pyrénées",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651000J",
+    "fields": {
+        "label": "Ecole des arts et céramiques de Tarbes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651002L",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651004N",
+    "fields": {
+        "label": "Collège Pradeau-La Sède",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651015A",
+    "fields": {
+        "label": "Ecole technique privée du centre de formation      Consulaire Tarbes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651020F",
+    "fields": {
+        "label": "Section d'enseignement général et technologique du Lycée professionnel de L'Arrouza",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651021G",
+    "fields": {
+        "label": "Ecole d'aide-soignants",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651024K",
+    "fields": {
+        "label": "Collège privé Saint-Joseph",
+        "city": "Cantaous",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651026M",
+    "fields": {
+        "label": "Ecole technologique privée Concept Formation Ecole de coiffure",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651036Y",
+    "fields": {
+        "label": "Ecole 2d degré général privée Gambetta",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651038A",
+    "fields": {
+        "label": "Centre d'Etudes Supérieures Industrielles Midi-Pyrénées Ecole Supérieure d'Information Appliquée",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651042E",
+    "fields": {
+        "label": "Circonscription du 1er degré de Tarbes Val d'Adour Madiran",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651044G",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Tarbes Centre Sud",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651045H",
+    "fields": {
+        "label": "Circonscription TARBES ASH SEMEAC",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651046J",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Lourdes Bagnères",
+        "city": "Lourdes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651053S",
+    "fields": {
+        "label": "école de gestion et de commerce Tarbes-Pyrénées",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651055U",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651061A",
+    "fields": {
+        "label": "Section enseignement général et technologique du Lycée professionnel Reffye",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651071L",
+    "fields": {
+        "label": "Ecole privée hors contrat d'Esthétique et de Coiffure Esther Mario",
+        "city": "Lannemezan",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651072M",
+    "fields": {
+        "label": "Ecole supérieure d'art des Pyrénées Pau-Tarbes - Site de Tarbes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651099S",
+    "fields": {
+        "label": "TARBES-AUCH PREELEMENTAIRE ET FORMATION",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651111E",
+    "fields": {
+        "label": "Collège Privé Hors Contrat Ecole Kicau",
+        "city": "Pierrefitte-Nestalas",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651112F",
+    "fields": {
+        "label": "Lycée Général Privé Hors Contrat Ecole Kicau",
+        "city": "Pierrefitte-Nestalas",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651113G",
+    "fields": {
+        "label": "Collège Privé Hors Contrat Sainte Bernadette",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651120P",
+    "fields": {
+        "label": "Ecole de production privée hors contrat - Industrie des Hautes-Pyrénées",
+        "city": "Lanne",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651123T",
+    "fields": {
+        "label": "Collège privé hors contrat Creative",
+        "city": "Benqué-Molère",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0651124U",
+    "fields": {
+        "label": "Université de technologie Tarbes Occitanie Pyrénées",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0659999R",
+    "fields": {
+        "label": "Direction des services départementaux de l'éducation nationale des Hautes-Pyrénées",
+        "city": "Tarbes",
+        "academy": "Toulouse"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660001T",
+    "fields": {
+        "label": "Collège des Albères",
+        "city": "Argelès-sur-Mer",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660004W",
+    "fields": {
+        "label": "Lycée polyvalent Déodat de Séverac",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660007Z",
+    "fields": {
+        "label": "Collège Irène Joliot-Curie",
+        "city": "Estagel",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660008A",
+    "fields": {
+        "label": "Collège Pierre Fouché",
+        "city": "Ille-sur-Têt",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660010C",
+    "fields": {
+        "label": "Lycée François Arago",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660011D",
+    "fields": {
+        "label": "Lycée polyvalent Jean Lurçat",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660012E",
+    "fields": {
+        "label": "Collège Joseph Sébastien Pons",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660013F",
+    "fields": {
+        "label": "Lycée technologique Al Sol",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660014G",
+    "fields": {
+        "label": "Lycée polyvalent Pablo Picasso",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660015H",
+    "fields": {
+        "label": "Section d'enseignement professionnel, lycée polyvalent Pablo Picasso",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660016J",
+    "fields": {
+        "label": "Collège la Garrigole",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660017K",
+    "fields": {
+        "label": "Collège Jean Macé",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660018L",
+    "fields": {
+        "label": "Collège Madame de Sévigné",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660019M",
+    "fields": {
+        "label": "Collège Saint-Exupéry",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660021P",
+    "fields": {
+        "label": "Lycée polyvalent Charles Renouvier",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660022R",
+    "fields": {
+        "label": "Collège Gustave Violet",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660026V",
+    "fields": {
+        "label": "Lycée Alfred Sauvy",
+        "city": "Villelongue-Dels-Monts",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660028X",
+    "fields": {
+        "label": "Collège Jean Mermoz",
+        "city": "Saint-Laurent-de-la-Salanque",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660029Y",
+    "fields": {
+        "label": "Collège Joseph Calvet",
+        "city": "Saint-Paul-de-Fenouillet",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660030Z",
+    "fields": {
+        "label": "Collège Pierre Moreto",
+        "city": "Thuir",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660037G",
+    "fields": {
+        "label": "Collège Joffre",
+        "city": "Rivesaltes",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660038H",
+    "fields": {
+        "label": "Collège de la Côte Vermeille",
+        "city": "Port-Vendres",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660039J",
+    "fields": {
+        "label": "Lycée professionnel agricole Claude Simon",
+        "city": "Rivesaltes",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660041L",
+    "fields": {
+        "label": "Lycée professionnel Al Sol",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660049V",
+    "fields": {
+        "label": "Collège Jean Moulin",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660051X",
+    "fields": {
+        "label": "Collège Albert Camus",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660052Y",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré du Littoral",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660053Z",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Perpignan 2",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660054A",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré d'Agly",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660055B",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Céret",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660056C",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Prades",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660057D",
+    "fields": {
+        "label": "Lycée polyvalent climatique et sportif Pierre de Coubertin",
+        "city": "Font-Romeu-Odeillo-Via",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660058E",
+    "fields": {
+        "label": "Collège privé Saint-Louis de Gonzague",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660059F",
+    "fields": {
+        "label": "Lycée privé Notre-Dame du Bon Secours",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660061H",
+    "fields": {
+        "label": "Collège privé Maintenon",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660062J",
+    "fields": {
+        "label": "Collège privé Jeanne d'Arc",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660063K",
+    "fields": {
+        "label": "Collège privé La Salle Saint-Jean",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660065M",
+    "fields": {
+        "label": "Collège privé Notre-Dame-des-Anges",
+        "city": "Espira-de-l'Agly",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660068R",
+    "fields": {
+        "label": "Collège privé Saint-Joseph",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660070T",
+    "fields": {
+        "label": "Ecole technologique privée Bobo",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660072V",
+    "fields": {
+        "label": "Lycée d'enseignement professionnel privé de la Caisse d'allocations familiales",
+        "city": "Banyuls-sur-Mer",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660073W",
+    "fields": {
+        "label": "Ecole technique privée Jouret",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660074X",
+    "fields": {
+        "label": "Institut des Techniques Commerciales ITC (Ecole secondaire professionnelle privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660076Z",
+    "fields": {
+        "label": "Ecole technique privée Remington",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660077A",
+    "fields": {
+        "label": "Lycée privé polyvalent Sainte-Louise de Marillac",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660078B",
+    "fields": {
+        "label": "Etablissement régional d'enseignement adapté Joan Miro",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660431K",
+    "fields": {
+        "label": "Collège le Riberal",
+        "city": "Saint-Estève",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660437S",
+    "fields": {
+        "label": "Université de Perpignan Via Domitia",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660458P",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Charles Renouvier",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660462U",
+    "fields": {
+        "label": "Lycée technique privé Notre-Dame de Bon Secours",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660463V",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Prades",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660480N",
+    "fields": {
+        "label": "Collège Jean Moulin",
+        "city": "Arles-sur-Tech",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660502M",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Joan Miro",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660505R",
+    "fields": {
+        "label": "Institut de rééducation",
+        "city": "Toulouges",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660506S",
+    "fields": {
+        "label": "Institut médico éducatif",
+        "city": "Port-Vendres",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660516C",
+    "fields": {
+        "label": "Circpnscription d'inspection du 1er degré de Perpignan - ASH",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660517D",
+    "fields": {
+        "label": "Haute Ecole d'Art",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660520G",
+    "fields": {
+        "label": "Lycée Léon Blum",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660521H",
+    "fields": {
+        "label": "Collège Pau Casals",
+        "city": "Cabestany",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660522J",
+    "fields": {
+        "label": "Collège Marcel Pagnol",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660523K",
+    "fields": {
+        "label": "Collège Paul Langevin",
+        "city": "Elne",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660552S",
+    "fields": {
+        "label": "Lycée privé NEOSUP",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660553T",
+    "fields": {
+        "label": "IME Soleil des Pyrénées",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660570L",
+    "fields": {
+        "label": "Institut Méditerranéen de Formation en soins Infirmiers",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660575S",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Céret",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660600U",
+    "fields": {
+        "label": "Collège Cerdanya",
+        "city": "Bourg-Madame",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660601V",
+    "fields": {
+        "label": "Collège Jean Amade",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660626X",
+    "fields": {
+        "label": "Lycée privé Saint Dominique",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660628Z",
+    "fields": {
+        "label": "Institut médico éducatif",
+        "city": "Bompas",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660630B",
+    "fields": {
+        "label": "Institut médico-éducatif Al Casal",
+        "city": "Le Soler",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660631C",
+    "fields": {
+        "label": "Lycée professionnel agricole privé le Mas Blanc",
+        "city": "Bourg-Madame",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660632D",
+    "fields": {
+        "label": "Lycée d'enseignement agricole privé Beau Soleil",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660634F",
+    "fields": {
+        "label": "Collège climatique et sportif Pierre de Coubertin",
+        "city": "Font-Romeu-Odeillo-Via",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660636H",
+    "fields": {
+        "label": "Collège privé La Forêt",
+        "city": "Font-Romeu-Odeillo-Via",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660645T",
+    "fields": {
+        "label": "Ecole technique privée Riester",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660646U",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Perpignan 1",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660648W",
+    "fields": {
+        "label": "Collège la Côte Radieuse",
+        "city": "Canet-en-Roussillon",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660653B",
+    "fields": {
+        "label": "Collège Jules Verne",
+        "city": "Le Soler",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660655D",
+    "fields": {
+        "label": "Ecole technique privée Rive Gauche",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660667S",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Perpignan",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660679E",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660680F",
+    "fields": {
+        "label": "Ecole technique privée d'Esthétique Galatée",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660685L",
+    "fields": {
+        "label": "Ecole technique privée Saint Dominique",
+        "city": "Prades",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660699B",
+    "fields": {
+        "label": "Lycée général et technologique agricole Garcia Lorca",
+        "city": "Théza",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660722B",
+    "fields": {
+        "label": "Collège privé Le Home Catalan Ker Anna",
+        "city": "Font-Romeu-Odeillo-Via",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660724D",
+    "fields": {
+        "label": "Ecole technique privée Antarès",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660725E",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660743Z",
+    "fields": {
+        "label": "Ecole secondaire privée Fondation Kruger",
+        "city": "Mosset",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660748E",
+    "fields": {
+        "label": "Institut médico-éducatif Les Peupliers",
+        "city": "Pollestres",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660751H",
+    "fields": {
+        "label": "Institut de rééducation",
+        "city": "Néfiach",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660756N",
+    "fields": {
+        "label": "Ecole technique privée d'Esthétique et de Coiffure Giorgifont 2 (Ecole secondaire prof. privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660762V",
+    "fields": {
+        "label": "Centre Formation Sécuriform (Ecole secondaire professionnelle privée)",
+        "city": "Cabestany",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660763W",
+    "fields": {
+        "label": "Ecole secondaire privée Europa",
+        "city": "Canet-en-Roussillon",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660764X",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée privé Ste Louise de Marillac",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660768B",
+    "fields": {
+        "label": "Lycée privé Saint-Louis de Gonzague",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660784U",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660786W",
+    "fields": {
+        "label": "Ecole secondaire privée Comte Guifré",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660787X",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Déodat de Séverac",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660791B",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Roussillon",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660795F",
+    "fields": {
+        "label": "Section d'enseignement général et technologique du Lycée professionnel Al Sol",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660796G",
+    "fields": {
+        "label": "Section d'enseignement général et technologique du Lycée professionnel Léon Blum",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660801M",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée polyvalent privé Néosup",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660804R",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Jean Moulin",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660805S",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Le Riberal",
+        "city": "Saint-Estève",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660806T",
+    "fields": {
+        "label": "Ecole secondaire professionnelle privée Perpignan Football Club",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660809W",
+    "fields": {
+        "label": "Lycée polyvalent Aristide Maillol",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660810X",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Aristide Maillol",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660812Z",
+    "fields": {
+        "label": "Ecole secondaire privée Thélème",
+        "city": "Vernet-les-Bains",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660834Y",
+    "fields": {
+        "label": "Ecole d'aide-soignants, Hôpital local de Prades",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660842G",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Jean Lurçat",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660846L",
+    "fields": {
+        "label": "Collège privé Saint Pierre de la Mer",
+        "city": "Saint-Cyprien",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660848N",
+    "fields": {
+        "label": "Collège Alice et Jean Olibo",
+        "city": "Saint-Cyprien",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660856X",
+    "fields": {
+        "label": "Lycée polyvalent Rosa Luxemburg",
+        "city": "Canet-en-Roussillon",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660862D",
+    "fields": {
+        "label": "IDEM Eseignement Supérieur",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660864F",
+    "fields": {
+        "label": "Collège François Mitterrand",
+        "city": "Toulouges",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660865G",
+    "fields": {
+        "label": "Collège Pierre Mendès France",
+        "city": "Saint-André",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660866H",
+    "fields": {
+        "label": "Collège Jean Rous",
+        "city": "Pia",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660870M",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Ribéral",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660872P",
+    "fields": {
+        "label": "Collège privé Pompeu Fabra",
+        "city": "Le Soler",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660876U",
+    "fields": {
+        "label": "Ecole secondaire professionnelle privée, Sud Formation CCI Perpignan",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660880Y",
+    "fields": {
+        "label": "Institut Medico Educatif Le Joyau Cerdan",
+        "city": "Osséja",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660903Y",
+    "fields": {
+        "label": "Section d'enseignement professionnel du lycée polyvalent Rosa Luxemburg",
+        "city": "Canet-en-Roussillon",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660907C",
+    "fields": {
+        "label": "Lycée technologique, annexe du lycée Pablo Picasso",
+        "city": "Théza",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660908D",
+    "fields": {
+        "label": "Lycée professionnel, unité pédagogique du lycée climatique et sportif Pierre de Coubertin",
+        "city": "Osséja",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660911G",
+    "fields": {
+        "label": "Ecole Sankali, Ecole privée d'Esthétique et Cosmétologie (Ecole du second degré professionnel privée)",
+        "city": "Cabestany",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660912H",
+    "fields": {
+        "label": "Ecole du second degré prof privée du Vallespir",
+        "city": "Le Boulou",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660913J",
+    "fields": {
+        "label": "Ecole privée USAP",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660916M",
+    "fields": {
+        "label": "La Maison des enfants en Roussillon, Ecole privée Maria Montessori (Ecole secondaire privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660918P",
+    "fields": {
+        "label": "Section d'enseignement professionnel, lycée climatique et sportif Pierre de Coubertin",
+        "city": "Font-Romeu-Odeillo-Via",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660919R",
+    "fields": {
+        "label": "Institut de formation conseils",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660921T",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Perpignan - Adjoint DSDEN",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660924W",
+    "fields": {
+        "label": "Lycée polyvalent Christian Bourquin",
+        "city": "Argelès-sur-Mer",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660925X",
+    "fields": {
+        "label": "Collège Christian Bourquin",
+        "city": "Millas",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660927Z",
+    "fields": {
+        "label": "Institut d'education motrice symphonie",
+        "city": "Pollestres",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660928A",
+    "fields": {
+        "label": "Section d'enseignement professionnel du lycée professionnel du lycée polyvalent Christian Bourquin",
+        "city": "Argelès-sur-Mer",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660931D",
+    "fields": {
+        "label": "Lycée privé Saint Pierre de la Mer",
+        "city": "Saint-Cyprien",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660933F",
+    "fields": {
+        "label": "Bon Secours Business Campus",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660937K",
+    "fields": {
+        "label": "Ecole des métiers des Pyrénées-Orientales (Ecole second degré professionnel privée)",
+        "city": "Rivesaltes",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660958H",
+    "fields": {
+        "label": "Ecole Agile (Ecole secondaire privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660959J",
+    "fields": {
+        "label": "Auto Ecole (Ecole du second degré général privée)",
+        "city": "Céret",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660965R",
+    "fields": {
+        "label": "Conservatoire à Rayonnement Régional, Conservatoire Montserrat Caballé",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660968U",
+    "fields": {
+        "label": "KEYROPS SUP",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660970W",
+    "fields": {
+        "label": "SAS Académie Lax (Ecole du second degré polyvalent privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660973Z",
+    "fields": {
+        "label": "Ecole secondaire privée Les Lucioles",
+        "city": "Marquixanes",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660976C",
+    "fields": {
+        "label": "Campus Acadomia Perpignan (Ecole générale et technologique privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660983K",
+    "fields": {
+        "label": "L'école Scandinave (Ecole secondaire privée)",
+        "city": "Saint-Génis-des-Fontaines",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660985M",
+    "fields": {
+        "label": "World Security Training (Ecole du second degré professionnel privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660987P",
+    "fields": {
+        "label": "Campus Dragons Catalans (Ecole générale et technologique privée)",
+        "city": "Cabestany",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0660997A",
+    "fields": {
+        "label": "Ecole L'Essence'Ciel (Ecole secondaire privée)",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0669999K",
+    "fields": {
+        "label": "Direction des services départementaux de l'éducation nationale des Pyrénées Orientales",
+        "city": "Perpignan",
+        "academy": "Montpellier"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670002N",
+    "fields": {
+        "label": "Lycée Edouard Schuré",
+        "city": "Barr",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670003P",
+    "fields": {
+        "label": "Collège Robert Schuman",
+        "city": "Benfeld",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670004R",
+    "fields": {
+        "label": "Collège le Ried",
+        "city": "Bischheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670005S",
+    "fields": {
+        "label": "Lycée André Maurois",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670006T",
+    "fields": {
+        "label": "Lycée professionnel Philippe Charles Goulden",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670007U",
+    "fields": {
+        "label": "Lycée Adrien Zeller",
+        "city": "Bouxwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670009W",
+    "fields": {
+        "label": "Collège",
+        "city": "Brumath",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670011Y",
+    "fields": {
+        "label": "Collège du Bernstein",
+        "city": "Dambach-la-Ville",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670014B",
+    "fields": {
+        "label": "Collège des racines et des ailes",
+        "city": "Drulingen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670016D",
+    "fields": {
+        "label": "Collège Katia et Maurice Krafft",
+        "city": "Eckbolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670017E",
+    "fields": {
+        "label": "Collège Romain Rolland",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "067001SN",
+    "fields": {
+        "label": "CNED STRASBOURG",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670020H",
+    "fields": {
+        "label": "Lycée Robert Schuman",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670023L",
+    "fields": {
+        "label": "section professionnelle du LPO Heinrich",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670024M",
+    "fields": {
+        "label": "Lycée professionnel André Siegfried",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670028S",
+    "fields": {
+        "label": "Collège",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670035Z",
+    "fields": {
+        "label": "Collège Olympe de Gouges",
+        "city": "Ingwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670041F",
+    "fields": {
+        "label": "Lycée Henri Meck",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670042G",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Louis Marchal",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670043H",
+    "fields": {
+        "label": "Lycée professionnel Camille Schneider",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670049P",
+    "fields": {
+        "label": "Lycée Freppel",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670050R",
+    "fields": {
+        "label": "Lycée professionnel Paul Emile Victor",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670055W",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Georges Imbert",
+        "city": "Sarre-Union",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670056X",
+    "fields": {
+        "label": "Collège Pierre Claude",
+        "city": "Sarre-Union",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670057Y",
+    "fields": {
+        "label": "Lycée Général Leclerc",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670058Z",
+    "fields": {
+        "label": "Lycée professionnel Jules Verne",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670062D",
+    "fields": {
+        "label": "Lycée professionnel Aristide Briand",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670065G",
+    "fields": {
+        "label": "Collège Leclerc",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670066H",
+    "fields": {
+        "label": "Collège Rouget de Lisle",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670067J",
+    "fields": {
+        "label": "Lycée professionnel Haute Bruche",
+        "city": "Schirmeck",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670068K",
+    "fields": {
+        "label": "Collège Haute Bruche",
+        "city": "Schirmeck",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670071N",
+    "fields": {
+        "label": "Lycée Docteur Koeberlé",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670072P",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Jean-Baptiste Schwilgué",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670076U",
+    "fields": {
+        "label": "Collège Albert Camus",
+        "city": "Soufflenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670078W",
+    "fields": {
+        "label": "Lycée Jean Monnet",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670079X",
+    "fields": {
+        "label": "Lycée Fustel de Coulanges",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670080Y",
+    "fields": {
+        "label": "Lycée Kléber",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670081Z",
+    "fields": {
+        "label": "Lycée International les Pontonniers",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670082A",
+    "fields": {
+        "label": "Lycée Louis Pasteur",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670083B",
+    "fields": {
+        "label": "Lycée Marie Curie",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670084C",
+    "fields": {
+        "label": "Lycée polyvalent Jean Rostand",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670085D",
+    "fields": {
+        "label": "Lycée polyvalent Louis Couffignal",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670086E",
+    "fields": {
+        "label": "Lycée polyvalent René Cassin",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670086F",
+    "fields": {
+        "label": "AMGE ACADÉMIE DES  MÉTIERS DE LA GESTION",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670087F",
+    "fields": {
+        "label": "Lycée polyvalent hôtelier Alexandre Dumas",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670088G",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Le Corbusier",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670089H",
+    "fields": {
+        "label": "Lycée polyvalent Emile Mathis",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670090J",
+    "fields": {
+        "label": "Lycée professionnel Pierre Brousse",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "067009SH",
+    "fields": {
+        "label": "INDIVID.STRASBOURG",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670103Y",
+    "fields": {
+        "label": "Institut médico-pédagogique Les Glycines",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670105A",
+    "fields": {
+        "label": "Collège Lezay Marnésia",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670106B",
+    "fields": {
+        "label": "Collège du Grand Ried",
+        "city": "Sundhouse",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670107C",
+    "fields": {
+        "label": "Collège Kochersberg",
+        "city": "Truchtersheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670114K",
+    "fields": {
+        "label": "Lycée polyvalent Stanislas",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670126Y",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670127Z",
+    "fields": {
+        "label": "Lycée professionnel Jean-Frédéric Oberlin",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670128A",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Louis Couffignal",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670129B",
+    "fields": {
+        "label": "Lycée polyvalent Jean Geiler",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670130C",
+    "fields": {
+        "label": "Lycée professionnel",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670133F",
+    "fields": {
+        "label": "Collège Kléber",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670134G",
+    "fields": {
+        "label": "Rectorat de l'académie de Strasbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670135H",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Strasbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670136J",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Molsheim",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670137K",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Haguenau",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670138L",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Saverne",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670139M",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Selestat",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670147W",
+    "fields": {
+        "label": "Institut de théologie catholique, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670148X",
+    "fields": {
+        "label": "Institut de théologie protestante, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670151A",
+    "fields": {
+        "label": "Institut de préparation à l'administration générale, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670162M",
+    "fields": {
+        "label": "Institut des hautes études européennes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670173Z",
+    "fields": {
+        "label": "Observatoire astronomique, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670176C",
+    "fields": {
+        "label": "Ecole et observatoire des sciences de la terre, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670178E",
+    "fields": {
+        "label": "Institut d'études politique, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670182J",
+    "fields": {
+        "label": "Institut du travail, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670186N",
+    "fields": {
+        "label": "École nationale supérieure d'architecture de Strasbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670188R",
+    "fields": {
+        "label": "Ecole Supérieure d'art dramatique",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670189S",
+    "fields": {
+        "label": "École nationale du génie de l'eau et de l'environnement de Strasbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670190T",
+    "fields": {
+        "label": "Institut national des sciences appliquées de Strasbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670191U",
+    "fields": {
+        "label": "Ecole de sages-femmes de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670192V",
+    "fields": {
+        "label": "Faculté interne droit comparé",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670444U",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Paul Langevin 2 B",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670446W",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Hohberg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670448Y",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Saint Jean",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670453D",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Ziegelau",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670454E",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Exen",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670456G",
+    "fields": {
+        "label": "Institut médico-éducatif Arc en ciel",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670457H",
+    "fields": {
+        "label": "Ecole de plein air La Faisanderie",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0670462N",
+    "fields": {
+        "label": "Ecole régionale du premier degré",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671338R",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Polygone",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671339S",
+    "fields": {
+        "label": "Etablissement pour infirmes moteurs Les Iris",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671453R",
+    "fields": {
+        "label": "Institut Thérapeutique, Educatif et Pédagogique (ITEP)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671455T",
+    "fields": {
+        "label": "Etablissement régional d'enseignement adapté Henri Ebel",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671508A",
+    "fields": {
+        "label": "Collège Jacques Twinger",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671509B",
+    "fields": {
+        "label": "Lycée polyvalent Heinrich Nessel",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671544P",
+    "fields": {
+        "label": "Maison d'enfants à caractère social Oberlin",
+        "city": "La Broque",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671551X",
+    "fields": {
+        "label": "Centre d'études internationales de la propriété intellectuelle, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671552Y",
+    "fields": {
+        "label": "Lycée privé Gymnase Jean Sturm",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671555B",
+    "fields": {
+        "label": "Ecole supérieure européenne de l'intervention sociale",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671557D",
+    "fields": {
+        "label": "IUT Robert Schuman, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671559F",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 5",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671560G",
+    "fields": {
+        "label": "Circonscription d'inspection Eurométropole Nord",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671561H",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 1",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671562J",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 2 + Privé",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671563K",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 3",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671564L",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg école inclusive 67",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671565M",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré d'Erstein",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671566N",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré d'Haguenau Nord",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671567P",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Molsheim",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671568R",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré des Vosges du Nord",
+        "city": "Drulingen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671569S",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Saverne",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671570T",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Sélestat",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671571U",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Wissembourg",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671572V",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg - Adjoint DSDEN",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671575Y",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671590P",
+    "fields": {
+        "label": "Collège Sophie Germain",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671593T",
+    "fields": {
+        "label": "Collège Louise Weiss",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671594U",
+    "fields": {
+        "label": "Collège Jules Hoffmann",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671595V",
+    "fields": {
+        "label": "Collège Françoise Dolto",
+        "city": "Reichshoffen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671596W",
+    "fields": {
+        "label": "Collège Maréchal de Mac Mahon",
+        "city": "Woerth",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671597X",
+    "fields": {
+        "label": "Collège Charles de Gaulle",
+        "city": "Seltz",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671598Y",
+    "fields": {
+        "label": "Collège Val de Moder",
+        "city": "Val de Moder",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671600A",
+    "fields": {
+        "label": "Collège Jean Jacques Waltz",
+        "city": "Marckolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671601B",
+    "fields": {
+        "label": "Collège du Klosterwald",
+        "city": "Villé",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671602C",
+    "fields": {
+        "label": "Lycée polyvalent  privé Sainte-Philomène",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671603D",
+    "fields": {
+        "label": "Collège privé des Missions Africaines",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671604E",
+    "fields": {
+        "label": "Collège privé Saint-Joseph",
+        "city": "Matzenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671607H",
+    "fields": {
+        "label": "Collège privé Notre Dame de Sion",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671608J",
+    "fields": {
+        "label": "Collège privé Institution La Providence",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671609K",
+    "fields": {
+        "label": "Lycée privé Saint-Etienne",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671610L",
+    "fields": {
+        "label": "Lycée privé Notre Dame",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671611M",
+    "fields": {
+        "label": "Lycée privé La Doctrine Chrétienne",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671614R",
+    "fields": {
+        "label": "Lycée général privé Lucie Berger",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671615S",
+    "fields": {
+        "label": "Lycée privé Aquiba",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671616T",
+    "fields": {
+        "label": "Centre Eshel (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671618V",
+    "fields": {
+        "label": "Lycée privé Séminaire de jeunes",
+        "city": "Walbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671619W",
+    "fields": {
+        "label": "Ecole secondaire privée Michaël",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671620X",
+    "fields": {
+        "label": "Collège privé Sainte-Anne",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671623A",
+    "fields": {
+        "label": "Ecole Technique privée supérieure Ecole Grandjean",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671631J",
+    "fields": {
+        "label": "Ecole Air et Vie (Ecole secondaire professionnelle privée)",
+        "city": "Marmoutier",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671632K",
+    "fields": {
+        "label": "Lycée professionnel privé de Dietrich",
+        "city": "Niederbronn-les-Bains",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671634M",
+    "fields": {
+        "label": "Ecole européenne de beauté",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671636P",
+    "fields": {
+        "label": "Lycée privé ORT",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671637R",
+    "fields": {
+        "label": "Ecole technique privée ITCI",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671638S",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671639T",
+    "fields": {
+        "label": "Lycée polyvalent privé Sainte Clotilde",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671644Y",
+    "fields": {
+        "label": "Lycée d'enseignement professionnel privé Mixte",
+        "city": "Val-de-Moder",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671656L",
+    "fields": {
+        "label": "Ecole secondaire privée Maison Bon Pasteur",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671658N",
+    "fields": {
+        "label": "Lycée d'enseignement professionnel privé Ecole Libre Sainte Anne",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671677J",
+    "fields": {
+        "label": "Institut Centre Europe",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671679L",
+    "fields": {
+        "label": "Lycée professionnel privé Sainte Thérèse",
+        "city": "Oermingen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671685T",
+    "fields": {
+        "label": "Lycée agricole d'Obernai",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671686U",
+    "fields": {
+        "label": "Collège Paul Wernert",
+        "city": "Achenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671687V",
+    "fields": {
+        "label": "Collège Sébastien Brant",
+        "city": "Eschau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671688W",
+    "fields": {
+        "label": "Collège Georges Holderith",
+        "city": "Lauterbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671689X",
+    "fields": {
+        "label": "Collège André Malraux",
+        "city": "La Wantzenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671690Y",
+    "fields": {
+        "label": "Collège Maxime Alexandre",
+        "city": "Lingolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671691Z",
+    "fields": {
+        "label": "Collège Stockfeld",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671692A",
+    "fields": {
+        "label": "Collège Solignac",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671694C",
+    "fields": {
+        "label": "Lycée professionnel",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671695D",
+    "fields": {
+        "label": "Lycée professionnel Claude Chappe",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671696E",
+    "fields": {
+        "label": "Lycée professionnel Schweisguth",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671697F",
+    "fields": {
+        "label": "Collège Frison Roche",
+        "city": "La Broque",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671712X",
+    "fields": {
+        "label": "UNIVERSITE STRASBOURG 1",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671713Y",
+    "fields": {
+        "label": "UNIVERSITE STRASBOURG 2",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671734W",
+    "fields": {
+        "label": "Collège Kléber",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671737Z",
+    "fields": {
+        "label": "Section professionnelle du lycée Cassin",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671738A",
+    "fields": {
+        "label": "Collège Charles Munch",
+        "city": "Niederbronn-les-Bains",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671739B",
+    "fields": {
+        "label": "Collège Suzanne Lalique-Haviland",
+        "city": "Wingen-sur-Moder",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671740C",
+    "fields": {
+        "label": "Collège Marcel Pagnol",
+        "city": "Wasselonne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671741D",
+    "fields": {
+        "label": "Collège de l'Eichel",
+        "city": "Diemeringen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671742E",
+    "fields": {
+        "label": "Collège Fustel de Coulanges",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671755U",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du lycée Emile Mathis",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671760Z",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du LP André Siegfried",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671778U",
+    "fields": {
+        "label": "UNIVERSITE STRASBOURG 3",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671779V",
+    "fields": {
+        "label": "Lycée agricole d'Erstein",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671782Y",
+    "fields": {
+        "label": "Centre Educatif et Scolaire Institution Mertian",
+        "city": "Benfeld",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671784A",
+    "fields": {
+        "label": "Institut Thérapeutique, Educatif et Pédagogique Pierre Paul Blanck",
+        "city": "Ebersmunster",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671785B",
+    "fields": {
+        "label": "Institut médico-éducatif Cottolengo",
+        "city": "Epfig",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671786C",
+    "fields": {
+        "label": "ITEP Le Willerhof",
+        "city": "Hilsenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671791H",
+    "fields": {
+        "label": "Institut de rééducation Les Tilleuls",
+        "city": "Scharrachbergheim-Irmstett",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671792J",
+    "fields": {
+        "label": "Institut  Saint Charles",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671793K",
+    "fields": {
+        "label": "Institut d'éducation des sens pour déficients visuels Centre Louis Braille",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671797P",
+    "fields": {
+        "label": "Institut d'éducation des sens pour déficients auditifs A. Jacoutot",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671798R",
+    "fields": {
+        "label": "Institut médico-éducatif  Don Bosco",
+        "city": "Huttenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671800T",
+    "fields": {
+        "label": "Etablissement pour polyhandicapés Mont des oiseaux",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671802V",
+    "fields": {
+        "label": "Institut médico-professionnel Centre de Harthouse",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671806Z",
+    "fields": {
+        "label": "Institut médico-éducatif eurométropôle site Simone Veil",
+        "city": "Lingolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671807A",
+    "fields": {
+        "label": "Institut médico-éducatif eurométropôle site Roethig",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671810D",
+    "fields": {
+        "label": "Institut médico-éducatif  du Ried",
+        "city": "Diebolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671812F",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Elsau",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671813G",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement Erckmann-Chatrian",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671815J",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671822S",
+    "fields": {
+        "label": "Collège Lamartine",
+        "city": "Bischheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671824U",
+    "fields": {
+        "label": "Collège Jean de la Fontaine",
+        "city": "Geispolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671825V",
+    "fields": {
+        "label": "Collège François Truffaut",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671827X",
+    "fields": {
+        "label": "Collège de l'Outre forêt",
+        "city": "Soultz-sous-Forêts",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671828Y",
+    "fields": {
+        "label": "Collège Louis Arbogast",
+        "city": "Mutzig",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671830A",
+    "fields": {
+        "label": "Collège Jean Mentel",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671832C",
+    "fields": {
+        "label": "Lycée polyvalent Jean Baptiste Schwilgué",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671860H",
+    "fields": {
+        "label": "Faculté de médecine",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671862K",
+    "fields": {
+        "label": "Faculté de pharmacie",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671863L",
+    "fields": {
+        "label": "Faculté de chirurgie dentaire",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671864M",
+    "fields": {
+        "label": "UFR de mathématiques et informatique Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671867R",
+    "fields": {
+        "label": "Faculté des sciences de la vie, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671870U",
+    "fields": {
+        "label": "Faculté de psychologie, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671871V",
+    "fields": {
+        "label": "Faculté de géographie et d'aménagement, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671872W",
+    "fields": {
+        "label": "Faculté de sciences économiques et de gestion, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671874Y",
+    "fields": {
+        "label": "Faculté des langues et des cultures étrangères, Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671875Z",
+    "fields": {
+        "label": "Faculté des lettres, Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671876A",
+    "fields": {
+        "label": "Faculté de Philosophie, Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671877B",
+    "fields": {
+        "label": "Faculté des sciences historiques, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671878C",
+    "fields": {
+        "label": "Faculté des  sciences sociales, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671879D",
+    "fields": {
+        "label": "Faculté de droit, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671881F",
+    "fields": {
+        "label": "Centre Universitaire d'enseignement du journalisme, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671882G",
+    "fields": {
+        "label": "Centre de Formation d'apprentis LPO HEINRICH-NESSEL",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671892T",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré  La Wantzenau - Rhin",
+        "city": "La Wantzenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671907J",
+    "fields": {
+        "label": "Collège Hans Arp",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671909L",
+    "fields": {
+        "label": "Collège international Vauban",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671911N",
+    "fields": {
+        "label": "Collège Simone Veil",
+        "city": "Herrlisheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671912P",
+    "fields": {
+        "label": "Collège Jacques Tati",
+        "city": "Mertzwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671913R",
+    "fields": {
+        "label": "Collège Herrade de Landsberg",
+        "city": "Rosheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671914S",
+    "fields": {
+        "label": "Institut médico-éducatif  Louise Scheppler",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671915T",
+    "fields": {
+        "label": "Collège International de l'Esplanade Strasbourg (CIES)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671943Y",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 4",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671953J",
+    "fields": {
+        "label": "Ecole secondaire privée Institut médico-pédagogique et professionnel",
+        "city": "Hilsenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671956M",
+    "fields": {
+        "label": "Collège du Parc",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671958P",
+    "fields": {
+        "label": "Collège Foch",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671960S",
+    "fields": {
+        "label": "Collège du Bois fleuri",
+        "city": "Schweighouse-sur-Moder",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671961T",
+    "fields": {
+        "label": "Collège Gustave Doré",
+        "city": "Hochfelden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671962U",
+    "fields": {
+        "label": "Collège des Châteaux",
+        "city": "Châtenois",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671963V",
+    "fields": {
+        "label": "Collège",
+        "city": "Rhinau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671982R",
+    "fields": {
+        "label": "Lycée professionnel Jean Jacques Rousseau",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671984T",
+    "fields": {
+        "label": "Collège Otfried",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671985U",
+    "fields": {
+        "label": "Collège Léonard de Vinci",
+        "city": "Marmoutier",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671986V",
+    "fields": {
+        "label": "Collège Les Sources",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671987W",
+    "fields": {
+        "label": "Collège Poincaré",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0671989Y",
+    "fields": {
+        "label": "Collège Grégoire de Tours",
+        "city": "Marlenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672007T",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672012Y",
+    "fields": {
+        "label": "Collège Baldung Grien",
+        "city": "Hoerdt",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672013Z",
+    "fields": {
+        "label": "Collège Paul-Emile Victor",
+        "city": "Mundolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672037A",
+    "fields": {
+        "label": "Ecole secondaire privée Beth Yaakov",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672050P",
+    "fields": {
+        "label": "Ecole commerciale privée",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672051R",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du Lycée Schweisguth",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672052S",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du LP J. Geiler",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672056W",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du LP Jules Verne",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672064E",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du Lycée Stanislas",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672066G",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du Lycée Le Corbusier",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672070L",
+    "fields": {
+        "label": "Faculté des siences du sport, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672071M",
+    "fields": {
+        "label": "Institut médico-éducatif  Le Rosier Blanc",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672072N",
+    "fields": {
+        "label": "Collège Martin Schongauer",
+        "city": "Ostwald",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672074R",
+    "fields": {
+        "label": "Collège du Rhin",
+        "city": "Drusenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672076T",
+    "fields": {
+        "label": "Collège du Bastberg",
+        "city": "Bouxwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672078V",
+    "fields": {
+        "label": "Collège Europe",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672101V",
+    "fields": {
+        "label": "Etablissement régional d'enseignement adapté Les Peupliers",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672118N",
+    "fields": {
+        "label": "Lycée professionnel agricole Schattenmann",
+        "city": "Bouxwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672119P",
+    "fields": {
+        "label": "Ecole internationale TUNON",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672128Z",
+    "fields": {
+        "label": "Collège Jean Monnet",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672129A",
+    "fields": {
+        "label": "Collège Louis Pasteur",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672130B",
+    "fields": {
+        "label": "Collège André Maurois",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672131C",
+    "fields": {
+        "label": "Collège Henri Meck",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672132D",
+    "fields": {
+        "label": "Collège Freppel",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672133E",
+    "fields": {
+        "label": "Collège de Barr",
+        "city": "Barr",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672134F",
+    "fields": {
+        "label": "Collège Beatus Rhenanus",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672135G",
+    "fields": {
+        "label": "Collège Les cigognes",
+        "city": "Gerstheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672136H",
+    "fields": {
+        "label": "Collège Foch",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672172X",
+    "fields": {
+        "label": "Institut médico-éducatif Eau Vive",
+        "city": "Diemeringen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672179E",
+    "fields": {
+        "label": "Institut médico-éducatif Léonard de Vinci",
+        "city": "Ingwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672185L",
+    "fields": {
+        "label": "Etablissement pour déficients moteurs Les Grillons",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672186M",
+    "fields": {
+        "label": "Institut médico-éducatif eurométropôle site Ganzau",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672193V",
+    "fields": {
+        "label": "Collège de la Souffel",
+        "city": "Pfulgriesheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672194W",
+    "fields": {
+        "label": "Collège Nelson Mandela",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672197Z",
+    "fields": {
+        "label": "Collège Tomi Ungerer",
+        "city": "Dettwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672198A",
+    "fields": {
+        "label": "Lycée polyvalent Le Corbusier",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672237T",
+    "fields": {
+        "label": "Collège Saut-Du-Lievre II",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672254L",
+    "fields": {
+        "label": "Collège les sept Arpents",
+        "city": "Souffelweyersheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672266Z",
+    "fields": {
+        "label": "Cours Tachbar (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672296G",
+    "fields": {
+        "label": "CFA Maintenance des systèmes mécaniques automatisés -option système ferroviaire",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672297H",
+    "fields": {
+        "label": "Ecole technique privée 2nd Cycle Court",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672298J",
+    "fields": {
+        "label": "Collège privé Sainte-Philomène",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672299K",
+    "fields": {
+        "label": "Lycée professionnel privé Sainte-Philomène",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672300L",
+    "fields": {
+        "label": "Collège privé Lucie Berger",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672301M",
+    "fields": {
+        "label": "Collège privé Saint-Etienne",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672302N",
+    "fields": {
+        "label": "Collège privé Séminaire des jeunes",
+        "city": "Walbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672303P",
+    "fields": {
+        "label": "Collège privé La Doctrine Chrétienne",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672304R",
+    "fields": {
+        "label": "Collège privé Aquiba",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672305S",
+    "fields": {
+        "label": "Lycée professionnel privé Sainte Clotilde",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672306T",
+    "fields": {
+        "label": "Collège privé Le Gymnase Jean Sturm",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672307U",
+    "fields": {
+        "label": "Institut privé de formation en haute coiffure Bischetti",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672336A",
+    "fields": {
+        "label": "Institut de formation  de soins infirmiers et aide-soignats  Centre Hospitalier  Sainte Catherine",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672337B",
+    "fields": {
+        "label": "Institut de Formation en Soins Infirmiers Centre hospitalier Haguenau",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672338C",
+    "fields": {
+        "label": "Institut de formation en soins infirmiers",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672339D",
+    "fields": {
+        "label": "Ecole pluriprofessionnelle Etablissement public de santé Alsace Nord",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672341F",
+    "fields": {
+        "label": "Institut de formation en soins infirmiers des Hopitaux universitaires de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672342G",
+    "fields": {
+        "label": "Institut de formation des cadres de santé",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672343H",
+    "fields": {
+        "label": "Ecole d'infirmiers anesthésistes Centre hospitalier universitaire de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672346L",
+    "fields": {
+        "label": "Institut de Formation en masso-kinésithérapie. Centre hospitalier universitaire de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672375T",
+    "fields": {
+        "label": "Greta Strasbourg Europe",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672380Y",
+    "fields": {
+        "label": "TELECOM Physique Strasbourg,  Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672399U",
+    "fields": {
+        "label": "Collège Sections Internationales",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672405A",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré d'Obernai",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672418P",
+    "fields": {
+        "label": "Ecole Technique privée supérieure Europe Technique",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672421T",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Gutenberg",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672450Z",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Schiltigheim",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672459J",
+    "fields": {
+        "label": "Collège Erasme",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672462M",
+    "fields": {
+        "label": "IUT Louis Pasteur Schiltigheim, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672464P",
+    "fields": {
+        "label": "Lycée professionnel privé Ort",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672465R",
+    "fields": {
+        "label": "Ecole technique privée d'Esthétique",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672474A",
+    "fields": {
+        "label": "Centre d'information et d'orientation de Illkirch-Graffenstaden",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672477D",
+    "fields": {
+        "label": "Centre de Formation d'apprentis agricole rattaché au LEGTA",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672485M",
+    "fields": {
+        "label": "Cours Meurant (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672486N",
+    "fields": {
+        "label": "Cours Meurant (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672500D",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré Truchtersheim - Kochersberg",
+        "city": "Truchtersheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672502F",
+    "fields": {
+        "label": "Faculté des langues et sciences humaines appliquées, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672503G",
+    "fields": {
+        "label": "Faculté des arts - Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672504H",
+    "fields": {
+        "label": "Ecole supérieure de biotechnologie, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672505J",
+    "fields": {
+        "label": "Ecole autonome de perfectionnement",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672516W",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 6",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672517X",
+    "fields": {
+        "label": "Ecole privée d'Esthétique (Ecole technique privée)",
+        "city": "Issenhausen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672518Y",
+    "fields": {
+        "label": "Ecole Technique privée M.J.M. Formation Artistique",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672519Z",
+    "fields": {
+        "label": "Ecole secondaire privée Centre Eshel",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672533P",
+    "fields": {
+        "label": "Ecole technique privée ITCIS Pigier",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672534R",
+    "fields": {
+        "label": "Lycée polyvalent du Haut-Barr",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672558S",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré d'Haguenau Sud",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672560U",
+    "fields": {
+        "label": "Cours Secondaire d'Alsace (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672564Y",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du Lycée Oberlin",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672579P",
+    "fields": {
+        "label": "Ecole secondaire privée Cours Saint Thomas d'Aquin",
+        "city": "Urmatt",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672581S",
+    "fields": {
+        "label": "Institut France Europe (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672582T",
+    "fields": {
+        "label": "Cours Saint Thomas d'Aquin (Ecole secondaire privée)",
+        "city": "Urmatt",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672583U",
+    "fields": {
+        "label": "Centre privé Formation Générale (Ecole technique privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672585W",
+    "fields": {
+        "label": "Ecole secondaire privée Ecole des Essarts",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672586X",
+    "fields": {
+        "label": "Ecole des Essarts (Ecole secondaire privée)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672587Y",
+    "fields": {
+        "label": "Institut Supérieur Européen de Gestion Marketing et Communication",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672592D",
+    "fields": {
+        "label": "Ecole Supérieure de management et de gestion",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672597J",
+    "fields": {
+        "label": "Ecole secondaire privée Lycée de L'Europe",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672598K",
+    "fields": {
+        "label": "Institut de formation comptable",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672601N",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du CEFPPA",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672602P",
+    "fields": {
+        "label": "Lycée professionnel privé Charles de Foucauld",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672604S",
+    "fields": {
+        "label": "Lycée Marc Bloch",
+        "city": "Bischheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672606U",
+    "fields": {
+        "label": "Collège Rembrandt Bugatti",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672612A",
+    "fields": {
+        "label": "ECOLE SUPERIEURE INTERNATIONALE D'ADMINISTRATION DES ENTREPRISES",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672614C",
+    "fields": {
+        "label": "Lycée polyvalent Georges Imbert",
+        "city": "Sarre-Union",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672615D",
+    "fields": {
+        "label": "Lycée polyvalent Louis Marchal",
+        "city": "Molsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672616E",
+    "fields": {
+        "label": "Lycée polyvalent Gutenberg",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672632X",
+    "fields": {
+        "label": "Centre de formation d'apprentis régional des compagnons du Devoir-Alsace",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672635A",
+    "fields": {
+        "label": "Institut universitaire de formation des maîtres",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672636B",
+    "fields": {
+        "label": "Centre de formation de musiciens intervenants - Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672637C",
+    "fields": {
+        "label": "Antenne ESPE Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672638D",
+    "fields": {
+        "label": "Antenne ESPE Sélestat",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672639E",
+    "fields": {
+        "label": "Institut de traducteurs, d'interprètes et de relations internationales-Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672640F",
+    "fields": {
+        "label": "Faculté de chimie, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672652U",
+    "fields": {
+        "label": "Ecole supérieure prifvée - ISCOM",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672656Y",
+    "fields": {
+        "label": "Ecole secondaire privée Beth Hanna",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672657Z",
+    "fields": {
+        "label": "Ecole secondaire privée Beth Hanna (Collège privé)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672658A",
+    "fields": {
+        "label": "Collège La pierre polie",
+        "city": "Vendenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672674T",
+    "fields": {
+        "label": "Délégation régionale du CNRS Alsace",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672677W",
+    "fields": {
+        "label": "Lycée polyvalent Marguerite Yourcenar",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672678X",
+    "fields": {
+        "label": "Institut national du service public (INSP - ex ENA)",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672682B",
+    "fields": {
+        "label": "Ecole professionnelle privée Carrières de La Mode",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672683C",
+    "fields": {
+        "label": "Langues et cultures régionales",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672684D",
+    "fields": {
+        "label": "EDIAC Formation Etablissement des Diaconesses",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672687G",
+    "fields": {
+        "label": "Ecole d'orthoptie",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672688H",
+    "fields": {
+        "label": "Ecole d'ortophonie Faculté de Médecine",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672689J",
+    "fields": {
+        "label": "Centre de formation professionnelle notariale",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672698U",
+    "fields": {
+        "label": "Institut de formation d'aides soignants Wissembourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672699V",
+    "fields": {
+        "label": "INSTITUT DE FORMATION EN  SOINS INFIRMIERS - ECOLE D'AIDES-SOIGNANTS",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672706C",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée hôtelier",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672707D",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée du Haut-Barr",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672708E",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Jean Rostand",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672709F",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Kléber",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672710G",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Foch",
+        "city": "Haguenau",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672711H",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Ingwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672712J",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Beatus Rhenanus",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672713K",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Soufflenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672714L",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Lezay-Marnésia",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672715M",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Hans Arp",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672716N",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Villé",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672717P",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Romain Rolland",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672718R",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Illkirch-Graffenstaden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672719S",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Leclerc",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672720T",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Erasme",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672721U",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Otfried",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672722V",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Marguerite Yourcenar",
+        "city": "Erstein",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672723W",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Stanislas",
+        "city": "Wissembourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672724X",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Sarre-Union",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672734H",
+    "fields": {
+        "label": "Centre Régional Associé au CNAM",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672735J",
+    "fields": {
+        "label": "ESTUDIA Ecole Sup. Gestion et expertise comptable",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672736K",
+    "fields": {
+        "label": "Antenne 67 CFA de la CCI Alsace Eurométropole",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672745V",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège François Truffaut",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672746W",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège de l'Outre Forêt",
+        "city": "Soultz-sous-Forêts",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672747X",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Haute-Bruche",
+        "city": "Schirmeck",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672748Y",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Hochfelden",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672749Z",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Rouget de Lisle",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672750A",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Wingen-sur-Moder",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672751B",
+    "fields": {
+        "label": "Institut de Formation des Ambulanciers",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672752C",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672765S",
+    "fields": {
+        "label": "Collège Galilée",
+        "city": "Lingolsheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672768V",
+    "fields": {
+        "label": "Institut international d'études françaises",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672770X",
+    "fields": {
+        "label": "IESA",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672772Z",
+    "fields": {
+        "label": "Institut européen de formation",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672781J",
+    "fields": {
+        "label": "Section d'enseignement technologique",
+        "city": "Barr",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672782K",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Europe",
+        "city": "Obernai",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672783L",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Françoise Dolto",
+        "city": "Reichshoffen",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672784M",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Solignac",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672790U",
+    "fields": {
+        "label": "Campus privé d'Alsace-Horizon",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672791V",
+    "fields": {
+        "label": "Association CESI",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672792W",
+    "fields": {
+        "label": "Ecole européenne de chimie, polymères et matériaux de Strasbourg - Université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672806L",
+    "fields": {
+        "label": "Lycée polyvalent Marcel Rudloff",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672817Y",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Les Sources",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672818Z",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Mentel",
+        "city": "Sélestat",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672819A",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Charles De Gaulle",
+        "city": "Seltz",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672820B",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Cronenbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672821C",
+    "fields": {
+        "label": "Collège privé Ort",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672826H",
+    "fields": {
+        "label": "Institut de formation de la profession de l'assurance",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672834S",
+    "fields": {
+        "label": "Institut Universitaire de Technologie de Haguenau, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672835T",
+    "fields": {
+        "label": "Section d'enseignement technologique du Collège Poincaré",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672844C",
+    "fields": {
+        "label": "Ecole supérieure européenne de l'intervention sociale",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672845D",
+    "fields": {
+        "label": "Section d'enseignement professionnel du Lycée Marcel Rudloff",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672863Y",
+    "fields": {
+        "label": "Ecole Michael (2nd degré général privé)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672864Z",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672865A",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672866B",
+    "fields": {
+        "label": "PIGIER Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672867C",
+    "fields": {
+        "label": "Institut de formation en soins infirmiers Saint-Vincent",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672877N",
+    "fields": {
+        "label": "Omnis",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672879R",
+    "fields": {
+        "label": "CFA des métiers de la banque et de la finance",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672881T",
+    "fields": {
+        "label": "Institut supérieure d'optique de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672892E",
+    "fields": {
+        "label": "Centre de Formation d'apprentis du LPO Gutenberg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672896J",
+    "fields": {
+        "label": "Collège Nicolas Copernic",
+        "city": "Duttlenheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672897K",
+    "fields": {
+        "label": "Centre de formation de la profession bancaire",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672899M",
+    "fields": {
+        "label": "Collège privé Notre Dame",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672904T",
+    "fields": {
+        "label": "L'ICE Serge Comtesse - Academy Coiffure Esthétique",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672907W",
+    "fields": {
+        "label": "Formation professionnelle Société Llerena",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672915E",
+    "fields": {
+        "label": "Institut médico-professionnel SIFAS",
+        "city": "Bischheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672928U",
+    "fields": {
+        "label": "Etablissement pour polyhandicapés Centre Raoul Clainchard",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672938E",
+    "fields": {
+        "label": "Groupement d'Interêt Public Formation Continue et Insertion Professionnelle Alsace",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672939F",
+    "fields": {
+        "label": "L'Institut supérieur des Arts Appliqués",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672948R",
+    "fields": {
+        "label": "Section d'enseignement professionnel du lycée polyvalent Emile Mathis",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672953W",
+    "fields": {
+        "label": "Institut protestant pour enfants déficients auditifs Bruckhof",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672957A",
+    "fields": {
+        "label": "Département d'études territoriales",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672958B",
+    "fields": {
+        "label": "Centre de formation d'apprentis transport et logistique",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672959C",
+    "fields": {
+        "label": "Institut de formation à l'informatique pour le développement des entreprises",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672965J",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré  Eurométropole Sud - Ouest",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672968M",
+    "fields": {
+        "label": "International space university",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672969N",
+    "fields": {
+        "label": "EXIA Ecole Supérieure",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672972S",
+    "fields": {
+        "label": "Institut médico-éducatif Le Tremplin",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672976W",
+    "fields": {
+        "label": "Institut médico-éducatif pour enfants polyhandicapés Sonnenhof",
+        "city": "Bischwiller",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672981B",
+    "fields": {
+        "label": "Ecole soins infirmiers du pays d'Erstein",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672995S",
+    "fields": {
+        "label": "CCI CAMPUS ALSACE",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0672997U",
+    "fields": {
+        "label": "Ecole Institut Esthétique Marbeuf",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673001Y",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673003A",
+    "fields": {
+        "label": "Supinfo",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673004B",
+    "fields": {
+        "label": "L'Institution de la Coiffure et de l'Esthétique",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673005C",
+    "fields": {
+        "label": "Lycée professionnel privé IESC",
+        "city": "Saverne",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673006D",
+    "fields": {
+        "label": "Collège du Torenberg-Heiligenstein",
+        "city": "Barr",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673010H",
+    "fields": {
+        "label": "A COMPLETER",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673013L",
+    "fields": {
+        "label": "Institut de formation des aides soignantes Le Neuenberg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673015N",
+    "fields": {
+        "label": "Ecole management Strasbourg, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673017R",
+    "fields": {
+        "label": "Ecole européenne de Strasbourg (C)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673018S",
+    "fields": {
+        "label": "Antenne du CFA Eckbolsheim",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673021V",
+    "fields": {
+        "label": "Université de Strasbourg",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673022W",
+    "fields": {
+        "label": "EPITECH Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673023X",
+    "fields": {
+        "label": "Ecole supérieure de management en hôtellerie et restauration",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673024Y",
+    "fields": {
+        "label": "Faculté de Physique et Ingénierie, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673025Z",
+    "fields": {
+        "label": "Association régionale Grand Est des CEMEA",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673028C",
+    "fields": {
+        "label": "Centre de formation des apprentis CCI CAMPUS",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673031F",
+    "fields": {
+        "label": "IEN - Soutien au pilotage académique",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673033H",
+    "fields": {
+        "label": "Circonscription d'inspection du 1er degré de Strasbourg 7 + International",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673034J",
+    "fields": {
+        "label": "Faculté sciences de l'éducation, université de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673035K",
+    "fields": {
+        "label": "Direction de la recherche",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673036L",
+    "fields": {
+        "label": "Service de formation continue",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673039P",
+    "fields": {
+        "label": "Antenne de CFA Schiltigheim",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673040R",
+    "fields": {
+        "label": "Délégation régionale académique de la jeunesse, de l'enseignement  et du sport du Grand Est (site de Strasbourg)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673042T",
+    "fields": {
+        "label": "Collège ostéopathique Strasbourg Europe",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673043U",
+    "fields": {
+        "label": "Ecole Sup. de commerce et Management",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673046X",
+    "fields": {
+        "label": "ECAM Strasbourg-Europe",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673048Z",
+    "fields": {
+        "label": "Haute école des arts du Rhin - Site d'arts plastiques de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673049A",
+    "fields": {
+        "label": "Etablissement de réinsertion scolaire",
+        "city": "Schirmeck",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673050B",
+    "fields": {
+        "label": "Ecole européenne de Strasbourg (L)",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673052D",
+    "fields": {
+        "label": "Institut d'électronique du solide et des systèmes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673059L",
+    "fields": {
+        "label": "Groupe scolaire Harmonie",
+        "city": "Schiltigheim",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673062P",
+    "fields": {
+        "label": "Stralang privé",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673063R",
+    "fields": {
+        "label": "Institut Européen de Journalisme",
+        "city": "Strasbourg",
+        "academy": "Strasbourg"
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673067V",
+    "fields": {
+        "label": "Exactétudes",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673068W",
+    "fields": {
+        "label": "Ecole supérieure du professorat et de l'éducation de l'académie de Strasbourg",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673069X",
+    "fields": {
+        "label": "OSCAR, Ecole européenne d'ostéopathie",
+        "city": "",
+        "academy": ""
+    }
+},
+{
+    "model": "core.uai",
+    "pk": "0673072A",
+    "fields": {
+        "label": "Ludus Académie",
+        "city": "",
+        "academy": ""
+    }
+}
+]

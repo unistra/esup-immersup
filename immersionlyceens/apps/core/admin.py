@@ -221,7 +221,7 @@ class HighschoolListFilter(admin.SimpleListFilter):
 
 class HasUAIFilter(admin.SimpleListFilter):
     title = _('Has UAI code(s)')
-    parameter_name = 'uai_code'
+    parameter_name = 'uai_codes'
 
     def lookups(self, request, model_admin):
         return (
@@ -235,7 +235,7 @@ class HasUAIFilter(admin.SimpleListFilter):
 
         bool = self.value() == 0
 
-        return queryset.filter(uai_code__isnull=bool).distinct()
+        return queryset.filter(uai_codes__isnull=bool).distinct()
 
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
@@ -1431,12 +1431,12 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'uses_student_federation',
         HasUAIFilter,
     )
-    filter_horizontal = ('uai_code', )
+    filter_horizontal = ('uai_codes', )
 
     # Keep the list here to maintain order even when some fields are readonly
     fields = (
         'active', 'postbac_immersion', 'allow_individual_immersions', 'uses_agent_federation',
-        'uses_student_federation', 'label', 'uai_code', 'country', 'address', 'address2',
+        'uses_student_federation', 'label', 'uai_codes', 'country', 'address', 'address2',
         'address3', 'department', 'zip_code', 'city', 'phone_number', 'fax', 'email',
         'head_teacher_name', 'with_convention', 'convention_start_date', 'convention_end_date',
         'signed_charter', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',

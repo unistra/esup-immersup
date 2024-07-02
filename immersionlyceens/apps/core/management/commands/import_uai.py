@@ -41,7 +41,7 @@ class Command(BaseCommand):
 
             for result in results:
                 UAI.objects.update_or_create(
-                    uai_code=result['code'],
+                    code=result['code'],
                     defaults = {
                         'city': None or result['city'],
                         'academy': None or result['academy'],

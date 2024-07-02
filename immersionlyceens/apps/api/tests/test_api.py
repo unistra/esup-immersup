@@ -49,7 +49,7 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
+    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', 'tests_uai']
 
     @classmethod
     def setUpTestData(cls):
@@ -3541,7 +3541,10 @@ class APITestCase(TestCase):
             "badge_html_color": "#556677",
             "certificate_header": "My custom header",
             "certificate_footer": "My custom footer",
+            "uses_student_federation": True,
         }
+
+        # 0670081Z
 
         # Without permission
         response = self.api_client_token.post(url, data)
@@ -3550,10 +3553,28 @@ class APITestCase(TestCase):
 
         # Add add permission and try again
         self.api_user.user_permissions.add(add_permission)
+
+        # uses_student_federation True but missing UAI codes
         response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
+        self.assertFalse(HighSchool.objects.filter(label='New High School').exists())
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ['You have to add at least one UAI code when using student federation']}
+        )
+
+        # Add uai codes and retry
+        data.update({
+            "uai_codes": ['0670081Z', '0670082A']
+        })
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(result.get('email'), "nhs@domain.tld")
         self.assertTrue(HighSchool.objects.filter(label='New High School').exists())
+
+        new_high_school = HighSchool.objects.get(label='New High School')
+        self.assertEqual(new_high_school.uai_codes.count(), 2)
 
         # Duplicate
         response = self.api_client_token.post(url, data)
@@ -3565,6 +3586,17 @@ class APITestCase(TestCase):
         )
         self.assertEqual(HighSchool.objects.filter(label='New High School').count(), 1)
 
+        # Creation without student federation
+        data.pop('uai_codes')
+        data.update({
+            'label': "Another High School",
+            'uses_student_federation': False,
+            'email': 'ahs@domain.tld',
+        })
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('email'), "ahs@domain.tld")
+        self.assertTrue(HighSchool.objects.filter(label='Another High School').exists())
 
     def test_high_school_speakers(self):
         client = Client()
