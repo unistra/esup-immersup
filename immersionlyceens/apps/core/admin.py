@@ -1515,7 +1515,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         # TODO: remove this when upgrading to django-ckeditor-5
         css = {
             "all": (
-                "css/immerionlyceens.min.css",
+                "css/immersionlyceens.min.css",
             )
         }
 
