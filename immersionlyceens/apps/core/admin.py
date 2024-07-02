@@ -894,8 +894,8 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EstablishmentForm
-    list_display = ('code', 'label', 'master', 'active', 'signed_charter')
-    list_filter = ('active',)
+    list_display = ('code', 'label', 'master', 'active', 'signed_charter', 'is_host_establishment')
+    list_filter = ('active', 'is_host_establishment')
     ordering = ('code', 'master', 'label', 'active', 'signed_charter')
     search_fields = ('label',)
 
@@ -913,7 +913,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
-
     def get_fieldsets(self, request, obj=None):
         """
         Hide some critical fields for non-authorized users (like plugin settings with passwords)
@@ -926,7 +925,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return fieldset
 
-
     def get_readonly_fields(self, request, obj=None):
         user = request.user
 
@@ -935,7 +933,7 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
                 'active', 'signed_charter', 'code', 'label', 'uai_reference', 'short_label', 'department',
                 'address', 'address2', 'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color',
                 'email', 'data_source_plugin', 'data_source_settings', 'logo', 'signature', 'objects',
-                'certificate_header', 'certificate_footer'
+                'certificate_header', 'certificate_footer', 'is_host_establishment'
             )
         elif request.user.is_master_establishment_manager() and not user.is_superuser:
             return super().get_readonly_fields(request, obj) + (
@@ -946,7 +944,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return super().get_readonly_fields(request, obj)
 
-
     def has_delete_permission(self, request, obj=None):
         # Test existing data before deletion (see US 160)
         if obj and Structure.objects.filter(establishment=obj).exists():
@@ -955,6 +952,11 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         # Group permissions
         return super().has_delete_permission(request, obj)
+
+
+    # TODO: remove this when upgrading to django-ckeditor-5
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
 
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1012,6 +1014,14 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
 
         # Group permissions
         return super().has_delete_permission(request, obj)
+
+    # TODO: remove this when upgrading to django-ckeditor-5
+    class Media:
+        css = {
+            'all': (
+                'css/immersionlyceens.min.css',
+            )
+        }
 
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1501,6 +1511,12 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
                 'js/admin_highschool.min.js',
             )
 
+        # TODO: remove this when upgrading to django-ckeditor-5
+        css = {
+            "all": (
+                "css/immerionlyceens.min.css",
+            )
+        }
 
 class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     form = InformationTextForm
