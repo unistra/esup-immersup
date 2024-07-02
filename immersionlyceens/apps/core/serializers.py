@@ -359,7 +359,6 @@ class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
         model = HighSchool
         fields = "__all__"
         validators = []
-        depth = 1
 
 
 class TrainingSerializer(serializers.ModelSerializer):

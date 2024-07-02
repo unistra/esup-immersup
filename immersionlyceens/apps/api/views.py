@@ -3701,7 +3701,10 @@ class HighSchoolList(generics.ListCreateAPIView):
     serializer_class = HighSchoolSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [HighSchoolReadOnlyPermissions|CustomDjangoModelPermissions]
-    filterset_fields = ['postbac_immersion', 'signed_charter', 'with_convention']
+    filterset_fields = [
+        'active', 'allow_individual_immersions', 'id', 'postbac_immersion', 'signed_charter',
+        'uses_agent_federation', 'uses_student_federation', 'with_convention',
+    ]
 
     def __init__(self, *args, **kwargs):
         self.agreed = None
