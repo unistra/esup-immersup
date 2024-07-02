@@ -636,18 +636,54 @@ CKEDITOR_CONFIGS = {
         "skin": "moono-lisa",
         "toolbar": CUSTOM_TOOLBAR,
         "toolbarGroups": None,
-        "extraPlugins": ",".join(['codesnippet',]),
+        "extraPlugins": ",".join(
+            [
+                'codesnippet',
+            ]
+        ),
         "removePlugins": ",".join(['image', 'uploadimage', 'uploadwidget', 'elementspath']),
         "codeSnippet_theme": "xcode",
         'height': '100%',
         'width': '100%',
     },
     'toolbar': [
-        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
-        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
-        ['misc', ['ol', 'ul', 'height', ], ],
-        ['others', ['link', 'table', 'hr'], ],
-        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
+        [
+            'style',
+            [
+                'style',
+                'bold',
+                'italic',
+                'underline',
+                'strikethrough',
+                'superscript',
+                'subscript',
+                'clear',
+            ],
+        ],
+        [
+            'font',
+            [
+                'fontsize',
+                'forecolor',
+                'paragraph',
+            ],
+        ],
+        [
+            'misc',
+            [
+                'ol',
+                'ul',
+                'height',
+            ],
+        ],
+        [
+            'others',
+            ['link', 'table', 'hr'],
+        ],
+        [
+            'view',
+            ['codeview', 'undo', 'redo', 'fullscreen'],
+        ],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
