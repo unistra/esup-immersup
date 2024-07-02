@@ -169,6 +169,7 @@ class Establishment(models.Model):
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
+    is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
 
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
