@@ -146,6 +146,7 @@ class Establishment(models.Model):
     mailing_list = models.EmailField(_('Mailing list'), blank=True, null=True)
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
     master = models.BooleanField(_("Master"), default=True)
+    is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
     signed_charter = models.BooleanField(_("Signed charter"), default=False)
     data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
         choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
@@ -169,7 +170,6 @@ class Establishment(models.Model):
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
-    is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
 
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")

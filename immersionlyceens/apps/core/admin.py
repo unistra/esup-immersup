@@ -894,7 +894,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EstablishmentForm
-    list_display = ('code', 'label', 'master', 'active', 'signed_charter', 'is_host_establishment')
+    list_display = ('code', 'label', 'master', 'is_host_establishment', 'active', 'signed_charter')
     list_filter = ('active', 'is_host_establishment')
     ordering = ('code', 'master', 'label', 'active', 'signed_charter')
     search_fields = ('label',)
