@@ -54,10 +54,38 @@
 </div>
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 {% authorized_groups request.user %}
-{% if not events_off_offer %}
-  {% include './fragments/my_immersions.html'%}
-{% else %}
-<section>
+<section class="py-5">
+  <div class="container-fluid justify-content-md-center">
+    <div class="row border-top my-3"></div>
+    <ul class="nav nav-pills" id="myImmersionsTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="futur-tab" data-toggle="pill" href="#futur-immersions" role="tab" aria-controls="futur-immersions" aria-selected="true">{% trans "To come" %}</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="past-tab" data-toggle="pill" href="#past" role="tab" aria-controls="past" aria-selected="false">{% trans "Past" %}</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="cancelled-tab" data-toggle="pill" href="#cancelled" role="tab" aria-controls="cancelled" aria-selected="false">{% trans "Cancelled" %}</a>
+      </li>
+    </ul>
+    <div class="tab-content" id="myImmersionsContent">
+      <div class="tab-pane fade in show active" id="futur-immersions" role="tabpanel" aria-labelledby="myImmersionsContent">
+      {% include './fragments/my_futur_immersions.html'%}
+      </div>
+
+      <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="myImmersionsContent">
+      {% include './fragments/my_past_immersions.html'%}
+      </div>
+
+      <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="myImmersionsContent">
+      {% include './fragments/my_cancelled_immersions.html'%}
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% comment %} <section>
   <div class="container-fluid mt-4">
     <ul class="nav nav-tabs" id="myTab" role="tablist">
       <li class="nav-item" role="presentation">
@@ -80,8 +108,8 @@
       {% endif %}
     </div>
   </div>
-</section>
-{% endif %}
+</section> {% endcomment %}
+
 <script>
   var feedback;
   var current_immersion_id;
@@ -165,15 +193,20 @@
       'order': [
         [6, "asc"]
       ],
+      'buttons': [
+      {extend: 'copy', text: '<fa class="fa fa-copy"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'csv', text: '<fa class="fa fa-file"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'print', text: '<fa class="fa fa-print"></fa>', className: 'btn btn-info d-none d-md-block'},
+      ],
+      'dom': 'Bfrtip',
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'future'
-            d.slot_type = 'course'
             return d
         },
         dataSrc: function (json) {
@@ -189,35 +222,120 @@
       },
       {% endif %}
       'columns': [
+        {
+          orderable: false, className: 'text-center', width: '20px',
+          render: function(data, type, full, meta) {
+              slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              if (slotType === 'c') {
+                  label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
+              } else {
+                  label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
+              }
+              return label;
+          }
+        },
         { "data": "training",
           "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.course.training + "<br>" + row.establishments;
-            }
-            return data;
-          },
-        },
-        { "data": "structure" },
-        { "data": "course.label" },
-        { "data": "course.type" },
-        { "data": "campus" },
-        { "data": "meeting_place" },
-        { "data": "datetime",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.date + "<br>" + row.start_time + " - " + row.end_time;
+            slotType = row.type[0].toLowerCase();
+            if (slotType === 'c') {
+              label = '<label>'+ '{% trans "Training" %}' + ' :</label>';
+              if (data === '' || data === null) {
+                data = '&nbsp;';
+              }
+              data = row.course.training + "<br>" + row.establishments;
+            } else {
+                label = '<label>'+ "{% trans "Event type" %}" + ' :</label>';
+                data = row.label + "<br>" + (row.establishment || row.highschool);
             }
 
+            if(type === "display") {
+              return label + '<span>' + data + '</span>';
+            }
+            if(type === 'filter') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+            return data;
+          }
+        },
+        {
+          render: function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            if (slotType === 'c') {
+              return row.structure;
+            } else {
+              return row.campus;
+            }
+          },
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+
+            if (slotType === 'c') {
+              return row.structure;
+            }
+            return row.meeting_place;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+
+            if (slotType === 'c') {
+              data = row.course.type;
+            } else {
+              data = row.datetime;
+              if(type === "display" || type === "filter") {
+                data = row.date + "<br>" + row.start_time + " - " + row.end_time;
+              }
+            }
+            return data;
+
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            return (slotType === 'c') ? row.campus : row.speakers;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            return (slotType === 'c') ? row.meeting_place : row.info;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+
+            slotType = row.type[0].toLowerCase();
+            if (slotType === 'c') {
+              data = row.datetime;
+              if(type === "display" || type === "filter") {
+                return row.date + "<br>" + row.start_time + " - " + row.end_time;
+              }
+            } else {
+              data = row.registration_date;
+              if (type !== 'sort') {
+                return data ? formatDate(data) : "";
+              }
+            }
             return data;
           },
         },
-        { "data": "speakers",
+        {
+
           "render": function (data) {
-            let txt = "";
-            $.each(data, function(index, value) {
-              txt += value+"<br>";
-            });
-            return txt;
+            slotType = row.type[0].toLowerCase();
+            if (slotType === 'c') {
+              let txt = "";
+              $.each(row.speakers, function(index, value) {
+                txt += value+"<br>";
+              });
+              return txt;
+            } else {
+
+            }
           },
         },
         { "data": "info" },
@@ -271,6 +389,12 @@
       'order': [
         [6, "desc"]
       ],
+      'buttons': [
+      {extend: 'copy', text: '<fa class="fa fa-copy"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'csv', text: '<fa class="fa fa-file"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'print', text: '<fa class="fa fa-print"></fa>', className: 'btn btn-info d-none d-md-block'},
+      ],
+      'dom': 'Bfrtip',
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
@@ -279,7 +403,6 @@
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'past'
-            d.slot_type = 'course'
             return d
         },
         dataSrc: function (json) {
@@ -295,6 +418,18 @@
       },
       {% endif %}
       'columns': [
+        {
+          orderable: false, className: 'text-center', width: '20px',
+          render: function(data, type, full, meta) {
+              slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              if (slotType === 'c') {
+                  label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
+              } else {
+                  label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
+              }
+              return label;
+          }
+        },
         { "data": "training",
           "render": function(data, type, row) {
             if(type === "display" || type === "filter") {
@@ -365,6 +500,12 @@
       'order': [
         [6, "asc"]
       ],
+      'buttons': [
+      {extend: 'copy', text: '<fa class="fa fa-copy"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'csv', text: '<fa class="fa fa-file"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'print', text: '<fa class="fa fa-print"></fa>', className: 'btn btn-info d-none d-md-block'},
+      ],
+      'dom': 'Bfrtip',
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
@@ -373,7 +514,6 @@
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'cancelled'
-            d.slot_type = 'course'
             return d
         },
         dataSrc: function (json) {
@@ -389,6 +529,18 @@
       },
       {% endif %}
       'columns': [
+        {
+          orderable: false, className: 'text-center', width: '20px',
+          render: function(data, type, full, meta) {
+              slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              if (slotType === 'c') {
+                  label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
+              } else {
+                  label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
+              }
+              return label;
+          }
+        },
         { "data": "training",
           "render": function(data, type, row) {
             if(type === "display" || type === "filter") {
@@ -468,7 +620,6 @@
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'future'
-            d.slot_type = 'event'
             return d
         },
         dataSrc: function (json) {
@@ -564,7 +715,6 @@
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'past'
-            d.slot_type = 'event'
             return d
         },
         dataSrc: function (json) {
@@ -656,7 +806,6 @@
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'cancelled'
-            d.slot_type = 'event'
             return d
         },
         dataSrc: function (json) {

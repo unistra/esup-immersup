@@ -15,9 +15,9 @@
   {% trans 'Search immersions slots' %}
 {% endblock %}
 {% block content %}
-  {% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
-  {% authorized_groups request.user %}
-    {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
+{% authorized_groups request.user %}
+{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
   {% include './modals/modal_search_slots_details.html' %}
   <div class="main-title inside text-center">
     <div></div>
