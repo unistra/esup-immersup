@@ -224,7 +224,6 @@
                                 <span class="badge badge-primary badge-pill">
                                 {% trans 'Available places' %} : {{ slot.available_seats }}
                                 </span><br>
-                                <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                                 {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                                   {% if slot.can_register %}
                                   <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
@@ -249,6 +248,7 @@
                                   <span class="badge badge-primary badge-pill" id="group_feedback_{{ pk }}">
                                 {% blocktrans %}Only one group of {{ total_groups_places }} persons max{% endblocktrans %}
                                   </span>
+                                  <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                                   {% if authorized_groups|in_groups:'REF-LYC' %}
                                   <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ slot.id }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
                                   <div id="feedback_{{ pk }}"></div>
@@ -259,6 +259,7 @@
                                   <span class="badge badge-primary badge-pill" id="group_feedback_{{ pk }}">
                                     {% blocktrans  %}group(s) of <span id="group_registrations_counter_{{ pk }}">{{ total_groups }}</span> persons max{% endblocktrans %}
                                   </span>
+                                  <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                                     {% if authorized_groups|in_groups:'REF-LYC' %}
                                   <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
                                   <div id="feedback_{{ pk }}"></div>
