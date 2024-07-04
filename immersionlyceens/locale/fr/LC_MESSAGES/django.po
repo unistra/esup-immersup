@@ -1324,7 +1324,7 @@ msgstr "Vous ne pouvez plus vous inscrire à ce créneau"
 #: immersionlyceens/apps/core/models.py:3055
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:10
 #: immersionlyceens/templates/cohort_offer_subdomains.html:84
-#: immersionlyceens/templates/core/course_slot.html:71
+#: immersionlyceens/templates/core/course_slot.html:69
 #: immersionlyceens/templates/core/courses_slots_list.html:58
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:22
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:69
@@ -1399,7 +1399,7 @@ msgstr "Domaine/Sous domaine"
 #: immersionlyceens/apps/core/models.py:1704
 #: immersionlyceens/templates/cohort_offer_subdomains.html:74
 #: immersionlyceens/templates/core/course.html:82
-#: immersionlyceens/templates/core/course_slot.html:58
+#: immersionlyceens/templates/core/course_slot.html:56
 #: immersionlyceens/templates/core/courses_list.html:98
 #: immersionlyceens/templates/core/my_courses.html:40
 #: immersionlyceens/templates/core/my_courses_slots.html:28
@@ -3538,7 +3538,7 @@ msgstr "Utilisateurs groupés"
 #: immersionlyceens/apps/core/models.py:3343
 #: immersionlyceens/templates/cohort_offer.html:160
 #: immersionlyceens/templates/cohort_offer_subdomains.html:119
-#: immersionlyceens/templates/core/common_slot.html:178
+#: immersionlyceens/templates/core/common_slot.html:191
 #: immersionlyceens/templates/core/courses_slots_list.html:59
 #: immersionlyceens/templates/core/off_offer_events_slots_list.html:43
 #: immersionlyceens/templates/core/students_presence.html:48
@@ -3755,7 +3755,7 @@ msgstr "Un type de cours avec ce nom existe déjà"
 #: immersionlyceens/apps/core/models.py:1380
 #: immersionlyceens/apps/core/models.py:2462
 #: immersionlyceens/templates/cohort_offer_subdomains.html:121
-#: immersionlyceens/templates/core/course_slot.html:85
+#: immersionlyceens/templates/core/course_slot.html:83
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:46
 #: immersionlyceens/templates/offer_subdomains.html:120
 msgid "Course type"
@@ -3933,7 +3933,7 @@ msgstr "Publié"
 #: immersionlyceens/apps/core/models.py:1917
 #: immersionlyceens/apps/core/models.py:2487
 #: immersionlyceens/apps/user/models.py:37
-#: immersionlyceens/templates/core/common_slot.html:274
+#: immersionlyceens/templates/core/common_slot.html:287
 #: immersionlyceens/templates/core/course.html:124
 #: immersionlyceens/templates/core/courses_list.html:101
 #: immersionlyceens/templates/core/courses_slots_list.html:62
@@ -4244,7 +4244,7 @@ msgstr "Restreindre à des types de bac"
 #: immersionlyceens/apps/core/models.py:2520
 #: immersionlyceens/templates/cohort_offer.html:198
 #: immersionlyceens/templates/cohort_offer_subdomains.html:140
-#: immersionlyceens/templates/core/common_slot.html:399
+#: immersionlyceens/templates/core/common_slot.html:412
 #: immersionlyceens/templates/offer_off_offer_events.html:149
 #: immersionlyceens/templates/offer_subdomains.html:139
 msgid "Allowed establishments"
@@ -4263,7 +4263,7 @@ msgstr "Niveaux lycéens autorisés"
 #: immersionlyceens/apps/core/models.py:2532
 #: immersionlyceens/templates/cohort_offer.html:226
 #: immersionlyceens/templates/cohort_offer_subdomains.html:164
-#: immersionlyceens/templates/core/common_slot.html:451
+#: immersionlyceens/templates/core/common_slot.html:464
 #: immersionlyceens/templates/offer_off_offer_events.html:175
 #: immersionlyceens/templates/offer_subdomains.html:163
 msgid "Allowed student levels"
@@ -4272,7 +4272,7 @@ msgstr "Niveaux étudiants autorisés"
 #: immersionlyceens/apps/core/models.py:2535
 #: immersionlyceens/templates/cohort_offer.html:235
 #: immersionlyceens/templates/cohort_offer_subdomains.html:172
-#: immersionlyceens/templates/core/common_slot.html:458
+#: immersionlyceens/templates/core/common_slot.html:471
 #: immersionlyceens/templates/offer_off_offer_events.html:184
 #: immersionlyceens/templates/offer_subdomains.html:171
 msgid "Allowed post bachelor levels"
@@ -4281,7 +4281,7 @@ msgstr "Niveaux post-bac autorisés"
 #: immersionlyceens/apps/core/models.py:2540
 #: immersionlyceens/templates/cohort_offer.html:243
 #: immersionlyceens/templates/cohort_offer_subdomains.html:180
-#: immersionlyceens/templates/core/common_slot.html:486
+#: immersionlyceens/templates/core/common_slot.html:499
 #: immersionlyceens/templates/offer_off_offer_events.html:192
 #: immersionlyceens/templates/offer_subdomains.html:179
 msgid "Allowed bachelor types"
@@ -4290,7 +4290,7 @@ msgstr "Types de bac autorisés"
 #: immersionlyceens/apps/core/models.py:2543
 #: immersionlyceens/templates/cohort_offer.html:251
 #: immersionlyceens/templates/cohort_offer_subdomains.html:188
-#: immersionlyceens/templates/core/common_slot.html:493
+#: immersionlyceens/templates/core/common_slot.html:506
 #: immersionlyceens/templates/offer_off_offer_events.html:200
 #: immersionlyceens/templates/offer_subdomains.html:187
 msgid "Allowed bachelor mentions"
@@ -4299,7 +4299,7 @@ msgstr "Mentions autorisées"
 #: immersionlyceens/apps/core/models.py:2546
 #: immersionlyceens/templates/cohort_offer.html:259
 #: immersionlyceens/templates/cohort_offer_subdomains.html:196
-#: immersionlyceens/templates/core/common_slot.html:500
+#: immersionlyceens/templates/core/common_slot.html:513
 #: immersionlyceens/templates/offer_off_offer_events.html:208
 #: immersionlyceens/templates/offer_subdomains.html:195
 msgid "Allowed bachelor teachings"
@@ -6892,60 +6892,60 @@ msgstr ""
 msgid "or"
 msgstr "ou"
 
-#: immersionlyceens/templates/core/common_slot.html:163
+#: immersionlyceens/templates/core/common_slot.html:176
 msgid "URL"
 msgstr "URL"
 
-#: immersionlyceens/templates/core/common_slot.html:238
+#: immersionlyceens/templates/core/common_slot.html:251
 msgid "Registration limit (in hours)"
 msgstr "Délai limite pour l'inscription (en heures)"
 
-#: immersionlyceens/templates/core/common_slot.html:249
-#: immersionlyceens/templates/core/common_slot.html:266
+#: immersionlyceens/templates/core/common_slot.html:262
+#: immersionlyceens/templates/core/common_slot.html:279
 msgid "Limit"
 msgstr "Limite"
 
-#: immersionlyceens/templates/core/common_slot.html:255
+#: immersionlyceens/templates/core/common_slot.html:268
 msgid "Cancellation limit (in hours)"
 msgstr "Délai limite pour l'annulation (en heures)"
 
-#: immersionlyceens/templates/core/common_slot.html:385
-#: immersionlyceens/templates/core/common_slot.html:430
-#: immersionlyceens/templates/core/common_slot.html:472
+#: immersionlyceens/templates/core/common_slot.html:398
+#: immersionlyceens/templates/core/common_slot.html:443
+#: immersionlyceens/templates/core/common_slot.html:485
 msgid "Keep 'Ctrl' or 'Command' key pressed to select multiple items"
 msgstr ""
 "Maintenez la touche 'Ctrl' ou 'Command' appuyée pour sélectionner plusieurs "
 "valeurs"
 
-#: immersionlyceens/templates/core/common_slot.html:467
+#: immersionlyceens/templates/core/common_slot.html:480
 msgid "Use bachelor type restrictions"
 msgstr "Restreindre à des types de bac"
 
-#: immersionlyceens/templates/core/common_slot.html:538
+#: immersionlyceens/templates/core/common_slot.html:551
 msgid "Notify registrants of these changes?"
 msgstr "Notifier les inscrits de ces modifications ?"
 
-#: immersionlyceens/templates/core/common_slot.html:640
+#: immersionlyceens/templates/core/common_slot.html:653
 msgid "Please fill the above fields first"
 msgstr "Veuillez d'abord compléter les champs précédents"
 
-#: immersionlyceens/templates/core/common_slot.html:750
+#: immersionlyceens/templates/core/common_slot.html:763
 msgid "(no speaker)"
 msgstr "(aucun intervenant)"
 
-#: immersionlyceens/templates/core/common_slot.html:757
+#: immersionlyceens/templates/core/common_slot.html:770
 msgid "No course available"
 msgstr "Aucun cours disponible"
 
-#: immersionlyceens/templates/core/common_slot.html:790
+#: immersionlyceens/templates/core/common_slot.html:803
 msgid "No campus available"
 msgstr "Aucun campus disponible"
 
-#: immersionlyceens/templates/core/common_slot.html:823
+#: immersionlyceens/templates/core/common_slot.html:836
 msgid "No building available"
 msgstr "Aucun bâtiment disponible"
 
-#: immersionlyceens/templates/core/common_slot.html:914
+#: immersionlyceens/templates/core/common_slot.html:927
 msgid "No available period for this date"
 msgstr "Aucune période disponible pour cette date"
 
@@ -7188,11 +7188,11 @@ msgstr ""
 msgid "Select slots date within selected period"
 msgstr "Sélectionner les dates au sein de la période sélectionnée"
 
-#: immersionlyceens/templates/core/course_slot.html:101
+#: immersionlyceens/templates/core/course_slot.html:99
 msgid "Repeat slot weekly until"
 msgstr "Répéter le créneau chaque semaine jusqu'au"
 
-#: immersionlyceens/templates/core/course_slot.html:107
+#: immersionlyceens/templates/core/course_slot.html:105
 msgid "Dates selection"
 msgstr "Sélection des dates"
 
