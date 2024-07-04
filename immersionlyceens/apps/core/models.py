@@ -2403,12 +2403,25 @@ class Slot(models.Model):
     """
     Slot class
     """
+
+    # Groups options
     ONE_GROUP = 0
     BY_PLACES = 1
 
     GROUP_MODES = [
         (ONE_GROUP, _("One group")),
         (BY_PLACES, _("By number of places")),
+    ]
+
+    # Place options
+    FACE_TO_FACE = 0 # default
+    REMOTE = 1
+    OUTSIDE = 2 # Outside of host establishment
+
+    PLACES = [
+        (FACE_TO_FACE, _("Face to face")),
+        (REMOTE, _("Remote")),
+        (OUTSIDE, _("Outside of host establishment")),
     ]
 
     period = models.ForeignKey(
@@ -2456,7 +2469,13 @@ class Slot(models.Model):
 
     published = models.BooleanField(_("Published"), default=True, null=False)
 
-    face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
+    place = models.SmallIntegerField(
+        _("Place"),
+        default=0,
+        choices=PLACES,
+        null=False,
+        blank=True
+    )
 
     establishments_restrictions = models.BooleanField(
         _("Use establishments restrictions"), default=False, null=False, blank=True

@@ -435,7 +435,7 @@ class CoreViewsTestCase(TestCase):
             'course_type': self.course_type.id,
             'campus': self.campus.id,
             'building': self.building.id,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'room': "212",
             'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
             'period': self.period1.pk,
@@ -503,7 +503,7 @@ class CoreViewsTestCase(TestCase):
             'course_type': self.course_type.id,
             'campus': self.campus.id,
             'building': self.building.id,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'room': "S40",
             'date': (self.today + datetime.timedelta(days=6)).strftime("%Y-%m-%d"),
             'period': self.period1.pk,
@@ -573,7 +573,7 @@ class CoreViewsTestCase(TestCase):
             'course_type': self.course_type.id,
             'campus': self.campus.id,
             'building': self.building.id,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'room': "REPEAT_TEST",
             'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
             'repeat': (self.today + datetime.timedelta(days=33)).strftime("%Y-%m-%d"),
@@ -700,7 +700,7 @@ class CoreViewsTestCase(TestCase):
             'course_type': self.slot.course_type.id,
             'campus': self.slot.campus.id,
             'building': self.slot.building.id,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'room': "New room",
             'date': (self.slot.date + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
             'start_time': "13:30",
@@ -1350,7 +1350,7 @@ class CoreViewsTestCase(TestCase):
         data = {
             'period': self.period1.pk,
             'event': event.id,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'campus': self.campus.id,
             'building': self.building.id,
             'room': "anywhere",
@@ -1388,6 +1388,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertTrue(Slot.objects.filter(event=event).exists())
         slot = Slot.objects.get(event=event)
+
         self.assertEqual(slot.speakers.first(), self.speaker1)
         event.refresh_from_db()
         self.assertTrue(event.published)
@@ -1418,7 +1419,7 @@ class CoreViewsTestCase(TestCase):
         data = {
             "period": self.period1,
             "event": event.id,
-            'face_to_face': False,
+            'place': Slot.REMOTE,
             'url': "http://www.whatever.com",
             'published': True,
             'date': (self.today + datetime.timedelta(days=7)).strftime("%Y-%m-%d"),
@@ -1441,7 +1442,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(slot.start_time, datetime.time(10, 0))
         self.assertEqual(slot.end_time, datetime.time(12, 0))
         self.assertEqual(slot.n_places, data["n_places"])
-        self.assertFalse(slot.face_to_face)
+        self.assertEqual(slot.place, Slot.REMOTE)
         self.assertEqual(slot.url, data["url"])
         self.assertEqual(slot.speakers.first(), self.speaker1)
 

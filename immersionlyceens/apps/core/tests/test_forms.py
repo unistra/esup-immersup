@@ -402,7 +402,7 @@ class FormTestCase(TestCase):
 
         # Published slot
         valid_data = {
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -443,7 +443,7 @@ class FormTestCase(TestCase):
 
         # Published slot
         valid_data = {
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -560,7 +560,7 @@ class FormTestCase(TestCase):
 
         # Published slot
         valid_data = {
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -630,7 +630,7 @@ class FormTestCase(TestCase):
 
         invalid_data = {
             'id': slot.id,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -909,7 +909,7 @@ class FormTestCase(TestCase):
 
         data = {
             'event': event,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'campus': self.campus.id,
             'building': self.building.id,
             'room': "anywhere",

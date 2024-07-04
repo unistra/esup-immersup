@@ -30,10 +30,11 @@
         </select>
       </div>
       <div class="form-group form-row field-code mb-2">
-        <label for="face_to_face_input" class="col-form-label col-sm-3">{% trans "Remote" %}</label>
-        <select name="remote" id="face_to_face_input">
-          <option value="true" selected>{% trans "Yes" %}</option>
-          <option value="false">{% trans "No" %}</option>
+        <label for="place_input" class="col-form-label col-sm-3">{% trans "Place" %}</label>
+        <select name="place" id="place_input">
+          <option value="0" selected>{% trans "Face to face" %}</option>
+          <option value="1" selected>{% trans "Remote" %}</option>
+          <option value="2" selected>{% trans "Outside of host establishment" %}</option>
         </select>
       </div>
       <div class="form-group form-row field-code mb-2">

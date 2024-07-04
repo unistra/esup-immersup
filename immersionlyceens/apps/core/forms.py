@@ -158,7 +158,7 @@ class SlotForm(forms.ModelForm):
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
             'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
             'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay',
-            'period']:
+            'period', 'place']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # Disable autocomplete for date fields
@@ -279,6 +279,9 @@ class SlotForm(forms.ModelForm):
         except (ValueError, NameError):
             self.fields["cancellation_limit_delay"].initial = 0
 
+        # Course Slot : limit place choices
+        self.fields['place'].choices = Slot.PLACES[0:2]
+
     def clean_restrictions(self, cleaned_data):
         # Establishment resrtictions fields
         establishments_restrictions = cleaned_data.get('establishments_restrictions')
@@ -313,10 +316,17 @@ class SlotForm(forms.ModelForm):
 
     def clean_fields(self, cleaned_data):
         # Remote slot : remove unnecessary fields
-        if not cleaned_data.get('face_to_face', True):
+        place = cleaned_data.get('place', Slot.FACE_TO_FACE)
+
+        if place == Slot.REMOTE:
             for field in ['campus', 'building', 'room']:
                 cleaned_data[field] = None
-        else:
+
+        elif place == Slot.OUTSIDE:
+            for field in ['campus', 'building', 'url']:
+                cleaned_data[field] = None
+
+        elif place == Slot.FACE_TO_FACE:
             cleaned_data['url'] = None
 
         return cleaned_data
@@ -328,7 +338,7 @@ class SlotForm(forms.ModelForm):
         published = cleaned_data.get('published', None)
         n_places = cleaned_data.get('n_places', 0)
         n_group_places = cleaned_data.get('n_group_places', 0)
-        face_to_face = cleaned_data.get('face_to_face', True)
+        place = cleaned_data.get('place')
         _date = cleaned_data.get('date')
         period = cleaned_data.get('period')
         start_time = cleaned_data.get('start_time', 0)
@@ -376,15 +386,21 @@ class SlotForm(forms.ModelForm):
         if cleaned_data.get('repeat'):
             self.slot_dates = self.request.POST.getlist("slot_dates[]")
 
+        # Invalid value for a Course slot
+        if place == Slot.OUTSIDE:
+            self.add_error("place", _("Invalid option for a course slot"))
+
         if published:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['course', 'course_type', 'date', 'period', 'start_time', 'end_time', 'speakers']
 
-            if face_to_face:
+            if place == Slot.FACE_TO_FACE:
                 if structure:
                     m_fields += ['campus', 'building']
 
                 m_fields.append('room')
+            elif place == Slot.REMOTE:
+                m_fields.append('url')
 
             # Field level error
             for field in m_fields:
@@ -536,12 +552,12 @@ class SlotForm(forms.ModelForm):
         model = Slot
         fields = ('id', 'establishment', 'structure', 'highschool', 'event', 'training', 'course',
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
-            'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
+            'additional_information', 'published', 'period', 'establishments_restrictions', 'levels_restrictions',
             'bachelors_restrictions', 'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
             'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
             'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers', 'repeat', 'registration_limit_delay',
             'cancellation_limit_delay', 'period', 'n_group_places', 'allow_individual_registrations',
-            'allow_group_registrations', 'group_mode', 'public_group'
+            'allow_group_registrations', 'group_mode', 'public_group', 'place'
         )
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
@@ -592,12 +608,14 @@ class OffOfferEventSlotForm(SlotForm):
             self.fields["highschool"].initial = event.highschool.id if event.highschool else None
             self.fields["establishment"].initial = event.establishment.id if event.establishment else None
 
+        # Event Slot : no choices limit
+        self.fields['place'].choices = Slot.PLACES
 
     def clean(self):
         cleaned_data = super(forms.ModelForm, self).clean()
         event = cleaned_data.get('event')
         published = cleaned_data.get('published', None)
-        face_to_face = cleaned_data.get('face_to_face', None)
+        place = cleaned_data.get('place')
         period = cleaned_data.get('period', None)
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
@@ -610,10 +628,11 @@ class OffOfferEventSlotForm(SlotForm):
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['event', 'date', 'period', 'start_time', 'end_time', 'speakers']
 
-            if face_to_face:
+            if place in [Slot.FACE_TO_FACE, Slot.OUTSIDE]:
                 m_fields.append("room")
-            else:
+            elif place == Slot.REMOTE:
                 m_fields.append("url")
+
 
             # Field level error
             for field in m_fields:
