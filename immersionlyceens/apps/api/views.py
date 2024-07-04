@@ -729,13 +729,15 @@ def ajax_get_immersions(request, user_id=None):
             "%Y:%m:%d %H:%M",
         )
         # Remote course slot not used for now
-        if not slot.face_to_face:
+        if slot.place == Slot.REMOTE:
             meeting_place = gettext('Remote')
 
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
-        else:
+        elif slot.place == Slot.FACE_TO_FACE:
             meeting_place = " <br> ".join(list(filter(lambda x:x, [building, slot.room])))
+        elif slot.place == Slot.OUTSIDE:
+            meeting_place = slot.room
 
         immersion_data = {
             'id': immersion.id,
@@ -774,7 +776,7 @@ def ajax_get_immersions(request, user_id=None):
             'slot_id': slot.id,
             'free_seats': 0,
             'can_register': False,
-            'face_to_face': slot.face_to_face,
+            'place': slot.place,
             'registration_date': immersion.registration_date,
             'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
         }
@@ -2320,8 +2322,9 @@ def get_csv_structures(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
+                When(place=Slot.FACE_TO_FACE, then=F('room')),
+                When(place=Slot.OUTSIDE, then=F('room')),
+                When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             slot_speakers=StringAgg(
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
@@ -2466,8 +2469,9 @@ def get_csv_structures(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
+                When(place=Slot.FACE_TO_FACE, then=F('room')),
+                When(place=Slot.OUTSIDE, then=F('room')),
+                When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
                 Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
@@ -2590,8 +2594,9 @@ def get_csv_highschool(request):
             slot_campus_label=F('immersions__slot__campus__label'),
             slot_building=F('immersions__slot__building__label'),
             slot_room=Case(
-                When(immersions__slot__face_to_face=True, then=F('immersions__slot__room')),
-                When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
+                When(immersions__slot__place=Slot.FACE_TO_FACE, then=F('immersions__slot__room')),
+                When(immersions__slot__place=Slot.OUTSIDE, then=F('immersions__slot__room')),
+                When(immersions__slot__place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             attendance=Case(*attendance_status_whens, output_field=CharField()),
             informations=F('immersions__slot__additional_information'),
@@ -2688,8 +2693,9 @@ def get_csv_highschool(request):
             slot_campus_label=F('immersions__slot__campus__label'),
             slot_building=F('immersions__slot__building__label'),
             slot_room=Case(
-                When(immersions__slot__face_to_face=True, then=F('immersions__slot__room')),
-                When(immersions__slot__face_to_face=False, then=Value(gettext('Remote'))),
+                When(immersions__slot__place=Slot.FACE_TO_FACE, then=F('immersions__slot__room')),
+                When(immersions__slot__place=Slot.OUTSIDE, then=F('immersions__slot__room')),
+                When(immersions__slot__place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             attendance=Case(*attendance_status_whens, output_field=CharField()),
             informations=F('immersions__slot__additional_information'),
@@ -2841,8 +2847,9 @@ def get_csv_anonymous(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
+                When(place=Slot.FACE_TO_FACE, then=F('room')),
+                When(place=Slot.OUTSIDE, then=F('room')),
+                When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             slot_speakers=StringAgg(
                 Concat(F('speakers__last_name'), Value(' '), F('speakers__first_name')),
@@ -2933,8 +2940,9 @@ def get_csv_anonymous(request):
             slot_campus=F('campus__label'),
             slot_building=F('building__label'),
             slot_room=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
+                When(place=Slot.FACE_TO_FACE, then=F('room')),
+                When(place=Slot.OUTSIDE, then=F('room')),
+                When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             slot_date=ExpressionWrapper(
                 Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
@@ -3078,8 +3086,9 @@ def get_csv_anonymous(request):
             slot_campus_label=F('slot__campus__label'),
             slot_building=F('slot__building__label'),
             slot_room=Case(
-                When(slot__face_to_face=True,then=F('slot__room')),
-                When(slot__face_to_face=False, then=Value(gettext('Remote'))),
+                When(slot__place=Slot.FACE_TO_FACE,then=F('slot__room')),
+                When(slot__place=Slot.OUTSIDE,then=F('slot__room')),
+                When(slot__place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             attendance=Case(*attendance_status_whens, output_field=CharField()),
             informations=F('slot__additional_information')
@@ -3182,19 +3191,22 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
         structures = request.user.establishment.structures.all()
 
         Q_filters = (
-            Q(slot__course__structure__in=structures) |
-            Q(slot__event__structure__in=structures, slot__face_to_face=True)
+            Q(slot__course__structure__in=structures)
+            |Q(slot__event__structure__in=structures, slot__place=Slot.FACE_TO_FACE)
+            |Q(slot__event__structure__in=structures, slot__place=Slot.OUTSIDE)
         )
 
     elif request.user.is_high_school_manager() and not request.user.is_superuser:
         Q_filters = (
-            Q(slot__course__highschool=request.user.highschool) |
-            Q(slot__event__highschool=request.user.highschool, slot__face_to_face=True)
+            Q(slot__course__highschool=request.user.highschool)
+            |Q(slot__event__highschool=request.user.highschool, slot__place=Slot.FACE_TO_FACE)
+            |Q(slot__event__highschool=request.user.highschool, slot__place=Slot.OUTSIDE)
         )
     else:
         Q_filters = (
-            Q(slot__event__isnull=False, slot__face_to_face=True) |
-            Q(slot__course__isnull=False)
+            Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
+            |Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
+            |Q(slot__course__isnull=False)
 
         )
 
@@ -3237,10 +3249,8 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             campus=F('slot__campus__label'),
             building=F('slot__building__label'),
             meeting_place=Case(
-                When(
-                    slot__face_to_face=True,
-                    then=F('slot__room')
-                ),
+                When(slot__place=Slot.FACE_TO_FACE, then=F('slot__room')),
+                When(slot__place=Slot.OUTSIDE, then=F('slot__room')),
                 default=Value(gettext('Remote')),
             ),
             establishment=Coalesce(
@@ -3967,7 +3977,7 @@ class SlotList(generics.ListCreateAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [CustomDjangoModelPermissions]
     filterset_fields = ['course', 'course_type', 'event', 'campus', 'building', 'room',
-                        'date', 'start_time', 'end_time', 'speakers', 'published', 'face_to_face']
+                        'date', 'start_time', 'end_time', 'speakers', 'published', 'place']
 
     def get_queryset(self):
         user = self.request.user
@@ -4412,7 +4422,7 @@ class MailTemplatePreviewAPI(View):
             "user_is": request.POST.get("user_group", "estetudiant"),
             "slot_type": request.POST.get("slot_type", "estuncours"),
             "local_account": request.POST.get("local_user", "true").strip().lower() == "true",
-            "remote": request.POST.get("remote", "true").strip().lower() == "true",
+            "place": request.POST.get("place", Slot.FACE_TO_FACE),
             "recipient": request.POST.get("recipient", "user"),
             "educonnect": request.POST.get("educonnect", False) == "true",
         }
@@ -4658,7 +4668,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "building_url",
         "city",
         "building_label",
-        "face_to_face",
+        "place",
         "room",
         "meeting_place",
         "n_register",
@@ -4744,8 +4754,9 @@ def ajax_search_slots_list(request, slot_id=None):
                 Value(''),
             ),
             meeting_place=Case(
-                When(face_to_face=True, then=F('room')),
-                When(face_to_face=False, then=Value(gettext('Remote'))),
+                When(place=Slot.FACE_TO_FACE, then=F('room')),
+                When(place=Slot.OUTSIDE, then=F('room')),
+                When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
             event_type=Coalesce(
                 F('event__event_type__label'),

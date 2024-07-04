@@ -169,7 +169,7 @@
                                                               {{ s.event.event_type }}
                                                             </td>
                                                             <td rowspan="2">
-                                                              {% if s.face_to_face %}
+                                                              {% if s.place == 0 or s.place == 2 %}
                                                                 <i class="fa fas fa-map-marker text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
                                                                 {{ s.room }}
                                                               {% else %}

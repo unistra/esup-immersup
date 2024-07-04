@@ -227,6 +227,11 @@
     feedback = $("#feedback");
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
+        // "place" values
+        var face_to_face = "0"
+        var remote = "1"
+        var outside = "2"
+
         var showDate = false;
         var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
         var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
@@ -234,7 +239,7 @@
         }).get();
         var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
         var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
-        var face_to_face = rowData['face_to_face'];
+        var place = rowData['place'];
         {% if activated_cohort %}
         var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
         var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
@@ -250,8 +255,8 @@
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
         var showType = slotTypes.indexOf(searchData[4]) !== -1;
-        var showRemoteFaceToFace = faceToFaceSlots === 0 && face_to_face === false
-                                   || faceToFaceSlots === 1 && face_to_face === true
+        var showRemoteFaceToFace = faceToFaceSlots === 0 && place === remote
+                                   || faceToFaceSlots === 1 && place === face_to_face
                                    || remoteSlots === 1 && faceToFaceSlots === 1
 
         var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;
@@ -528,6 +533,11 @@
       let selectedRows = [];
       var filteredRows = [];
       let availablesSeatslabel = '<ul class="list-unstyled">';
+
+      let face_to_face = "0"
+      let remote = "1"
+      let outside = "2"
+
       if (rowData[0].allow_individual_registrations === true) {
         availablesSeatslabel += "<li>Ind. " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
       }
@@ -611,7 +621,7 @@
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
-      if (rowData[0].face_to_face === false) {
+      if (rowData[0].place === remote) {
           if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }

@@ -168,7 +168,10 @@ def slots(request):
             Q(date__isnull=True)
             | Q(date__gte=today)
             | Q(date=today, end_time__gte=now)
-            | Q(face_to_face=True, immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+            | Q(place__in=[Slot.FACE_TO_FACE, Slot.OUTSIDE],
+                immersions__attendance_status=0,
+                immersions__cancellation_type__isnull=True
+               )
         ).distinct()
 
     all_data = []
@@ -335,7 +338,7 @@ def slots(request):
             ),
             When(
                 ~Q(Value(can_update_attendances))
-                | (Q(Value(events)) & Q(face_to_face=False)),
+                | (Q(Value(events)) & Q(place=Slot.REMOTE)),
                 then=Value(2)
             ),
             When(
@@ -437,7 +440,7 @@ def slots(request):
         'structure_managed_by_me', 'structure_establishment_short_label', 'highschool_city',
         'highschool_label', 'highschool_managed_by_me',
         'event_id', 'event_type_label', 'event_label', 'event_description', 'date',
-        'start_time', 'end_time', 'campus_label', 'building_label', 'face_to_face', 'url',
+        'start_time', 'end_time', 'campus_label', 'building_label', 'place', 'url',
         'room', 'n_register', 'n_places', 'additional_information', 'attendances_value',
         'attendances_status', 'speaker_list', 'establishments_restrictions', 'levels_restrictions',
         'bachelors_restrictions', 'allowed_establishments_list', 'allowed_highschools_list',

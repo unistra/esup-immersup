@@ -103,6 +103,19 @@
 
         {% block specific_fields %}{% endblock %}
 
+        <div class="form-group row">
+          <label for="id_place" class="col-form-label col-sm-3">
+            {% trans 'Place' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.place }}
+          </div>
+          {% if form.place.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.place.errors }}
+            </div>
+          {% endif %}
+        </div>
         <div class="form-group row" id="id_div_campus">
           <label for="id_campus" class="col-form-label col-sm-3">
             <i id='id_mandatory_campus' class="fa fas fa-asterisk" style="display:none"></i>
@@ -679,7 +692,7 @@
           $("#id_div_building").show()
         }
         else {
-          toggle_face_to_face()
+          toggle_place()
         }
       }
     })
@@ -1152,7 +1165,7 @@
       $("#id_div_establishment").show()
       // $("#id_div_structure").show()
       $("#id_or").show()
-      toggle_face_to_face()
+      toggle_place()
     }
 
     set_session_values(slot_mode, {
@@ -1228,8 +1241,8 @@
     const ONE_GROUP="0"
     const BY_PLACES="1"
 
-    let published = $('#id_published').prop('checked');
-    let face_to_face = $('#id_face_to_face').prop('checked') || $('#id_face_to_face').val() === "1";
+    let published = $('#id_published').prop('checked')
+    let place = $('#id_place').val()
     let allow_group_registrations = $('#id_allow_group_registrations').prop('checked')
     let allow_individual_registrations = $('#id_allow_individual_registrations').prop('checked')
     let group_mode = $('#id_group_mode').val()
@@ -1277,10 +1290,11 @@
         }
       }
 
-      if(face_to_face) {
+      if(place === "0" || place === "2") {
+          // face to face or outside of host establishment
           mandatory.push("room")
 
-          if(establishment_id) {
+          if(establishment_id && place === "0") {
             mandatory = mandatory.concat(['campus', 'building'])
           }
           else {
@@ -1471,8 +1485,13 @@
   }
 
 
-  function toggle_face_to_face() {
-    if($('#id_face_to_face').is(':checked') || $('#id_face_to_face').val() === "1") {
+  function toggle_place() {
+    let face_to_face = "0"
+    let outside = "2"
+
+    let place = $('#id_place').val()
+
+    if(place === face_to_face || place === outside) {
       $("#id_div_room").show()
 
       if($('#id_published').prop('checked')) {
@@ -1482,7 +1501,7 @@
       $("#id_div_url").hide()
       $('#id_url').removeAttr('required');
 
-      if(establishment_id) {
+      if(establishment_id && place === face_to_face) {
         $("#id_div_campus").show()
         $("#id_div_building").show()
 
@@ -1490,6 +1509,12 @@
           $('#id_campus').attr('required', 'required');
           $('#id_building').attr('required', 'required');
         }
+      }
+      else {
+        $("#id_div_campus").hide()
+        $("#id_div_building").hide()
+        $('#id_campus').removeAttr('required');
+        $('#id_building').removeAttr('required');
       }
     }
     else {
@@ -1761,7 +1786,11 @@ $(document).ready(function(){
     }
   }
 
-  if($('#id_face_to_face').is(':checked')) {
+  let place = $('#id_place').val()
+  let face_to_face = "0"
+  let outside = "2"
+
+  if(place === face_to_face || place === outside) {
     $("#id_div_room").show()
     $('#id_room').attr('required', 'required');
 
@@ -1971,8 +2000,8 @@ $(document).ready(function(){
   set_periods();
   toggle_period_display();
 
-  toggle_face_to_face();
-  $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
+  toggle_place();
+  $('#id_place').on('change', function() { toggle_place() });
 
   toggle_repeat_divs()
 

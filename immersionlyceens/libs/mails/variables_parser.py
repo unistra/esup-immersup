@@ -72,7 +72,7 @@ class ParserFaker:
         return format_html(text)
 
     @classmethod
-    def get_context(cls, request, user_is, slot_type, local_account, remote, recipient, educonnect):
+    def get_context(cls, request, user_is, slot_type, local_account, place, recipient, educonnect):
         today: datetime = timezone.localdate()
         formatted_today: str = today.strftime("%d/%m/%Y")
 
@@ -159,7 +159,7 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.campus.libelle", "Campus principal"),
                     "ville": cls.add_tooltip("creneau.campus.ville", "Columbia"),
                 },
-                "temoindistanciel": remote,
+                "temoindistanciel": place == Slot.REMOTE,
                 "lien": cls.add_tooltip(
                     "creneau.lien",
                     format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
@@ -405,7 +405,7 @@ class Parser:
                         'libelle': slot.campus.label if slot.campus else "",
                         'ville': slot.campus.city if slot.campus and slot.campus.city else "",
                     },
-                    "temoindistanciel": not slot.face_to_face,
+                    "temoindistanciel": slot.place == Slot.REMOTE,
                     "lien": format_html(f"<a href='{slot.url}'>{slot.url}</a>") if slot.url else "",
                     "cours": {
                         'libelle': slot.get_label(),
@@ -579,12 +579,14 @@ class Parser:
             slot_text = []
 
             for slot in slot_list:
-                if slot.face_to_face:
+                if slot.place == Slot.FACE_TO_FACE:
                     place = "{0} : {1}, ".format(_("campus"), slot.campus.label) if slot.campus else ""
                     place += "{0} : {1}, ".format(_("building"), slot.building.label) if slot.building else ""
                     place += "{0} : {1}".format(_("room"), slot.room) if slot.room else ""
-                else:
+                elif slot.place == Slot.REMOTE:
                     place = _("remote slot")
+                elif slot.place == Slot.OUTSIDE:
+                    place = slot.room
 
                 if slot.is_event():
                     slot_type = _("event")

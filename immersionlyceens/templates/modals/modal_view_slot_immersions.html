@@ -388,7 +388,7 @@ dtr = $('#students_list').DataTable({
         else if (row.attendance_status === 2) {
           absent_color="style='color:red';";
         }
-        if(can_update_attendances === true && face_to_face === true) {
+        if(can_update_attendances === true && (place === "0" || place === "2")) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
@@ -564,7 +564,7 @@ groups_dtr = $('#groups_list').DataTable({
         else if (row.attendance_status === 2) {
           absent_color = "style='color:red';";
         }
-        if(can_update_attendances === true && face_to_face === true) {
+        if(can_update_attendances === true && (place === "0" || place === "2")) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_groups_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +

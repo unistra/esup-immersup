@@ -595,7 +595,7 @@ class SlotSerializer(serializers.ModelSerializer):
         event = data.get("event")
         start_time = data.get("start_time")
         end_time = data.get("end_time")
-        face_to_face = data.get("face_to_face", True)
+        place = data.get("place", Slot.FACE_TO_FACE)
         published = data.get("published", False)
         speakers = data.get("speakers")
         n_places = data.get('n_places')
@@ -634,7 +634,7 @@ class SlotSerializer(serializers.ModelSerializer):
             else:
                 required_fields.append("n_places")
 
-            if face_to_face:
+            if place in [Slot.FACE_TO_FACE, Slot.OUTSIDE]:
                 required_fields.append("room")
             elif event:
                 required_fields.append("url")

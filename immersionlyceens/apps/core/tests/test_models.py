@@ -673,7 +673,7 @@ class ImmersionUserTestCase(TestCase):
             course_type=course_type,
             campus=None,
             building=None,
-            face_to_face=False,
+            place=Slot.REMOTE,
             url='http://www.google.fr',
             room=None,
             date=self.today + timedelta(days=1),
