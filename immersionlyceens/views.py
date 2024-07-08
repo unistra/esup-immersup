@@ -325,7 +325,12 @@ def offer_subdomain(request, subdomain_id):
                         can_register, reasons = student.can_register_slot(slot)
 
                         if slot.available_seats() > 0 and can_register:
-                            if period.registration_start_date <= today <= period.immersion_end_date\
+                            immersion_end_datetime = datetime.datetime.combine(
+                                period.immersion_end_date + datetime.timedelta(days=1),
+                                datetime.time(0, 0)
+                            ).replace(tzinfo=now.tzinfo)
+
+                            if period.registration_start_date <= now <= immersion_end_datetime\
                                 and slot.registration_limit_date >= now:
                                 slot.can_register = True
                             elif now < slot.registration_limit_date:

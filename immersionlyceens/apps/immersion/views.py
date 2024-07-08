@@ -192,17 +192,20 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
+    # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
     """
+    hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
         "first_name": "Jean-Jacques",
         "last_name": "TEST",
-        "uai_code": "{UAI}0287686E",
+        "uai_code": f"{{UAI}}{hs.uai_codes.first().code}",
         "etu_stage": "{SIREN:110043015:MEFSTAT4}2212",
         "birth_date": "2005-05-07",
         "unscoped_affiliation": "student"
     })
+    # --------------- </shib dev> ----------------------
     """
 
     if error:
@@ -355,7 +358,8 @@ def shibbolethLogin(request, profile=None):
                 highschool=record_highschool,
                 student=new_user,
                 level=level,
-                birth_date=other_fields.get('birth_date', None)
+                birth_date=other_fields.get('birth_date', None),
+                validation=HighSchoolStudentRecord.TO_COMPLETE
             )
 
         new_user = authenticate(request, remote_user=new_user.username, shib_meta=shib_attrs)
@@ -506,7 +510,8 @@ def setEmail(request):
             # The account must be activated
             logout(request)
 
-            return HttpResponseRedirect(redirect_url_name)
+            # return HttpResponseRedirect(redirect_url_name)
+            return HttpResponseRedirect(reverse('shibboleth:logout'))
         else:
             for err_field, err_list in form.errors.get_json_data().items():
                 for error in err_list:
@@ -1030,15 +1035,17 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             if recordform.has_changed():
-                validation_needed = True
+                # for student federation users, validation is not needed unless some attestations have to be uploaded
                 record = recordform.save()
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
-                messages.info(
-                    request,
-                    _("You have updated your record, it needs to be re-examined for validation.")
-                )
+                if not user.uses_federation():
+                    validation_needed = True
+                    messages.info(
+                        request,
+                        _("You have updated your record, it needs to be re-examined for validation.")
+                    )
 
                 # These particular field changes will trigger attestations updates
                 if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
@@ -1187,7 +1194,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     case _:
                         record.set_status("TO_VALIDATE")
             elif record.validation == HighSchoolStudentRecord.TO_COMPLETE:
-                record.set_status("TO_VALIDATE")
+                if not user.uses_federation():
+                    record.set_status("TO_VALIDATE")
+                else:
+                    record.set_status("VALIDATED")
 
             record.save()
         else:
