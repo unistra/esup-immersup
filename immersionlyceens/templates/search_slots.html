@@ -533,17 +533,17 @@
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
-      let availablesSeatslabel = '<ul class="list-unstyled">';
+      let availablesSeatslabel = '<ul class="list-inline">';
 
       let face_to_face = "0"
       let remote = "1"
       let outside = "2"
 
       if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li>Ind. " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
       }
       if (rowData[0].allow_group_registrations === true) {
-        availablesSeatslabel += "<li>Gr. " + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
 
@@ -647,9 +647,8 @@
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
-      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
-      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_search_slots_details #modal_city').html(rowData[0].city)
+      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
+      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
       $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
       $('#modal_search_slots_details #modal_speakers').html(
