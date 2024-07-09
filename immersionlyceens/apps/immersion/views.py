@@ -34,6 +34,14 @@ from django.views.generic import FormView, TemplateView
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
+try:
+    from django.utils.six.moves.urllib.parse import quote
+except ImportError:
+    from urllib.parse import quote
+
+from shibboleth.app_settings import LOGOUT_URL, LOGOUT_REDIRECT_URL
+
+
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorType, CancelType, CertificateLogo,
     CertificateSignature, GeneralSettings, HigherEducationInstitution,
@@ -61,6 +69,31 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
+class CustomShibbolethLogoutView(TemplateView):
+    """
+    Logout app and shibboleth
+    Use custom logout url when needed
+    Borrowed code from django-shibboleth-remoteuser
+    """
+    redirect_field_name = "target"
+
+    def get(self, request, *args, **kwargs):
+        # Default
+        logout_url = LOGOUT_URL
+
+        if self.request.user:
+            if self.request.user.is_high_school_student() and self.request.user.uses_federation():
+                logout_url = settings.EDUCONNECT_LOGOUT_URL
+
+        #Log the user out.
+        logout(self.request)
+
+        #Get target url in order of preference.
+        target = LOGOUT_REDIRECT_URL or\
+                 quote(self.request.GET.get(self.redirect_field_name, '')) or\
+                 quote(request.build_absolute_uri())
+        logout = logout_url % target
+        return redirect(logout)
 
 class CustomLoginView(FormView):
     template_name: str = "immersion/login.html"

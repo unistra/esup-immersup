@@ -24,6 +24,7 @@ urlpatterns = [
     path('registrations', views.registrations, name='registrations'),
 
     path("login", views.CustomLoginView.as_view(), name="login"),
+    path("logout", views.CustomShibbolethLogoutView.as_view(), name="login"),
     path("login_choice/<profile>", views.loginChoice, name="login_choice"),
     path("login/<profile>", views.CustomLoginView.as_view(), name="login"),
 

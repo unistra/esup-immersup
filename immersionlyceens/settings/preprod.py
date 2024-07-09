@@ -55,6 +55,11 @@ CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
 
+####################
+#    SHIBBOLETH    #
+####################
+EDUCONNECT_LOGOUT_URL = ""
+
 #################
 # APIs settings #
 #################

@@ -63,6 +63,12 @@ CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
 
 
+####################
+#    SHIBBOLETH    #
+####################
+EDUCONNECT_LOGOUT_URL = "https://pr4.educonnect.phm.education.gouv.fr/logout"
+
+
 #################
 # APIs settings #
 #################

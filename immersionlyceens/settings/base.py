@@ -451,6 +451,9 @@ SHIBBOLETH_UNQUOTE_ATTRIBUTES = True
 
 CREATE_UNKNOWN_USER = False
 
+# Educonnect
+EDUCONNECT_LOGOUT_URL = ""
+
 #######################
 # Email configuration #
 #######################
