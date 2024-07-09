@@ -86,3 +86,41 @@ function set_session_values(pagename, values) {
     error: function (response) {}
   });
 }
+
+/*
+Display a string with a limit and a tooltip with the full string
+*/
+function displayLongString(string, limit = 50, html = false) {
+  if (html && string.length > limit){
+    if (findBootstrapEnvironment() === 'xs' || findBootstrapEnvironment() === 'sm'){
+      return string
+    } else {
+      return `<span title="${string}">` + string.substring(0, limit) + '<span id="dots">...</span></span>'
+    }
+  }
+  return string.length > limit ? string.substring(0, limit) + '...' : string
+}
+
+/*
+Find the current environment based on the bootstrap display classes
+*/
+function findBootstrapEnvironment() {
+    let envs = ['xs', 'sm', 'md', 'lg', 'xl'];
+
+    let el = document.createElement('div');
+    document.body.appendChild(el);
+
+    let curEnv = envs.shift();
+
+    for (let env of envs.reverse()) {
+        el.classList.add(`d-${env}-none`);
+
+        if (window.getComputedStyle(el).display === 'none') {
+            curEnv = env;
+            break;
+        }
+    }
+
+    document.body.removeChild(el);
+    return curEnv;
+}
