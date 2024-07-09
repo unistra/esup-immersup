@@ -92,8 +92,8 @@ class CustomShibbolethLogoutView(TemplateView):
         target = LOGOUT_REDIRECT_URL or\
                  quote(self.request.GET.get(self.redirect_field_name, '')) or\
                  quote(request.build_absolute_uri())
-        logout = logout_url % target
-        return redirect(logout)
+        _logout = logout_url % target
+        return redirect(_logout)
 
 class CustomLoginView(FormView):
     template_name: str = "immersion/login.html"

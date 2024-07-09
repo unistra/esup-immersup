@@ -247,7 +247,7 @@
         var group = rowData['allow_group_registrations'];
         var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
                                    || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
-                                   ||  individualSlots === 1 && (individual === true || individual === false )&& groupSlots === 1 && (group === true || group === false);
+                                   ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
         {% else %}
         var showIndividualGroup = true;
         {% endif %}
