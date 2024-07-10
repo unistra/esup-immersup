@@ -600,6 +600,7 @@ $('#groups_list').on('draw.dt', function () {
   // TODO: maybe try to comment theses two lines
   if (typeof slot_groups_places == 'undefined') slot_groups_places = 0;
   if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
+  if (typeof slot_group_mode == 'undefined') slot_group_mode = '';
 
   if(n_groups == 0) {
     $("#btn_contact_groups").prop('disabled', true);

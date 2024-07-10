@@ -98,6 +98,7 @@ class CustomShibbolethLogoutView(TemplateView):
 
         return redirect(logout)
 
+
 class CustomLoginView(FormView):
     template_name: str = "immersion/login.html"
     invalid_no_login_template: str = "immersion/nologin.html"

@@ -247,7 +247,7 @@
         var group = rowData['allow_group_registrations'];
         var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
                                    || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
-                                   ||  individualSlots === 1 && (individual === true || individual === false )&& groupSlots === 1 && (group === true || group === false);
+                                   ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
         {% else %}
         var showIndividualGroup = true;
         {% endif %}
@@ -358,7 +358,7 @@
               }
 
               if(type === "display") {
-                return label + '<span>' + data + '</span>';
+                return label + '<span>' + displayLongString(data, 30, html=true) + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -373,7 +373,7 @@
                 data = '&nbsp;';
               }
               if(type === "display") {
-                return '<label>'+ '{% trans "Label" %}' + ' :</label><span>' + data + '</span>';
+                return '<label>'+ '{% trans "Label" %}' + ' :</label><span>' + displayLongString(data, 30, html=true) + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -426,7 +426,7 @@
                 label = "<label>{% trans 'Campus' %} : </label>";
               }
               if(type === "display") {
-                return  label + data ;
+                return  label + displayLongString(data, 40, html=true) ;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -442,7 +442,7 @@
               }
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
               if(type === "display") {
-                return '<label>'+ "{% trans 'City' %}" + ' :</label>' + data
+                return '<label>'+ "{% trans 'City' %}" + ' :</label>' + displayLongString(data, 50, html=true)
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -458,7 +458,7 @@
                 return ''
               }
               if(type === "display") {
-                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + data
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -469,12 +469,12 @@
           },
           {
             render: function (data, type, full, meta) {
-              label = type === "display"  ? '<label>{% trans "Available places" %} :</label><ul class="list-unstyled">' : "";
+              label = type === "display"  ? '<label>{% trans "Available places" %} :</label><ul class="list-inline">' : "";
               if ( full['allow_individual_registrations'] === true) {
                 availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
                 if (type === "display") {
 
-                  label += "<li>Ind. " + availablePlaces + "</li>";
+                  label += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + availablePlaces + "</li>";
                 } else {
                   label += "i:" + availablePlaces + ";";
                 }
@@ -483,7 +483,7 @@
               if ( full['allow_group_registrations'] === true) {
                 availableGroupPlaces = parseInt(full['n_group_places'])-parseInt(full['group_registered_persons']);
                 if (type === "display") {
-                  label += "<li>Gr. " + availableGroupPlaces + "</li>";
+                  label += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + availableGroupPlaces + "</li>";
                 } else {
                   label += "g:" + availableGroupPlaces + ";";
                 }
@@ -507,8 +507,9 @@
             }
           },
           {
+            className:"align-bottom-results-field",
             render: function (data, type, full, meta) {
-              return "<button class=\"btn badge badge-pill badge-primary pull-right\">{% trans 'More details' %}</button>"
+              return "<button id=\"btn_more_details\" class=\"btn badge badge-pill badge-primary pull-right \">{% trans 'More details' %}</button></span>"
             }
 
           },
@@ -532,17 +533,17 @@
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
-      let availablesSeatslabel = '<ul class="list-unstyled">';
+      let availablesSeatslabel = '<ul class="list-inline">';
 
       let face_to_face = "0"
       let remote = "1"
       let outside = "2"
 
       if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li>Ind. " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
       }
       if (rowData[0].allow_group_registrations === true) {
-        availablesSeatslabel += "<li>Gr. " + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
 
@@ -646,9 +647,8 @@
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
-      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
-      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_search_slots_details #modal_city').html(rowData[0].city)
+      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
+      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
       $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
       $('#modal_search_slots_details #modal_speakers').html(
