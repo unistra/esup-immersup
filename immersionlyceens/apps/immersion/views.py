@@ -9,9 +9,9 @@ from functools import reduce
 
 from django import forms
 from django.conf import settings
-from django.contrib import messages
+from django.contrib import auth, messages
 from django.contrib.auth import (
-    authenticate, login, logout, update_session_auth_hash, views as auth_views,
+    authenticate, login, update_session_auth_hash, views as auth_views,
 )
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -81,18 +81,21 @@ class CustomShibbolethLogoutView(TemplateView):
         # Default
         logout_url = LOGOUT_URL
 
-        if self.request.user:
-            if self.request.user.is_high_school_student() and self.request.user.uses_federation():
-                logout_url = settings.EDUCONNECT_LOGOUT_URL
+        if self.request.user\
+            and not self.request.user.is_anonymous\
+            and self.request.user.is_high_school_student()\
+            and self.request.user.uses_federation():
+            logout = f"{settings.EDUCONNECT_LOGOUT_URL}?return=https://immersup-test.app.unistra.fr"
+        else:
+            #Get target url in order of preference.
+            target = LOGOUT_REDIRECT_URL or\
+                     quote(self.request.GET.get(self.redirect_field_name, '')) or\
+                     quote(request.build_absolute_uri())
+            logout = logout_url % target
 
         #Log the user out.
-        logout(self.request)
+        auth.logout(self.request)
 
-        #Get target url in order of preference.
-        target = LOGOUT_REDIRECT_URL or\
-                 quote(self.request.GET.get(self.redirect_field_name, '')) or\
-                 quote(request.build_absolute_uri())
-        logout = logout_url % target
         return redirect(logout)
 
 class CustomLoginView(FormView):
@@ -225,9 +228,10 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
+    """
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
-    """
+
     hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
@@ -334,13 +338,8 @@ def shibbolethLogin(request, profile=None):
                     uses_student_federation=True
                 )
             except HighSchool.DoesNotExist as e:
-                messages.error(
-                    request,
-                    _("Your high school has not been found or is not configured to use EduConnect." +
-                      "<br>Please use the 'contact' link at the bottom of this page, specifying your institution.")
-                )
-
-                return HttpResponseRedirect("/")
+                return render(request, 'immersion/missing_hs.html', {})
+                # return HttpResponseRedirect("/")
 
         else:
             is_student = True
@@ -468,8 +467,8 @@ def shibbolethLogin(request, profile=None):
 
         # Activated account ?
         if not request.user.is_valid():
-            messages.error(request, _("Your account hasn't been enabled yet."))
-            logout(request)
+            # messages.error(request, _("Your account hasn't been enabled yet."))
+            return render(request, 'immersion/activation_needed.html', {})
         else:
             # Existing account or external student
             staff_accounts = [
@@ -534,17 +533,16 @@ def setEmail(request):
                 if msg:
                     messages.error(request, _("Cannot send email. The administrators have been notified."))
                     logger.error(f"Error while sending activation email : {msg}")
+                else:
+                    return render(request, 'immersion/complete.html', {})
             except Exception as e:
                 logger.exception("Cannot send activation message : %s", e)
                 messages.error(request, _("Cannot send email. The administrators have been notified."))
 
-            messages.success(request, _("Account created. Please check your emails for the activation procedure."))
+            # force logout of the user ?
+            # auth.logout(request)
 
-            # The account must be activated
-            logout(request)
-
-            # return HttpResponseRedirect(redirect_url_name)
-            return HttpResponseRedirect(reverse('shibboleth:logout'))
+            return HttpResponseRedirect(reverse('home'))
         else:
             for err_field, err_list in form.errors.get_json_data().items():
                 for error in err_list:

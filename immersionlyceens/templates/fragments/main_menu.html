@@ -140,7 +140,7 @@
           </div>
         {% endif %}
         {# Students #}
-        {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+        {% if authorized_groups|in_groups:"LYC,ETU,VIS" and request.user.is_valid %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultStudent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}

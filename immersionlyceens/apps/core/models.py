@@ -497,7 +497,8 @@ class ImmersionUser(AbstractUser):
         """
         if self.is_superuser:
             return False
-        if self.is_visitor() or self.is_high_school_student() or self.is_high_school_manager():
+        if (self.is_visitor() or self.is_high_school_student() or self.is_high_school_manager())\
+            and not self.uses_federation():
             return True
         elif self.is_speaker() and self.highschool:
             return True
