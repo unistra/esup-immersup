@@ -891,7 +891,7 @@ class ImmersionViewsTestCase(TestCase):
         # Simple view check
         self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/registrations')
-        self.assertIn("Immersions to come", response.content.decode('utf-8'))
+        self.assertIn("To come", response.content.decode('utf-8'))
 
 
     def test_immersion_attestation_download(self):
