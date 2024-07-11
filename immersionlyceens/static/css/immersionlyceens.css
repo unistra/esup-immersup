@@ -382,6 +382,10 @@ Firefox is sadly not supporting :has for now :(
     font-size: 2rem;
 }
 
+.results-cards .fa-15 {
+    font-size: 1.5rem;
+}
+
 .results-cards caption {
     text-align: center;
     caption-side: top;

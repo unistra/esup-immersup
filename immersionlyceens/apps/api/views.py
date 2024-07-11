@@ -737,6 +737,7 @@ def ajax_get_immersions(request, user_id=None):
         establishment = slot.get_establishment()
         structure = slot.get_structure()
         campus = slot.campus.label if slot.campus else ""
+        campus_city = slot.campus.city if slot.campus else ""
         building = slot.building.label if slot.building else ""
 
         slot_datetime = datetime.datetime.strptime(
@@ -801,6 +802,7 @@ def ajax_get_immersions(request, user_id=None):
             'place': slot.place,
             'registration_date': immersion.registration_date,
             'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
+            'campus_city': campus_city,
         }
 
         if slot.date < today or (slot.date == today and slot.start_time < now.time()):

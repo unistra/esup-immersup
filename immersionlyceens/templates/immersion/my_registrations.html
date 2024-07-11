@@ -83,33 +83,6 @@
     </div>
   </div>
 </section>
-
-
-{% comment %} <section>
-  <div class="container-fluid mt-4">
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#immersions" role="tab" aria-controls="immersions" aria-selected="true">{% trans "My immersions" %}</a>
-      </li>
-      {% if events_off_offer %}
-      <li class="nav-item" role="presentation">
-        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#events" role="tab" aria-controls="events" aria-selected="false">{% trans "My events" %}</a>
-      </li>
-      {% endif %}
-    </ul>
-    <div class="tab-content" id="myImmersionsContent">
-      <div class="tab-pane fade show active" id="immersions" role="tabpanel" aria-labelledby="myImmersionsContent">
-      {% include './fragments/my_immersions.html'%}
-      </div>
-      {% if events_off_offer %}
-      <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="myImmersionsContent">
-      {% include './fragments/my_events.html'%}
-      </div>
-      {% endif %}
-    </div>
-  </div>
-</section> {% endcomment %}
-
 <script>
   var feedback;
   var current_immersion_id;
@@ -117,12 +90,6 @@
   var dt_future;
   var dt_past;
   var dt_cancelled;
-  var dte_future;
-  var dte_past;
-  var dte_cancelled;
-  var dtv_future;
-  var dtv_past;
-  var dtv_cancelled;
   var is_highschool_student = {{ request.user.is_high_school_student|yesno:"true,false" }}
 
   const options = {
@@ -166,15 +133,6 @@
             dt_future.ajax.reload();
             dt_past.ajax.reload();
             dt_cancelled.ajax.reload();
-            if ( $.fn.DataTable.isDataTable('#events_to_come') ) {
-              dte_future.ajax.reload();
-            }
-            if ( $.fn.DataTable.isDataTable('#past_events') ) {
-              dte_past.ajax.reload();
-            }
-            if ( $.fn.DataTable.isDataTable('#cancelled_events') ) {
-              dte_cancelled.ajax.reload();
-            }
           }
         },
         error: function(json) {
@@ -224,7 +182,7 @@
       'columns': [
         {
           orderable: false, className: 'text-center', width: '20px',
-          render: function(data, type, full, meta) {
+          "render": function(data, type, full, meta) {
               slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
               if (slotType === 'c') {
                   label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
@@ -234,22 +192,98 @@
               return label;
           }
         },
-        { "data": "training",
+        {
           "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-            if (slotType === 'c') {
-              label = '<label>'+ '{% trans "Training" %}' + ' :</label>';
-              if (data === '' || data === null) {
+            if (row.establishment === '' || row.establishment === null) {
+
+              if (row.highschool !== null) {
+                data = row.highschool;
+              } else {
                 data = '&nbsp;';
               }
-              data = row.course.training + "<br>" + row.establishments;
             } else {
-                label = '<label>'+ "{% trans "Event type" %}" + ' :</label>';
-                data = row.label + "<br>" + (row.establishment || row.highschool);
+              data = row.establishment;
+            }
+            if(type === "display") {
+              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
             }
 
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+
+            if (slotType === 'c') {
+              label = "<label>{% trans "Training" %} :</label>";
+              data = row.course.training;
+            } else {
+              label =  "<label>{% trans "Event type" %} :</label>";
+              data = row.event.type
+            }
             if(type === "display") {
-              return label + '<span>' + data + '</span>';
+              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            label = "<label>{% trans "Label" %} :</label>";
+            if (slotType === 'c') {
+              data = row.course.label;
+            } else {
+              data = row.event.label;
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            data = (slotType === 'c') ? row.course.type : row.event.type;
+            label = "<label>{% trans 'Type' %} :</label>";
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            data = row.datetime;
+            label = "<label>{% trans 'Date' %} :</label>";
+            if(type === "display" || type === "filter") {
+              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+            }
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+            return data
+          },
+        },
+        {
+          render: function (data, type, row) {
+            if (row.campus === '' || row.campus === null) {
+              if (row.highschool != null || row.highschool != '') {
+                label = "<label>{% trans 'Address' %} : </label>";
+                data = row.highschool ? row.highschool : '&nbsp;';
+                data += row.city ? ` (${row.city[0].toUpperCase() + row.city.substring(1).toLowerCase()})` : '&nbsp;';
+              } else {
+                return '&nbsp;';
+              }
+            } else {
+              label = "<label>{% trans 'Campus' %} : </label>";
+              data = row.campus
+              data += row.campus_city ? ` (${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()})` : '&nbsp;';
+            }
+            if(type === "display") {
+              return label + displayLongString(data, 40, html=true) ;
             }
             if(type === 'filter') {
               return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -258,117 +292,49 @@
           }
         },
         {
-          render: function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-            if (slotType === 'c') {
-              return row.structure;
-            } else {
-              return row.campus;
-            }
-          },
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
 
-            if (slotType === 'c') {
-              return row.structure;
-            }
-            return row.meeting_place;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-
-            if (slotType === 'c') {
-              data = row.course.type;
-            } else {
-              data = row.datetime;
-              if(type === "display" || type === "filter") {
-                data = row.date + "<br>" + row.start_time + " - " + row.end_time;
-              }
-            }
-            return data;
-
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-            return (slotType === 'c') ? row.campus : row.speakers;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-            return (slotType === 'c') ? row.meeting_place : row.info;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-
-            slotType = row.type[0].toLowerCase();
-            if (slotType === 'c') {
-              data = row.datetime;
-              if(type === "display" || type === "filter") {
-                return row.date + "<br>" + row.start_time + " - " + row.end_time;
-              }
-            } else {
-              data = row.registration_date;
-              if (type !== 'sort') {
-                return data ? formatDate(data) : "";
-              }
-            }
-            return data;
-          },
-        },
-        {
-
-          "render": function (data) {
-            slotType = row.type[0].toLowerCase();
-            if (slotType === 'c') {
-              let txt = "";
-              $.each(row.speakers, function(index, value) {
-                txt += value+"<br>";
-              });
-              return txt;
-            } else {
-
-            }
-          },
-        },
-        { "data": "info" },
-        { "data": "registration_date",
-          render: function(data, type, row) {
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
+          "render": function (data, type, row) {
+            data = row.meeting_place
+            if(type === "display") {
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 45, html=true) + "</span>";
             }
 
             return data
+          },
+        },
+        { "data": "registration_date",
+          "render": function(data, type, row) {
+            if (type==='display') {
+              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+            }
+            return data
           }
         },
-        { "data": "",
+        {
+          "render": function(data, type, row) {
+            cancellation_limit_date = row.cancellation_limit_date ? formatDate(row.cancellation_limit_date) : "";
+            classLabel = row.cancellable ? "badge-info" : "badge-danger";
+            return `<label>{% trans 'Cancellation limit' %} : </label><span class="badge badge-pill ${classLabel}">${cancellation_limit_date}</span>`;
+          }
+        },
+        {
           "render": function(data, type, row) {
             let msg = "";
 
             if(is_highschool_student === true) {
               msg += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
-                        "<i class='fa fas fa-users fa-2x'></i>" +
+                        "<i class='fa fas fa-users fa-15'></i>" +
                         "</button>";
             }
 
             if(row.cancellable === true) {
               msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
-                     "<i class='fa fas fa-trash fa-2x'></i>" +
+                     "<i class='fa fas fa-trash fa-15'></i>" +
                      "</button>";
             }
 
-            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
-
-            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
-
-            return msg;
+            msg += "<button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button>";
+            return `<div class="pull-right"> ${msg}</div>`;
           }
         }
       ],
@@ -383,7 +349,6 @@
         },
       ],
     });
-
     dt_past = $('#past_immersions').DataTable({
       'processing': false,
       'order': [
@@ -398,7 +363,7 @@
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
@@ -420,7 +385,7 @@
       'columns': [
         {
           orderable: false, className: 'text-center', width: '20px',
-          render: function(data, type, full, meta) {
+          "render": function(data, type, full, meta) {
               slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
               if (slotType === 'c') {
                   label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
@@ -430,40 +395,106 @@
               return label;
           }
         },
-        { "data": "training",
+        {
           "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.course.training + "<br>" + row.establishments;
-            }
-            return data;
-          },
-        },
-        { "data": "structure" },
-        { "data": "course.label" },
-        { "data": "course.type" },
-        { "data": "campus" },
-        { "data": "meeting_place" },
-        { "data": "datetime",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.date + "<br>" + row.start_time + " - " + row.end_time;
-            }
+            slotType = row.type[0].toLowerCase();
 
+            if (slotType === 'c') {
+              label = "<label>{% trans "Training" %} :</label>";
+              data = row.course.training;
+            } else {
+              label =  "<label>{% trans "Event type" %} :</label>";
+              data = row.event.type
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+            }
             return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            label = "<label>{% trans "Label" %} :</label>";
+            if (slotType === 'c') {
+              data = row.course.label;
+            } else {
+              data = row.event.label;
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            data = (slotType === 'c') ? row.course.type : row.event.type;
+            label = "<label>{% trans 'Type' %} :</label>";
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            data = row.datetime;
+            label = "<label>{% trans 'Date' %} :</label>";
+            if(type === "display" || type === "filter") {
+              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+            }
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+            return data
           },
         },
-        { "data": "speakers",
-          "render": function (data) {
-            let txt = "";
-            $.each(data, function(index, value) {
-              txt += value+"<br>";
-            });
-            return txt;
+        {
+          render: function (data, type, row) {
+            if (row.campus === '' || row.campus === null) {
+              if (row.highschool != null || row.highschool != '') {
+                label = "<label>{% trans 'Address' %} : </label>";
+                data = row.highschool ? row.highschool : '&nbsp;';
+                data += row.city ? ` (${row.city[0].toUpperCase() + row.city.substring(1).toLowerCase()})` : '&nbsp;';
+              } else {
+                return '&nbsp;';
+              }
+            } else {
+              label = "<label>{% trans 'Campus' %} : </label>";
+              data = row.campus
+              data += row.campus_city ? ` (${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()})` : '&nbsp;';
+            }
+            if(type === "display") {
+              return label + displayLongString(data, 40, html=true) ;
+            }
+            if(type === 'filter') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+            return data;
+          }
+        },
+        {
+          "render": function (data, type, row) {
+            data = row.meeting_place
+            if(type === "display") {
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            }
+            return data
           },
+        },
+        { "data": "registration_date",
+          "render": function(data, type, row) {
+            if (type==='display') {
+              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+            }
+            return data
+          }
         },
         { "data": "attendance",
           "render": function(data, type, row) {
-            var msg = data;
+            var msg = "<label>{% trans "Attendance" %} :</label>" + data;
             if(row.attendance_status === 1 || row.place === 1) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
@@ -472,16 +503,13 @@
             return msg;
           }
         },
-        { "data": "registration_date",
-          render: function(data, type, row) {
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
-            }
-
-            return data
+        {
+          className:"align-bottom-results-field",
+          render: function (data, type, full, meta) {
+            return "<button class=\"btn badge badge-pill badge-primary pull-right btn-more-details\">{% trans 'More details' %}</button></span>"
           }
+
         },
-        { "data": "" }
       ],
       "columnDefs": [
         {
@@ -509,7 +537,7 @@
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
@@ -531,7 +559,7 @@
       'columns': [
         {
           orderable: false, className: 'text-center', width: '20px',
-          render: function(data, type, full, meta) {
+          "render": function(data, type, full, meta) {
               slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
               if (slotType === 'c') {
                   label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
@@ -541,61 +569,150 @@
               return label;
           }
         },
-        { "data": "training",
+        {
           "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.course.training + "<br>" + row.establishments;
+            if (row.establishment === '' || row.establishment === null) {
+
+              if (row.highschool !== null) {
+                data = row.highschool;
+              } else {
+                data = '&nbsp;';
+              }
+            } else {
+              data = row.establishment;
             }
-            return data;
-          },
-        },
-        { "data": "structure" },
-        { "data": "course.label" },
-        { "data": "course.type" },
-        { "data": "campus" },
-        { "data": "meeting_place" },
-        { "data": "datetime",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.date + "<br>" + row.start_time + " - " + row.end_time;
+            if(type === "display") {
+              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
             }
 
             return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+
+            if (slotType === 'c') {
+              label = "<label>{% trans "Training" %} :</label>";
+              data = row.course.training;
+            } else {
+              label =  "<label>{% trans "Event type" %} :</label>";
+              data = row.event.type
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            label = "<label>{% trans "Label" %} :</label>";
+            if (slotType === 'c') {
+              data = row.course.label;
+            } else {
+              data = row.event.label;
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            data = (slotType === 'c') ? row.course.type : row.event.type;
+            label = "<label>{% trans 'Type' %} :</label>";
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            data = row.datetime;
+            label = "<label>{% trans 'Date' %} :</label>";
+            if(type === "display" || type === "filter") {
+              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+            }
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+            return data
           },
         },
-        { "data": "speakers",
-          "render": function (data) {
-            let txt = "";
-            $.each(data, function(index, value) {
-              txt += value+"<br>";
-            });
-            return txt;
+        {
+          render: function (data, type, row) {
+            if (row.campus === '' || row.campus === null) {
+              if (row.highschool != null || row.highschool != '') {
+                label = "<label>{% trans 'Address' %} : </label>";
+                data = row.highschool ? row.highschool : '&nbsp;';
+                data += row.city ? ` (${row.city[0].toUpperCase() + row.city.substring(1).toLowerCase()})` : '&nbsp;';
+              } else {
+                return '&nbsp;';
+              }
+            } else {
+              label = "<label>{% trans 'Campus' %} : </label>";
+              data = row.campus
+              data += row.campus_city ? ` (${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()})` : '&nbsp;';
+            }
+            if(type === "display") {
+              return label + displayLongString(data, 40, html=true) ;
+            }
+            if(type === 'filter') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+            return data;
+          }
+        },
+        {
+          "render": function (data, type, row) {
+            data = row.meeting_place
+            if(type === "display") {
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 45, html=true) + "</span>";
+            }
+            return data;
+          },
+        },
+        { "data": "cancellation_date",
+          "render": function(data, type, row) {
+            if (data != null || data != '') {
+              data = formatDate(data,{ dateStyle: 'long', timeStyle: 'short' });
+            }
+            if (type==='display') {
+              return "<label>{% trans 'Cancellation date' %} :</label><span>" + data + "</span>";
+            }
+            return data;
           },
         },
         { "data": "cancellation_type",
           "render": function(data, type, row) {
-            var msg = data;
-
+            if (type==='display'){
+              return "<label>{% trans 'Cancellation type' %} :</label>" + data;
+            }
+            return data
+          }
+        },
+        {
+          className:"align-bottom-results-field",
+          render: function (data, type, row) {
+            msg = "";
             if(row.can_register) {
-                msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+                msg += "<button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
             if(row.free_seats === 0) {
-                msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+                msg += "<span class='ml-2 badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
-            return msg;
+
+            return "<div class='pull-right'>" + msg + "<button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></div>"
           }
+
         },
-        { "data": "registration_date",
-          render: function(data, type, row) {
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
-            }
-
-            return data
-          }
-        }
     ],
     "columnDefs": [
         {
@@ -605,284 +722,6 @@
         },
       ],
     });
-
-  {% if events_off_offer %}
-    dte_future = $('#events_to_come').DataTable({
-      'processing': false,
-      'order': [
-        [3, "asc"]
-      ],
-      'pageLength': 5,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': true,
-      'ajax': {
-        url: "/api/get_immersions/" + user_id,
-        data: function(d) {
-            d.immersion_type = 'future'
-            return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
-      'searching': true,
-      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-      'language': {
-        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
-      },
-      {% endif %}
-      'columns': [
-        { "data": "label",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.label + "<br>" + (row.establishment || row.highschool);
-            }
-            return data;
-          },
-        },
-        { "data": "campus" },
-        { "data": "meeting_place" },
-        { "data": "datetime",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.date + "<br>" + row.start_time + " - " + row.end_time;
-            }
-
-            return data;
-          },
-        },
-        { "data": "speakers"},
-        { "data": "info" },
-        { "data": "registration_date",
-          render: function(data, type, row) {
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
-            }
-
-            return data
-          }
-        },
-        { "data": "",
-          "render": function(data, type, row) {
-            let msg = "";
-
-            if(is_highschool_student === true) {
-              msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
-                    "<i class='fa fas fa-users fa-2x'></i>" +
-                    "</button>";
-            }
-
-            if(row.cancellable === true) {
-              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
-                     "<i class='fa fas fa-trash fa-2x'></i>" +
-                     "</button>";
-            }
-
-            let cancellation_limit_date = formatDate(row.cancellation_limit_date, options);
-
-            msg = `<div class="btn-group"> ${msg}</div><div>{% trans 'Cancellation limit' %} : ${cancellation_limit_date}<div>`
-
-            return msg;
-          }
-        }
-      ],
-      "columnDefs": [
-        {
-          "defaultContent": "",
-          "targets": "_all",
-          "className": "all",
-        },
-        {
-          "orderable": false, "targets": [5,6],
-        },
-      ],
-    });
-
-
-    dte_past = $('#past_events').DataTable({
-      'processing': false,
-      'order': [
-        [3, "desc"]
-      ],
-      'pageLength': 5,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': true,
-      'ajax': {
-        url: "/api/get_immersions/" + user_id,
-        data: function(d) {
-            d.immersion_type = 'past'
-            return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
-      'searching': true,
-      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-      'language': {
-        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
-      },
-      {% endif %}
-      'columns': [
-        { "data": "label",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.label + "<br>" + (row.establishment || row.highschool);
-            }
-            return data;
-          },
-        },
-        { "data": "campus" },
-        { "data": "meeting_place" },
-        { "data": "datetime",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.date + "<br>" + row.start_time + " - " + row.end_time;
-            }
-
-            return data;
-          },
-        },
-        { "data": "speakers",
-          "render": function (data) {
-            let txt = "";
-            $.each(data, function(index, value) {
-              txt += value+"<br>";
-            });
-            return txt;
-          },
-        },
-        { "data": "attendance",
-          "render": function(data, type, row) {
-            var msg = data;
-
-            if(row.attendance_status === 1 || row.place === 1) {
-              msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
-                  "<i class='fa fas fa-download fa-2x'></i>" +
-                  "</a>";
-            }
-            return msg;
-          }
-        },
-        { "data": "registration_date",
-          render: function(data, type, row) {
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
-            }
-
-            return data
-          }
-        },
-        { "data": "" }
-      ],
-      "columnDefs": [
-        {
-          "defaultContent": "",
-          "targets": "_all",
-          "className": "all",
-        },
-        {
-          "orderable": false, "targets": 6,
-        },
-      ],
-    });
-
-    dte_cancelled = $('#cancelled_events').DataTable({
-      'processing': false,
-      'order': [
-        [3, "asc"]
-      ],
-      'pageLength': 5,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': true,
-      'ajax': {
-        url: "/api/get_immersions/" + user_id,
-        data: function(d) {
-            d.immersion_type = 'cancelled'
-            return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
-      'searching': true,
-      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-      'language': {
-        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
-      },
-      {% endif %}
-      'columns': [
-        { "data": "label",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.label + "<br>" + (row.establishment || row.highschool);
-            }
-            return data;
-          },
-        },
-        { "data": "campus" },
-        { "data": "meeting_place" },
-        { "data": "datetime",
-          "render": function(data, type, row) {
-            if(type === "display" || type === "filter") {
-              return row.date + "<br>" + row.start_time + " - " + row.end_time;
-            }
-
-            return data;
-          },
-        },
-        { "data": "speakers",
-          "render": function (data) {
-            let txt = "";
-            $.each(data, function(index, value) {
-              txt += value+"<br>";
-            });
-            return txt;
-          },
-        },
-        { "data": "cancellation_type",
-          "render": function(data, type, row) {
-            var msg = data;
-
-            if(row.can_register) {
-              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register(" + row.slot_id + ")\">{% trans 'Register again' %}</button>";
-            }
-
-            if(row.free_seats === 0) {
-              msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
-            }
-
-            return msg;
-          }
-        },
-        { "data": "registration_date",
-          render: function(data, type, row) {
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
-            }
-
-            return data
-          }
-        },
-      ],
-      "columnDefs": [
-        {
-          "defaultContent": "",
-          "targets": "_all",
-          "className": "all",
-        },
-      ],
-    });
-  {% endif %}
   });
 
 
