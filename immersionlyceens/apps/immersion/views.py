@@ -85,7 +85,7 @@ class CustomShibbolethLogoutView(TemplateView):
             and not self.request.user.is_anonymous\
             and self.request.user.is_high_school_student()\
             and self.request.user.uses_federation():
-            logout = f"{settings.EDUCONNECT_LOGOUT_URL}?return=https://immersup-test.app.unistra.fr"
+            logout = settings.EDUCONNECT_LOGOUT_URL
         else:
             #Get target url in order of preference.
             target = LOGOUT_REDIRECT_URL or\
