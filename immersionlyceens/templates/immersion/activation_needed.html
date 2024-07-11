@@ -9,9 +9,7 @@
       <div class="col">
         <h1>{% trans 'Account activation needed' %}</h1>
         <p class="text-center mt-4">
-          {% blocktranslate %}
-            Your account is not activated yet. Please check your emails for the activation procedure.
-          {% endblocktranslate %}
+          {% trans 'Your account is not activated yet. Please check your emails for the activation procedure.' %}
         </p>
       </div>
     </div>
@@ -25,9 +23,7 @@
           <a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a>
         </p>
         <p class="text-center">
-          {% blocktranslate %}
-            Important : please do not forget to logout from EduConnect by clicking on the button below.
-          {% endblocktranslate %}
+          {% trans 'Important : please do not forget to log out of EduConnect by clicking on the button below.' %}
         </p>
       </div>
     </div>
