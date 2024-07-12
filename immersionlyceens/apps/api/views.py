@@ -778,6 +778,7 @@ def ajax_get_immersions(request, user_id=None):
             'course': {
                 'label': slot.course.label,
                 'training': slot.course.training.label,
+                'training_url': slot.course.training.url,
                 'type': slot.course_type.label,
                 'type_full': slot.course_type.full_label
             } if slot.course else {},
@@ -803,6 +804,10 @@ def ajax_get_immersions(request, user_id=None):
             'registration_date': immersion.registration_date,
             'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
             'campus_city': campus_city,
+            'allow_individual_registrations': slot.allow_individual_registrations,
+            'n_places': slot.n_places,
+            'n_registered': slot.registered_students(),
+            'registration_limit_date': slot.registration_limit_date
         }
 
         if slot.date < today or (slot.date == today and slot.start_time < now.time()):
@@ -835,7 +840,7 @@ def ajax_get_immersions(request, user_id=None):
                 immersion_data['establishments'].append(str(slot.course.get_etab_or_high_school()))
 
         immersion_data['establishments'] = ', '.join(immersion_data['establishments'])
-
+        print(immersion_data)
         response['data'].append(immersion_data.copy())
 
     return JsonResponse(response, safe=False)
