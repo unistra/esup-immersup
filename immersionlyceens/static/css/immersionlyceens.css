@@ -409,3 +409,18 @@ TODO: Remove this when upgrading to django-ckeditor-5 !!! For now hidding warnin
 .cke_notification_warning {
         display: none;
 }
+
+/*
+Disable highlighting of selected items in the datatables
+need to use dt-select-no-highlight class on table !!!
+*/
+table.dataTable.dt-select-no-highlight tbody tr.selected,
+table.dataTable.dt-select-no-highlight tbody th.selected,
+table.dataTable.dt-select-no-highlight tbody td.selected {
+    color: unset;
+}
+
+table.dataTable.dt-select-no-highlight tbody>tr.selected,
+table.dataTable.dt-select-no-highlight tbody>tr>.selected {
+    background-color: unset;
+}
