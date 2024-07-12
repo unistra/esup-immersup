@@ -840,7 +840,6 @@ def ajax_get_immersions(request, user_id=None):
                 immersion_data['establishments'].append(str(slot.course.get_etab_or_high_school()))
 
         immersion_data['establishments'] = ', '.join(immersion_data['establishments'])
-        print(immersion_data)
         response['data'].append(immersion_data.copy())
 
     return JsonResponse(response, safe=False)
