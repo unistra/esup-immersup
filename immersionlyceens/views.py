@@ -409,6 +409,7 @@ def offer_off_offer_events(request):
     # Published event only & no course
     filters["course__isnull"] = True
     filters["event__published"] = True
+    filters["allow_individual_registrations"] = True
 
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(

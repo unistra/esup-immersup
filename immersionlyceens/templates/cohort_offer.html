@@ -277,9 +277,10 @@
                                                                 {% if s.opening_soon %}
                                                                 <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
                                                                 {% elif s.available_seats > 0 %}
-                                                                <span class="badge badge-primary badge-pill">{% trans 'Available places' %} : {{ s.available_seats }}{% endif %}</span><br />
+                                                                <span class="badge badge-primary badge-pill">{% trans 'Available places' %} : {{ s.available_seats }}</span><br />
                                                                 {% else %}
                                                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                                                {% endif %}
                                                               {% endif %}
 
                                                               {% if s.allow_group_registrations %}
