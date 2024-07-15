@@ -375,7 +375,7 @@
       let outside = "2"
 
       if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym> " + rowData[0].free_seats + ' / ' + rowData[0].n_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
 
@@ -387,7 +387,6 @@
         if (rowData[0].establishment !==null) {
           etab.push(rowData[0].establishment)
         }
-
         if (rowData[0].highschool !== null) {
           etab.push(rowData[0].highschool)
         }
@@ -423,6 +422,9 @@
       if (rowData[0].highschool === '' || rowData[0].highschool === null) {
         filteredRows.push('row_highschool');
       }
+      if (rowData[0].highschool_address === '' || rowData[0].highschool === null) {
+        filteredRows.push('row_highschool_address');
+      }
       if (rowData[0].building === '' || rowData[0].building === null) {
         filteredRows.push('row_building');
       }
@@ -455,10 +457,11 @@
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
       $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
-      $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date);
+      $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
       $('#modal_myimmersions_slot_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
-      $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool)
+      $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
+      $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city)
       $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building )
       $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
       $('#modal_myimmersions_slot_details #modal_speakers').html(
@@ -691,7 +694,6 @@
       // display all row_* elements
       $(displayedRows).show();
       $('#modal_register_btn').html('');
-      console.log($rowData[0].campus)
       if (slotType === 'c') {
         if (rowData[0].establishment !==null) {
           etab.push(rowData[0].establishment)
@@ -712,15 +714,15 @@
           etab.push(rowData[0].structure)
         }
         filteredRows.push('row_course_label', 'row_course_type');
-        if (rowData[0].highschool !== nul) {
+        if (rowData[0].highschool !== null) {
           $('#modal_myimmersions_slot_details #modal_highschool').html(rowData[0].highschool_label);
         } else {
           $('#modal_myimmersions_slot_details #modal_highschool').html();
           filteredRows.push('row_highschool');
         }
-      }
-      if (rowData[0].building !== null && rowData[0].building !== '') {
-        building = rowData[0].building;
+        if (rowData[0].highschool_address === '' || rowData[0].highschool === null) {
+          filteredRows.push('row_highschool_address');
+        }
       }
       if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== '') {
         courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
@@ -744,7 +746,7 @@
         url: "/api/get_slot_restrictions/" + rowData[0].id,
         type: 'GET',
         success: function (data) {
-          if (data['data'] !== undefined && data['data']['restrictions'][0] !== undefined) {
+          if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
               if (restrictions === '<ul class="list-unstyled"><>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
@@ -759,11 +761,10 @@
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
       $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
       $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date);
-      //$('#modal_myimmersions_slot_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
-      console.log('la', rowData[0].campus)
-      //$('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
-      $('#modal_myimmersions_slot_details #modal_building').html(building)
+      $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
+      $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
+      $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
       $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
       $('#modal_myimmersions_slot_details #modal_speakers').html(
         '<ul class="list-group">' + speakers_array + '</ul>'
@@ -1047,7 +1048,7 @@
           $('#modal_myimmersions_slot_details #modal_highschool').html(rowData[0].highschool_label);
         } else {
           $('#modal_myimmersions_slot_details #modal_highschool').html();
-          $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].city);
+          $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
           filteredRows.push('row_highschool');
 
         }
