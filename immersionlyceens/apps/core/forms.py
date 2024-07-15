@@ -331,23 +331,12 @@ class SlotForm(forms.ModelForm):
 
         return cleaned_data
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        structure = cleaned_data.get('structure')
-        published = cleaned_data.get('published', None)
-        n_places = cleaned_data.get('n_places', 0)
-        n_group_places = cleaned_data.get('n_group_places', 0)
-        place = cleaned_data.get('place')
-        _date = cleaned_data.get('date')
-        period = cleaned_data.get('period')
-        start_time = cleaned_data.get('start_time', 0)
+    def clean_registrations(self, cleaned_data):
         allow_individual_registrations = cleaned_data.get('allow_individual_registrations')
         allow_group_registrations = cleaned_data.get('allow_group_registrations')
         group_mode = cleaned_data.get('group_mode')
-
-        cleaned_data = self.clean_restrictions(cleaned_data)
-        cleaned_data = self.clean_fields(cleaned_data)
+        n_places = cleaned_data.get('n_places', 0)
+        n_group_places = cleaned_data.get('n_group_places', 0)
 
         # Groups settings
         try:
@@ -366,6 +355,18 @@ class SlotForm(forms.ModelForm):
                 _("You must allow at least one of individual or group registrations")
             )
 
+        if (not enabled_groups or allow_individual_registrations) and (not n_places or n_places <= 0):
+            self.add_error(
+                'n_places',
+                _("Please enter a valid number for 'n_places' field")
+            )
+
+        if (enabled_groups and allow_group_registrations and (not n_group_places or n_group_places <= 0)):
+            self.add_error(
+                'n_group_places',
+                _("Please enter a valid number for 'n_group_places' field")
+            )
+
         # Can't deactivate individual registrations if slot has one immersion
         if self.instance.pk:
             if Immersion.objects.filter(slot=self.instance) and not allow_individual_registrations:
@@ -381,6 +382,52 @@ class SlotForm(forms.ModelForm):
                     'allow_group_registrations',
                     _("The slot already has registered groups, groups registrations can't be disabled")
                 )
+
+            # Can't set n_places lower than actual immersions
+            if allow_individual_registrations and n_places and n_places < self.instance.immersions.count():
+                self.add_error(
+                    'n_places',
+                    _("You can't set places value lower than actual individual immersions")
+                )
+
+            # Can't set n_group_places lower than actual group immersions
+            if enabled_groups and allow_group_registrations and n_group_places:
+                group_queryset = self.instance.group_immersions.aggregate(
+                    students_count=Sum(
+                        'students_count',
+                        filter=Q(cancellation_type__isnull=True),
+                        distinct=True
+                    ),
+                    guides_count=Sum(
+                        'guides_count',
+                        filter=Q(cancellation_type__isnull=True),
+                        distinct=True
+                    )
+                )
+
+                people_count = (group_queryset['students_count'] or 0) + (group_queryset['guides_count'] or 0)
+
+                if people_count > n_group_places:
+                    self.add_error(
+                        'n_group_places',
+                        _("You can't set group places value lower than actual registered group(s) people count")
+                    )
+
+        return cleaned_data
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        structure = cleaned_data.get('structure')
+        published = cleaned_data.get('published', None)
+        place = cleaned_data.get('place')
+        _date = cleaned_data.get('date')
+        period = cleaned_data.get('period')
+        start_time = cleaned_data.get('start_time', 0)
+
+        cleaned_data = self.clean_restrictions(cleaned_data)
+        cleaned_data = self.clean_fields(cleaned_data)
+        cleaned_data = self.clean_registrations(cleaned_data)
 
         # Slot repetition
         if cleaned_data.get('repeat'):
@@ -424,49 +471,6 @@ class SlotForm(forms.ModelForm):
                     'start_time',
                     _("Slot is set for today : please enter a valid start_time")
                 )
-
-            if (not enabled_groups or allow_individual_registrations) and (not n_places or n_places <= 0):
-                self.add_error(
-                    'n_places',
-                    _("Please enter a valid number for 'n_places' field")
-                )
-
-            if (enabled_groups and allow_group_registrations and (not n_group_places or n_group_places <= 0)):
-                self.add_error(
-                    'n_group_places',
-                    _("Please enter a valid number for 'n_group_places' field")
-                )
-
-            # Can't set n_places lower than actual immersions
-            if self.instance.pk:
-                if allow_individual_registrations and n_places and n_places < self.instance.immersions.count():
-                    self.add_error(
-                        'n_places',
-                        _("You can't set places value lower than actual individual immersions")
-                    )
-
-                # Can't set n_group_places lower than actual group immersions
-                if enabled_groups and allow_group_registrations and n_group_places:
-                    group_queryset = self.instance.group_immersions.aggregate(
-                        students_count=Sum(
-                            'students_count',
-                            filter=Q(cancellation_type__isnull=True),
-                            distinct=True
-                        ),
-                        guides_count=Sum(
-                            'guides_count',
-                            filter=Q(cancellation_type__isnull=True),
-                            distinct=True
-                        )
-                    )
-
-                    people_count = (group_queryset['students_count'] or 0) + (group_queryset['guides_count'] or 0)
-
-                    if people_count > n_group_places:
-                        self.add_error(
-                            'n_group_places',
-                            _("You can't set group places value lower than actual registered group(s) people count")
-                        )
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
@@ -618,11 +622,11 @@ class OffOfferEventSlotForm(SlotForm):
         place = cleaned_data.get('place')
         period = cleaned_data.get('period', None)
         start_time = cleaned_data.get('start_time', None)
-        n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
 
         cleaned_data = self.clean_restrictions(cleaned_data)
         cleaned_data = self.clean_fields(cleaned_data)
+        cleaned_data = self.clean_registrations(cleaned_data)
 
         if published is True:
             # Mandatory fields, depending on high school / structure slot
@@ -659,10 +663,6 @@ class OffOfferEventSlotForm(SlotForm):
                     'start_time',
                     _("Slot is set for today : please enter a valid start_time")
                 )
-
-            if not n_places or n_places <= 0:
-                msg = _("Please enter a valid number for 'n_places' field")
-                self.add_error('n_places', msg)
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
