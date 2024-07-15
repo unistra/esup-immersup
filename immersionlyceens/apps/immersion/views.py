@@ -305,7 +305,7 @@ def shibbolethLogin(request, profile=None):
         uai_code = shib_attrs.get("uai_code", "")
 
         if shib_attrs.get('birth_date'):
-            # High school student using EduConnect : email becomes optionnal
+            # High school student using EduConnect : email becomes optional
             is_high_school_student = True
             optional_attributes.append('email')
             mandatory_attributes.remove('email')
@@ -329,7 +329,6 @@ def shibbolethLogin(request, profile=None):
                 )
 
                 return HttpResponseRedirect("/")
-
 
             # Check UAI
             try:
@@ -366,8 +365,8 @@ def shibbolethLogin(request, profile=None):
         if is_high_school_student:
             # we have to fake a unique email to create the account
             # then the user will be redirected to the email form
-            fake_email = f"{shib_attrs['username']}@domain.tld"
-            shib_attrs['email'] = fake_email
+            # fake_email = f"{shib_attrs['username']}@domain.tld"
+            shib_attrs['email'] = ''
 
         # Store unneeded attributes from shib_attrs for account creation
         other_fields = {
@@ -456,6 +455,12 @@ def shibbolethLogin(request, profile=None):
             user = ImmersionUser.objects.get(username=shib_attrs["username"])
             user.last_name = shib_attrs["last_name"]
             user.first_name = shib_attrs["first_name"]
+
+            # Update birthdate for high school students
+            if shib_attrs.get("birth_date", None) and user.is_high_school_student():
+                record = user.get_high_school_student_record()
+                if record:
+                    record.birth_date = shib_attrs.get("birth_date")
 
             if not user.is_high_school_student():
                 user.email = shib_attrs["email"]

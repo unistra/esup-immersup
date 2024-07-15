@@ -16,6 +16,9 @@
 <div>
   <section class="py-5">
     <div class="container">
+      <p class="text-center">
+        {% trans 'All communications will take place by email, please provide a valid email address.' %}
+      </p>
       <form method="post" role="form">
       {% csrf_token %}
         <input type='hidden' name="id" value="{{ form.instance.id }}">

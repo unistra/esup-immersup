@@ -16,21 +16,23 @@
 <div>
   <section class="py-5">
     <div class="container">
-      <form method="post" role="form">
-      {% csrf_token %}
-        <div class="form-group row justify-content-center">
-          <div class="col-sm-6 col-md-6">
-            <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right">
-              {% trans 'My high school uses' %} {{ federation_name }}
-            </a>
-          </div>
-          <div class="col-sm-6 col-md-6">
-            <a href="{% url 'immersion:login' profile=profile %}" class="btn btn-secondary">
-              {% trans 'My High school does not use' %} {{ federation_name }}
-            </a>
-          </div>
+      <div class="form-group row justify-content-center">
+        <div class="col-sm-6 col-md-6">
+          <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
+             title="{% trans 'All public high schools and private high schools under contract' %}">
+            {% trans 'My high school uses' %} {{ federation_name }}
+          </a>
+          <p class="float-right mt-4">
+            {% trans 'On the next page, select "Educonnect" in the establishments list' %}
+          </p>
         </div>
-      </form>
+        <div class="col-sm-6 col-md-6">
+          <a href="{% url 'immersion:login' profile=profile %}" class="btn btn-secondary">
+            {% trans 'My High school does not use' %} {{ federation_name }}
+          </a>
+        </div>
+      </div>
+
       {% if profile != 'ref-lyc' and profile != 'speaker' %}
       <!--
       <div class="row justify-content-center">
