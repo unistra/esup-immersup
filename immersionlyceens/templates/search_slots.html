@@ -228,9 +228,9 @@
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
         // "place" values
-        var face_to_face = "0"
-        var remote = "1"
-        var outside = "2"
+        var face_to_face = 0
+        var remote = 1
+        var outside = 2
 
         var showDate = false;
         var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
@@ -535,9 +535,9 @@
       var filteredRows = [];
       let availablesSeatslabel = '<ul class="list-inline">';
 
-      let face_to_face = "0"
-      let remote = "1"
-      let outside = "2"
+      let face_to_face = 0
+      let remote = 1
+      let outside = 2
 
       if (rowData[0].allow_individual_registrations === true) {
         availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'

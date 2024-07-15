@@ -131,9 +131,9 @@ function init_datatable() {
           let txt = ""
           let campus_label = data
           let building_label = row.building_label
-          let face_to_face = "0"
-          let remote = "1"
-          let outside = "2"
+          let face_to_face = 0
+          let remote = 1
+          let outside = 2
 
           if(type === 'filter') {
             if(row.place === face_to_face) {

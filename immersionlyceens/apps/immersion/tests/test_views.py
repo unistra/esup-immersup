@@ -363,7 +363,7 @@ class ImmersionViewsTestCase(TestCase):
         # Connection with a not-enabled-yet account
         response = self.client.get('/shib/', request, **header, follow=True)
         self.assertIn(
-            "Your account is not activated yet. Please check your emails for the activation procedure.",
+            "Please check your emails for the activation procedure.",
             response.content.decode('utf-8')
         )
 

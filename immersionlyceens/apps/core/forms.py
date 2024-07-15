@@ -337,6 +337,7 @@ class SlotForm(forms.ModelForm):
         group_mode = cleaned_data.get('group_mode')
         n_places = cleaned_data.get('n_places', 0)
         n_group_places = cleaned_data.get('n_group_places', 0)
+        published = cleaned_data.get('published', None)
 
         # Groups settings
         try:
@@ -355,17 +356,18 @@ class SlotForm(forms.ModelForm):
                 _("You must allow at least one of individual or group registrations")
             )
 
-        if (not enabled_groups or allow_individual_registrations) and (not n_places or n_places <= 0):
-            self.add_error(
-                'n_places',
-                _("Please enter a valid number for 'n_places' field")
-            )
+        if published:
+            if (not enabled_groups or allow_individual_registrations) and (not n_places or n_places <= 0):
+                self.add_error(
+                    'n_places',
+                    _("Please enter a valid number for 'n_places' field")
+                )
 
-        if (enabled_groups and allow_group_registrations and (not n_group_places or n_group_places <= 0)):
-            self.add_error(
-                'n_group_places',
-                _("Please enter a valid number for 'n_group_places' field")
-            )
+            if (enabled_groups and allow_group_registrations and (not n_group_places or n_group_places <= 0)):
+                self.add_error(
+                    'n_group_places',
+                    _("Please enter a valid number for 'n_group_places' field")
+                )
 
         # Can't deactivate individual registrations if slot has one immersion
         if self.instance.pk:
