@@ -1305,7 +1305,8 @@ class CancelType(models.Model):
     code = models.CharField(_("Code"), max_length=8, null=True, blank=True, unique=True)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-    system = models.BooleanField(_("System reserved"), default=False)
+    system = models.BooleanField(_("Reserved for System"), default=False)
+    managers = models.BooleanField(_("Reserved for Managers"), default=False)
 
     students = models.BooleanField(_("Usable for students"), default=True)
     groups = models.BooleanField(_("Usable for groups"), default=False)
@@ -1320,6 +1321,30 @@ class CancelType(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A cancel type with this label already exists'))
+
+    def usable_for_students(self):
+        """
+        Type can be used for a single student registration
+        """
+        return self.active and self.students
+
+    def usable_for_groups(self):
+        """
+        Type can be used for a group registration
+        """
+        return self.active and self.groups
+
+    def usable_by_student(self):
+        """
+        Type can be selected by a student
+        """
+        return self.active and not self.managers
+
+    def usable_by_manager(self):
+        """
+        Type can be selected by a manager
+        """
+        return self.active and not self.system
 
     class Meta:
         """Meta class"""

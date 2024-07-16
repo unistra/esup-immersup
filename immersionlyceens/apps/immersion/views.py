@@ -1609,6 +1609,8 @@ def registrations(request):
     """
     cancellation_reasons = CancelType.objects.filter(
         active=True,
+        managers=False,
+        students=True,
         system=False
     ).order_by('label')
     alerts = UserCourseAlert.objects.filter(email=request.user.email)

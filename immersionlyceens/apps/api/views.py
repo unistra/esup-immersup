@@ -590,6 +590,28 @@ def ajax_cancel_registration(request):
                 return JsonResponse(response, safe=False)
 
             cancellation_reason = CancelType.objects.get(pk=reason_id)
+
+            # Check usability
+            managers = [
+                request.user.is_establishment_manager(),
+                request.user.is_master_establishment_manager(),
+                request.user.is_high_school_manager(),
+                request.user.is_operator(),
+                request.user.is_structure_manager()
+            ]
+
+            students = [
+                request.user.is_high_school_student(),
+                request.user.is_visitor(),
+                request.user.is_student()
+            ]
+
+            if (not cancellation_reason.usable_for_students
+               or (any(managers) and not cancellation_reason.usable_by_manager())
+               or (any(students) and not cancellation_reason.usable_by_student())):
+                response = {'error': True, 'msg': _("You can't use this cancellation reason")}
+                return JsonResponse(response, safe=False)
+
             immersion.cancellation_type = cancellation_reason
             immersion.cancellation_date = timezone.now()
             immersion.save()
@@ -1949,6 +1971,27 @@ def ajax_batch_cancel_registration(request):
             response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
             return JsonResponse(response, safe=False)
 
+        # Check usability
+        managers = [
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_high_school_manager(),
+            request.user.is_operator(),
+            request.user.is_structure_manager()
+        ]
+
+        students = [
+            request.user.is_high_school_student(),
+            request.user.is_visitor(),
+            request.user.is_student()
+        ]
+
+        if (not cancellation_reason.usable_for_students
+                or (any(managers) and not cancellation_reason.usable_by_manager())
+                or (any(students) and not cancellation_reason.usable_by_student())):
+            response = {'error': True, 'msg': _("You can't use this cancellation reason")}
+            return JsonResponse(response, safe=False)
+
         for immersion_id in json_data:
             try:
                 immersion = Immersion.objects.get(pk=immersion_id, slot=slot)
@@ -2079,6 +2122,27 @@ def ajax_groups_batch_cancel_registration(request):
             cancellation_reason = CancelType.objects.get(pk=reason_id)
         except CancelType.DoesNotExist:
             response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
+            return JsonResponse(response, safe=False)
+
+        # Check usability for groups
+        managers = [
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_high_school_manager(),
+            request.user.is_operator(),
+            request.user.is_structure_manager()
+        ]
+
+        students = [
+            request.user.is_high_school_student(),
+            request.user.is_visitor(),
+            request.user.is_student()
+        ]
+
+        if (not cancellation_reason.usable_for_groups
+                or (any(managers) and not cancellation_reason.usable_by_manager())
+                or (any(students) and not cancellation_reason.usable_by_student())):
+            response = {'error': True, 'msg': _("You can't use this cancellation reason")}
             return JsonResponse(response, safe=False)
 
         for immersion_id in json_data:
