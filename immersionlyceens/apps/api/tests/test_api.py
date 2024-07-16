@@ -1871,10 +1871,12 @@ class APITestCase(TestCase):
                 'label': 'course 1',
                 'establishment': 'Etablissement 1',
                 'highschool': '',
+                'highschool_address': '',
+                'highschool_city': '',
                 'structure': 'test structure',
-                'meeting_place': 'Le portique <br> room 1',
+                'meeting_place': 'Le portique<br>room 1',
                 'campus': 'Esplanade',
-                'campus_city': 'STRASBOURG',
+                'campus_city': 'Strasbourg',
                 'building': 'Le portique',
                 'room': 'room 1',
                 'establishments': 'Etablissement 1',
@@ -1935,7 +1937,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
         self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
-        self.assertEqual(self.immersion.slot.campus.city, i['campus_city'])
+        self.assertEqual(self.immersion.slot.campus.city.title(), i['campus_city'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
@@ -1967,7 +1969,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
         self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
-        self.assertEqual(self.immersion.slot.campus.city, i['campus_city'])
+        self.assertEqual(self.immersion.slot.campus.city.title(), i['campus_city'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
@@ -2010,7 +2012,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
         self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
-        self.assertEqual(self.immersion.slot.campus.city, i['campus_city'])
+        self.assertEqual(self.immersion.slot.campus.city.title(), i['campus_city'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
