@@ -1679,8 +1679,8 @@ def immersion_attestation_download(request, immersion_id):
         return response
     # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
-        logger.error('Certificate download error', e)
-        raise Http404()
+        logger.error('Certificate download error', exc_info=e)
+        raise Http404() from e
 
 
 @login_required

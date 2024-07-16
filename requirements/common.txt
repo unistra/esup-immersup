@@ -7,7 +7,7 @@ django-extensions
 django-filter==24.2
 ldap3
 requests==2.32.2
-WeasyPrint==60.1
+WeasyPrint==62.3
 sentry-sdk[django]==1.44.1
 django-json-widget==2.0.1
 jsonschema==4.17.3
