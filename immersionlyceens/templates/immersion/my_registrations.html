@@ -16,6 +16,10 @@
 {% endblock %}
 {% block title %}{% trans "My immersions" %}{% endblock %}
 {% block content %}
+{% include "../modals/modal_other_students.html" %}
+{% include "../modals/modal_cancel_immersion.html" %}
+{% include '../modals/modal_myimmersions_slot_details.html' %}
+{% include '../modals/modal_alerts.html' %}
 <div class="main-title inside text-center">
   <div></div>
   <div class="container">
@@ -36,38 +40,42 @@
     </nav>
   </div>
   <div id="feedback" class="container"></div>
+</section
+<section class="py-5">
   <div class="row m-0">
-  <div class="col-md-12 text-right">
-    {% if alerts_cnt %}
-    <span id="alert_msg">
-      <a href="#" class="mr-2" onclick="open_alerts_modal()">
-        <i class="us us-volume-up us-fw  text-third"></i>
-        {% blocktrans %}You have <span id="alert_counter">{{ alerts_cnt }}</span> alert(s) ({{ sent_alerts_cnt }} already sent), click to view{% endblocktrans %}
-      </a>
-    </span>
-    {% else %}
-    <p class="mr-2">{% trans 'You have no course alert' %}</p>
-    {% endif %}
+    <div class="col-md-12 text-right">
+      {% if alerts_cnt %}
+      <span id="alert_msg">
+        <a href="#" class="mr-2" onclick="open_alerts_modal()">
+          <i class="us us-volume-up us-fw  text-third"></i>
+          {% blocktrans %}You have <span id="alert_counter">{{ alerts_cnt }}</span> alert(s) ({{ sent_alerts_cnt }} already sent), click to view{% endblocktrans %}
+        </a>
+      </span>
+      {% else %}
+      <p class="mr-2">{% trans 'You have no course alert' %}</p>
+      {% endif %}
+    </div>
   </div>
-</div>
 </section>
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 {% authorized_groups request.user %}
 <section class="py-5">
   <div class="container-fluid justify-content-md-center">
     <div class="row border-top my-3"></div>
-    <div class="col offset-sm-1 text-center">
-      <ul class="nav nav-pills" id="myImmersionsTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <a class="nav-link active" id="futur-tab" data-toggle="pill" href="#futur-immersions" role="tab" aria-controls="futur-immersions" aria-selected="true">{% trans "To come" %}</a>
-        </li>
-        <li class="nav-item" role="presentation">
-          <a class="nav-link" id="past-tab" data-toggle="pill" href="#past" role="tab" aria-controls="past" aria-selected="false">{% trans "Past" %}</a>
-        </li>
-        <li class="nav-item" role="presentation">
-          <a class="nav-link" id="cancelled-tab" data-toggle="pill" href="#cancelled" role="tab" aria-controls="cancelled" aria-selected="false">{% trans "Cancelled" %}</a>
-        </li>
-      </ul>
+    <div class="row" style="padding-top:20px;">
+      <div class="col offset-sm-1 text-center">
+        <ul class="nav nav-pills" id="myImmersionsTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="futur-tab" data-toggle="pill" href="#futur-immersions" role="tab" aria-controls="futur-immersions" aria-selected="true">{% trans "To come" %}</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="past-tab" data-toggle="pill" href="#past" role="tab" aria-controls="past" aria-selected="false">{% trans "Past" %}</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="cancelled-tab" data-toggle="pill" href="#cancelled" role="tab" aria-controls="cancelled" aria-selected="false">{% trans "Cancelled" %}</a>
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="tab-content" id="myImmersionsContent">
       <div class="tab-pane fade in show active" id="futur-immersions" role="tabpanel" aria-labelledby="myImmersionsContent">
@@ -83,10 +91,6 @@
       </div>
     </div>
   </div>
-  {% include "../modals/modal_other_students.html" %}
-  {% include "../modals/modal_cancel_immersion.html" %}
-  {% include '../modals/modal_myimmersions_slot_details.html' %}
-  {% include '../modals/modal_alerts.html' %}
 </section>
 {% endblock %}
 {% block foot-javascript %}
