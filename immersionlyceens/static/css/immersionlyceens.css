@@ -354,6 +354,7 @@ Firefox is sadly not supporting :has for now :(
     width: 20rem;
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
+    min-height: max-content;
     border-radius: .15rem;
     box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
 }
@@ -383,7 +384,7 @@ Firefox is sadly not supporting :has for now :(
 }
 
 .results-cards .fa-15 {
-    font-size: 1.5rem;
+    font-size: 1rem;
 }
 
 .results-cards caption {
