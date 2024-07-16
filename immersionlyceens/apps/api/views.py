@@ -762,6 +762,11 @@ def ajax_get_immersions(request, user_id=None):
         elif slot.place == Slot.OUTSIDE:
             meeting_place = slot.room
 
+        if highschool:
+            hs_address = highschool.address if highschool.address else ""
+            hs_address2 = highschool.address2 if highschool.address2 else ""
+            hs_address3 = highschool.address2 if highschool.address2 else ""
+
         immersion_data = {
             'id': immersion.id,
             'type': slot.get_type(),
@@ -769,7 +774,7 @@ def ajax_get_immersions(request, user_id=None):
             'label': slot.get_label(),
             'establishment': establishment.label if establishment else "",
             'highschool': f'{highschool.label} - {highschool.city.title()}' if highschool else "",
-            'highschool_address': f'{highschool.address if highschool.address else ''} {highschool.address2 if highschool.address2 else ''} {highschool.address3 if highschool.address3 else ''}' if highschool else "",
+            'highschool_address': f'{hs_address} {hs_address2} {hs_address3}' if highschool else "",
             'highschool_city': highschool.city.title() if highschool else "",
             'structure': structure.label if structure else "",
             'meeting_place': meeting_place,
