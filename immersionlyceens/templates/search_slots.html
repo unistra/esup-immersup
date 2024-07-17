@@ -415,7 +415,7 @@
             data: "campus_label",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-                if (full['highschool_address'] != null || full['highschool_address'] != '') {
+                if (full['highschool_address'] != null && full['highschool_address'] != '') {
                   label = "<label>{% trans 'Address' %} : </label>";
                   data = full['highschool_address'] ? full['highschool_address'] : '&nbsp;';
                   data += full['city'] ? ` (${full['city'][0].toUpperCase() + full['city'].substring(1).toLowerCase()})` : '&nbsp;';
