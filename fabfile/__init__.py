@@ -17,6 +17,7 @@ from lorraine import preprod_lorraine, prod_lorraine
 from pau import preprod_pau, prod_pau
 from reims import preprod_reims, prod_reims
 from stetienne import preprod_stetienne, prod_stetienne
+from rouen import preprod_rouen, prod_rouen
 
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
@@ -408,6 +409,8 @@ def deploy_all_preprod():
     deploy()
     preprod_reims()
     deploy()
+    preprod_rouen()
+    deploy()
 
 @task
 def deploy_all_prod():
@@ -424,6 +427,8 @@ def deploy_all_prod():
     prod_pau()
     deploy()
     prod_reims()
+    deploy()
+    prod_rouen()
     deploy()
 
 

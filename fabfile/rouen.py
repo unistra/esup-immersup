@@ -10,18 +10,18 @@ def build_env():
     execute(pydiploy.prepare.build_env)
 
 @task
-def preprod_reims():
-    """Define preprod stage for Reims instance"""
+def preprod_rouen():
+    """Define preprod stage for Rouen instance"""
     env.roledefs = {
-        'web': ['saas-reims-pprd-1.srv.unistra.fr', 'saas-reims-pprd-2.srv.unistra.fr'],
-        'lb': ['saas-reims-pprd-1.srv.unistra.fr', 'saas-reims-pprd-2.srv.unistra.fr'],
+        'web': ['saas-rouen-pprd-1.srv.unistra.fr', 'saas-rouen-pprd-2.srv.unistra.fr'],
+        'lb': ['saas-rouen-pprd-1.srv.unistra.fr', 'saas-rouen-pprd-2.srv.unistra.fr'],
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-    env.application_name = 'immersup_reims'
+    env.application_name = 'immersup_rouen'
     env.backends = env.roledefs['web']
-    env.server_name = 'immersions-test.univ-reims.fr'
-    env.short_server_name = 'immersions-test'
+    env.server_name = 'immersup-preprod.univ-rouen.fr'
+    env.short_server_name = 'immersup-preprod'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.212'
     env.no_shared_sessions = False
@@ -59,18 +59,18 @@ def preprod_reims():
 
 
 @task
-def prod_reims():
+def prod_rouen():
     """Define prod stage for Reims instance"""
     env.roledefs = {
-        'web': ['saas-reims-prod-1.srv.unistra.fr', 'saas-reims-prod-2.srv.unistra.fr'],
-        'lb': ['saas-reims-prod-1.srv.unistra.fr', 'saas-reims-prod-2.srv.unistra.fr'],
+        'web': ['saas-rouen-prod-1.srv.unistra.fr', 'saas-rouen-prod-2.srv.unistra.fr'],
+        'lb': ['saas-rouen-prod-1.srv.unistra.fr', 'saas-rouen-prod-2.srv.unistra.fr'],
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-    env.application_name = 'immersup_reims'
+    env.application_name = 'immersup_rouen'
     env.backends = env.roledefs['web']
-    env.server_name = 'immersions.univ-reims.fr'
-    env.short_server_name = 'immersions'
+    env.server_name = 'immersup.univ-rouen.fr'
+    env.short_server_name = 'immersup'
     env.static_folder = '/site_media/'
     env.server_ip = '77.72.44.196'
     env.no_shared_sessions = False
