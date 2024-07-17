@@ -74,6 +74,8 @@ POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 # See https://docs.djangoproject.com/en/1.11/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 #########################
 # General configuration #
