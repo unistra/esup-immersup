@@ -29,6 +29,10 @@ ALLOWED_HOSTS = [
     '*',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://immersup-pprd.app.unistra.fr'
+]
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
 
 
@@ -58,7 +62,7 @@ CAS_FORCE_SSL_SERVICE_URL = True
 ####################
 #    SHIBBOLETH    #
 ####################
-EDUCONNECT_LOGOUT_URL = ""
+EDUCONNECT_LOGOUT_URL = "https://pr4.educonnect.phm.education.gouv.fr/logout"
 
 #################
 # APIs settings #

@@ -770,8 +770,6 @@ INSTITUTES_URL = (
 # Notifications display time (milliseconds)
 MESSAGES_TIMEOUT = 8000
 
-LOGIN_REDIRECT_URL = '/'
-
 # Ignored queries for 404 error
 IGNORABLE_404_URLS = [
     re.compile(r'^/apple-touch-icon.*\.png$'),
