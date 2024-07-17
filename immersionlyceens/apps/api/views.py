@@ -737,6 +737,7 @@ def ajax_get_immersions(request, user_id=None):
         establishment = slot.get_establishment()
         structure = slot.get_structure()
         campus = slot.campus.label if slot.campus else ""
+        campus_city = slot.campus.city if slot.campus else ""
         building = slot.building.label if slot.building else ""
 
         slot_datetime = datetime.datetime.strptime(
@@ -757,9 +758,14 @@ def ajax_get_immersions(request, user_id=None):
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
         elif slot.place == Slot.FACE_TO_FACE:
-            meeting_place = " <br> ".join(list(filter(lambda x:x, [building, slot.room])))
+            meeting_place = "<br>".join(list(filter(lambda x: x, [building, slot.room])))
         elif slot.place == Slot.OUTSIDE:
             meeting_place = slot.room
+
+        if highschool:
+            hs_address = highschool.address if highschool.address else ""
+            hs_address2 = highschool.address2 if highschool.address2 else ""
+            hs_address3 = highschool.address2 if highschool.address2 else ""
 
         immersion_data = {
             'id': immersion.id,
@@ -767,7 +773,9 @@ def ajax_get_immersions(request, user_id=None):
             'translated_type': gettext(slot.get_type().title()),
             'label': slot.get_label(),
             'establishment': establishment.label if establishment else "",
-            'highschool': f'{highschool.label} - {highschool.city}' if highschool else "",
+            'highschool': f'{highschool.label} - {highschool.city.title()}' if highschool else "",
+            'highschool_address': f'{hs_address} {hs_address2} {hs_address3}' if highschool else "",
+            'highschool_city': highschool.city.title() if highschool else "",
             'structure': structure.label if structure else "",
             'meeting_place': meeting_place,
             'campus': campus,
@@ -777,6 +785,7 @@ def ajax_get_immersions(request, user_id=None):
             'course': {
                 'label': slot.course.label,
                 'training': slot.course.training.label,
+                'training_url': slot.course.training.url,
                 'type': slot.course_type.label,
                 'type_full': slot.course_type.full_label
             } if slot.course else {},
@@ -801,6 +810,11 @@ def ajax_get_immersions(request, user_id=None):
             'place': slot.place,
             'registration_date': immersion.registration_date,
             'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
+            'campus_city': campus_city.title() if campus_city else "",
+            'allow_individual_registrations': slot.allow_individual_registrations,
+            'n_places': slot.n_places,
+            'n_registered': slot.registered_students(),
+            'registration_limit_date': slot.registration_limit_date
         }
 
         if slot.date < today or (slot.date == today and slot.start_time < now.time()):
@@ -833,7 +847,6 @@ def ajax_get_immersions(request, user_id=None):
                 immersion_data['establishments'].append(str(slot.course.get_etab_or_high_school()))
 
         immersion_data['establishments'] = ', '.join(immersion_data['establishments'])
-
         response['data'].append(immersion_data.copy())
 
     return JsonResponse(response, safe=False)

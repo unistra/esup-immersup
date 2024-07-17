@@ -1,0 +1,141 @@
+{% load immersionlyceens_tags i18n static %}
+<!-- Modal -->
+<div class="modal fade" id="modal_myimmersions_slot_details" tabindex="-1" role="dialog" aria-labelledby="modal_myimmersions_slot_details_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="modal_myimmersions_slot_details_title">{% trans 'Slot' %}</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-sm-12">
+              <div id="row_establishment" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Establishment' %} :
+                </div>
+                <div id="modal_establishment" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_highschool" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Highschool' %} :
+                </div>
+                <div id="modal_highschool" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_label" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Label' %} :
+                </div>
+                <div id="modal_label" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_course_label" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Training' %} :
+                </div>
+                <div id="modal_course_label" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_type" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Slot type' %} :
+                </div>
+                <div id="modal_type" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_course_type" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Course type' %} :
+                </div>
+                <div id="modal_course_type" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_date" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Date' %} :
+                </div>
+                <div id="modal_date" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_campus" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Campus' %} :
+                </div>
+                <div id="modal_campus" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_highschool_address" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Address' %} :
+                </div>
+                <div id="modal_highschool_address" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_city" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'City' %} :
+                </div>
+                <div id="modal_city" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_building" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Building' %} :
+                </div>
+                <div id="modal_building" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_meeting_place" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Meeting place' %} :
+                </div>
+                <div id="modal_meeting_place" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_speakers" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Speakers' %} :
+                </div>
+                <div id="modal_speakers" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_additional_information" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Additional information' %} :
+                </div>
+                <div id="modal_additional_information" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_restrictions" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Restrictions' %} :
+                </div>
+                <div id="modal_restrictions" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_available_seats" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Available places' %} :
+                </div>
+                <div id="modal_available_seats" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_registration_date" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Registration limit' %} :
+                </div>
+                <div id="modal_end_registration_date" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_cancellation_date" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Cancellation date' %} :
+                </div>
+                <div id="modal_cancellation_date" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_cancellation_type" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Cancellation type' %} :
+                </div>
+                <div id="modal_cancellation_type" class="col-4 col-sm-6"></div>
+              </div>
+              <div class="row">
+                <div class="font-weight-bold col-8 col-sm-6"></div>
+                <div id="modal_register_btn" class="col-2 col-sm-3"></div>
+                <div id="modal_close_btn" class="col-2 col-sm-3">
+                  <button type="button" class="btn badge badge-pill badge-secondary pull-right" data-dismiss="modal" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

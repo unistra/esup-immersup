@@ -96,7 +96,12 @@ class CustomShibbolethLogoutView(TemplateView):
         #Log the user out.
         auth.logout(self.request)
 
-        return redirect(logout)
+        #Get target url in order of preference.
+        target = LOGOUT_REDIRECT_URL or\
+                 quote(self.request.GET.get(self.redirect_field_name, '')) or\
+                 quote(request.build_absolute_uri())
+        _logout = logout_url % target
+        return redirect(_logout)
 
 
 class CustomLoginView(FormView):
@@ -1674,8 +1679,8 @@ def immersion_attestation_download(request, immersion_id):
         return response
     # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
-        logger.error('Certificate download error', e)
-        raise Http404()
+        logger.error('Certificate download error', exc_info=e)
+        raise Http404() from e
 
 
 @login_required
@@ -1713,8 +1718,8 @@ def immersion_attendance_students_list_download(request, slot_id):
             return response
     # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
-        logger.error('Certificate download error', e)
-        raise Http404()
+        logger.error('Certificate download error', exc_info=e)
+        raise Http404() from e
 
 
 @method_decorator(groups_required('VIS', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")

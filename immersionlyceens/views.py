@@ -446,7 +446,7 @@ def offer_off_offer_events(request):
                     raise
 
                 if event.available_seats() > 0 and can_register:
-                    if period.registration_start_date <= today <= period.immersion_end_date \
+                    if period.registration_start_date.date() <= today <= period.immersion_end_date \
                             and event.registration_limit_date >= now:
                         event.can_register = True
                     elif now < event.registration_limit_date:

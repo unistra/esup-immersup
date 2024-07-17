@@ -15,9 +15,9 @@
   {% trans 'Search immersions slots' %}
 {% endblock %}
 {% block content %}
-  {% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
-  {% authorized_groups request.user %}
-    {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
+{% authorized_groups request.user %}
+{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
   {% include './modals/modal_search_slots_details.html' %}
   <div class="main-title inside text-center">
     <div></div>
@@ -415,7 +415,7 @@
             data: "campus_label",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-                if (full['highschool_address'] != null || full['highschool_address'] != '') {
+                if (full['highschool_address'] != null && full['highschool_address'] != '') {
                   label = "<label>{% trans 'Address' %} : </label>";
                   data = full['highschool_address'] ? full['highschool_address'] : '&nbsp;';
                   data += full['city'] ? ` (${full['city'][0].toUpperCase() + full['city'].substring(1).toLowerCase()})` : '&nbsp;';
@@ -509,9 +509,8 @@
           {
             className:"align-bottom-results-field",
             render: function (data, type, full, meta) {
-              return "<button id=\"btn_more_details\" class=\"btn badge badge-pill badge-primary pull-right \">{% trans 'More details' %}</button></span>"
+              return "<button class=\"btn badge badge-pill badge-primary pull-right btn-more-details \">{% trans 'More details' %}</button></span>"
             }
-
           },
       ],
       "columnDefs": [
