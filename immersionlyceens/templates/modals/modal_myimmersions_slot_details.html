@@ -1,6 +1,6 @@
 {% load immersionlyceens_tags i18n static %}
 <!-- Modal -->
-<div class="modal fade" id="modal_myimmersions_slot_details" tabindex="-1" role="dialog" aria-labelledby="modal_myimmersions_slot_details_title" aria-hidden="true">
+<div class="modal fade show" id="modal_myimmersions_slot_details" tabindex="-1" role="dialog" aria-labelledby="modal_myimmersions_slot_details_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -124,6 +124,12 @@
                   {% trans 'Cancellation type' %} :
                 </div>
                 <div id="modal_cancellation_type" class="col-4 col-sm-6"></div>
+              </div>
+              <div id="row_actions" class="row">
+                <div class="font-weight-bold col-8 col-sm-6">
+                  {% trans 'Actions' %} :
+                </div>
+                <div id="modal_actions" class="col-4 col-sm-6"></div>
               </div>
               <div class="row">
                 <div class="font-weight-bold col-8 col-sm-6"></div>
