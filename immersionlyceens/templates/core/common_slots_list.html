@@ -234,7 +234,7 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place="1") {
+  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place=1) {
     can_update_registrations = update_registrations
     current_slot_id = slot_id;
     slot_places = n_places;
@@ -243,8 +243,8 @@
     slot_allow_individual_registrations = allowed_individual_registrations;
     slot_group_mode = group_mode;
 
-    let face_to_face = "0"
-    let outside = "2"
+    let face_to_face = 0
+    let outside = 2
 
     if(place === face_to_face || place === outside) {
         $("#id_attendances").show()
