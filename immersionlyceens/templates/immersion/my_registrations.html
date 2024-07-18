@@ -13,6 +13,8 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
 {% endblock %}
 {% block title %}{% trans "My immersions" %}{% endblock %}
 {% block content %}
@@ -1162,6 +1164,9 @@
         $('#modal_myimmersions_slot_details').modal("show");
       }
     })
+    $("body").tooltip({ selector: '[data-toggle=tooltip]', container:'body', html:true});
+
+
   });
 </script>
 {% endblock %}
