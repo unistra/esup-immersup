@@ -23,7 +23,11 @@
             {% trans 'My high school uses' %} {{ federation_name }}
           </a>
           <p class="float-right mt-4">
-            {% trans 'On the next page, select "Educonnect" in the establishments list' %}
+            {% if profile == 'lyc' %}
+              {% trans 'On the next page, select "Educonnect" in the establishments list' %}
+            {% else %}
+              {% trans 'On the next page, select "Education nationale" in the establishments list' %}
+            {% endif %}
           </p>
         </div>
         <div class="col-sm-6 col-md-6">

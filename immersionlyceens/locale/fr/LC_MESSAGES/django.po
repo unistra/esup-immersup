@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-17 08:34+0200\n"
+"POT-Creation-Date: 2024-07-18 09:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -661,8 +661,8 @@ msgstr "Erreur : l'utilisateur ne partage pas ses immersions avec son lycée"
 #: immersionlyceens/apps/api/views.py:4836
 #: immersionlyceens/apps/core/models.py:2449
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:36
-#: immersionlyceens/templates/immersion/my_registrations.html:445
-#: immersionlyceens/templates/immersion/my_registrations.html:1067
+#: immersionlyceens/templates/immersion/my_registrations.html:449
+#: immersionlyceens/templates/immersion/my_registrations.html:1083
 #: immersionlyceens/templates/search_slots.html:91
 #: immersionlyceens/templates/search_slots.html:99
 #: immersionlyceens/templates/search_slots.html:157
@@ -1334,9 +1334,9 @@ msgstr "Vous ne pouvez plus vous inscrire à ce créneau"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:69
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:116
 #: immersionlyceens/templates/immersion/fragments/my_past_immersions.html:10
-#: immersionlyceens/templates/immersion/my_registrations.html:209
-#: immersionlyceens/templates/immersion/my_registrations.html:542
-#: immersionlyceens/templates/immersion/my_registrations.html:835
+#: immersionlyceens/templates/immersion/my_registrations.html:212
+#: immersionlyceens/templates/immersion/my_registrations.html:558
+#: immersionlyceens/templates/immersion/my_registrations.html:851
 #: immersionlyceens/templates/modals/modal_alerts.html:26
 #: immersionlyceens/templates/offer_subdomains.html:83
 #: immersionlyceens/templates/search_slots.html:78
@@ -1353,9 +1353,9 @@ msgstr "Cours"
 #: immersionlyceens/templates/immersion/fragments/my_cancelled_immersions.html:12
 #: immersionlyceens/templates/immersion/fragments/my_futur_immersions.html:12
 #: immersionlyceens/templates/immersion/fragments/my_past_immersions.html:12
-#: immersionlyceens/templates/immersion/my_registrations.html:211
-#: immersionlyceens/templates/immersion/my_registrations.html:544
-#: immersionlyceens/templates/immersion/my_registrations.html:837
+#: immersionlyceens/templates/immersion/my_registrations.html:214
+#: immersionlyceens/templates/immersion/my_registrations.html:560
+#: immersionlyceens/templates/immersion/my_registrations.html:853
 #: immersionlyceens/templates/offer_off_offer_events.html:91
 #: immersionlyceens/templates/search_slots.html:82
 #: immersionlyceens/templates/search_slots.html:173
@@ -1394,8 +1394,8 @@ msgstr "Établissement d'Etudes Supérieures"
 #: immersionlyceens/templates/core/off_offer_event.html:46
 #: immersionlyceens/templates/core/students_presence.html:43
 #: immersionlyceens/templates/export/pdf/attendance_students_list.html:42
-#: immersionlyceens/templates/immersion/my_registrations.html:229
-#: immersionlyceens/templates/immersion/my_registrations.html:855
+#: immersionlyceens/templates/immersion/my_registrations.html:232
+#: immersionlyceens/templates/immersion/my_registrations.html:871
 #: immersionlyceens/templates/modals/modal_alerts.html:30
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:16
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:16
@@ -1424,9 +1424,9 @@ msgstr "Domaine/Sous domaine"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:20
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:67
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:114
-#: immersionlyceens/templates/immersion/my_registrations.html:239
-#: immersionlyceens/templates/immersion/my_registrations.html:554
-#: immersionlyceens/templates/immersion/my_registrations.html:865
+#: immersionlyceens/templates/immersion/my_registrations.html:242
+#: immersionlyceens/templates/immersion/my_registrations.html:570
+#: immersionlyceens/templates/immersion/my_registrations.html:881
 #: immersionlyceens/templates/modals/modal_alerts.html:27
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:34
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:34
@@ -1879,9 +1879,9 @@ msgstr ""
 #: immersionlyceens/apps/core/models.py:136
 #: immersionlyceens/apps/core/models.py:232
 #: immersionlyceens/templates/core/my_high_school.html:49
-#: immersionlyceens/templates/immersion/my_registrations.html:294
-#: immersionlyceens/templates/immersion/my_registrations.html:609
-#: immersionlyceens/templates/immersion/my_registrations.html:920
+#: immersionlyceens/templates/immersion/my_registrations.html:297
+#: immersionlyceens/templates/immersion/my_registrations.html:625
+#: immersionlyceens/templates/immersion/my_registrations.html:936
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:64
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:64
 #: immersionlyceens/templates/search_slots.html:419
@@ -3143,9 +3143,9 @@ msgstr "Code UAI"
 #: immersionlyceens/templates/immersion/fragments/my_events.html:19
 #: immersionlyceens/templates/immersion/fragments/my_events.html:60
 #: immersionlyceens/templates/immersion/fragments/my_events.html:101
-#: immersionlyceens/templates/immersion/my_registrations.html:254
-#: immersionlyceens/templates/immersion/my_registrations.html:569
-#: immersionlyceens/templates/immersion/my_registrations.html:880
+#: immersionlyceens/templates/immersion/my_registrations.html:257
+#: immersionlyceens/templates/immersion/my_registrations.html:585
+#: immersionlyceens/templates/immersion/my_registrations.html:896
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:28
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:28
 #: immersionlyceens/templates/search_slots.html:376
@@ -3574,9 +3574,9 @@ msgstr "Utilisateurs groupés"
 #: immersionlyceens/templates/core/courses_slots_list.html:59
 #: immersionlyceens/templates/core/off_offer_events_slots_list.html:43
 #: immersionlyceens/templates/core/students_presence.html:48
-#: immersionlyceens/templates/immersion/my_registrations.html:280
-#: immersionlyceens/templates/immersion/my_registrations.html:595
-#: immersionlyceens/templates/immersion/my_registrations.html:906
+#: immersionlyceens/templates/immersion/my_registrations.html:283
+#: immersionlyceens/templates/immersion/my_registrations.html:611
+#: immersionlyceens/templates/immersion/my_registrations.html:922
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:52
 #: immersionlyceens/templates/modals/modal_public_slots.html:20
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:52
@@ -3671,9 +3671,9 @@ msgstr "Un campus de même nom existe déjà dans cet établissement"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:24
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:71
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:118
-#: immersionlyceens/templates/immersion/my_registrations.html:300
-#: immersionlyceens/templates/immersion/my_registrations.html:615
-#: immersionlyceens/templates/immersion/my_registrations.html:927
+#: immersionlyceens/templates/immersion/my_registrations.html:303
+#: immersionlyceens/templates/immersion/my_registrations.html:631
+#: immersionlyceens/templates/immersion/my_registrations.html:943
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:58
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:58
 #: immersionlyceens/templates/modals/modal_student_details.html:24
@@ -4044,9 +4044,9 @@ msgstr "Description"
 #: immersionlyceens/templates/core/off_offer_event.html:88
 #: immersionlyceens/templates/core/off_offer_events_list.html:99
 #: immersionlyceens/templates/core/off_offer_events_slots_list.html:41
-#: immersionlyceens/templates/immersion/my_registrations.html:242
-#: immersionlyceens/templates/immersion/my_registrations.html:557
-#: immersionlyceens/templates/immersion/my_registrations.html:868
+#: immersionlyceens/templates/immersion/my_registrations.html:245
+#: immersionlyceens/templates/immersion/my_registrations.html:573
+#: immersionlyceens/templates/immersion/my_registrations.html:884
 #: immersionlyceens/templates/offer_off_offer_events.html:61
 #: immersionlyceens/templates/search_slots.html:356
 msgid "Event type"
@@ -4371,7 +4371,7 @@ msgid "Registration limit"
 msgstr "Inscription avant le"
 
 #: immersionlyceens/apps/core/models.py:2557
-#: immersionlyceens/templates/immersion/my_registrations.html:335
+#: immersionlyceens/templates/immersion/my_registrations.html:338
 msgid "Cancellation limit"
 msgstr "Annulation avant le"
 
@@ -4459,7 +4459,7 @@ msgstr "Absent(e)"
 #: immersionlyceens/apps/core/models.py:2928
 #: immersionlyceens/templates/immersion/fragments/my_events.html:106
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:122
-#: immersionlyceens/templates/immersion/my_registrations.html:963
+#: immersionlyceens/templates/immersion/my_registrations.html:979
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:124
 #: immersionlyceens/templates/modals/modal_student_details.html:29
 msgid "Cancellation type"
@@ -4479,7 +4479,7 @@ msgstr "Lien enquête envoyée ?"
 
 #: immersionlyceens/apps/core/models.py:2873
 #: immersionlyceens/apps/core/models.py:2924
-#: immersionlyceens/templates/immersion/my_registrations.html:955
+#: immersionlyceens/templates/immersion/my_registrations.html:971
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:118
 msgid "Cancellation date"
 msgstr "Date d'annulation"
@@ -6083,11 +6083,11 @@ msgstr "Lien non renseigné"
 msgid "Error : %(exception)s"
 msgstr "Erreur : %(exception)s"
 
-#: immersionlyceens/settings/base.py:397
+#: immersionlyceens/settings/base.py:399
 msgid "ImmerSup Admin Page"
 msgstr "ImmerSup - Interface d'administration"
 
-#: immersionlyceens/settings/base.py:398
+#: immersionlyceens/settings/base.py:400
 msgid "Welcome to ImmerSup administration page"
 msgstr "Bienvenue sur la page d'administration de l'application ImmerSup"
 
@@ -6322,9 +6322,9 @@ msgstr "Niveau des étudiants / catégories"
 #: immersionlyceens/templates/establishments_under_agreement.html:91
 #: immersionlyceens/templates/highschools.html:132
 #: immersionlyceens/templates/highschools.html:191
-#: immersionlyceens/templates/immersion/my_registrations.html:177
-#: immersionlyceens/templates/immersion/my_registrations.html:515
-#: immersionlyceens/templates/immersion/my_registrations.html:808
+#: immersionlyceens/templates/immersion/my_registrations.html:180
+#: immersionlyceens/templates/immersion/my_registrations.html:531
+#: immersionlyceens/templates/immersion/my_registrations.html:824
 #: immersionlyceens/templates/modals/modal_alerts.html:147
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:20
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:73
@@ -6599,9 +6599,9 @@ msgstr "Horaires"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:23
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:70
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:117
-#: immersionlyceens/templates/immersion/my_registrations.html:270
-#: immersionlyceens/templates/immersion/my_registrations.html:585
-#: immersionlyceens/templates/immersion/my_registrations.html:896
+#: immersionlyceens/templates/immersion/my_registrations.html:273
+#: immersionlyceens/templates/immersion/my_registrations.html:601
+#: immersionlyceens/templates/immersion/my_registrations.html:912
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:32
 #: immersionlyceens/templates/modals/modal_public_slots.html:19
 #: immersionlyceens/templates/modals/modal_student_details.html:20
@@ -6622,9 +6622,9 @@ msgstr "Type"
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:25
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:72
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:119
-#: immersionlyceens/templates/immersion/my_registrations.html:317
-#: immersionlyceens/templates/immersion/my_registrations.html:632
-#: immersionlyceens/templates/immersion/my_registrations.html:944
+#: immersionlyceens/templates/immersion/my_registrations.html:320
+#: immersionlyceens/templates/immersion/my_registrations.html:648
+#: immersionlyceens/templates/immersion/my_registrations.html:960
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:82
 #: immersionlyceens/templates/modals/modal_search_slots_details.html:76
 #: immersionlyceens/templates/offer_off_offer_events.html:121
@@ -6693,9 +6693,9 @@ msgstr "Niveaux lycéens autorisés"
 
 #: immersionlyceens/templates/cohort_offer.html:269
 #: immersionlyceens/templates/cohort_offer_subdomains.html:207
-#: immersionlyceens/templates/immersion/my_registrations.html:455
-#: immersionlyceens/templates/immersion/my_registrations.html:750
-#: immersionlyceens/templates/immersion/my_registrations.html:1077
+#: immersionlyceens/templates/immersion/my_registrations.html:469
+#: immersionlyceens/templates/immersion/my_registrations.html:766
+#: immersionlyceens/templates/immersion/my_registrations.html:1096
 #: immersionlyceens/templates/offer_off_offer_events.html:219
 #: immersionlyceens/templates/offer_subdomains.html:206
 #: immersionlyceens/templates/search_slots.html:636
@@ -6706,9 +6706,9 @@ msgstr "Créneau ouvert à tous"
 #: immersionlyceens/templates/cohort_offer.html:275
 #: immersionlyceens/templates/cohort_offer_subdomains.html:212
 #: immersionlyceens/templates/cohort_offer_subdomains.html:213
-#: immersionlyceens/templates/immersion/my_registrations.html:384
-#: immersionlyceens/templates/immersion/my_registrations.html:691
-#: immersionlyceens/templates/immersion/my_registrations.html:1010
+#: immersionlyceens/templates/immersion/my_registrations.html:388
+#: immersionlyceens/templates/immersion/my_registrations.html:707
+#: immersionlyceens/templates/immersion/my_registrations.html:1026
 #: immersionlyceens/templates/search_slots.html:149
 #: immersionlyceens/templates/search_slots.html:153
 #: immersionlyceens/templates/search_slots.html:477
@@ -6739,7 +6739,7 @@ msgstr "Places restantes"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:235
 #: immersionlyceens/templates/cohort_offer_subdomains.html:247
 #: immersionlyceens/templates/cohort_offer_subdomains.html:269
-#: immersionlyceens/templates/immersion/my_registrations.html:977
+#: immersionlyceens/templates/immersion/my_registrations.html:993
 #: immersionlyceens/templates/modals/modal_register_group.html:149
 #: immersionlyceens/templates/modals/modal_register_group.html:156
 #: immersionlyceens/templates/offer_off_offer_events.html:246
@@ -6780,7 +6780,7 @@ msgstr "groupe(s) inscrit(s)"
 
 #: immersionlyceens/templates/cohort_offer.html:345
 #: immersionlyceens/templates/cohort_offer_subdomains.html:298
-#: immersionlyceens/templates/immersion/my_registrations.html:1045
+#: immersionlyceens/templates/immersion/my_registrations.html:1061
 #: immersionlyceens/templates/offer_off_offer_events.html:273
 #: immersionlyceens/templates/offer_subdomains.html:256
 #: immersionlyceens/templates/search_slots.html:604
@@ -6818,8 +6818,8 @@ msgstr "Accueil"
 
 #: immersionlyceens/templates/cohort_offer_subdomains.html:76
 #: immersionlyceens/templates/cohort_offer_subdomains.html:95
-#: immersionlyceens/templates/immersion/my_registrations.html:726
-#: immersionlyceens/templates/immersion/my_registrations.html:1048
+#: immersionlyceens/templates/immersion/my_registrations.html:741
+#: immersionlyceens/templates/immersion/my_registrations.html:1064
 #: immersionlyceens/templates/offer_subdomains.html:75
 #: immersionlyceens/templates/offer_subdomains.html:94
 #: immersionlyceens/templates/search_slots.html:607
@@ -6843,7 +6843,8 @@ msgid "Cancelled registration"
 msgstr "Inscription annulée"
 
 #: immersionlyceens/templates/cohort_offer_subdomains.html:218
-#: immersionlyceens/templates/immersion/my_registrations.html:973
+#: immersionlyceens/templates/immersion/my_registrations.html:989
+#: immersionlyceens/templates/immersion/my_registrations.html:1087
 #: immersionlyceens/templates/offer_off_offer_events.html:227
 #: immersionlyceens/templates/offer_subdomains.html:213
 msgid "Register again"
@@ -6915,7 +6916,8 @@ msgstr "Accepter et signer la charte"
 #: immersionlyceens/templates/core/slot__controls.html:5
 #: immersionlyceens/templates/core/training/training.html:103
 #: immersionlyceens/templates/core/training/training.html:108
-#: immersionlyceens/templates/immersion/my_registrations.html:348
+#: immersionlyceens/templates/immersion/my_registrations.html:351
+#: immersionlyceens/templates/immersion/my_registrations.html:458
 #: immersionlyceens/templates/modals/modal_register_group.html:84
 msgid "Cancel"
 msgstr "Annuler"
@@ -7541,7 +7543,7 @@ msgstr "Lieu"
 
 #: immersionlyceens/templates/core/my_courses_slots.html:34
 #: immersionlyceens/templates/core/my_events_slots.html:33
-#: immersionlyceens/templates/immersion/my_registrations.html:647
+#: immersionlyceens/templates/immersion/my_registrations.html:663
 #: immersionlyceens/templates/modals/modal_student_details.html:30
 msgid "Attendance"
 msgstr "Émargements"
@@ -8464,7 +8466,7 @@ msgstr "Veuillez consulter vos courriels pour la procédure d'activation."
 
 #: immersionlyceens/templates/immersion/activation_needed.html:23
 #: immersionlyceens/templates/immersion/login.html:49
-#: immersionlyceens/templates/immersion/login_choice.html:43
+#: immersionlyceens/templates/immersion/login_choice.html:47
 msgid "I have not received the activation email"
 msgstr "Je n'ai pas reçu le courriel d'activation"
 
@@ -8733,7 +8735,7 @@ msgid "Forgot your credentials ?"
 msgstr "Mot de passe oublié ?"
 
 #: immersionlyceens/templates/immersion/login.html:48
-#: immersionlyceens/templates/immersion/login_choice.html:42
+#: immersionlyceens/templates/immersion/login_choice.html:46
 msgid "Not registered yet ?"
 msgstr "Pas encore inscrit ?"
 
@@ -8745,13 +8747,20 @@ msgstr "Tous les lycées publics et lycées privés sous contrat"
 msgid "My high school uses"
 msgstr "Mon lycée utilise"
 
-#: immersionlyceens/templates/immersion/login_choice.html:26
+#: immersionlyceens/templates/immersion/login_choice.html:27
 msgid "On the next page, select \"Educonnect\" in the establishments list"
 msgstr ""
-"Sur la page suivante, il vous faudra choisir Educonnect dans la liste des "
+"Sur la page suivante, il vous faudra choisir 'Educonnect' dans la liste des "
 "établissements"
 
-#: immersionlyceens/templates/immersion/login_choice.html:31
+#: immersionlyceens/templates/immersion/login_choice.html:29
+msgid ""
+"On the next page, select \"Education nationale\" in the establishments list"
+msgstr ""
+"Sur la page suivante, il vous faudra choisir 'Education nationale' dans la liste des "
+"établissements"
+
+#: immersionlyceens/templates/immersion/login_choice.html:35
 msgid "My High school does not use"
 msgstr "Mon lycée n'utilise pas"
 
@@ -8802,23 +8811,24 @@ msgstr "Passées"
 msgid "Cancelled"
 msgstr "Annulées"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:326
-#: immersionlyceens/templates/immersion/my_registrations.html:640
+#: immersionlyceens/templates/immersion/my_registrations.html:329
+#: immersionlyceens/templates/immersion/my_registrations.html:656
 msgid "Registered date"
 msgstr "Date d'inscription"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:343
+#: immersionlyceens/templates/immersion/my_registrations.html:346
+#: immersionlyceens/templates/immersion/my_registrations.html:453
 msgid "Other registrants"
 msgstr "Autres lycéens de mon lycée inscrits à ce créneau"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:352
-#: immersionlyceens/templates/immersion/my_registrations.html:659
-#: immersionlyceens/templates/immersion/my_registrations.html:979
+#: immersionlyceens/templates/immersion/my_registrations.html:355
+#: immersionlyceens/templates/immersion/my_registrations.html:675
+#: immersionlyceens/templates/immersion/my_registrations.html:995
 #: immersionlyceens/templates/search_slots.html:512
 msgid "More details"
 msgstr "Plus de détails"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:649
+#: immersionlyceens/templates/immersion/my_registrations.html:665
 #: immersionlyceens/templates/modals/modal_student_details.html:143
 msgid "Attestation download"
 msgstr "Télécharger l'attestation"
@@ -8903,7 +8913,7 @@ msgstr "Mes alertes"
 #: immersionlyceens/templates/modals/modal_legal.html:11
 #: immersionlyceens/templates/modals/modal_legal.html:20
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:8
-#: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:132
+#: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:138
 #: immersionlyceens/templates/modals/modal_nuke.html:8
 #: immersionlyceens/templates/modals/modal_nuke_account.html:8
 #: immersionlyceens/templates/modals/modal_nuke_speaker.html:8
@@ -9068,6 +9078,10 @@ msgstr "Etablissement / Lycée"
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:51
 msgid "Submit filters"
 msgstr "Valider ces filtres"
+
+#: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:130
+msgid "Actions"
+msgstr "Actions"
 
 #: immersionlyceens/templates/modals/modal_nuke.html:7
 #: immersionlyceens/templates/modals/modal_nuke_account.html:7
