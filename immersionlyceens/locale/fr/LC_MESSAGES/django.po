@@ -8755,10 +8755,11 @@ msgstr ""
 
 #: immersionlyceens/templates/immersion/login_choice.html:29
 msgid ""
-"On the next page, select \"Education nationale\" in the establishments list"
+"On the next page, select \"Education Nationale - accès académies et administration centrale\" "
+"in the establishments list"
 msgstr ""
-"Sur la page suivante, il vous faudra choisir 'Education nationale' dans la liste des "
-"établissements"
+"Sur la page suivante, il vous faudra choisir 'Education Nationale - accès académies et administration centrale' "
+"dans la liste des établissements"
 
 #: immersionlyceens/templates/immersion/login_choice.html:35
 msgid "My High school does not use"
