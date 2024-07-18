@@ -84,8 +84,10 @@ class CustomShibbolethLogoutView(TemplateView):
 
         if self.request.user and not self.request.user.is_anonymous:
             if self.request.user.is_high_school_student() and self.request.user.uses_federation():
+                # high school student
                 logout = settings.EDUCONNECT_LOGOUT_URL
             elif self.request.user.uses_federation():
+                # speakers and high school referents
                 logout = settings.AGENT_FEDERATION_LOGOUT_URL
             else:
                 # Get target url in order of preference.
@@ -342,7 +344,6 @@ def shibbolethLogin(request, profile=None):
                 )
             except HighSchool.DoesNotExist as e:
                 return render(request, 'immersion/missing_hs.html', {})
-                # return HttpResponseRedirect("/")
 
         else:
             is_student = True
@@ -453,6 +454,14 @@ def shibbolethLogin(request, profile=None):
         context = shib_attrs
         return render(request, "immersion/confirm_creation.html", context)
     else:
+        # Check if user high school uses agent federation
+        if request.user.highschool and not request.user.uses_federation():
+            err = _("You can't access this application with the agent federation, please use your local credentials.")
+            messages.error(request, err)
+            profile = "ref_lyc" if request.user.is_high_school_manager() else "inter"
+
+            return HttpResponseRedirect(f"/immersion/login/{profile}")
+
         # Update user attributes
         try:
             user = ImmersionUser.objects.get(username=shib_attrs["username"])
@@ -501,12 +510,6 @@ def shibbolethLogin(request, profile=None):
 
             elif is_high_school_student and request.user.is_high_school_student():
                 return HttpResponseRedirect("/immersion/hs_record")
-                """
-                if request.user.get_high_school_student_record():
-                    return HttpResponseRedirect("/")
-                else:
-                    return HttpResponseRedirect("/immersion/hs_record")
-                """
 
     return HttpResponseRedirect("/")
 
