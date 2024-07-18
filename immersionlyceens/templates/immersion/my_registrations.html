@@ -377,7 +377,7 @@
       var restrictions = "";
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
-      var filteredRows = ['row_cancellation_date', 'row_cancellation_type'];
+      var filteredRows = ['row_cancellation_date', 'row_cancellation_type', 'row_attendancee'];
       let availablesSeatslabel = '<ul class="list-inline">';
       let face_to_face = 0
       let remote = 1
@@ -465,7 +465,7 @@
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"><>') {
+              if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
               }
               $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
@@ -489,8 +489,8 @@
       )
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
+      $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
-      $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
       $('#modal_myimmersions_slot_details #modal_actions').html(actions ? actions : "");
 
       // rows to hide
@@ -660,19 +660,20 @@
         },
         { "data": "attendance",
           "render": function(data, type, row) {
-            var msg = "<label>{% trans "Attendance" %} :</label>" + data;
-            if(row.attendance_status === 1 || row.place === 1) {
-              msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
-                  "<i class='fa fas fa-download fa-2x'></i>" +
-                  "</a>";
-            }
+            let msg = "<label>{% trans "Attendance" %} :</label>" + data;
             return msg;
           }
         },
         {
           className:"align-bottom-results-field",
           render: function (data, type, full, meta) {
-            return "<button class=\"btn badge badge-pill badge-primary pull-right btn-more-details\">{% trans 'More details' %}</button></span>"
+            let msg = "";
+            if(full['attendance_status'] === 1 || full['place'] === 1) {
+              msg += "<a href=\"dl/attestation/" + full['id'] + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+                  "<i class='fa fas fa-download fa-15'></i>" +
+                  "</a>";
+            }
+            return "<span class='pull-right'>" + msg + "<button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></span>"
           }
 
         },
@@ -698,15 +699,21 @@
       var restrictions = "";
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
-      var filteredRows = ['row_cancellation_date', 'row_cancellation_type', 'row_actions'];
+      var filteredRows = ['row_cancellation_date', 'row_cancellation_type', 'row_actions', 'row_end_registration_date'];
       let availablesSeatslabel = '<ul class="list-inline">';
-      let face_to_face = "0"
-      let remote = "1"
-      let outside = "2"
+      let face_to_face = 0;
+      let remote = 1;
+      let outside = 2;
+      let attendanceLabel = rowData[0].attendance;
       if (rowData[0].allow_individual_registrations === true) {
         availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym> " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_registered)) + ' / ' + rowData[0].n_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
+      if(rowData[0].attendance_status === 1 || rowData[0].place === 1) {
+        attendanceLabel += "<a href=\"dl/attestation/" + rowData[0].id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+            "<i class='fa fas fa-download fa-15'></i>" +
+            "</a>";
+      }
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
@@ -762,7 +769,7 @@
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"><>') {
+              if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
               }
               $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
@@ -785,8 +792,8 @@
       )
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
-      $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
-      $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
+      $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
+      $('#modal_myimmersions_slot_details #modal_attendance').html(attendanceLabel);
       // rows to hide
       selectedRows = filteredRows.map(id => `#${id}`).join(',');
       $(selectedRows).hide();
@@ -962,6 +969,14 @@
             return data;
           },
         },
+        { "data": "registration_date",
+          "render": function(data, type, row) {
+            if (type==='display') {
+              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+            }
+            return data
+          }
+        },
         { "data": "cancellation_date",
           "render": function(data, type, row) {
             if (data != null || data != '') {
@@ -1015,11 +1030,11 @@
       var restrictions = "";
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
-      var filteredRows = [];
+      var filteredRows = ['row_attendancee'];
       let availablesSeatslabel = '<ul class="list-inline">';
-      let face_to_face = "0"
-      let remote = "1"
-      let outside = "2"
+      let face_to_face = 0
+      let remote = 1
+      let outside = 2
       let actions = ""
 
       if (rowData[0].allow_individual_registrations === true) {
@@ -1092,7 +1107,7 @@
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"><>') {
+              if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
               }
               $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
@@ -1116,10 +1131,10 @@
       )
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
+      $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_cancellation_date').html(formatDate(rowData[0].cancellation_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_cancellation_type').html(rowData[0].cancellation_type);
-      $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
       $('#modal_myimmersions_slot_details #modal_actions').html(actions ? actions : "");
       // rows to hide
       selectedRows = filteredRows.map(id => `#${id}`).join(',')
