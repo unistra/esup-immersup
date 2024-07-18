@@ -182,7 +182,7 @@ function display_slot_restrictions(data, type, row) {
       span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_teachings}"><i class="fa fas fa-info-circle fa-fw"></i> ${allowed_teachings_txt}</li>`
     }
 
-    return `<ul class="list-unstyled">${span_txt}<ul>`
+    return `<ul class="list-unstyled">${span_txt}</ul>`
 }
 
 function display_group_informations(row) {
