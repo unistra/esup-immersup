@@ -78,30 +78,28 @@ class CustomShibbolethLogoutView(TemplateView):
     redirect_field_name = "target"
 
     def get(self, request, *args, **kwargs):
-        # Default
+        # Default shibboleth logout URL
         logout_url = LOGOUT_URL
+        logout = None
 
-        if self.request.user\
-            and not self.request.user.is_anonymous\
-            and self.request.user.is_high_school_student()\
-            and self.request.user.uses_federation():
-            logout = settings.EDUCONNECT_LOGOUT_URL
-        else:
-            #Get target url in order of preference.
-            target = LOGOUT_REDIRECT_URL or\
-                     quote(self.request.GET.get(self.redirect_field_name, '')) or\
-                     quote(request.build_absolute_uri())
-            logout = logout_url % target
+        if self.request.user and not self.request.user.is_anonymous:
+            if self.request.user.is_high_school_student() and self.request.user.uses_federation():
+                logout = settings.EDUCONNECT_LOGOUT_URL
+            elif self.request.user.uses_federation():
+                logout = settings.AGENT_FEDERATION_LOGOUT_URL
+            else:
+                # Get target url in order of preference.
+                target = LOGOUT_REDIRECT_URL or \
+                         quote(self.request.GET.get(self.redirect_field_name, '')) or \
+                         quote(request.build_absolute_uri())
+                logout = logout_url % target
 
-        #Log the user out.
+        if not logout:
+            logout = logout_url % ''
+
+        # Log the user out.
         auth.logout(self.request)
-
-        #Get target url in order of preference.
-        target = LOGOUT_REDIRECT_URL or\
-                 quote(self.request.GET.get(self.redirect_field_name, '')) or\
-                 quote(request.build_absolute_uri())
-        _logout = logout_url % target
-        return redirect(_logout)
+        return redirect(logout)
 
 
 class CustomLoginView(FormView):

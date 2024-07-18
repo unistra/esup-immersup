@@ -453,8 +453,9 @@ SHIBBOLETH_UNQUOTE_ATTRIBUTES = True
 
 CREATE_UNKNOWN_USER = False
 
-# Educonnect
+# Logout URLs
 EDUCONNECT_LOGOUT_URL = ""
+AGENT_FEDERATION_LOGOUT_URL = ""
 
 #######################
 # Email configuration #

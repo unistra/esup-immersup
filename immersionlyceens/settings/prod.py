@@ -58,6 +58,7 @@ CAS_FORCE_SSL_SERVICE_URL = True
 #    SHIBBOLETH    #
 ####################
 EDUCONNECT_LOGOUT_URL = "https://educonnect.education.gouv.fr/logout"
+AGENT_FEDERATION_LOGOUT_URL = ""
 
 #################
 # APIs settings #
