@@ -3766,7 +3766,7 @@ msgstr "Réservé aux gestionnaires"
 
 #: immersionlyceens/apps/core/models.py:1311
 msgid "Usable for invididual registrations"
-msgstr "Utilisable les immersions individuelles"
+msgstr "Utilisable pour les immersions individuelles"
 
 #: immersionlyceens/apps/core/models.py:1312
 msgid "Usable for groups registrations"
