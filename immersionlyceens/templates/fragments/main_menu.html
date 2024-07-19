@@ -81,7 +81,8 @@
               {% if not authorized_groups|in_groups:"CONS-STR" %}
               <a class="dropdown-item" href="{% url 'add_course_slot' %}">{% trans 'New slot' %}</a>
               {% endif %}
-              {% if authorized_groups|in_groups:"REF-LYC" %}
+
+              {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
               <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Cohorts courses" %}</a>
               {% endif %}
             </div>
@@ -104,7 +105,7 @@
             {% if not authorized_groups|in_groups:"CONS-STR" %}
             <a class="dropdown-item" href="{% url 'add_off_offer_event_slot' %}">{% trans 'New off offer event slot' %}</a>
             {% endif %}
-            {% if authorized_groups|in_groups:"REF-LYC" %}
+            {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
             <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Cohorts events" %}</a>
             {% endif %}
           </div>

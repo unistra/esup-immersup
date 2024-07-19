@@ -65,7 +65,7 @@ function init_datatable() {
           render: function(data, type, row) {
             let element = ""
 
-            if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
+            if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me || cohorts_only ) {
               if ( show_duplicate_btn ) {
                 element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
                            `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
