@@ -1228,6 +1228,11 @@
     const ONE_GROUP="0"
     const BY_PLACES="1"
 
+    // FIXME : define global variables
+    let face_to_face = 0
+    let remote = 1
+    let outside = 2
+
     let published = $('#id_published').prop('checked')
     let place = parseInt($('#id_place').val())
     let allow_group_registrations = $('#id_allow_group_registrations').prop('checked')
@@ -1277,11 +1282,11 @@
         }
       }
 
-      if(place === "0" || place === "2") {
+      if(place === face_to_face || place === outside) {
           // face to face or outside of host establishment
           mandatory.push("room")
 
-          if(establishment_id && place === "0") {
+          if(establishment_id && place === face_to_face) {
             mandatory = mandatory.concat(['campus', 'building'])
           }
           else {
