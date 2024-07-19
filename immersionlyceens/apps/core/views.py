@@ -2022,7 +2022,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["slot_mode"] = "cohorts_events"
+        context["slot_mode"] = "events"
         context["contact_form"] = ContactForm(),
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
         context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
@@ -2089,7 +2089,7 @@ class HighSchoolCohortsCoursesList(generic.TemplateView):
 
         context.update(
             {
-                "slot_mode": "cohorts_courses",
+                "slot_mode": "courses",
                 "contact_form": ContactForm(),
                 "cancel_types": CancelType.objects.filter(active=True, students=True),
                 "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),

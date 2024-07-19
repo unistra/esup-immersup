@@ -1,4 +1,10 @@
 function init_datatable() {
+
+  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
+  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
+  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
+  cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+
   dt = $('#slots_list').DataTable({
     ajax: {
       url: "/core/utils/slots",
@@ -17,13 +23,13 @@ function init_datatable() {
           d.highschool_id = current_highschool_id || $('#id_highschool').val();
         }
 
-        if (is_set(cohorts_only)) {
+        if(is_set(cohorts_only)) {
           d.cohorts_only = cohorts_only;
         }
 
-        d.past = $('#filter_past_slots').is(':checked')
+        d.past = $('#filter_past_slots').is(':checked');
 
-        return d
+        return d;
       },
       dataSrc: function (json) {
         if (json['data'] !== undefined && json['data'].length !== 0) {
