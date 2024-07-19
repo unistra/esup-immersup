@@ -1420,25 +1420,26 @@ class HighSchoolForm(forms.ModelForm):
             raise forms.ValidationError(str(e)) from e
 
         if not educonnect_federation_setting:
-            self.fields['uses_student_federation'].disabled = True
             self.fields['uses_student_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
             )
         elif self.instance.pk and self.instance.student_records.exists():
             # Disable student identity federation choice if the high school has students
-            self.fields['uses_student_federation'].disabled = True
             self.fields['uses_student_federation'].help_text = _(
                 "This field cannot be changed because this high school already has student records"
             )
 
         if not agent_federation_setting:
-            self.fields['uses_agent_federation'].disabled = True
             self.fields['uses_agent_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
             )
 
+    """
     def clean_uses_student_federation(self):
         instance = getattr(self, 'instance', None)
+
+        print(f"cleaned data uses_student_federation : {self.cleaned_data.get('uses_student_federation')}")
+
         if 'uses_student_federation' not in self.cleaned_data:
             if instance and instance.pk:
                 return instance.uses_student_federation
@@ -1446,6 +1447,7 @@ class HighSchoolForm(forms.ModelForm):
                 return False
         else:
             return self.cleaned_data['uses_student_federation']
+    """
 
     def clean(self):
         valid_user = False
@@ -1453,6 +1455,8 @@ class HighSchoolForm(forms.ModelForm):
 
         active = cleaned_data.get("active", False)
         uses_student_federation = cleaned_data.get("uses_student_federation")
+        uses_agent_federation = cleaned_data.get("uses_agent_federation")
+        uai_codes = cleaned_data.get('uai_codes')
 
         try:
             user = self.request.user
@@ -1470,6 +1474,12 @@ class HighSchoolForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        try:
+            agent_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_FEDERATION_AGENT")
+            educonnect_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_EDUCONNECT")
+        except Exception as e:
+            raise forms.ValidationError(str(e)) from e
 
         # General settings dependant field
         if "with_convention" in cleaned_data:
@@ -1495,7 +1505,7 @@ class HighSchoolForm(forms.ModelForm):
                     })
 
         # Student identity federation (educonnect) : test only when setting is in use
-        if GeneralSettings.get_setting("ACTIVATE_EDUCONNECT"):
+        if educonnect_federation_setting:
             if (self.instance.pk and self.instance.student_records.exists()
                 and uses_student_federation != self.instance.uses_student_federation):
                 raise forms.ValidationError({
@@ -1509,6 +1519,23 @@ class HighSchoolForm(forms.ModelForm):
                     'uai_codes': _("This field is mandatory when using the student federation"),
                 })
 
+        if agent_federation_setting:
+            if (self.instance.pk and self.instance.users.count()
+                    and uses_agent_federation != self.instance.uses_agent_federation):
+                raise forms.ValidationError({
+                    'uses_agent_federation': _(
+                        "You can't change this setting because this high school already has users."
+                    ),
+                })
+
+        if uai_codes:
+            for uai_code in uai_codes:
+                if HighSchool.objects.filter(uai_codes=uai_code).exclude(pk=self.instance.pk).exists():
+                    raise forms.ValidationError({
+                        'uai_codes': _(
+                            "The uai code %s - %s is already associated with another high school"
+                        ) % (uai_code.code, uai_code.label)
+                    })
 
         return cleaned_data
 
