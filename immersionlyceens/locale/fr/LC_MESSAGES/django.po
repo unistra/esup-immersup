@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-18 11:17+0200\n"
+"POT-Creation-Date: 2024-07-19 11:04+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1044,9 +1044,9 @@ msgstr "Évènement"
 #: immersionlyceens/apps/user/admin.py:51
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:28
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:57
-#: immersionlyceens/templates/core/common_slot.html:1808
-#: immersionlyceens/templates/core/common_slot.html:1834
-#: immersionlyceens/templates/core/common_slot.html:1860
+#: immersionlyceens/templates/core/common_slot.html:1813
+#: immersionlyceens/templates/core/common_slot.html:1839
+#: immersionlyceens/templates/core/common_slot.html:1865
 #: immersionlyceens/templates/core/common_slots_list.html:181
 #: immersionlyceens/templates/core/common_slots_list.html:222
 #: immersionlyceens/templates/core/courses_list.html:247
@@ -1087,9 +1087,9 @@ msgstr "Oui"
 #: immersionlyceens/apps/user/admin.py:51
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:29
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:58
-#: immersionlyceens/templates/core/common_slot.html:1815
-#: immersionlyceens/templates/core/common_slot.html:1841
-#: immersionlyceens/templates/core/common_slot.html:1876
+#: immersionlyceens/templates/core/common_slot.html:1820
+#: immersionlyceens/templates/core/common_slot.html:1846
+#: immersionlyceens/templates/core/common_slot.html:1881
 #: immersionlyceens/templates/core/common_slots_list.html:182
 #: immersionlyceens/templates/core/common_slots_list.html:229
 #: immersionlyceens/templates/core/courses_list.html:255
@@ -3765,12 +3765,12 @@ msgid "Reserved for Managers"
 msgstr "Réservé aux gestionnaires"
 
 #: immersionlyceens/apps/core/models.py:1311
-msgid "Usable for students"
-msgstr "Utilisable pour les étudiants"
+msgid "Usable for invididual registrations"
+msgstr "Utilisable les immersions individuelles"
 
 #: immersionlyceens/apps/core/models.py:1312
-msgid "Usable for groups"
-msgstr "Utilisable pour les groupes"
+msgid "Usable for groups registrations"
+msgstr "Utilisable pour les immersions en cohortes"
 
 #: immersionlyceens/apps/core/models.py:1323
 msgid "A cancel type with this label already exists"
@@ -5601,7 +5601,7 @@ msgstr "Fiche visiteur / Justificatif"
 msgid "Visitor record / Attestation documents"
 msgstr "Fiche visiteur / Justificatifs"
 
-#: immersionlyceens/apps/immersion/views.py:134
+#: immersionlyceens/apps/immersion/views.py:140
 msgid ""
 "Sorry, the university year has not begun (or already over), you can't login "
 "yet."
@@ -5609,38 +5609,38 @@ msgstr ""
 "Désolé, l'année universitaire n'a pas encore commencé (ou déjà terminée), "
 "vous ne pouvez pas vous connecter pour le moment."
 
-#: immersionlyceens/apps/immersion/views.py:151
-#: immersionlyceens/apps/immersion/views.py:683
+#: immersionlyceens/apps/immersion/views.py:157
+#: immersionlyceens/apps/immersion/views.py:689
 msgid "Please use the Agent Federation to authenticate"
 msgstr "Veuillez utiliser la fédération d'identité agent pour vous connecter"
 
-#: immersionlyceens/apps/immersion/views.py:155
-#: immersionlyceens/apps/immersion/views.py:685
+#: immersionlyceens/apps/immersion/views.py:161
+#: immersionlyceens/apps/immersion/views.py:691
 msgid "Please use EduConnect to authenticate"
 msgstr "Veuillez utiliser EDUCONNECT pour vous connecter"
 
-#: immersionlyceens/apps/immersion/views.py:167
+#: immersionlyceens/apps/immersion/views.py:173
 msgid "Your account hasn't been enabled yet."
 msgstr "Votre compte n'est pas encore activé"
 
-#: immersionlyceens/apps/immersion/views.py:172
+#: immersionlyceens/apps/immersion/views.py:178
 msgid "Authentication error"
 msgstr "Erreur d'identification"
 
-#: immersionlyceens/apps/immersion/views.py:206
+#: immersionlyceens/apps/immersion/views.py:212
 msgid "EduConnect"
 msgstr "EduConnect"
 
-#: immersionlyceens/apps/immersion/views.py:208
-#: immersionlyceens/apps/immersion/views.py:210
+#: immersionlyceens/apps/immersion/views.py:214
+#: immersionlyceens/apps/immersion/views.py:216
 msgid "the agent federation"
 msgstr "la fédération d'identité pour les agents"
 
-#: immersionlyceens/apps/immersion/views.py:256
+#: immersionlyceens/apps/immersion/views.py:262
 msgid "Incomplete data for account creation"
 msgstr "Données incomplètes pour la création du compte"
 
-#: immersionlyceens/apps/immersion/views.py:333
+#: immersionlyceens/apps/immersion/views.py:339
 msgid ""
 "Sorry, your high school level does not allow you to register or connect to "
 "this platform."
@@ -5648,7 +5648,7 @@ msgstr ""
 "Désolé, le niveau d'études transmis par EduConnect n'est pas autorisé par la "
 "plateforme."
 
-#: immersionlyceens/apps/immersion/views.py:356
+#: immersionlyceens/apps/immersion/views.py:362
 msgid ""
 "Missing attributes, account not created.<br>Your institution may not be "
 "aware of the Immersion service.<br>Please use the 'contact' link at the "
@@ -5659,41 +5659,41 @@ msgstr ""
 "<br>Merci d'utiliser le lien 'Contact' en bas de page, en précisant cette "
 "erreur et le nom de votre établissement."
 
-#: immersionlyceens/apps/immersion/views.py:366
+#: immersionlyceens/apps/immersion/views.py:372
 msgid "Students deactivated"
 msgstr "Étudiants désactivés"
 
-#: immersionlyceens/apps/immersion/views.py:390
-#: immersionlyceens/apps/immersion/views.py:624
+#: immersionlyceens/apps/immersion/views.py:396
+#: immersionlyceens/apps/immersion/views.py:630
 msgid "Group error"
 msgstr "Erreur d'attribution de groupe"
 
-#: immersionlyceens/apps/immersion/views.py:412
-#: immersionlyceens/apps/immersion/views.py:415
-#: immersionlyceens/apps/immersion/views.py:546
+#: immersionlyceens/apps/immersion/views.py:418
+#: immersionlyceens/apps/immersion/views.py:421
 #: immersionlyceens/apps/immersion/views.py:552
-#: immersionlyceens/apps/immersion/views.py:630
-#: immersionlyceens/apps/immersion/views.py:634
-#: immersionlyceens/apps/immersion/views.py:693
-#: immersionlyceens/apps/immersion/views.py:842
-#: immersionlyceens/apps/immersion/views.py:900
-#: immersionlyceens/apps/immersion/views.py:1061
-#: immersionlyceens/apps/immersion/views.py:1482
-#: immersionlyceens/apps/immersion/views.py:1491
-#: immersionlyceens/apps/immersion/views.py:1900
-#: immersionlyceens/apps/immersion/views.py:1912
+#: immersionlyceens/apps/immersion/views.py:558
+#: immersionlyceens/apps/immersion/views.py:636
+#: immersionlyceens/apps/immersion/views.py:640
+#: immersionlyceens/apps/immersion/views.py:699
+#: immersionlyceens/apps/immersion/views.py:848
+#: immersionlyceens/apps/immersion/views.py:906
+#: immersionlyceens/apps/immersion/views.py:1067
+#: immersionlyceens/apps/immersion/views.py:1488
+#: immersionlyceens/apps/immersion/views.py:1497
+#: immersionlyceens/apps/immersion/views.py:1906
+#: immersionlyceens/apps/immersion/views.py:1918
 msgid "Cannot send email. The administrators have been notified."
 msgstr ""
 "Erreur lors de l'envoi du courriel. Les administrateurs ont été notifiés."
 
-#: immersionlyceens/apps/immersion/views.py:418
-#: immersionlyceens/apps/immersion/views.py:636
+#: immersionlyceens/apps/immersion/views.py:424
+#: immersionlyceens/apps/immersion/views.py:642
 #: immersionlyceens/templates/immersion/complete.html:18
 msgid "Account created. Please check your emails for the activation procedure."
 msgstr ""
 "Compte créé. Veuillez consulter vos courriels pour la procédure d'activation"
 
-#: immersionlyceens/apps/immersion/views.py:423
+#: immersionlyceens/apps/immersion/views.py:429
 msgid ""
 "Your account is almost ready, please enter you email address for the "
 "activation procedure"
@@ -5701,7 +5701,7 @@ msgstr ""
 "Votre compte est presque prêt, merci d'entrer votre courriel pour la suite "
 "de la procédure d'activation"
 
-#: immersionlyceens/apps/immersion/views.py:444
+#: immersionlyceens/apps/immersion/views.py:450
 msgid ""
 "Your account must be first created by a master establishment manager or an "
 "operator."
@@ -5709,13 +5709,13 @@ msgstr ""
 "Votre compte doit être créé au préalable par un référent établissement "
 "maître ou un référent technique."
 
-#: immersionlyceens/apps/immersion/views.py:446
+#: immersionlyceens/apps/immersion/views.py:452
 msgid "The attributes sent by Shibboleth show you may not be a student."
 msgstr ""
 "Les attributs envoyés par Shibboleth indiquent que vous n'êtes pas "
 "étudiant(e)."
 
-#: immersionlyceens/apps/immersion/views.py:449
+#: immersionlyceens/apps/immersion/views.py:455
 msgid ""
 "<br>If you think this is a mistake, please use the 'contact' link at the "
 "<br>bottom of this page, specifying your institution."
@@ -5723,108 +5723,108 @@ msgstr ""
 "<br>Si vous pensez qu'il s'agit d'une erreur, veuillez utiliser le lien "
 "'contact'<br>en bas de cette page, en précisant votre établissement."
 
-#: immersionlyceens/apps/immersion/views.py:459
+#: immersionlyceens/apps/immersion/views.py:465
 msgid ""
 "You can't access this application with the agent federation, please use your "
 "local credentials."
 msgstr ""
-"Vous ne pouvez pas accéder à l'application via la fédération agents, veuillez "
-"utiliser les identifiants propres à Immersup."
+"Vous ne pouvez pas accéder à l'application via la fédération agents, "
+"veuillez utiliser les identifiants propres à Immersup."
 
-#: immersionlyceens/apps/immersion/views.py:483
+#: immersionlyceens/apps/immersion/views.py:489
 msgid "Unable to find a matching user in database"
 msgstr "Utilisateur introuvable"
 
-#: immersionlyceens/apps/immersion/views.py:578
+#: immersionlyceens/apps/immersion/views.py:584
 msgid "Sorry, you can't register right now."
 msgstr "Désolé, vous ne pouvez pas vous inscrire maintenant."
 
-#: immersionlyceens/apps/immersion/views.py:681
+#: immersionlyceens/apps/immersion/views.py:687
 msgid "Please use your establishment credentials."
 msgstr "Merci de vous connecter avec vos identifiants Établissement"
 
-#: immersionlyceens/apps/immersion/views.py:691
-#: immersionlyceens/apps/immersion/views.py:699
+#: immersionlyceens/apps/immersion/views.py:697
+#: immersionlyceens/apps/immersion/views.py:705
 msgid "An email has been sent with the procedure to set a new password."
 msgstr "Un courriel contenant la procédure a été envoyé à cette adresse."
 
-#: immersionlyceens/apps/immersion/views.py:701
-#: immersionlyceens/apps/immersion/views.py:740
+#: immersionlyceens/apps/immersion/views.py:707
+#: immersionlyceens/apps/immersion/views.py:746
 msgid "Error : please contact the establishment referent"
 msgstr "Erreur : merci de contacter le référent établissement"
 
-#: immersionlyceens/apps/immersion/views.py:715
-#: immersionlyceens/apps/immersion/views.py:737
+#: immersionlyceens/apps/immersion/views.py:721
+#: immersionlyceens/apps/immersion/views.py:743
 msgid "Password recovery : invalid data"
 msgstr "Réinitialisation du mot de passe : clé invalide"
 
-#: immersionlyceens/apps/immersion/views.py:726
+#: immersionlyceens/apps/immersion/views.py:732
 msgid "Password successfully updated."
 msgstr "Mot de passe mis à jour."
 
-#: immersionlyceens/apps/immersion/views.py:773
+#: immersionlyceens/apps/immersion/views.py:779
 msgid "Password successfully updated"
 msgstr "Mot de passe mis à jour avec succès."
 
-#: immersionlyceens/apps/immersion/views.py:800
+#: immersionlyceens/apps/immersion/views.py:806
 msgid "Your account is now enabled. Thanks !"
 msgstr "Votre compte est désormais activé. Merci !"
 
-#: immersionlyceens/apps/immersion/views.py:806
+#: immersionlyceens/apps/immersion/views.py:812
 msgid "Invalid activation data"
 msgstr "Données d'activation invalides"
 
-#: immersionlyceens/apps/immersion/views.py:809
-#: immersionlyceens/apps/immersion/views.py:940
+#: immersionlyceens/apps/immersion/views.py:815
+#: immersionlyceens/apps/immersion/views.py:946
 msgid "Something went wrong"
 msgstr "Erreur"
 
-#: immersionlyceens/apps/immersion/views.py:833
-#: immersionlyceens/apps/immersion/views.py:845
+#: immersionlyceens/apps/immersion/views.py:839
+#: immersionlyceens/apps/immersion/views.py:851
 msgid "The activation message has been resent."
 msgstr "Le courriel d'activation a été renvoyé"
 
-#: immersionlyceens/apps/immersion/views.py:836
+#: immersionlyceens/apps/immersion/views.py:842
 msgid "This account has already been activated, please login."
 msgstr "Ce compte a déjà été activé, veuillez vous connecter."
 
-#: immersionlyceens/apps/immersion/views.py:869
+#: immersionlyceens/apps/immersion/views.py:875
 msgid "No account found with this email address"
 msgstr "Aucun compte n'a été trouvé avec cette adresse"
 
-#: immersionlyceens/apps/immersion/views.py:873
+#: immersionlyceens/apps/immersion/views.py:879
 msgid "This account is not a speaker-only one, it can't be linked"
 msgstr "Ce compte n'est pas uniquement 'Intervenant', il ne peut pas être lié"
 
-#: immersionlyceens/apps/immersion/views.py:875
+#: immersionlyceens/apps/immersion/views.py:881
 msgid "These accounts are already linked"
 msgstr "Ces comptes sont déjà liés"
 
-#: immersionlyceens/apps/immersion/views.py:903
+#: immersionlyceens/apps/immersion/views.py:909
 msgid "The link message has been sent to this email address"
 msgstr "Le message de confirmation a été envoyé à cette adresse"
 
-#: immersionlyceens/apps/immersion/views.py:906
+#: immersionlyceens/apps/immersion/views.py:912
 msgid "This account has not been validated (yet)"
 msgstr "Ce compte n'a pas encore été (ou n'est plus) activé"
 
-#: immersionlyceens/apps/immersion/views.py:934
+#: immersionlyceens/apps/immersion/views.py:940
 msgid "Your accounts have been linked"
 msgstr "Vos comptes ont été liés"
 
-#: immersionlyceens/apps/immersion/views.py:937
+#: immersionlyceens/apps/immersion/views.py:943
 msgid "Invalid link data"
 msgstr "Données de liaison invalides"
 
-#: immersionlyceens/apps/immersion/views.py:992
-#: immersionlyceens/apps/immersion/views.py:1036
-#: immersionlyceens/apps/immersion/views.py:1404
-#: immersionlyceens/apps/immersion/views.py:1466
+#: immersionlyceens/apps/immersion/views.py:998
+#: immersionlyceens/apps/immersion/views.py:1042
+#: immersionlyceens/apps/immersion/views.py:1410
+#: immersionlyceens/apps/immersion/views.py:1472
 msgid "Invalid student id"
 msgstr "#id invalide"
 
-#: immersionlyceens/apps/immersion/views.py:1066
-#: immersionlyceens/apps/immersion/views.py:1906
+#: immersionlyceens/apps/immersion/views.py:1072
+#: immersionlyceens/apps/immersion/views.py:1912
 msgid ""
 "You have updated the email.<br>Warning : the new email is also the new login."
 "<br>A new activation email has been sent."
@@ -5833,87 +5833,87 @@ msgstr ""
 "aussi le nouvel identifiant. <br>Une nouvelle procédure d'activation a a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:1084
-#: immersionlyceens/apps/immersion/views.py:1501
+#: immersionlyceens/apps/immersion/views.py:1090
+#: immersionlyceens/apps/immersion/views.py:1507
 msgid "Record successfully saved."
 msgstr "Fiche enregistrée avec succès"
 
-#: immersionlyceens/apps/immersion/views.py:1090
-#: immersionlyceens/apps/immersion/views.py:1963
+#: immersionlyceens/apps/immersion/views.py:1096
+#: immersionlyceens/apps/immersion/views.py:1969
 msgid ""
 "You have updated your record, it needs to be re-examined for validation."
 msgstr ""
 "Vous avez modifié votre dossier, votre fiche doit être à nouveau validée."
 
-#: immersionlyceens/apps/immersion/views.py:1102
+#: immersionlyceens/apps/immersion/views.py:1108
 msgid ""
 "A record already exists with this identity, please contact the establishment "
 "referent."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de contacter le référent établissement."
 
-#: immersionlyceens/apps/immersion/views.py:1106
+#: immersionlyceens/apps/immersion/views.py:1112
 msgid "A record already exists with this identity, look at duplicate records."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de consulter la liste des doublons."
 
-#: immersionlyceens/apps/immersion/views.py:1136
-#: immersionlyceens/apps/immersion/views.py:1532
-#: immersionlyceens/apps/immersion/views.py:1989
+#: immersionlyceens/apps/immersion/views.py:1142
+#: immersionlyceens/apps/immersion/views.py:1538
+#: immersionlyceens/apps/immersion/views.py:1995
 msgid "You have errors in Immersion periods section"
 msgstr "Erreurs dans la secion 'Quota d'immersions'"
 
-#: immersionlyceens/apps/immersion/views.py:1191
-#: immersionlyceens/apps/immersion/views.py:2044
+#: immersionlyceens/apps/immersion/views.py:1197
+#: immersionlyceens/apps/immersion/views.py:2050
 msgid "Record saved. Please check the optional documents to send below."
 msgstr ""
 "Fiche enregistrée. Veuillez verifier les documents facultatifs à joindre ci-"
 "dessous"
 
-#: immersionlyceens/apps/immersion/views.py:1226
-#: immersionlyceens/apps/immersion/views.py:2078
+#: immersionlyceens/apps/immersion/views.py:1232
+#: immersionlyceens/apps/immersion/views.py:2084
 msgid "You have errors in Attestations section"
 msgstr "Erreurs ou informations manquantes dans la section 'Justificatifs'"
 
-#: immersionlyceens/apps/immersion/views.py:1263
-#: immersionlyceens/apps/immersion/views.py:2109
+#: immersionlyceens/apps/immersion/views.py:1269
+#: immersionlyceens/apps/immersion/views.py:2115
 msgid "Record saved. Please fill all the required attestation documents below."
 msgstr ""
 "Fiche enregistrée. Veuillez joindre tous les documents requis dans la "
 "section 'Justificatifs'"
 
-#: immersionlyceens/apps/immersion/views.py:1268
+#: immersionlyceens/apps/immersion/views.py:1274
 msgid ""
 "Thank you. Your record is awaiting validation from your high-school referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent du lycée."
 
-#: immersionlyceens/apps/immersion/views.py:1272
+#: immersionlyceens/apps/immersion/views.py:1278
 msgid ""
 "Thank you. Your record is awaiting validation by the establishment referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent "
 "établissement."
 
-#: immersionlyceens/apps/immersion/views.py:1315
-#: immersionlyceens/apps/immersion/views.py:1858
+#: immersionlyceens/apps/immersion/views.py:1321
+#: immersionlyceens/apps/immersion/views.py:1864
 #, python-format
 msgid "Your record status : %s"
 msgstr "Statut de votre fiche : %s"
 
-#: immersionlyceens/apps/immersion/views.py:1317
-#: immersionlyceens/apps/immersion/views.py:1860
+#: immersionlyceens/apps/immersion/views.py:1323
+#: immersionlyceens/apps/immersion/views.py:1866
 #, python-format
 msgid "Current record status : %s"
 msgstr "Statut de la fiche : %s"
 
-#: immersionlyceens/apps/immersion/views.py:1487
+#: immersionlyceens/apps/immersion/views.py:1493
 msgid "You have updated the email.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:1790
+#: immersionlyceens/apps/immersion/views.py:1796
 msgid "Invalid visitor record id"
 msgstr "Id de visiteur invalide"
 
@@ -6091,11 +6091,11 @@ msgstr "Lien non renseigné"
 msgid "Error : %(exception)s"
 msgstr "Erreur : %(exception)s"
 
-#: immersionlyceens/settings/base.py:399
+#: immersionlyceens/settings/base.py:396
 msgid "ImmerSup Admin Page"
 msgstr "ImmerSup - Interface d'administration"
 
-#: immersionlyceens/settings/base.py:400
+#: immersionlyceens/settings/base.py:397
 msgid "Welcome to ImmerSup administration page"
 msgstr "Bienvenue sur la page d'administration de l'application ImmerSup"
 
@@ -7025,11 +7025,11 @@ msgstr "Aucun bâtiment disponible"
 msgid "No available period for this date"
 msgstr "Aucune période disponible pour cette date"
 
-#: immersionlyceens/templates/core/common_slot.html:1894
+#: immersionlyceens/templates/core/common_slot.html:1899
 msgid "Confirm"
 msgstr "Confirmer"
 
-#: immersionlyceens/templates/core/common_slot.html:1913
+#: immersionlyceens/templates/core/common_slot.html:1918
 msgid "Ok"
 msgstr "Ok"
 
@@ -9430,3 +9430,9 @@ msgid ""
 msgstr ""
 "Une immersion en cohorte est réservée aux établissements scolaires qui "
 "souhaitent inscrire un groupe d'élève en immersion"
+
+#~ msgid "Usable for students"
+#~ msgstr "Utilisable pour les étudiants"
+
+#~ msgid "Usable for groups"
+#~ msgstr "Utilisable pour les groupes"

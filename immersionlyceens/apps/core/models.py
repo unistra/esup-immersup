@@ -1308,8 +1308,8 @@ class CancelType(models.Model):
     system = models.BooleanField(_("Reserved for System"), default=False)
     managers = models.BooleanField(_("Reserved for Managers"), default=False)
 
-    students = models.BooleanField(_("Usable for students"), default=True)
-    groups = models.BooleanField(_("Usable for groups"), default=False)
+    students = models.BooleanField(_("Usable for invididual registrations"), default=True)
+    groups = models.BooleanField(_("Usable for groups registrations"), default=False)
 
     def __str__(self):
         """str"""
