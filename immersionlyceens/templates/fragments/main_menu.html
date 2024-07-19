@@ -280,9 +280,20 @@
               </div>
               {% endif %}
               <div class="dropdown-item text-right">
-                <a class="text-decoration-none" href="{% get_logout_url %}">
-                  <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}
-                </a>
+                {% get_logout_url as logout_url%}
+
+                {% if logout_url.0 == "post" %}
+                  <form action="{{ logout_url.1 }}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link text-decoration-none">
+                      <i class="fa fas fa-sign-out"></i>{% trans "Logout" %}
+                    </button>
+                  </form>
+                {% else %}
+                  <a class="text-decoration-none" href="{{ logout_url.1 }}">
+                    <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}
+                  </a>
+                {% endif %}
               </div>
             </div>
           {% else %}
