@@ -2961,7 +2961,7 @@ class ImmersionGroupRecord(models.Model):
 
     attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
     comments = models.TextField(_('Comments'), blank=True, null=True)
-    emails = models.TextField(_('Comments'), blank=True, null=True)
+    emails = models.TextField(_('Emails'), blank=True, null=True)
 
     def __str__(self):
         return f"{self.highschool} - {self.slot}"
@@ -2992,7 +2992,7 @@ class ImmersionGroupRecord(models.Model):
         )
 
         # Send a confirmation message to highschool managers and all contacts
-        ret = main_manager.send_message(request, template, slot=self.slot, copies=recipients)
+        ret = main_manager.send_message(request, template, slot=self.slot, recipient='group', copies=recipients)
         if not ret:
             msg = _(
                 "Registration successfully added, confirmation email sent to high school managers and contacts")

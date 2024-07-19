@@ -13,10 +13,8 @@ from immersionlyceens.apps.core.models import (
     EvaluationFormLink, GeneralSettings, Immersion, UniversityYear, MailTemplateVars,
     Slot, ImmersionUser, ImmersionGroupRecord, Course, OffOfferEvent
 )
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
-from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
 logger = logging.getLogger(__name__)
@@ -358,9 +356,14 @@ class Parser:
         def get_registered_groups(slot):
             registered_groups: List[str] = []
             for group_reg in slot.group_immersions.filter(cancellation_type__isnull=True):
-                registered_group = (f"""{group_reg.highschool.label}"""
-                                   f"""<br>{group_reg.students_count} {_('students')}"""
-                                   f"""<br>{group_reg.guides_count} {_('guides')}""")
+                registered_group = _("Group : %s students, %s guides - %s") % (
+                    group_reg.students_count,
+                    group_reg.guides_count,
+                    group_reg.highschool.label,
+                )
+
+                if group_reg.emails:
+                    registered_group += "<br>" + _("Contact(s) : %s") % group_reg.emails
 
                 if group_reg.file:
                     registered_group += f"<br> {_('File')} : " + format_html(
