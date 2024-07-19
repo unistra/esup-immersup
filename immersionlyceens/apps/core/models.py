@@ -2992,7 +2992,7 @@ class ImmersionGroupRecord(models.Model):
         )
 
         # Send a confirmation message to highschool managers and all contacts
-        ret = main_manager.send_message(request, template, slot=self.slot, recipient='group', copies=recipients)
+        ret = main_manager.send_message(request, template, slot=self.slot, group=self, recipient='group', copies=recipients)
         if not ret:
             msg = _(
                 "Registration successfully added, confirmation email sent to high school managers and contacts")

@@ -36,7 +36,7 @@ def parser(message_body, available_vars=None, user=None, group=None, recipient=N
         available_vars=available_vars,
         user=user,
         group=group,
-        recipent=recipient,
+        recipient=recipient,
         request=request,
         **kwargs
     )
@@ -541,10 +541,14 @@ class Parser:
             }
 
     @staticmethod
-    def get_cancellation_type_context(immersion: Optional[Immersion]) -> Dict[str, Any]:
+    def get_cancellation_type_context(immersion: Optional[Immersion], group_immersion: Optional[ImmersionGroupRecord]) -> Dict[str, Any]:
         if immersion and immersion.cancellation_type:
             return {
                 "motifAnnulation": immersion.cancellation_type.label
+            }
+        elif group_immersion and group_immersion.cancellation_type:
+            return {
+                "motifAnnulation": group_immersion.cancellation_type.label
             }
         return {}
 
@@ -665,6 +669,7 @@ class Parser:
         course: Optional[Course] = kwargs.get('course')
         event: Optional[OffOfferEvent] = kwargs.get('event')
         immersion: Optional[Immersion] = kwargs.get('immersion')
+        group: Optional[ImmersionGroupRecord] = kwargs.get('group')
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
         link_source_user: Optional[str] = kwargs.get('link_source_user', '')
         recipient: Union[List[str], str] = kwargs.get('recipient', 'user')
@@ -685,7 +690,7 @@ class Parser:
 
         context.update(cls.get_recipient_context(recipient))
 
-        context.update(cls.get_cancellation_type_context(immersion))
+        context.update(cls.get_cancellation_type_context(immersion, group))
 
         context.update(cls.get_user_context(user))
         context.update(cls.get_user_request_context(user, request, platform_url))
