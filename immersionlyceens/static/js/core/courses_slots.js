@@ -114,9 +114,11 @@ function init_datatable() {
         { data: "course_id",
           render: function (data, type, row) {
             let txt = ""
+            // TODO: should not happen !!!
+            let course_label = is_set(row.course_label) ? row.course_label : ""
 
             if(type === 'filter') {
-              return `${row.course_label.normalize("NFD").replace(/\p{Diacritic}/gu, "")} (${row.course_type_label})`
+              return `${course_label.normalize("NFD").replace(/\p{Diacritic}/gu, "")} (${row.course_type_label})`
             }
 
             if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
