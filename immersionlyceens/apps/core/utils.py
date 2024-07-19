@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.db.models import (
     BooleanField, Case, CharField, Count, DateField, Exists, ExpressionWrapper, F, Func,
-    OuterRef, Q, QuerySet, Subquery, Sum, Value, When,
+    IntegerField, OuterRef, Q, QuerySet, Subquery, Sum, Value, When,
 )
 from django.db.models.functions import Coalesce, JSONObject
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -179,6 +179,37 @@ def slots(request):
     user_establishment = user.establishment
     user_highschool = user.highschool
 
+    # Subqueries for Count and Sum to prevent conflicts
+    n_group_students = Slot.objects.annotate(
+        n_group_students=Sum(
+            'group_immersions__students_count',
+            filter=Q(group_immersions__cancellation_type__isnull=True))
+    ).filter(pk=OuterRef('pk'))
+
+    n_group_guides = Slot.objects.annotate(
+        n_group_guides=Sum(
+            'group_immersions__guides_count',
+            filter=Q(group_immersions__cancellation_type__isnull=True)
+        )
+    ).filter(pk=OuterRef('pk'))
+
+    n_register = Slot.objects.annotate(
+        n_register=Count(
+            'immersions',
+            filter=Q(immersions__cancellation_type__isnull=True),
+            distinct=True
+        )
+    ).filter(pk=OuterRef('pk'))
+
+    n_group_register = Slot.objects.annotate(
+        n_group_register=Count(
+            'group_immersions',
+            filter=Q(group_immersions__cancellation_type__isnull=True),
+            distinct=True
+        )
+    ).filter(pk=OuterRef('pk'))
+
+
     slots = slots.annotate(
         course_label=F('course__label'),
         course_training_label=F('course__training__label'),
@@ -307,19 +338,21 @@ def slots(request):
             ),
             default=False
         ),
-        n_register=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
-        n_group_register=Count(
-            'group_immersions',
-            filter=Q(group_immersions__cancellation_type__isnull=True),
-            distinct=True
+        n_register=Subquery(
+            n_register.values('n_register'),
+            output_field=IntegerField()
         ),
-        n_group_students=Sum(
-            'group_immersions__students_count',
-            filter=Q(group_immersions__cancellation_type__isnull=True)
+        n_group_register=Subquery(
+            n_group_register.values('n_group_register'),
+            output_field=IntegerField()
         ),
-        n_group_guides=Sum(
-            'group_immersions__guides_count',
-            filter=Q(group_immersions__cancellation_type__isnull=True)
+        n_group_students=Subquery(
+            n_group_students.values('n_group_students'),
+            output_field=IntegerField()
+        ),
+        n_group_guides=Subquery(
+            n_group_guides.values('n_group_guides'),
+            output_field=IntegerField()
         ),
         is_past=ExpressionWrapper(
             Q(date__lt=today)|Q(date=today, start_time__lt=now),

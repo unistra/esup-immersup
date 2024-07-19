@@ -616,7 +616,7 @@ $('#groups_list').on('draw.dt', function () {
   }).count();
 
   if (can_update_attendances == true) {
-    $('#groups_count').html(presents + " {% trans 'group(s) present on ' %}" + groups_count + " {% trans 'registered' %}");
+    $('#groups_count').html(presents + " {% trans 'group(s) present on ' %}" + n_groups + " {% trans 'registered' %}");
   }
   else {
     let count_txt = n_group_places-total_registered + " {% trans 'free places out of' %} " + n_group_places;
