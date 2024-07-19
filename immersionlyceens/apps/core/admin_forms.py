@@ -1439,8 +1439,11 @@ class HighSchoolForm(forms.ModelForm):
 
     def clean_uses_student_federation(self):
         instance = getattr(self, 'instance', None)
-        if instance and instance.pk:
-            return instance.uses_student_federation
+        if 'uses_student_federation' not in self.cleaned_data:
+            if instance and instance.pk:
+                return instance.uses_student_federation
+            else:
+                return False
         else:
             return self.cleaned_data['uses_student_federation']
 
