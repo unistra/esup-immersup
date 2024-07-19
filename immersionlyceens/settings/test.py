@@ -41,6 +41,9 @@ CSRF_TRUSTED_ORIGINS = [
     'https://immersup-test.app.unistra.fr'
 ]
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 #####################
 # Log configuration #
 #####################

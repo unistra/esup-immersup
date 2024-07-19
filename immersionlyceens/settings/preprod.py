@@ -35,6 +35,9 @@ CSRF_TRUSTED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 
 #####################
 # Log configuration #
