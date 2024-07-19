@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
 from functools import reduce
+import requests
 
 from django import forms
 from django.conf import settings
@@ -81,20 +82,25 @@ class CustomShibbolethLogoutView(TemplateView):
         # Default shibboleth logout URL
         logout_url = LOGOUT_URL
         logout = None
+        target = ""
 
         if self.request.user and not self.request.user.is_anonymous:
             if self.request.user.is_high_school_student() and self.request.user.uses_federation():
                 # high school student
                 logout = settings.EDUCONNECT_LOGOUT_URL
+                # logger.error(f"EDUCONNECT_LOGOUT_URL : logout url : {logout}")
             elif self.request.user.uses_federation():
                 # speakers and high school referents
                 logout = settings.AGENT_FEDERATION_LOGOUT_URL
+                # logger.error(f"AGENT_FEDERATION_URL : logout url : {logout}")
             else:
                 # Get target url in order of preference.
                 target = LOGOUT_REDIRECT_URL or \
                          quote(self.request.GET.get(self.redirect_field_name, '')) or \
                          quote(request.build_absolute_uri())
+
                 logout = logout_url % target
+                # logger.error(f"logout url : {logout}")
 
         if not logout:
             logout = logout_url % ''
@@ -234,10 +240,10 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
-    """
+
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
-
+    """
     hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
@@ -459,7 +465,7 @@ def shibbolethLogin(request, profile=None):
             err = _("You can't access this application with the agent federation, please use your local credentials.")
             messages.error(request, err)
             profile = "ref_lyc" if request.user.is_high_school_manager() else "inter"
-
+            auth.logout(request)
             return HttpResponseRedirect(f"/immersion/login/{profile}")
 
         # Update user attributes
