@@ -1,0 +1,68 @@
+{% extends "./common_hs_slots_list.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block title %}{% trans "Course slots" %}{% endblock%}
+{% block head-javascript %}
+{{ block.super }}
+<script src="{% static 'js/core/courses_slots.min.js' %}"></script>
+{% endblock %}
+
+{% block card_header %}
+<div class="card-header text-white bg-secondary">
+  {% trans "Cohorts courses slots" %}
+</div>
+{% endblock %}
+
+{% block trainings_filter %}
+<div class="row">
+  <div class="col-md-5">
+    <label for="id_training">{% trans "Select a training" %} :</label>
+    <select name="training" id="id_training" class="form-control">
+      <option value="">-------------</option>
+      {% for training in trainings %}
+        <option value="{{ training.id }}" {% if training.id == training_id %}selected{% endif %}>
+          {{ training.label }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+{% endblock %}
+
+{% block table_definition %}
+<thead>
+  <tr>
+    <th class="align-top">{% trans 'Control' %}</th>
+    <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+    <th id="managed_by_filter" class="align-top">{% trans 'Managed By' context "slots" %}</th>
+    <th id="training_filter" class="align-top" style="width:15%">{% trans 'Training label' %}</th>
+    <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
+    <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
+    <th id="registration_filter" class="align-top">{% trans 'Registrants' %}</th>
+    <th id="building_filter" class="align-top">{% trans 'Meeting place' %}</th>
+    <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+    <th class="align-top">{% trans 'Info.' %}</th>
+    <th class="align-top">{% trans 'Restr.' %}</th>
+    <th id="groups_filter" class="align-top">{% trans 'Groups' %}</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+{% endblock %}

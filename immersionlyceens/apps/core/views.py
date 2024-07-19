@@ -2015,3 +2015,114 @@ def structures_notifications(request, structure_code=None):
     }
 
     return render(request, 'core/structures_notifications.html', context)
+
+@method_decorator(groups_required('REF-LYC',), name="dispatch")
+class HighSchoolCohortsEventsList(generic.TemplateView):
+    template_name = "core/hs_cohorts_events.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["slot_mode"] = "cohorts_events"
+        context["contact_form"] = ContactForm(),
+        context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
+        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
+        context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
+
+        # Defaults
+        context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
+        context["structures"] = Structure.activated.all()
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
+
+        context["establishment_id"] = kwargs.get(
+            'establishment_id', get_session_value(self.request, "events", "current_establishment_id")
+        )
+
+        try:
+            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+            context["managed_by_filter"] = establishment.code
+        except Establishment.DoesNotExist:
+            pass
+
+        context["structure_id"] = kwargs.get('structure_id')
+
+        if context["structure_id"] == "null":
+            context["structure_id"] = ""
+        elif context["structure_id"] is None:
+            context["structure_id"] = get_session_value(self.request, "events", "current_structure_id")
+        else:
+            try:
+                structure = Structure.objects.get(pk=context["structure_id"])
+                context["managed_by_filter"] += f" - {structure.code}"
+            except Structure.DoesNotExist:
+                pass
+
+        if kwargs.get('highschool_id'):
+            try:
+                highschool = HighSchool.objects.get(pk=kwargs.get('highschool_id'))
+                context["highschool_id"] = highschool.id
+                context["managed_by_filter"] = f"{highschool.city} - {highschool.label}"
+            except HighSchool.DoesNotExist:
+                pass
+        else:
+            context["highschool_id"] = get_session_value(self.request, "events", "current_highschool_id")
+
+        context["event_id"] = kwargs.get('event_id', None)
+
+        if context["event_id"]:
+            try:
+                event = OffOfferEvent.objects.get(pk=context["event_id"])
+                context["event_type_filter"] = event.event_type.label
+                context["event_label_filter"] = event.label
+            except OffOfferEvent.DoesNotExist:
+                pass
+
+        return context
+
+
+@method_decorator(groups_required('REF-LYC',), name="dispatch")
+class HighSchoolCohortsCoursesList(generic.TemplateView):
+    template_name = "core/hs_cohorts_courses.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update(
+            {
+                "slot_mode": "cohorts_courses",
+                "contact_form": ContactForm(),
+                "cancel_types": CancelType.objects.filter(active=True, students=True),
+                "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+                "establishments": Establishment.activated.filter(is_host_establishment=True),
+                "structures": Structure.activated.all(),
+                "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+                "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+                "establishment_id": kwargs.get(
+                    'establishment_id', get_session_value(self.request, "courses", "current_establishment_id")
+                ),
+                "structure_id": kwargs.get(
+                    'structure_id', get_session_value(self.request, "courses", "current_structure_id")
+                ),
+                "highschool_id": kwargs.get(
+                    'highschool_id', get_session_value(self.request, "courses", "current_highschool_id")
+                ),
+                "training_id": kwargs.get(
+                    'training_id', get_session_value(self.request, "courses", "current_training_id")
+                ),
+                "course_id": kwargs.get('course_id', None),
+                "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
+            }
+        )
+
+        try:
+            course = Course.objects.get(pk=int(context["course_id"]))
+            context["course_label_filter"] = course.label
+        except (ValueError, TypeError, Course.DoesNotExist):
+            context["course_id"] = None
+
+        try:
+            Training.objects.get(pk=int(context["training_id"]))
+        except (ValueError, TypeError, Training.DoesNotExist):
+            context["training_id"] = None
+
+        return context
