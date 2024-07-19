@@ -1567,7 +1567,7 @@ def ajax_group_slot_registration(request):
 
     if not error:
         # Send message to group contacts
-        msg, error = immersion_group_record.send_message(request, 'IMMERSION_ANNUL')
+        msg, error = immersion_group_record.send_message(request, 'IMMERSION_CONFIRM')
 
     if feedback == True:
         if error:
