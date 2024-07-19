@@ -64,11 +64,6 @@ def slots(request):
     user_slots = request.GET.get('user_slots', False) == 'true'
     filters = {}
 
-    try:
-        year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today <= year.end_date
-    except UniversityYear.DoesNotExist:
-        pass
 
     training_id = request.GET.get('training_id')
     structure_id = request.GET.get('structure_id')
@@ -78,6 +73,12 @@ def slots(request):
     past_slots = request.GET.get('past', False) == "true"
     cohorts_only = request.GET.get('cohorts_only', False) == 'true'
 
+    try:
+        year = UniversityYear.objects.get(active=True)
+        can_update_attendances = today <= year.end_date and not cohorts_only
+
+    except UniversityYear.DoesNotExist:
+        pass
     try:
         int(establishment_id)
     except (TypeError, ValueError):
@@ -148,6 +149,7 @@ def slots(request):
             filters['event__highschool__id'] = highschool_id
 
         user_filter_key = "event__structure__in"
+
     else:
         filters["event__isnull"] = True
 
@@ -161,6 +163,9 @@ def slots(request):
             filters['course__training__id'] = training_id
 
         user_filter_key = "course__training__structures__in"
+
+    if cohorts_only:
+        filters['allow_group_registrations'] = True
 
     slots = Slot.objects.prefetch_related(
         'course__training__highschool',
