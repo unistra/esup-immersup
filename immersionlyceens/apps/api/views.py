@@ -71,12 +71,20 @@ from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import (
-    CustomDjangoModelPermissions, HighSchoolReadOnlyPermissions,
-    IsEstablishmentManagerPermissions, IsHighSchoolStudentPermissions,
-    IsMasterEstablishmentManagerPermissions, IsRefLycPermissions,
-    IsSpeakerPermissions, IsStructureConsultantPermissions,
-    IsStructureManagerPermissions, IsStudentPermissions, IsTecPermissions,
-    IsVisitorPermissions, SpeakersReadOnlyPermissions,
+    CustomDjangoModelPermissions,
+    HighSchoolReadOnlyPermissions,
+    IsEstablishmentManagerPermissions,
+    IsHighSchoolStudentPermissions,
+    IsMasterEstablishmentManagerPermissions,
+    IsRefLycPermissions,
+    IsSpeakerPermissions,
+    IsStructureConsultantPermissions,
+    IsStructureManagerPermissions,
+    IsStudentPermissions,
+    IsTecPermissions,
+    IsVisitorPermissions,
+    SpeakersReadOnlyPermissions,
+    IsRefLycPermissions,
 )
 
 from .utils import get_or_create_user
@@ -3617,7 +3625,7 @@ class StructureList(generics.ListCreateAPIView):
     serializer_class = StructureSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
-    permission_classes = [CustomDjangoModelPermissions|IsStructureManagerPermissions|IsStructureConsultantPermissions|IsEstablishmentManagerPermissions]
+    permission_classes = [CustomDjangoModelPermissions|IsStructureManagerPermissions|IsStructureConsultantPermissions|IsEstablishmentManagerPermissions|IsRefLycPermissions]
 
     def get_queryset(self):
         queryset = Structure.activated.order_by('code', 'label')

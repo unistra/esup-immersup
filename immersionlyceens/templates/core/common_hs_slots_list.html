@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
+{% endblock %}
+
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
+<script src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+<script src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+{% include '../modals/modal_view_slot_immersions.html' %}
+{% include '../modals/modal_register_group.html' %}
+{% include '../modals/modal_contact.html' %}
+<div id="top_indicator" class="hide w-100 bg-success pt-2 pb-1 fixed-top">
+    <p id="top_indicator__content" class="text-center text-light"></p>
+</div>
+<div id="feedback" class="container sticky-top"></div>
+<div class="container-fluid" style="padding-top: 20px; width: 98%;">
+  {% block slot_deletion %}{% endblock %}
+  <br>
+  <div class="card">
+    {% block card_header %}{% endblock %}
+      <div class="card-body">
+        {% block card_title %}{% endblock %}
+        {% if not user_slots %}
+
+            <div class="row">
+
+                <div class="col-md-3">
+                  <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
+                    <label for="id_highschool">{% trans 'Select a high school' %} :</label>
+                    <select id="id_highschool" class="form-control">
+                      <option value="">------------</option>
+                      {% for highschool in highschools %}
+                        <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
+                          {{ highschool }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
+                <div class="col-md-3">
+                  <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
+                    <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
+                    <select id="id_establishment" class="form-control">
+                        <option value="">------------</option>
+                      {% for establishment in establishments %}
+                        <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
+                          {{ establishment.code }} - {{ establishment.label }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-5" id="id_div_structures">
+                  <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+                    <label for="id_structure">{% trans 'Select a structure' %} :</label>
+                    <select id="id_structure" class="form-control">
+                      <option value="">------------</option>
+                      {% for structure in structures %}
+                        <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
+                          {{ structure.code }} - {{ structure.label }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+            </div>
+            {% block trainings_filter %}{% endblock %}
+            <br>
+        {% endif %}
+      <div class="col-12 col-sm-12 col-lg-12 table-responsive">
+        <table id="slots_list" class="table table-sm table-striped table-bordered compact dt-head-nowrap" style="max-width: none !important;">
+          {% block table_definition %}{% endblock %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block foot-javascript %}
+<script>
+  var dt;
+  var slot_mode = "{{ slot_mode }}"
+  var current_slot_id;
+  var can_update_attendances = false;
+  var can_update_registrations = false;
+  var place = "1";
+  var current_structure_id = "{{ structure_id }}";
+  var current_establishment_id = "{{ establishment_id }}";
+  var current_highschool_id = "{{ highschool_id }}";
+  var current_training_id = "{{ training_id }}";
+  var slot_places = 0;
+  var slot_groups_places = 0;
+  var slot_allow_group_registrations = false;
+  var slot_allow_individual_registrations = false;
+  var slot_group_mode;
+  var cohorts_only = true;
+  var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+  var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
+  var is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
+  var is_speaker = "{{ request.user.is_speaker }}" === "True"
+  var is_master_establishment_manager = "{{ request.user.is_master_establishment_manager }}" === "True"
+  var is_establishment_manager = "{{ request.user.is_establishment_manager }}" === "True"
+  var is_operator = "{{ request.user.is_operator }}" === "True"
+  var user_highschool = "{{ request.user.highschool_id }}"
+  var user_establishment = "{{ request.user.establishment_id }}"
+  let event_type_filter = "{{ event_type_filter }}"
+  let event_label_filter = "{{ event_label_filter }}"
+  let course_label_filter = "{{ course_label_filter }}"
+  let highschool_filter = "{{ highschool_filter }}"
+  let managed_by_filter = "{{ managed_by_filter }}"
+
+  function decodeHTMLEntities(text) {
+    return $("<textarea/>").html(text).text();
+  }
+
+  event_type_filter = decodeHTMLEntities(event_type_filter)
+  event_label_filter = decodeHTMLEntities(event_label_filter)
+  course_label_filter = decodeHTMLEntities(course_label_filter)
+  highschool_filter = decodeHTMLEntities(highschool_filter)
+  managed_by_filter = decodeHTMLEntities(managed_by_filter)
+
+  // datatables variables
+  {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+  let language_file = "{% static 'js/vendor/i18n/fr-FR.json' %}"
+  {% else %}
+  let language_file = ""
+  {% endif %}
+
+  // Common translations
+  let duplicate_text = "{% trans 'Duplicate' %}"
+  let modify_text = "{% trans 'Modify' %}"
+  let delete_text = "{% trans 'Delete' %}"
+  let attendances_text = "{% trans 'Enter attendances' %}"
+  let registered_text = "{% trans 'View registered students' %}"
+  let yes_text = "{% trans 'Yes' %}"
+  let no_text = "{% trans 'No' %}"
+  let all_text = "{% trans 'All' %}"
+  let remote_event_text = "{% trans 'Remote event' %}"
+  let establishments_txt = "{% trans 'Establishments' %}"
+  let levels_txt = "{% trans 'Levels' %}"
+  let bachelors_txt = "{% trans 'Bachelor types' %}"
+  let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
+  let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+  let places_txt = "{% trans 'Places' %}"
+  let individual_registrations_txt = "{% trans 'Individual registrations' %}"
+  let group_registrations_txt = "{% trans 'Group registrations' %}"
+  let update_group_txt = "{% trans 'Update group registration' %}"
+  let register_group_txt = "{% trans 'Register this group' %}"
+  let mode_txt = "{% trans 'Mode' %}"
+  let one_group_txt = "{% trans 'One group' %}"
+  let by_places_txt = "{% trans 'By number of places' %}"
+  let group_full_txt = "{% trans 'full' %}"
+  let public_group_txt = "{% trans 'Public group' %}"
+  let private_group_txt = "{% trans 'Private group' %}"
+
+  let regs_none_txt = "{% trans 'None' %}"
+  let regs_individual_only_txt = "{% trans 'Indiv. only' %}"
+  let regs_groups_only_txt = "{% trans 'Group only' %}"
+  let regs_groups_and_individual_txt = "{% trans 'Indiv + Group' %}"
+
+  let no_city_txt = "{% trans 'No city' %}"
+
+  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place=1, cohorts_only=true) {
+    can_update_registrations = update_registrations
+    current_slot_id = slot_id;
+    slot_places = n_places;
+    slot_groups_places = n_group_places;
+    slot_allow_group_registrations = allowed_group_registrations;
+    slot_allow_individual_registrations = allowed_individual_registrations;
+    slot_group_mode = group_mode;
+
+    let face_to_face = 0
+    let outside = 2
+
+    if(place === face_to_face || place === outside) {
+        $("#id_attendances").show()
+        $("#id_groups_attendances").show()
+    }
+    else {
+        $("#id_attendances").hide()
+        $("#id_groups_attendances").hide()
+    }
+
+    if(edit_mode === 1) {
+      can_update_attendances = true;
+      $('#id_update_attendances').show();
+      $('#id_groups_update_attendances').show();
+    }
+    else {
+      can_update_attendances = false;
+      $('#id_update_attendances').hide();
+      $('#id_groups_update_attendances').hide();
+    }
+
+    if(slot_allow_group_registrations) {
+      $('#id_div_group_registrations').show();
+    }
+    else {
+      $('#id_div_group_registrations').hide();
+    }
+
+    // Hide individual registrations
+    $('#id_div_individual_registrations').hide();
+    $('#id_modal_group_header').removeClass("pt-0");
+
+    // put slot id in register button in modal
+    $('#btn_register_student').data('id', slot_id);
+    $('#modal_view_slot_immersions').data('ispast', is_past)
+    $('#modal_view_slot_immersions').modal('show');
+  }
+
+  $('#id_establishment').change( function() {
+    current_establishment_id = $('#id_establishment option:selected').val();
+    current_structure_id = ""
+
+    dt.clear().draw()
+
+    empty_structures()
+
+    if (current_establishment_id !== "") {
+      set_structures(current_establishment_id);
+    }
+
+    if(slot_mode === "courses") {
+      empty_trainings()
+    }
+
+    if(current_establishment_id !== "") {
+      reload_data()
+    }
+
+    set_session_values(slot_mode, {
+      "current_highschool_id": current_highschool_id,
+      "current_establishment_id": current_establishment_id,
+      "current_structure_id": current_structure_id,
+      "current_training_id": current_training_id,
+    })
+  });
+
+  $('#id_highschool').change( function() {
+    current_highschool_id = $('#id_highschool option:selected').val();
+
+    dt.clear().draw()
+
+    if (current_highschool_id !== "") {
+      empty_structures()
+      $('#id_establishment').val("");
+      current_establishment_id = "";
+    }
+
+    if(slot_mode === "courses") {
+      set_trainings('highschool', current_highschool_id);
+    }
+
+    if (current_highschool_id !== "") {
+      reload_data();
+    }
+
+    set_session_values(slot_mode, {
+      "current_highschool_id": current_highschool_id,
+      "current_establishment_id": current_establishment_id,
+      "current_structure_id": current_structure_id,
+      "current_training_id": current_training_id,
+    })
+  });
+
+  // Reload the table when structure changes in selectbox
+  $('#id_structure').change( function() {
+    current_structure_id = $('#id_structure option:selected').val()
+
+    dt.clear().draw()
+
+    if(slot_mode === "courses") {
+      current_training_id = ''
+      $('#id_training').val('')
+      set_trainings('structures', current_structure_id);
+    }
+
+    reload_data();
+
+    set_session_values(slot_mode, {
+      "current_structure_id": current_structure_id,
+      "current_training_id": current_training_id,
+    })
+  });
+
+  $('#id_training').on('change', function(event) {
+    current_training_id = $("#id_training").val()
+
+    reload_data();
+
+    set_session_values(slot_mode, {
+      "current_training_id": current_training_id,
+    })
+  });
+
+  function empty_structures() {
+    let options = '<option value="">---------</option>'
+    $('select#id_structure').html(options)
+    current_structure_id = ''
+    $("#id_div_structures").hide()
+  }
+
+  function empty_trainings() {
+    let options = '<option value="">---------</option>'
+    $('select#id_training').html(options)
+    current_training_id = ''
+  }
+
+  function set_structures(establishment_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#id_structure').html(options)
+
+        if(current_structure_id) {
+          $("#id_structure").val(current_structure_id);
+        }
+        else {
+          $("#id_structure").val($("#id_structure option:first").val());
+        }
+
+        $("#id_div_structures").show()
+        current_highschool_id = ""
+        $('#id_highschool').val("");
+      }
+    })
+  }
+
+  function set_trainings(type, object_id) {
+    let options = "<option value=''>---------</option>"
+
+    if(!is_set(object_id)) {
+       $('select#id_training').html(options)
+       $("#id_training").val($("#id_training option:first").val());
+       return
+    }
+
+    $.get({
+      url: "{% url 'training_list' %}",
+      data: {
+        "csrfmiddlewaretoken": '{{ csrf_token }}',
+        [type]: object_id
+      },
+      success: function (data) {
+        if (data) {
+          $('#id_training').html('');
+          if ( data.length > 0 ) {
+            $('#id_training').append('<option value="">-------------</option>');
+            data.forEach(function(e) {
+               let selected = ""
+
+               if(parseInt(current_training_id) === e['id']) {
+                 selected = "selected"
+               }
+
+               let elem  = '<option value="' + e['id'] + '" ' + selected + '>' + e['label'] + '</option>';
+               $('#id_training').append(elem);
+            });
+          } else {
+            $('#id_training').append('<option value="">-------------</option>');
+          }
+        }
+      },
+    });
+  }
+</script>
+
+<script>
+$(document).ready(function(){
+  // reset feedback
+  setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
+  initFeedback();
+
+  function csrfSafeMethod(method) {
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+
+  $.fn.dataTableExt.errMode = 'console';
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+      }
+    }
+  });
+
+  $('#top_indicator').hide();
+
+  if(is_set(current_establishment_id)) {
+    $("#id_establishment").val(current_establishment_id)
+    set_structures(current_establishment_id)
+  }
+  else {
+    empty_structures()
+  }
+
+  if(is_set(current_structure_id)) {
+    $("#id_structure").val(current_structure_id)
+    if(slot_mode === "courses") {
+      set_trainings('structures', current_structure_id)
+    }
+  }
+
+  if(is_set(current_highschool_id)) {
+    $("#id_highschool").val(current_highschool_id)
+    set_trainings('highschool', current_highschool_id);
+  }
+
+  if(slot_mode === "courses" && is_set(current_training_id)) {
+    $("#id_training").val(current_training_id);
+  }
+
+  init_datatable();
+});
+
+
+function reload_data() {
+  yadcf.exResetAllFilters(dt);
+  dt.clear().draw();
+  dt.ajax.reload();
+}
+
+function show_top_indicator(text, mode) {
+    let fade = 1000;
+    let display = {% settings_get 'MESSAGES_TIMEOUT' %};
+    $('#top_indicator__content').html(text);
+    $('#top_indicator').removeClass('hide');
+
+    if(mode == "error") {
+      $('#top_indicator').removeClass('bg-success');
+      $('#top_indicator').addClass('bg-danger');
+    }
+    else {
+      $('#top_indicator').removeClass('bg-danger');
+      $('#top_indicator').addClass('bg-success');
+    }
+
+    $('#top_indicator').show();
+    setTimeout(function() {
+          $('#top_indicator').fadeOut(fade, function(){
+              $('#top_indicator').hide();
+          });
+      },
+      display
+    );
+}
+</script>
+{% endblock %}

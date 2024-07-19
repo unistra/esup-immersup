@@ -17,6 +17,10 @@ function init_datatable() {
           d.highschool_id = current_highschool_id || $('#id_highschool').val();
         }
 
+        if (is_set(cohorts_only)) {
+          d.cohorts_only = cohorts_only;
+        }
+
         d.past = $('#filter_past_slots').is(':checked')
 
         return d
@@ -56,17 +60,6 @@ function init_datatable() {
         render: function(data, type, row) {
           let element = ""
 
-          if (row['can_update_event_slot']) {
-            element += `<a href="/core/off_offer_event_slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
-                       `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
-
-            if(row.is_past === false) {
-              element += `<a href="/core/off_offer_event_slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
-            }
-            if(row.n_register === 0 && row.is_past === false) {
-              element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog(\'open\')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
-            }
-          }
           if (row['can_update_attendances']) {
             if(row.attendances_value === 1) {
               element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +

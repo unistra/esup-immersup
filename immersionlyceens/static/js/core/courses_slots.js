@@ -22,6 +22,10 @@ function init_datatable() {
             d.highschool_id = current_highschool_id || $('#id_highschool').val();
           }
 
+          if (is_set(cohorts_only)) {
+            d.cohorts_only = cohorts_only;
+          }
+
           d.past = $('#filter_past_slots').is(':checked')
 
           return d
