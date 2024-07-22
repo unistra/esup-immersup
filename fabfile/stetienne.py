@@ -53,7 +53,7 @@ def preprod_stetienne():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'csrf_trusted_origins': f"https://{env.server_name}",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
 
@@ -102,6 +102,6 @@ def prod_stetienne():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'csrf_trusted_origins': f"https://{env.server_name}",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
