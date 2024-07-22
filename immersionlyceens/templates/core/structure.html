@@ -41,6 +41,8 @@
             {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
         {% endfor %}
         </ul>
+      {% else %}
+        {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
       {% endif %}
     </div>
   </div>

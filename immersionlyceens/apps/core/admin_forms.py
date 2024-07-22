@@ -1420,6 +1420,7 @@ class HighSchoolForm(forms.ModelForm):
             raise forms.ValidationError(str(e)) from e
 
         if not educonnect_federation_setting:
+            self.fields['uses_student_federation'].disabled = True
             self.fields['uses_student_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
             )
@@ -1430,8 +1431,14 @@ class HighSchoolForm(forms.ModelForm):
             )
 
         if not agent_federation_setting:
+            self.fields['uses_student_federation'].disabled = True
             self.fields['uses_agent_federation'].help_text = _(
                 "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
+            )
+        else:
+            self.fields['uses_agent_federation'].help_text = _(
+                "Please be careful when activating this setting : usernames of users of this establishment "
+                "must match the agent federation ones."
             )
 
     """
@@ -1478,6 +1485,13 @@ class HighSchoolForm(forms.ModelForm):
         try:
             agent_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_FEDERATION_AGENT")
             educonnect_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_EDUCONNECT")
+
+            if not agent_federation_setting:
+                cleaned_data["uses_agent_federation"] = False
+
+            if not educonnect_federation_setting:
+                cleaned_data["uses_student_federation"] = False
+
         except Exception as e:
             raise forms.ValidationError(str(e)) from e
 
@@ -1517,15 +1531,6 @@ class HighSchoolForm(forms.ModelForm):
             if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_codes', ''):
                 raise forms.ValidationError({
                     'uai_codes': _("This field is mandatory when using the student federation"),
-                })
-
-        if agent_federation_setting:
-            if (self.instance.pk and self.instance.users.count()
-                    and uses_agent_federation != self.instance.uses_agent_federation):
-                raise forms.ValidationError({
-                    'uses_agent_federation': _(
-                        "You can't change this setting because this high school already has users."
-                    ),
                 })
 
         if uai_codes:
