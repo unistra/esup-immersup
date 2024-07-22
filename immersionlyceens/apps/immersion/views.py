@@ -399,12 +399,13 @@ def shibbolethLogin(request, profile=None):
             messages.error(request, _("Group error"))
 
         if is_high_school_student:
+            # validation=HighSchoolStudentRecord.TO_COMPLETE
             HighSchoolStudentRecord.objects.create(
                 highschool=record_highschool,
                 student=new_user,
                 level=level,
                 birth_date=other_fields.get('birth_date', None),
-                validation=HighSchoolStudentRecord.TO_COMPLETE
+                validation=None
             )
 
         new_user = authenticate(request, remote_user=new_user.username, shib_meta=shib_attrs)
@@ -1016,7 +1017,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             # Record not created yet.
             pass
 
-    if record and record.pk:
+    if record and record.pk and record.validation is not None:
         # Check user access for this record
         if user.is_high_school_manager() and user.highschool != record.highschool:
             if from_page:
