@@ -240,7 +240,7 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
-
+    """
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
     hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
@@ -254,7 +254,7 @@ def shibbolethLogin(request, profile=None):
         "unscoped_affiliation": "student"
     })
     # --------------- </shib dev> ----------------------
-
+    """
 
     if error:
         logger.error(f"Shibboleth error : {error}")
