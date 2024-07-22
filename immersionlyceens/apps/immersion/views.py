@@ -243,7 +243,6 @@ def shibbolethLogin(request, profile=None):
 
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
-    """
     hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
@@ -255,7 +254,7 @@ def shibbolethLogin(request, profile=None):
         "unscoped_affiliation": "student"
     })
     # --------------- </shib dev> ----------------------
-    """
+
 
     if error:
         logger.error(f"Shibboleth error : {error}")
@@ -317,11 +316,15 @@ def shibbolethLogin(request, profile=None):
 
         if shib_attrs.get('birth_date'):
             # High school student using EduConnect : email becomes optional
+            # TODO : identify EduConnect users with another meta HTTP var
             is_high_school_student = True
             optional_attributes.append('email')
             mandatory_attributes.remove('email')
             mandatory_attributes += high_school_student_attribute
             group_name = 'LYC'
+
+            # Don't keep the email address
+            shib_attrs['email'] = ''
 
             # Check allowed etu_stages
             try:
