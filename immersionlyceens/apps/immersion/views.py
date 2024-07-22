@@ -1017,7 +1017,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             # Record not created yet.
             pass
 
-    if record and record.pk and record.validation is not None:
+    if record and record.pk and record.validation != HighSchoolStudentRecord.INIT:
         # Check user access for this record
         if user.is_high_school_manager() and user.highschool != record.highschool:
             if from_page:
