@@ -29,6 +29,10 @@ ALLOWED_HOSTS = [
     '*'
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    '{{ csrf_trusted_origins }}',
+]
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
 
 SESSION_COOKIE_SECURE = True

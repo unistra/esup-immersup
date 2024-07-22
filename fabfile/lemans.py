@@ -54,6 +54,7 @@ def preprod_lemans():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': f"https://{env.server_name}",
     }
     execute(build_env)
 
@@ -103,5 +104,6 @@ def prod_lemans():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': f"https://{env.server_name}",
     }
     execute(build_env)

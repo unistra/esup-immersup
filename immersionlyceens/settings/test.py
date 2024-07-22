@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://immersup-test.app.unistra.fr'
+    '{{ csrf_trusted_origins }}',
 ]
 
 SESSION_COOKIE_SECURE = True
