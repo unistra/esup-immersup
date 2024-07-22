@@ -54,7 +54,7 @@ class Command(BaseCommand, Schedulable):
 
         for slot in slots:
             # TODO: if we should optimise this come from Immersion and not from Slot !!!
-            if slot.registered_students() > 0:
+            if slot.registered_students() > 0 or slot.group_immersions.exists():
                 # Speakers
                 for speaker in slot.speakers.all():
                     msg = speaker.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)

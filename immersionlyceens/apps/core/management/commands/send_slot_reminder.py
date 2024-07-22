@@ -63,7 +63,7 @@ class Command(BaseCommand, Schedulable):
 
         for group_immersion in group_immersions:
             # Send message to group contacts
-            msg, error = group_immersion.send_message(None, 'IMMERSION_ANNUL')
+            msg, error = group_immersion.send_message(None, 'IMMERSION_RAPPEL')
 
             if error:
                 returns.append(msg)

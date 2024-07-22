@@ -26,10 +26,6 @@ class Command(BaseCommand, Schedulable):
         returns = []
         today = datetime.datetime.today().date()
 
-        # The command has to be run on sunday (except for DEBUG mode)
-        if not settings.DEBUG and not today.weekday() == 6:
-            return success
-
         default_value = 1
 
         # settings / default value
