@@ -405,7 +405,7 @@ def shibbolethLogin(request, profile=None):
                 student=new_user,
                 level=level,
                 birth_date=other_fields.get('birth_date', None),
-                validation=None
+                validation=HighSchoolStudentRecord.INIT
             )
 
         new_user = authenticate(request, remote_user=new_user.username, shib_meta=shib_attrs)

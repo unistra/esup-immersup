@@ -24,6 +24,7 @@ class HighSchoolStudentRecord(models.Model):
     VALIDATED = 2
     REJECTED = 3
     TO_REVALIDATE = 4
+    INIT = 5
 
     STATUSES = {
         "TO_COMPLETE": TO_COMPLETE,
@@ -31,6 +32,7 @@ class HighSchoolStudentRecord(models.Model):
         "VALIDATED": VALIDATED,
         "REJECTED": REJECTED,
         "TO_REVALIDATE": TO_REVALIDATE,
+        "INITIALIZATION": INIT,
     }
 
     # Display values
