@@ -1218,9 +1218,13 @@ class AdminFormsTestCase(TestCase):
             request=request
         )
 
-        # The form is still valid because clean will ignore the change
-        self.assertTrue(form.is_valid())
-        self.high_school = form.save()
+        # Can't change this field
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You can't change this setting because this high school already has records.",
+            form.errors["uses_student_federation"]
+        )
+
         self.high_school.refresh_from_db()
         self.assertFalse(self.high_school.uses_student_federation)
 

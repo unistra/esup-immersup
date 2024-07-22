@@ -83,6 +83,7 @@ class Command(BaseCommand, Schedulable):
             if slot_list:
                 for referent in structure.referents.all():
                     msg = referent.send_message(None, 'RAPPEL_STRUCTURE', slot_list=slot_list)
+
                     if msg:
                         msg = _("Cannot send components slot reminder to %s : %s") % (referent.email, msg)
                         returns.append(msg)

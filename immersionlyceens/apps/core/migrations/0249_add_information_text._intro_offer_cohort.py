@@ -23,7 +23,7 @@ def population_information_text(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0234_canceltype_groups_canceltype_students'),
+        ('core', '0248_canceltype_managers_alter_canceltype_system'),
     ]
 
     operations = [
