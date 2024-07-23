@@ -613,7 +613,8 @@ def register(request, profile=None):
             if record_highschool:
                 HighSchoolStudentRecord.objects.create(
                     highschool=record_highschool,
-                    student=new_user
+                    student=new_user,
+                    validation = HighSchoolStudentRecord.INIT
                 )
 
             group_name: str = "LYC"
