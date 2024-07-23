@@ -1091,7 +1091,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
-                if not user.uses_federation():
+                if not user.uses_federation() and record.validation != HighSchoolStudentRecord.TO_COMPLETE:
                     validation_needed = True
                     messages.info(
                         request,
