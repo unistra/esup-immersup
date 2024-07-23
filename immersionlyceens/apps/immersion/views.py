@@ -191,7 +191,11 @@ class CustomLoginView(FormView):
         ]
 
         if self.user.is_high_school_student():
-            return reverse('home') if self.user.get_high_school_student_record() else "/immersion/hs_record"
+            record = self.user.get_high_school_student_record()
+
+            if not record or record.validation in [HighSchoolStudentRecord.INIT, HighSchoolStudentRecord.TO_COMPLETE]:
+                return "/immersion/hs_record"
+            return reverse('home')
         elif self.user.is_visitor():
             return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
         elif any(go_home):
