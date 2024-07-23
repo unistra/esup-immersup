@@ -578,9 +578,13 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                     self.fields[field].disabled = True
 
         # Lock fields if high school uses student federation
-        if self.instance and self.instance.highschool and self.instance.highschool.uses_student_federation:
-            for field in ["highschool", "level", "birth_date"]:
-                self.fields[field].disabled = True
+        if self.instance and self.instance.highschool:
+            if self.instance.highschool.uses_student_federation:
+                for field in ["highschool", "level", "birth_date"]:
+                    self.fields[field].disabled = True
+            else:
+                # Keep and lock the high school the user has chosen at registration
+                self.fields["highschool"].disabled = True
 
 
     def clean(self):
