@@ -41,7 +41,8 @@ class HighSchoolStudentRecord(models.Model):
         (TO_VALIDATE, _('To validate')),
         (VALIDATED, _('Validated')),
         (REJECTED, _('Rejected')),
-        (TO_REVALIDATE, _('To revalidate'))
+        (TO_REVALIDATE, _('To revalidate')),
+        (INIT, _('Initialization (to complete)'))
     ]
 
     student = models.OneToOneField(
