@@ -684,6 +684,9 @@ class Parser:
             "urlPlateforme": platform_url,
         }
 
+        if group:
+            context.update(cls.get_group_context(group))
+
         context.update(cls.get_course_context(course))
         context.update(cls.get_event_context(event))
         context.update(cls.get_slot_context(slot))

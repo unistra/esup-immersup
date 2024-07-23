@@ -1544,7 +1544,9 @@ def ajax_group_slot_registration(request):
         immersion_group_record.emails = emails
         if file:
             # Remove previous file from FS
-            immersion_group_record.file.storage.delete(immersion_group_record.file.name)
+            if immersion_group_record.file.name:
+                immersion_group_record.file.storage.delete(immersion_group_record.file.name)
+
             immersion_group_record.file = file
 
         immersion_group_record.save()
