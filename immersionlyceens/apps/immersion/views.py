@@ -324,7 +324,7 @@ def shibbolethLogin(request, profile=None):
             group_name = 'LYC'
 
             # Don't keep the email address
-            shib_attrs['email'] = ''
+            shib_attrs.pop('email', None)
 
             # Check allowed etu_stages
             try:
@@ -376,10 +376,8 @@ def shibbolethLogin(request, profile=None):
             return HttpResponseRedirect("/")
 
         if is_high_school_student:
-            # we have to fake a unique email to create the account
-            # then the user will be redirected to the email form
-            # fake_email = f"{shib_attrs['username']}@domain.tld"
-            shib_attrs['email'] = ''
+            # Ignore email
+            shib_attrs.pop('email', None)
 
         # Store unneeded attributes from shib_attrs for account creation
         other_fields = {
