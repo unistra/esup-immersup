@@ -833,7 +833,7 @@ msgstr "Les immersions en cohortes sont désactivées"
 
 #: immersionlyceens/apps/api/views.py:1455
 msgid "Invalid value for students count"
-msgstr "Nombre d'étudiants invalide"
+msgstr "Nombre d'élèves invalide"
 
 #: immersionlyceens/apps/api/views.py:1462
 msgid "Invalid value for guides count"
@@ -9275,7 +9275,7 @@ msgstr "Établissement scolaire"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:41
 msgid "Students count"
-msgstr "Nombre d'étudiants"
+msgstr "Nombre d'élèves"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:49
 msgid "Guides count"
