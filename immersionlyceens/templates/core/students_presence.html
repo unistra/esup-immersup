@@ -35,6 +35,14 @@
         <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
         <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
       </div>
+      <div class="form-group row align-items-center ml-1">
+        <label for="id_from" class="col-form-label ml-2"> {% trans 'Registrations' %} : </label>
+        <select id="id_place" name="place"  class="form-control form-control-sm col-sm-1 ml-2">
+          <option value="0">{% trans 'Face to face' %}</option>
+          <option value="2">{% trans 'Outside of host establishment' %}</option>
+        </select>
+      </div>
+      </form>
       <div class="col-12 col-sm-12 col-lg-12 table-responsive">
         <table id="students_table" class="table table-sm table-striped table-bordered compact" style="border-spacing:0;border-collapse:collapse;width:100%;">
           <thead>
@@ -97,8 +105,6 @@
   var alert1 = "{% blocktrans %}'From' date must be before 'Until' date'{% endblocktrans %}";
   var alert2 = "{% blocktrans %}'Until' date must be after 'From' date'{% endblocktrans %}";
 
-  console.log(is_legal_department_staff)
-
   $(document).ready(function () {
     $(function () {
       $(".datepicker").datepicker({
@@ -131,6 +137,11 @@
       'responsive': true,
       'ajax': {
         url: "{% url 'ajax_get_student_presence' %}",
+        data: function(d) {
+          d.from_date = $('#id_from').val()
+          d.until_date = $('#id_until').val()
+          d.place = $('#id_place').val()
+        },
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data'];
@@ -210,12 +221,14 @@
         "className": "all",
       },
     ],
-    initComplete: function () {
+    initComplete: function (settings) {
+      var api = new $.fn.dataTable.Api( settings );
+
       if(is_legal_department_staff) {
-        building_col = this.column();
-
-      })
-
+        let campus_col_no = 6
+        let building_col_no = 7
+        api.columns([campus_col_no, building_col_no]).visible(false)
+      };
     }
   });
 
@@ -474,6 +487,12 @@
       $('#id_until').val("");
     }
   });
+
+  $('#id_place').change(function() {
+
+    dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
+    dt.ajax.reload();
+  }
 
 });
 </script>
