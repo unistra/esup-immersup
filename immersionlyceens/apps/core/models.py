@@ -2985,7 +2985,19 @@ class ImmersionGroupRecord(models.Model):
         error = False
 
         high_school_managers = ImmersionUser.objects.filter(groups__name='REF-LYC', highschool_id=self.highschool.id)
-        main_manager = user if user and user.is_high_school_manager() else high_school_managers.first()
+
+        # Main recipient : user if high school manager, or first manager found, default to logged user
+        if user and user.is_high_school_manager():
+            main_manager = user
+        elif high_school_managers.count():
+            main_manager = high_school_managers.first()
+        elif user:
+            main_manager = user
+        else:
+            msg = _("Registration successfully added, confirmation email NOT sent : no valid recipient found")
+            error = True
+            return msg, error
+
         contacts = self.emails.split(',')
         recipients = list(
             set(contacts).union(set(hsm.email for hsm in high_school_managers if hsm.email != main_manager.email))
@@ -2995,7 +3007,8 @@ class ImmersionGroupRecord(models.Model):
         ret = main_manager.send_message(request, template, slot=self.slot, group=self, recipient='group', copies=recipients)
         if not ret:
             msg = _(
-                "Registration successfully added, confirmation email sent to high school managers and contacts")
+                "Registration successfully added, confirmation email sent to high school managers and contacts"
+            )
         else:
             msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
             error = True
