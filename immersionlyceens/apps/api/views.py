@@ -1438,6 +1438,8 @@ def ajax_group_slot_registration(request):
     emails = request.POST.get('emails', None)
     comments = request.POST.get('comments', None)
     feedback = request.POST.get('feedback', True)
+    current_students_count = 0
+    current_guides_count = 0
 
     error = False
     cleaned_emails = []
@@ -1465,6 +1467,8 @@ def ajax_group_slot_registration(request):
     try:
         # Update
         immersion_group_record = ImmersionGroupRecord.objects.get(pk=id)
+        current_students_count = immersion_group_record.students_count
+        current_guides_count = immersion_group_record.guides_count
     except:
         # Creation
         immersion_group_record = None
@@ -1485,9 +1489,12 @@ def ajax_group_slot_registration(request):
             return JsonResponse(response, safe=False)
 
     # available places
+    # on update, do not forget to ignore current slot students and guides count
     people_dict = slot.registered_groups_people_count()
+    current_registered_count = sum(people_dict.values()) - current_guides_count - current_students_count
 
-    if (students_count + guides_count) > (slot.n_group_places - sum(people_dict.values())):
+
+    if (students_count + guides_count) > (slot.n_group_places - current_registered_count):
         response = {'error': True, 'msg': _("There is not enough available places for this group")}
         return JsonResponse(response, safe=False)
 
