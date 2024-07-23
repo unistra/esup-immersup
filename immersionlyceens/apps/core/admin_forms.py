@@ -1,9 +1,10 @@
 import importlib
+import magic
 import mimetypes
 import re
 from datetime import datetime
 from typing import Any, Dict
-
+from ckeditor.widgets import CKEditorWidget
 from django import forms, template
 from django.conf import settings
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -18,7 +19,7 @@ from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from django.utils.translation import gettext_lazy as _, pgettext
-from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
+
 
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -34,7 +35,7 @@ from .models import (
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UAI, UniversityYear, Vacation,
 )
 
 
@@ -499,8 +500,8 @@ class EstablishmentForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': SummernoteWidget(),
-            'certificate_footer': SummernoteWidget(),
+            'certificate_header': CKEditorWidget(),
+            'certificate_footer': CKEditorWidget(),
         }
 
 
@@ -775,25 +776,75 @@ class PeriodForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        today = timezone.localdate()
+        now = timezone.now()
 
         if self.instance and self.instance.pk:
             # Lock start date update if in the past
-            if self.instance.id and self.instance.immersion_start_date < timezone.localdate():
-                 self.fields["immersion_start_date"] = forms.DateField(disabled=True)
+            if self.instance.immersion_start_date < today:
+                if "immersion_start_date" in self.fields:
+                    self.fields["immersion_start_date"].disabled = True
 
-            # If registrations have already begun, lock the immersions quota value
-            if self.instance.registration_start_date >= timezone.localdate():
-                # self.fields["allowed_immersions"].widget.attrs['readonly'] = 'readonly'
+                # Cannot change registration end date
+                if self.instance.registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+                    if "registration_end_date" in self.fields:
+                        self.fields["registration_end_date"].disabled = True
+
+            if self.instance.registration_start_date < now:
+                if "registration_start_date" in self.fields:
+                    self.fields["registration_start_date"].disabled = True
+
+            """
+            OBSOLETE
+            if self.instance.registration_start_date >= today:
                 self.fields["allowed_immersions"] = forms.IntegerField(disabled=True)
                 self.fields["allowed_immersions"].help_text = _("Registrations have begun, this field can't be updated")
+            """
+
+            readonly_fields = []
+
+            if self.instance.immersion_end_date < today:
+                readonly_fields = [
+                    'label',
+                    'immersion_start_date',
+                    'immersion_end_date',
+                    'registration_start_date',
+                    'allowed_immersions',
+                ]
+            elif self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
+                readonly_fields = [
+                    'label',
+                    'immersion_start_date',
+                    'registration_end_date_policy',
+                    'registration_start_date',
+                    'registration_end_date',
+                ]
+            elif self.instance.immersion_start_date > today:
+                if self.instance.registration_start_date.date() < today:
+                    readonly_fields += [
+                        'label',
+                        'registration_start_date',
+                        'registration_end_date_policy'
+                    ]
+
+            for field in readonly_fields:
+                if field in self.fields:
+                    self.fields[field].disabled = True
 
 
     def clean(self):
+        today = timezone.localdate()
+        now = timezone.now()
+
         cleaned_data = super().clean()
 
-        start_date = cleaned_data.get('immersion_start_date')
-        end_date = cleaned_data.get('immersion_end_date')
+        immersion_start_date = cleaned_data.get('immersion_start_date')
+        immersion_end_date = cleaned_data.get('immersion_end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
+        registration_end_date = cleaned_data.get('registration_end_date')
+        registration_end_date_policy = cleaned_data.get('registration_end_date_policy')
+        allowed_immersions = cleaned_data.get('allowed_immersions')
+
         valid_user = False
 
         # Test user group
@@ -811,46 +862,82 @@ class PeriodForm(forms.ModelForm):
         if not univ_year:
             raise forms.ValidationError(_("An active university year is required to create a period"))
 
-        # Date checks
+        # Mandatory dates
         period_dates = [
-            start_date, end_date, registration_start_date,
+            "immersion_start_date", "immersion_end_date", "registration_start_date"
         ]
 
-        if not all(period_dates):
+        if registration_end_date_policy == Period.REGISTRATION_END_DATE_PERIOD:
+            period_dates.append("registration_end_date")
+
+            try:
+                if int(cleaned_data.get("cancellation_limit_delay")) < 0:
+                    raise ValueError
+            except (ValueError, TypeError):
+                self.add_error("cancellation_limit_delay", _("A null or positive value is required"))
+
+        date_error = False
+        for d in period_dates:
+            if not cleaned_data.get(d):
+                date_error = True
+                self.add_error(d, _("A value is required"))
+
+        if date_error:
             raise forms.ValidationError(_("A period requires all dates to be filled in"))
 
+        # Dates check
         dates_conditions = [
-            not (univ_year.start_date <= registration_start_date < univ_year.end_date),
-            not (univ_year.start_date < start_date < univ_year.end_date),
-            not (univ_year.start_date < end_date <= univ_year.end_date),
+            not (univ_year.start_date <= registration_start_date.date() < univ_year.end_date),
+            registration_end_date and not (univ_year.start_date <= registration_end_date.date() < univ_year.end_date),
+            not (univ_year.start_date < immersion_start_date < univ_year.end_date),
+            not (univ_year.start_date < immersion_end_date <= univ_year.end_date),
         ]
 
         if any(dates_conditions):
             raise forms.ValidationError(_("All period dates must be between university year start/end dates"))
 
-        if not self.instance.id and start_date < timezone.now().date():
+        if not self.instance.id and immersion_start_date < today:
             raise forms.ValidationError(_("A new period can't be set with a start_date in the past"))
 
-        if registration_start_date >= start_date:
+        if registration_start_date.date() >= immersion_start_date:
             raise forms.ValidationError(_("Registration start date must be before the immersions start date"))
 
-        # start < end
-        if start_date and end_date and start_date >= end_date:
-            raise forms.ValidationError(_("Start date is after end date"))
+        if registration_end_date and registration_end_date.date() >= immersion_start_date:
+            raise forms.ValidationError(_("Registration end date must be before the immersions start date"))
 
-        # Label unicity and dates overlap test
-        excludes = {'pk':self.instance.id } if self.instance else {}
+        if registration_end_date and registration_start_date and registration_end_date <= registration_start_date:
+            raise forms.ValidationError(_("Registration end date must be after the registration start date"))
 
-        periods_qs = Period.objects.filter(
-                Q(immersion_start_date__lte=end_date, immersion_end_date__gte=end_date)
-               |Q(immersion_start_date__lte=start_date, immersion_end_date__gte=start_date)
-            ).exclude(**excludes)
+        # check immersions start < end
+        if immersion_start_date and immersion_end_date and immersion_start_date >= immersion_end_date:
+            raise forms.ValidationError(_("Immersions end date must be after immersions start date"))
 
-        if periods_qs.exists():
-            periods = ", ".join(p.label for p in periods_qs)
-            raise forms.ValidationError(
-                _("At least one existing period (%s) overlaps this one, please check the dates") % periods
-            )
+        # Fields that can be updated with conditions
+        if self.instance and self.instance.pk:
+            if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
+                if self.has_changed():
+                    if 'immersion_end_date' in self.changed_data:
+                        # change end date only for a future date
+                        if immersion_end_date < self.instance.immersion_end_date:
+                            raise forms.ValidationError(_("Immersions end date can only be set after the actual one"))
+                    if 'allowed_immersions' in self.changed_data:
+                        if allowed_immersions < self.instance.allowed_immersions:
+                            raise forms.ValidationError(
+                                _("New allowed immersions value can only be higher than the previous one")
+                            )
+            if self.instance.immersion_start_date > today:
+                if self.has_changed():
+                    slots_exist = self.instance.slots.exists()
+                    if 'immersion_start_date' in self.changed_data:
+                        if slots_exist and immersion_start_date > self.instance.immersion_start_date:
+                            raise forms.ValidationError(
+                                _("Immersions start date can only be set before the actual one")
+                            )
+                    if 'immersion_end_date' in self.changed_data:
+                        if slots_exist and immersion_end_date < self.instance.immersion_end_date:
+                            raise forms.ValidationError(
+                                _("Immersions end date can only be set after the actual one")
+                            )
 
         return cleaned_data
 
@@ -1048,7 +1135,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["highschool"].queryset = \
                         HighSchool.objects.filter(pk=user_highschool.id).order_by("city", "label")
 
-
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data.get('groups')
@@ -1071,7 +1157,16 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             if any(linked_groups_conditions):
                 msg = _("This user has linked accounts, you can't update his/her groups")
-                self._errors['groups'] = self.error_class([msg])
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
+
+            # A user can have two groups if one of them is INTER
+            if groups.count() > 2 or groups.count() > 1 and not groups.filter(name='INTER').exists():
+                msg = _("A user cannot have multiple profiles except for the INTER one")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
 
             if groups and groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')).exists():
                 cleaned_data['is_staff'] = True
@@ -1172,8 +1267,17 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-        # Username override
-        self.instance.username = self.instance.email
+        # Username override except for high school students using EduConnect
+        exceptions = [
+            not self.instance.is_high_school_student(),
+            not self.instance.get_high_school_student_record(),
+            self.instance.get_high_school_student_record()
+                and self.instance.high_school_student_record.highschool
+                and not self.instance.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            self.instance.username = self.instance.email
 
         # New account : send an account creation message
         user = self.instance
@@ -1225,6 +1329,9 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        if self.fields and self.fields.get('uai_codes'):
+            self.fields['uai_codes'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
+
         if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
             city_choices = [
                 ('', '---------'),
@@ -1252,13 +1359,13 @@ class HighSchoolForm(forms.ModelForm):
                     zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
 
                 self.fields['department'] = forms.TypedChoiceField(
-                    label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+                    label=_("Department"), widget=forms.Select(), choices=department_choices
                 )
                 self.fields['city'] = forms.TypedChoiceField(
-                    label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+                    label=_("City"), widget=forms.Select(), choices=city_choices
                 )
                 self.fields['zip_code'] = forms.TypedChoiceField(
-                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices
                 )
 
         postbac_dependant_fields = ['mailing_list', 'logo', 'signature', 'certificate_header', 'certificate_footer']
@@ -1291,20 +1398,72 @@ class HighSchoolForm(forms.ModelForm):
                     """options in general settings""") % w_agreement
 
                 if w_agreement:
-                    # field disabled and conventions activated : make convention dates required
-                    self.fields['convention_start_date'].required = True
-                    self.fields['convention_end_date'].required = True
+                    # field disabled and conventions activated : make convention dates required if active
+                    try:
+                        active = kwargs['data']['active']
+                    except:
+                        active = False
+
+                    if active:
+                        self.fields['convention_start_date'].required = True
+                        self.fields['convention_end_date'].required = True
                 else:
                     # field disabled and conventions deactivated : disabled convention dates
                     self.fields['convention_start_date'].disabled = True
                     self.fields['convention_end_date'].disabled = True
 
+        # Federations fields
+        try:
+            agent_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_FEDERATION_AGENT")
+            educonnect_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_EDUCONNECT")
+        except Exception as e:
+            raise forms.ValidationError(str(e)) from e
+
+        if not educonnect_federation_setting:
+            self.fields['uses_student_federation'].disabled = True
+            self.fields['uses_student_federation'].help_text = _(
+                "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
+            )
+        elif self.instance.pk and self.instance.student_records.exists():
+            # Disable student identity federation choice if the high school has students
+            self.fields['uses_student_federation'].help_text = _(
+                "This field cannot be changed because this high school already has student records"
+            )
+
+        if not agent_federation_setting:
+            self.fields['uses_student_federation'].disabled = True
+            self.fields['uses_agent_federation'].help_text = _(
+                "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
+            )
+        else:
+            self.fields['uses_agent_federation'].help_text = _(
+                "Please be careful when activating this setting : usernames of users of this establishment "
+                "must match the agent federation ones."
+            )
+
+    """
+    def clean_uses_student_federation(self):
+        instance = getattr(self, 'instance', None)
+
+        print(f"cleaned data uses_student_federation : {self.cleaned_data.get('uses_student_federation')}")
+
+        if 'uses_student_federation' not in self.cleaned_data:
+            if instance and instance.pk:
+                return instance.uses_student_federation
+            else:
+                return False
+        else:
+            return self.cleaned_data['uses_student_federation']
+    """
 
     def clean(self):
-        cleaned_data = super().clean()
-        active = cleaned_data.get("active", False)
-
         valid_user = False
+        cleaned_data = super().clean()
+
+        active = cleaned_data.get("active", False)
+        uses_student_federation = cleaned_data.get("uses_student_federation")
+        uses_agent_federation = cleaned_data.get("uses_agent_federation")
+        uai_codes = cleaned_data.get('uai_codes')
 
         try:
             user = self.request.user
@@ -1322,6 +1481,19 @@ class HighSchoolForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        try:
+            agent_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_FEDERATION_AGENT")
+            educonnect_federation_setting = GeneralSettings.get_setting(name="ACTIVATE_EDUCONNECT")
+
+            if not agent_federation_setting:
+                cleaned_data["uses_agent_federation"] = False
+
+            if not educonnect_federation_setting:
+                cleaned_data["uses_student_federation"] = False
+
+        except Exception as e:
+            raise forms.ValidationError(str(e)) from e
 
         # General settings dependant field
         if "with_convention" in cleaned_data:
@@ -1344,7 +1516,31 @@ class HighSchoolForm(forms.ModelForm):
                     raise forms.ValidationError({
                         'convention_start_date': _("Both convention dates are required if 'convention' is checked"),
                         'convention_end_date': _("Both convention dates are required if 'convention' is checked")
-                   })
+                    })
+
+        # Student identity federation (educonnect) : test only when setting is in use
+        if educonnect_federation_setting:
+            if (self.instance.pk and self.instance.student_records.exists()
+                and uses_student_federation != self.instance.uses_student_federation):
+                raise forms.ValidationError({
+                    'uses_student_federation': _(
+                        "You can't change this setting because this high school already has records."
+                    ),
+                })
+
+            if cleaned_data.get('uses_student_federation', False) and not cleaned_data.get('uai_codes', ''):
+                raise forms.ValidationError({
+                    'uai_codes': _("This field is mandatory when using the student federation"),
+                })
+
+        if uai_codes:
+            for uai_code in uai_codes:
+                if HighSchool.objects.filter(uai_codes=uai_code).exclude(pk=self.instance.pk).exists():
+                    raise forms.ValidationError({
+                        'uai_codes': _(
+                            "The uai code %s - %s is already associated with another high school"
+                        ) % (uai_code.code, uai_code.label)
+                    })
 
         return cleaned_data
 
@@ -1354,11 +1550,12 @@ class HighSchoolForm(forms.ModelForm):
                   'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
-                  'certificate_footer')
+                  'certificate_footer', 'uses_agent_federation', 'uses_student_federation',
+                  'allow_individual_immersions', 'uai_codes')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': SummernoteWidget(),
-            'certificate_footer': SummernoteWidget(),
+            'certificate_header': CKEditorWidget(),
+            'certificate_footer': CKEditorWidget(),
         }
 
 
@@ -1438,7 +1635,10 @@ class MailTemplateForm(forms.ModelForm):
                 line: int = 1 + before.count("<br>") + before.count("</br>")
                 line += before.count("&lt;br&gt;") + before.count("&lt;/br&gt;")
                 body_syntax_error_msg = _("The message body contains syntax error(s) : ")
-                body_syntax_error_msg += _('at "%s" line %s') % (e.template_debug["during"], line)
+                body_syntax_error_msg += _('at "%(pos)s" line %(line)s') % {
+                    'pos': e.template_debug["during"],
+                    'line': line
+                }
                 body_errors_list.append(self.error_class([body_syntax_error_msg]))
             else:
                 body_syntax_error_msg = _("The message body contains syntax error(s) : ") + str(e)
@@ -1457,7 +1657,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': SummernoteWidget(),
+            'body': CKEditorWidget(),
         }
 
 
@@ -1474,9 +1674,9 @@ class AccompanyingDocumentForm(forms.ModelForm):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
             # See settings content types allowed
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+            # allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
 
-            if document.content_type in allowed_content_type:
+            if document.content_type in settings.MIME_TYPES:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s')
@@ -1544,7 +1744,7 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
-        widgets = {'content': SummernoteWidget}
+        widgets = {'content': CKEditorWidget}
 
 
 class PublicDocumentForm(forms.ModelForm):
@@ -1560,9 +1760,7 @@ class PublicDocumentForm(forms.ModelForm):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
             # See settings content types allowed
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
-
-            if document.content_type in allowed_content_type:
+            if document.content_type in settings.MIME_TYPES:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
@@ -1619,9 +1817,7 @@ class AttestationDocumentForm(forms.ModelForm):
         template = self.cleaned_data['template']
         if template and isinstance(template, UploadedFile):
             # See settings content types allowed
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
-
-            if template.content_type in allowed_content_type:
+            if template.content_type in settings.MIME_TYPES:
                 if template.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
@@ -1708,13 +1904,25 @@ class GeneralSettingsForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        user = self.request.user
+
+        # setting_type field only writable by admins and REF-TECs
+        if not any([user.is_superuser, user.is_operator()]) and "setting_type" in self.fields:
+            self.fields["setting_type"].disabled = True
+            self.fields["setting_type"].help_text = _("Read only")
+
+
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser or user.is_operator()
+            valid_user = any([
+                user.is_superuser,
+                user.is_operator(),
+                user.is_master_establishment_manager() and self.instance.setting_type == GeneralSettings.FUNCTIONAL
+            ])
         except AttributeError:
             pass
 
@@ -1730,7 +1938,7 @@ class GeneralSettingsForm(forms.ModelForm):
                     raise forms.ValidationError(
                         _("Students users exist you can't deactivate students"))
 
-            if cleaned_data['setting']=='ACTIVATE_VISITORS' \
+            if cleaned_data['setting'] == 'ACTIVATE_VISITORS' \
                 and not cleaned_data['parameters']['value']:
 
                 if ImmersionUser.objects.filter(groups__name='VIS').first():
@@ -1801,6 +2009,23 @@ class GeneralSettingsForm(forms.ModelForm):
                 else:
                     cleaned_data['parameters']['value']['activate'] = False
                     cleaned_data['parameters']['value']['default_quota'] = 2
+
+            if cleaned_data['setting'] == 'ACTIVATE_FEDERATION_AGENT':
+                value = cleaned_data['parameters']['value']
+                if not value and HighSchool.objects.filter(uses_agent_federation=True).exists():
+                    raise ValidationError(_(
+                        """This parameter can't be set to False : some high schools """
+                        """use the agent federation to authenticate their users"""
+                    ))
+
+            if cleaned_data['setting'] == 'ACTIVATE_EDUCONNECT':
+                value = cleaned_data['parameters']['value']
+                if not value and HighSchool.objects.filter(uses_student_federation=True).exists():
+                    raise ValidationError(_(
+                        """This parameter can't be set to False : some high schools """
+                        """use the student identity federation to authenticate their students"""
+                    ))
+
         except KeyError:
             raise ValidationError('')
 
@@ -1823,10 +2048,7 @@ class CertificateLogoForm(forms.ModelForm):
     def clean_logo(self):
         logo = self.cleaned_data['logo']
         if logo and isinstance(logo, UploadedFile):
-
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'gif']]
-
-            if not logo.content_type in allowed_content_type:
+            if not logo.content_type in CertificateLogo.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return logo
@@ -1864,10 +2086,7 @@ class CertificateSignatureForm(forms.ModelForm):
     def clean_signature(self):
         signature = self.cleaned_data['signature']
         if signature and isinstance(signature, UploadedFile):
-
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'gif']]
-
-            if not signature.content_type in allowed_content_type:
+            if not signature.content_type in CertificateSignature.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return signature
@@ -1967,9 +2186,9 @@ class CustomThemeFileForm(forms.ModelForm):
         file = self.cleaned_data['file']
         if file and isinstance(file, UploadedFile):
             # TODO: check later cause text/javascript is deprecated !
-            mimetypes.add_type("text/javascript", ".js")
-            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
-            if not file.content_type in allowed_content_type:
+            #mimetypes.add_type("text/javascript", ".js")
+            #allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
+            if not file.content_type in CustomThemeFile.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return file
@@ -2012,7 +2231,7 @@ class FaqEntryAdminForm(forms.ModelForm):
     class Meta:
         model = FaqEntry
         fields = '__all__'
-        widgets = {'answer': SummernoteWidget,}
+        widgets = {'answer': CKEditorWidget,}
 
 
 class ProfileForm(forms.ModelForm):

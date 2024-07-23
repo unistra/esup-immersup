@@ -69,3 +69,4 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 # EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.DummyBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
+MIGRATE = False

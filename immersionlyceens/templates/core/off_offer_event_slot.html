@@ -4,7 +4,7 @@
 {% load static %}
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
-{% block title %} 
+{% block title %}
 {% if duplicate %}
   {% trans "Duplicate an event slot" %}
 {% elif slot %}
@@ -12,7 +12,7 @@
 {% else %}
   {% trans "Add a new event slot" %}
 {% endif %}
-{% endblock%} 
+{% endblock%}
 {% block confirm_slot_creation %}
 <div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm event slot creation" %}">
   <span>
@@ -56,15 +56,15 @@
 </div>
 
 <div class="form-group row">
-  <label for="id_face_to_face" class="col-form-label col-sm-3">
-    {% trans 'Face to face' %} ?
+  <label for="id_place" class="col-form-label col-sm-3">
+    {% trans 'Place' %}
   </label>
-  <div class="col-sm-1">
-    {{ form.face_to_face }}
+  <div class="col-sm-3">
+    {{ form.place }}
   </div>
-  {% if form.face_to_face.errors %}
+  {% if form.place.errors %}
     <div class="col-sm-3 alert alert-danger">
-      {{ form.face_to_face.errors }}
+      {{ form.place.errors }}
     </div>
   {% endif %}
 </div>

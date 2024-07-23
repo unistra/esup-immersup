@@ -8,6 +8,7 @@ from . import views
 
 urlpatterns = [
     path('batch_cancel_registration', views.ajax_batch_cancel_registration, name='BatchCancelRegistration'),
+    path('groups_batch_cancel_registration', views.ajax_groups_batch_cancel_registration, name='GroupsBatchCancelRegistration'),
     path('cancel_alert', views.ajax_cancel_alert, name='cancel_alert'),
     path('cancel_registration', views.ajax_cancel_registration, name='CancelRegistration'),
 
@@ -28,6 +29,11 @@ urlpatterns = [
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
+    path(
+        'get_slot_groups_registrations/<int:slot_id>',
+        views.ajax_get_slot_groups_registrations,
+        name='get_slot_groups_registrations'
+    ),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_students_presence', views.ajax_get_student_presence, name='ajax_get_student_presence'),
     path(
@@ -38,6 +44,7 @@ urlpatterns = [
 
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),
     path('register', views.ajax_slot_registration, name='SlotRegistration'),
+    path('group_register', views.ajax_group_slot_registration, name='GroupSlotRegistration'),
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
     path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
     path('send_email', views.ajax_send_email, name='SendEmail'),
@@ -78,12 +85,7 @@ urlpatterns = [
     # Speakers
     path('speakers', views.SpeakerList.as_view(), name='speaker_list'),
     path('speakers/courses/<int:course_id>', views.SpeakerList.as_view(), name='course_speaker_list'),
-    path('speakers/visits/<int:visit_id>', views.SpeakerList.as_view(), name='visit_speaker_list'),
     path('speakers/events/<int:event_id>', views.SpeakerList.as_view(), name='event_speaker_list'),
-
-    # Visits
-    path('visits', views.VisitList.as_view(), name='visit_list'),
-    path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
 
     # Off offer events
     path('off_offer_events', views.OffOfferEventList.as_view(), name='off_offer_event_list'),

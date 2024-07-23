@@ -14,7 +14,8 @@ def preprod_lorraine():
     """Define preprod stage for Lorraine instance"""
     env.roledefs = {
         'web': ['saas-lorraine-pprd-1.srv.unistra.fr', 'saas-lorraine-pprd-2.srv.unistra.fr'],
-        'lb': ['saas-lorraine-pprd-1.srv.unistra.fr', 'saas-lorraine-pprd-2.srv.unistra.fr'],
+        # 'lb': ['saas-lorraine-pprd-1.srv.unistra.fr', 'saas-lorraine-pprd-2.srv.unistra.fr'],
+        'lb': [],
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
@@ -53,6 +54,7 @@ def preprod_lorraine():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
 
@@ -62,7 +64,8 @@ def prod_lorraine():
     """Define preprod stage for Lorraine instance"""
     env.roledefs = {
         'web': ['saas-lorraine-prod-1.srv.unistra.fr', 'saas-lorraine-prod-2.srv.unistra.fr'],
-        'lb': ['saas-lorraine-prod-1.srv.unistra.fr', 'saas-lorraine-prod-2.srv.unistra.fr'],
+        # 'lb': ['saas-lorraine-prod-1.srv.unistra.fr', 'saas-lorraine-prod-2.srv.unistra.fr'],
+        'lb': [],
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
@@ -101,6 +104,7 @@ def prod_lorraine():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
 

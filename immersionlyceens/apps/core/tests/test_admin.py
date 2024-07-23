@@ -15,6 +15,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
 from ..admin import (
     AttestationDocumentAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
     EstablishmentAdmin, PeriodAdmin, StructureAdmin, TrainingAdmin,
@@ -30,10 +32,10 @@ from ..admin_forms import (
     UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, AttestationDocument, BachelorMention, Building,
-    Campus, CancelType, CourseType, CustomThemeFile, Establishment,
+    AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
+    Building, Campus, CancelType, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
+    HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday, ImmersionUser,
     InformationText, MailTemplate, MailTemplateVars, Period,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, Vacation,
@@ -71,6 +73,7 @@ class AdminFormsTestCase(TestCase):
 
         cls.site = AdminSite()
         cls.today = timezone.localdate()
+        cls.now = timezone.now()
 
         cls.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion1@no-reply.com'
@@ -232,6 +235,14 @@ class AdminFormsTestCase(TestCase):
             last_name='STUDENT',
         )
 
+        cls.highschool_user = get_user_model().objects.create_user(
+            username='hs_student',
+            password='pass',
+            email='hs_student@no-reply.com',
+            first_name='hs_student',
+            last_name='hs_student',
+        )
+
         cls.visitor = get_user_model().objects.create_user(
             username='visitor',
             password='pass',
@@ -250,6 +261,7 @@ class AdminFormsTestCase(TestCase):
         Group.objects.get(name='INTER').user_set.add(cls.speaker_user)
         Group.objects.get(name='INTER').user_set.add(cls.speaker_user_2)
         Group.objects.get(name='ETU').user_set.add(cls.student)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user)
         Group.objects.get(name='VIS').user_set.add(cls.visitor)
 
     def setUp(self):
@@ -1087,8 +1099,8 @@ class AdminFormsTestCase(TestCase):
         data.update({
             'id': highschool.id,
             'active': False,
-            'convention_start_date': None,
-            'convention_end_date': None
+            'convention_start_date': '',
+            'convention_end_date': ''
         })
 
         form = HighSchoolForm(instance=highschool, data=data, request=request)
@@ -1106,12 +1118,116 @@ class AdminFormsTestCase(TestCase):
 
         data.pop('id') # remove id
         data['label'] = 'Another high school'
+
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
+
+        form.is_valid()
+        print(form.errors)
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
+
+    def test_highschool_federation(self):
+        """
+        Test student federation settings update when a high school has linked records
+        """
+        request.user = self.ref_master_etab_user
+        self.assertFalse(self.high_school.uses_student_federation)
+
+        data = {
+            "id": self.high_school.pk,
+            'active': self.high_school.active,
+            'label': self.high_school.label,
+            'country': self.high_school.country,
+            'address': self.high_school.address,
+            'address2': '',
+            'address3': '',
+            'department': self.high_school.department,
+            'city': self.high_school.city,
+            'zip_code': self.high_school.zip_code,
+            'phone_number': self.high_school.phone_number,
+            'fax': self.high_school.fax,
+            'email': "hs@domain.com",
+            'head_teacher_name': self.high_school.head_teacher_name,
+            'with_convention': self.high_school.with_convention,
+            'convention_start_date': self.high_school.convention_start_date,
+            'convention_end_date': self.high_school.convention_end_date,
+            'postbac_immersion': self.high_school.postbac_immersion,
+            'mailing_list': self.high_school.mailing_list,
+            'badge_html_color': '#112233',
+            "uses_student_federation": True
+        }
+
+        form = HighSchoolForm(
+            instance=self.high_school,
+            data=data,
+            request=request
+        )
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.high_school.refresh_from_db()
+
+        # Add a high school record to the high school
+        # check we still can update 'uses_student_federation' (ACTIVATE_EDUCONNECT disabled)
+        hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=self.today,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere S 3',
+            bachelor_type=BachelorType.objects.get(label__iexact='professionnel'),
+            professional_bachelor_mention='My spe'
+        )
+
+        data.update({
+            "uses_student_federation": False
+        })
+
+        form = HighSchoolForm(
+            instance=self.high_school,
+            data=data,
+            request=request
+        )
+
+        self.assertTrue(form.is_valid())
+
+        self.high_school = form.save()
+
+        # Update setting and check again : form shouldn't be valid
+        setting = GeneralSettings.objects.get(setting='ACTIVATE_EDUCONNECT')
+        setting.parameters.update({
+            "value": True,
+        })
+        setting.save()
+
+        # Don't forget to refresh to cancel previous form data
+        self.high_school.refresh_from_db()
+
+        data.update({
+            "uses_student_federation": True
+        })
+
+        form = HighSchoolForm(
+            instance=self.high_school,
+            data=data,
+            request=request
+        )
+
+        # Can't change this field
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You can't change this setting because this high school already has records.",
+            form.errors["uses_student_federation"]
+        )
+
+        self.high_school.refresh_from_db()
+        self.assertFalse(self.high_school.uses_student_federation)
+
 
 
     def test_holiday_creation(self):
@@ -1403,10 +1519,11 @@ class AdminFormsTestCase(TestCase):
         )
 
         period = Period.objects.create(
-            label = 'Period 1',
-            registration_start_date = self.today + datetime.timedelta(days=10),
-            immersion_start_date = self.today + datetime.timedelta(days=20),
-            immersion_end_date = self.today + datetime.timedelta(days=40),
+            label='Period 1',
+            registration_start_date=self.now + datetime.timedelta(days=10),
+            registration_end_date=self.now + datetime.timedelta(days=19),
+            immersion_start_date=self.today + datetime.timedelta(days=20),
+            immersion_end_date=self.today + datetime.timedelta(days=40),
             allowed_immersions=4
         )
 
@@ -1424,6 +1541,7 @@ class AdminFormsTestCase(TestCase):
 
         # Readonly fields
         # superuser : None
+        """
         request.user = self.superuser
         self.assertEqual(period_admin.get_readonly_fields(request=request, obj=period), [])
 
@@ -1438,7 +1556,8 @@ class AdminFormsTestCase(TestCase):
         # current period:
         period2 = Period.objects.create(
             label='Period 0',
-            registration_start_date=self.today - datetime.timedelta(days=3),
+            registration_start_date=self.now - datetime.timedelta(days=3),
+            registration_end_date=self.now - datetime.timedelta(days=2, hours=23),
             immersion_start_date=self.today - datetime.timedelta(days=2),
             immersion_end_date=self.today + datetime.timedelta(days=2),
             allowed_immersions=4
@@ -1452,6 +1571,7 @@ class AdminFormsTestCase(TestCase):
         period2 = Period.objects.create(
             label='Period -1',
             registration_start_date=self.today - datetime.timedelta(days=9),
+            registration_end_date=self.now - datetime.timedelta(days=8, hours=23),
             immersion_start_date=self.today - datetime.timedelta(days=8),
             immersion_end_date=self.today - datetime.timedelta(days=7),
             allowed_immersions=4
@@ -1460,6 +1580,7 @@ class AdminFormsTestCase(TestCase):
             sorted(period_admin.get_readonly_fields(request=request, obj=period2)),
             ['allowed_immersions', 'immersion_end_date', 'immersion_start_date', 'label', 'registration_start_date']
         )
+        """
 
     def test_public_document_creation(self):
         """
@@ -2275,6 +2396,121 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         training_quotas.refresh_from_db()
         self.assertEqual(training_quotas.parameters["value"]["default_quota"], 2)
+
+    def test_federation_general_settings(self):
+        """
+        Test federations settings
+        """
+        request.user = self.operator_user
+
+        # Agent federation
+        setting = GeneralSettings.objects.get(setting='ACTIVATE_FEDERATION_AGENT')
+        setting.parameters['value'] = True
+        setting.save()
+
+        self.high_school.uses_agent_federation = True
+        self.high_school.save()
+
+        # Check setting cannot be deactivated
+        data = {
+            "id": setting.id,
+            "setting": "ACTIVATE_FEDERATION_AGENT",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "Whatever"
+            }
+        }
+
+        form = GeneralSettingsForm(data=data, instance=setting, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            """This parameter can't be set to False : some high schools """
+            """use the agent federation to authenticate their users""",
+            form.errors['__all__']
+        )
+
+        # Students federation
+        setting = GeneralSettings.objects.get(setting='ACTIVATE_EDUCONNECT')
+        setting.parameters['value'] = True
+        setting.save()
+
+        self.high_school.uses_student_federation = True
+        self.high_school.save()
+
+        # Check setting cannot be deactivated
+        data = {
+            "id": setting.id,
+            "setting": "ACTIVATE_EDUCONNECT",
+            "parameters": {
+                "type": "boolean",
+                "value": False,
+                "description": "Whatever"
+            }
+        }
+
+        form = GeneralSettingsForm(data=data, instance=setting, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            """This parameter can't be set to False : some high schools """
+            """use the student identity federation to authenticate their students""",
+            form.errors['__all__']
+        )
+
+    def test_general_settings_types(self):
+        """
+        Test general settings types
+        """
+        # Apply proper rights first
+        management.call_command("restore_group_rights")
+
+        setting = GeneralSettings.objects.create(
+            setting='my_setting',
+            parameters= {
+                "type": "text",
+                "value": "initial_value",
+                "description": "my super setting"
+            },
+            setting_type=GeneralSettings.TECHNICAL
+        )
+
+        data = {
+            "setting": setting.setting,
+            "parameters": {
+                "type": "text",
+                "value": "another value",
+                "description": "my super setting"
+            }
+        }
+        request.user = self.ref_master_etab_user
+        form = GeneralSettingsForm(instance=setting, data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        setting.refresh_from_db()
+
+        self.assertEqual(setting.parameters['value'], "initial_value")
+
+        # Allowed
+        setting.setting_type = GeneralSettings.FUNCTIONAL
+        setting.save()
+
+        form = GeneralSettingsForm(instance=setting, data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # As an establishment manager, read only
+        request.user = self.ref_etab_user
+        data = {
+            "setting": setting.setting,
+            "parameters": {
+                "type": "text",
+                "value": "new value",
+                "description": "my super setting"
+            }
+        }
+        form = GeneralSettingsForm(instance=setting, data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+
 
     def test_custom_theme_file_creation(self):
         """

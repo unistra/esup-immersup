@@ -6,6 +6,7 @@ from immersionlyceens.apps.core.models import GeneralSettings
 
 
 def add_attestation_document_setting(apps, schema_editor):
+    GeneralSettings = apps.get_model('core', 'GeneralSettings')
 
     code = 'ATTESTATION_DOCUMENT_DEPOSIT_DELAY'
     if not GeneralSettings.objects.filter(setting=code).exists():

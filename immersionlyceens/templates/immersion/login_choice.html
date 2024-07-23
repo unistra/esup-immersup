@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block content %}
+<div class="main-title inside text-center">
+    <div></div>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1>{% trans 'Authentication' %}</h1>
+        </div>
+      </div>
+    </div>
+</div>
+<div>
+  <section class="py-5">
+    <div class="container">
+      <div class="form-group row justify-content-center">
+        <div class="col-sm-6 col-md-6">
+          <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
+             title="{% trans 'All public high schools and private high schools under contract' %}">
+            {% trans 'My high school uses' %} {{ federation_name }}
+          </a>
+          <p class="float-right mt-4">
+            {% if profile == 'lyc' %}
+              {% trans 'On the next page, select "Educonnect" in the establishments list' %}
+            {% else %}
+              {% trans 'On the next page, select "Education Nationale - accès académies et administration centrale" in the establishments list' %}
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-sm-6 col-md-6">
+          <a href="{% url 'immersion:login' profile=profile %}" class="btn btn-secondary">
+            {% trans 'My High school does not use' %} {{ federation_name }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Account activation needed" %}{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Account activation needed' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-5">
+  <div class="container">
+    <p class="text-center">
+      {% trans 'Please check your emails for the activation procedure.' %}
+    </p>
+    <div class="row">
+      <div class="col">
+        <p class="text-center">
+          <a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a>
+        </p>
+        <p class="text-center">
+          {% trans 'Important : please do not forget to log out of EduConnect by clicking on the button below.' %}
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <p class="text-center">
+          <a href="{% url 'immersion:logout' %}" class="btn btn-secondary">
+            {% trans 'Logout from EduConnect' %}
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

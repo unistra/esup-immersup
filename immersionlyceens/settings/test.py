@@ -37,6 +37,13 @@ ALLOWED_HOSTS = [
     '.unistra.fr',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    '{{ csrf_trusted_origins }}',
+]
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 #####################
 # Log configuration #
 #####################
@@ -57,6 +64,13 @@ CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 # CAS_SERVER_URL = 'https://cas-pprd.unistra.fr:443/cas/'
 # CAS_LOGOUT_REQUEST_ALLOWED = ('cas-w1-pprd.di.unistra.fr', 'cas-w2-pprd.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
+
+
+####################
+#    SHIBBOLETH    #
+####################
+EDUCONNECT_LOGOUT_URL = "https://pr4.educonnect.phm.education.gouv.fr/logout"
+AGENT_FEDERATION_LOGOUT_URL = "https://hub-pr2.phm.education.gouv.fr/logout"
 
 
 #################
@@ -126,7 +140,7 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 # true to use unistra theme (fake boolean ftw)
 UNISTRA = '{{ use_unistra_theme }}'
 
-STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageWithoutSourceMap'
 
 
 # Extra locales
@@ -137,3 +151,12 @@ if EXTRA_LOCALE_PATH:
 
     if isdir(EXTRA_LOCALE_DIR):
         LOCALE_PATHS = [EXTRA_LOCALE_DIR] + LOCALE_PATHS
+
+
+###########################
+#  SEARCH PLUGIN FOR UAI  #
+###########################
+UAI_API_URL = "{{ uai_api_url }}"
+UAI_API_AUTH_HEADER = "{{ uai_api_auth_header }}"
+UAI_API_SEARCH_ATTR = "{{ uai_api_search_attr }}"
+

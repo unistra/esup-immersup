@@ -1,5 +1,5 @@
 from django.utils.translation import (
-    LANGUAGE_SESSION_KEY, activate, ugettext_lazy as _,
+    activate, gettext_lazy as _,
 )
 from rest_framework.permissions import BasePermission, DjangoModelPermissions
 

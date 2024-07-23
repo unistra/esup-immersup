@@ -5,12 +5,14 @@ import csv
 import json
 import unittest
 import codecs
-from datetime import datetime, time, timedelta
+
+from datetime import datetime, time, timedelta, timezone as datetime_timezone
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core import mail
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
@@ -27,8 +29,9 @@ from immersionlyceens.apps.core.models import (
     GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
+    PostBachelorLevel, Profile, RefStructuresNotificationsSettings,
+    Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
@@ -46,7 +49,7 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
+    fixtures = ['high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', 'tests_uai']
 
     @classmethod
     def setUpTestData(cls):
@@ -149,8 +152,6 @@ class APITestCase(TestCase):
             signed_charter=True,
         )
 
-        cls.visit = Visit.objects.first()
-
         cls.visitor = get_user_model().objects.create_user(
             username="visitor",
             password="pass",
@@ -241,6 +242,13 @@ class APITestCase(TestCase):
             last_name='ref_str',
             establishment=cls.establishment,
         )
+
+        cls.notification = RefStructuresNotificationsSettings.objects.create(
+            user=cls.ref_str
+        )
+
+        cls.notification.structures.add(cls.structure)
+
         cls.ref_str2 = get_user_model().objects.create_user(
             username='ref_str2',
             password='pass',
@@ -352,6 +360,14 @@ class APITestCase(TestCase):
             allowed_immersions=4,
         )
 
+        cls.period2 = Period.objects.create(
+            label="Period 2",
+            registration_start_date=cls.today,  # + timedelta(days=1),
+            immersion_start_date=cls.today - timedelta(days=1),
+            immersion_end_date=cls.today + timedelta(days=1),
+            allowed_immersions=4,
+        )
+
         cls.vac = Vacation.objects.create(
             label="vac",
             start_date=cls.today - timedelta(days=2),
@@ -420,11 +436,22 @@ class APITestCase(TestCase):
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
 
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+
         self.course = Course.objects.create(
             label="course 1",
             training=self.training,
             structure=self.structure
         )
+        self.course.speakers.add(self.speaker1)
+
+        """
+        self.event = OffOfferEvent.objects.create(
+            label="event 1",
+            event_type=self.event_type,
+            structure=self.structure
+        )
+        """
         self.course.speakers.add(self.speaker1)
 
         self.slot = Slot.objects.create(
@@ -434,6 +461,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 1',
             date=self.today,
+            period=self.period2,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -446,6 +474,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=3),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -458,6 +487,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=3),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -468,6 +498,7 @@ class APITestCase(TestCase):
             course_type=self.course_type,
             room='room 212',
             date=self.today,
+            period=self.period2,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -480,6 +511,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=3),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=0,
@@ -492,6 +524,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today - timedelta(days=1),
+            period=self.period2,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -504,6 +537,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=2),
+            period=self.period,
             registration_limit_delay=72,
             cancellation_limit_delay=72,
             start_time=time(12, 0),
@@ -518,6 +552,7 @@ class APITestCase(TestCase):
             building=self.building,
             room='room 2',
             date=self.today + timedelta(days=2),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -535,6 +570,7 @@ class APITestCase(TestCase):
             course_type=self.course_type,
             room='room 237',
             date=self.today + timedelta(days=2),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -552,6 +588,7 @@ class APITestCase(TestCase):
             course_type=self.course_type,
             room='room 1',
             date=self.today + timedelta(days=2),
+            period=self.period,
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
@@ -623,18 +660,6 @@ class APITestCase(TestCase):
             validation=1,
         )
 
-        self.slot4 = Slot.objects.create(
-            visit=Visit.objects.first(),
-            campus=self.campus,
-            building=self.building,
-            room='room 2',
-            date=self.today + timedelta(days=2),
-            start_time=time(12, 0),
-            end_time=time(14, 0),
-            n_places=20,
-            additional_information="Hello there!"
-        )
-
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
             slot=self.slot,
@@ -646,10 +671,6 @@ class APITestCase(TestCase):
         self.immersion3 = Immersion.objects.create(
             student=self.highschool_user,
             slot=self.past_slot,
-        )
-        self.immersion4 = Immersion.objects.create(
-            student=self.visitor_user,
-            slot=self.slot4,
         )
         self.mail_t = MailTemplate.objects.create(
             code="code",
@@ -668,15 +689,12 @@ class APITestCase(TestCase):
             course=self.course
         )
 
-        self.event_type = OffOfferEventType.objects.create(label="Event type label")
-
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         self.token = Token.objects.create(user=self.ref_master_etab_user)
         self.client_token = Client(HTTP_AUTHORIZATION=f" Token {self.token.key}")
 
         self.api_token = Token.objects.create(user=self.api_user)
         self.api_client_token = Client(HTTP_AUTHORIZATION=f" Token {self.api_token.key}")
-
 
     def test_API_get_documents(self):
         url = "/api/get_available_documents/"
@@ -702,7 +720,6 @@ class APITestCase(TestCase):
             docs = AccompanyingDocument.objects.filter(active=True)
             self.assertEqual(len(json_content['data']), docs.count())
 
-
     def test_API_ajax_get_buildings(self):
         self.client.login(username='ref_etab', password='pass')
         url = f"/api/get_buildings/{self.campus.id}"
@@ -712,7 +729,6 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], self.building.id)
         self.assertEqual(content['data'][0]['label'], self.building.label)
-
 
     def test_course_slot_creation(self):
         """
@@ -729,19 +745,25 @@ class APITestCase(TestCase):
         data = {
             "course": self.course.id,
             "n_places": "30",
+            "n_group_places": "",
             "course_type": self.course_type.id,
             "building": self.building.pk,
             "campus": self.campus.pk,
             "date": date,
+            "period": self.period.pk,
             "start_time": "10:00",
             "end_time": "12:00",
-            "face_to_face": True,
+            "place": Slot.FACE_TO_FACE,
             "room": "salle 113",
             "levels_restrictions": True,
             "allowed_highschool_levels": [1],
             "registration_limit_delay": 24,
             "cancellation_limit_delay": 48,
-            "speakers": [speaker.pk]
+            "speakers": [speaker.pk],
+            "allow_individual_registrations": True,
+            "allow_group_registrations": False,
+            "group_mode": 0,
+            "public_group": ""
         }
 
         response = self.api_client_token.post(url, data)
@@ -752,32 +774,82 @@ class APITestCase(TestCase):
         self.api_user.user_permissions.add(add_permission)
         response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
-
-        slot = Slot.objects.get(date=date, course=self.course.pk)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(result, {
+        slot = Slot.objects.get(period=self.period, date=date, course=self.course.pk)
+
+        test_data = {
             "id":slot.pk,
             "room":"salle 113",
             "date":date,
+            "period":self.period.pk,
             "start_time":"10:00:00",
             "end_time":"12:00:00",
             "n_places":30,
+            "n_group_places": None,
             "additional_information":None,
             "url":None,
             "published":False,
-            "face_to_face":True,
+            "place": Slot.FACE_TO_FACE,
             "establishments_restrictions":False,
             "levels_restrictions":True,
             "bachelors_restrictions":False,
             "course":self.course.pk,
             "course_type":self.course_type.pk,
-            "visit":None,
             "event":None,
             "campus":self.campus.pk,
             "building":self.building.pk,
             "speakers":[speaker.id],
+            "allow_individual_registrations": True,
+            "allow_group_registrations": False,
+            "group_mode": 0,
+            "public_group": False,
+            "allowed_establishments":[],
+            "allowed_highschools":[],
+            "allowed_highschool_levels":[1],
+            "allowed_student_levels":[],
+            "allowed_post_bachelor_levels":[],
+            "allowed_bachelor_types":[],
+            "allowed_bachelor_mentions":[],
+            "allowed_bachelor_teachings":[],
+            "registration_limit_delay":24,
+            "cancellation_limit_delay":48,
+            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
+            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
+            "reminder_notification_sent":False,
+        }
+
+        """
+        import dictdiffer
+        print([x for x in dictdiffer.diff(test_data, result)])
+        """
+
+        self.assertEqual(result, {
+            "id":slot.pk,
+            "room":"salle 113",
+            "date":date,
+            "period": self.period.pk,
+            "start_time":"10:00:00",
+            "end_time":"12:00:00",
+            "n_places":30,
+            "n_group_places": None,
+            "additional_information":None,
+            "url":None,
+            "published":False,
+            "place": Slot.FACE_TO_FACE,
+            "establishments_restrictions":False,
+            "levels_restrictions":True,
+            "bachelors_restrictions":False,
+            "course":self.course.pk,
+            "course_type":self.course_type.pk,
+            "event":None,
+            "campus":self.campus.pk,
+            "building":self.building.pk,
+            "speakers":[speaker.id],
+            "allow_individual_registrations": True,
+            "allow_group_registrations": False,
+            "group_mode": 0,
+            "public_group": False,
             "allowed_establishments":[],
             "allowed_highschools":[],
             "allowed_highschool_levels":[1],
@@ -797,7 +869,7 @@ class APITestCase(TestCase):
         data2 = {
             "course": self.course.id,
             "published": True,
-            "face_to_face": True,
+            "place": Slot.FACE_TO_FACE,
             "room": "salle 113",
             "levels_restrictions": True,
             "allowed_highschool_levels": [1]
@@ -806,7 +878,7 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data2)
         result = json.loads(response.content.decode('utf-8'))
 
-        for field in ["n_places", "date", "start_time", "end_time", "speakers"]:
+        for field in ["n_places", "date", "period", "start_time", "end_time", "speakers"]:
             self.assertEqual(
                 [f"Field '{field}' is required for a new published slot"],
                 result['error'][field]
@@ -831,6 +903,7 @@ class APITestCase(TestCase):
             "building": self.building.pk,
             "course_type": self.course_type.pk,
             "date": (self.today + timedelta(days=11)).strftime("%Y-%m-%d"),
+            "period":self.period.pk,
             "n_places": "30",
             "start_time": "14:00",
             "end_time": "12:00",
@@ -857,8 +930,10 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
 
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
         self.assertEqual(
-            ["No available period found for slot date '%s', please create one first" % data["date"]],
+            ["Invalid date for selected period : please check periods settings"],
             result['error']['date']
         )
 
@@ -951,7 +1026,6 @@ class APITestCase(TestCase):
         hs_record = content['data'][0]
         self.assertEqual(hs_record['id'], self.hs_record.id)
 
-
     def test_API_ajax_get_reject_student(self):
         self.client.login(username='ref_etab', password='pass')
         url = "/api/reject_student/"
@@ -999,7 +1073,6 @@ class APITestCase(TestCase):
         self.assertTrue(content['data']['ok'])
         self.hs_record.refresh_from_db()
         self.assertEqual(self.hs_record.validation, 3)  # rejected
-
 
     def test_API_ajax_get_validate_student__ok(self):
         self.hs_record.validation = 1  # TO_VALIDATE
@@ -1052,7 +1125,6 @@ class APITestCase(TestCase):
         self.hs_record.refresh_from_db()
         self.assertEqual(self.hs_record.validation, 2)  # validated
         self.assertEqual(self.hs_record.attestation.count(), 1)
-
 
     def test_API_get_csv_anonymous(self):
         # ref master etab
@@ -1185,118 +1257,6 @@ class APITestCase(TestCase):
 
             n += 1
 
-        # type=visit
-
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Visit from hell",
-            published=True
-        )
-
-        slot = Slot.objects.create(
-            visit=visit,
-            room='cool room',
-            date=self.today + timedelta(days=1),
-            start_time=time(12, 0),
-            end_time=time(14, 0),
-            n_places=20,
-            additional_information="Hello there!",
-        )
-
-        slot.speakers.add(self.speaker1),
-
-        immersion = Immersion.objects.create(
-            student=self.student,
-            slot=slot,
-            attendance_status=1
-        )
-
-        self.client.login(username='ref_master_etab', password='pass')
-        url = '/api/get_csv_anonymous/?type=visit'
-        response = self.client.get(url, request)
-        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
-        headers = [
-            _('establishment'),
-            _('structure'),
-            _('highschool'),
-            _('purpose'),
-            _('meeting place'),
-            _('date'),
-            _('start_time'),
-            _('end_time'),
-            _('speakers'),
-            _('registration number'),
-        ]
-
-        n = 0
-
-        for row in content:
-            # header check
-            if n == 0:
-                for h in headers:
-                    self.assertIn(h, row)
-            elif n == 1:
-                self.assertEqual(self.establishment.label, row[0])
-                self.assertEqual(self.structure.label, row[1])
-                self.assertIn(visit.highschool.label, row[2])
-                self.assertEqual(visit.purpose, row[3])
-                self.assertEqual(slot.room, row[4])
-                self.assertEqual(_date(slot.date, 'd/m/Y'), row[5])
-                self.assertIn(slot.start_time.strftime("%H:%M"), row[6])
-                self.assertIn(slot.end_time.strftime("%H:%M"), row[7])
-                self.assertEqual(str(self.speaker1), row[8])
-                self.assertEqual(str(slot.registered_students()), row[9])
-                self.assertEqual(str(self.slot.n_places), row[10])
-                self.assertEqual(slot.additional_information, row[11])
-
-            n += 1
-
-
-        self.client.login(username='ref_etab', password='pass')
-        url = '/api/get_csv_anonymous/?type=visit'
-        response = self.client.get(url, request)
-        content = csv.reader(response.content.decode('utf-8-sig').split('\n'), **settings.CSV_OPTIONS)
-        headers = [
-            _('structure'),
-            _('highschool'),
-            _('purpose'),
-            _('meeting place'),
-            _('date'),
-            _('start_time'),
-            _('end_time'),
-            _('speakers'),
-            _('registration number'),
-            _('place number'),
-            _('additional information'),
-        ]
-
-        n = 0
-
-        for row in content:
-            # header check
-            if n == 0:
-                for h in headers:
-                    self.assertIn(h, row)
-            elif n == 1:
-                self.assertEqual(self.structure.label, row[0])
-                self.assertIn(visit.highschool.label, row[1])
-                self.assertEqual(visit.purpose, row[2])
-                self.assertEqual(slot.room, row[3])
-                self.assertEqual(_date(slot.date, 'd/m/Y'), row[4])
-                self.assertIn(slot.start_time.strftime("%H:%M"), row[5])
-                self.assertIn(slot.end_time.strftime("%H:%M"), row[6])
-                self.assertEqual(str(self.speaker1), row[7])
-                self.assertEqual(str(slot.registered_students()), row[8])
-                self.assertEqual(str(self.slot.n_places), row[9])
-                self.assertEqual(slot.additional_information, row[10])
-
-            n += 1
-
-        immersion.delete()
-
-
     def test_API_get_csv_highschool(self):
         # Ref highschool
         self.client.login(username='ref_lyc', password='pass')
@@ -1315,7 +1275,7 @@ class APITestCase(TestCase):
             _('training domain'),
             _('training subdomain'),
             _('training'),
-            _('course/event/visit label'),
+            _('course/event label'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1639,7 +1599,6 @@ class APITestCase(TestCase):
 
             n += 1
 
-
     def test_API_ajax_get_available_vars(self):
         self.client.login(username='ref_etab', password='pass')
         request.user = self.ref_etab_user
@@ -1662,7 +1621,6 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(content["msg"], "Error : no template id")
         self.assertEqual(content['data'], [])
-
 
     def test_API_get_person(self):
         self.client.login(username='ref_etab', password='pass')
@@ -1754,7 +1712,6 @@ class APITestCase(TestCase):
         )
         self.assertEqual(content['data'], [])
 
-
     def test_API_ajax_get_speaker_courses(self):
         # As a 'structure' speaker
         request.user = self.speaker1
@@ -1805,7 +1762,6 @@ class APITestCase(TestCase):
             c['published_slots_count']
         )
 
-
     def test_API_get_agreed_highschools(self):
         """
         Get only high schools with valid agreements
@@ -1850,7 +1806,6 @@ class APITestCase(TestCase):
         self.assertEqual(self.high_school.head_teacher_name, hs['head_teacher_name'])
         self.assertEqual(_date(self.high_school.convention_start_date, 'Y-m-d'), hs['convention_start_date'])
         self.assertEqual(_date(self.high_school.convention_end_date, 'Y-m-d'), hs['convention_end_date'])
-
 
     def test_API_ajax_get_immersions(self):
         # Wrong user
@@ -1907,55 +1862,60 @@ class APITestCase(TestCase):
         This doesn't work yet because of cancellation_limit_date comparison
         """
         self.maxDiff = None
-        self.assertEqual(content['data'][0], {
-            'id': self.immersion.id,
-            'type': 'course',
-            'translated_type': 'Course',
-            'label': 'course 1',
-            'establishment': 'Etablissement 1',
-            'highschool': '',
-            'structure': 'test structure',
-            'meeting_place': 'Le portique <br> room 1',
-            'campus': 'Esplanade',
-            'building': 'Le portique',
-            'room': 'room 1',
-            'establishments': 'Etablissement 1',
-            'course': {
+        self.assertEqual(
+            content['data'][0],
+            {
+                'id': self.immersion.id,
+                'type': 'course',
+                'translated_type': 'Course',
                 'label': 'course 1',
-                'training': 'test training',
-                'type': 'CM',
-                'type_full': ''
+                'establishment': 'Etablissement 1',
+                'highschool': '',
+                'highschool_address': '',
+                'highschool_city': '',
+                'structure': 'test structure',
+                'meeting_place': 'Le portique<br>room 1',
+                'campus': 'Esplanade',
+                'campus_city': 'Strasbourg',
+                'building': 'Le portique',
+                'room': 'room 1',
+                'establishments': 'Etablissement 1',
+                'course': {'label': 'course 1', 'training': 'test training', 'training_url': None, 'type': 'CM', 'type_full': ''},
+                'event': {},
+                'datetime': datetime.combine(self.immersion.slot.date, self.immersion.slot.start_time).strftime(
+                    "%Y-%m-%dT%H:%M:%S"
+                ),
+                'date': date_format(self.immersion.slot.date),
+                'start_time': self.immersion.slot.start_time.strftime("%-Hh%M"),
+                'end_time': self.immersion.slot.end_time.strftime("%-Hh%M"),
+                'speakers': ['HER speak'],
+                'info': 'Hello there!',
+                'attendance': 'Not entered',
+                'attendance_status': 0,
+                'cancellable': True,
+                'cancellation_limit_date': json.dumps(
+                    self.immersion.slot.cancellation_limit_date.astimezone(datetime_timezone.utc), cls=DjangoJSONEncoder
+                ).strip('"'),
+                'cancellation_type': '',
+                'slot_id': self.immersion.slot.id,
+                'free_seats': 18,
+                'can_register': False,
+                "place": Slot.FACE_TO_FACE,
+                'time_type': 'future',
+                'registration_date': json.dumps(
+                    self.immersion.registration_date.astimezone(datetime_timezone.utc), cls=DjangoJSONEncoder
+                ).strip('"'),
+                'cancellation_date': "",
+                'allow_individual_registrations': self.immersion.slot.allow_individual_registrations,
+                'n_places': self.immersion.slot.n_places,
+                'n_registered': self.immersion.slot.registered_students(),
+                'registration_limit_date': json.dumps(
+                    self.immersion.slot.registration_limit_date.astimezone(datetime_timezone.utc), cls=DjangoJSONEncoder
+                ).strip('"'),
             },
-            'event': {},
-            'visit': {},
-            'datetime': datetime.combine(
-                self.immersion.slot.date,
-                self.immersion.slot.start_time
-            ).strftime("%Y-%m-%dT%H:%M:%S"),
-            'date': date_format(self.immersion.slot.date),
-            'start_time': self.immersion.slot.start_time.strftime("%-Hh%M"),
-            'end_time': self.immersion.slot.end_time.strftime("%-Hh%M"),
-            'speakers': ['HER speak'],
-            'info': 'Hello there!',
-            'attendance': 'Not entered',
-            'attendance_status': 0,
-            'cancellable': True,
-            'cancellation_limit_date': json.dumps(
-                self.immersion.slot.cancellation_limit_date.astimezone(timezone.utc),
-                cls=DjangoJSONEncoder
-            ).strip('"'),
-            'cancellation_type': '',
-            'slot_id': self.immersion.slot.id,
-            'free_seats': 18,
-            'can_register': False,
-            'face_to_face': True,
-            'time_type': 'future',
-            'registration_date': json.dumps(
-                self.immersion.registration_date.astimezone(timezone.utc),
-                cls=DjangoJSONEncoder
-            ).strip('"'),
-            'cancellation_date': "",
-        })
+        )
+
+        # {'id': 41, 'type': 'course', 'translated_type': 'Course', 'label': 'course 1', 'establishment': 'Etablissement 1', 'highschool': '', 'structure': 'test structure', 'meeting_place': 'Le portique <br> room 1', 'campus': 'Esplanade', 'building': 'Le portique', 'room': 'room 1', 'establishments': 'Etablissement 1', 'course': {'label': 'course 1', 'training': 'test training', 'training_url': None, 'type': 'CM', 'type_full': ''}, 'event': {}, 'datetime': datetime.datetime(2024, 7, 14, 12, 0), 'date': 'July 14, 2024', 'start_time': '12h00', 'end_time': '14h00', 'speakers': ['HER speak'], 'info': 'Hello there!', 'attendance': 'Not entered', 'attendance_status': 0, 'cancellable': True, 'cancellation_limit_date': datetime.datetime(2024, 7, 14, 10, 0, tzinfo=datetime.timezone.utc), 'cancellation_type': '', 'slot_id': 131, 'free_seats': 18, 'can_register': False, 'place': 0, 'registration_date': datetime.datetime(2024, 7, 12, 15, 34, 56, 129949, tzinfo=datetime.timezone.utc), 'cancellation_date': '', 'campus_city': 'STRASBOURG', 'allow_individual_registrations': True, 'n_places': 20, 'n_registered': 2, 'registration_limit_date': datetime.datetime(2024, 7, 14, 10, 0, tzinfo=datetime.timezone.utc), 'time_type': 'future'}
 
         # Get past immersions
         self.slot.date = self.today - timedelta(days=2)
@@ -1977,6 +1937,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
         self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.campus.city.title(), i['campus_city'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
@@ -2008,6 +1969,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
         self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.campus.city.title(), i['campus_city'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
@@ -2050,6 +2012,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
         self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.campus.city.title(), i['campus_city'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
@@ -2062,7 +2025,6 @@ class APITestCase(TestCase):
 
         hs.allow_high_school_consultation = False
         hs.save()
-
 
     def test_API_get_other_registrants(self):
         client = Client()
@@ -2090,7 +2052,6 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], 'Error : invalid user or immersion id')
-
 
     def test_API_ajax_get_slot_registrations(self):
         request.user = self.ref_etab_user
@@ -2158,7 +2119,7 @@ class APITestCase(TestCase):
             'first_name': self.highschool_user2.first_name,
             'record_highschool_label': self.hs_record2.highschool.label,
             'record_highschool_id': self.hs_record2.highschool.id,
-            'institution': None,
+            'institution_label': None,
             'institution_uai_code': None,
             'city': self.hs_record2.highschool.city,
             'class_name': self.hs_record2.class_name,
@@ -2183,7 +2144,7 @@ class APITestCase(TestCase):
             'first_name': self.student2.first_name,
             'record_highschool_label': None,
             'record_highschool_id': None,
-            'institution': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
+            'institution_label': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
             'institution_uai_code': HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).uai_code,
             'city': None,
             'class_name': None,
@@ -2208,7 +2169,6 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], 'Error : slot not found')
-
 
     def test_API_ajax_get_highschool_students(self):
         request.user = self.ref_etab_user
@@ -2283,7 +2243,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "Invalid parameters")
         self.assertEqual(content['data'], [])
         """
-
 
     def test_API_validate_slot_date(self):
         request.user = self.ref_etab_user
@@ -2364,7 +2323,6 @@ class APITestCase(TestCase):
         with self.assertRaises(ImmersionUser.DoesNotExist):
             ImmersionUser.objects.get(pk=uid)
 
-
     def test_API_ajax_cancel_registration(self):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
@@ -2442,7 +2400,10 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         self.assertIsNone(self.immersion.cancellation_type)
 
-        # Success
+        self.immersion.slot.date = self.today + timedelta(days=1)
+        self.immersion.slot.registration_limit_delay = 48 # to check emails
+        self.immersion.slot.save()
+
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertFalse(content['error'])
         self.assertEqual(content['msg'], "Immersion cancelled")
@@ -2450,6 +2411,10 @@ class APITestCase(TestCase):
         self.immersion.refresh_from_db()
         self.assertEqual(self.immersion.cancellation_type.id, self.cancel_type.id)
 
+        # 3 mails sent : student, structure manager (with notification) and speaker
+        self.assertEqual(len(mail.outbox), 3)
+
+        # TODO test as student
 
     def test_API_ajax_set_attendance(self):
         request.user = self.ref_etab_user
@@ -2473,7 +2438,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['success'], '')
         self.assertEqual(content['error'], "Error: no attendance status set in parameter")
 
-
         # Bad users
         data = {
             'immersion_id': self.immersion.id,
@@ -2496,7 +2460,6 @@ class APITestCase(TestCase):
         )
         self.immersion.refresh_from_db()
         self.assertEqual(self.immersion.attendance_status, 0)
-
 
         # Success
         # As a slot speaker
@@ -2558,7 +2521,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['success'], '')
         self.assertEqual(content['error'], "Error: missing immersion id parameter")
 
-
     def test_API_ajax_get_alerts(self):
         request.user = self.student
         client = Client()
@@ -2578,7 +2540,6 @@ class APITestCase(TestCase):
 
         # TODO : test with a visitor and a high school student
 
-
     def test_API_ajax_send_email(self):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
@@ -2589,20 +2550,20 @@ class APITestCase(TestCase):
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         self.assertTrue(content['error'])
-        self.assertEqual(content['msg'], "Invalid parameters")
+        self.assertEqual(content['msg'], "mode param ('group' or 'student') is required")
 
         # Success
         data = {
             'slot_id': self.slot.id,
             'send_copy': 'true',
             'subject': 'hello',
-            'body': 'Hello world'
+            'body': 'Hello world',
+            'mode': 'student',
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         self.assertFalse(content['error'])
         self.assertEqual(len(content['msg']), 0)
-
 
     def test_API_ajax_batch_cancel_registration(self):
         self.client.login(username='ref_etab', password='pass')
@@ -2615,11 +2576,22 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid parameters")
 
-        # Invalid json parameters
+        # Invalid slot id
         data = {
             'immersion_ids': 'hello world',
-            'reason_id': self.cancel_type.id
+            'reason_id': self.cancel_type.id,
+            'slot_id': "hi"
         }
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertEqual(content['msg'], "Invalid slot id")
+
+        data.update({
+            "slot_id": self.immersion.slot_id
+        })
+
+        # Invalid json parameters
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         self.assertTrue(content['error'])
@@ -2631,7 +2603,8 @@ class APITestCase(TestCase):
 
         data = {
             'immersion_ids': f'[{self.immersion.id}]',
-            'reason_id': self.cancel_type.id
+            'reason_id': self.cancel_type.id,
+            'slot_id': self.immersion.slot_id
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
@@ -2651,20 +2624,24 @@ class APITestCase(TestCase):
         # Success
         self.client.login(username='ref_etab', password='pass')
         self.assertIsNone(self.immersion.cancellation_type)
-        self.slot.date = self.today + timedelta(days=1)
-        self.slot.save()
+
+        self.immersion.slot.date = self.today + timedelta(days=1)
+        self.immersion.slot.registration_limit_delay = 48
+        self.immersion.slot.save()
 
         data = {
             'immersion_ids': json.dumps([self.immersion.id]),
-            'reason_id': self.cancel_type.id
+            'reason_id': self.cancel_type.id,
+            'slot_id': self.immersion.slot_id
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         # The following test may fail if template syntax has errors
-        self.assertEqual("Immersion(s) cancelled", content['msg'])
-        self.assertIsNone(content['err_msg'])
+        self.assertIn("1 immersion(s) cancelled", content['msg'])
+        self.assertFalse(content['error'])
 
-
+        # 3 mails sent : student, structure manager (with notification) and speaker
+        self.assertEqual(len(mail.outbox), 3)
 
     def test_API_ajax_send_email_us(self):
         request.user = self.ref_etab_user
@@ -2716,7 +2693,11 @@ class APITestCase(TestCase):
         else:
             student_profile = _('Student')
 
-        i = content['data'][0]
+        # get_students_presence returns an unordered list, careful when testing
+        # a specific immersion
+        i = list(filter(lambda x:x['id'] == self.immersion.id, content['data']))[0]
+
+        # i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
         self.assertEqual(self.immersion.slot.date.strftime("%Y-%m-%d"), i['date'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%H:%M:%S"), i['start_time'])
@@ -2730,7 +2711,6 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['meeting_place'])
         self.assertEqual(student_profile, i['student_profile'])
-
 
         url2 = f'/api/get_students_presence/{self.today.date()- timedelta(days=90)}/{self.today.date()}'
         content = json.loads(self.client.post(url2, data, **self.header).content.decode())
@@ -2757,7 +2737,6 @@ class APITestCase(TestCase):
         # No data
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertEqual(content['msg'], "")
-
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
@@ -2822,7 +2801,6 @@ class APITestCase(TestCase):
         self.assertFalse(content['error'])
         self.assertEqual(content['msg'], "Alert successfully set")
 
-
     def test_API_ajax_cancel_alert(self):
         request.user = self.student
         client = Client()
@@ -2854,7 +2832,6 @@ class APITestCase(TestCase):
 
         self.assertFalse(UserCourseAlert.objects.filter(pk=self.alert.id).exists())
 
-
     def test_ajax_slot_registration(self):
         self.hs_record.validation = 2
         self.hs_record.save()
@@ -2867,6 +2844,7 @@ class APITestCase(TestCase):
             {
                 self.past_period.pk: 1,
                 self.period.pk: 1,
+                self.period2.pk: 3
             }
         )
 
@@ -2889,6 +2867,7 @@ class APITestCase(TestCase):
             {
                 self.past_period.pk: 1,
                 self.period.pk: 0,
+                self.period2.pk: 3
             }
         )
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
@@ -3085,7 +3064,6 @@ class APITestCase(TestCase):
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
-
     def test_ajax_get_duplicates(self):
         self.hs_record.duplicates = "[%s]" % self.hs_record2.id
         self.hs_record.save()
@@ -3140,7 +3118,6 @@ class APITestCase(TestCase):
         self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
         self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
 
-
     def test_ajax_keep_entries_operator(self):
         self.hs_record.duplicates = "[%s]" % self.hs_record2.id
         self.hs_record.save()
@@ -3163,7 +3140,6 @@ class APITestCase(TestCase):
 
         self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
         self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
-
 
     def test_campus_list(self):
         url = reverse("campus_list")
@@ -3259,7 +3235,6 @@ class APITestCase(TestCase):
         self.assertTrue(Campus.objects.filter(label='Campus test A', active=True).exists())
         self.assertTrue(Campus.objects.filter(label='Campus test B', active=False).exists())
 
-
     def test_building_list(self):
         url = reverse("building_list")
         view_permission = Permission.objects.get(codename='view_building')
@@ -3350,7 +3325,6 @@ class APITestCase(TestCase):
         self.assertTrue(Building.objects.filter(label='Building test A', active=True).exists())
         self.assertTrue(Building.objects.filter(label='Building test B', active=False).exists())
 
-
     def test_speaker_list(self):
         url = reverse("speaker_list")
         view_permission = Permission.objects.get(codename='view_immersionuser')
@@ -3428,7 +3402,6 @@ class APITestCase(TestCase):
         )
         self.assertEqual(ImmersionUser.objects.filter(email='new_speaker@domain.tld').count(), 1)
 
-
     def test_get_course_speakers(self):
         url = f"/api/speakers/courses/{self.course.id}"
         speaker = self.course.speakers.first()
@@ -3451,40 +3424,6 @@ class APITestCase(TestCase):
                 "has_courses": speaker.courses.exists(),
                 "can_delete": not speaker.courses.exists()
             }])
-
-
-    def test_get_visit_speakers(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=True
-        )
-
-        visit.speakers.add(self.speaker1)
-
-        url = f"/api/speakers/visits/{visit.id}"
-
-        # Check access for the following users
-        for user in [self.operator_user, self.ref_master_etab_user, self.ref_etab_user, self.ref_str, self.ref_lyc]:
-            self.client.login(username=user.username, password='pass')
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            content = json.loads(response.content.decode('utf-8'))
-
-            self.assertEqual(content, [{
-                "id": self.speaker1.id,
-                "last_name": self.speaker1.last_name,
-                "first_name": self.speaker1.first_name,
-                "email": self.speaker1.email,
-                "establishment": self.speaker1.establishment.pk,
-                "highschool": self.speaker1.highschool,
-                "is_active": self.speaker1.is_active,
-                "has_courses": self.speaker1.courses.exists(),
-                "can_delete": not self.speaker1.courses.exists()
-            }])
-
 
     def test_get_event_speakers(self):
         event_type = OffOfferEventType.objects.create(
@@ -3522,7 +3461,6 @@ class APITestCase(TestCase):
                 "has_courses": self.speaker1.courses.exists(),
                 "can_delete": not self.speaker1.courses.exists()
             }])
-
 
     def test_high_school_list(self):
         url = reverse("highschool_list")
@@ -3575,7 +3513,10 @@ class APITestCase(TestCase):
             "badge_html_color": "#556677",
             "certificate_header": "My custom header",
             "certificate_footer": "My custom footer",
+            "uses_student_federation": True,
         }
+
+        # 0670081Z
 
         # Without permission
         response = self.api_client_token.post(url, data)
@@ -3584,10 +3525,28 @@ class APITestCase(TestCase):
 
         # Add add permission and try again
         self.api_user.user_permissions.add(add_permission)
+
+        # uses_student_federation True but missing UAI codes
         response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
+        self.assertFalse(HighSchool.objects.filter(label='New High School').exists())
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ['You have to add at least one UAI code when using student federation']}
+        )
+
+        # Add uai codes and retry
+        data.update({
+            "uai_codes": ['0670081Z', '0670082A']
+        })
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(result.get('email'), "nhs@domain.tld")
         self.assertTrue(HighSchool.objects.filter(label='New High School').exists())
+
+        new_high_school = HighSchool.objects.get(label='New High School')
+        self.assertEqual(new_high_school.uai_codes.count(), 2)
 
         # Duplicate
         response = self.api_client_token.post(url, data)
@@ -3599,6 +3558,17 @@ class APITestCase(TestCase):
         )
         self.assertEqual(HighSchool.objects.filter(label='New High School').count(), 1)
 
+        # Creation without student federation
+        data.pop('uai_codes')
+        data.update({
+            'label': "Another High School",
+            'uses_student_federation': False,
+            'email': 'ahs@domain.tld',
+        })
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('email'), "ahs@domain.tld")
+        self.assertTrue(HighSchool.objects.filter(label='Another High School').exists())
 
     def test_high_school_speakers(self):
         client = Client()
@@ -3620,77 +3590,6 @@ class APITestCase(TestCase):
             'can_delete': False,
             'highschool': self.highschool_speaker.highschool.pk,
         })
-
-    def test_visit(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=True
-        )
-
-        visit2 = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever 2",
-            published=True
-        )
-
-        client = Client()
-        client.login(username='ref_etab', password='pass')
-
-        # List
-        response = client.get(reverse("visit_list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode('utf-8'))
-
-        self.assertEqual(content[0]['purpose'], 'Whatever')
-        self.assertEqual(content[0]['establishment']['code'], "ETA1")
-        self.assertEqual(content[0]['establishment']['label'], "Etablissement 1")
-
-        # As ref-str (with no structure) : empty
-        self.ref_str.structures.remove(self.structure)
-        client.login(username='ref_str', password='pass')
-        response = client.get(reverse("visit_list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(len(content), 0)
-
-        # Deletion
-        # as ref_str : fail (bad structure)
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
-        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(Visit.objects.count(), 2)
-
-        # as ref_etab
-        client.login(username='ref_etab', password='pass')
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Visit.objects.count(), 1)
-
-        # as master_ref_etab
-        client.login(username='ref_master_etab', password='pass')
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Visit.objects.count(), 0)
-
-        # as operator
-        visit2 = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever 2",
-            published=True
-        )
-
-        client.login(username='operator', password='pass')
-        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Visit.objects.count(), 0)
-
 
     def test_off_offer_event(self):
         event = OffOfferEvent.objects.create(
@@ -3720,6 +3619,7 @@ class APITestCase(TestCase):
         response = client.get(reverse("off_offer_event_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(content), 1)
         self.assertEqual(content[0]['label'], 'Establishment event')
         self.assertEqual(content[0]['establishment']['id'], self.establishment.id)
@@ -3824,7 +3724,6 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["user_last_name"], self.visitor.last_name)
         self.assertEqual(data[0]["invalid_dates"], 1)
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
-
 
     def test_API__get_visitor_records__validated(self):
         self.visitor_record.validation = 2
@@ -4065,7 +3964,6 @@ class APITestCase(TestCase):
         self.assertIn(self.student.email, str_list)
         self.assertIn(self.visitor.email, str_list)
 
-
     def test_API_mailing_list_high_schools(self):
         url = "/api/mailing_list/high_schools"
 
@@ -4089,7 +3987,6 @@ class APITestCase(TestCase):
         str_list = content["data"][self.high_school.mailing_list]
         self.assertEqual(len(str_list), 1)
         self.assertIn(self.highschool_user.email, str_list)
-
 
     def test_structure_list(self):
         view_permission = Permission.objects.get(codename='view_structure')
@@ -4242,7 +4139,6 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertTrue(TrainingDomain.objects.filter(label='Training domain test A').exists())
         self.assertTrue(TrainingDomain.objects.filter(label='Training domain test B').exists())
-
 
     def test_course_type(self):
         view_permission = Permission.objects.get(codename='view_coursetype')
@@ -4409,7 +4305,6 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertTrue(TrainingSubdomain.objects.filter(label='Training subdomain test A').exists())
         self.assertTrue(TrainingSubdomain.objects.filter(label='Training subdomain test B').exists())
-
 
     def test_training_list(self):
         url = reverse('training_list')
@@ -4611,7 +4506,6 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertTrue(Training.objects.filter(label='Training test A').exists())
         self.assertTrue(Training.objects.filter(label='Training test B').exists())
-
 
     def test_course_list(self):
         """
@@ -4947,7 +4841,6 @@ class APITestCase(TestCase):
         course = Course.objects.get(label='Course test D')
         self.assertIn(self.speaker1, course.speakers.all())
 
-
     def test_course_delete(self):
         self.client.login(username='ref_etab', password='pass')
 
@@ -4985,7 +4878,6 @@ class APITestCase(TestCase):
         with self.assertRaises(Course.DoesNotExist):
             Course.objects.get(id=self.course.id)
 
-
     def test_mail_template_preview(self):
         self.client.login(username=self.ref_master_etab_user.username, password="pass")
 
@@ -5020,7 +4912,6 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content["msg"], "Template #9999 can't be found")
 
-
     def test_sign_charter(self):
         establishment = self.ref_etab3_user.establishment
         establishment.signed_charter = False
@@ -5034,7 +4925,6 @@ class APITestCase(TestCase):
 
         establishment.refresh_from_db()
         self.assertTrue(establishment.signed_charter)
-
 
     def test_ajax_update_structures_notifications(self):
         self.client.login(username=self.ref_str.username, password="pass")
@@ -5051,7 +4941,3 @@ class APITestCase(TestCase):
         # response = self.client.post(url, { 'ids': self.establishment.pk}, **self.header)
         # content = json.loads(response.content.decode("utf-8"))
         # self.assertEqual(content["msg"], "Settings updated")
-
-
-
-

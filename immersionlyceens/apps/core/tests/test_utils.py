@@ -20,7 +20,7 @@ from immersionlyceens.apps.core.models import (
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, OffOfferEventType, Period,
     PostBachelorLevel, Profile, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
+    TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument,
@@ -137,8 +137,6 @@ class UtilsTestCase(TestCase):
             postbac_immersion=True,
             signed_charter=True,
         )
-
-        cls.visit = Visit.objects.first()
 
         cls.visitor = get_user_model().objects.create_user(
             username="visitor",
@@ -614,8 +612,21 @@ class UtilsTestCase(TestCase):
             validation=1,
         )
 
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+
+        """
+        self.event = OffOfferEvent.objects.create(
+            establishment=Establishment.objects.first(),
+            structure=Structure.objects.first(),
+            highschool=None,
+            event_type=self.event_type,
+            label="Whatever",
+            description="Whatever too",
+            published=True
+        )
+        
         self.slot4 = Slot.objects.create(
-            visit=Visit.objects.first(),
+            event=self.event,
             campus=self.campus,
             building=self.building,
             room='room 2',
@@ -625,6 +636,7 @@ class UtilsTestCase(TestCase):
             n_places=20,
             additional_information="Hello there!"
         )
+        """
 
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
@@ -638,10 +650,14 @@ class UtilsTestCase(TestCase):
             student=self.highschool_user,
             slot=self.past_slot,
         )
+
+        """
         self.immersion4 = Immersion.objects.create(
             student=self.visitor_user,
             slot=self.slot4,
         )
+        """
+
         self.mail_t = MailTemplate.objects.create(
             code="code",
             label="label",
@@ -658,8 +674,6 @@ class UtilsTestCase(TestCase):
             email=self.student.email,
             course=self.course
         )
-
-        self.event_type = OffOfferEventType.objects.create(label="Event type label")
 
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         self.token = Token.objects.create(user=self.ref_master_etab_user)
@@ -724,7 +738,7 @@ class UtilsTestCase(TestCase):
 
     def test_get_my_slots(self):
         client = Client()
-        url = "/core/utils/slots?visits=false"
+        url = "/core/utils/slots"
         # as a high school speaker
         client.login(username='highschool_speaker', password='pass')
 
@@ -800,44 +814,6 @@ class UtilsTestCase(TestCase):
 
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
-
-
-    def test_get_visits_slots(self):
-        visit = Visit.objects.create(
-            establishment=self.establishment,
-            structure=self.structure,
-            highschool=self.high_school,
-            purpose="Whatever",
-            published=True
-        )
-
-        slot = Slot.objects.create(
-            visit=visit,
-            room='Here',
-            date=self.today + timedelta(days=1),
-            start_time=time(12, 0),
-            end_time=time(14, 0),
-            n_places=20,
-            additional_information="Hello there!"
-        )
-
-        self.client.login(username='ref_etab', password='pass')
-        data = {
-            'visits': True
-        }
-        response = self.client.get(reverse('get_slots'), {'visits': 'true'}, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 1)
-        self.assertEqual(content['data'][0]['id'], slot.id)
-        self.assertEqual(content['data'][0]['visit_id'], slot.visit.id)
-        self.assertEqual(content['data'][0]['visit_purpose'], slot.visit.purpose)
-        self.assertEqual(content['data'][0]['establishment_code'], slot.visit.establishment.code)
-        self.assertEqual(content['data'][0]['establishment_label'], slot.visit.establishment.label)
-        self.assertEqual(content['data'][0]['establishment_short_label'], slot.visit.establishment.short_label)
-        self.assertEqual(content['data'][0]['structure_code'], slot.visit.structure.code)
-        self.assertEqual(content['data'][0]['structure_label'], slot.visit.structure.label)
-        self.assertEqual(content['data'][0]['highschool_city'], slot.visit.highschool.city)
-        self.assertEqual(content['data'][0]['highschool_label'], slot.visit.highschool.label)
 
 
     def test_get_events_slots(self):

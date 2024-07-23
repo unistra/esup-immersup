@@ -20,9 +20,9 @@ function getCookie(name) {
 }
 
 function initFeedback(obj) {
-  $(document).on('showFeedback', function(event, ...messages) {
+  $(document).on('showFeedback', function (event, ...messages) {
     var $target = $(event.target).empty()
-    messages.forEach(function(element) {
+    messages.forEach(function (element) {
       $target.append(
         $('<div/>', {
           'class': 'messages alert alert-dismissible alert-' + element[1],
@@ -50,11 +50,11 @@ function initBadge() {
     var g = colors[2]
     var b = colors[3]
 
-    var o = Math.round(((parseInt(r) * 299) + (parseInt(g) * 587) + (parseInt(b) * 114)) /1000)
+    var o = Math.round(((parseInt(r) * 299) + (parseInt(g) * 587) + (parseInt(b) * 114)) / 1000)
 
-    if(o > 125) {
+    if (o > 125) {
       $(this).css('color', 'black')
-    }else{
+    } else {
       $(this).css('color', 'white')
     }
   })
@@ -82,7 +82,47 @@ function set_session_values(pagename, values) {
       values: JSON.stringify(values),
     },
     method: "POST",
-    success: function (response) {},
-    error: function (response) {}
+    success: function (response) { },
+    error: function (response) { }
   });
+}
+
+/*
+Display a string with a limit and a tooltip with the full string
+*/
+function displayLongString(string, limit = 50, html = false) {
+  // remove html tags from string
+  cleanedString = string.replace(/<[^>]*>/g, ' ')
+  if (html && cleanedString.length > limit) {
+    if (findBootstrapEnvironment() === 'xs' || findBootstrapEnvironment() === 'sm') {
+      return string
+    } else {
+      return `<span data-toggle="tooltip" data-html="true" title="${string}">` + cleanedString.substring(0, limit) + '<span id="dots">...</span></span>'
+    }
+  }
+  return cleanedString.length > limit ? cleanedString.substring(0, limit) + '...' : cleanedString
+}
+
+/*
+Find the current environment based on the bootstrap display classes
+*/
+function findBootstrapEnvironment() {
+  let envs = ['xs', 'sm', 'md', 'lg', 'xl'];
+
+  let el = document.createElement('div');
+  document.body.appendChild(el);
+
+  let curEnv = envs.shift();
+
+  for (let env of envs.reverse()) {
+    el.classList.add(`d-${env}-none`);
+
+    if (window.getComputedStyle(el).display === 'none') {
+      curEnv = env;
+      break;
+    }
+  }
+
+  document.body.removeChild(el);
+  return curEnv;
 }

@@ -40,7 +40,8 @@ class Command(BaseCommand, Schedulable):
 
         courses = Course.objects.prefetch_related('slots').filter(
             slots__date__gt=today,
-            slots__registration_limit_date__gt=now
+            slots__registration_limit_date__gt=now,
+            slots__allow_individual_registrations=True,
         )
 
         for course in courses:

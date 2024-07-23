@@ -1,4 +1,5 @@
 import mimetypes
+import magic
 
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
@@ -11,6 +12,9 @@ from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from ...libs.utils import get_general_setting
+
 from immersionlyceens.apps.core.models import (
     BachelorMention, BachelorType, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, HighSchoolLevel, ImmersionUser, Period, PostBachelorLevel,
@@ -53,21 +57,51 @@ class LoginForm(forms.Form):
 
 class RegistrationForm(UserCreationForm):
     email2 = forms.EmailField(
-        label=_("Email"), max_length=100,
+        label=_("Email"),
+        max_length=100,
+        required=True
+    )
+
+    record_highschool = forms.ModelChoiceField(
+        label=_("Your high school"),
+        queryset=None,
+        required=False
+    )
+
+    # Hidden field used in clean()
+    registration_type = forms.CharField(
+        label=_("profile"),
         required=True
     )
 
     def __init__(self, *args, **kwargs):
+        required_highschool = kwargs.pop('required_highschool', False)
+
         super().__init__(*args, **kwargs)
+
+        self.fields['record_highschool'].queryset = HighSchool.agreed.order_by('city', 'label')
+        self.fields['record_highschool'].required = required_highschool
+
+
+        self.fields['password1'].required = False
+        self.fields['password2'].required = False
 
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
     def clean(self):
         cleaned_data = super().clean()
-
         cleaned_data["email"] = cleaned_data.get('email', '').strip().lower()
         cleaned_data["email2"] = cleaned_data.get('email2', '').strip().lower()
+        highschool = cleaned_data.get('record_highschool')
+
+        student_federation_enabled = get_general_setting('ACTIVATE_EDUCONNECT')
+        registration_type = cleaned_data.get("registration_type")
+
+        if student_federation_enabled and registration_type == "lyc":
+            # Check that the high school does NOT use federation
+            if highschool and highschool.uses_student_federation:
+                raise forms.ValidationError(_("This high school uses EduConnect, please use it to authenticate."))
 
         if not all([cleaned_data.get('email'), cleaned_data.get('email2'),
                 cleaned_data.get('email') == cleaned_data.get('email2')]):
@@ -90,7 +124,7 @@ class RegistrationForm(UserCreationForm):
 
     class Meta:
         model = ImmersionUser
-        fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
+        fields = ('last_name', 'first_name', 'email', 'password1', 'password2', 'registration_type')
 
 
 class PersonForm(forms.ModelForm):
@@ -176,7 +210,14 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["email"].required = True
 
         self.fields["email"].help_text = _(
-            "Warning : changing the email will require an account reactivation")
+            "Warning : changing the email will require an account reactivation"
+        )
+
+        if self.instance and self.instance.pk:
+            record = self.instance.get_high_school_student_record()
+            if record and record.highschool and record.highschool.uses_student_federation:
+                self.fields["last_name"].disabled = True
+                self.fields["first_name"].disabled = True
 
         # CSS
         for field in self.fields:
@@ -218,6 +259,56 @@ class NewPassForm(UserCreationForm):
     class Meta:
         model = ImmersionUser
         fields = ('password1', 'password2')
+
+
+class EmailForm(forms.ModelForm):
+    email2 = forms.EmailField(
+        label=_("Email"),
+        max_length=100,
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        initial = kwargs.get('initial', {})
+
+        # Override email value if it's still the EduConnect temporary email
+        try:
+            if request.user.email == f"{request.user.username}@domain.tld":
+                initial['email'] = ''
+                kwargs['initial'] = initial
+        except:
+            pass
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['email'].widget.attrs['class'] = 'form-control'
+        self.fields['email2'].widget.attrs['class'] = 'form-control'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data["email"] = cleaned_data.get('email', '').strip().lower()
+        cleaned_data["email2"] = cleaned_data.get('email2', '').strip().lower()
+
+        if not all([cleaned_data.get('email'), cleaned_data.get('email2'),
+                    cleaned_data.get('email') == cleaned_data.get('email2')]):
+            self.add_error('email2', _("Emails do not match"))
+
+        if cleaned_data.get("email"):
+            email_exists = (ImmersionUser.objects
+                .filter(email__iexact=cleaned_data["email"])
+                .exclude(pk=self.instance.id)
+                .exists()
+            )
+
+            if email_exists:
+                self.add_error('email', _("An account already exists with this email address"))
+
+        return cleaned_data
+
+    class Meta:
+        model = ImmersionUser
+        fields = ("email", "email2")
 
 
 class HighSchoolStudentRecordQuotaForm(forms.ModelForm):
@@ -349,11 +440,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            allowed_content_type = [
-                mimetypes.types_map[f'.{c}'] for c in RecordDocument.ALLOWED_TYPES
-            ]
-
-            if not document.content_type in allowed_content_type:
+            if not document.content_type in RecordDocument.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
             if document.size > int(settings.MAX_UPLOAD_SIZE):
@@ -449,7 +536,9 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields["student"].widget = forms.HiddenInput()
 
         # HighSchool choices : depends on conventions general settings:
-        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label')
+        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label').filter(
+            allow_individual_immersions=True
+        )
 
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
         self.fields['current_diploma'].widget.attrs['size'] = 80
@@ -487,6 +576,16 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if self.instance and self.instance.validation == HighSchoolStudentRecord.STATUSES.get("VALIDATED"):
                 for field in ["highschool", "birth_date", "level", "class_name"]:
                     self.fields[field].disabled = True
+
+        # Lock fields if high school uses student federation
+        if self.instance and self.instance.highschool:
+            if self.instance.highschool.uses_student_federation:
+                for field in ["highschool", "level", "birth_date"]:
+                    self.fields[field].disabled = True
+            else:
+                # Keep and lock the high school the user has chosen at registration
+                self.fields["highschool"].disabled = True
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -540,7 +639,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                 if not professional_bachelor_mention:
                     raise forms.ValidationError(_("Please enter a mention for your professional bachelor"))
 
-
         return cleaned_data
 
     class Meta:
@@ -569,6 +667,8 @@ class StudentRecordForm(forms.ModelForm):
         self.fields['current_diploma'].widget.attrs['size'] = 80
 
         self.fields['level'].queryset = StudentLevel.objects.filter(active=True).order_by('order')
+
+        self.fields['birth_date'].required = True
 
 
         # CSS

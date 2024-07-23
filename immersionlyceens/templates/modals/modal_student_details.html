@@ -94,12 +94,7 @@ dtr = $('#immersions_table').DataTable({
     { "data": "",
       "render": function(data, type, row) {
         if (type === "display" || type === "filter") {
-          if(row.type === "visit") {
-            return row.establishment + (row.structure ? "<br>" + row.structure : "")
-          }
-          else {
-            return (row.establishment + (row.structure ? "<br>" + row.structure : "")) || row.highschool;
-          }
+          return (row.establishment + (row.structure ? "<br>" + row.structure : "")) || row.highschool;
         }
         return data;
       }
@@ -110,9 +105,6 @@ dtr = $('#immersions_table').DataTable({
         let txt
         if(row.type === 'course') {
           txt = row.course.training + "<br>" + row.course.type + " - " + row.course.label
-        }
-        else if(row.type === 'visit') {
-          txt = row.label
         }
         else if(row.type === 'event') {
           txt = row.event.type + "<br>" + row.event.label

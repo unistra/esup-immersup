@@ -33,16 +33,6 @@ $(document).on('change', 'select#id_city', () => {
   })
 })
 
-$(document).ready(function() {
-  $("#id_postbac_immersion").change(function () {
-    if ($("#id_postbac_immersion").is(':checked')) {
-      $("#id_mailing_list").attr("disabled", false)
-    } else {
-      $("#id_mailing_list").attr("disabled", true)
-    }
-  })
-})
-
 $(document).on('change', 'select#id_country', function() {
 if ($(this).val() != 'FR') {
   $('select#id_department').replaceWith('<input class="form-control" type="text" name="department" id="id_department">')
@@ -78,16 +68,57 @@ $(document).on('change', 'input#id_with_convention', function() {
    // Hide date fields
   $('.field-convention_start_date').toggle($(this).is(':checked') === true)
   $('.field-convention_end_date').toggle($(this).is(':checked') === true)
+})
 
-  /*
-  $('#id_convention_start_date').next('.datetimeshortcuts').toggle($(this).is(':checked') === true)
-  $('#id_convention_end_date').next('.datetimeshortcuts').toggle($(this).is(':checked') === true)
-  */
+$(document).on('change', 'input#id_uses_student_federation', function() {
+  // uai_code field is mandatory when the high school uses the student federation
+  $('#id_uai_code').prop("required", $(this).is(':checked'))
 })
 
 // init
 $(document).ready(function() {
-   // Hide date fields if convention is not checked
+  var uai_results = Object()
+
+  function toggle_fields() {
+    if ($("#id_postbac_immersion").is(':checked')) {
+      $("#id_mailing_list").attr("disabled", false)
+
+      $("div.field-badge_html_color").show()
+      $("#id_logo").attr("required", false)
+
+      $("div.field-logo").show()
+      $("div.field-signature").show()
+      $("div.field-certificate_header").show()
+      $("div.field-certificate_footer").show()
+    } else {
+      $("#id_mailing_list").attr("disabled", true)
+
+      $("div.field-badge_html_color").hide()
+      $("#id_logo").attr("required", true)
+
+      $("div.field-logo").hide()
+      $("div.field-signature").hide()
+      $("div.field-certificate_header").hide()
+      $("div.field-certificate_footer").hide()
+    }
+  }
+
+  function toggle_uai_code() {
+    $('#id_uai_code').attr("required", $("#id_uses_student_federation").is(':checked'))
+  }
+
+  $("#id_postbac_immersion").change(function () {
+    toggle_fields()
+  })
+
+  $("#id_uses_student_federation").change(function () {
+    toggle_uai_code()
+  })
+
+  toggle_fields()
+  toggle_uai_code()
+
+  // Hide date fields if convention is not checked
   $('.field-convention_start_date').toggle($('#id_with_convention').is(':checked') === true)
   $('.field-convention_end_date').toggle($('#id_with_convention').is(':checked') === true)
 })

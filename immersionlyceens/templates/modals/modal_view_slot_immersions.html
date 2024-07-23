@@ -1,96 +1,189 @@
 {% load immersionlyceens_tags i18n static %}
 {% authorized_groups request.user %}
+{% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
 <!-- Modal -->
 <div class="modal fade" id="modal_view_slot_immersions" tabindex="-1" role="dialog" aria-labelledby="modal_view_slot_immersions_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal_view_slot_immersions_title">{% trans 'Slot registrations' %}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="cancel_feedback"></div>
-        <div class="row">
-          <div class="col">
-            <div class="table-responsive">
-              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th scope="col">{% trans 'Lastname' %}</th>
-                  <th scope="col">{% trans 'Firstname' %}</th>
-                  <th scope="col">{% trans 'Profile' %}</th>
-                  <th scope="col">{% trans 'High-school / Home institution' %}</th>
-                  <th scope="col">{% trans 'City' %}</th>
-                  <th scope="col">{% trans 'Level' %}</th>
-                  <th scope="col">{% trans 'Attendances' %}</th>
-                  <th scope="col">{% trans 'Date of registration' %}</th>
-                </tr>
-                <tr id="id_attendances">
-                  <th colspan='7'></th>
-                  <th>
-                    <div id="id_update_attendances" style="display:none">
-                      <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
-                        <i class='fa fas fa-check'></i>
-                      </button>
-                      <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_attendances(2)" title="{% trans 'Set all not Present' %}">
-                        <i class='fa fas fa-times'></i>
-                      </button>
-                    </div>
-                  </th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-              </table>
+      {% if enabled_groups_registrations %}
+      <div id="id_div_individual_registrations">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modal_view_slot_immersions_title">
+            {% trans 'Slot registrations' %} - <span id="count"></span>
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="cancel_feedback"></div>
+          <div class="row">
+            <div class="col">
+              <div class="table-responsive">
+                <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th scope="col">{% trans 'Lastname' %}</th>
+                    <th scope="col">{% trans 'Firstname' %}</th>
+                    <th scope="col">{% trans 'Profile' %}</th>
+                    <th scope="col">{% trans 'High-school / Home institution' %}</th>
+                    <th scope="col">{% trans 'City' %}</th>
+                    <th scope="col">{% trans 'Level' %}</th>
+                    <th scope="col">{% trans 'Attendances' %}</th>
+                    <th scope="col">{% trans 'Date of registration' %}</th>
+                  </tr>
+                  <tr id="id_attendances">
+                    <th colspan='7'></th>
+                    <th>
+                      <div id="id_update_attendances" style="display:none">
+                        <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
+                          <i class='fa fas fa-check'></i>
+                        </button>
+                        <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_attendances(2)" title="{% trans 'Set all not Present' %}">
+                          <i class='fa fas fa-times'></i>
+                        </button>
+                      </div>
+                    </th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-        <span id="count" class="pull-right mt-4"></span>
-      </div>
-      <div class="modal-footer">
-        <div class="form-group row justify-content-center">
-        {% comment %}
-          The following groups can update (add/cancel) registrations
-        {% endcomment %}
+        <div class="modal-footer pt-0 pb-0">
+          <div class="form-group row justify-content-center">
+          {% comment %}
+            The following groups can update (add/cancel) registrations
+          {% endcomment %}
 
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
-          <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
-          <div class="col">
-            <select class="form-control form-control mr-2 mb-2" name="cancel-type" id="select_cancel_type" disabled>
-              <option value="" label=" "></option>
-              {% for type in cancel_types  %}
-                <option value="{{ type.pk }}">{{ type.label }}</option>
-              {% endfor %}
-            </select>
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
+            <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
+            <div class="col">
+              <select class="form-control form-control mr-2 mb-2" name="cancel-type" id="select_cancel_type" disabled>
+                <option value="" label=" "></option>
+                {% for type in cancel_types  %}
+                  <option value="{{ type.pk }}">{{ type.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
+            <button type="button" id="btn_register_student" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+          {% endif %}
+
+          {% comment %}
+            Attendances : same groups but INTER users can also update attendances for their courses/events
+          {% endcomment %}
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
+            <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-mode="student" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
+          {% endif %}
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
+            <button type="button" id="btn_attendance_pdf" class="btn btn-primary mr-2 mb-2 resp-btn">{% trans 'Attendance list' %}</button>
+          {% endif %}
           </div>
-          <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
-          <button type="button" id="btn_register_student" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
-        {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% if enabled_groups_registrations %}
+      <div id="id_div_group_registrations">
+        <div id="id_modal_group_header" class="modal-header">
+          <h5 class="modal-title" id="modal_view_slot_groups_immersions_title">
+            {% trans 'Group slot registrations' %} - <span id="groups_count"></span>
+          </h5>
+        </div>
+        <div class="modal-body">
+          <div id="groups_cancel_feedback"></div>
+          <div class="row">
+            <div class="col">
+              <div class="table-responsive">
+                <table id="groups_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th scope="col">{% trans 'Educational establishment' %}</th>
+                    <th scope="col">{% trans 'City' %}</th>
+                    <th scope="col">{% trans 'People' %}</th>
+                    <th scope="col">{% trans 'File' %}</th>
+                    <th scope="col">{% trans 'Comments' %}</th>
+                    <th scope="col">{% trans 'Attendances' %}</th>
+                    <th scope="col">{% trans 'Date of registration' %}</th>
+                  </tr>
+                  <tr id="id_groups_attendances">
+                    <th colspan='6'></th>
+                    <th>
+                      <div id="id_groups_update_attendances" style="display:none">
+                        <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_groups_attendances(1)" title="{% trans 'Set all present' %}">
+                          <i class='fa fas fa-check'></i>
+                        </button>
+                        <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_groups_attendances(2)" title="{% trans 'Set all not Present' %}">
+                          <i class='fa fas fa-times'></i>
+                        </button>
+                      </div>
+                    </th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer pt-0 pb-0">
+          <div class="form-group row justify-content-center">
+          {% comment %}
+            The following groups can update (add/cancel) registrations
+          {% endcomment %}
 
-        {% comment %}
-          Attendances : same groups but INTER users can also update attendances for their courses/visits/events
-        {% endcomment %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
-          <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
-        {% endif %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
-          <button type="button" id="btn_attendance_pdf" class="btn btn-primary mr-2 mb-2 resp-btn">{% trans 'Attendance list' %}</button>
-        {% endif %}
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
+            <label id="groups_lbl_select_cancel_type" for="groups_select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
+            <div class="col">
+              <select class="form-control form-control mr-2 mb-2" name="groups-cancel-type" id="groups_select_cancel_type" disabled>
+                <option value="" label=" "></option>
+                {% for type in groups_cancel_types  %}
+                  <option value="{{ type.pk }}">{{ type.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="button" id="groups_btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
+            <button type="button" id="btn_register_group" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_group">{% trans 'Add registration' %}</button>
+          {% endif %}
+
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
+            <button type="button" id="btn_contact_groups" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-mode="group" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
+          {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="modal-footer pt-0 pb-0">
+        <div class="form-group row justify-content-center">
           <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
         </div>
       </div>
@@ -99,6 +192,12 @@
 </div>
 <script>
 var dtr;
+var groups_dtr;
+var counterChecked = 0;
+var groups_counterChecked = 0;
+var n_group_places = 0;
+var total_registered = 0;
+var n_groups = 0;
 
 function set_attendance(immersion_id, value) {
   $.ajax({
@@ -156,8 +255,27 @@ function set_all_attendances(value) {
 }
 
 function reload_table() {
-  /* dtr.rows().remove().draw(); */
   dtr.ajax.url("/api/get_slot_registrations/" + current_slot_id).load();
+}
+
+function reload_groups_table() {
+  groups_dtr.ajax.url("/api/get_slot_groups_registrations/" + current_slot_id).load();
+}
+
+function open_group_modal(id, highschool_id, students_count, guides_count, file_link, file_name, emails, comments) {
+  $('#id_group_registration').val(id)
+  $('#id_slot').val(current_slot_id)
+  $('#id_group_highschool').val(highschool_id)
+  $('#students_count').val(students_count)
+  $('#guides_count').val(guides_count)
+  $("#file_link").prop("href", file_link)
+  $("#file_link").html(file_name)
+  $("#file_link").show()
+  $('#emails').val(emails)
+  $('#comments').val(comments)
+
+  $('button[name="register"]').html(update_group_txt)
+  $('#modal_register_group').modal('show');
 }
 
 $.fn.dataTableExt.errMode = 'console';
@@ -183,6 +301,8 @@ dtr = $('#students_list').DataTable({
   'rowId': 'id',
   'searching': true,
   'paging': true,
+  'pageLength': 5,
+  'lengthMenu': [[5,10,15,20], [5,10,15,20]],
   'ordering': true,
   'select': {
     style: 'multi',
@@ -245,6 +365,10 @@ dtr = $('#students_list').DataTable({
     },
     {"data": "city",
       "render": function (data, type, row) {
+        if(!is_set(data)) {
+          return "-"
+        }
+
         if(type === 'sort') {
           return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
         }
@@ -264,7 +388,7 @@ dtr = $('#students_list').DataTable({
         else if (row.attendance_status === 2) {
           absent_color="style='color:red';";
         }
-        if(can_update_attendances === true && face_to_face === true) {
+        if(can_update_attendances === true && (place === "0" || place === "2")) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
@@ -330,8 +454,194 @@ $('#students_list').on('draw.dt', function () {
 });
 
 
+groups_dtr = $('#groups_list').DataTable({
+  'processing': false,
+  'order': [
+    [1, "asc"],
+    [2, "asc"],
+  ],
+  'serverSide': false,
+  'responsive': false,
+  'info': false,
+  'orderCellsTop': true,
+  'ajax': {
+    url: "",
+    dataSrc: function (json) {
+      if (json['data'] !== undefined) {
+        total_registered = json['total_registered']
+        n_group_places = json['n_group_places']
+        n_groups = json['data'].length;
+        return json['data'];
+      }
+    }
+  },
+  'rowId': 'id',
+  'searching': true,
+  'paging': true,
+  'pageLength': 5,
+  'lengthMenu': [[5,10], [5,10]],
+  'ordering': true,
+  'select': {
+    style: 'multi',
+    selector: 'td:first-child'
+  },
+  {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+  'language': {
+    url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
+  },
+  {% endif %}
+  'columns': [
+    {"data": "isChecked",
+     "class": "checkcell",
+     "orderable": false,
+     "title": '<input id="groups_checkall" type="checkbox" style="text-align: center">',
+     "render": function (data, type, row) {
+        let update = ""
+
+        if((is_highschool_manager && current_highschool_id === user_highschool)
+           || (is_highschool_manager && row.highschool_id === user_highschool)
+           || (is_establishment_manager && current_establishment_id === user_establishment)
+           || is_master_establishment_manager || is_operator) {
+          update = `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_group_modal('${row.id}', '${row.highschool_id}', '${row.students_count}', '${row.guides_count}', '${row.file_link}', '${row.file_name}', '${row.emails}', '${row.comments}')" title="${update_group_txt}">`
+                 + `<i class='fa fas fa-edit fa-2x centered-icon'></i>`
+                 + `</button>`
+        }
+
+        let input = data ? '<input class="chk" checked type="checkbox">' : '<input class="chk" type="checkbox">';
+
+        return `${input} ${update}`
+      }
+    },
+    { "data": "school",
+      "render": function (data, type, row) {
+        if(type === 'sort') {
+          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        return data
+      }
+    },
+    {"data": "city",
+      "render": function (data, type, row) {
+        if(!is_set(data)) {
+          return "-"
+        }
+
+        if(type === 'sort') {
+          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        return data
+      }
+    },
+    {"data": "students_count",
+     "render": function(data, type, row) {
+        let students = `{% trans "Students" %} : ${row.students_count}`
+        let guides = `{% trans "Guides" %} : ${row.guides_count}`
+        let total = `{% trans "Total" %} : ${row.total_count}`
+
+        return `${students} / ${guides} / ${total}`
+     }
+    },
+    {"data": "file_name",
+     "render": function(data, type, row) {
+        if(is_set(data)) {
+          return `<a href="${row.file_link}" class="sun-row">${data}</a>`
+        }
+
+        return ""
+     }
+    },
+    {"data": "comments"},
+    {"data": "attendance",
+     "render": function(data, type, row) {
+        let present_color="";
+        let absent_color="";
+
+        if(row.attendance_status === 1) {
+          present_color = "style='color:green';";
+        }
+        else if (row.attendance_status === 2) {
+          absent_color = "style='color:red';";
+        }
+        if(can_update_attendances === true && (place === "0" || place === "2")) {
+          return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_groups_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
+                 "<i class='fa fas fa-check' "+present_color+"></i>" +
+                 "</button>" +
+                 "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_groups_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
+                 "<i class='fa fas fa-times' "+absent_color+"></i>" +
+                 "</button>" +
+                 "<span "+present_color+" "+absent_color+">"+data+"</span>";
+        }
+        else {
+         return data;
+        }
+     },
+    },
+    {"data": "registration_date",
+     render: function(data, type, row) {
+       if (type !== 'sort') {
+         return data ? formatDate(data) : "";
+       }
+
+       return data
+     }
+    }
+  ],
+  "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all"
+    }
+  ],
+});
+
+$('#groups_list').on('draw.dt', function () {
+  // TODO: maybe try to comment theses two lines
+  if (typeof slot_groups_places == 'undefined') slot_groups_places = 0;
+  if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
+  if (typeof slot_group_mode == 'undefined') slot_group_mode = '';
+
+  if(n_groups == 0) {
+    $("#btn_contact_groups").prop('disabled', true);
+    $("#btn_contact_groups").prop('title', "{% trans 'No registered groups' %}");
+  }
+  else {
+    $("#btn_contact_groups").prop('disabled', false);
+    $("#btn_contact_groups").prop('title', "{% trans 'Send an email to registered groups contacts' %}");
+  }
+
+  let presents = groups_dtr.rows(function (idx, data, node) {
+    return data.attendance_status == 1 ? true : false;
+  }).count();
+
+  if (can_update_attendances == true) {
+    $('#groups_count').html(presents + " {% trans 'group(s) present on ' %}" + n_groups + " {% trans 'registered' %}");
+  }
+  else {
+    let count_txt = n_group_places-total_registered + " {% trans 'free places out of' %} " + n_group_places;
+
+    if(slot_group_mode == '0' && n_groups == 1) {
+      count_txt += ` <strong>({% trans 'Only one group allowed' %} - ${group_full_txt})</strong>`
+    }
+
+    $('#groups_count').html(count_txt);
+  }
+
+  if(slot_group_mode == '0' && n_groups == 1) {
+    $("#btn_register_group").prop('disabled', true);
+    $("#btn_register_group").prop('title', "{% trans 'Only one group allowed' %}");
+  }
+  else {
+    $("#btn_register_group").prop('disabled', false);
+    $("#btn_register_group").prop('title', "{% trans 'Register a new group' %}");
+  }
+});
+
+
 $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
+  reload_groups_table();
 
   // show or hide register & cancel btn when slot != past or authenticated user can't update registrations
   if ($('#modal_view_slot_immersions').data('ispast') || can_update_registrations === false) {
@@ -339,31 +649,59 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
     $('#btn_register_student').hide();
     $('#lbl_select_cancel_type').hide();
     $('#select_cancel_type').hide();
+
+    $('#groups_btn_cancel_registrations').hide();
+    $('#btn_register_group').hide();
+    $('#groups_lbl_select_cancel_type').hide();
+    $('#groups_select_cancel_type').hide();
+
   } else if(can_update_registrations === true) {
     $('#btn_cancel_registrations').show();
     $('#btn_register_student').show();
     $('#lbl_select_cancel_type').show();
     $('#select_cancel_type').show();
+
+    $('#groups_btn_cancel_registrations').show();
+    $('#btn_register_group').show();
+    $('#groups_lbl_select_cancel_type').show();
+    $('#groups_select_cancel_type').show();
   }
 });
 
+
 $(document).ready(function(){
-  let counterChecked = 0;
   $('#checkall').change(function() {
-      var isChecked = this.checked;
-      isChecked ? dtr.rows().select() : dtr.rows().deselect();
-      var d = $('#students_list').DataTable().rows().data();
-      $.each(d, function (i, item) {
-        // TODO: very dirty enhance me please !!!!
-        if (this.checked) {
-          counterChecked++;
-        } else if (counterChecked > 0) {
-          counterChecked--;
-        }
-        item.isChecked = isChecked;
-      });
-      $(".checkcell input").prop("checked", isChecked);
-      $('td input[type="checkbox"]').change();
+    let isChecked = $(this).prop('checked');
+    isChecked ? dtr.rows().select() : dtr.rows().deselect();
+    let d = $('#students_list').DataTable().rows().data();
+    $.each(d, function (i, item) {
+      // TODO: very dirty enhance me please !!!!
+      if (item.checked) {
+        counterChecked++;
+      } else if (counterChecked > 0) {
+        counterChecked--;
+      }
+      item.isChecked = isChecked;
+    });
+    $("#students_list .checkcell input").prop("checked", isChecked);
+    $('#students_list td input[type="checkbox"]').change();
+  });
+
+  $('#groups_checkall').change(function() {
+    let isChecked = $(this).prop('checked');
+    isChecked ? groups_dtr.rows().select() : groups_dtr.rows().deselect();
+    let d = $('#groups_list').DataTable().rows().data();
+    $.each(d, function (i, item) {
+      // TODO: very dirty enhance me please !!!!
+      if (item.checked) {
+        groups_counterChecked++;
+      } else if (groups_counterChecked > 0) {
+        groups_counterChecked--;
+      }
+      item.isChecked = isChecked;
+    });
+    $("#groups_list .checkcell input").prop("checked", isChecked);
+    $('#groups_list td input[type="checkbox"]').change();
   });
 
   $('#students_list').on('change', 'td input[type="checkbox"]', function() {
@@ -384,9 +722,25 @@ $(document).ready(function(){
       }
   });
 
+  $('#groups_list').on('change', 'td input[type="checkbox"]', function() {
+      if (this.checked) {
+        groups_counterChecked++;
+      } else if (groups_counterChecked > 0) {
+        groups_counterChecked--;
+      }
+
+      if (groups_counterChecked > 0) {
+        $('#groups_btn_cancel_registrations').prop("disabled", false);
+        $('#groups_select_cancel_type').prop("disabled", false);
+      } else {
+        $('#groups_btn_cancel_registrations').prop("disabled", true);
+        $('#groups_select_cancel_type').prop("disabled", true);
+      }
+  });
+
   $('#btn_cancel_registrations').on('click', function() {
-    var selectedImmersions = dtr.rows({ selected: true }).ids().toArray();
-    var selectedCancelType = $('#select_cancel_type').val()
+    let selectedImmersions = dtr.rows({ selected: true }).ids().toArray();
+    let selectedCancelType = $('#select_cancel_type').val()
 
     if ( !selectedCancelType ) {
       alert("{% trans 'Please select a cancel type first' %}");
@@ -397,6 +751,7 @@ $(document).ready(function(){
           data: {
             'immersion_ids': JSON.stringify(selectedImmersions),
             'reason_id': selectedCancelType,
+            'slot_id': current_slot_id,
             csrfmiddlewaretoken: '{{ csrf_token }}'
           },
           success: function (json) {
@@ -413,6 +768,45 @@ $(document).ready(function(){
               $('#select_cancel_type').val('');
               $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
               setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+            }
+          },
+          error: function(json) {
+            console.log(json);
+          }
+        });
+    }
+  });
+
+  $('#groups_btn_cancel_registrations').on('click', function() {
+    let selectedImmersions = groups_dtr.rows({ selected: true }).ids().toArray();
+    let selectedCancelType = $('#groups_select_cancel_type').val()
+
+    if ( !selectedCancelType ) {
+      alert("{% trans 'Please select a cancel type first' %}");
+    } else {
+      $.ajax({
+          url: "{% url 'GroupsBatchCancelRegistration' %}",
+          type: 'POST',
+          data: {
+            'groups_immersion_ids': JSON.stringify(selectedImmersions),
+            'reason_id': selectedCancelType,
+            'slot_id': current_slot_id,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (json) {
+            if(json['error']) {
+              $("#groups_cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+              setTimeout(function() { $("#groups_cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+              $('#groups_checkall').prop('checked', false);
+              groups_dtr.ajax.reload();
+              dt.ajax.reload();
+            } else {
+              groups_dtr.ajax.reload();
+              dt.ajax.reload();
+              $('#groups_checkall').prop('checked', false);
+              $('#groups_select_cancel_type').val('');
+              $("#groups_cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
+              setTimeout(function() { $("#groups_cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
           },
           error: function(json) {

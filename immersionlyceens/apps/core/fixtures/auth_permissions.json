@@ -1657,42 +1657,6 @@
 },
 {
     "model": "auth.permission",
-    "pk": 193,
-    "fields": {
-        "name": "Can add Visit",
-        "content_type": 47,
-        "codename": "add_visit"
-    }
-},
-{
-    "model": "auth.permission",
-    "pk": 194,
-    "fields": {
-        "name": "Can change Visit",
-        "content_type": 47,
-        "codename": "change_visit"
-    }
-},
-{
-    "model": "auth.permission",
-    "pk": 195,
-    "fields": {
-        "name": "Can delete Visit",
-        "content_type": 47,
-        "codename": "delete_visit"
-    }
-},
-{
-    "model": "auth.permission",
-    "pk": 196,
-    "fields": {
-        "name": "Can view Visit",
-        "content_type": 47,
-        "codename": "view_visit"
-    }
-},
-{
-    "model": "auth.permission",
     "pk": 197,
     "fields": {
         "name": "Can add Off-offer event",

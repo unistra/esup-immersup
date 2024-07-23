@@ -132,6 +132,7 @@ class CommandsTestCase(TestCase):
             immersion_start_date=cls.today - datetime.timedelta(days=9),
             immersion_end_date=cls.today + datetime.timedelta(days=10),
             registration_start_date=cls.today - datetime.timedelta(days=10),
+            registration_end_date_policy=Period.REGISTRATION_END_DATE_SLOT,
             allowed_immersions=4,
         )
         cls.vac = Vacation.objects.create(
@@ -161,6 +162,7 @@ class CommandsTestCase(TestCase):
             building=cls.building,
             room='room 1',
             date=cls.today,
+            period=cls.period1,
             start_time=datetime.time(12, 0),
             end_time=datetime.time(14, 0),
             n_places=20,
@@ -173,6 +175,7 @@ class CommandsTestCase(TestCase):
             building=cls.building,
             room='room 2',
             date=cls.today + datetime.timedelta(days=2),
+            period=cls.period1,
             start_time=datetime.time(12, 0),
             end_time=datetime.time(14, 0),
             n_places=20,
@@ -185,6 +188,7 @@ class CommandsTestCase(TestCase):
             building=cls.building,
             room='room 2',
             date=cls.today + datetime.timedelta(days=35),
+            period=cls.period1,
             start_time=datetime.time(12, 0),
             end_time=datetime.time(14, 0),
             n_places=20,
@@ -198,6 +202,7 @@ class CommandsTestCase(TestCase):
             building=cls.building,
             room='room 2',
             date=cls.today + datetime.timedelta(days=35),
+            period=cls.period1,
             start_time=datetime.time(12, 0),
             end_time=datetime.time(14, 0),
             n_places=1,
@@ -524,6 +529,7 @@ class CommandsTestCase(TestCase):
             "room": 'room 666',
             # TODO: use default nb days reminder settings (??)
             "date": self.today + datetime.timedelta(days=3),
+            "period": self.period1,
             "start_time": datetime.time(12, 0),
             "end_time": datetime.time(14, 0),
             "n_places": 1,

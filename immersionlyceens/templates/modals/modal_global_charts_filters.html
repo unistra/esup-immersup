@@ -104,7 +104,11 @@ dtr = $('#filters_table').DataTable({
     { "data": "type" },
     { "data": "institution" },
     { "data": "structure" },
-    { "data": "city" },
+    { "data": "city",
+      render: function(data, type, row) {
+        return is_set(city) ? city : "-"
+      }
+    },
     { "data": "department" },
     { "data": "country" },
   ],

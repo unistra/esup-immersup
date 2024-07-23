@@ -2,7 +2,6 @@ from .libs.utils import get_general_setting
 
 from django.db.models import Q
 
-
 def hijack_permissions(*, hijacker, hijacked):
     """Custom permissions to hijack users"""
 
@@ -47,12 +46,8 @@ def hijack_permissions(*, hijacker, hijacked):
 
             # Establishment manager could hijack students, visitors and high school students from anywhere
             elif (
-                hijacker.is_establishment_manager()
-                and (hijacked.is_high_school_manager()
-                     or hijacked.is_visitor()
-                     or hijacked.is_student()
-                     or hijacked.is_high_school_student()
-                )
+                hijacker.is_establishment_manager() and
+                hijacked.is_high_school_manager() or hijacked.is_visitor() or hijacked.is_student() or hijacked.is_high_school_student()
             ):
                 return True
     except (ValueError, NameError):

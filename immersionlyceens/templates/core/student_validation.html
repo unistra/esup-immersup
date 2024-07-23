@@ -258,6 +258,7 @@ $(document).ready(function () {
         success: function (json) {
           let options;
           let selected_value;
+          let city;
 
           if([false, "0"].includes(convention) || w_convention === false) {
             options = "<option value='all'>{% trans 'All' %}</option>"
@@ -267,7 +268,8 @@ $(document).ready(function () {
           }
 
           for (let i = 0; i < json.length; i++) {
-            options += `<option value="${json[i]['id']}">${json[i]['city']}: ${json[i]['label']}</option>`
+            city = json[i]['city'] ? json[i]['city'] : "{% trans 'No city' %}"
+            options += `<option value="${json[i]['id']}">${city}: ${json[i]['label']}</option>`
           }
           $('select#id_high_school').html(options)
 
@@ -426,7 +428,9 @@ $(document).ready(function () {
             columns: [
               { data: 'highschool__label',
                 render: function(data, type, row) {
-                  return `${row.highschool__city}: ${data}`
+                  let city = is_set(row.highschool__city) ? row.highschool__city : "{% trans 'No city' %}"
+
+                  return `${city}: ${data}`
                 }
               },
               { data: 'highschool__with_convention',
@@ -524,7 +528,8 @@ $(document).ready(function () {
             columns: [
               { data: 'highschool__label',
                 render: function(data, type, row) {
-                  return `${row.highschool__city}: ${data}`
+                  let city = is_set(row.highschool__city) ? row.highschool__city : "{% trans 'No city' %}"
+                  return `${city}: ${data}`
                 }
               },
               { data: 'highschool__with_convention',
@@ -622,7 +627,8 @@ $(document).ready(function () {
             columns: [
               { data: 'highschool__label',
                 render: function(data, type, row) {
-                  return `${row.highschool__city}: ${data}`
+                  let city = is_set(row.highschool__city) ? row.highschool__city : "{% trans 'No city' %}"
+                  return `${city}: ${data}`
                 }
               },
               { data: 'highschool__with_convention',
@@ -707,7 +713,8 @@ $(document).ready(function () {
             columns: [
               { data: 'highschool__label',
                 render: function(data, type, row) {
-                  return `${row.highschool__city}: ${data}`
+                  let city = is_set(row.highschool__city) ? row.highschool__city : "{% trans 'No city' %}"
+                  return `${city}: ${data}`
                 }
               },
               { data: 'highschool__with_convention',

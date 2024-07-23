@@ -55,7 +55,6 @@ class EmailBackend(BaseEmailBackend):
 
 
 class ConsoleBackend(BaseEmailBackend):
-
     def send_message(self, email_message):
         print(email_message.as_string())
         print('-' * 80)

@@ -12,7 +12,6 @@ function init_datatable() {
       url: "/core/utils/slots",
       data: function(d) {
         d.past = $('#filter_past_slots').is(':checked')
-        d.visits = false
         d.events = false
         d.user_slots = true
         return d
@@ -58,7 +57,8 @@ function init_datatable() {
           }
         }
         else if (row.highschool_label) {
-          txt = row.highschool_city + " - " + row.highschool_label
+          let city = is_set(row.highschool_city) ? row.highschool_city : no_city_txt
+          txt = city + " - " + row.highschool_label
         }
 
         return txt
@@ -118,12 +118,12 @@ function init_datatable() {
 
         if(row.attendances_value === 1 && (row.can_update_course_slot || row.can_update_attendances)) {
           edit_mode = 1
-          msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+          msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                 `<i class='fa fas fa-edit fa-2x'></i>` +
                 `</button>`;
         }
         else if (row.attendances_value !== -1) {
-          msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places})" title="${registered_text}">` +
+          msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places})" title="${registered_text}">` +
                 `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                 `</button>`;
         }
@@ -141,6 +141,18 @@ function init_datatable() {
       render: function(data, type, row) {
         // Use common slots function
         return display_slot_restrictions(data, type, row)
+      }
+    },
+    { data: 'allow_group_registrations',
+      render: function(data, type, row) {
+        if(type === "display") {
+          return display_group_informations(row)
+        }
+        else if(type === "filter" || type === "sort") {
+          return set_group_filter(row, type)
+        }
+
+        return data
       }
     }],
     columnDefs: [{
@@ -272,6 +284,14 @@ function init_datatable() {
       style_class: "form-control form-control-sm",
       filter_container_id: "attendances_filter",
       filter_reset_button_text: false,
-    }
+    },
+    {
+        column_number: 11,
+        filter_default_label: "",
+        filter_match_mode: "exact",
+        filter_container_id: "groups_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
   ]);
 }

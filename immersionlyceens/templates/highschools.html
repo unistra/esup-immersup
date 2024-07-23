@@ -143,6 +143,10 @@
       'columns': [
           { "data": "city",
             "render": function (data, type, row) {
+              if(!is_set(data)) {
+                return "-"
+              }
+
               if(type === 'filter' || type === 'sort') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
               }
@@ -198,6 +202,10 @@
       'columns': [
           { "data": "city",
             "render": function (data, type, row) {
+              if(!is_set(data)) {
+                return "-"
+              }
+
               if(type === 'filter' || type === 'sort') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
               }

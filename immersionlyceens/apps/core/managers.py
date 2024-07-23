@@ -3,6 +3,8 @@ import datetime
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.apps import apps
+
 
 class ActiveManager(models.Manager):
     """
@@ -40,9 +42,10 @@ class HighSchoolAgreedManager(models.Manager):
     Return all the 'valid' high schools:
     - active = True
     - conventions depending on General Settings
+    - with allow
     """
     def get_queryset(self):
-        from .models import GeneralSettings
+        GeneralSettings = apps.get_model('core', 'GeneralSettings')
 
         # Convention General Settings
         today = timezone.localdate()
@@ -59,7 +62,7 @@ class HighSchoolAgreedManager(models.Manager):
         except GeneralSettings.DoesNotExist:
             hs_wo_convention = False
 
-        highschool_filters = {'active': True}
+        highschool_filters = {'active': True, }
 
         date_filters = {
             'convention_start_date__lte': today,

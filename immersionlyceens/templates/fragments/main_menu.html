@@ -1,11 +1,13 @@
 {% load static i18n immersionlyceens_tags %}
 {% authorized_groups request.user %}
-{% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
 {% general_settings_get 'CONTACT_FORM_URL' as external_contact_form_url %}
 {% general_settings_get 'ACTIVATE_TRAINING_QUOTAS' as activated_training_quotas %}
+{% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
+{% general_settings_get 'ACTIVATE_EDUCONNECT' as activated_educonnect %}
+{% general_settings_get 'ACTIVATE_FEDERATION_AGENT' as activated_agent_federation %}
 {% settings_get 'USE_CAS' as use_cas %}
 {% active_accompanying_docs as show_accompanying_docs_menu %}
 {% active_faq_entries as show_faq_menu %}
@@ -48,8 +50,8 @@
             {% if events_off_offer %}
             <a class="dropdown-item" href="{% url 'offer_off_offer_events' %}">{% trans 'Off offer Events' %}</a>
             {% endif %}
-            {% if highschool_visit %}
-            <a class="dropdown-item" href="{% url 'visits_offer' %}">{% trans 'Visits' %}</a>
+            {% if activated_cohort %}
+            <a class="dropdown-item" href="{% url 'cohort_offer' %}">{% trans "Cohort immersions" %}</a>
             {% endif %}
           </div>
         </div>
@@ -79,24 +81,12 @@
               {% if not authorized_groups|in_groups:"CONS-STR" %}
               <a class="dropdown-item" href="{% url 'add_course_slot' %}">{% trans 'New slot' %}</a>
               {% endif %}
+
+              {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
+              <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Cohorts courses" %}</a>
+              {% endif %}
             </div>
           </div>
-        {% endif %}
-
-        {# Visits #}
-        {% if highschool_visit and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" %}
-        <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVisits" role="button" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false">
-            {% trans 'Visits' %}
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownVisits">
-            <a class="dropdown-item" href="{% url 'visits' %}">{% trans 'Visits list' %}</a>
-            <a class="dropdown-item" href="{% url 'add_visit' %}">{% trans 'New visit' %}</a>
-            <a class="dropdown-item" href="{% url 'visits_slots' %}">{% trans 'Visits slots list' %}</a>
-            <a class="dropdown-item" href="{% url 'add_visit_slot' %}">{% trans 'New visit slot' %}</a>
-          </div>
-        </div>
         {% endif %}
 
         {# Off offer events #}
@@ -114,6 +104,9 @@
             <a class="dropdown-item" href="{% url 'off_offer_events_slots' %}">{% trans 'Off offer events slots list' %}</a>
             {% if not authorized_groups|in_groups:"CONS-STR" %}
             <a class="dropdown-item" href="{% url 'add_off_offer_event_slot' %}">{% trans 'New off offer event slot' %}</a>
+            {% endif %}
+            {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
+            <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Cohorts events" %}</a>
             {% endif %}
           </div>
         </div>
@@ -138,7 +131,7 @@
           </div>
         {% endif %}
         {# Speaker #}
-        {% if authorized_groups|in_groups:"INTER" or authorized_groups|in_groups:"REF-LYC" and highschool_visit %}
+        {% if authorized_groups|in_groups:"INTER" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultSpeaker" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
@@ -147,21 +140,14 @@
               {% if authorized_groups|in_groups:"INTER" %}
                 <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
                 <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
-                {% if not request.user.highschool and highschool_visit %}
-                  <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
-                  <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
-                {% endif %}
                 <a class="dropdown-item" href="{% url 'myevents' %}">{% trans 'My events' %}</a>
                 <a class="dropdown-item" href="{% url 'myslots' slots_type='events' %}">{% trans 'My events slots' %}</a>
-              {% endif %}
-              {% if authorized_groups|in_groups:"REF-LYC" and highschool_visit %}
-                <a class="dropdown-item" href="{% url 'myslots' slots_type='hs_visits' %}">{% trans 'My high school visits slots' %}</a>
               {% endif %}
             </div>
           </div>
         {% endif %}
         {# Students #}
-        {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+        {% if authorized_groups|in_groups:"LYC,ETU,VIS" and request.user.is_valid %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultStudent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
@@ -301,9 +287,20 @@
               </div>
               {% endif %}
               <div class="dropdown-item text-right">
-                <a class="text-decoration-none" href="{% get_logout_url %}">
-                  <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}
-                </a>
+                {% get_logout_url as logout_url%}
+
+                {% if logout_url.0 == "post" %}
+                  <form action="{{ logout_url.1 }}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link text-decoration-none">
+                      <i class="fa fas fa-sign-out"></i>{% trans "Logout" %}
+                    </button>
+                  </form>
+                {% else %}
+                  <a class="text-decoration-none" href="{{ logout_url.1 }}">
+                    <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}
+                  </a>
+                {% endif %}
               </div>
             </div>
           {% else %}
@@ -312,15 +309,24 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownUser">
               <span class="dropdown-item text-center">{% trans "You are"%} : </span>
+              {% if activated_educonnect %}
+              <a class="dropdown-item" href="{% url 'immersion:login_choice' profile='lyc' %}">{% trans 'Highschool member' %}</a>
+              {% else %}
               <a class="dropdown-item" href="{% url 'immersion:login' profile='lyc'%}">{% trans 'Highschool member' %}</a>
+              {% endif %}
               {% if students_activated %}
               <a class="dropdown-item" href="{% url 'shibboleth_login' %}">{% trans 'Student' context "login" %}</a>
               {% endif %}
               {% if visitors_activated %}
               <a class="dropdown-item" href="{% url 'immersion:login' profile='vis' %}">{% trans 'Visitor' context "login" %}</a>
               {% endif %}
-              <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
-              <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
+              {% if activated_agent_federation %}
+                <a class="dropdown-item" href="{% url 'immersion:login_choice' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
+                <a class="dropdown-item" href="{% url 'immersion:login_choice' profile='speaker' %}">{% trans 'External speaker' %}</a>
+              {% else %}
+                <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
+                <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
+              {% endif %}
               {% if use_cas == 'True' %}
                   <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
               {% endif %}

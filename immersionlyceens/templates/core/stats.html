@@ -10,7 +10,6 @@
 {% endblock %}
 
 {% block content %}
-{% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
@@ -23,12 +22,6 @@
         <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
       </div>
-      {% if highschool_visit %}
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_anonymous_visits">{% trans 'Anonymous visits data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_visits">{% trans 'Extract data' %}</button>
-      </div>
-      {% endif %}
       {% if events_off_offer %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="extract_anonymous_events" >{% trans 'Anonymous events data' %}</label>
@@ -42,9 +35,6 @@
       <div class="row">
         <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
-        {% if highschool_visit %}
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
-        {% endif %}
         {% if events_off_offer %}
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
         {% endif %}
@@ -67,9 +57,6 @@
       <div class="row">
         <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
-        {% if highschool_visit %}
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
-        {% endif %}
         {% if events_off_offer %}
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
         {% endif %}
@@ -87,9 +74,6 @@ $(document).ready(function(){
   $('#extract_structure_courses').click(function(event){
     window.open('{% url 'get_csv_structures' %}?type=course', '_blank');
   });
-  $('#extract_structure_visits').click(function(event){
-    window.open('{% url 'get_csv_structures' %}?type=visit', '_blank');
-  });
   $('#extract_structure_events').click(function(event){
     window.open('{% url 'get_csv_structures' %}?type=event', '_blank');
   });
@@ -101,9 +85,6 @@ $(document).ready(function(){
   });
   $('#extract_anonymous_courses').click(function(event){
     window.open('{% url 'get_csv_anonymous' %}?type=course', '_blank');
-  });
-  $('#extract_anonymous_visits').click(function(event){
-    window.open('{% url 'get_csv_anonymous' %}?type=visit', '_blank');
   });
   $('#extract_anonymous_events').click(function(event){
     window.open('{% url 'get_csv_anonymous' %}?type=event', '_blank');

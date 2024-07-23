@@ -7,17 +7,15 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.db.models import JSONField, Q
+from django.db.models import Case, CharField, F, JSONField, Q, Value, When
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext, gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
-    DropdownFilter, RelatedDropdownFilter,
+    ChoiceDropdownFilter, DropdownFilter, RelatedDropdownFilter,
 )
 from django_json_widget.widgets import JSONEditorWidget
-from django_summernote.admin import SummernoteModelAdmin
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import TokenProxy
 
@@ -25,6 +23,8 @@ from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
     VisitorRecordDocument,
 )
+
+from immersionlyceens.fields import UpperCharField
 
 from .admin_forms import (
     AccompanyingDocumentForm, AttestationDocumentForm, BachelorMentionForm,
@@ -45,7 +45,7 @@ from .models import (
     Course, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, History, Holiday, Immersion, ImmersionUser,
-    InformationText, MailTemplate, OffOfferEventType, Period,
+    InformationText, MailTemplate, MefStat, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
@@ -64,7 +64,7 @@ class CustomAdminSite(admin.AdminSite):
         except ValueError:
             return 999
 
-    def get_app_list(self, request):
+    def get_app_list(self, request, app_label=None):
         """
         Custom apps and models order
         """
@@ -79,7 +79,7 @@ class CustomAdminSite(admin.AdminSite):
 
         # This should hide apps we don't want :
         # - 'core' because all models are already grouped in virtual apps
-        # - django_summernote
+
         app_list = sorted(
             [app for app in app_dict.values() if app['app_label'] in settings.ADMIN_APPS_ORDER],
             key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
@@ -104,7 +104,9 @@ class CustomAdminSite(admin.AdminSite):
                     )
                 )
 
-            yield app
+            # yield app
+
+        return app_list
 
     def app_index(self, request, app_label, extra_context=None):
         """
@@ -157,8 +159,20 @@ class HighschoolWithImmersionsListFilter(admin.SimpleListFilter):
     template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
-        highschools = HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')
-        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+        no_city = gettext("No city")
+
+        highschools = (HighSchool.objects
+            .filter(postbac_immersion=True)
+            .annotate(
+                city_name=Case(
+                    When(Q(city__isnull=True), then=Value(f"({no_city})")),
+                    default=F('city'),
+                    output_field=UpperCharField()
+                )
+            )
+            .order_by('city', 'label')
+        )
+        return [(h.id, f"{h.city_name} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):
         if self.value():
@@ -177,13 +191,24 @@ class HighschoolListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         # Optional : filter high school list by agreement value (see high school student admin filters)
+        no_city = gettext("No city")
         agreement_filter = {}
 
         if request.GET.get("agreement") and request.GET.get("agreement") in ('True', 'False'):
             agreement_filter['with_convention'] = request.GET.get("agreement") == 'True'
 
-        highschools = HighSchool.objects.filter(**agreement_filter).order_by('city', 'label')
-        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+        highschools = (HighSchool.objects
+            .filter(**agreement_filter)
+            .annotate(
+                city_name=Case(
+             When(Q(city__isnull=True), then=Value(f"({no_city})")),
+                    default=F('city'),
+                    output_field=UpperCharField()
+                )
+            )
+            .order_by('city', 'label')
+        )
+        return [(h.id, f"{h.city_name} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):
         if self.value():
@@ -193,6 +218,24 @@ class HighschoolListFilter(admin.SimpleListFilter):
             )
         else:
             return queryset
+
+class HasUAIFilter(admin.SimpleListFilter):
+    title = _('Has UAI code(s)')
+    parameter_name = 'uai_codes'
+
+    def lookups(self, request, model_admin):
+        return (
+            (True, _('Yes')),
+            (False, _('No'))
+        )
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        bool = self.value() == 0
+
+        return queryset.filter(uai_codes__isnull=bool).distinct()
 
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
@@ -259,7 +302,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     add_form = ImmersionUserCreationForm
 
     list_display = [
-        'username',
+        'get_username',
         'email',
         'first_name',
         'last_name',
@@ -288,6 +331,21 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return _('No')
         else:
             return ''
+
+    def get_username(self, obj):
+        # Display real username except for high school students using EduConnect
+        exceptions = [
+            not obj.is_high_school_student(),
+            not obj.get_high_school_student_record(),
+            obj.get_high_school_student_record()
+                and obj.high_school_student_record.highschool
+                and not obj.high_school_student_record.highschool.uses_student_federation
+        ]
+
+        if any(exceptions):
+            return obj.username
+
+        return _("<EduConnect id>")
 
     def get_edited_record(self, obj):
         if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
@@ -364,6 +422,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     get_groups_list.short_description = _('Groups')
     get_structure.short_description = _('Structure')
     get_highschool.short_description = _('High school')
+    get_username.short_description = _('username')
 
     filter_horizontal = ('structures', 'groups', 'user_permissions')
 
@@ -435,10 +494,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 messages.warning(request, no_delete_msg)
                 return False
 
-            if obj.courses.all().exists() or obj.visits.all().exists() or obj.events.all().exists():
+            if obj.courses.all().exists() or obj.events.all().exists():
                 messages.warning(
                     request,
-                    _("This account is linked to courses/visits/events, you can't delete it")
+                    _("This account is linked to courses/events, you can't delete it")
                 )
                 return False
 
@@ -750,7 +809,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # establishment manager : can't delete a building if it's not attached to his/her own establishment
         if obj and request.user.establishment and request.user.is_establishment_manager() and not \
-                request.user.establishment == obj.establishment:
+                request.user.establishment == obj.campus.establishment:
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
@@ -835,8 +894,8 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EstablishmentForm
-    list_display = ('code', 'label', 'master', 'active', 'signed_charter')
-    list_filter = ('active',)
+    list_display = ('code', 'label', 'master', 'is_host_establishment', 'active', 'signed_charter')
+    list_filter = ('active', 'is_host_establishment')
     ordering = ('code', 'master', 'label', 'active', 'signed_charter')
     search_fields = ('label',)
 
@@ -854,7 +913,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
-
     def get_fieldsets(self, request, obj=None):
         """
         Hide some critical fields for non-authorized users (like plugin settings with passwords)
@@ -867,7 +925,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return fieldset
 
-
     def get_readonly_fields(self, request, obj=None):
         user = request.user
 
@@ -876,7 +933,7 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
                 'active', 'signed_charter', 'code', 'label', 'uai_reference', 'short_label', 'department',
                 'address', 'address2', 'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color',
                 'email', 'data_source_plugin', 'data_source_settings', 'logo', 'signature', 'objects',
-                'certificate_header', 'certificate_footer'
+                'certificate_header', 'certificate_footer', 'is_host_establishment'
             )
         elif request.user.is_master_establishment_manager() and not user.is_superuser:
             return super().get_readonly_fields(request, obj) + (
@@ -887,7 +944,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return super().get_readonly_fields(request, obj)
 
-
     def has_delete_permission(self, request, obj=None):
         # Test existing data before deletion (see US 160)
         if obj and Structure.objects.filter(establishment=obj).exists():
@@ -896,6 +952,11 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         # Group permissions
         return super().has_delete_permission(request, obj)
+
+
+    # TODO: remove this when upgrading to django-ckeditor-5
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
 
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -954,6 +1015,14 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
         # Group permissions
         return super().has_delete_permission(request, obj)
 
+    # TODO: remove this when upgrading to django-ckeditor-5
+    class Media:
+        css = {
+            'all': (
+                'css/immersionlyceens.min.css',
+            )
+        }
+
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
@@ -1009,8 +1078,9 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
-    list_display = ('code', 'label', 'active', 'system')
+    list_display = ('code', 'label', 'active', 'students', 'groups', 'managers', 'system')
     list_display_links = ('code', 'label', )
+    list_filter = ('students', 'groups', 'system', 'managers')
     ordering = ('label',)
 
     def has_change_permission(self, request, obj=None):
@@ -1165,11 +1235,24 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
     """
     form = PeriodForm
     list_display = (
-        'label', 'registration_start_date', 'immersion_start_date', 'immersion_end_date', 'allowed_immersions'
+        'label',
+        'registration_end_date_policy',
+        'registration_start_date',
+        'registration_end_date',
+        'immersion_start_date',
+        'immersion_end_date',
+        'allowed_immersions'
     )
     search_fields = ('label',)
     order = ('immersion_start_date', )
 
+    fields = (
+        'label', 'registration_end_date_policy', 'registration_start_date',
+        'registration_end_date', 'immersion_start_date', "immersion_end_date",
+        'cancellation_limit_delay', 'allowed_immersions'
+    )
+
+    """
     def get_readonly_fields(self, request, obj=None):
         today = timezone.localdate()
 
@@ -1189,24 +1272,8 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         if uy is None or request.user.is_superuser:
             return []
 
-        # passed period : can't modify
-        if obj.immersion_end_date < today:
-            fields = [
-                'label',
-                'immersion_start_date',
-                'immersion_end_date',
-                'registration_start_date',
-                'allowed_immersions',
-            ]
-        elif obj.registration_start_date < today < obj.immersion_end_date:
-            fields = [
-                'label',
-                'immersion_start_date',
-                'registration_start_date',
-            ]
-
         return list(set(fields))
-
+    """
 
     def has_add_permission(self, request):
         uy = None
@@ -1250,9 +1317,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         # Slots and university year conditions
-        slots_exist = Slot.objects.filter(
-            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
-        ).exists()
+        slots_exist = obj.slots.exists()
 
         if slots_exist:
             messages.warning(
@@ -1288,6 +1353,13 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         if not obj:
             return False
 
+        # Period is over
+        if obj.immersion_end_date and obj.immersion_end_date < today:
+            self.details['ERROR'].add(
+                _("The period is already over, it cannot be updated anymore.")
+            )
+            return False
+
         try:
             uy = UniversityYear.get_active()
         except Exception as e:
@@ -1299,23 +1371,6 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         if not uy:
             self.details['ERROR'].add(
                 _("Active year not found. Please check your university years settings.")
-            )
-            return False
-
-        # University year not begun | period registration date is in the future
-        year_condition = [
-            uy.start_date > today,
-            today < uy.end_date,
-            obj.immersion_start_date > today,
-        ]
-
-        slots_exist = Slot.objects.filter(
-            date__gte=obj.immersion_start_date, date__lte=obj.immersion_end_date
-        ).exists()
-
-        if slots_exist or any(year_condition):
-            self.details['WARNING'].add(
-                _("This period has slots or has already begun, it can't be updated")
             )
             return False
 
@@ -1342,8 +1397,14 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
             request, object_id, form_url, extra_context=extra_context,
         )
 
+    class Media:
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_period.min.js',
+        )
 
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
+    list_per_page = 25
     form = HighSchoolForm
     list_display = (
         'label',
@@ -1356,23 +1417,29 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'custom_convention_dates',
         'active',
         'custom_postbac_immersion',
-        'signed_charter',
+        'signed_charter'
     )
     list_filter = (
         'active',
         'postbac_immersion',
+        'allow_individual_immersions',
         'with_convention',
+        HighschoolConventionFilter,
         ('country', DropdownFilter),
         ('city', DropdownFilter),
-        HighschoolConventionFilter,
+        'uses_agent_federation',
+        'uses_student_federation',
+        HasUAIFilter,
     )
+    filter_horizontal = ('uai_codes', )
 
     # Keep the list here to maintain order even when some fields are readonly
     fields = (
-        'active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
-        'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
-        'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
-        'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
+        'active', 'postbac_immersion', 'allow_individual_immersions', 'uses_agent_federation',
+        'uses_student_federation', 'label', 'uai_codes', 'country', 'address', 'address2',
+        'address3', 'department', 'zip_code', 'city', 'phone_number', 'fax', 'email',
+        'head_teacher_name', 'with_convention', 'convention_start_date', 'convention_end_date',
+        'signed_charter', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
         'certificate_footer'
     )
 
@@ -1445,6 +1512,12 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
                 'js/admin_highschool.min.js',
             )
 
+        # TODO: remove this when upgrading to django-ckeditor-5
+        css = {
+            "all": (
+                "css/immersionlyceens.min.css",
+            )
+        }
 
 class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     form = InformationTextForm
@@ -1588,12 +1661,11 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
-class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
+class MailTemplateAdmin(AdminWithRequest, admin.ModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label', 'active')
     filter_horizontal = ('available_vars',)
     ordering = ('code', )
-    summernote_fields = ('body',)
 
     def has_module_permission(self, request):
         valid_groups = [
@@ -1648,7 +1720,7 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
-    def setting_type(self, obj):
+    def value_type(self, obj):
         if 'type' not in obj.parameters:
             return ""
 
@@ -1674,14 +1746,32 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     def setting_description(self, obj):
         return obj.parameters.get('description', '')
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if not obj:
+            return False
+
+        return any([
+            request.user.is_superuser,
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager() and obj.setting_type == obj.FUNCTIONAL,
+        ])
+
     def has_module_permission(self, request):
         return any([
             request.user.is_superuser,
-            request.user.is_operator()
+            request.user.is_operator(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
         ])
 
     form = GeneralSettingsForm
-    list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
+    list_display = ('setting', 'setting_type', 'setting_value', 'value_type', 'setting_description')
     ordering = ('setting',)
 
     formfield_overrides = {
@@ -1690,7 +1780,7 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
         },
     }
 
-    setting_type.short_description = _('Setting type')
+    value_type.short_description = _('Value type')
     setting_value.short_description = _('Setting value')
     setting_description.short_description = _('Setting description')
 
@@ -1821,6 +1911,20 @@ class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmi
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
+
+
+class MefStatAdmin(admin.ModelAdmin):
+    list_display = ('code', 'label', 'level', )
+    ordering = ('level', 'label', )
+    sortable_by = ('level', 'label', 'code')
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
 
 
 class PostBachelorLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
@@ -2060,6 +2164,7 @@ admin.site.register(CertificateLogo, CertificateLogoAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
+admin.site.register(MefStat, MefStatAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)

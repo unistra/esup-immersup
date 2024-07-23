@@ -11,7 +11,7 @@ def build_env():
 
 @task
 def preprod_reims():
-    """Define preprod stage for Pau instance"""
+    """Define preprod stage for Reims instance"""
     env.roledefs = {
         'web': ['saas-reims-pprd-1.srv.unistra.fr', 'saas-reims-pprd-2.srv.unistra.fr'],
         'lb': ['saas-reims-pprd-1.srv.unistra.fr', 'saas-reims-pprd-2.srv.unistra.fr'],
@@ -54,6 +54,7 @@ def preprod_reims():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
 
@@ -103,5 +104,6 @@ def prod_reims():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)

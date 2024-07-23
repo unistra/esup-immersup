@@ -51,7 +51,15 @@ function init_yadcf_filter() {
       style_class: "form-control form-control-sm",
       filter_container_id: "attendances_filter",
       filter_reset_button_text: false,
-    }
+    },
+    {
+      column_number: 10,
+      filter_default_label: "",
+      filter_match_mode: "exact",
+      filter_container_id: "groups_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
   ]
 
   return filter
@@ -71,7 +79,6 @@ function init_datatable() {
       url: "/core/utils/slots",
       data: function(d) {
         d.past = $('#filter_past_slots').is(':checked')
-        d.visits = false
         d.events = true
         d.user_slots = true
         return d
@@ -135,21 +142,36 @@ function init_datatable() {
           let txt = ""
           let campus_label = data
           let building_label = row.building_label
+          let face_to_face = 0
+          let remote = 1
+          let outside = 2
 
           if(type === 'filter') {
-            txt = row.face_to_face ? `${campus_label} ${building_label} ${row.room}` : remote_event_text
+            if(row.place === face_to_face) {
+              txt = `${campus_label} ${building_label} ${row.room}`
+            }
+            else if(row.place === remote) {
+              txt = remote_event_text
+            }
+            else if(row.place === outside) {
+              txt = row.room
+            }
+
             return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
           }
 
-          if(row.face_to_face) {
+          if(row.place === face_to_face) {
             txt = "<span>"
             txt += is_set(campus_label) ? `${campus_label} </span><br><span>` : ''
             txt += is_set(building_label) ? `${building_label} </span><br><span>` : ''
 
             return `${txt} ${row.room}</span>`
           }
-          else {
+          else if(row.place === remote) {
             return `<a href="${row.url}" target="_blank">${remote_event_text}</a>`
+          }
+          else {
+            return `<span>${row.room}</span>`
           }
         }
       },
@@ -172,12 +194,12 @@ function init_datatable() {
 
           if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
             edit_mode = 1
-            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+            msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                   `<i class='fa fas fa-edit fa-2x'></i>` +
                   `</button>`;
           }
           else if (row.attendances_value !== -1) {
-            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places})" title="${registered_text}">` +
+            msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places})" title="${registered_text}">` +
                   `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                   `</button>`;
           }
@@ -196,6 +218,18 @@ function init_datatable() {
           return display_slot_restrictions(data, type, row)
         }
       },
+      { data: 'allow_group_registrations',
+        render: function(data, type, row) {
+          if(type === "display") {
+            return display_group_informations(row)
+          }
+          else if(type === "filter" || type === "sort") {
+            return set_group_filter(row, type)
+          }
+
+          return data
+        }
+      }
     ],
     "columnDefs": init_column_defs(),
 

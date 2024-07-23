@@ -1,7 +1,10 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
 from collections import OrderedDict
+from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers, status
+from rest_framework.validators import UniqueTogetherValidator
+
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.contrib.auth.models import Group
@@ -10,10 +13,11 @@ from django.db.models import Q
 from django.conf import settings
 
 from immersionlyceens.libs.api.accounts import AccountAPI
+from immersionlyceens.libs.utils import get_general_setting
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
-    HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, UserCourseAlert, Slot, CourseType, Period
+    HighSchool, Course, Structure, Building, OffOfferEvent, ImmersionUser,
+    HighSchoolLevel, UserCourseAlert, Slot, CourseType, Period, UAI
 )
 
 class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
@@ -99,8 +103,10 @@ class SpeakerSerializer(ImmersionUserSerializer):
                 if not ldap_response:
                     # not found
                     raise serializers.ValidationError(
-                        detail=_("Speaker email '%s' not found in establishment '%s'")
-                               % (email, establishment.code),
+                        detail=_("Speaker email '%(mail)s' not found in establishment '%(code)s'") % {
+                            'email': email,
+                            'code': establishment.code
+                        },
                         code=status.HTTP_400_BAD_REQUEST
                     )
                 else:
@@ -193,6 +199,7 @@ class CampusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Campus
         fields = "__all__"
+        validators = []
 
 
 class EstablishmentSerializer(serializers.ModelSerializer):
@@ -253,6 +260,16 @@ class BuildingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Building
         fields = "__all__"
+        validators = []
+        """
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Building.objects.all(),
+                fields=['campus', 'label'],
+                message=_("A Building object with the same campus and label already exists")
+            )
+        ]
+        """
 
 
 class HighSchoolViewSerializer(serializers.ModelSerializer):
@@ -276,8 +293,29 @@ class TrainingSubdomainSerializer(serializers.ModelSerializer):
         model = TrainingSubdomain
         fields = "__all__"
 
+class UAISerializer(serializers.ModelSerializer):
+    """High schools UAI serializer"""
+    class Meta:
+        model = UAI
+        fields = "__all__"
 
-class HighSchoolSerializer(serializers.ModelSerializer):
+class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
+    uai_codes = AsymetricRelatedField.from_serializer(UAISerializer)(required=False, many=True)
+
+    def create(self, validated_data):
+        """
+        Create the high school then add UAIs (m2m)
+        """
+        try:
+            highschool = super().create(validated_data)
+
+            for uai in self._validated_data.get("uai_codes", []):
+                highschool.uai_codes.add(uai)
+        except Exception as e:
+            raise
+
+        return highschool
+
     def validate(self, attrs):
         # Advanced test
         excludes = {}
@@ -300,11 +338,27 @@ class HighSchoolSerializer(serializers.ModelSerializer):
                 _("A high school object with the same label and city already exists")
             )
 
+        # Student federation and UAI
+        if attrs.get('uses_student_federation', False) is True:
+            if not attrs.get('uai_codes', []):
+                raise serializers.ValidationError(
+                    _("You have to add at least one UAI code when using student federation")
+                )
+            else:
+                for uai in attrs.get('uai_codes'):
+                    try:
+                        UAI.objects.get(pk=uai.code)
+                    except UAI.DoesNotExist:
+                        raise serializers.ValidationError(
+                            _("UAI code %s not found") % uai.code
+                        )
+
         return super().validate(attrs)
 
     class Meta:
         model = HighSchool
         fields = "__all__"
+        validators = []
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -369,23 +423,7 @@ class TrainingSerializer(serializers.ModelSerializer):
         model = Training
         fields = ("id", "label", "training_subdomains", "nb_courses", "active", "url", "structures",
                   "highschool", "allowed_immersions")
-
-
-class VisitSerializer(serializers.ModelSerializer):
-    establishment = EstablishmentSerializer(many=False, read_only=True)
-    structure = StructureSerializer(many=False, read_only=True)
-    highschool = HighSchoolViewSerializer(many=False, read_only=True)
-    speakers = ImmersionUserSerializer(many=True, read_only=True)
-    can_delete = serializers.BooleanField()
-
-    published_slots_count = serializers.IntegerField()
-    slots_count = serializers.IntegerField()
-    registrations_count = serializers.IntegerField()
-    n_places = serializers.IntegerField(source="free_seats")
-
-    class Meta:
-        model = Visit
-        fields = "__all__"
+        validators = []
 
 
 class OffOfferEventSerializer(serializers.ModelSerializer):
@@ -536,6 +574,7 @@ class CourseSerializer(serializers.ModelSerializer):
         fields =  [
             "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by"
         ]
+        validators = []
 
 
 class SlotSerializer(serializers.ModelSerializer):
@@ -547,17 +586,20 @@ class SlotSerializer(serializers.ModelSerializer):
         """
         For now, only create course slots
         """
+        period = data.get("period")
+        date = data.get("date")
         course = data.get("course")
         course_type = data.get("course_type")
         campus = data.get("campus")
         building = data.get("building")
-        visit = data.get("visit")
         event = data.get("event")
         start_time = data.get("start_time")
         end_time = data.get("end_time")
-        face_to_face = data.get("face_to_face", True)
+        place = data.get("place", Slot.FACE_TO_FACE)
         published = data.get("published", False)
         speakers = data.get("speakers")
+        n_places = data.get('n_places')
+        n_group_places = data.get('n_group_places')
         allowed_establishments = data.get("allowed_establishments")
         allowed_highschools = data.get("allowed_highschools")
         allowed_highschool_levels = data.get("allowed_highschool_levels")
@@ -566,26 +608,43 @@ class SlotSerializer(serializers.ModelSerializer):
         allowed_bachelor_types = data.get("allowed_bachelor_types")
         allowed_bachelor_mentions = data.get("allowed_bachelor_mentions")
         allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
+        allow_individual_registrations = data.get('allow_individual_registrations')
+        allow_group_registrations = data.get('allow_group_registrations')
+        group_mode = data.get('group_mode')
         details = {}
 
+        enabled_groups = get_general_setting("ACTIVATE_COHORT")
+
         # Slot type
-        if not any([course, visit, event]):
+        if not any([course, event]):
             raise serializers.ValidationError(
-                detail=_("A slot requires at least a 'course', a 'visit' or an 'event' object"),
+                detail=_("A slot requires at least a 'course' or an 'event' object"),
                 code=status.HTTP_400_BAD_REQUEST
             )
 
         if published:
-            required_fields = ["n_places", "date", "start_time", "end_time", "speakers"]
+            #TODO put required fields list when published (or not) in model
+            required_fields = ["date", "period", "start_time", "end_time", "speakers"]
 
-            if face_to_face:
+            if enabled_groups:
+                if allow_individual_registrations or not allow_group_registrations:
+                    required_fields.append("n_places")
+                elif allow_group_registrations:
+                    required_fields.append("n_group_places")
+            else:
+                required_fields.append("n_places")
+
+            if place in [Slot.FACE_TO_FACE, Slot.OUTSIDE]:
                 required_fields.append("room")
-            elif event or visit:
+            elif event:
                 required_fields.append("url")
 
             for rfield in required_fields:
                 if not data.get(rfield):
                     details[rfield] = _("Field '%s' is required for a new published slot") % rfield
+
+        if period and date and not period.immersion_start_date <= date <= period.immersion_end_date:
+            details["date"] = _("Invalid date for selected period : please check periods settings")
 
         if start_time and end_time and end_time <= start_time:
             details["end_time"] = _("end_time can't be set before or equal to start_time")
@@ -618,7 +677,10 @@ class SlotSerializer(serializers.ModelSerializer):
                         details["speakers"] = []
 
                     details["speakers"].append(
-                        _("Speaker '%s' is not linked to course '%s'") % (speaker, course)
+                        _("Speaker '%(speaker)s' is not linked to course '%(course)s'") % {
+                            'speaker': speaker,
+                            'course': course
+                        }
                     )
 
         if details:
@@ -628,7 +690,7 @@ class SlotSerializer(serializers.ModelSerializer):
             )
 
         # Restrictions
-        # Common to courses, visits and events
+        # Common to courses and events
         data["levels_restrictions"] = any([
             allowed_highschool_levels, allowed_student_levels, allowed_post_bachelor_levels
         ])
@@ -637,13 +699,7 @@ class SlotSerializer(serializers.ModelSerializer):
             allowed_bachelor_types, allowed_bachelor_mentions, allowed_bachelor_teachings
         ])
 
-        if course or event:
-            data["establishments_restrictions"] = any([allowed_establishments, allowed_highschools])
-        elif visit:
-            # No establishment restriction
-            data["establishments_restrictions"] = False
-            data["allowed_establishments"] = None
-            data["allowed_highschools"] = None
+        data["establishments_restrictions"] = any([allowed_establishments, allowed_highschools])
 
         return data
 

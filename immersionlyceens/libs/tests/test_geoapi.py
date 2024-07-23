@@ -23,8 +23,10 @@ from immersionlyceens.apps.immersion.models import (
 )
 
 from immersionlyceens.libs.geoapi.utils import (
-    get_cities, get_departments, get_json_from_url, get_zipcodes,
+    get_cities, get_departments, get_zipcodes,
 )
+
+from ..api_utils import get_json_from_url
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')

@@ -8,3 +8,4 @@ omit =
     immersionlyceens/urls.py
     venv/**
     */tests/*
+    fabfile/*

@@ -12,11 +12,13 @@
 {% endblock %}
 
 {% block head-javascript %}
-    <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+
     <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
+{% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
+
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   {% block confirm_slot_creation %}{% endblock %}
@@ -86,10 +88,8 @@
         <div class="form-group row" id="id_div_highschool">
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i id='id_mandatory_highschool' class="fa fas fa-asterisk" style="display:none"></i>
-            {% if slot_mode != 'visits' %}
-              {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-                <span id="id_or"><strong>{% trans 'or' %} </strong></span>
-              {% endif %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+              <span id="id_or"><strong>{% trans 'or' %} </strong></span>
             {% endif %}
             {% trans 'high school' %} :
           </label>
@@ -103,46 +103,45 @@
 
         {% block specific_fields %}{% endblock %}
 
-        {% if slot_mode != 'visits' %}
-            <div class="form-group row" id="id_div_campus">
-                <label for="id_campus" class="col-form-label col-sm-3">
-                  <i id='id_mandatory_campus' class="fa fas fa-asterisk" style="display:none"></i>
-                  {% trans 'Campus' %}
-                </label>
-                <div class="col-sm-3">
-                {% if slot %}
-                  <select name="campus" id="id_campus" class="form-control">
-                    <option value="" selected>--------</option>
-                      {% for c in campus %}
-                        <option value="{{ c.id }}">{{ c.label }}</option>
-                      {% endfor %}
-                  </select>
-                {% else %}
-                  {{ form.campus }}
-                {% endif %}
-              </div>
-              {% if form.campus.errors %}
-                <div class="col-sm-6 alert alert-danger">
-                  {{ form.campus.errors }}
-                </div>
-              {% endif %}
+        <div class="form-group row" id="id_div_campus">
+          <label for="id_campus" class="col-form-label col-sm-3">
+            <i id='id_mandatory_campus' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Campus' %}
+          </label>
+          <div class="col-sm-3">
+            {% if slot %}
+              <select name="campus" id="id_campus" class="form-control">
+                <option value="" selected>--------</option>
+                  {% for c in campus %}
+                    <option value="{{ c.id }}">{{ c.label }}</option>
+                  {% endfor %}
+              </select>
+            {% else %}
+              {{ form.campus }}
+            {% endif %}
+          </div>
+          {% if form.campus.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.campus.errors }}
             </div>
+          {% endif %}
+        </div>
 
-            <div class="form-group row" id="id_div_building">
-              <label for="building" class="col-form-label col-sm-3">
-                <i id='id_mandatory_building' class="fa fas fa-asterisk" style="display:none"></i>
-                {% trans 'Building' %}
-              </label>
-              <div class="col-sm-3">
-                {{ form.building }}
-              </div>
-              {% if form.building.errors %}
-                <div class="col-sm-6 alert alert-danger">
-                  {{ form.building.errors }}
-                </div>
-              {% endif %}
+        <div class="form-group row" id="id_div_building">
+          <label for="building" class="col-form-label col-sm-3">
+            <i id='id_mandatory_building' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Building' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.building }}
+          </div>
+          {% if form.building.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.building.errors }}
             </div>
-        {% endif %}
+          {% endif %}
+        </div>
+
         <div class="form-group row" id="id_div_room">
           <label for="id_room" class="col-form-label col-sm-3">
             <i id='id_mandatory_room' class="fa fas fa-asterisk" style="display:none"></i>
@@ -184,6 +183,21 @@
             {% if form.date.errors %}
             <div class="col-sm-6 alert alert-danger">
               {{ form.date.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_period">
+            <label for="period" class="col-form-label col-sm-3">
+              <i id='id_mandatory_period' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Period' %}
+            </label>
+            <div class="col-sm-3">
+                {{ form.period }}
+            </div>
+            {% if form.period.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.period.errors }}
             </div>
             {% endif %}
         </div>
@@ -269,10 +283,87 @@
           {% endif %}
         </div>
 
-        <div class="form-group row">
+        {% if enabled_groups_registrations %}
+        <div class="form-group row" id="id_div_allow_group_registrations">
+          <label for="allow_group_registrations" class="col-form-label col-sm-3">
+            {% trans 'Allow group registrations' %} ?
+          </label>
+          <div class="col-sm-3">
+            {{ form.allow_group_registrations }}
+            {{ form.allow_group_registrations.help_text }}
+          </div>
+          {% if form.allow_group_registrations.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.allow_group_registrations.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_group_mode">
+          <label for="group_mode" class="col-form-label col-sm-3">
+            <i id='id_mandatory_group_mode' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Group management mode' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.group_mode }}
+          </div>
+          {% if form.group_mode.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.group_mode.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_n_group_places">
+          <label for="n_group_places" class="col-form-label col-sm-3">
+            <i id='id_mandatory_n_group_places' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Number of places for groups' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.n_group_places }}
+          </div>
+          {% if form.n_group_places.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.n_group_places.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_public_group">
+          <label for="public_group" class="col-form-label col-sm-3">
+            <i id='id_public_group' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Public group registrations' %}
+          </label>
+          <div class="col-sm-3">
+            {{ form.public_group }}
+          </div>
+          {% if form.public_group.errors %}
+            <div class="col-sm-6 alert alert-danger">
+              {{ form.public_group.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_allow_individual_registrations">
+          <label for="allow_individual_registrations" class="col-form-label col-sm-3">
+            {% trans 'Allow individual registrations' %} ?
+          </label>
+          <div class="col-sm-3">
+            {{ form.allow_individual_registrations }}
+            {{ form.allow_individual_registrations.help_text }}
+          </div>
+          {% if form.allow_individual_registrations.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.allow_individual_registrations.errors }}
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="form-group row" id="id_div_n_places">
           <label for="id_n_places" class="col-form-label col-sm-3">
             <i id='id_mandatory_n_places' class="fa fas fa-asterisk" style="display:none"></i>
-            {% trans 'Number of places' %}
+            {% trans 'Number of individual places' %}
           </label>
           <div class="col-sm-3">
             {{ form.n_places }}
@@ -284,52 +375,50 @@
           {% endif %}
         </div>
 
-        {% if slot_mode != 'visits' %}
-          <div class="form-group row">
-            <label for="id_establishments_restrictions" class="col-form-label col-sm-3">
-              {% trans 'Use establishments restrictions' %} ?
-            </label>
-            <div class="col-sm-6">
-              {{ form.establishments_restrictions }}
-              <span id="establishments_restrictions_hint">
-                <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
-              </span>
-            </div>
+        <div class="form-group row">
+          <label for="id_establishments_restrictions" class="col-form-label col-sm-3">
+            {% trans 'Use establishments restrictions' %} ?
+          </label>
+          <div class="col-sm-6">
+            {{ form.establishments_restrictions }}
+            <span id="establishments_restrictions_hint">
+              <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+            </span>
+          </div>
 
-            {% if form.establishments_restrictions.errors %}
-              <div class="col-sm-3 alert alert-danger">
-                {{ form.establishments_restrictions.errors }}
+          {% if form.establishments_restrictions.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.establishments_restrictions.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_allowed_establishments">
+          <div class="col-sm-9 offset-sm-3">
+            <label for="id_allowed_establishments" class="col-form-label">
+              {% trans 'Allowed establishments' %}
+            </label>
+            {{ form.allowed_establishments }}
+            {% if form.allowed_establishments.errors %}
+              <div class="col-sm-4 alert alert-danger">
+                {{ form.allowed_establishments.errors }}
               </div>
             {% endif %}
           </div>
-
-          <div class="form-group row" id="id_div_allowed_establishments">
-            <div class="col-sm-9 offset-sm-3">
-              <label for="id_allowed_establishments" class="col-form-label">
-                {% trans 'Allowed establishments' %}
-              </label>
-              {{ form.allowed_establishments }}
-              {% if form.allowed_establishments.errors %}
-                <div class="col-sm-4 alert alert-danger">
-                  {{ form.allowed_establishments.errors }}
-                </div>
-              {% endif %}
-            </div>
+        </div>
+        <div class="form-group row" id="id_div_allowed_highschools">
+          <div class="col-sm-9 offset-sm-3">
+            <label for="id_allowed_highschools" class="col-form-label">
+              {% trans 'Allowed high schools' %}
+            </label>
+            {{ form.allowed_highschools }}
+            {% if form.allowed_highschools.errors %}
+              <div class="col-sm-5 alert alert-danger">
+                {{ form.allowed_highschools.errors }}
+              </div>
+            {% endif %}
           </div>
-          <div class="form-group row" id="id_div_allowed_highschools">
-            <div class="col-sm-9 offset-sm-3">
-              <label for="id_allowed_highschools" class="col-form-label">
-                {% trans 'Allowed high schools' %}
-              </label>
-              {{ form.allowed_highschools }}
-              {% if form.allowed_highschools.errors %}
-                <div class="col-sm-5 alert alert-danger">
-                  {{ form.allowed_highschools.errors }}
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        {% endif %}
+        </div>
 
         <div class="form-group row">
           <label for="id_levels_restrictions" class="col-form-label col-sm-3">
@@ -357,7 +446,6 @@
             {{ form.allowed_highschool_levels }}
             {{ form.allowed_highschool_levels.errors }}
           </div>
-          {% if slot_mode != "visits" %}
           <div class="col-sm-3">
             <label for="id_allowed_student_levels" class="col-form-label">
               {% trans 'Allowed student levels' %}
@@ -372,7 +460,6 @@
             {{ form.allowed_post_bachelor_levels }}
             {{ form.allowed_post_bachelor_levels.errors }}
           </div>
-          {% endif %}
         </div>
 
         <div class="form-group row">
@@ -484,11 +571,14 @@
 
   var course_id = parseInt("{{ form.course.value }}") || "{{ course_id }}";
   var event_id = parseInt("{{ form.event.value }}") || "{{ event_id }}";
-  var visit_id = parseInt("{{ form.visit.value }}") || "{{ visit_id }}";
+
+  var period_id = parseInt("{{ form.period.value }}") || "{{ period_id }}";
 
   var events = Array();
   var courses = Array();
-  var visits = Array();
+
+  // var periods = Array();
+  var periods = is_set('{{ periods|safe }}') ? JSON.parse('{{ periods|safe }}') : Array();
 
   let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
   let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
@@ -546,12 +636,6 @@
       event_id = ''
   }
 
-  function empty_visits() {
-      let options = '<option value="">---------</option>'
-      $('select#id_visit').html(options)
-      visit_id = ''
-  }
-
   function empty_speakers() {
       let options = "<option value=''>{% trans 'Please fill the above fields first' %}</option>"
       $('select#id_speakers').html(options)
@@ -587,9 +671,7 @@
 
         $("#id_div_structure").show()
 
-        if(slot_mode !== 'visits') {
-          $("#id_div_highschool").hide()
-        }
+        $("#id_div_highschool").hide()
 
         if(slot_mode === "courses") {
           $("#id_div_structure").show()
@@ -597,7 +679,7 @@
           $("#id_div_building").show()
         }
         else {
-          toggle_face_to_face()
+          toggle_place()
         }
       }
     })
@@ -784,36 +866,6 @@
     })
   }
 
-  function set_visits() {
-    $.ajax({
-      url: "{% url 'visit_list' %}",
-      type: 'GET',
-      data: {
-        'establishment': establishment_id,
-        'structure': structure_id === "" ? null : structure_id,
-        'highschool': highschool_id,
-        csrfmiddlewaretoken: '{{ csrf_token }}'
-      },
-      success: function (json) {
-        visits = Array()
-
-        let options = '<option value="">---------</option>'
-        for (let i = 0; i < json.length; i++) {
-          options += `<option value="${json[i]['id']}">${json[i]['purpose']}</option>`
-          visits[json[i]['id']] = json[i]
-        }
-        $('select#id_visit').html(options)
-
-        if(visit_id) {
-          $("#id_visit").val(visit_id);
-        }
-        else {
-          $("#id_visit").val($("#id_visit option:first").val());
-        }
-      }
-    })
-  }
-
   function load_speakers(value) {
     $('select#id_speakers').html('');
 
@@ -843,6 +895,51 @@
     }
   }
 
+  function set_periods(date=$('#id_date').val()) {
+    $.ajax({
+      url: "{% url 'period_list' %}",
+      type: 'GET',
+      async: false,
+      data: {
+        'date': date === "" ? null : date,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        // periods = Array()
+        let options = ''
+
+        let period_date_options = { dateStyle: 'short' };
+
+        if(json.length === 0) {
+          options += '<option value="">{% trans "No available period for this date" %}</option>'
+        }
+
+        // More than one period : add an empty choice
+        if(json.length > 1) {
+          options += '<option value="">---------</option>'
+        }
+
+        for (let i = 0; i < json.length; i++) {
+          let selected = json[i]['id'] === parseInt(period_id) ? "selected='selected'" : ""
+
+          let start_date = formatDate(json[i]['immersion_start_date'], period_date_options)
+          let end_date = formatDate(json[i]['immersion_end_date'], period_date_options)
+
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} - ${start_date} - ${end_date}</option>`
+          // periods[json[i]['id']] = json[i]
+        }
+        $('select#id_period').html(options)
+
+        if(period_id) {
+          $("#id_period").val(period_id);
+        }
+        else {
+          $("#id_period").val($("#id_period option:first").val());
+        }
+      }
+    })
+  }
+
   function get_new_date(from_date, start_time, delta_hours) {
       const options = {
             weekday: "short",
@@ -870,24 +967,82 @@
       let date = $("#id_date").datepicker("getDate")
       let start_time = $("#id_start_time").val()
       let registration_limit_delay = $("#id_registration_limit_delay").val()
+      let period_id = $("#id_period").val()
+      let registration_end_date_policy = null
+      let registration_end_date = null
+      let end_date = null
 
-      if(is_set(date) && is_set(start_time) && is_set(registration_limit_delay)) {
+      const options = {
+            weekday: "short",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+      };
+
+      // if we use period registration end date
+      if(is_set(period_id)) {
+        let period = periods[period_id]
+        registration_end_date_policy = period.registration_end_date_policy
+        registration_end_date = period.registration_end_date
+
+        end_date = new Date(registration_end_date)
+        end_date = formatDate(end_date, date_options=options)
+      }
+      else {
+          $("#id_registration_limit_text").hide()
+          $("#id_registration_limit_value").hide()
+      }
+
+      if(registration_end_date_policy === 0) {
+          $("#id_registration_limit_delay").prop('disabled', true)
+
+          $("#id_registration_limit_text").show()
+          $("#id_registration_limit_value").text(end_date)
+          $("#id_registration_limit_value").show()
+      }
+      else {
+        $("#id_registration_limit_delay").prop('disabled', false)
+
+        if (is_set(date) && is_set(start_time) && is_set(registration_limit_delay)) {
           let new_date = get_new_date(date, start_time, registration_limit_delay)
 
           $("#id_registration_limit_text").show()
           $("#id_registration_limit_value").text(new_date)
           $("#id_registration_limit_value").show()
-      }
-      else {
+        } else {
           $("#id_registration_limit_text").hide()
           $("#id_registration_limit_value").hide()
+        }
       }
   }
 
   function display_cancellation_limit_delay() {
       let date = $("#id_date").datepicker("getDate")
       let start_time = $("#id_start_time").val()
-      let cancellation_limit_delay = $("#id_cancellation_limit_delay").val()
+      let cancellation_limit_delay = $("#id_cancellation_limit_delay").val() // when slot controlled
+      let period_id = $("#id_period").val()
+      let registration_end_date_policy = null
+      let period;
+
+      // if we use period registration end date
+      if(is_set(period_id)) {
+        period = periods[period_id]
+        registration_end_date_policy = period.registration_end_date_policy
+      }
+      else {
+          $("#id_cancellation_limit_text").hide()
+          $("#id_cancellation_limit_value").hide()
+      }
+
+      if(is_set(period) && registration_end_date_policy === 0) {
+        cancellation_limit_delay = period.cancellation_limit_delay
+        $("#id_cancellation_limit_delay").prop('disabled', true)
+      }
+      else {
+        $("#id_cancellation_limit_delay").prop('disabled', false)
+      }
 
       if(is_set(date) && is_set(start_time) && is_set(cancellation_limit_delay)) {
           let new_date = get_new_date(date, start_time, cancellation_limit_delay)
@@ -907,11 +1062,6 @@
       display_cancellation_limit_delay()
   })
 
-  $("#id_date").change(function() {
-      display_registration_limit_delay()
-      display_cancellation_limit_delay()
-  })
-
   $("#id_registration_limit_delay").change(function() {
       display_registration_limit_delay()
   })
@@ -927,7 +1077,6 @@
     empty_structures()
     empty_campuses()
     empty_buildings()
-    empty_visits()
     empty_events()
 
     if (establishment_id !== "") {
@@ -937,20 +1086,15 @@
         set_campuses(establishment_id)
 
         if(slot_mode === "events") set_events()
-        if(slot_mode === "visits") set_visits()
     }
     else {
         $("#id_div_highschool").show()
         $("#id_div_campus").hide()
         $("#id_div_building").hide()
-
-        if(slot_mode !== 'visits') {
-          $("#id_div_structure").hide()
-        }
+        $("#id_div_structure").hide()
 
         if($('#id_highschool').val()) {
           if(slot_mode === "events") set_events()
-          if(slot_mode === "visits") set_visits()
         }
     }
 
@@ -969,7 +1113,6 @@
 
     if (slot_mode === "courses") set_trainings('structures', structure_id)
     if (slot_mode === "events") set_events()
-    if (slot_mode === "visits") set_visits()
 
     set_session_values(slot_mode, {
       "current_highschool_id": highschool_id,
@@ -985,18 +1128,15 @@
 
     if (slot_mode === "courses") empty_courses()
     if (slot_mode === "events") empty_events()
-    if (slot_mode === "visits") empty_visits()
 
     if (highschool_id !== "") {
-      if(slot_mode !== 'visits') {
-        establishment_id = ""
-        structure_id = ""
-        $('#id_establishment').val("")
-        $("#id_div_establishment").hide()
-        $("#id_div_structure").hide()
-        $('#id_structure').val("")
-        empty_structures()
-      }
+      establishment_id = ""
+      structure_id = ""
+      $('#id_establishment').val("")
+      $("#id_div_establishment").hide()
+      $("#id_div_structure").hide()
+      $('#id_structure').val("")
+      empty_structures()
 
       $("#id_div_campus").hide()
       $("#id_div_building").hide()
@@ -1007,13 +1147,12 @@
 
       if (slot_mode === "courses") set_trainings('highschool', highschool_id)
       if (slot_mode === "events") set_events()
-      if (slot_mode === "visits") set_visits()
     }
     else {
       $("#id_div_establishment").show()
       // $("#id_div_structure").show()
       $("#id_or").show()
-      toggle_face_to_face()
+      toggle_place()
     }
 
     set_session_values(slot_mode, {
@@ -1085,25 +1224,35 @@
     })
   }
 
-  if(is_set($("#id_visit"))) {
-    $("#id_visit").change(function() {
-      visit_id = $('#id_visit option:selected').val()
-
-      if(visit_id !== '' && visits[visit_id]['published'] === false) {
-        publicationDialog.dialog('open');
-      }
-
-      load_speakers(visit_id);
-    })
-  }
-
   function toggle_required_fields () {
-    let published = $('#id_published').prop('checked');
-    let face_to_face = $('#id_face_to_face').prop('checked') || $('#id_face_to_face').val() === "1";
+    const ONE_GROUP="0"
+    const BY_PLACES="1"
+
+    // FIXME : define global variables
+    let face_to_face = 0
+    let remote = 1
+    let outside = 2
+
+    let published = $('#id_published').prop('checked')
+    let place = parseInt($('#id_place').val())
+    let allow_group_registrations = $('#id_allow_group_registrations').prop('checked')
+    let allow_individual_registrations = $('#id_allow_individual_registrations').prop('checked')
+    let group_mode = $('#id_group_mode').val()
 
     if (published) {
-      let mandatory = ['date', 'start_time', 'end_time', 'speakers', 'n_places']
+      let mandatory = ['date', 'period', 'start_time', 'end_time', 'speakers']
       let not_mandatory = Array()
+
+      // Depends on group registrations
+      if((!is_set(allow_group_registrations)
+          || allow_group_registrations === false)
+          || allow_individual_registrations === true) {
+          mandatory.push('n_places')
+      }
+
+      if(allow_group_registrations === true) {
+          mandatory.push('n_group_places')
+      }
 
       if(slot_mode === "events") {
         mandatory.push('event')
@@ -1111,9 +1260,6 @@
       else if (slot_mode === "courses") {
         mandatory = mandatory.concat(['training', 'course', 'course_type'])
         $('#id_div_repeat').show()
-      }
-      else if (slot_mode === "visits") {
-        mandatory = mandatory.concat(['establishment', 'highschool', 'visit'])
       }
 
       if(slot_mode === "courses" || slot_mode === "events") {
@@ -1136,10 +1282,11 @@
         }
       }
 
-      if(face_to_face) {
+      if(place === face_to_face || place === outside) {
+          // face to face or outside of host establishment
           mandatory.push("room")
 
-          if(establishment_id) {
+          if(establishment_id && place === face_to_face) {
             mandatory = mandatory.concat(['campus', 'building'])
           }
           else {
@@ -1162,14 +1309,13 @@
     }
     else {
       let not_mandatory = [
-        'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url', 'date', 'start_time',
-        'end_time', 'speakers', 'n_places'
+        'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url',
+        'date', 'period', 'start_time', 'end_time', 'speakers', 'n_places', 'n_group_places'
       ];
 
       let mandatory = Array()
 
       if(slot_mode === "events") mandatory = ['event']
-      if(slot_mode === "visits") mandatory = ['establishment', 'highschool', 'visit']
       if(slot_mode === "courses") {
           mandatory = ['training', 'course']
           $('#id_div_repeat').hide()
@@ -1200,6 +1346,54 @@
         $('#id_mandatory_' + e).show();
       });
     }
+  }
+
+  function toggle_group_fields() {
+    const ONE_GROUP="0"
+    const BY_PLACES="1"
+
+    let allow_group_registrations = $("#id_allow_group_registrations").prop('checked')
+    let allow_individual_registrations = $("#id_allow_individual_registrations").prop('checked')
+    let group_mode = $("#id_group_mode").val()
+    // let published = $("#id_published").prop('checked')
+
+    if(allow_group_registrations === true) {
+      $("#id_div_allow_individual_registrations").show()
+      $("#id_div_group_mode").show()
+      $("#id_group_mode").attr('required', 'required');
+      $("#id_div_public_group").show()
+      $("#id_public_group").attr('required', 'required');
+
+      $("#id_div_n_group_places").show()
+      $("#id_n_group_places").attr('required', 'required');
+      $('#id_mandatory_n_group_places').show()
+
+      if(allow_individual_registrations === true) {
+        $("#id_div_n_places").show()
+        $("#id_n_places").attr('required', 'required');
+        $('#id_mandatory_n_places').show()
+      }
+      else {
+        $("#id_div_n_places").hide()
+        $("#id_n_places").removeAttr('required');
+        $('#id_mandatory_n_places').hide()
+      }
+    }
+    else {
+      $("#id_div_allow_individual_registrations").hide()
+      $("#id_allow_individual_registrations").prop('checked', true)
+      $("#id_div_n_places").show()
+      $("#id_n_places").attr('required', 'required');
+
+      $("#id_div_group_mode").hide()
+      $("#id_group_mode").removeAttr('required');
+      $("#id_div_n_group_places").hide()
+      $("#id_group_n_places").removeAttr('required');
+      $("#id_div_public_group").hide()
+      $("#id_public_group").removeAttr('required');
+    }
+
+    toggle_required_fields()
   }
 
   function open_slot_repetition_modal() {
@@ -1283,8 +1477,13 @@
   }
 
 
-  function toggle_face_to_face() {
-    if($('#id_face_to_face').is(':checked') || $('#id_face_to_face').val() === "1") {
+  function toggle_place() {
+    let face_to_face = 0
+    let outside = 2
+
+    let place = parseInt($('#id_place').val())
+
+    if(place === face_to_face || place === outside) {
       $("#id_div_room").show()
 
       if($('#id_published').prop('checked')) {
@@ -1294,7 +1493,7 @@
       $("#id_div_url").hide()
       $('#id_url').removeAttr('required');
 
-      if(establishment_id) {
+      if(establishment_id && place === face_to_face) {
         $("#id_div_campus").show()
         $("#id_div_building").show()
 
@@ -1302,6 +1501,12 @@
           $('#id_campus').attr('required', 'required');
           $('#id_building').attr('required', 'required');
         }
+      }
+      else {
+        $("#id_div_campus").hide()
+        $("#id_div_building").hide()
+        $('#id_campus').removeAttr('required');
+        $('#id_building').removeAttr('required');
       }
     }
     else {
@@ -1324,24 +1529,26 @@
   }
 
   function check_date(date=$('#id_date').val(), dialog=true, callback) {
-    return $.ajax({
-      url: '/api/validate_slot_date',
-      data: {
-        date: date,
-      },
-      success: function(data) {
-        if ( data['data'] ) {
-          if (data['data']['is_between']) {
-            if(dialog) {
-              dateDialog.dialog('open');
-            }
-            else if (callback) {
-              callback(data['data']['is_between'])
+    if(date && $('#id_period').val()) {
+      return $.ajax({
+        url: '/api/validate_slot_date',
+        data: {
+          date: date,
+          period: $('#id_period').val()
+        },
+        success: function (data) {
+          if (data['data']) {
+            if (data['data']['is_between']) {
+              if (dialog) {
+                dateDialog.dialog('open');
+              } else if (callback) {
+                callback(data['data']['is_between'])
+              }
             }
           }
-        }
-      },
-    });
+        },
+      });
+    }
   }
 
   function addDays(date, days) {
@@ -1361,8 +1568,15 @@
       $("#id_div_repeat_button").hide()
     }
 
-    if(first_date && end_date) {
-      for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
+    let period = periods[$('#id_period').val()]
+    let real_end_date = Date.parse(period.immersion_end_date)
+
+    if(end_date < real_end_date) {
+      real_end_date = end_date
+    }
+
+    if(first_date && real_end_date) {
+      for (let d = addDays(first_date, 7); d <= real_end_date; d = addDays(d, 7)) {
         let checked = 'checked'
         let string_date = d.toLocaleDateString()
 
@@ -1403,7 +1617,7 @@
   }
 
   function toggle_repeat_divs() {
-    if($("#id_date").val()) {
+    if($("#id_date").val() && $("#id_period").val()) {
       $("#id_div_repeat").show()
 
       if($("#id_repeat").val()) {
@@ -1420,8 +1634,30 @@
     }
   }
 
+  function toggle_period_display() {
+    if(!is_set($("#id_date").val())) {
+      $("#id_div_period").hide()
+    }
+    else {
+      $("#id_div_period").show()
+
+      if(is_set($("#id_period").val())) {
+        display_registration_limit_delay()
+        display_cancellation_limit_delay()
+      }
+    }
+  }
+
+  // this will load available dates
   $('#id_repeat').change( function() {
     toggle_repeat_divs()
+  })
+
+  // with slot date selection, this will allow slot repetition
+  $('#id_period').change( function() {
+    toggle_repeat_divs()
+    display_registration_limit_delay()
+    display_cancellation_limit_delay()
   })
 
 
@@ -1438,18 +1674,13 @@ $(document).ready(function(){
     $("#id_div_structure").show()
     $("#id_div_campus").show()
     $("#id_div_building").show()
-
-    if(slot_mode !== 'visits') {
-      $("#id_div_highschool").hide()
-    }
+    $("#id_div_highschool").hide()
 
     set_structures(establishment_id)
     set_campuses(establishment_id)
   }
   else {
-    if(slot_mode !== 'visits') {
-      $("#id_div_structure").hide()
-    }
+    $("#id_div_structure").hide()
     $("#id_div_campus").hide()
     $("#id_div_building").hide()
     empty_structures()
@@ -1496,11 +1727,8 @@ $(document).ready(function(){
   }
 
   if(highschool_id) {
-    if(slot_mode !== 'visits') {
-      $("#id_div_establishment").hide()
-      $("#id_div_structure").hide()
-    }
-
+    $("#id_div_establishment").hide()
+    $("#id_div_structure").hide()
     $("#id_div_campus").hide()
     $("#id_div_building").hide()
     $("#id_or").hide()
@@ -1541,23 +1769,6 @@ $(document).ready(function(){
     }
   }
 
-  if(slot_mode === "visits") {
-    if(is_set(establishment_id) && is_set(structure_id) && is_set(highschool_id)) {
-      set_visits();
-    }
-
-    if(!is_set(visit_id)) {
-      visit_id = $("#id_visit").val()
-    }
-    else {
-      $("#id_visit").val(visit_id)
-    }
-
-    if(visit_id) {
-      load_speakers(visit_id);
-    }
-  }
-
   if(slot_mode === "courses") {
     if(is_set(course_id)) {
       load_speakers(course_id);
@@ -1567,7 +1778,11 @@ $(document).ready(function(){
     }
   }
 
-  if($('#id_face_to_face').is(':checked')) {
+  let place = parseInt($('#id_place').val())
+  let face_to_face = 0
+  let outside = 2
+
+  if(place === face_to_face || place === outside) {
     $("#id_div_room").show()
     $('#id_room').attr('required', 'required');
 
@@ -1632,7 +1847,6 @@ $(document).ready(function(){
         "class": 'dialog-button',
         click: function () {
           $('#id_event').val('');
-          $('#id_visit').val('');
           $('#id_course').val('');
           publicationDialog.dialog("close");
         },
@@ -1657,9 +1871,6 @@ $(document).ready(function(){
           }
           else if (slot_mode === 'events') {
             url = "/core/off_offer_events_slots"
-          }
-          else if (slot_mode === 'visits') {
-            url = "/core/visits_slots"
           }
 
           window.location = url;
@@ -1719,8 +1930,29 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    toggle_period_display();
+    set_periods();
+    display_registration_limit_delay()
+    display_cancellation_limit_delay()
     toggle_repeat_divs()
   });
+
+  $('#id_period').on('change', function() {
+    toggle_repeat_divs();
+  })
+
+  // groups registrations
+  $('#id_allow_group_registrations').on('change', function() {
+    toggle_group_fields()
+  })
+
+  $('#id_allow_individual_registrations').on('change', function() {
+    toggle_group_fields()
+  })
+
+  $('#id_group_mode').on('change', function() {
+    toggle_group_fields()
+  })
 
   // Back button + confirm
   $('.back_btn').click(function (event) {
@@ -1757,15 +1989,19 @@ $(document).ready(function(){
     toggle_bachelors_options(selectedVals);
   });
 
+  set_periods();
+  toggle_period_display();
 
-  toggle_face_to_face();
-  $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
+  toggle_place();
+  $('#id_place').on('change', function() { toggle_place() });
 
   toggle_repeat_divs()
 
   // Be sure to run the following functions _after_ datepicker initialization above
   display_registration_limit_delay();
   display_cancellation_limit_delay();
+
+  toggle_group_fields();
 
   {% if slot or request.POST.structure %}
     {% if slot %}

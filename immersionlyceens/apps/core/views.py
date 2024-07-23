@@ -35,14 +35,16 @@ from .admin_forms import (
 from .forms import (
     ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
     MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
-    StructureForm, TrainingFormHighSchool, VisitForm, VisitSlotForm,
+    StructureForm, TrainingFormHighSchool
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText,
-    OffOfferEvent, RefStructuresNotificationsSettings, Slot, Structure,
-    Training, UniversityYear, Visit,
+    HighSchool, Holiday, Immersion, ImmersionGroupRecord, ImmersionUser,
+    InformationText, OffOfferEvent, Period, RefStructuresNotificationsSettings,
+    Slot, Structure, Training, UniversityYear
 )
+
+from .serializers import PeriodSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ def hijack_clean_session_vars(sender, hijacker, hijacked, request, **kwargs):
     """
     session_vars = {}
 
-    for page in ["courses", "visits", "events"]:
+    for page in ["courses", "events"]:
         session_vars[page] = [
             'current_establishment_id',
             'current_structure_id',
@@ -127,11 +129,7 @@ def del_slot(request, slot_id):
         slot = Slot.objects.get(id=slot_id)
         # Check whether the user has access to this slot
         if request.user.is_structure_manager():
-            conditions = [
-                slot.course and slot.course.structure not in request.user.structures.all(),
-                slot.visit and slot.visit.structure not in request.user.structures.all()
-            ]
-            if any(conditions):
+            if slot.course and slot.course.structure not in request.user.structures.all():
                 return HttpResponse(gettext("This slot belongs to another structure"))
 
         slot.delete()
@@ -155,7 +153,7 @@ def courses_list(request):
 
     if request.user.is_master_establishment_manager() or request.user.is_operator():
         allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
-        allowed_establishments = Establishment.activated.all()
+        allowed_establishments = Establishment.activated.filter(is_host_establishment=True)
         allowed_strs = request.user.get_authorized_structures()
     elif request.user.is_establishment_manager():
         allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
@@ -436,23 +434,6 @@ def mycourses(request):
 
 
 @groups_required('INTER',)
-def myvisits(request):
-
-    structure_id = None
-    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
-
-    if allowed_strs.count() == 1:
-        structure_id = allowed_strs.first().id
-
-    context = {
-        "structures": allowed_strs,
-        "structure_id": structure_id
-    }
-
-    return render(request, 'core/my_visits.html', context)
-
-
-@groups_required('INTER',)
 def myevents(request):
 
     structure_id = None
@@ -478,15 +459,7 @@ def myslots(request, slots_type=None):
         'user_slots': True
     }
 
-    if slots_type == "visits":
-        context["slot_mode"] = "visits"
-        return render(request, 'core/my_visits_slots.html', context)
-    if slots_type == "hs_visits":
-        context["slot_mode"] = "visits"
-        context["user_slots"] = False
-        context["highschool_id"] = request.user.highschool.id if request.user.highschool else ''
-        return render(request, 'core/my_high_school_visits_slots.html', context)
-    elif slots_type == "events":
+    if slots_type == "events":
         context["slot_mode"] = "events"
         return render(request, 'core/my_events_slots.html', context)
     elif slots_type == "courses":
@@ -865,7 +838,7 @@ class TrainingList(generic.TemplateView):
 
         if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
             context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True)
-            context["establishments"] = Establishment.activated.all()
+            context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
             context["structures"] = self.request.user.get_authorized_structures()
         elif self.request.user.is_establishment_manager():
             context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
@@ -949,8 +922,6 @@ class TrainingUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-
-
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class CourseSlotList(generic.TemplateView):
     template_name = "core/courses_slots_list.html"
@@ -962,10 +933,12 @@ class CourseSlotList(generic.TemplateView):
             "can_update": True, # FixMe
             "slot_mode": "courses",
             "contact_form": ContactForm(),
-            "cancel_types": CancelType.objects.filter(active=True),
-            "establishments": Establishment.activated.all(),
+            "cancel_types": CancelType.objects.filter(active=True, students=True),
+            "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+            "establishments": Establishment.activated.filter(is_host_establishment=True),
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+            "group_highschools": HighSchool.agreed.order_by('city', 'label'),
             "establishment_id": kwargs.get(
                 'establishment_id',
                 get_session_value(self.request, "courses", "current_establishment_id")
@@ -982,7 +955,8 @@ class CourseSlotList(generic.TemplateView):
                 'training_id',
                 get_session_value(self.request, "courses", "current_training_id")
             ),
-            "course_id": kwargs.get('course_id', None)
+            "course_id": kwargs.get('course_id', None),
+            "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
         })
 
         try:
@@ -1099,11 +1073,13 @@ class CourseSlot(generic.CreateView):
                     'room': slot.room,
                     'url': slot.url,
                     'date': slot.date,
+                    'period': slot.period,
                     'start_time': slot.start_time,
                     'end_time': slot.end_time,
                     'n_places': slot.n_places,
+                    'n_group_places': slot.n_group_places,
                     'additional_information': slot.additional_information,
-                    'face_to_face': slot.face_to_face,
+                    'place': slot.place,
                     'establishments_restrictions': slot.establishments_restrictions,
                     'levels_restrictions': slot.levels_restrictions,
                     'bachelors_restrictions': slot.bachelors_restrictions,
@@ -1115,7 +1091,11 @@ class CourseSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()]
+                    'speakers': [s.id for s in slot.speakers.all()],
+                    'allow_group_registrations': slot.allow_group_registrations,
+                    'allow_individual_registrations': slot.allow_individual_registrations,
+                    'group_mode': slot.group_mode,
+                    'public_group': slot.public_group,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1183,6 +1163,10 @@ class CourseSlot(generic.CreateView):
             } for bt in BachelorType.objects.filter(active=True)
         })
 
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
     def get_form_kwargs(self):
@@ -1191,13 +1175,13 @@ class CourseSlot(generic.CreateView):
         return kw
 
     def form_valid(self, form):
-        self.duplicate = self.request.POST.get("duplicate", False) != False
-        self.add_new = self.request.POST.get("save_add", False) != False
+        self.duplicate = self.request.POST.get("duplicate", False) is not False
+        self.add_new = self.request.POST.get("save_add", False) is not False
         messages.success(self.request, _("Course slot \"%s\" created.") % form.instance)
 
         repeat_until = self.request.POST.get('repeat')
         if repeat_until:
-            self.slot_dates = self.request.POST.getlist('slot_dates')
+            self.slot_dates = self.request.POST.getlist('slot_dates[]')
 
         return super().form_valid(form)
 
@@ -1293,6 +1277,10 @@ class CourseSlotUpdate(generic.UpdateView):
             } for bt in BachelorType.objects.filter(active=True)
         })
 
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
 
@@ -1362,541 +1350,6 @@ class CourseSlotUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitList(generic.TemplateView):
-    template_name = "core/visits_list.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["can_update"] = True #FixMe
-
-        context["highschools"] = HighSchool.agreed.order_by("city", "label")
-        context["establishments"] = Establishment.activated.all()
-        context["structures"] = Structure.activated.all()
-
-        context["establishment_id"] = get_session_value(self.request, "visits", "current_establishment_id")
-        context["structure_id"] = get_session_value(self.request, "visits", "current_structure_id")
-
-        if not self.request.user.is_superuser:
-            if self.request.user.is_establishment_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["establishment_id"] = self.request.user.establishment.id
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
-
-            if self.request.user.is_structure_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["establishment_id"] = self.request.user.establishment.id
-                context["structures"] = self.request.user.structures.filter(active=True)
-                if self.request.user.structures.count() == 1:
-                    context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
-
-        return context
-
-
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitAdd(generic.CreateView):
-    """
-    Visit creation/duplication
-    """
-    form_class = VisitForm
-    template_name = "core/visit.html"
-    duplicate = False
-
-    def get_success_url(self):
-        if self.add_new:
-            return reverse("add_visit")
-        elif self.duplicate and self.object.pk:
-            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
-        else:
-            return reverse("visits")
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
-
-        self.duplicate = self.kwargs.get('duplicate', False)
-        object_pk = self.kwargs.get('pk', None)
-
-        if self.duplicate and object_pk:
-            context = {'duplicate': True}
-            try:
-                visit = Visit.objects.get(pk=object_pk)
-
-                initials = {
-                    'establishment': visit.establishment.id,
-                    'structure': visit.structure.id if visit.structure else None,
-                    'highschool': visit.highschool.id,
-                    'purpose': visit.purpose,
-                    'published': visit.published
-                }
-
-                # In case of form error, update initial values with POST ones (prevents a double call to clean())
-                data = self.request.POST
-                for k in initials.keys():
-                    initials[k] = data.get(k, initials[k])
-
-                self.form = VisitForm(initial=initials, request=self.request)
-
-                speakers_list = [{
-                    "username": t.username,
-                    "lastname": t.last_name,
-                    "firstname": t.first_name,
-                    "email": t.email,
-                    "display_name": f"{t.last_name} {t.first_name}",
-                    "is_removable": True,
-                } for t in visit.speakers.all()]
-
-                context["speakers"] = json.dumps(speakers_list)
-                context["origin_id"] = visit.id
-                context["form"] = self.form
-            except Visit.DoesNotExist:
-                pass
-
-        context["can_update"] = True  # FixMe
-        context["establishment_id"] = get_session_value(self.request, "visits", "current_establishment_id")
-        context["structure_id"] = get_session_value(self.request, "visits", "current_structure_id")
-        return context
-
-
-    def get_form_kwargs(self):
-        kw = super().get_form_kwargs()
-        kw["request"] = self.request
-        return kw
-
-
-    def form_valid(self, form):
-        self.duplicate = self.request.POST.get("save_duplicate", False) != False
-        self.add_new = self.request.POST.get("save_add_new", False) != False
-        response = super().form_valid(form)
-        messages.success(self.request, _("Visit \"%s\" created.") % form.instance)
-        return response
-
-
-    def form_invalid(self, form):
-        messages.error(self.request, _("Visit not created."))
-        return super().form_invalid(form)
-
-
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitUpdate(generic.UpdateView):
-    model = Visit
-    form_class = VisitForm
-    template_name = "core/visit.html"
-
-    def get_queryset(self, *args, **kwargs):
-        user = self.request.user
-        if user.is_master_establishment_manager() or user.is_operator():
-            return Visit.objects.all()
-
-        if user.is_establishment_manager():
-            return Visit.objects.filter(establishment=user.establishment)
-
-        if user.is_high_school_manager():
-            return Visit.objects.filter(highschool=user.highschool)
-
-        if user.is_structure_manager():
-            return Visit.objects.filter(structure__in=user.get_authorized_structures())
-
-
-    def get_form_kwargs(self):
-        kw = super().get_form_kwargs()
-        kw["request"] = self.request
-        return kw
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
-
-        visit_id = self.object.id
-        if visit_id:
-            try:
-                visit = Visit.objects.get(pk=visit_id)
-                set_session_values(self.request, "visits", {
-                    "current_structure_id": visit.structure.id if visit.structure else "",
-                    "current_highschool_id": visit.highschool.id,
-                    "current_establishment_id": visit.establishment.id,
-                })
-
-                speakers_list = [{
-                    "username": t.username,
-                    "lastname": t.last_name,
-                    "firstname": t.first_name,
-                    "email": t.email,
-                    "display_name": f"{t.last_name} {t.first_name}",
-                    "is_removable": not t.slots.filter(visit=visit_id).exists(),
-                } for t in visit.speakers.all()]
-
-                context["speakers"] = json.dumps(speakers_list)
-
-                self.form = VisitForm(instance=visit, request=self.request)
-            except Visit.DoesNotExist:
-                self.form = VisitForm(request=self.request)
-
-        context["can_update"] = True  # FixMe
-        return context
-
-
-    def get_success_url(self):
-        if self.add_new:
-            return reverse("add_visit")
-        elif self.duplicate and self.object.pk:
-            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
-        else:
-            return reverse("visits")
-
-    def form_valid(self, form):
-        messages.success(self.request, _("Visit \"%s\" updated.") % form.instance)
-
-        set_session_values(self.request, "visits", {
-            'current_establishment_id': self.object.establishment.id,
-            'current_structure_id': self.object.structure.id if self.object.structure else ""
-        })
-
-        self.duplicate = self.request.POST.get("save_duplicate", False) != False
-        self.add_new = self.request.POST.get("save_add_new", False) != False
-
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, _("Visit \"%s\" not updated.") % str(form.instance))
-        return super().form_invalid(form)
-
-
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitSlotList(generic.TemplateView):
-    template_name = "core/visits_slots_list.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["can_update"] = True #FixMe
-        context["slot_mode"] = "visits"
-        context["contact_form"] = ContactForm()
-        context["cancel_types"] = CancelType.objects.filter(active=True)
-
-        # Defaults
-        context["establishments"] = Establishment.activated.all()
-        context["structures"] = Structure.activated.all()
-        context["establishment_id"] = \
-            kwargs.get('establishment_id', get_session_value(self.request, "visits", 'current_establishment_id'))
-
-        try:
-            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
-            context["managed_by_filter"] = establishment.code
-        except Establishment.DoesNotExist:
-            pass
-
-        context["structure_id"] = kwargs.get('structure_id')
-
-        if context["structure_id"] == "null":
-            context["structure_id"] = ""
-        elif context["structure_id"] is None:
-            context["structure_id"] = get_session_value(self.request, "visits", 'current_structure_id')
-        else:
-            try:
-                structure = Structure.objects.get(pk=context["structure_id"])
-                context["managed_by_filter"] += f" - {structure.code}"
-            except Structure.DoesNotExist:
-                pass
-
-        if kwargs.get('highschool_id', None):
-            try:
-                highschool = HighSchool.objects.get(pk=context["highschool_id"])
-                context["highschool_filter"] = str(highschool)
-            except HighSchool.DoesNotExist:
-                pass
-        else:
-            context["highschool_id"] = get_session_value(self.request, "visits", 'current_highschool_id')
-
-
-        context["visit_id"] = kwargs.get('visit_id', None)
-
-        if context["visit_id"]:
-            try:
-                visit = Visit.objects.get(pk=context["visit_id"])
-                context["visit_purpose_filter"] = visit.purpose
-            except Visit.DoesNotExist:
-                pass
-
-        if not self.request.user.is_superuser:
-            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
-                context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
-
-            if self.request.user.is_establishment_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
-                context["establishment_id"] = self.request.user.establishment.id
-
-            if self.request.user.is_structure_manager():
-                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = self.request.user.structures.filter(active=True)
-                context["establishment_id"] = self.request.user.establishment.id
-                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
-
-        return context
-
-
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitSlot(generic.CreateView):
-    """
-    Visit slot add/duplicate
-    """
-    form_class = VisitSlotForm
-    template_name = "core/visit_slot.html"
-    duplicate = False
-
-    def get_success_url(self):
-        if self.add_new:
-            return reverse("add_visit_slot")
-        elif self.duplicate and self.object.pk:
-            return reverse("duplicate_visit_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
-        else:
-            return reverse("visits_slots")
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
-        context["speakers"] = json.dumps(speakers_list)
-        visit = None
-        self.duplicate = self.kwargs.get('duplicate', False)
-        object_pk = self.kwargs.get('pk', None)
-
-        if self.kwargs.get('visit_id', None):
-            context["establishment_id"] = self.kwargs.get('establishment_id', None)
-            context["highschool_id"] = self.kwargs.get('highschool_id', None)
-            context["visit_id"] = self.kwargs.get('visit_id')
-
-            try:
-                context["structure_id"] = int(self.kwargs.get('structure_id', None))
-            except Exception:
-                context["structure_id"] = ""
-
-            try:
-                visit = Visit.objects.get(pk=context["visit_id"])
-            except Visit.DoesNotExist:
-                pass
-
-        if self.duplicate and object_pk:
-            context['duplicate'] = True
-            try:
-                slot = Slot.objects.get(pk=object_pk)
-
-                initials = {
-                    'establishment': slot.visit.establishment.id,
-                    'structure': slot.visit.structure.id if slot.visit.structure else None,
-                    'highschool': slot.visit.highschool.id,
-                    'purpose': slot.visit.purpose,
-                    'published': slot.published,
-                    'visit': slot.visit,
-                    'room': slot.room,
-                    'url': slot.url,
-                    'date': slot.date,
-                    'start_time': slot.start_time,
-                    'end_time': slot.end_time,
-                    'n_places': slot.n_places,
-                    'additional_information': slot.additional_information,
-                    'face_to_face': slot.face_to_face,
-                    'establishments_restrictions': False,
-                    'levels_restrictions': slot.levels_restrictions,
-                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
-                    'bachelors_restrictions': slot.bachelors_restrictions,
-                    'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
-                    'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
-                    'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()]
-                }
-
-                # In case of form error, update initial values with POST ones (prevents a double call to clean())
-                data = self.request.POST
-                for k in initials.keys():
-                    # careful, some fields are lists
-                    if k in ['allowed_highschool_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
-                             'allowed_bachelor_teachings', 'speakers']:
-                        initials[k] = data.getlist(k, initials[k])
-                    else:
-                        initials[k] = data.get(k, initials[k])
-
-                self.form = self.form_class(initial=initials, request=self.request)
-                context["origin_id"] = slot.id
-                context["form"] = self.form
-            except Slot.DoesNotExist:
-                pass
-        elif not self.request.POST and visit:
-            initials = {
-                'establishment': context.get("establishment_id", None),
-                'structure': context.get("structure_id", None),
-                'highschool': context.get("highschool_id", None),
-                'visit': visit,
-            }
-
-            self.form = self.form_class(initial=initials, request=self.request)
-            context["form"] = self.form
-
-        context["can_update"] = True  # FixMe
-        context["slot_mode"] = "visits"
-
-        # Bachelor types for restrictions
-        context["bachelor_types"] = json.dumps({
-            bt.id: {
-                'is_general': bt.general,
-                'is_technological': bt.technological,
-                'is_professional': bt.professional,
-            } for bt in BachelorType.objects.filter(active=True)
-        })
-
-        return context
-
-    def get_form_kwargs(self):
-        kw = super().get_form_kwargs()
-        kw["request"] = self.request
-        return kw
-
-    def form_valid(self, form):
-        self.duplicate = self.request.POST.get("duplicate", False) != False
-        self.add_new = self.request.POST.get("save_add", False) != False
-        messages.success(self.request, _("Visit slot \"%s\" created.") % str(form.instance))
-
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        for k, error in form.errors.items():
-            messages.error(self.request, error)
-        messages.error(self.request, _("Visit slot not created."))
-        return super().form_invalid(form)
-
-
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitSlotUpdate(generic.UpdateView):
-    model = Slot
-    form_class = VisitSlotForm
-    template_name = "core/visit_slot.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            self.get_object()
-        except Exception as e:
-            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
-                messages.error(request, _("This slot belongs to another structure"))
-            else:
-                messages.error(request, _("Slot not found"))
-            return redirect(reverse('visits_slots'))
-
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_queryset(self, *args, **kwargs):
-        user = self.request.user
-        if user.is_master_establishment_manager() or user.is_operator():
-            return Slot.objects.filter(visit__isnull=False)
-
-        if user.is_establishment_manager():
-            return Slot.objects.filter(visit__establishment=user.establishment)
-
-        if user.is_high_school_manager():
-            return Slot.objects.filter(visit__highschool=user.highschool)
-
-        if user.is_structure_manager():
-            return Slot.objects.filter(visit__structure__in=user.get_authorized_structures())
-
-    def get_form_kwargs(self):
-        kw = super().get_form_kwargs()
-        kw["request"] = self.request
-        return kw
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
-
-        slot_id = self.object.id
-        if slot_id:
-            try:
-                slot = Slot.objects.get(pk=slot_id)
-                set_session_values(self.request, "visits", {
-                    "current_structure_id": slot.visit.structure.id if slot.visit.structure else "",
-                    "current_highschool_id": slot.visit.highschool.id,
-                    "current_establishment_id": slot.visit.establishment.id
-                })
-
-                speakers_list = [{
-                    "id": t.id,
-                    "username": t.username,
-                    "lastname": t.last_name,
-                    "firstname": t.first_name,
-                    "email": t.email,
-                    "display_name": f"{t.last_name} {t.first_name}",
-                    "is_removable": True,
-                } for t in slot.speakers.all()]
-
-                context["speakers"] = json.dumps(speakers_list)
-                self.form = VisitSlotForm(instance=slot, request=self.request)
-            except Visit.DoesNotExist:
-                self.form = VisitSlotForm(request=self.request)
-
-        context["slot_mode"] = "visits"
-        context["can_update"] = True  # FixMe
-        return context
-
-
-    def get_success_url(self):
-        if self.add_new:
-            return reverse("add_visit_slot")
-        elif self.duplicate and self.object.pk:
-            return reverse("duplicate_visit_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
-        else:
-            return reverse("visits_slots")
-
-
-    def form_valid(self, form):
-        self.duplicate = self.request.POST.get("duplicate", False) != False
-        self.add_new = self.request.POST.get("save_add", False) != False
-
-        messages.success(self.request, _("Visit slot \"%s\" updated.") % form.instance)
-
-        set_session_values(self.request, "visits", {
-            'current_establishment_id': self.object.visit.establishment.id,
-            'current_structure_id': self.object.visit.structure.id if self.object.visit.structure else ""
-        })
-
-        if self.object.visit and not self.object.visit.published and self.object.published:
-            self.object.visit.published = True
-            self.object.visit.save()
-            messages.success(self.request, _("Visit published"))
-
-        if self.request.POST.get('notify_student') == 'on':
-            sent_msg = 0
-            not_sent_msg = 0
-            errors_list = []
-
-            immersions = Immersion.objects.filter(slot=self.object, cancellation_type__isnull=True)
-
-            for immersion in immersions:
-                ret = immersion.student.send_message(
-                    self.request,
-                    'CRENEAU_MODIFY_NOTIF',
-                    immersion=immersion,
-                    slot=self.object
-                )
-
-                if not ret:
-                    sent_msg += 1
-                elif ret not in errors_list:
-                    not_sent_msg += 1
-                    errors_list.append(ret)
-
-            if sent_msg:
-                messages.success(self.request, gettext("Notifications have been sent (%s)") % sent_msg)
-
-            if errors_list:
-                messages.warning(
-                    self.request,
-                    gettext("{} error(s) occurred :".format(not_sent_msg))  + "<br /".join(errors_list)
-                )
-
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, _("Visit slot \"%s\" not updated.") % str(form.instance))
-        return super().form_invalid(form)
-
-
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class OffOfferEventsList(generic.TemplateView):
     template_name = "core/off_offer_events_list.html"
@@ -1906,7 +1359,7 @@ class OffOfferEventsList(generic.TemplateView):
         context["can_update"] = True # FixMe
 
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by("city", "label")
-        context["establishments"] = Establishment.activated.all()
+        context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
         context["structures"] = Structure.activated.all()
 
         context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
@@ -2000,6 +1453,7 @@ class OffOfferEventAdd(generic.CreateView):
         context["can_update"] = True  # FixMe
         context["establishment_id"] = get_session_value(self.request, "events", 'current_establishment_id')
         context["structure_id"] = get_session_value(self.request, "events", 'current_structure_id')
+
         return context
 
 
@@ -2084,6 +1538,7 @@ class OffOfferEventUpdate(generic.UpdateView):
                 self.form = OffOfferEventForm(request=self.request)
 
         context["can_update"] = True  # FixMe
+
         return context
 
 
@@ -2123,10 +1578,13 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["can_update"] = True #FixMe
         context["slot_mode"] = "events"
         context["contact_form"] = ContactForm()
-        context["cancel_types"] = CancelType.objects.filter(active=True)
+        context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
+        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
+        context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
         # Defaults
-        context["establishments"] = Establishment.activated.all()
+        context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
         context["structures"] = Structure.activated.all()
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
@@ -2268,11 +1726,13 @@ class OffOfferEventSlot(generic.CreateView):
                     'room': slot.room,
                     'url': slot.url,
                     'date': slot.date,
+                    'period': slot.period,
                     'start_time': slot.start_time,
                     'end_time': slot.end_time,
                     'n_places': slot.n_places,
+                    'n_group_places': slot.n_group_places,
                     'additional_information': slot.additional_information,
-                    'face_to_face': slot.face_to_face,
+                    'place': slot.place,
                     'establishments_restrictions': slot.establishments_restrictions,
                     'levels_restrictions': slot.levels_restrictions,
                     'bachelors_restrictions': slot.bachelors_restrictions,
@@ -2284,7 +1744,11 @@ class OffOfferEventSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()]
+                    'speakers': [s.id for s in slot.speakers.all()],
+                    'allow_group_registrations': slot.allow_group_registrations,
+                    'allow_individual_registrations': slot.allow_individual_registrations,
+                    'group_mode': slot.group_mode,
+                    'public_group': slot.public_group,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -2324,6 +1788,11 @@ class OffOfferEventSlot(generic.CreateView):
                 'is_technological': bt.technological,
                 'is_professional': bt.professional,
             } for bt in BachelorType.objects.filter(active=True)
+        })
+
+        # Periods
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
         })
 
         return context
@@ -2419,6 +1888,12 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 
         context["slot_mode"] = "events"
         context["can_update"] = True # FixMe
+
+        # Periods
+        context["periods"] = json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+
         return context
 
 
@@ -2540,3 +2015,114 @@ def structures_notifications(request, structure_code=None):
     }
 
     return render(request, 'core/structures_notifications.html', context)
+
+@method_decorator(groups_required('REF-LYC',), name="dispatch")
+class HighSchoolCohortsEventsList(generic.TemplateView):
+    template_name = "core/hs_cohorts_events.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["slot_mode"] = "events"
+        context["contact_form"] = ContactForm(),
+        context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
+        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
+        context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
+
+        # Defaults
+        context["establishments"] = Establishment.activated.filter(is_host_establishment=True)
+        context["structures"] = Structure.activated.all()
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
+
+        context["establishment_id"] = kwargs.get(
+            'establishment_id', get_session_value(self.request, "events", "current_establishment_id")
+        )
+
+        try:
+            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+            context["managed_by_filter"] = establishment.code
+        except Establishment.DoesNotExist:
+            pass
+
+        context["structure_id"] = kwargs.get('structure_id')
+
+        if context["structure_id"] == "null":
+            context["structure_id"] = ""
+        elif context["structure_id"] is None:
+            context["structure_id"] = get_session_value(self.request, "events", "current_structure_id")
+        else:
+            try:
+                structure = Structure.objects.get(pk=context["structure_id"])
+                context["managed_by_filter"] += f" - {structure.code}"
+            except Structure.DoesNotExist:
+                pass
+
+        if kwargs.get('highschool_id'):
+            try:
+                highschool = HighSchool.objects.get(pk=kwargs.get('highschool_id'))
+                context["highschool_id"] = highschool.id
+                context["managed_by_filter"] = f"{highschool.city} - {highschool.label}"
+            except HighSchool.DoesNotExist:
+                pass
+        else:
+            context["highschool_id"] = get_session_value(self.request, "events", "current_highschool_id")
+
+        context["event_id"] = kwargs.get('event_id', None)
+
+        if context["event_id"]:
+            try:
+                event = OffOfferEvent.objects.get(pk=context["event_id"])
+                context["event_type_filter"] = event.event_type.label
+                context["event_label_filter"] = event.label
+            except OffOfferEvent.DoesNotExist:
+                pass
+
+        return context
+
+
+@method_decorator(groups_required('REF-LYC',), name="dispatch")
+class HighSchoolCohortsCoursesList(generic.TemplateView):
+    template_name = "core/hs_cohorts_courses.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update(
+            {
+                "slot_mode": "courses",
+                "contact_form": ContactForm(),
+                "cancel_types": CancelType.objects.filter(active=True, students=True),
+                "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+                "establishments": Establishment.activated.filter(is_host_establishment=True),
+                "structures": Structure.activated.all(),
+                "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+                "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+                "establishment_id": kwargs.get(
+                    'establishment_id', get_session_value(self.request, "courses", "current_establishment_id")
+                ),
+                "structure_id": kwargs.get(
+                    'structure_id', get_session_value(self.request, "courses", "current_structure_id")
+                ),
+                "highschool_id": kwargs.get(
+                    'highschool_id', get_session_value(self.request, "courses", "current_highschool_id")
+                ),
+                "training_id": kwargs.get(
+                    'training_id', get_session_value(self.request, "courses", "current_training_id")
+                ),
+                "course_id": kwargs.get('course_id', None),
+                "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
+            }
+        )
+
+        try:
+            course = Course.objects.get(pk=int(context["course_id"]))
+            context["course_label_filter"] = course.label
+        except (ValueError, TypeError, Course.DoesNotExist):
+            context["course_id"] = None
+
+        try:
+            Training.objects.get(pk=int(context["training_id"]))
+        except (ValueError, TypeError, Training.DoesNotExist):
+            context["training_id"] = None
+
+        return context

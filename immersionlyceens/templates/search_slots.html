@@ -15,9 +15,9 @@
   {% trans 'Search immersions slots' %}
 {% endblock %}
 {% block content %}
-  {% authorized_groups request.user %}
-  {% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
-  {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
+{% authorized_groups request.user %}
+{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
   {% include './modals/modal_search_slots_details.html' %}
   <div class="main-title inside text-center">
     <div></div>
@@ -70,7 +70,7 @@
         <a data-toggle="collapse" href="#collapseAdvancedSearch" aria-expanded="false">{% trans 'Advanced search' %} <i class="fa fa-angle-down"></i></a>
         <div id="collapseAdvancedSearch" class="col-ml-4 collapse">
           <div class="card card-body">
-            {% if highschool_visit or events_off_offer %}
+            {% if events_off_offer %}
             <h5>{% trans "Slot type" %} :</h5>
             <div class="row">
               <div class="col">
@@ -80,11 +80,6 @@
                 {% if  events_off_offer%}
                 <label class="checkbox-inline">
                   <input type="checkbox" id="eventsCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Event" %}" checked> {% trans "Events" %}
-                </label>
-                {% endif %}
-                {% if highschool_visit %}
-                <label class="checkbox-inline">
-                  <input type="checkbox" id="visitsCheckbox" name="slotType" class="filters slotTypeFilter" value="{% trans "Visit" %}" checked> {% trans "Visits" %}
                 </label>
                 {% endif %}
               </div>
@@ -150,19 +145,30 @@
                 </div>
               </div>
             </div>
+            {% if activated_cohort %}
+            <h5>{% trans "Individual immersions" %} / {% trans "Cohort immersions" %} :</h5>
+            <div class="row">
+              <div class="col">
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="individualCheckbox" name="individualSlots" class="filters slotIndividualGroupsSlotsFilter" value="{% trans "Face to face" %}" checked> {% trans "Individual immersions" %}
+                </label>
+
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="groupsCheckbox" name="groupsSlots" class="filters slotIndividualGroupsSlotsFilter" value="{% trans "Remote" %}" checked> {% trans "Cohort immersions" %}
+                </label>
+              </div>
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
       <div class="mt-3">
-        <div class="row">
-          <div class="col-md-12 table-responsive">
-            <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:95%">
-              {% if highschool_visit or events_off_offer %}
+        <div class="row" >
+          <div class="table-responsive" style="margin: 0 auto;width: 90%;">
+            <table id="search_immersions_slots_table" class="table table-sm table-hover results-cards" style="width:100%">
+              {% if events_off_offer %}
               <caption>
-                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1"></i>{% trans 'Course' %}</span>
-                {% if highschool_visit %}
-                <span class="p-3"><i class="fa fa-university slot-type-v cards-results-caption p-1"></i>{% trans 'Visit' %}</span>
-                {% endif %}
+                <span class="p-3"><i class="fa fa-graduation-cap slot-type-c cards-results-caption p-1" ></i>{% trans 'Course' %}</span>
                 {% if events_off_offer %}
                 <span class="p-3"><i class="fa fa-calendar slot-type-e cards-results-caption p-1"></i>{% trans 'Event' %}</span>
                 {% endif %}
@@ -221,6 +227,11 @@
     feedback = $("#feedback");
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
+        // "place" values
+        var face_to_face = 0
+        var remote = 1
+        var outside = 2
+
         var showDate = false;
         var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
         var slotTypes = $('input:checkbox[name="slotType"]:checked').map(function() {
@@ -228,23 +239,35 @@
         }).get();
         var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
         var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
-        var face_to_face = rowData['face_to_face'];
+        var place = rowData['place'];
+        {% if activated_cohort %}
+        var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
+        var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
+        var individual = rowData['allow_individual_registrations'];
+        var group = rowData['allow_group_registrations'];
+        var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
+                                   || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
+                                   ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
+        {% else %}
+        var showIndividualGroup = true;
+        {% endif %}
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
         var showType = slotTypes.indexOf(searchData[4]) !== -1;
-        var showRemoteFaceToFace = faceToFaceSlots === 0 && face_to_face === false
-                                   || faceToFaceSlots === 1 && face_to_face === true
+        var showRemoteFaceToFace = faceToFaceSlots === 0 && place === remote
+                                   || faceToFaceSlots === 1 && place === face_to_face
                                    || remoteSlots === 1 && faceToFaceSlots === 1
 
         var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;
+
 
         if (start_date == null && end_date == null) { showDate = true; }
         if (start_date == null && startDate <= end_date) { showDate = true; }
         if (end_date == null && startDate >= start_date) { showDate = true; }
         if (startDate <= end_date && startDate >= start_date) { showDate = true; }
 
-        return showType && showAvailable && showDate && showRemoteFaceToFace;
+        return showType && showAvailable && showDate && showRemoteFaceToFace && showIndividualGroup;
       }
     );
     dt = $('#search_immersions_slots_table').DataTable({
@@ -279,14 +302,21 @@
           {
               orderable: false, className: 'text-center', width: '20px',
               render: function(data, type, full, meta) {
-                  slotType = full['slot_type'][0].toLowerCase();
+                  slotType = full['slot_type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                   if (slotType === 'c') {
-                      return '<i class="fa fa-graduation-cap slot-type-c"></i>';
-                  } else if (slotType === 'v') {
-                      return '<i class="fa fa-university slot-type-v"></i>';
+                      label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
                   } else {
-                      return '<i class="fa fa-calendar slot-type-e"></i>';
+                      label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
                   }
+                  {% if activated_cohort %}
+                  if (full['allow_individual_registrations'] === true) {
+                    label += `&nbsp;<i class="fa fas fa-user slot-type-${slotType}" data-toggle="tooltip" title="{% trans "An individual immersion is available to anyone with a valid account to come to the immersion" %}"></i>`;
+                  }
+                  if (full['allow_group_registrations'] === true) {
+                    label += `&nbsp;<i class="fa fas fa-users slot-type-${slotType}" data-toggle="tooltip" title="{% trans "Cohort immersion is reserved for establishments wishing to enrol a group of students in immersion" %}"></i>`;
+                  }
+                  {% endif %}
+                  return label;
               }
           },
           {
@@ -311,7 +341,7 @@
             }
           },
           {
-            data: "course_training_label", class: 'text-center',
+            data: "course_training_label",
             render: function (data, type, full, meta) {
               slotType = full['slot_type'][0].toLowerCase();
               if (slotType === 'c') {
@@ -328,7 +358,7 @@
               }
 
               if(type === "display") {
-                return label + '<span>' + data + '</span>';
+                return label + '<span>' + displayLongString(data, 30, html=true) + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -337,13 +367,13 @@
             }
           },
           {
-            data: "label", class: 'text-center',
+            data: "label",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
                 data = '&nbsp;';
               }
               if(type === "display") {
-                return '<label>'+ '{% trans "Label" %}' + ' :</label><span>' + data + '</span>';
+                return '<label>'+ '{% trans "Label" %}' + ' :</label><span>' + displayLongString(data, 30, html=true) + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -367,13 +397,13 @@
             }
           },
           {
-            data: "date", class: 'text-center',
+            data: "date",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
                 data = '&nbsp;';
               }
               if(type === "display") {
-                return '<label>'+ '{% trans "Date" %}' + ' :</label>' + display_slot_date(data, type, full);
+                return '<label>'+ '{% trans "Date" %}' + ' :</label>' + display_slot_date(data, type, full, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -385,9 +415,10 @@
             data: "campus_label",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-                if (full['highschool_address'] != null || full['highschool_address'] != '') {
+                if (full['highschool_address'] != null && full['highschool_address'] != '') {
                   label = "<label>{% trans 'Address' %} : </label>";
-                  data = full['highschool_address'];
+                  data = full['highschool_address'] ? full['highschool_address'] : '&nbsp;';
+                  data += full['city'] ? ` (${full['city'][0].toUpperCase() + full['city'].substring(1).toLowerCase()})` : '&nbsp;';
                 } else {
                   return '&nbsp;';
                 }
@@ -395,7 +426,7 @@
                 label = "<label>{% trans 'Campus' %} : </label>";
               }
               if(type === "display") {
-                return  label + data;
+                return  label + displayLongString(data, 40, html=true) ;
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -411,7 +442,7 @@
               }
               data = data[0].toUpperCase() + data.substring(1).toLowerCase();
               if(type === "display") {
-                return '<label>'+ "{% trans 'City' %}" + ' :</label>' + data
+                return '<label>'+ "{% trans 'City' %}" + ' :</label>' + displayLongString(data, 50, html=true)
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -427,7 +458,7 @@
                 return ''
               }
               if(type === "display") {
-                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + data
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -437,13 +468,28 @@
             }
           },
           {
-            "data": "n_places", title: "register", visible: true,
             render: function (data, type, full, meta) {
-              availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
-              if(type === "display") {
-                return '<label>'+ '{% trans "Available places" %}' +' :</label>' + availablePlaces;
+              label = type === "display"  ? '<label>{% trans "Available places" %} :</label><ul class="list-inline">' : "";
+              if ( full['allow_individual_registrations'] === true) {
+                availablePlaces = parseInt(full['n_places'])-parseInt(full['n_register']);
+                if (type === "display") {
+
+                  label += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + availablePlaces + "</li>";
+                } else {
+                  label += "i:" + availablePlaces + ";";
+                }
               }
-              return availablePlaces;
+              {% if activated_cohort %}
+              if ( full['allow_group_registrations'] === true) {
+                availableGroupPlaces = parseInt(full['n_group_places'])-parseInt(full['group_registered_persons']);
+                if (type === "display") {
+                  label += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + availableGroupPlaces + "</li>";
+                } else {
+                  label += "g:" + availableGroupPlaces + ";";
+                }
+              }
+              {% endif %}
+              return type === "display" ? label + "</ul>" : label;
             }
           },
           {
@@ -461,10 +507,10 @@
             }
           },
           {
+            className:"align-bottom-results-field",
             render: function (data, type, full, meta) {
-              return "<button class=\"btn badge badge-pill badge-primary pull-right\">{% trans 'More details' %}</button>"
+              return "<button class=\"btn badge badge-pill badge-primary pull-right btn-more-details \">{% trans 'More details' %}</button></span>"
             }
-
           },
       ],
       "columnDefs": [
@@ -486,6 +532,19 @@
       let displayedRows = $("[id^=row_]");
       let selectedRows = [];
       var filteredRows = [];
+      let availablesSeatslabel = '<ul class="list-inline">';
+
+      let face_to_face = 0
+      let remote = 1
+      let outside = 2
+
+      if (rowData[0].allow_individual_registrations === true) {
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)) + ' / ' + rowData[0].n_places + '</li>'
+      }
+      if (rowData[0].allow_group_registrations === true) {
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
+      }
+      availablesSeatslabel += '</ul>';
 
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
@@ -562,7 +621,7 @@
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
-      if (rowData[0].face_to_face === false) {
+      if (rowData[0].place === remote) {
           if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
@@ -573,7 +632,7 @@
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'][0] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"><ul>') {
+              if (restrictions === '<ul class="list-unstyled"><>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
               }
               $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
@@ -585,18 +644,17 @@
       $('#modal_search_slots_details #modal_label').html(rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
-      $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0]));
+      $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
-      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label)
-      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_search_slots_details #modal_city').html(rowData[0].city)
+      $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
+      $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
       $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
       $('#modal_search_slots_details #modal_speakers').html(
         '<ul class="list-group">' + speakers_array + '</ul>'
       )
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
-      $('#modal_search_slots_details #modal_available_seats').html(parseInt(rowData[0].n_places)-parseInt(rowData[0].n_register)+ ' / ' + rowData[0].n_places);
+      $('#modal_search_slots_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
       {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
@@ -661,6 +719,7 @@
     }
     ]);
     dt.on("draw.dt", function (e, dt, type, indexes) {
+        $('[data-toggle="tooltip"]').tooltip({placement:"left",});
         if ($(this).find(".dataTables_empty").length == 1) {
           // Dirty hack cause has() is not supported by firefox :(
           var elm = $(this).find(".dataTables_empty").parent('tr')

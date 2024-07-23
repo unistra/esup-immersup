@@ -93,9 +93,11 @@
       month: '2-digit',
       day: '2-digit',
   };
-
+  var is_legal_department_staff = "{{ request.user.is_legal_department_staff }}" === "True"
   var alert1 = "{% blocktrans %}'From' date must be before 'Until' date'{% endblocktrans %}";
   var alert2 = "{% blocktrans %}'Until' date must be after 'From' date'{% endblocktrans %}";
+
+  console.log(is_legal_department_staff)
 
   $(document).ready(function () {
     $(function () {
@@ -208,6 +210,13 @@
         "className": "all",
       },
     ],
+    initComplete: function () {
+      if(is_legal_department_staff) {
+        building_col = this.column();
+
+      })
+
+    }
   });
 
   // All filters reset action

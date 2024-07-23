@@ -19,21 +19,30 @@ class HighSchoolStudentRecord(models.Model):
     High school student class, linked to ImmersionUsers accounts
     """
 
+    TO_COMPLETE = 0
+    TO_VALIDATE = 1
+    VALIDATED = 2
+    REJECTED = 3
+    TO_REVALIDATE = 4
+    INIT = 5
+
     STATUSES = {
-        "TO_COMPLETE": 0,
-        "TO_VALIDATE": 1,
-        "VALIDATED": 2,
-        "REJECTED": 3,
-        "TO_REVALIDATE": 4,
+        "TO_COMPLETE": TO_COMPLETE,
+        "TO_VALIDATE": TO_VALIDATE,
+        "VALIDATED": VALIDATED,
+        "REJECTED": REJECTED,
+        "TO_REVALIDATE": TO_REVALIDATE,
+        "INITIALIZATION": INIT,
     }
 
     # Display values
     VALIDATION_STATUS = [
-        (0, _('To complete')),
-        (1, _('To validate')),
-        (2, _('Validated')),
-        (3, _('Rejected')),
-        (4, _('To revalidate'))
+        (TO_COMPLETE, _('To complete')),
+        (TO_VALIDATE, _('To validate')),
+        (VALIDATED, _('Validated')),
+        (REJECTED, _('Rejected')),
+        (TO_REVALIDATE, _('To revalidate')),
+        (INIT, _('Initialization (to complete)'))
     ]
 
     student = models.OneToOneField(
@@ -48,25 +57,25 @@ class HighSchoolStudentRecord(models.Model):
     highschool = models.ForeignKey(
         core_models.HighSchool,
         verbose_name=_('High school'),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.CASCADE,
         related_name="student_records"
     )
 
-    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
 
     level = models.ForeignKey(
         core_models.HighSchoolLevel,
         verbose_name=_("Level"),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.CASCADE,
         related_name="high_school_student_record"
     )
 
-    class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
+    class_name = models.CharField(_("Class name"), blank=False, null=True, max_length=32)
 
     bachelor_type = models.ForeignKey(
         core_models.BachelorType,
@@ -294,13 +303,13 @@ class StudentRecord(models.Model):
     )
 
     uai_code = models.CharField(_("Home institution code"), blank=False, null=False, max_length=256)
-    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
 
     level = models.ForeignKey(
         core_models.StudentLevel,
         verbose_name=_("Level"),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.CASCADE,
         related_name="student_record"
@@ -318,7 +327,7 @@ class StudentRecord(models.Model):
     origin_bachelor_type = models.ForeignKey(
         core_models.BachelorType,
         verbose_name=_('Bachelor type'),
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.PROTECT,
         related_name="+"
@@ -333,7 +342,10 @@ class StudentRecord(models.Model):
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
 
     def __str__(self):
-        return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
+        if hasattr(self, "student"):
+            return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
+        else:
+            return gettext(f"Record for student id {self.student_id}")
 
     def is_valid(self):
         return True
@@ -360,21 +372,28 @@ class VisitorRecord(models.Model):
     """
     Visitor record class, linked to ImmersionUsers accounts
     """
+    TO_COMPLETE = 0
+    TO_VALIDATE = 1
+    VALIDATED = 2
+    REJECTED = 3
+    TO_REVALIDATE = 4
+
     STATUSES = {
-        "TO_COMPLETE": 0,
-        "TO_VALIDATE": 1,
-        "VALIDATED": 2,
-        "REJECTED": 3,
-        "TO_REVALIDATE": 4,
+        "TO_COMPLETE": TO_COMPLETE,
+        "TO_VALIDATE": TO_VALIDATE,
+        "VALIDATED": VALIDATED,
+        "REJECTED": REJECTED,
+        "TO_REVALIDATE": TO_REVALIDATE,
     }
 
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
-        (0, _('To complete')),
-        (1, _('To validate')),
-        (2, _('Validated')),
-        (3, _('Rejected')),
-        (4, _('To revalidate'))
+        (TO_COMPLETE, _('To complete')),
+        (TO_VALIDATE, _('To validate')),
+        (VALIDATED, _('Validated')),
+        (REJECTED, _('Rejected')),
+        (TO_REVALIDATE, _('To revalidate'))
     ]
+
     AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png"]
 
     visitor = models.OneToOneField(
@@ -386,8 +405,8 @@ class VisitorRecord(models.Model):
         related_name="visitor_record"
     )
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
-    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
-    motivation = models.TextField(_("Motivation"), null=False, blank=False)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
+    motivation = models.TextField(_("Motivation"), null=True, blank=False)
 
     attestation_documents = models.ManyToManyField(
         core_models.AttestationDocument,
@@ -501,7 +520,16 @@ class RecordDocument(models.Model):
     """
     Abstract base Class for record documents
     """
-    ALLOWED_TYPES = ['png', 'jpeg', 'jpg', 'pdf', 'doc', 'docx', 'odt']
+    # FIXME : move this in settings ?
+    ALLOWED_TYPES = {
+        'png': "image/png",
+        'jpeg': "image/jpeg",
+        'jpg': "image/jpeg",
+        'pdf': "application/pdf",
+        'doc': "application/msword",
+        'docx': "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        'odt': "application/vnd.oasis.opendocument.text",
+    }
 
     created = models.DateTimeField(_("Creation date"), auto_now_add=True)
     last_updated = models.DateTimeField(_("Last updated date"), auto_now=True)
@@ -513,7 +541,7 @@ class RecordDocument(models.Model):
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
                   % {
-                      'authorized_types': ', '.join(ALLOWED_TYPES),
+                      'authorized_types': ', '.join(ALLOWED_TYPES.keys()),
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )

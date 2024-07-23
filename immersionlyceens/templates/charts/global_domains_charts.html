@@ -47,7 +47,8 @@
       {% if request.user.is_high_school_manager %}
       <div class="form-group mx-sm-3 mb-2">
         <label class="form-check-label ml-md-2">
-          {{ request.user.highschool.label }} - {{ request.user.highschool.city }}
+          {% trans "No city" as no_city %}
+          {{ request.user.highschool.label }} - {% firstof request.user.highschool.city no_city %}
         </label>
       </div>
       {% endif %}

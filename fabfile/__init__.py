@@ -17,6 +17,7 @@ from lorraine import preprod_lorraine, prod_lorraine
 from pau import preprod_pau, prod_pau
 from reims import preprod_reims, prod_reims
 from stetienne import preprod_stetienne, prod_stetienne
+from rouen import preprod_rouen, prod_rouen
 
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
@@ -29,7 +30,7 @@ env.application_name = 'immersup'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
-env.remote_python_version = '3.8'  # python version
+env.remote_python_version = '3.12'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
 env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)  # venv for webapp dir
 # git repository url
@@ -52,9 +53,9 @@ env.no_circus_web = True
 
 # extra debian/ubuntu package(s) to install on remote
 env.extra_pkg_to_install = [
-    'python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
-    'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev',
-    'python3.8-tk'
+    'python3.12-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
+    'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev', 'libmagic1',
+    'libtk8.6', 'python3.12-tk'
 ]
 
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
@@ -129,7 +130,7 @@ def test():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'test'
-    env.socket_port = '8022'
+    env.socket_port = '8042'
     env.socket_host = '127.0.0.1'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
@@ -153,60 +154,10 @@ def test():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
-
-@task
-def test2():
-    """Define test stage"""
-    env.roledefs = {
-        'web': ['django-test2.di.unistra.fr'],
-        'lb': ['django-test2.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
-    }
-    # env.user = 'root'  # user for ssh
-    env.application_name = 'immersup-test2'
-    env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)
-    env.backends = ['0.0.0.0']
-    env.server_name = 'immersup-test2.app.unistra.fr'
-    env.short_server_name = 'immersup-test2'
-    env.static_folder = '/site_media/'
-    env.server_ip = ''
-    env.no_shared_sessions = False
-    env.server_ssl_on = True
-    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
-    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
-    env.goal = 'test'
-    env.socket_port = '8026'
-    env.socket_host = '127.0.0.1'
-    env.map_settings = {
-        'default_db_host': "DATABASES['default']['HOST']",
-        'default_db_user': "DATABASES['default']['USER']",
-        'default_db_password': "DATABASES['default']['PASSWORD']",
-        'default_db_name': "DATABASES['default']['NAME']",
-        'cas_redirect_url': "CAS_REDIRECT_URL",
-        'release': "RELEASE",
-        's3_access_key': "AWS_ACCESS_KEY_ID",
-        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
-        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
-        's3_endpoint': "AWS_S3_ENDPOINT_URL",
-        'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
-        'use_unistra_theme': "UNISTRA",
-        'email_host': "EMAIL_HOST",
-        'email_port': "EMAIL_PORT",
-        'email_use_tls': "EMAIL_USE_TLS",
-        'email_host_user': "EMAIL_HOST_USER",
-        'email_host_password': "EMAIL_HOST_PASSWORD",
-        'force_email_address': "FORCE_EMAIL_ADDRESS",
-        'default_from_email': "DEFAULT_FROM_EMAIL",
-        'extra_locale_path': "EXTRA_LOCALE_PATH",
-    }
-    #env.use_unistra_theme='false'
-    env.extra_symlink_dirs = ['media']
-    execute(build_env)
-
 
 @task
 def preprod():
@@ -214,7 +165,7 @@ def preprod():
     env.roledefs = {
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
+        'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],
     }
 
     # env.user = 'root'  # user for ssh
@@ -224,7 +175,7 @@ def preprod():
     env.server_name = 'immersup-pprd.app.unistra.fr'
     env.short_server_name = 'immersup-pprd'
     env.static_folder = '/site_media/'
-    env.server_ip = '130.79.245.212'
+    env.server_ip = '77.72.45.206'
     env.no_shared_sessions = False
     env.server_ssl_on = True
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
@@ -254,6 +205,7 @@ def preprod():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
         'extra_locale_path': "EXTRA_LOCALE_PATH",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
 
@@ -302,6 +254,7 @@ def prod():
         'extra_locale_path': "EXTRA_LOCALE_PATH",
         'matomo_url': "MATOMO_URL",
         'matomo_site_id': "MATOMO_SITE_ID",
+        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
     }
     execute(build_env)
 
@@ -461,6 +414,8 @@ def deploy_all_preprod():
     deploy()
     preprod_reims()
     deploy()
+    preprod_rouen()
+    deploy()
 
 @task
 def deploy_all_prod():
@@ -477,6 +432,8 @@ def deploy_all_prod():
     prod_pau()
     deploy()
     prod_reims()
+    deploy()
+    prod_rouen()
     deploy()
 
 

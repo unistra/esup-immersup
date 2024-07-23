@@ -12,7 +12,7 @@ from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.files.storage import default_storage
 from django.db.models import (BooleanField, Case, CharField, Count, DateField,
                               Exists, ExpressionWrapper, F, Func, OuterRef, Q,
-                              QuerySet, Subquery, Value, When)
+                              QuerySet, Subquery, Value, When, Sum, IntegerField)
 from django.db.models.functions import Coalesce, Concat, Greatest, JSONObject
 from django.http import (FileResponse, HttpResponse, HttpResponseBadRequest,
                          HttpResponseForbidden, HttpResponseNotFound,
@@ -24,14 +24,12 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from immersionlyceens.apps.core.models import (AccompanyingDocument,
-                                               AttestationDocument, Course,
-                                               Establishment, FaqEntry,
-                                               HighSchool, InformationText,
-                                               Period, PublicDocument,
-                                               PublicType, Slot, Training,
-                                               TrainingSubdomain,
-                                               UserCourseAlert, Visit)
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, AttestationDocument, Course, Establishment,
+    FaqEntry, HighSchool, Immersion, ImmersionGroupRecord, InformationText, Period,
+    PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
+    UserCourseAlert, ImmersionGroupRecord
+)
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -102,7 +100,7 @@ def offer(request):
 
     today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = Slot.objects.filter(published=True, visit__isnull=True,event__isnull=True).filter(
+    slots_count = Slot.objects.filter(published=True, event__isnull=True).filter(
         Q(date__isnull=True)
         | Q(date__gte=today.date())
         | Q(date=today.date(), end_time__gte=today.time())
@@ -222,6 +220,20 @@ def serve_attestation_document(request, attestation_document_id):
         return HttpResponseNotFound()
 
 
+def serve_immersion_group_document(request, immersion_group_id):
+    """Serve attestation documents files"""
+    try:
+        immersion = get_object_or_404(ImmersionGroupRecord, pk=immersion_group_id)
+        if isinstance(default_storage, S3Boto3Storage):
+            response = requests.get(immersion.file.url, stream=True)
+            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
+        else:
+            return redirect(immersion.file.url)
+
+    except Exception:
+        return HttpResponseNotFound()
+
+
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
     student = None
@@ -293,7 +305,7 @@ def offer_subdomain(request, subdomain_id):
 
                     # get slot period (for dates)
                     try:
-                        period = Period.from_date(date=slot.date)
+                        period = Period.from_date(pk=slot.period.pk, date=slot.date)
                         remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
                     except Period.DoesNotExist:
                         raise
@@ -313,7 +325,12 @@ def offer_subdomain(request, subdomain_id):
                         can_register, reasons = student.can_register_slot(slot)
 
                         if slot.available_seats() > 0 and can_register:
-                            if period.registration_start_date <= today <= period.immersion_end_date\
+                            immersion_end_datetime = datetime.datetime.combine(
+                                period.immersion_end_date + datetime.timedelta(days=1),
+                                datetime.time(0, 0)
+                            ).replace(tzinfo=now.tzinfo)
+
+                            if period.registration_start_date <= now <= immersion_end_datetime\
                                 and slot.registration_limit_date >= now:
                                 slot.can_register = True
                             elif now < slot.registration_limit_date:
@@ -335,7 +352,7 @@ def offer_subdomain(request, subdomain_id):
     if slot_id:
         try:
             slot = Slot.objects.prefetch_related("course__training").get(pk=slot_id)
-            # TODO: Check for events & visits !!!!
+            # TODO: Check for events !!!!
             if slot.course:
                 open_training_id = slot.course.training.id
                 open_course_id = slot.course.id
@@ -357,99 +374,6 @@ def offer_subdomain(request, subdomain_id):
     }
 
     return render(request, 'offer_subdomains.html', context)
-
-
-def visits_offer(request):
-    """ Visits Offer view """
-
-    filters = {}
-    today = timezone.now().date()
-    student = None
-    record = None
-    Q_filter = None
-
-    try:
-        visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
-    except InformationText.DoesNotExist:
-        visits_txt = ''
-
-    # Published visits only & no course nor event slot
-    filters["course__isnull"] = True
-    filters["event__isnull"] = True
-    filters["visit__published"] = True
-
-    # If user is highschool student filter on highschool
-    try:
-        if request.user.is_high_school_student() and not request.user.is_superuser:
-            student = request.user
-            record = student.get_high_school_student_record()
-            user_highschool = record.highschool
-            filters["visit__highschool"] = user_highschool
-            Q_filter = (Q(levels_restrictions=False) | Q(allowed_highschool_levels__pk__contains=record.level.pk))
-
-    except Exception as e:
-        # AnonymousUser
-        pass
-
-    # TODO: implement class method in model to retrieve >=today slots for visits
-    filters["date__gte"] = today
-    visits = Slot.objects.prefetch_related(
-            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters)\
-            .order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
-
-    if Q_filter:
-        visits = visits.filter(Q_filter)
-
-    # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    now = timezone.now()
-    today = timezone.localdate()
-
-    # If the current user is a higschool student, check whether he can register
-    if student and record:
-        for visit in visits:
-            visit.already_registered = False
-            visit.can_register = False
-            visit.cancelled = False
-            visit.opening_soon = False
-            # Already registered / cancelled ?
-            for immersion in student.immersions.all():
-                if immersion.slot.pk == visit.pk:
-                    visit.already_registered = True
-                    visit.cancelled = immersion.cancellation_type is not None
-
-            # Can register ?
-            # not registered + free seats + dates in range + cancelled to register again
-            if not visit.already_registered or visit.cancelled:
-                can_register, reasons = student.can_register_slot(visit)
-
-                try:
-                    period = Period.from_date(date=visit.date)
-                except Period.MultipleObjectsReturned:
-                    raise
-                except Period.DoesNotExist:
-                    raise
-
-                if visit.available_seats() > 0 and can_register:
-                    if period.registration_start_date <= today <= period.immersion_end_date \
-                            and visit.registration_limit_date >= now:
-                        visit.can_register = True
-                    elif now < visit.registration_limit_date:
-                        visit.opening_soon = True
-    else:
-        for visit in visits:
-            visit.cancelled = False
-            visit.can_register = False
-            visit.already_registered = False
-
-    visits_count = visits.count()
-
-    context = {
-        'visits_count': visits_count,
-        'visits_txt': visits_txt,
-        'visits': visits,
-    }
-    return render(request, 'visits_offer.html', context)
 
 
 def offer_off_offer_events(request):
@@ -482,12 +406,11 @@ def offer_off_offer_events(request):
     except InformationText.DoesNotExist:
         events_txt = ''
 
-    # Published event only & no course nor visit slot
+    # Published event only & no course
     filters["course__isnull"] = True
-    filters["visit__isnull"] = True
     filters["event__published"] = True
+    filters["allow_individual_registrations"] = True
 
-    # TODO: implement class method in model to retrieve >=today slots for visits
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
@@ -518,14 +441,12 @@ def offer_off_offer_events(request):
                 can_register, reasons = student.can_register_slot(event)
 
                 try:
-                    period = Period.from_date(date=event.date)
-                except Period.MultipleObjectsReturned:
-                    raise
+                    period = Period.from_date(pk=event.period.pk, date=event.date)
                 except Period.DoesNotExist:
                     raise
 
                 if event.available_seats() > 0 and can_register:
-                    if period.registration_start_date <= today <= period.immersion_end_date \
+                    if period.registration_start_date.date() <= today <= period.immersion_end_date \
                             and event.registration_limit_date >= now:
                         event.can_register = True
                     elif now < event.registration_limit_date:
@@ -581,7 +502,7 @@ def faq(request):
 def host_establishments(request):
     """Host establishments view"""
 
-    establishments = Establishment.activated.all().values('city', 'label', 'email')
+    establishments = Establishment.activated.filter(is_host_establishment=True).values('city', 'label', 'email')
     immersion_highschools = HighSchool.immersions_proposal\
             .filter(signed_charter=True)\
             .values('city', 'label', 'email')
@@ -597,8 +518,9 @@ def host_establishments(request):
 def highschools(request):
     """ Highschools public view"""
 
-    affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=True) \
-                                .values("city", "label", "email")
+    affiliated_highschools = HighSchool.objects.filter(
+        active=True, with_convention=True, allow_individual_immersions=True
+    ).values("city", "label", "email")
 
     try:
         affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
@@ -614,8 +536,9 @@ def highschools(request):
         # TODO: Default txt value ?
         not_affiliated_highschools_intro_txt = ''
 
-    not_affiliated_highschools = HighSchool.objects.filter(active=True, with_convention=False) \
-                                .values("city", "label", "email")
+    not_affiliated_highschools = HighSchool.objects.filter(
+        active=True, with_convention=False, allow_individual_immersions=True
+    ).values("city", "label", "email")
 
     context = {
         'affiliated_highschools': json.dumps(list(affiliated_highschools)),
@@ -623,6 +546,7 @@ def highschools(request):
         'not_affiliated_highschools': json.dumps(list(not_affiliated_highschools)),
         'not_affiliated_highschools_intro_txt': not_affiliated_highschools_intro_txt,
     }
+
     return render(request, 'highschools.html', context)
 
 
@@ -641,3 +565,118 @@ def search_slots(request):
         "intro_offer_search": intro_offer_search,
     }
     return render(request, "search_slots.html", context)
+
+
+def cohort_offer(request):
+    """Cohort offer view"""
+
+    filters = {}
+    try:
+        cohort_offer_txt = InformationText.objects.get(code="INTRO_OFFER_COHORT", active=True).content
+    except InformationText.DoesNotExist:
+        cohort_offer_txt = ''
+
+    today = datetime.datetime.today()
+    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
+    slots_count = (
+        Slot.objects.filter(published=True, event__isnull=True, allow_group_registrations=True, public_group=True)
+        .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
+        .distinct()
+        .count()
+    )
+
+    today = timezone.now().date()
+    # Published event only & no course
+
+    group_registered_persons_query = ImmersionGroupRecord.objects.filter(
+        slot=OuterRef("pk"), cancellation_type__isnull=True
+    )\
+    .annotate(group_registered_persons=(F('students_count') + F('guides_count')))\
+    .annotate(total=Coalesce(Func('group_registered_persons', function='SUM'),0))\
+    .values('total')
+
+    filters["course__isnull"] = True
+    filters["event__published"] = True
+    filters["allow_group_registrations"] = True
+    filters["public_group"] = True
+    filters["date__gte"] = today
+    events = (
+        Slot.objects.prefetch_related(
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions'
+        )
+        .filter(**filters)
+        .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
+        .annotate(
+            group_registered_persons=Subquery(group_registered_persons_query),
+        )
+    )
+
+    context = {
+        'subdomains': subdomains,
+        'slots_count': slots_count,
+        'cohort_offer_txt': cohort_offer_txt,
+        'events_count': events.count(),
+        'events': events,
+        'highschool': (
+            request.user.highschool if request.user.is_authenticated and request.user.is_high_school_manager() else None
+        ),
+    }
+    return render(request, 'cohort_offer.html', context)
+
+
+def cohort_offer_subdomain(request, subdomain_id):
+    """Cohort subdomain offer view"""
+
+    trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
+    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
+    data = []
+    today = timezone.localdate()
+
+    group_registered_persons_query = (
+        ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
+        .annotate(group_registered_persons=(F('students_count') + F('guides_count')))
+        .annotate(total=Coalesce(Func('group_registered_persons', function='SUM'), 0))
+        .values('total')
+    )
+
+    for training in trainings:
+        training_courses = (
+            Course.objects.prefetch_related('training')
+            .filter(training__id=training.id, published=True)
+            .order_by('label')
+        )
+
+        for course in training_courses:
+            slots = (
+                Slot.objects.filter(
+                    course__id=course.id,
+                    published=True,
+                    date__gte=today,
+                    allow_group_registrations=True,
+                    public_group=True,
+                )
+                .order_by('date', 'start_time', 'end_time')
+                    .annotate(
+                        group_registered_persons=Subquery(group_registered_persons_query),
+                    )
+            )
+
+            training_data = {
+                'training': training,
+                'course': course,
+                'slots': None,
+            }
+
+            training_data['slots'] = slots
+
+            data.append(training_data.copy())
+
+    context = {
+        'subdomain': subdomain,
+        'data': data,
+        'today': today,
+        'is_anonymous': request.user.is_anonymous,
+        'highschool': request.user.highschool if request.user.is_authenticated and request.user.is_high_school_manager() else None,
+    }
+
+    return render(request, 'cohort_offer_subdomains.html', context)

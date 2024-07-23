@@ -209,14 +209,15 @@ def get_logout_url(context):
 
     # TODO: check if other backends needed and use them
     if backend == 'django_cas.backends.CASBackend':
-        return reverse('django_cas:logout')
+        return ("get", reverse('django_cas:logout'))
     elif backend == 'shibboleth.backends.ShibbolethRemoteUserBackend':
-        return reverse('shibboleth:logout')
+        # Use custom Shibboleth logout
+        return ("get", reverse('immersion:logout'))
     # TODO: check urls.py accounts namespace is using django_cas for now
     elif backend == 'django.contrib.auth.backends.ModelBackend':
-        return reverse('logout')
+        return ("post", reverse('logout'))
     else:
-        return ''
+        return ('','')
 
 
 @register.simple_tag(takes_context=True)

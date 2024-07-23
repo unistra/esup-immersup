@@ -1,0 +1,216 @@
+{% load static i18n immersionlyceens_tags %}
+<div class="modal fade" id="modal_register_group" tabindex="-1" role="dialog" aria-labelledby="modal_register_group_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <form id="register_group_form" class="needs-validation">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_register_group_title">{% trans 'Register a group' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="register_group_feedback"></div>
+        <input id="id_slot" type="hidden" name="slot" class="form-control" required="required">
+        <input id="id_group_registration" type="hidden" name="slot" class="form-control" required="required">
+
+        <div class="controls">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="id_group_highschool">{% trans 'Educational establishment' %} *</label>
+                {% if user.is_high_school_manager %}
+                  <input id="id_group_highschool" type="hidden" class="form-control" required="required" value="{{ user.highschool.id }}">
+                  {{ highschool }}
+                {% else %}
+                <select id="id_group_highschool" class="form-control" required="required">
+                  <option value="">------------</option>
+                  {% for highschool in group_highschools %}
+                    <option value="{{ highschool.id }}">
+                      {{ highschool }}
+                    </option>
+                  {% endfor %}
+                </select>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="students_count">{% trans 'Students count' %} *</label>
+                <input id="students_count" type="number" name="students_count" class="form-control" required="required">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="guides_count">{% trans 'Guides count' %} *</label>
+                <input id="guides_count" type="number" name="guides_count" class="form-control" required="required">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="file">{% trans 'File' %}</label>
+                <a id="file_link" href="" class="sun-row" style='display:none;'></a>
+                <input id="file" type="file" name="file" class="form-control">
+                <small>{{ group_file_help_text }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="emails">{% trans 'Contact emails' %}</label>
+                <input id="emails" type="text" name="emails" class="form-control" placeholder="{% trans 'A list of emails separated by a comma' %}">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="comments">{% trans 'Comments' %}</label>
+                <textarea id="comments" name="comments" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" name="register" onclick="register_group()">{% trans 'Add this group' %}</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Cancel' %}</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  var current_url = "{{ request.path }}";
+  function register_group() {
+    let upload_file = $('#file')[0].files[0];
+    let formData = new FormData();
+    formData.append('id', $("#id_group_registration").val());
+    formData.append('slot_id', current_slot_id);
+    formData.append('highschool_id', $("#id_group_highschool").val());
+    formData.append('students_count', $("#students_count").val());
+    formData.append('guides_count', $("#guides_count").val());
+    formData.append('comments', $("#comments").val());
+    formData.append('file', upload_file);
+    formData.append('emails', $("#emails").val());
+    formData.append('feedback', true);
+    formData.append('middlewaretoken', '{{ csrf_token }}');
+    $.ajax({
+      url: "{% url 'GroupSlotRegistration' %}",
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function (json) {
+        if(json['error']) {
+          $("#register_group_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+          setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
+          if (typeof reload_groups_table === 'function') {
+            reload_groups_table();
+          }
+          // groups_dtr.ajax.reload();
+          if (typeof dt != "undefined") {
+            dt.ajax.reload();
+          }
+        }
+        else {
+          $("#register_group_feedback").html('<div class="alert alert-success">' + json['msg'] + '</div>');
+          setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
+          // groups_dtr.ajax.reload();
+          if (typeof reload_groups_table === 'function') {
+            reload_groups_table();
+          }
+          if (typeof dt != "undefined") {
+            dt.ajax.reload();
+          }
+          let fields = ['#id_group_highschool', '#id_group_registration', '#students_count', '#guides_count',
+                        '#file', '#emails', '#comments'];
+          if  ( current_url.search("cohort_offer") ) {
+            $.ajax({
+              url: `/api/get_slot_groups_registrations/${current_slot_id}`,
+              type: 'GET',
+              success: function (json) {
+                if(json['error']) {
+                  $("#register_group_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+                  setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
+                }
+                else {
+                  if ('group_mode' in json && 'total_groups_registered' in json && 'total_registered' in json && 'n_group_places' in json) {
+                    if (json['group_mode'] === 0 && json['total_groups_registered'] == 1) {
+                      $(`#group_registrations_infos_${current_slot_id}`).html(
+                        `<span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>`
+                      );
+                    } else if (json['group_mode'] === 1 && parseInt(json['total_registered']) < parseInt(json['n_group_places'])) {
+                      available_persons = (parseInt(json['n_group_places'])-parseInt(json['total_registered']))
+                      $(`#group_registrations_counter_${current_slot_id}`).html(available_persons);
+                    } else if (json['group_mode'] === 1 && parseInt(json['total_registered']) === parseInt(json['n_group_places'])) {
+                      $(`#group_registrations_infos_${current_slot_id}`).html(
+                        `<span class="badge badge-pill badge-danger">{% trans 'Full' %} ${json['total_groups_registered']} {% trans "group(s) registered" %}</span>`
+                      );
+                    }
+                  }
+                }
+              }
+            })
+            fields = fields.filter(function (v) {
+              return v !== '#id_group_highschool';
+            });
+          }
+
+          $.each(fields, function(i, item) {
+            $(item).val('');
+          })
+
+          $("#file_link").prop("href", "");
+          $("#file_link").html('');
+          $("#file_link").hide();
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  };
+
+  $('#modal_register_group').on('show.bs.modal', function (e) {
+    if(!$("#id_group_registration").val()) {
+      $('#id_group_registration').val('');
+      if ( current_url.search('/cohort_offer') === false ) {
+        $('#id_group_highschool').val('');
+      }
+      $('#students_count').val('');
+      $('#guides_count').val('');
+      $('#file').val('');
+      $("#file_link").prop("href", "");
+      $("#file_link").html('');
+      $("#file_link").hide();
+      $('#emails').val('');
+      $('#comments').val('');
+      $('button[name="register"]').html(register_group_txt);
+    }
+  })
+
+  $('#modal_register_group').on('hidden.bs.modal', function (e) {
+    $('#id_group_registration').val('');
+    if ( current_url.search('/cohort_offer') === false ) {
+        $('#id_group_highschool').val('');
+    }
+    $('#students_count').val('');
+    $('#guides_count').val('');
+    $('#file').val('');
+    $("#file_link").prop("href", "");
+    $("#file_link").html('');
+    $("#file_link").hide();
+    $('#emails').val('');
+    $('#comments').val('');
+    $('button[name="register"]').html(register_group_txt);
+  })
+</script>

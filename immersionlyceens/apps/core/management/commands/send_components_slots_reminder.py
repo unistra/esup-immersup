@@ -26,10 +26,6 @@ class Command(BaseCommand, Schedulable):
         returns = []
         today = datetime.datetime.today().date()
 
-        # The command has to be run on sunday (except for DEBUG mode)
-        if not settings.DEBUG and not today.weekday() == 6:
-            return success
-
         default_value = 1
 
         # settings / default value
@@ -71,9 +67,9 @@ class Command(BaseCommand, Schedulable):
 
         for structure in structures:
             slot_list = [
-                s for s in Slot.objects.prefetch_related("course__structure", "event__structure", "visit__structure")
+                s for s in Slot.objects.prefetch_related("course__structure", "event__structure")
                     .filter(
-                        Q(course__structure=structure)|Q(event__structure=structure)|Q(visit__structure=structure),
+                        Q(course__structure=structure)|Q(event__structure=structure),
                         date__gte=slot_min_date,
                         date__lte=slot_max_date,
                         published=True
@@ -87,6 +83,7 @@ class Command(BaseCommand, Schedulable):
             if slot_list:
                 for referent in structure.referents.all():
                     msg = referent.send_message(None, 'RAPPEL_STRUCTURE', slot_list=slot_list)
+
                     if msg:
                         msg = _("Cannot send components slot reminder to %s : %s") % (referent.email, msg)
                         returns.append(msg)

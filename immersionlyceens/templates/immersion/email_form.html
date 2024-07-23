@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block content %}
+<div class="main-title inside text-center">
+    <div></div>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1>{% trans 'Registration - your email' %}</h1>
+        </div>
+      </div>
+    </div>
+</div>
+<div>
+  <section class="py-5">
+    <div class="container">
+      <p class="text-center">
+        {% trans 'All communications will take place by email, please provide a valid email address.' %}
+      </p>
+      <form method="post" role="form">
+      {% csrf_token %}
+        <input type='hidden' name="id" value="{{ form.instance.id }}">
+        <div class="form-group row justify-content-center">
+            <label for="{{ form.email.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Email' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <input type="email" id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}"
+                {% if form.email.field.required %}required{% endif %} class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+                value="{% if form.email.value %}{{ form.email.value }}{% endif %}">
+                {% if form.email.help_text %}
+                <div class="small text-muted">
+                {{ form.email.help_text }}
+                </div>
+                {% endif %}
+                {% for err in form.email.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="form-group row justify-content-center">
+            <label for="{{ form.email2.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Email (confirmation)' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <input type="email" id="{{ form.email2.id_for_label }}" name="{{ form.email2.html_name }}"
+                {% if form.email2.field.required %}required{% endif %} class="form-control{% if form.email2.errors %} is-invalid{% endif %}"
+                value="{% if form.email2.value %}{{ form.email2.value }}{% endif %}">
+                {% if form.email2.help_text %}
+                <div class="small text-muted">
+                {{ form.email2.help_text }}
+                </div>
+                {% endif %}
+                {% for err in form.email2.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="form-group row justify-content-center">
+          <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
+            <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Submit' %}">
+            <a href="/" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

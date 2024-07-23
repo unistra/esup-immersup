@@ -200,7 +200,9 @@ dtc = $('#alerts_table').DataTable({
             return data.structure.establishment.label
         }
         else if(is_set(data.highschool)) {
-            return `${data.highschool.label} - ${data.highschool.city}`
+            let city = data.highschool.city ? data.highschool.city : "{% trans 'No city' %}"
+
+            return `${data.highschool.label} - ${city}`
         }
 
         return ""

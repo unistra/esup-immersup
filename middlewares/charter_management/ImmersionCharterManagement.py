@@ -53,7 +53,6 @@ class ImmersionCharterManagement:
                     reverse('immersion:change_password'),
                     reverse('offer'),
                     reverse('offer_off_offer_events'),
-                    reverse('visits_offer'),
                     reverse('immersion:change_password'),
                 ]
 

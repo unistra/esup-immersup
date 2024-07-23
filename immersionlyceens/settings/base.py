@@ -5,6 +5,8 @@ from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import gettext_lazy as _
 
+from ckeditor.configs import DEFAULT_CONFIG
+
 ######################
 # Path configuration #
 ######################
@@ -71,7 +73,6 @@ POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.11/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
-
 
 #########################
 # General configuration #
@@ -202,6 +203,7 @@ MIDDLEWARE = [
     'django_cas.middleware.CASMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
     'middlewares.charter_management.ImmersionCharterManagement.ImmersionCharterManagement',
+    'middlewares.email_check.EmailCheck.EmailCheck',
     'hijack.middleware.HijackUserMiddleware',
 
 ]
@@ -280,7 +282,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'hijack',
     'hijack.contrib.admin',
-    'django_summernote',
+    'ckeditor',
     'django_json_widget',
     'django_admin_listfilter_dropdown',
     'adminsortable2',
@@ -438,6 +440,8 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_AFFILIATION": (False, "affiliation"),
     "HTTP_UNSCOPED_AFFILIATION": (False, "unscoped_affiliation"),
     "HTTP_PRIMARY_AFFILIATION": (False, "primary_affiliation"),
+    "HTTP_SUPANNETUETAPE": (False, 'etu_stage'),
+    "HTTP_SUPANNOIDCDATEDENAISSANCE": (False, 'birth_date'),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout?return=%s"
@@ -445,6 +449,10 @@ SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
 SHIBBOLETH_UNQUOTE_ATTRIBUTES = True
 
 CREATE_UNKNOWN_USER = False
+
+# Logout URLs
+EDUCONNECT_LOGOUT_URL = ""
+AGENT_FEDERATION_LOGOUT_URL = ""
 
 #######################
 # Email configuration #
@@ -521,6 +529,7 @@ ADMIN_MODELS_ORDER = {
         'GeneralBachelorTeaching',
         'BachelorMention',
         'HighSchoolLevel',
+        'MefStat',
         'PostBachelorLevel',
         'StudentLevel',
     ],
@@ -573,23 +582,111 @@ HAS_RIGHTS_ON_GROUP = {
     'REF-LYC': ['INTER']
 }
 
-###############
-# SUMMER NOTE #
-###############
-X_FRAME_OPTIONS = "SAMEORIGIN"
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {'lang': 'fr-FR', },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
+
+############
+# CKEDITOR #
+############
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+CUSTOM_TOOLBAR = [
+    {
+        "name": "document",
+        "items": [
+            "Styles",
+            "Format",
+            "Bold",
+            "Italic",
+            "Underline",
+            "Strike",
+            "-",
+            "TextColor",
+            "BGColor",
+            "-",
+            "JustifyLeft",
+            "JustifyCenter",
+            "JustifyRight",
+            "JustifyBlock",
+        ],
+    },
+    {
+        "name": "widgets",
+        "items": [
+            "Undo",
+            "Redo",
+            "-",
+            "NumberedList",
+            "BulletedList",
+            "-",
+            "Outdent",
+            "Indent",
+            "-",
+            "Link",
+            "Unlink",
+            "-",
+            "CodeSnippet",
+            "Table",
+            "HorizontalRule",
+            "SpecialChar",
+            "-",
+            "Blockquote",
+            "-",
+            "Maximize",
+        ],
+    },
+]
+
+CKEDITOR_CONFIGS = {
+    "default": {
+        "skin": "moono-lisa",
+        "toolbar": CUSTOM_TOOLBAR,
+        "toolbarGroups": None,
+        "extraPlugins": ",".join(
+            [
+                'codesnippet',
+            ]
+        ),
+        "removePlugins": ",".join(['image', 'uploadimage', 'uploadwidget', 'elementspath']),
+        "codeSnippet_theme": "xcode",
+        'height': '100%',
+        'width': '100%',
+    },
     'toolbar': [
-        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
-        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
-        ['misc', ['ol', 'ul', 'height', ], ],
-        ['others', ['link', 'table', 'hr'], ],
-        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
+        [
+            'style',
+            [
+                'style',
+                'bold',
+                'italic',
+                'underline',
+                'strikethrough',
+                'superscript',
+                'subscript',
+                'clear',
+            ],
+        ],
+        [
+            'font',
+            [
+                'fontsize',
+                'forecolor',
+                'paragraph',
+            ],
+        ],
+        [
+            'misc',
+            [
+                'ol',
+                'ul',
+                'height',
+            ],
+        ],
+        [
+            'others',
+            ['link', 'table', 'hr'],
+        ],
+        [
+            'view',
+            ['codeview', 'undo', 'redo', 'fullscreen'],
+        ],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
@@ -600,6 +697,7 @@ SUMMERNOTE_CONFIG = {
     },
 }
 
+CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 ####################
 # Geo Api settings #
@@ -623,6 +721,16 @@ CONTENT_TYPES = [
     'odt',
     'docx',
     'xlsx',
+]
+
+MIME_TYPES = [
+    "application/msword",
+    "application/pdf",
+    "application/vnd.ms-excel",
+    "application/vnd.oasis.opendocument.spreadsheet",
+    "application/vnd.oasis.opendocument.text",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]
 
 # Max size
@@ -662,8 +770,6 @@ INSTITUTES_URL = (
 # Notifications display time (milliseconds)
 MESSAGES_TIMEOUT = 8000
 
-LOGIN_REDIRECT_URL = '/'
-
 # Ignored queries for 404 error
 IGNORABLE_404_URLS = [
     re.compile(r'^/apple-touch-icon.*\.png$'),
@@ -683,3 +789,11 @@ AWS_QUERYSTRING_EXPIRE = 999999999
 # TODO: move to general settings ?
 # Used to generate csv compliant with ms-excel
 CSV_OPTIONS = {'delimiter': ';', 'quotechar': '"', 'quoting': csv.QUOTE_ALL, 'dialect': csv.excel}
+
+
+###########################
+#  SEARCH PLUGIN FOR UAI  #
+###########################
+# Configure this on deployment since it will contain API Key
+UAI_API_URL = ""
+UAI_API_AUTH_HEADER = ""

@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
 <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
-<link rel="stylesheet" href="{{ STATIC_URL }}/summernote/summernote-bs4.css">
 {% endblock %}
 
 {% block head-javascript %}
@@ -21,7 +20,8 @@
 {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
 {% endif %}
-<script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
+<script src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+<script src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}
@@ -29,6 +29,7 @@
 {% block content %}
 {% include '../modals/modal_view_slot_immersions.html' %}
 {% include '../modals/modal_register_students_list.html' %}
+{% include '../modals/modal_register_group.html' %}
 {% include '../modals/modal_contact.html' %}
 <div id="top_indicator" class="hide w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
@@ -57,27 +58,23 @@
         {% if not user_slots %}
           {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
             <div class="row">
-              {% if slot_mode != "visits" %}
-                {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
-                  <div class="col-md-3">
-                    <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
-                      <label for="id_highschool">{% trans 'Select a high school' %} :</label>
-                      <select id="id_highschool" class="form-control">
-                        <option value="">------------</option>
-                        {% for highschool in highschools %}
-                          <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
-                            {{ highschool }}
-                          </option>
-                        {% endfor %}
-                      </select>
-                    </div>
+              {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
+                <div class="col-md-3">
+                  <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
+                    <label for="id_highschool">{% trans 'Select a high school' %} :</label>
+                    <select id="id_highschool" class="form-control">
+                      <option value="">------------</option>
+                      {% for highschool in highschools %}
+                        <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
+                          {{ highschool }}
+                        </option>
+                      {% endfor %}
+                    </select>
                   </div>
-                {% endif %}
+                </div>
               {% endif %}
               {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-                {% if slot_mode != "visits" %}
-                  <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
-                {% endif %}
+                <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
                 <div class="col-md-3">
                   <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
                     <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
@@ -131,20 +128,30 @@
   var current_slot_id;
   var can_update_attendances = false;
   var can_update_registrations = false;
-  var face_to_face = false;
+  var place = "1";
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
   var current_training_id = "{{ training_id }}";
   var slot_places = 0;
-  let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
-  let is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
-  let is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
+  var slot_groups_places = 0;
+  var slot_allow_group_registrations = false;
+  var slot_allow_individual_registrations = false;
+  var slot_group_mode;
+
+  var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+  var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
+  var is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
+  var is_speaker = "{{ request.user.is_speaker }}" === "True"
+  var is_master_establishment_manager = "{{ request.user.is_master_establishment_manager }}" === "True"
+  var is_establishment_manager = "{{ request.user.is_establishment_manager }}" === "True"
+  var is_operator = "{{ request.user.is_operator }}" === "True"
+  var user_highschool = "{{ request.user.highschool_id }}"
+  var user_establishment = "{{ request.user.establishment_id }}"
 
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
   let course_label_filter = "{{ course_label_filter }}"
-  let visit_purpose_filter = "{{ visit_purpose_filter }}"
   let highschool_filter = "{{ highschool_filter }}"
   let managed_by_filter = "{{ managed_by_filter }}"
 
@@ -155,7 +162,6 @@
   event_type_filter = decodeHTMLEntities(event_type_filter)
   event_label_filter = decodeHTMLEntities(event_label_filter)
   course_label_filter = decodeHTMLEntities(course_label_filter)
-  visit_purpose_filter = decodeHTMLEntities(visit_purpose_filter)
   highschool_filter = decodeHTMLEntities(highschool_filter)
   managed_by_filter = decodeHTMLEntities(managed_by_filter)
 
@@ -175,13 +181,31 @@
   let yes_text = "{% trans 'Yes' %}"
   let no_text = "{% trans 'No' %}"
   let all_text = "{% trans 'All' %}"
-  let remote_visit_text = "{% trans 'Remote visit' %}"
   let remote_event_text = "{% trans 'Remote event' %}"
   let establishments_txt = "{% trans 'Establishments' %}"
   let levels_txt = "{% trans 'Levels' %}"
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+  let places_txt = "{% trans 'Places' %}"
+  let individual_registrations_txt = "{% trans 'Individual registrations' %}"
+  let group_registrations_txt = "{% trans 'Group registrations' %}"
+  let update_group_txt = "{% trans 'Update group registration' %}"
+  let register_group_txt = "{% trans 'Register this group' %}"
+  let mode_txt = "{% trans 'Mode' %}"
+  let one_group_txt = "{% trans 'One group' %}"
+  let by_places_txt = "{% trans 'By number of places' %}"
+  let group_full_txt = "{% trans 'full' %}"
+  let public_group_txt = "{% trans 'Public group' %}"
+  let private_group_txt = "{% trans 'Private group' %}"
+
+  let regs_none_txt = "{% trans 'None' %}"
+  let regs_individual_only_txt = "{% trans 'Indiv. only' %}"
+  let regs_groups_only_txt = "{% trans 'Group only' %}"
+  let regs_groups_and_individual_txt = "{% trans 'Indiv + Group' %}"
+
+  let no_city_txt = "{% trans 'No city' %}"
+
   {% if request.user.is_structure_consultant %}
   let show_modify_btn = show_delete_btn = show_duplicate_btn = false
   {% endif %}
@@ -210,27 +234,54 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, is_past=false, update_registrations=false, is_face_to_face=false) {
+  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place=1) {
     can_update_registrations = update_registrations
     current_slot_id = slot_id;
-    face_to_face = is_face_to_face;
     slot_places = n_places;
+    slot_groups_places = n_group_places;
+    slot_allow_group_registrations = allowed_group_registrations;
+    slot_allow_individual_registrations = allowed_individual_registrations;
+    slot_group_mode = group_mode;
 
-    if(face_to_face === true) {
+    let face_to_face = 0
+    let outside = 2
+
+    if(place === face_to_face || place === outside) {
         $("#id_attendances").show()
+        $("#id_groups_attendances").show()
     }
     else {
         $("#id_attendances").hide()
+        $("#id_groups_attendances").hide()
     }
 
     if(edit_mode === 1) {
       can_update_attendances = true;
       $('#id_update_attendances').show();
+      $('#id_groups_update_attendances').show();
     }
     else {
       can_update_attendances = false;
       $('#id_update_attendances').hide();
+      $('#id_groups_update_attendances').hide();
     }
+
+    if(slot_allow_group_registrations) {
+      $('#id_div_group_registrations').show();
+    }
+    else {
+      $('#id_div_group_registrations').hide();
+    }
+
+    if(slot_allow_individual_registrations) {
+      $('#id_div_individual_registrations').show();
+      $('#id_modal_group_header').addClass("pt-0");
+    }
+    else {
+      $('#id_div_individual_registrations').hide();
+      $('#id_modal_group_header').removeClass("pt-0");
+    }
+
     // put slot id in register button in modal
     $('#btn_register_student').data('id', slot_id);
     $('#modal_view_slot_immersions').data('ispast', is_past)

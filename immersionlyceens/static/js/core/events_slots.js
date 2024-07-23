@@ -1,4 +1,10 @@
 function init_datatable() {
+
+  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
+  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
+  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
+  cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+
   dt = $('#slots_list').DataTable({
     ajax: {
       url: "/core/utils/slots",
@@ -17,9 +23,13 @@ function init_datatable() {
           d.highschool_id = current_highschool_id || $('#id_highschool').val();
         }
 
-        d.past = $('#filter_past_slots').is(':checked')
+        if(is_set(cohorts_only)) {
+          d.cohorts_only = cohorts_only;
+        }
 
-        return d
+        d.past = $('#filter_past_slots').is(':checked');
+
+        return d;
       },
       dataSrc: function (json) {
         if (json['data'] !== undefined && json['data'].length !== 0) {
@@ -67,18 +77,49 @@ function init_datatable() {
               element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog(\'open\')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
             }
           }
+
           if (row['can_update_attendances']) {
-            if(row.attendances_value === 1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places} , ${row.is_past}, ${row.can_update_registrations}, ${row.face_to_face})" title="${attendances_text}">` +
+            if (row.attendances_value === 1) {
+              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                          `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                          `</button>`;
             }
             else if (row.attendances_value !== -1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
                          `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                          `</button>`;
             }
           }
+
+          /*
+          # KEEP THIS FOR FUTURE FIXES
+
+          if (row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me || cohorts_only ) {
+            if (show_duplicate_btn) {
+              element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
+                `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
+            }
+
+            if (row.is_past === false && show_modify_btn) {
+              element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
+            }
+            if (row.n_register === 0 && row.is_past === false && show_delete_btn) {
+              element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
+            }
+
+            if (row.attendances_value === 1) {
+              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
+                `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
+                `</button>`;
+            }
+            else if (row.attendances_value !== -1) {
+              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+                `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
+                `</button>`;
+            }
+          }
+          */
+
 
           return element;
         }
@@ -98,7 +139,8 @@ function init_datatable() {
             return txt
           }
           else if(row.highschool_label) {
-            return `${row.highschool_city} - ${row.highschool_label}`
+            let city = is_set(row.highschool_city) ? row.highschool_city : no_city_txt
+            return `${city} - ${row.highschool_label}`
           }
         },
       },
@@ -130,21 +172,36 @@ function init_datatable() {
           let txt = ""
           let campus_label = data
           let building_label = row.building_label
+          let face_to_face = 0
+          let remote = 1
+          let outside = 2
 
           if(type === 'filter') {
-            txt = row.face_to_face ? `${campus_label} ${building_label} ${row.room}` : remote_event_text
+            if(row.place === face_to_face) {
+              txt = `${campus_label} ${building_label} ${row.room}`
+            }
+            else if(row.place === remote) {
+              txt = remote_event_text
+            }
+            else if(row.place === outside) {
+              txt = row.room
+            }
+
             return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
           }
 
-          if(row.face_to_face) {
+          if(row.place === face_to_face) {
             txt = "<span>"
             txt += is_set(campus_label) ? `${campus_label} </span><br><span>` : ''
             txt += is_set(building_label) ? `${building_label} </span><br><span>` : ''
 
             return `${txt} ${row.room}</span>`
           }
-          else {
+          else if(row.place === remote) {
             return `<a href="${row.url}" target="_blank">${remote_event_text}</a>`
+          }
+          else {
+            return `<span>${row.room}</span>`
           }
         }
       },
@@ -166,6 +223,18 @@ function init_datatable() {
       { data: '',
         render: function(data, type, row) {
           return display_slot_restrictions(data, type, row)
+        }
+      },
+      { data: 'allow_group_registrations',
+        render: function(data, type, row) {
+          if(type === "display") {
+            return display_group_informations(row)
+          }
+          else if(type === "filter" || type === "sort") {
+            return set_group_filter(row, type)
+          }
+
+          return data
         }
       }
     ],
@@ -292,6 +361,14 @@ function init_datatable() {
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "registration_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 11,
+        filter_default_label: "",
+        filter_match_mode: "exact",
+        filter_container_id: "groups_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },

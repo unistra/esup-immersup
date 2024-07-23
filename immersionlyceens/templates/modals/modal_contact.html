@@ -3,7 +3,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal_contact_students_title">{% trans 'Send an email to registered students' %}</h5>
+        <h5 class="modal-title" id="modal_contact_students_title">{% trans 'Send an email to registered students or group contacts' %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -38,8 +38,12 @@
   </div>
 </div>
 <script>
-  $('#modal_contact_students').on('show.bs.modal', function() {
+  var mode;
+
+  $('#modal_contact_students').on('show.bs.modal', function(event) {
     $('#id_body_iframe').css('height', '300px');
+    let button = $(event.relatedTarget) // Button that triggered the modal
+    mode = button.data('mode')
   });
 
   function send_email(slot_id) {
@@ -50,21 +54,19 @@
       type: 'POST',
       data: {
         'slot_id': slot_id,
-        'body': $("#id_body").val(),
+        'body': CKEDITOR.instances['id_body'].getData(),
         'subject': $("#id_subject").val(),
+        'mode': mode,
         'send_copy': is_checked,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
         if(json['error']) {
-            console.log(json['msg']);
             $("#contact_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
             setTimeout(function() { $("#contact_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
         } else {
             $("#contact_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
             setTimeout(function() { $("#contact_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-
-            $("#id_body").summernote('code', '<p><br></p>');
             $("#id_subject").val("");
 
         }

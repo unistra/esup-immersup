@@ -352,9 +352,9 @@ Firefox is sadly not supporting :has for now :(
 .results-cards tbody tr {
     float: left;
     width: 20rem;
-    height: 36rem;
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
+    min-height: max-content;
     border-radius: .15rem;
     box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
 }
@@ -369,9 +369,9 @@ Firefox is sadly not supporting :has for now :(
     position: relative;
     float: left;
     color: #808080;
-    min-width: 4rem;
+    min-width: 2rem;
     margin-left: 0;
-    margin-right: 1rem;
+    margin-right: 0.2rem;
     text-align: left;
 }
 
@@ -381,6 +381,10 @@ Firefox is sadly not supporting :has for now :(
 
 .results-cards .fa {
     font-size: 2rem;
+}
+
+.results-cards .fa-15 {
+    font-size: 1rem;
 }
 
 .results-cards caption {
@@ -399,4 +403,25 @@ Firefox is sadly not supporting :has for now :(
 
 .slot-type-e {
     color: DarkGreen;
+}
+/*
+TODO: Remove this when upgrading to django-ckeditor-5 !!! For now hidding warning message !!!
+*/
+.cke_notification_warning {
+        display: none;
+}
+
+/*
+Disable highlighting of selected items in the datatables
+need to use dt-select-no-highlight class on table !!!
+*/
+table.dataTable.dt-select-no-highlight tbody tr.selected,
+table.dataTable.dt-select-no-highlight tbody th.selected,
+table.dataTable.dt-select-no-highlight tbody td.selected {
+    color: unset;
+}
+
+table.dataTable.dt-select-no-highlight tbody>tr.selected,
+table.dataTable.dt-select-no-highlight tbody>tr>.selected {
+    background-color: unset;
 }

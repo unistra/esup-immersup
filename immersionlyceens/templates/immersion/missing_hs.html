@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "EduConnect : high school not found" %}{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'EduConnect : high school not found' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-5">
+  <div class="container">
+    <p class="text-center">
+      {% trans "Your high school has not been found or is not configured to use EduConnect.<br>Please use the 'contact' link at the bottom of this page, specifying your institution." %}
+    </p>
+    <div class="row">
+      <div class="col">
+        <p class="text-center">
+          <a href="{% url 'immersion:logout' %}" class="btn btn-secondary">
+            {% trans 'Logout from EduConnect' %}
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

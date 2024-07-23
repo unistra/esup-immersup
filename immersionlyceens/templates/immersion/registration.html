@@ -5,6 +5,12 @@
 {% block content %}
 {% information_text_get 'MENTIONS_INSCRIPTION' as mentions %}
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
+
+{% block head-javascript %}
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+
+{% endblock %}
+
 <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -28,7 +34,7 @@
         {% if visitors_activated and profile == "vis" %}
           <input type="hidden" name="registration_type" value="vis">
         {% else %}
-          <input type="hidden" name="registration_type" value="hs">
+          <input type="hidden" name="registration_type" value="lyc">
         {% endif %}
 
         <div class="form-group row justify-content-center">
@@ -95,56 +101,74 @@
                 {% endfor %}
             </div>
         </div>
-        {% if form.password1 %}
-        <div class="form-group row justify-content-center">
-            <label for="{{ form.password1.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
-            <div class="col-sm-9 col-md-6">
-                <div class="input-group">
-                    <input type="password" id="{{ form.password1.id_for_label }}" name="{{ form.password1.html_name }}"
-                    {% if form.password1.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
-                    value="{% if form.password1.value %}{{ form.password1.value }}{% endif %}">
-                    <div class="input-group-append">
-                        <button class="btn btn-secondary" id="view_button1" type="button">
-                            <i class="fa fas fa-eye" ></i>
-                        </button>
-                    </div>
-                    {% for err in form.password2.errors %}
-                    <div class="invalid-feedback">{{ err }}</div>
-                    {% endfor %}
-                </div>
-                {% if form.password1.help_text %}
-                <div class="small text-muted">
-                {{ form.password1.help_text }}
-                </div>
-                {% endif %}
 
-            </div>
+        {% if highschools and profile == 'lyc' %}
+        <div class="form-group row justify-content-center">
+          <label for="{{ form.record_highschool.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Your high school' %} :</label>
+          <div class="col-sm-9 col-md-6">
+            <select id="{{ form.record_highschool.id_for_label }}" name="record_highschool" class="form-control">
+                <option value="">----------------</option>
+              {% for highschool in highschools %}
+                <option value='{{ highschool.id }}' {% if highschool.id == form.highschool.id %}selected="selected"{% endif %}>
+                    {{ highschool }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         {% endif %}
-        {% if form.password2 %}
-        <div class="form-group row justify-content-center">
-            <label for="{{ form.password2.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Password (confirmation)' %} :</label>
-            <div class="col-sm-9 col-md-6">
-                <div class="input-group">
-                    <input type="password" id="{{ form.password2.id_for_label }}" name="{{ form.password2.html_name }}"
-                    {% if form.password2.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
-                    value="{% if form.password2.value %}{{ form.password2.value }}{% endif %}">
-                    <div class="input-group-append">
-                        <button class="btn btn-secondary" id="view_button2" type="button">
-                            <i class="fa fas fa-eye" ></i>
-                        </button>
-                    </div>
-                    {% for err in form.password2.errors %}
-                    <div class="invalid-feedback">{{ err }}</div>
-                    {% endfor %}
-                </div>
-                {% if form.password2.help_text %}
-                <div class="small text-muted">
-                {{ form.password2.help_text }}
-                </div>
-                {% endif %}
-            </div>
 
+        {% if form.password1 %}
+          <div id="id_div_password" style="display:none">
+            <div class="form-group row justify-content-center">
+                <label for="{{ form.password1.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
+                <div class="col-sm-9 col-md-6">
+                    <div class="input-group">
+                        <input type="password" id="{{ form.password1.id_for_label }}" name="{{ form.password1.html_name }}"
+                        {% if form.password1.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
+                        value="{% if form.password1.value %}{{ form.password1.value }}{% endif %}">
+                        <div class="input-group-append">
+                            <button class="btn btn-secondary" id="view_button1" type="button">
+                                <i class="fa fas fa-eye" ></i>
+                            </button>
+                        </div>
+                        {% for err in form.password2.errors %}
+                        <div class="invalid-feedback">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                    {% if form.password1.help_text %}
+                    <div class="small text-muted">
+                    {{ form.password1.help_text }}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+            {% endif %}
+            {% if form.password2 %}
+            <div class="form-group row justify-content-center">
+                <label for="{{ form.password2.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Password (confirmation)' %} :</label>
+                <div class="col-sm-9 col-md-6">
+                    <div class="input-group">
+                        <input type="password" id="{{ form.password2.id_for_label }}" name="{{ form.password2.html_name }}"
+                        {% if form.password2.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
+                        value="{% if form.password2.value %}{{ form.password2.value }}{% endif %}">
+                        <div class="input-group-append">
+                            <button class="btn btn-secondary" id="view_button2" type="button">
+                                <i class="fa fas fa-eye" ></i>
+                            </button>
+                        </div>
+                        {% for err in form.password2.errors %}
+                        <div class="invalid-feedback">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                    {% if form.password2.help_text %}
+                    <div class="small text-muted">
+                    {{ form.password2.help_text }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% endif %}
         <div class="form-group row justify-content-center">
@@ -161,7 +185,41 @@
       </form>
     </div>
 </section>
+<script src="{% static 'js/vendor/select2/select2.min.js' %}"></script>
+<link href="{% static 'css/vendor/select2/select2.min.css' %}" rel="stylesheet" />
 <script>
+
+function decodeHTMLEntities(text) {
+  return $("<textarea/>").html(text).text();
+}
+
+function toggle_password_fields() {
+    let highschool_id = $("#id_record_highschool").val()
+
+    if(is_set(highschool_id) || profile == "lyc") {
+      let uses_federation = highschools_uses_student_federation[highschool_id] ? highschools_uses_student_federation[highschool_id].uses_student_federation : false
+
+      if (uses_federation === false) {
+        $("#id_div_password").show();
+        $("#id_password1").attr('required', 'required');
+        $("#id_password2").attr('required', 'required');
+      } else {
+        $("#id_div_password").hide();
+        $("#id_password1").removeAttr('required');
+        $("#id_password2").removeAttr('required');
+      }
+    }
+    else {
+      $("#id_div_password").show();
+      $("#id_password1").attr('required', 'required');
+      $("#id_password2").attr('required', 'required');
+    }
+}
+
+
+var highschools_uses_student_federation = is_set('{{ highschools_values }}') ? JSON.parse(decodeHTMLEntities('{{ highschools_values }}')) : Array();
+var profile = "{{ profile }}";
+
 $(document).ready(function() {
     $("#view_button1").focusout(function(){
         $("#{{ form.password1.id_for_label }}").attr("type", "password");
@@ -180,6 +238,28 @@ $(document).ready(function() {
         }), $("#view_button2").bind("mouseup touchend keyup", function() {
             $("#{{ form.password2.id_for_label }}").attr("type", "password");
         })
+    });
+
+    $("#id_record_highschool").change( function() {
+      toggle_password_fields();
+    })
+
+    toggle_password_fields();
+
+
+    $('#id_record_highschool').select2({
+        language:
+        {
+            noResults: function () {
+                return "{% trans "No results found" %}";
+            },
+            searching: function () {
+                return "{% trans "Searching…" %}";
+            },
+            search: function () {
+                return "{% trans "Search" %}";
+            },
+        }
     });
 </script>
 {% endblock %}

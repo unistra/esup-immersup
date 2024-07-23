@@ -29,7 +29,14 @@ ALLOWED_HOSTS = [
     '*'
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    '{{ csrf_trusted_origins }}',
+]
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 
 #####################
@@ -53,6 +60,12 @@ CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
 CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
+
+####################
+#    SHIBBOLETH    #
+####################
+EDUCONNECT_LOGOUT_URL = "https://educonnect.education.gouv.fr/logout"
+AGENT_FEDERATION_LOGOUT_URL = ""
 
 #################
 # APIs settings #
@@ -126,7 +139,7 @@ MATOMO_SITE_ID = '{{ matomo_site_id }}'
 UNISTRA = '{{ use_unistra_theme }}'
 
 # Use hash prefixed static files
-STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageNotStrict'
+STATICFILES_STORAGE = 'immersionlyceens.storage.ManifestStaticFilesStorageWithoutSourceMap'
 
 # Extra locales
 EXTRA_LOCALE_PATH = '{{ extra_locale_path }}'
@@ -136,3 +149,10 @@ if EXTRA_LOCALE_PATH:
 
     if isdir(EXTRA_LOCALE_DIR):
         LOCALE_PATHS = [EXTRA_LOCALE_DIR] + LOCALE_PATHS
+
+###########################
+#  SEARCH PLUGIN FOR UAI  #
+###########################
+UAI_API_URL = "{{ uai_api_url }}"
+UAI_API_AUTH_HEADER = "{{ uai_api_auth_header }}"
+UAI_API_SEARCH_ATTR = "{{ uai_api_search_attr }}"

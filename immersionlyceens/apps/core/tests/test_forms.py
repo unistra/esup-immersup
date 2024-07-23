@@ -24,16 +24,16 @@ from ..admin_forms import (
 )
 from ..forms import (
     HighSchoolStudentImmersionUserForm, MyHighSchoolForm, OffOfferEventForm,
-    OffOfferEventSlotForm, SlotForm, VisitForm, VisitSlotForm,
+    OffOfferEventSlotForm, SlotForm
 )
 from ..models import (
     AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
     Building, Campus, CancelType, Course, CourseType, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
-    Holiday, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
+    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
+    Holiday, Immersion, ImmersionGroupRecord, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    Visit, HigherEducationInstitution
+    HigherEducationInstitution
 )
 
 request_factory = RequestFactory()
@@ -106,6 +106,14 @@ class FormTestCase(TestCase):
             username='hs',
             password='pass',
             email='hs@no-reply.com',
+            first_name='high',
+            last_name='SCHOOL',
+        )
+
+        cls.highschool_user2 = get_user_model().objects.create_user(
+            username='hs2',
+            password='pass',
+            email='hs2@no-reply.com',
             first_name='high',
             last_name='SCHOOL',
         )
@@ -245,6 +253,7 @@ class FormTestCase(TestCase):
 
         data = {
             'label': 'Period 2',
+            'registration_end_date_policy': Period.REGISTRATION_END_DATE_SLOT,
             'registration_start_date': self.today - datetime.timedelta(days=8),
             'immersion_start_date': self.today - datetime.timedelta(days=6),
             'immersion_end_date': self.today + datetime.timedelta(days=1),
@@ -267,33 +276,6 @@ class FormTestCase(TestCase):
         form = PeriodForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("A new period can't be set with a start_date in the past", form.errors["__all__"])
-
-        # Fail : start date overlaps an existing period
-        data.update({
-            "registration_start_date": self.today + datetime.timedelta(days=25),
-            "immersion_start_date": self.today + datetime.timedelta(days=35),
-            "immersion_end_date": self.today + datetime.timedelta(days=60),
-        })
-
-        form = PeriodForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
-            form.errors["__all__"]
-        )
-
-        # Fail : end date overlaps an existing period
-        data.update({
-            "registration_start_date": self.today + datetime.timedelta(days=2),
-            "immersion_start_date": self.today + datetime.timedelta(days=8),
-            "immersion_end_date": self.today + datetime.timedelta(days=21),
-        })
-        form = PeriodForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            f"At least one existing period ({self.period1.label}) overlaps this one, please check the dates",
-            form.errors["__all__"]
-        )
 
         # Fail : end date out of university year dates
         data.update({
@@ -342,7 +324,7 @@ class FormTestCase(TestCase):
         })
         form = PeriodForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Start date is after end date", form.errors["__all__"])
+        self.assertIn("Immersions end date must be after immersions start date", form.errors["__all__"])
 
         # Fail : registration date after immersions start_date
         data.update({
@@ -420,13 +402,14 @@ class FormTestCase(TestCase):
 
         # Published slot
         valid_data = {
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
             'building': self.building.id,
             'room': 'room 1',
             'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -460,13 +443,14 @@ class FormTestCase(TestCase):
 
         # Published slot
         valid_data = {
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
             'building': self.building.id,
             'room': 'room 1',
             'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -496,6 +480,7 @@ class FormTestCase(TestCase):
             'building': self.building.id,
             'room': 'room 1',
             'date': self.today - datetime.timedelta(days=10),
+            'period': self.period1,
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
@@ -512,9 +497,10 @@ class FormTestCase(TestCase):
         invalid_data["date"] = i_date
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
+
         self.assertIn(
-            "No available period found for slot date '%s', please create one first" % i_date.strftime("%Y-%m-%d"),
-            form.errors["date"]
+            "Invalid date for selected period : please check periods settings",
+            form.errors["__all__"]
         )
 
         # Fail : time errors
@@ -528,13 +514,13 @@ class FormTestCase(TestCase):
         )
 
         invalid_data["date"] = self.today
+        invalid_data["period"] = period_now
         invalid_data["start_time"] = datetime.time(hour=0)
         invalid_data["end_time"] = datetime.time(hour=1)
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
 
-        invalid_data["date"] = self.today + datetime.timedelta(days=21)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
         form = SlotForm(data=invalid_data, request=request)
@@ -547,6 +533,175 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("Required fields are not filled in", form.errors["__all__"])
 
+    def test_group_slot_form(self):
+        """
+        Slot form tests with groups attributes
+        """
+        activate_cohort = GeneralSettings.objects.get(setting="ACTIVATE_COHORT")
+        activate_cohort.parameters["value"] = True
+        activate_cohort.save()
+
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        data = {
+            'course': self.course.id,
+            'published': False,
+            'allow_group_registrations': True,
+            'allow_individual_registrations': True,
+        }
+
+        ###########
+        # Success #
+        ###########
+        # Unpublished slot
+        form = SlotForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # Published slot
+        valid_data = {
+            'place': Slot.FACE_TO_FACE,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': 'room 1',
+            'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
+            'start_time': datetime.time(hour=12),
+            'end_time': datetime.time(hour=14),
+            'n_places': 10,
+            'speakers': [self.speaker1.id],
+            'published': True,
+            'allow_group_registrations': True,
+            'allow_individual_registrations': True,
+            'n_group_places': None,
+            'group_mode': Slot.ONE_GROUP,
+            'public_group': True
+        }
+
+        form = SlotForm(data=valid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Please enter a valid number for 'n_group_places' field",
+            form.errors["n_group_places"]
+        )
+
+        # Valid n_group_places
+        valid_data.update({
+            'n_group_places': 10,
+        })
+        form = SlotForm(data=valid_data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # 'by_places' mode and correct n_group_places
+        valid_data.update({
+            'group_mode': Slot.BY_PLACES,
+        })
+
+        form = SlotForm(data=valid_data, request=request)
+        self.assertTrue(form.is_valid())
+
+        slot = form.save()
+        slot.refresh_from_db()
+
+        #########
+        # FAILS #
+        #########
+        # try to lower n_places under immersions count
+        immersion1 = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=slot,
+            attendance_status=1
+        )
+
+        immersion2 = Immersion.objects.create(
+            student=self.highschool_user2,
+            slot=slot,
+            attendance_status=1
+        )
+
+        group_immersion = ImmersionGroupRecord.objects.create(
+            slot=slot,
+            highschool=self.high_school,
+            students_count=20,
+            guides_count=2,
+        )
+
+        invalid_data = {
+            'id': slot.id,
+            'place': Slot.FACE_TO_FACE,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': 'room 1',
+            'date': self.today + datetime.timedelta(days=21),
+            'period': self.period1,
+            'start_time': datetime.time(hour=12),
+            'end_time': datetime.time(hour=14),
+            'n_places': 1,
+            'speakers': [self.speaker1.id],
+            'published': True,
+            'allow_group_registrations': True,
+            'allow_individual_registrations': True,
+            'n_group_places': 30,
+            'group_mode': Slot.ONE_GROUP,
+            'public_group': True
+        }
+
+        form = SlotForm(instance=slot, data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You can't set places value lower than actual individual immersions",
+            form.errors["n_places"]
+        )
+
+        # Fail : group places lower than registered groups people (students + guides = 22)
+        invalid_data.update({
+            'allow_individual_registrations': True,
+            'n_group_places': 20,
+            'group_mode': Slot.BY_PLACES,
+        })
+
+        form = SlotForm(instance=slot, data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You can't set group places value lower than actual registered group(s) people count",
+            form.errors["n_group_places"]
+        )
+
+        # Clean actual slot for the next tests
+        slot.delete()
+
+        # Fail : group places is incorrect
+        invalid_data.update({
+            'n_group_places': 0,
+            'allow_group_registrations': True,
+        })
+
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please enter a valid number for 'n_group_places' field", form.errors["n_group_places"])
+
+        # Fail : allow_individual_registrations and invalid n_places
+        invalid_data.update({
+            'n_group_places': 10,
+            'n_places': 0,
+        })
+
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please enter a valid number for 'n_places' field", form.errors["n_places"])
+
+        # Fail : allow_individual_registrations and invalid n_places
+        invalid_data.update({
+            'allow_group_registrations': False,
+            'allow_individual_registrations': False,
+        })
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You must allow at least one of individual or group registrations", form.errors["__all__"])
 
     def test_HighSchoolStudentImmersionUserForm(self):
         """
@@ -582,125 +737,6 @@ class FormTestCase(TestCase):
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
         self.assertIn("This field must be filled", form.errors["first_name"])
-
-
-    def test_visit_form(self):
-        """
-        Visit form tests
-        """
-        request.user = self.ref_master_etab_user
-        # TODO : more tests with other users
-
-        data = {
-            'establishment': self.master_establishment.id,
-            'structure': self.structure.id,
-            'highschool': self.high_school.id,
-            'purpose': "Anything",
-            'published': True,
-        }
-
-        # Fail : missing speakers
-        form = VisitForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Please add at least one speaker.", form.errors["__all__"])
-
-        # Success
-        data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
-        form = VisitForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        visit = form.save()
-
-        # As an operator
-        visit.delete()
-        request.user = self.operator_user
-        form = VisitForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-
-        # Create a Visit with no structure
-        del(data["structure"])
-        form = VisitForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-
-        # Fail : duplicate
-        form = VisitForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("A visit with these values already exists", form.errors["__all__"])
-
-
-    def test_visit_slot_form(self):
-        """
-        Visit slot form tests
-        """
-        request.user = self.ref_master_etab_user
-        # TODO : more tests with other users
-
-        visit = Visit.objects.create(
-            purpose="whatever",
-            published=False,
-            establishment=self.master_establishment,
-            structure=None,
-            highschool=self.high_school
-        )
-
-        visit.speakers.add(self.speaker1)
-
-        self.assertFalse(Slot.objects.filter(visit=visit).exists())
-
-        data = {
-            'visit': visit,
-            'face_to_face': True,
-            'room': "anywhere",
-            'published': True,
-            'date': self.today + datetime.timedelta(days=30),
-            'start_time': datetime.time(10, 0),
-            'end_time': datetime.time(12, 0),
-            'n_places':20,
-            'additional_information': 'whatever'
-        }
-
-        # Fail : missing speakers
-        form = VisitSlotForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("This field is required", form.errors["speakers"])
-
-        data["speakers"] = [self.speaker1.id]
-
-        # Fail : no period for the following date
-        data["date"] = self.today + datetime.timedelta(days=101)
-
-        form = VisitSlotForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
-            form.errors["date"]
-        )
-
-        data["date"] = self.today + datetime.timedelta(days=30)
-
-        # Success
-        form = VisitSlotForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-
-        self.assertTrue(Slot.objects.filter(visit=visit).exists())
-        slot = Slot.objects.get(visit=visit)
-        self.assertEqual(slot.speakers.count(), 1)
-        self.assertEqual(slot.speakers.first(), self.speaker1)
-
-        # As an operator
-        slot.delete()
-        request.user = self.operator_user
-
-        form = VisitSlotForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-
-        self.assertTrue(Slot.objects.filter(visit=visit).exists())
-        slot = Slot.objects.get(visit=visit)
-        self.assertEqual(slot.speakers.count(), 1)
-        self.assertEqual(slot.speakers.first(), self.speaker1)
 
 
     def test_event_form(self):
@@ -873,12 +909,13 @@ class FormTestCase(TestCase):
 
         data = {
             'event': event,
-            'face_to_face': True,
+            'place': Slot.FACE_TO_FACE,
             'campus': self.campus.id,
             'building': self.building.id,
             'room': "anywhere",
             'published': True,
             'date': self.today + datetime.timedelta(days=30),
+            'period': self.period1,
             'start_time': datetime.time(10, 0),
             'end_time': datetime.time(12, 0),
             'n_places':20,
@@ -891,16 +928,6 @@ class FormTestCase(TestCase):
         self.assertIn("This field is required", form.errors["speakers"])
 
         data["speakers"] = [self.speaker1]
-
-        # Fail : date not in periods limit
-        data["date"] = self.today + datetime.timedelta(days=101)
-
-        form = OffOfferEventSlotForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "No available period found for slot date '%s', please create one first" % data["date"].strftime("%Y-%m-%d"),
-            form.errors["date"]
-        )
 
         # Fail : date in the past
         data["date"] = self.today - datetime.timedelta(days=10)

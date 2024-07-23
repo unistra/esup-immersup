@@ -21,10 +21,11 @@ def import_mail_backend():
 mail_backend = import_mail_backend()
 
 
-def send_email(address, subject, body, from_addr=None, reply_to=None):
+def send_email(address, subject, body, from_addr=None, reply_to=None, copies=()):
     """
     """
     # Get configured 'from' address or the default settings/<env>.py one
+    encoding = settings.DEFAULT_CHARSET
 
     if not from_addr:
         try:
@@ -32,7 +33,12 @@ def send_email(address, subject, body, from_addr=None, reply_to=None):
         except Exception as e:
             from_addr = settings.DEFAULT_FROM_EMAIL
 
-    recipient = settings.FORCE_EMAIL_ADDRESS if settings.FORCE_EMAIL_ADDRESS else address
+    if settings.FORCE_EMAIL_ADDRESS:
+        recipient = settings.FORCE_EMAIL_ADDRESS
+        cc = [settings.FORCE_EMAIL_ADDRESS] if copies else []
+    else:
+        recipient = address
+        cc = list(map(lambda a: sanitize_address(a, encoding), copies))
 
     if not recipient:
         logger.warning("Cannot send mail (no email address specified)")
@@ -40,10 +46,11 @@ def send_email(address, subject, body, from_addr=None, reply_to=None):
 
     # Email data
     msg = MIMEMultipart('alternative')
-    encoding = settings.DEFAULT_CHARSET
     msg['Subject'] = subject
     msg['From'] = sanitize_address(from_addr, encoding)
     msg['To'] = sanitize_address(recipient, encoding)
+    msg['Cc'] = ", ".join(cc)
+
     if reply_to:
         msg['Reply-To'] = sanitize_address(reply_to, encoding)
 

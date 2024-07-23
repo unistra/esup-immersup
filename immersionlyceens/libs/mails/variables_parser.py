@@ -11,33 +11,44 @@ from requests import Request
 
 from immersionlyceens.apps.core.models import (
     EvaluationFormLink, GeneralSettings, Immersion, UniversityYear, MailTemplateVars,
-    Slot, ImmersionUser, Course, Visit, OffOfferEvent
+    Slot, ImmersionUser, ImmersionGroupRecord, Course, OffOfferEvent
 )
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
-from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
 logger = logging.getLogger(__name__)
 
 
-def parser(message_body, available_vars=None, user=None, request=None, **kwargs):
+def parser(message_body, available_vars=None, user=None, group=None, recipient=None, request=None, **kwargs):
+    """
+    :param message_body: the message body
+    :param available_vars: variables that can be used in this template
+    :param user: the ImmersionUser the mail will be sent to
+    :param group: the ImmersionGroupRecord the mail will be sent to
+    :param recipient: the recipient type, 'user' or 'group'
+    :param request: request
+    :return: parsed mail template
+    """
+
     return Parser.parser(
         message_body=message_body,
         available_vars=available_vars,
         user=user,
+        group=group,
+        recipient=recipient,
         request=request,
         **kwargs
     )
 
 
-def parser_faker(message_body, context_params, available_vars=None, user=None, request=None, **kwargs):
+def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, request=None, **kwargs):
     return ParserFaker.parser(
         message_body=message_body,
         context_params=context_params,
         available_vars=available_vars,
         user=user,
+        group=group,
         request=request,
         **kwargs
     )
@@ -46,7 +57,8 @@ def parser_faker(message_body, context_params, available_vars=None, user=None, r
 class ParserFaker:
     @classmethod
     def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]], context_params: Dict[str, Any],
-               user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
+               user: Optional[ImmersionUser] = None, group: Optional[ImmersionGroupRecord] = None,
+               request: Optional[Request] = None, **kwargs) -> str:
 
         context: Dict[str, Any] = cls.get_context(request, **context_params)
         return render_text(template_data=message_body, data=context)
@@ -58,12 +70,12 @@ class ParserFaker:
         return format_html(text)
 
     @classmethod
-    def get_context(cls, request, user_is, slot_type, local_account, remote):
+    def get_context(cls, request, user_is, slot_type, local_account, place, recipient, educonnect):
         today: datetime = timezone.localdate()
         formatted_today: str = today.strftime("%d/%m/%Y")
 
-        cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\hi")
-        registration_date: str = date_format(timezone.now() - timedelta(hours=48), "j F - G\hi")
+        cancellation_date: str = date_format(timezone.now() - timedelta(hours=24), "j F - G\\hi")
+        registration_date: str = date_format(timezone.now() - timedelta(hours=48), "j F - G\\hi")
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
@@ -101,7 +113,8 @@ class ParserFaker:
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
-            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations))
+            "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations)),
+            "educonnect": educonnect,
         })
         context[user_is] = True
 
@@ -112,14 +125,6 @@ class ParserFaker:
                 "formation": cls.add_tooltip("cours.formation", "Formation n°2"),
                 "nbplaceslibre": 25,
                 "type": "TD"
-            }
-        })
-
-        # visit
-        context.update({
-            "visite": {
-                "libelle": cls.add_tooltip("visite.libelle", "Visite N°1"),
-                "nbplaceslibre": 35
             }
         })
 
@@ -137,7 +142,6 @@ class ParserFaker:
             "creneau": {
                 "libelle": cls.add_tooltip("creneau.libelle", "Cours n°2"),
                 "estuncours": False,
-                "estunevisite": False,
                 "estunevenement": False,
                 "etablissement": cls.add_tooltip("creneau.etablissement", "Mon Établissement"),
                 "lycee": cls.add_tooltip("creneau.lycee", "Lycée Frida Kahlo (New York)"),
@@ -153,7 +157,7 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.campus.libelle", "Campus principal"),
                     "ville": cls.add_tooltip("creneau.campus.ville", "Columbia"),
                 },
-                "temoindistanciel": remote,
+                "temoindistanciel": place == Slot.REMOTE,
                 "lien": cls.add_tooltip(
                     "creneau.lien",
                     format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
@@ -167,9 +171,6 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.evenement.libelle", _("My event")),
                     "description": cls.add_tooltip("creneau.evenement.description", _("My event description")),
                     "type": cls.add_tooltip("creneau.evenement.type", "Conférence")
-                },
-                "visite": {
-                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", formatted_today),
                 "limite_annulation": cls.add_tooltip("creneau.limite_annulation", cancellation_date),
@@ -226,6 +227,35 @@ class ParserFaker:
                 "lienGlobal",
                 '<a href="https://github.com/unistra/esup-immersup#lienGlobal">https://github.com/unistra/esup-immersup#lienGlobal</a>'
             ),
+        })
+
+        # Group data
+        context.update({
+            "cohorte": {
+                "etablissementInscrit": cls.add_tooltip(
+                    "cohorte.etablissementInscrit",
+                    "École Européenne de Strasbourg"
+                ),
+                "nbEleves": cls.add_tooltip("cohorte.nbEleves", "12"),
+                "nbAccompagnateurs": cls.add_tooltip("cohorte.nbEleves", "2"),
+                "nbPlaces": cls.add_tooltip("cohorte.nbEleves", "14"),
+                "fichierJoint": cls.add_tooltip(
+                    "cohorte.fichierJoint",
+                    "<a href=''>Composition du groupe.pdf</a>"
+                ),
+                "commentaires": cls.add_tooltip(
+                    "cohorte.fichierJoint",
+                    "Le groupe viendra en bus, merci de prévoir un emplacement pour le stationnement."
+                ),
+            }
+        })
+
+        # Recipient data
+        context.update({
+            "destinataire": {
+                "estCohorte": recipient == 'group',
+                "estIndividu": recipient == 'user',
+            }
         })
 
         return context
@@ -298,16 +328,6 @@ class Parser:
             }
         return {}
 
-    @staticmethod
-    def get_visit_context(visit: Optional[Visit]) -> Dict[str, Any]:
-        if visit:
-            return {
-                "visite": {
-                    "libelle": visit.purpose,
-                    "nbplaceslibre": visit.free_seats(),
-                }
-            }
-        return {}
 
     @staticmethod
     def get_slot_context(slot: Optional[Slot]) -> Dict[str, Any]:
@@ -333,24 +353,49 @@ class Parser:
 
             return registered_students
 
+        def get_registered_groups(slot):
+            registered_groups: List[str] = []
+            for group_reg in slot.group_immersions.filter(cancellation_type__isnull=True):
+                registered_group = _("Group : %s students, %s guides - %s") % (
+                    group_reg.students_count,
+                    group_reg.guides_count,
+                    group_reg.highschool.label,
+                )
+
+                if group_reg.emails:
+                    registered_group += "<br>" + _("Contact(s) : %s") % group_reg.emails
+
+                if group_reg.file:
+                    registered_group += f"<br> {_('File')} : " + format_html(
+                        '<a href="{0}">{1}</a>',
+                        reverse('group_document', kwargs={'immersion_group_id': group_reg.id}),
+                        group_reg.file.name
+                    )
+
+                if group_reg.comments:
+                    registered_group += f"<br> {_('Comments')} : " + format_html(group_reg.comments)
+
+                registered_groups.append(registered_group)
+
+            return registered_groups
 
         if slot:
             establishment = slot.get_establishment()
             structure = slot.get_structure()
             highschool = slot.get_highschool()
             registered_students = get_registered_students(slot)
+            registered_groups = get_registered_groups(slot)
 
-            cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\hi") \
+            cancellation_limit = date_format(timezone.localtime(slot.cancellation_limit_date), "j F - G\\hi") \
                 if slot.cancellation_limit_date else ""
 
-            registration_limit = date_format(timezone.localtime(slot.registration_limit_date), "j F - G\hi") \
+            registration_limit = date_format(timezone.localtime(slot.registration_limit_date), "j F - G\\hi") \
                 if slot.registration_limit_date else ""
 
             return {
                 "creneau": {
                     "libelle": slot.get_label(),
                     "estuncours": slot.is_course(),
-                    "estunevisite": slot.is_visit(),
                     "estunevenement": slot.is_event(),
                     "etablissement": establishment.label if establishment else "",
                     "lycee": f"{highschool.label} ({highschool.city})" if highschool else "",
@@ -363,7 +408,7 @@ class Parser:
                         'libelle': slot.campus.label if slot.campus else "",
                         'ville': slot.campus.city if slot.campus and slot.campus.city else "",
                     },
-                    "temoindistanciel": not slot.face_to_face,
+                    "temoindistanciel": slot.place == Slot.REMOTE,
                     "lien": format_html(f"<a href='{slot.url}'>{slot.url}</a>") if slot.url else "",
                     "cours": {
                         'libelle': slot.get_label(),
@@ -375,9 +420,6 @@ class Parser:
                         'description': slot.event.description,
                         'type': slot.event.event_type.label,
                     } if slot.event else {},
-                    "visite": {
-                        'libelle': slot.get_label(),
-                    } if slot.visit else {},
                     "date": date_format(slot.date) if slot.date else "",
                     "limite_annulation": cancellation_limit,
                     "limite_inscription": registration_limit,
@@ -388,6 +430,7 @@ class Parser:
                     "salle": slot.room,
                     "nbplaceslibres": slot.available_seats(),
                     "listeInscrits": format_html("<br>".join(sorted(registered_students)) if registered_students else ""),
+                    "listeCohortes": format_html("<br><br>".join(registered_groups) if registered_groups else ""),
                     "limite_annulation_depassee": slot.is_cancellation_limit_date_due(),
                     "limite_inscription_depassee": slot.is_registration_limit_date_due(),
                 }
@@ -432,7 +475,8 @@ class Parser:
 
                     context.update({
                         "lycee": record.highschool.label if record and record.highschool else _("unknown"),
-                        "datedenaissance": date_format(record.birth_date, 'd/m/Y'),
+                        "educonnect": record.highschool.uses_student_federation if record and record.highschool else False,
+                        "datedenaissance": date_format(record.birth_date, 'd/m/Y') if record.birth_date else "",
                         "justificatifs_expires": format_html("<br>".join(attestations))
                     })
 
@@ -472,10 +516,39 @@ class Parser:
         return {}
 
     @staticmethod
-    def get_cancellation_type_context(immersion: Optional[Immersion]) -> Dict[str, Any]:
+    def get_recipient_context(recipient):
+        return {
+            "destinataire": {
+                "estCohorte": recipient == "group",
+                "estIndividu": recipient == "user",
+            }
+        }
+    @staticmethod
+    def get_group_context(immersion_group: Optional[ImmersionGroupRecord]):
+        if immersion_group:
+            return {
+                "cohorte": {
+                    "etablissementInscrit": immersion_group.highschool.label,
+                    "nbEleves": immersion_group.students_count,
+                    "nbAccompagnateurs": immersion_group.guides_count,
+                    "nbPlaces": (immersion_group.students_count or 0) + (immersion_group.guides_count or 0),
+                    "fichierJoint": format_html('<a href="{0}">{1}</a>', reverse(
+                        'group_document',
+                        kwargs={'immersion_group_id': immersion_group.id}
+                    ), immersion_group.file.name) if immersion_group.file else "",
+                    "commentaires": immersion_group.comments or _("None")
+                }
+            }
+
+    @staticmethod
+    def get_cancellation_type_context(immersion: Optional[Immersion], group_immersion: Optional[ImmersionGroupRecord]) -> Dict[str, Any]:
         if immersion and immersion.cancellation_type:
             return {
                 "motifAnnulation": immersion.cancellation_type.label
+            }
+        elif group_immersion and group_immersion.cancellation_type:
+            return {
+                "motifAnnulation": group_immersion.cancellation_type.label
             }
         return {}
 
@@ -513,16 +586,16 @@ class Parser:
             slot_text = []
 
             for slot in slot_list:
-                if slot.face_to_face:
+                if slot.place == Slot.FACE_TO_FACE:
                     place = "{0} : {1}, ".format(_("campus"), slot.campus.label) if slot.campus else ""
                     place += "{0} : {1}, ".format(_("building"), slot.building.label) if slot.building else ""
                     place += "{0} : {1}".format(_("room"), slot.room) if slot.room else ""
-                else:
+                elif slot.place == Slot.REMOTE:
                     place = _("remote slot")
+                elif slot.place == Slot.OUTSIDE:
+                    place = slot.room
 
-                if slot.is_visit():
-                    slot_type = _("visit")
-                elif slot.is_event():
+                if slot.is_event():
                     slot_type = _("event")
                 else:
                     slot_type = _("course")
@@ -594,11 +667,12 @@ class Parser:
         slot: Optional[Slot] = kwargs.get('slot')
         slot_list: Optional[List[Slot]] = kwargs.get('slot_list')
         course: Optional[Course] = kwargs.get('course')
-        visit: Optional[Visit] = kwargs.get('visit')
         event: Optional[OffOfferEvent] = kwargs.get('event')
         immersion: Optional[Immersion] = kwargs.get('immersion')
+        group: Optional[ImmersionGroupRecord] = kwargs.get('group')
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
         link_source_user: Optional[str] = kwargs.get('link_source_user', '')
+        recipient: Union[List[str], str] = kwargs.get('recipient', 'user')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
@@ -610,12 +684,16 @@ class Parser:
             "urlPlateforme": platform_url,
         }
 
+        if group:
+            context.update(cls.get_group_context(group))
+
         context.update(cls.get_course_context(course))
-        context.update(cls.get_visit_context(visit))
         context.update(cls.get_event_context(event))
         context.update(cls.get_slot_context(slot))
 
-        context.update(cls.get_cancellation_type_context(immersion))
+        context.update(cls.get_recipient_context(recipient))
+
+        context.update(cls.get_cancellation_type_context(immersion, group))
 
         context.update(cls.get_user_context(user))
         context.update(cls.get_user_request_context(user, request, platform_url))

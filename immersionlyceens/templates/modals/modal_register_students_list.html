@@ -114,8 +114,8 @@ dtl = $('#register_students_list').DataTable({
        if(is_set(row.record_highschool_label)) {
          return row.record_highschool_label
        }
-       else if(is_set(row.institution)) {
-         return row.institution
+       else if(is_set(row.institution_label)) {
+         return row.institution_label
        }
        else if(is_set(row.institution_uai_code)) {
          return row.institution_uai_code
@@ -124,7 +124,11 @@ dtl = $('#register_students_list').DataTable({
        return ""
      }
     },
-    {"data": "city"},
+    {"data": "city",
+      render: function(data, type, row) {
+        return is_set(data) ? data : "-"
+      }
+    },
     {"data": "",
      render: function (data, type, row) {
        if(type !== 'display') {

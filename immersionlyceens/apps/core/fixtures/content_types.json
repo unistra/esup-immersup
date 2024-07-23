@@ -361,14 +361,6 @@
 },
 {
     "model": "contenttypes.contenttype",
-    "pk": 47,
-    "fields": {
-        "app_label": "core",
-        "model": "visit"
-    }
-},
-{
-    "model": "contenttypes.contenttype",
     "pk": 48,
     "fields": {
         "app_label": "core",

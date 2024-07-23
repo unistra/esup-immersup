@@ -398,7 +398,8 @@
               return txt
             }
             else if(row.highschool) {
-              return row.highschool.city + " - " + row.highschool.label
+              let city = is_set(row.highschool__city) ? row.highschool__city : "{% trans 'No city' %}"
+              return city + " - " + row.highschool.label
             }
           }
         },
