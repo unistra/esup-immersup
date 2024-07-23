@@ -531,7 +531,7 @@ class Parser:
                     "etablissementInscrit": immersion_group.highschool.label,
                     "nbEleves": immersion_group.students_count,
                     "nbAccompagnateurs": immersion_group.guides_count,
-                    "nbPlaces": immersion_group.students_count or 0 + immersion_group.guides_count or 0,
+                    "nbPlaces": (immersion_group.students_count or 0) + (immersion_group.guides_count or 0),
                     "fichierJoint": format_html('<a href="{0}">{1}</a>', reverse(
                         'group_document',
                         kwargs={'immersion_group_id': immersion_group.id}
