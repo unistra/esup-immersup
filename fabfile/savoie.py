@@ -5,7 +5,7 @@ import pydiploy
 from fabric.api import env, execute, roles, task
 # from . import build_env
 
-@roles(['web', 'lb'])
+@roles(['web', 'shib'])
 def build_env():
     execute(pydiploy.prepare.build_env)
 
@@ -14,11 +14,11 @@ def preprod_savoie():
     """Define preprod stage for Pau instance"""
     env.roledefs = {
         'web': ['saas-usmb-pprd-1.srv.unistra.fr', 'saas-usmb-pprd-2.srv.unistra.fr'],
-        'lb': [],
+        'lb': ['saas-usmb-pprd-1.srv.unistra.fr', 'saas-usmb-pprd-2.srv.unistra.fr'],
         'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-    env.application_name = 'immersup_smb'
+    env.application_name = 'immersup_usmb'
     env.backends = env.roledefs['web']
     env.server_name = 'immersup-test.univ-smb.fr'
     env.short_server_name = 'immersup-test'
@@ -64,11 +64,11 @@ def prod_savoie():
     """Define prod stage for Reims instance"""
     env.roledefs = {
         'web': ['saas-usmb-prod-1.srv.unistra.fr', 'saas-usmb-prod-2.srv.unistra.fr'],
-        'lb': [],
+        'lb': ['saas-usmb-prod-1.srv.unistra.fr', 'saas-usmb-prod-2.srv.unistra.fr'],
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
     # env.user = 'root'  # user for ssh
-    env.application_name = 'immersup_smb'
+    env.application_name = 'immersup_usmb'
     env.backends = env.roledefs['web']
     env.server_name = 'immersup.univ-smb.fr'
     env.short_server_name = 'immersup'
