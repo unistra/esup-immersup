@@ -1251,7 +1251,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         pass
                     case _:
                         record.set_status("TO_VALIDATE")
-            elif record.validation == HighSchoolStudentRecord.TO_COMPLETE:
+            elif record.validation in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]:
                 if not user.uses_federation():
                     record.set_status("TO_VALIDATE")
                 else:
