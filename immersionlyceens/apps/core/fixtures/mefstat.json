@@ -1,0 +1,66 @@
+[
+{
+    "model": "core.mefstat",
+    "pk": "2211",
+    "fields": {
+        "label": "Seconde générale & techno yc bt",
+        "level": 1
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2212",
+    "fields": {
+        "label": "Premiere générale & techno yc bt",
+        "level": 2
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2213",
+    "fields": {
+        "label": "Terminale générale & techno yc bt",
+        "level": 3
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2361",
+    "fields": {
+        "label": "Bac professionnel en 1 an",
+        "level": 3
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2371",
+    "fields": {
+        "label": "BAC pro 2 ans : 1ère",
+        "level": 2
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2372",
+    "fields": {
+        "label": "BAC pro 2 ans : terminale",
+        "level": 3
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2382",
+    "fields": {
+        "label": "BAC pro 3 ans : 1ère pro (ou 2ème année)",
+        "level": 2
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "2383",
+    "fields": {
+        "label": "bac pro 3 ans: term pro (ou 3ème année)",
+        "level": 3
+    }
+}
+]
