@@ -18,6 +18,7 @@ from pau import preprod_pau, prod_pau
 from reims import preprod_reims, prod_reims
 from stetienne import preprod_stetienne, prod_stetienne
 from rouen import preprod_rouen, prod_rouen
+from savoie import preprod_savoie, prod_savoie
 
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
