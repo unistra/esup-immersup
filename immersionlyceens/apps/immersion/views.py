@@ -1096,7 +1096,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
-                if not user.uses_federation() and record.validation != HighSchoolStudentRecord.TO_COMPLETE:
+                if (not user.uses_federation()
+                    and record.validation not in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]
+                ):
                     validation_needed = True
                     messages.info(
                         request,
@@ -1201,7 +1203,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         validation_needed = True
                         # Only optional documents to send
                         messages.warning(
-                            request, _("Record saved. Please check the optional documents to send below.")
+                            request, _("Please check the optional documents to send below.")
                         )
             else:
                 documents = HighSchoolStudentRecordDocument.objects\
@@ -1273,16 +1275,16 @@ def high_school_student_record(request, student_id=None, record_id=None):
             if request.user.is_high_school_student():
                 if display_documents_message:
                     messages.warning(
-                        request, _("Record saved. Please fill all the required attestation documents below.")
+                        request, _("Please fill all the required attestation documents below.")
                     )
                 elif record.validation in [record.STATUSES["TO_VALIDATE"], record.STATUSES["TO_REVALIDATE"]]:
                     if record.highschool.with_convention:
                         messages.success(
-                            request, _("Thank you. Your record is awaiting validation from your high-school referent.")
+                            request, _("Your record is awaiting validation from your high-school referent.")
                         )
                     else:
                         messages.success(
-                            request, _("Thank you. Your record is awaiting validation by the establishment referent.")
+                            request, _("Your record is awaiting validation by the establishment referent.")
                         )
 
             return HttpResponseRedirect(reverse('immersion:modify_hs_record', kwargs={'record_id': record.id}))

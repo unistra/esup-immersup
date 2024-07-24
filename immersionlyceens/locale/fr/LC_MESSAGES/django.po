@@ -5904,10 +5904,8 @@ msgstr "Erreurs dans la secion 'Quota d'immersions'"
 
 #: immersionlyceens/apps/immersion/views.py:1199
 #: immersionlyceens/apps/immersion/views.py:2052
-msgid "Record saved. Please check the optional documents to send below."
-msgstr ""
-"Fiche enregistrée. Veuillez verifier les documents facultatifs à joindre ci-"
-"dessous"
+msgid "Please check the optional documents to send below."
+msgstr "Veuillez verifier les documents facultatifs à joindre ci-dessous."
 
 #: immersionlyceens/apps/immersion/views.py:1234
 #: immersionlyceens/apps/immersion/views.py:2086
@@ -5916,23 +5914,18 @@ msgstr "Erreurs ou informations manquantes dans la section 'Justificatifs'"
 
 #: immersionlyceens/apps/immersion/views.py:1271
 #: immersionlyceens/apps/immersion/views.py:2117
-msgid "Record saved. Please fill all the required attestation documents below."
-msgstr ""
-"Fiche enregistrée. Veuillez joindre tous les documents requis dans la "
-"section 'Justificatifs'"
+msgid "Please fill all the required attestation documents below."
+msgstr "Veuillez joindre tous les documents requis dans la section 'Justificatifs'"
 
 #: immersionlyceens/apps/immersion/views.py:1276
 msgid ""
-"Thank you. Your record is awaiting validation from your high-school referent."
+"Your record is awaiting validation from your high-school referent."
 msgstr ""
-"Merci. Votre fiche est en attente de validation par le référent du lycée."
+"Votre fiche est en attente de validation par le référent du lycée."
 
 #: immersionlyceens/apps/immersion/views.py:1280
-msgid ""
-"Thank you. Your record is awaiting validation by the establishment referent."
-msgstr ""
-"Merci. Votre fiche est en attente de validation par le référent "
-"établissement."
+msgid "Your record is awaiting validation by the establishment referent."
+msgstr "Votre fiche est en attente de validation par le référent établissement."
 
 #: immersionlyceens/apps/immersion/views.py:1323
 #: immersionlyceens/apps/immersion/views.py:1866
