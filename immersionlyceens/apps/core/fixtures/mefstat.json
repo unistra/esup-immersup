@@ -49,6 +49,14 @@
 },
 {
     "model": "core.mefstat",
+    "pk": "2381",
+    "fields": {
+        "label": "BAC pro 3 ans : 2nde pro (ou 1ère année)",
+        "level": 1
+    }
+},
+{
+    "model": "core.mefstat",
     "pk": "2382",
     "fields": {
         "label": "BAC pro 3 ans : 1ère pro (ou 2ème année)",
