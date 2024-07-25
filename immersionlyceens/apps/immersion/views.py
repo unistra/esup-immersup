@@ -244,6 +244,7 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
+
     """
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
@@ -380,8 +381,8 @@ def shibbolethLogin(request, profile=None):
             return HttpResponseRedirect("/")
 
         if is_high_school_student:
-            # Ignore email
-            shib_attrs.pop('email', None)
+            # replace email with a unique string
+            shib_attrs['email'] = uuid.uuid4().hex
 
         # Store unneeded attributes from shib_attrs for account creation
         other_fields = {

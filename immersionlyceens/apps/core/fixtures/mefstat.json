@@ -70,5 +70,69 @@
         "label": "bac pro 3 ans: term pro (ou 3ème année)",
         "level": 3
     }
+},
+{
+    "model": "core.mefstat",
+    "pk": "3211",
+    "fields": {
+        "label": "Brevet de technicien superieur en 1 an",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "3221",
+    "fields": {
+        "label": "Brevet de tech.sup.en 2 ans : 1ere année",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "3222",
+    "fields": {
+        "label": "Brevet de tech.sup.en 2 ans : 2eme année",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "3231",
+    "fields": {
+        "label": "Brevet de tech.sup.en 3 ans : 1ere année",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "3232",
+    "fields": {
+        "label": "Brevet de tech.sup.en 3 ans : 2eme année",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "3233",
+    "fields": {
+        "label": "Brevet de tech.sup.en 3 ans : 3eme année",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "6141",
+    "fields": {
+        "label": "Bts1 statut apprenti",
+        "level": 4
+    }
+},
+{
+    "model": "core.mefstat",
+    "pk": "6142",
+    "fields": {
+        "label": "Bts1 contrat de qualif.",
+        "level": 4
+    }
 }
 ]
