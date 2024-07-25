@@ -292,6 +292,7 @@ def shibbolethLogin(request, profile=None):
 
     optional_attributes = []
 
+
     # Extract all affiliations, clean empty lists and remove scopes (something@domain)
     try:
         affiliations = set(
@@ -363,6 +364,15 @@ def shibbolethLogin(request, profile=None):
             is_student = True
             mandatory_attributes += student_attribute
             group_name = 'ETU'
+
+    if not is_high_school_student:
+        # Attributes cleaning
+        try:
+            shib_attrs['username'] = shib_attrs['username'].strip().lower()
+            shib_attrs['email'] = shib_attrs['email'].strip().lower()
+        except:
+            # KeyError ? nothing to do
+            pass
 
     # parse affiliations:
     if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
