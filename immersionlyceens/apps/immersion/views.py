@@ -2067,7 +2067,7 @@ class VisitorRecordView(FormView):
                         validation_needed = True
                         # Optional documents to send
                         messages.warning(
-                            request, _("Record saved. Please check the optional documents to send below.")
+                            request, _("Please check the optional documents to send below.")
                         )
             else:
                 documents = VisitorRecordDocument.objects \
@@ -2132,7 +2132,7 @@ class VisitorRecordView(FormView):
             if valid_forms:
                 if request.user.is_visitor() and display_documents_message:
                     messages.warning(
-                        request, _("Record saved. Please fill all the required attestation documents below.")
+                        request, _("Please fill all the required attestation documents below.")
                     )
 
                 return self.form_valid(form)
