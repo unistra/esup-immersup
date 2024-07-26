@@ -57,6 +57,18 @@ def update_mail_variables(apps, schema_editor):
         except Exception as e:
             print(f"cannot add var {tp_var_code} to template {tp_code} : {e}")
 
+    # ======================
+
+    tp_codes = ["IMMERSION_ANNULATION_INT", "IMMERSION_ANNULATION_STR", "IMMERSION_RAPPEL_INT", "IMMERSION_RAPPEL_STR"]
+    tp_var_code = "{{ creneau.listeCohortes }}"
+
+    for tp_code in tp_codes:
+        try:
+            template = MailTemplate.objects.get(code=tp_code)
+            tp_var = MailTemplateVars.objects.get(code=tp_var_code)
+            template.available_vars.add(tp_var)
+        except Exception as e:
+            print(f"cannot add var {tp_var_code} to template {tp_code} : {e}")
 
 
 class Migration(migrations.Migration):
