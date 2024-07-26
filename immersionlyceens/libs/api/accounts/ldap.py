@@ -42,6 +42,8 @@ class AccountAPI(BaseAccountsAPI):
 
             if self.tls:
                 server_settings['tls'] = self.tls
+
+            if int(self.PORT) == 636:
                 server_settings['use_ssl'] = True
 
             logger.debug(f"Host: {self.HOST}, port: {self.PORT}, dn: {self.DN}, base: {self.BASE_DN}")
@@ -90,19 +92,30 @@ class AccountAPI(BaseAccountsAPI):
         Set LDAP Tls object
         :return: a Tls object using CACERT file from LDAP config, relative to SITE_ROOT/config symlink
         """
-        try:
-            return Tls(
-                ca_certs_file=path.join(
-                    settings.SITE_ROOT,
-                    "config",
-                    self.establishment.data_source_settings["CACERT"]
-                ),
-                validate=ssl.CERT_OPTIONAL
+        tls_settings = {}
 
+        if self.establishment.data_source_settings.get('CIPHERS'):
+            tls_settings['ciphers'] = self.establishment.data_source_settings.get('CIPHERS')
+        else:
+            # default ?
+            # tls_settings['ciphers'] = 'AES256-GCM-SHA384'
+            tls_settings['ciphers'] = 'ALL'
+
+        if self.establishment.data_source_settings.get("CACERT"):
+            tls_settings['ca_certs_file'] = path.join(
+                settings.SITE_ROOT,
+                "config",
+                self.establishment.data_source_settings["CACERT"]
             )
+            tls_settings['validate'] = ssl.CERT_OPTIONAL
+        else:
+            tls_settings['validate'] = ssl.CERT_NONE
+
+        try:
+            return Tls(**tls_settings)
         except Exception as e:
-            logger.error(f"LDAP TLS error: {e}")
             return None
+
 
     def check_settings(self):
         if not isinstance(self.establishment, Establishment):
