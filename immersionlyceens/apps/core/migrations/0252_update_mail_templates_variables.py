@@ -70,6 +70,18 @@ def update_mail_variables(apps, schema_editor):
         except Exception as e:
             print(f"cannot add var {tp_var_code} to template {tp_code} : {e}")
 
+    # =======================
+
+    tp_code = "CPT_MIN_CREATE"
+    tp_var_code = "{{ educonnect }}"
+
+    try:
+        template = MailTemplate.objects.get(code=tp_code)
+        tp_var = MailTemplateVars.objects.get(code=tp_var_code)
+        template.available_vars.add(tp_var)
+    except Exception as e:
+        print(f"cannot add var {tp_var_code} to template {tp_code} : {e}")
+
 
 class Migration(migrations.Migration):
 
