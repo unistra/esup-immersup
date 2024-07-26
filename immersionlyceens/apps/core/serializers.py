@@ -627,12 +627,18 @@ class SlotSerializer(serializers.ModelSerializer):
             required_fields = ["date", "period", "start_time", "end_time", "speakers"]
 
             if enabled_groups:
+                if not allow_individual_registrations and not allow_group_registrations:
+                    details['allow_individual_registrations'] = _(
+                        "At least one of 'allow_individual_registrations' or 'allow_group_registrations' must be set"
+                    )
+
                 if allow_individual_registrations or not allow_group_registrations:
                     required_fields.append("n_places")
                 elif allow_group_registrations:
                     required_fields.append("n_group_places")
             else:
                 required_fields.append("n_places")
+                data["allow_individual_registrations"] = True
 
             if place in [Slot.FACE_TO_FACE, Slot.OUTSIDE]:
                 required_fields.append("room")
