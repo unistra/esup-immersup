@@ -33,14 +33,12 @@
         <input type="text" id='id_from' name="{% trans 'from' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
         <label for="id_until" class="col-form-label ml-2"> {% trans 'To' %} : </label>
         <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
-        <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
-      </div>
-      <div class="form-group row align-items-center ml-1">
         <label for="id_from" class="col-form-label ml-2"> {% trans 'Registrations' %} : </label>
         <select id="id_place" name="place"  class="form-control form-control-sm col-sm-1 ml-2">
           <option value="0">{% trans 'Face to face' %}</option>
           <option value="2">{% trans 'Outside of host establishment' %}</option>
         </select>
+        <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
       </div>
       </form>
       <div class="col-12 col-sm-12 col-lg-12 table-responsive">
@@ -105,6 +103,9 @@
   var alert1 = "{% blocktrans %}'From' date must be before 'Until' date'{% endblocktrans %}";
   var alert2 = "{% blocktrans %}'Until' date must be after 'From' date'{% endblocktrans %}";
 
+  var from_date
+  var until_date
+
   $(document).ready(function () {
     $(function () {
       $(".datepicker").datepicker({
@@ -138,8 +139,8 @@
       'ajax': {
         url: "{% url 'ajax_get_student_presence' %}",
         data: function(d) {
-          d.from_date = $('#id_from').val()
-          d.until_date = $('#id_until').val()
+          d.from_date = from_date
+          d.until_date = until_date
           d.place = $('#id_place').val()
         },
         dataSrc: function (json) {
@@ -395,7 +396,9 @@
         filter_container_id: "contact_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
-    },{
+    },
+    {% if request.user.is_legal_department_staff %}
+    {
         column_number: 6,
         filter_default_label: "",
         filter_container_id: "campus_filter",
@@ -407,7 +410,9 @@
         filter_container_id: "building_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
-    },{
+    },
+    {% endif %}
+    {
         column_number: 8,
         filter_default_label: "",
         filter_container_id: "meeting_place_filter",
@@ -424,10 +429,10 @@
   ]);
 
   $('#id_dates_apply').click(function () {
-    var from_date_val = $('#id_from').val();
-    var until_date_val = $('#id_until').val();
-    var from_date = "None"
-    var until_date = "None"
+    let from_date_val = $('#id_from').val();
+    let until_date_val = $('#id_until').val();
+    from_date = "None"
+    until_date = "None"
 
     if(from_date_val !== "") {
       var f = from_date_val.split("/");
@@ -439,7 +444,7 @@
       until_date = u[2]+"-"+u[1]+"-"+u[0];
     }
 
-    dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
+    // dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
     dt.ajax.reload();
   });
 
@@ -447,8 +452,8 @@
   $('#id_from').change(function() {
     var from_date_val = $(this).val();
     var until_date_val = $('#id_until').val();
-    var from_date = "";
-    var until_date = "";
+    from_date = "";
+    until_date = "";
 
     if(from_date_val !== "") {
       var f = from_date_val.split("/");
@@ -469,8 +474,8 @@
   $('#id_until').change(function() {
     var until_date_val = $(this).val();
     var from_date_val = $('#id_from').val();
-    var from_date = "";
-    var until_date = "";
+    from_date = "";
+    until_date = "";
 
     if(from_date_val !== "") {
       var f = from_date_val.split("/");
@@ -488,11 +493,11 @@
     }
   });
 
+  /*
   $('#id_place').change(function() {
-
-    dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
     dt.ajax.reload();
-  }
+  })
+  */
 
 });
 </script>
