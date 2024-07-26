@@ -611,6 +611,7 @@ class SlotSerializer(serializers.ModelSerializer):
         allow_individual_registrations = data.get('allow_individual_registrations')
         allow_group_registrations = data.get('allow_group_registrations')
         group_mode = data.get('group_mode')
+        public_group = data.get('public_group')
         details = {}
 
         enabled_groups = get_general_setting("ACTIVATE_COHORT")
@@ -637,6 +638,7 @@ class SlotSerializer(serializers.ModelSerializer):
                 elif allow_group_registrations:
                     required_fields.append("n_group_places")
                     required_fields.append("group_mode")
+                    required_fields.append("public_group")
             else:
                 required_fields.append("n_places")
                 data["allow_individual_registrations"] = True
