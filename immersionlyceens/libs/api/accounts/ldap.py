@@ -26,12 +26,13 @@ class AccountAPI(BaseAccountsAPI):
 
     def __init__(self, establishment: Establishment):
         self.establishment = establishment
-        self.tls = self.set_tls()
 
         try:
             self.check_settings()
         except Exception as e:
             raise ImproperlyConfigured(_("Please check establishment LDAP plugin settings : %s") % e)
+
+        self.tls = self.set_tls()
 
         try:
             server_settings = {
