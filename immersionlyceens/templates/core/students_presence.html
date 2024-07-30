@@ -187,16 +187,21 @@
       },
       { "data": "student_profile",
         "name": "student_profile",},
-      { "data": "name",
+      { "data": "",
         "name": "name",
         "render": function(data, type, row) {
-          let name = `${row.last_name.toUpperCase()} ${row.first_name}`
+          if(row.datatype == 'student') {
+            let name = `${row.last_name.toUpperCase()} ${row.first_name}`
 
-          if(type === "sort") {
-            return name.toLowerCase()
+            if (type === "sort") {
+              return name.toLowerCase()
+            }
+
+            return name
           }
-
-          return name
+          else {
+            return row.file
+          }
         }
       },
       { "data": "institution",
@@ -205,8 +210,24 @@
         "name": "contact",
         "render": function(data, type, row) {
           var txt = "<ul>";
-          if(row.phone !== "") { txt += "<li>" + row.phone + "</li>"; }
-          if(row.email !== "") { txt += "<li>" + row.email + "</li>"; }
+          if(row.datatype == 'student') {
+            if (row.phone !== "") {
+              txt += "<li>" + row.phone + "</li>";
+            }
+            if (row.email !== "") {
+              txt += "<li>" + row.email + "</li>";
+            }
+          }
+          else {
+            if(row.emails === "") {
+              return ""
+            }
+
+            let split = row.emails.split(',')
+            split.forEach(item => {
+              txt += `<li>${item}</li>`
+            })
+          }
           txt += "</ul>";
           return txt;
         }

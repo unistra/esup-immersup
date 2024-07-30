@@ -3635,6 +3635,7 @@ def ajax_get_student_presence(request):
         )
         .filter(Q_filters, **filters, cancellation_type__isnull=True)
         .annotate(
+            datatype=Value('student'),
             date=F('slot__date'),
             start_time=F('slot__start_time'),
             end_time=F('slot__end_time'),
@@ -3683,7 +3684,46 @@ def ajax_get_student_presence(request):
         .values()
     )
 
-    response['data'] = [i for i in immersions]
+    group_immersions = (
+        ImmersionGroupRecord.objects.prefetch_related(
+            'slot__campus',
+            'slot__building',
+            'slot__course__structure__establishment',
+            'slot__event__establishment',
+            'slot__course__structure',
+            'slot__event__structure'
+            'highschool'
+        )
+        .filter(Q_filters, **filters, cancellation_type__isnull=True)
+        .annotate(
+            datatype=Value('group'),
+            date=F('slot__date'),
+            start_time=F('slot__start_time'),
+            end_time=F('slot__end_time'),
+            student_profile=Value(gettext('Group')),
+            institution=F('highschool__label'),
+            campus=F('slot__campus__label'),
+            building=F('slot__building__label'),
+            meeting_place=Case(
+                When(slot__place=Slot.FACE_TO_FACE, then=F('slot__room')),
+                When(slot__place=Slot.OUTSIDE, then=F('slot__room')),
+                default=Value(gettext('Remote')),
+            ),
+            establishment=Coalesce(
+                F('slot__course__structure__establishment__label'),
+                F('slot__event__establishment__label'),
+                F('slot__course__highschool__label'),
+                F('slot__event__highschool__label'),
+            ),
+            structure=Coalesce(
+                F('slot__course__structure__label'),
+                F('slot__event__structure__label'),
+            ),
+        )
+        .values()
+    )
+
+    response['data'] = list(immersions) + list(group_immersions)
 
     return JsonResponse(response, safe=False)
 
