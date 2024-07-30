@@ -3580,17 +3580,27 @@ def ajax_send_email_contact_us(request):
 @login_required
 @is_ajax_request
 @groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
-def ajax_get_student_presence(request, date_from=None, date_until=None):
+def ajax_get_student_presence(request):
+    #, date_from=None, date_until=None):
+
     response = {'data': [], 'msg': ''}
 
-    filters = {}
+    from_date = request.GET.get('from_date')
+    until_date = request.GET.get('until_date')
+
+    try:
+        place = int(request.GET.get('place', 0))
+    except:
+        place = 0
+
+    filters = {'slot__place': place}
     Q_filters = Q()
 
-    if date_from and date_from != "None":
-        filters["slot__date__gte"] = date_from
+    if from_date and from_date != "None":
+        filters["slot__date__gte"] = from_date
 
-    if date_until and date_until != "None":
-        filters["slot__date__lte"] = date_until
+    if until_date and until_date != "None":
+        filters["slot__date__lte"] = until_date
 
     if not request.user.is_superuser and (
         request.user.is_establishment_manager() or request.user.is_legal_department_staff()
