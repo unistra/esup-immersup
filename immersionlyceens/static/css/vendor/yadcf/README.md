@@ -8,6 +8,14 @@ Description:
 This jQuery plug-in allows the user to easily add filter components to table columns, the plug-in works on top of the DataTables jQuery plug-in.
 
 
+Great news everyone:
+=====
+
+I have started working on yadcf2 to support the new DataTables 2!
+The new showcase page is https://yadcf.web.app/
+yadcf 2 will support DT 1 and DT 2, you should use the yadcf.init api to init the filters
+ 
+
 Contact/Social:
 =====
 If you want to ask a question you can post a question on [stackoverflow](http://www.stackoverflow.com) with [yadcf](http://stackoverflow.com/questions/tagged/yadcf) tag
@@ -124,6 +132,7 @@ $(document).ready(function(){
 Available parameters - being set per column (detailed explanation inside jquery.dataTables.yadcf.js)
 
 * column_number
+* column_selector
 * filter_type
 * custom_func
 * data
