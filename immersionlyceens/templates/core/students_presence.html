@@ -34,34 +34,33 @@
         <label for="id_until" class="col-form-label ml-2"> {% trans 'To' %} : </label>
         <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
         <label for="id_from" class="col-form-label ml-2"> {% trans 'Registrations' %} : </label>
-        <select id="id_place" name="place"  class="form-control form-control-sm col-sm-1 ml-2">
+        <select id="id_place" name="place"  class="form-control form-control-sm col-sm-2 ml-3">
           <option value="0">{% trans 'Face to face' %}</option>
           <option value="2">{% trans 'Outside of host establishment' %}</option>
         </select>
         <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
       </div>
-      </form>
       <div class="col-12 col-sm-12 col-lg-12 table-responsive">
         <table id="students_table" class="table table-sm table-striped table-bordered compact" style="border-spacing:0;border-collapse:collapse;width:100%;">
           <thead>
             <tr>
             {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-              <th id="establishment_filter" class="align-top">{% trans 'Establishment' %}</th>
+              <th id="establishment_filter" class="align-bottom">{% trans 'Establishment' %}<br></th>
             {% endif %}
             {% if not request.user.is_high_school_manager %}
-              <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
+              <th id="structure_filter" class="align-bottom">{% trans 'Structure' %}<br></th>
             {% endif %}
-              <th id="datetime_filter" class="align-top">{% trans 'Date' %}</th>
-              <th id="student_profile_filter" class="align-top">{% trans  'Profile' %}</th>
-              <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
-              <th id="institution_filter" class="align-top">{% trans 'Origin institution' %}</th>
-              <th id="contact_filter" class="align-top">{% trans 'Phone / Email' %}</th>
+              <th id="datetime_filter" class="align-bottom">{% trans 'Date' %}<br></th>
+              <th id="student_profile_filter" class="align-bottom">{% trans  'Profile' %}<br></th>
+              <th id="student_filter" class="align-bottom">{% trans 'Student' %}<br></th>
+              <th id="institution_filter" class="align-bottom">{% trans 'Origin institution' %}<br></th>
+              <th id="contact_filter" class="align-bottom">{% trans 'Phone / Email' %}<br></th>
             {% if not request.user.is_high_school_manager %}
-            <th id="campus_filter" class="align-top">{% trans 'Campus' %}</th>
-            <th id="building_filter" class="align-top">{% trans 'Building' %}</th>
+            <th id="campus_filter" class="align-bottom">{% trans 'Campus' %}<br></th>
+            <th id="building_filter" class="align-bottom">{% trans 'Building' %}<br></th>
             {% endif %}
-              <th id="meeting_place_filter" class="align-top">{% trans 'Meeting place' %}</th>
-              <th id="registration_date_filter" class="align-top>">{% trans "Date of registration" %}</th>
+              <th id="meeting_place_filter" class="align-bottom">{% trans 'Meeting place' %}<br></th>
+              <th id="registration_date_filter" class="align-bottom>">{% trans "Date of registration" %}<br></th>
             </tr>
           </thead>
           <tbody>
@@ -106,6 +105,11 @@
   var from_date
   var until_date
 
+  var is_master_establishment_manager = "{{ request.user.is_master_establishment_manager }}" === "True"
+  var is_operator = "{{ request.user.is_operator }}" === "True"
+  var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
+
+
   $(document).ready(function () {
     $(function () {
       $(".datepicker").datepicker({
@@ -116,22 +120,20 @@
       });
     });
 
+    function def_dt_order() {
+      if(is_master_establishment_manager || is_operator) {
+        return [[2, "asc"]]
+      }
+      if(is_high_school_manager) {
+        return [[0, "asc"]]
+      }
+      return [[1, "asc"]]
+    }
+
     $.fn.dataTableExt.errMode = 'console';
     dt = $('#students_table').DataTable({
       'processing': false,
-      {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-      'order': [
-        [2, "asc"],
-      ],
-      {% elif request.user.is_high_school_manager %}
-      'order': [
-        [0, "asc"],
-      ],
-      {% else %}
-      'order': [
-        [1, "asc"],
-      ],
-      {% endif %}
+      'order': def_dt_order(),
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
@@ -157,12 +159,17 @@
     {% endif %}
     'columns': [
     {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-      { "data": "establishment"},
+      { "data": "establishment",
+        "name": "establishment"
+      },
     {% endif %}
     {% if not request.user.is_high_school_manager %}
-      { "data": "structure"},
+      { "data": "structure",
+        "name": "structure"
+      },
     {% endif %}
       { "data": "date",
+        "name": "date",
         "render": function(data, type, row) {
           let date = formatDate(data, date_options)
           let start_split = row.start_time.split(':')
@@ -171,15 +178,17 @@
           let end = `${end_split[0]}h${end_split[1]}`
 
           // format date only for display and filter, not for sorting
-          if(type === "display" || type === "filter") {
+          if(type === "display") {
             return `${date}<br />${start} - ${end}`
           }
 
-          return `${data} ${start} ${end}`
+          return `${data} - ${start} ${end}`
         }
       },
-      { "data": "student_profile"},
+      { "data": "student_profile",
+        "name": "student_profile",},
       { "data": "name",
+        "name": "name",
         "render": function(data, type, row) {
           let name = `${row.last_name.toUpperCase()} ${row.first_name}`
 
@@ -190,8 +199,10 @@
           return name
         }
       },
-      { "data": "institution" },
+      { "data": "institution",
+        "name": "institution", },
       { "data": "",
+        "name": "contact",
         "render": function(data, type, row) {
           var txt = "<ul>";
           if(row.phone !== "") { txt += "<li>" + row.phone + "</li>"; }
@@ -201,11 +212,18 @@
         }
       },
       {% if not request.user.is_high_school_manager %}
-      { "data": "campus" },
-      { "data": "building" },
+      { "data": "campus",
+        "name": "campus"
+      },
+      { "data": "building",
+        "name": "building"
+      },
       {% endif %}
-      { "data": "meeting_place" },
+      { "data": "meeting_place",
+        "name": "meeting_place"
+      },
       { "data": "registration_date",
+        "name": "registration_date",
         render: function(data, type, row) {
           if (type !== 'sort') {
             return data ? formatDate(data) : "";
@@ -216,21 +234,12 @@
       },
     ],
     "columnDefs": [
-      {
-        "defaultContent": "",
-        "targets": "_all",
-        "className": "all",
-      },
-    ],
-    initComplete: function (settings) {
-      var api = new $.fn.dataTable.Api( settings );
-
-      if(is_legal_department_staff) {
-        let campus_col_no = 6
-        let building_col_no = 7
-        api.columns([campus_col_no, building_col_no]).visible(false)
-      };
-    }
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+    ]
   });
 
   // All filters reset action
@@ -240,192 +249,65 @@
 
   // Filters init
   yadcf.init(dt, [
-  {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-  {
-    column_number: 0,
-    filter_default_label: "",
-    filter_container_id: "establishment_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 1,
-    filter_default_label: "",
-    filter_container_id: "structure_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 2,
-    filter_default_label: "",
-    filter_container_id: "datetime_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 3,
-    filter_default_label: "",
-    filter_container_id: "student_profile_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 4,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "student_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 5,
-    filter_default_label: "",
-    filter_container_id: "institution_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 6,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "contact_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 7,
-    filter_default_label: "",
-    filter_container_id: "campus_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 8,
-    filter_default_label: "",
-    filter_container_id: "building_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 9,
-    filter_default_label: "",
-    filter_container_id: "meeting_place_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
+    {
+      column_selector: "establishment:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "structure:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "date:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "student_profile:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "name:name",
+      filter_type: "text",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "institution:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "contact:name",
+      filter_type: "text",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "campus:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "building:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "meeting_place:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
 
-  },{
-    column_number: 10,
-    filter_default_label: "",
-    filter_container_id: "registration_date_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }
-  {% elif request.user.is_high_school_manager %}
-  {
-    column_number: 0,
-    filter_default_label: "",
-    filter_container_id: "datetime_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 1,
-    filter_default_label: "",
-    filter_container_id: "student_profile_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 2,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "student_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 3,
-    filter_default_label: "",
-    filter_container_id: "institution_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 4,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "contact_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 5,
-    filter_default_label: "",
-    filter_container_id: "meeting_place_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 6,
-    filter_default_label: "",
-    filter_container_id: "registration_date_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }
-  {% else %}
-    {
-        column_number: 0,
-        filter_default_label: "",
-        filter_container_id: "structure_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
     },{
-        column_number: 1,
-        filter_default_label: "",
-        filter_container_id: "datetime_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },{
-        column_number: 2,
-        filter_default_label: "",
-        filter_container_id: "student_profile_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },{
-        column_number: 3,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "student_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },{
-        column_number: 4,
-        filter_default_label: "",
-        filter_container_id: "institution_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },{
-        column_number: 5,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "contact_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    {% if request.user.is_legal_department_staff %}
-    {
-        column_number: 6,
-        filter_default_label: "",
-        filter_container_id: "campus_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },{
-        column_number: 7,
-        filter_default_label: "",
-        filter_container_id: "building_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },
-    {% endif %}
-    {
-        column_number: 8,
-        filter_default_label: "",
-        filter_container_id: "meeting_place_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-    },{
-        column_number: 9,
-        filter_default_label: "",
-        filter_container_id: "registration_date_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
+      column_selector: "registration_date:name",
+      filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
     }
-  {% endif %}
   ]);
 
   $('#id_dates_apply').click(function () {
@@ -444,8 +326,17 @@
       until_date = u[2]+"-"+u[1]+"-"+u[0];
     }
 
-    // dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
+    // Toggle columns depending on registrations place
+    let place = parseInt($('#id_place').val())
+    let outside = 2
+
+    // Reload data
     dt.ajax.reload();
+
+    let visible = place !== outside
+    dt.columns(["campus:name", "building:name"]).visible(visible)
+
+
   });
 
   // Dates checks
