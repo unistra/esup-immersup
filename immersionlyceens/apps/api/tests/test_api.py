@@ -2684,7 +2684,7 @@ class APITestCase(TestCase):
         url = "/api/get_students_presence"
 
         data = {}
-        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        content = json.loads(self.client.get(url, data, **self.header).content.decode())
 
         if self.immersion.student.is_visitor():
             student_profile = _('Visitor')
@@ -2697,7 +2697,6 @@ class APITestCase(TestCase):
         # a specific immersion
         i = list(filter(lambda x:x['id'] == self.immersion.id, content['data']))[0]
 
-        # i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
         self.assertEqual(self.immersion.slot.date.strftime("%Y-%m-%d"), i['date'])
         self.assertEqual(self.immersion.slot.start_time.strftime("%H:%M:%S"), i['start_time'])
@@ -2712,8 +2711,15 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.room, i['meeting_place'])
         self.assertEqual(student_profile, i['student_profile'])
 
-        url2 = f'/api/get_students_presence/{self.today.date()- timedelta(days=90)}/{self.today.date()}'
-        content = json.loads(self.client.post(url2, data, **self.header).content.decode())
+        data = {
+            'from_date': (self.today.date() - timedelta(days=90)).strftime("%Y-%m-%d"),
+            'until_date': self.today.date().strftime("%Y-%m-%d"),
+            'place': Slot.FACE_TO_FACE
+        }
+
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+
         i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
         self.assertEqual(self.immersion.slot.date.strftime("%Y-%m-%d"), i['date'])
@@ -2729,14 +2735,14 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.room, i['meeting_place'])
         self.assertEqual(student_profile, i['student_profile'])
 
-        # ref_lyc
+        # ref_lyc: forbidden
         request.user = self.ref_lyc
         self.client.login(username='ref_lyc', password='pass')
         url = "/api/get_students_presence"
 
         # No data
-        content = json.loads(self.client.post(url, data, **self.header).content.decode())
-        self.assertEqual(content['msg'], "")
+        response = self.client.get(url, data, **self.header)
+        self.assertEqual(response.content.decode('utf-8'), "")
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user

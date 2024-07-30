@@ -3579,9 +3579,12 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC')
 def ajax_get_student_presence(request):
-    #, date_from=None, date_until=None):
+    """
+    List of registrations to every slot
+    GET params: from_date, until_date, place (0:face to face or 2:outside of the establishment)
+    """
 
     response = {'data': [], 'msg': ''}
 
@@ -3602,28 +3605,20 @@ def ajax_get_student_presence(request):
     if until_date and until_date != "None":
         filters["slot__date__lte"] = until_date
 
-    if not request.user.is_superuser and (
-        request.user.is_establishment_manager() or request.user.is_legal_department_staff()
-    ):
+    if request.user.is_superuser or request.user.is_operator() or request.user.is_master_establishment_manager():
+        Q_filters = (
+                Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
+                | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
+                | Q(slot__course__isnull=False)
+        )
+
+    elif request.user.is_establishment_manager() or request.user.is_legal_department_staff():
         structures = request.user.establishment.structures.all()
 
         Q_filters = (
             Q(slot__course__structure__in=structures)
             | Q(slot__event__structure__in=structures, slot__place=Slot.FACE_TO_FACE)
             | Q(slot__event__structure__in=structures, slot__place=Slot.OUTSIDE)
-        )
-
-    elif request.user.is_high_school_manager() and not request.user.is_superuser:
-        Q_filters = (
-            Q(slot__course__highschool=request.user.highschool)
-            | Q(slot__event__highschool=request.user.highschool, slot__place=Slot.FACE_TO_FACE)
-            | Q(slot__event__highschool=request.user.highschool, slot__place=Slot.OUTSIDE)
-        )
-    else:
-        Q_filters = (
-            Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
-            | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
-            | Q(slot__course__isnull=False)
         )
 
     immersions = (
