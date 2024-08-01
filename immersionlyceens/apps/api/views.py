@@ -3607,9 +3607,9 @@ def ajax_get_student_presence(request):
 
     if request.user.is_superuser or request.user.is_operator() or request.user.is_master_establishment_manager():
         Q_filters = (
-                Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
-                | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
-                | Q(slot__course__isnull=False)
+            Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
+            | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
+            | Q(slot__course__isnull=False)
         )
 
     elif request.user.is_establishment_manager() or request.user.is_legal_department_staff():
@@ -3679,10 +3679,12 @@ def ajax_get_student_presence(request):
             structure=Coalesce(
                 F('slot__course__structure__label'),
                 F('slot__event__structure__label'),
-            ),
+            )
         )
         .values()
     )
+
+    # Build a second queryset with group immersions
 
     group_immersions = (
         ImmersionGroupRecord.objects.prefetch_related(
@@ -3718,11 +3720,13 @@ def ajax_get_student_presence(request):
             structure=Coalesce(
                 F('slot__course__structure__label'),
                 F('slot__event__structure__label'),
-            ),
+            )
         )
         .values()
     )
 
+    # Return a list with mixed values, 'datatype' field must be used to know
+    # what to display in datatable
     response['data'] = list(immersions) + list(group_immersions)
 
     return JsonResponse(response, safe=False)

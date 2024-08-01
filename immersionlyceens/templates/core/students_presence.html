@@ -51,7 +51,8 @@
               <th id="structure_filter" class="align-bottom">{% trans 'Structure' %}<br></th>
             {% endif %}
               <th id="datetime_filter" class="align-bottom">{% trans 'Date' %}<br></th>
-              <th id="student_profile_filter" class="align-bottom">{% trans  'Profile' %}<br></th>
+              <th id="student_profile_filter" class="align-bottom">{% trans 'Profile' %}<br></th>
+              <th id="nb_persons_filter" class="align-bottom">{% trans 'Registered' %}<br></th>
               <th id="student_filter" class="align-bottom">{% trans 'Student' %}<br></th>
               <th id="institution_filter" class="align-bottom">{% trans 'Origin institution' %}<br></th>
               <th id="contact_filter" class="align-bottom">{% trans 'Phone / Email' %}<br></th>
@@ -68,6 +69,7 @@
             {% if request.user.is_master_establishment_manager or request.user.is_operator %}
               <td></td>
             {% endif %}
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -182,11 +184,22 @@
             return `${date}<br />${start} - ${end}`
           }
 
-          return `${data} - ${start} ${end}`
+          return `${date} - ${start} ${end}`
         }
       },
       { "data": "student_profile",
-        "name": "student_profile",},
+        "name": "student_profile"
+      },
+      { "data": "",
+        "name": "registered",
+        "render": function(data, type, row) {
+          if(row.datatype === 'student') {
+            return "1"
+          }
+
+          return `{% trans 'Students' %}:&nbsp;${row.students_count}<br>{% trans 'Guides' %}:&nbsp;${row.guides_count}`
+        }
+      },
       { "data": "",
         "name": "name",
         "render": function(data, type, row) {
@@ -200,12 +213,22 @@
             return name
           }
           else {
-            return row.file
+            if(row.file) {
+              if(type === 'filter' || type === 'sort') {
+                return row.file
+              }
+              return `<a target='blank' href='/dl/immersiongroup/${row.id}' title='${row.file}' class='pl-2'>` +
+                      `<i class='fa fas fa-file-text-o fa-2x'></i>` +
+                     `</a>`
+            }
           }
+
+          return ""
         }
       },
       { "data": "institution",
-        "name": "institution", },
+        "name": "institution"
+      },
       { "data": "",
         "name": "contact",
         "render": function(data, type, row) {
@@ -283,6 +306,7 @@
     },{
       column_selector: "date:name",
       filter_default_label: "",
+      filter_type: "text",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },{
@@ -291,6 +315,12 @@
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },{
+      column_selector: "registered:name",
+      filter_default_label: "",
+      filter_type: "text",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }, {
       column_selector: "name:name",
       filter_type: "text",
       filter_default_label: "",
@@ -326,6 +356,7 @@
     },{
       column_selector: "registration_date:name",
       filter_default_label: "",
+      filter_type: "text",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }
@@ -405,11 +436,6 @@
     }
   });
 
-  /*
-  $('#id_place').change(function() {
-    dt.ajax.reload();
-  })
-  */
 
 });
 </script>
