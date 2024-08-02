@@ -1,3 +1,14 @@
+var selected_slots = Array()
+
+function slot_mass_update() {
+    let slots_array = $("input:checkbox[name=select_for_mass_update]:checked")
+        .map(function (){
+          return $(this).val();
+        }).toArray();
+
+    window.location.href = "/core/";
+}
+
 function init_datatable() {
   show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
   show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
@@ -66,6 +77,10 @@ function init_datatable() {
           render: function(data, type, row) {
             let element = ""
 
+            if(row.is_past === false && show_modify_btn && enabled_mass_update === true) {
+                element += `<input class="mass chk mr-1" type="checkbox" name="select_for_mass_update_${data}" value="${data}">`
+            }
+
             if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me || cohorts_only ) {
               if ( show_duplicate_btn ) {
                 element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
@@ -74,6 +89,7 @@ function init_datatable() {
 
               if(row.is_past === false && show_modify_btn) {
                 element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
+
               }
               if(row.n_register === 0 && row.is_past === false && show_delete_btn) {
                 element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
@@ -189,8 +205,10 @@ function init_datatable() {
           }
         }
     ],
-    columnDefs: [
-        { defaultContent: '-', targets: '_all' },
+    columnDefs: [{
+        defaultContent: '-',
+        targets: '_all'
+      }
     ],
 
     initComplete: function () {
@@ -242,6 +260,19 @@ function init_datatable() {
         });
       })
     }
+  });
+
+  // Jquery $(name=) events doesn't fire up with checkboxes in datatable, so use this instead:
+  $(document).on("change", ".mass", function() {
+    if(!$(this).is(':checked')) {
+      // let filtered_array = selected_slots.filter(function(e) { return e !== $(this).val()})
+      selected_slots = selected_slots.filter(e => e !== $(this).val())
+    }
+    else {
+      selected_slots.push($(this).val())
+    }
+
+    $("[name='mass_slots_list']").val(selected_slots)
   });
 
   // All filters reset action
@@ -319,5 +350,4 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
   ])
-
 }

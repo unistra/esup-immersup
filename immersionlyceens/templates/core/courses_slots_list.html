@@ -25,11 +25,16 @@
 {% endblock %}
 
 {% block card_title %}
-{% if not request.user.is_structure_consultant %}
-<div>
+  {% general_settings_get 'ACTIVATE_MASS_UPDATE' as activate_mass_update %}
+  {% if not request.user.is_structure_consultant %}
+  <div class="mb-2">
     <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
-</div>
-{% endif %}
+    <button id='id_mass_update' class="btn btn-primary ml-4" title="{% trans 'Mass update' %}">
+      {% trans 'Mass update' %}
+    </button>
+    <input type="hidden" name="mass_slots_list" value="">
+  </div>
+  {% endif %}
 {% endblock %}
 
 {% block trainings_filter %}

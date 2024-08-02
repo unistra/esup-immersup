@@ -35,7 +35,7 @@ from .admin_forms import (
 from .forms import (
     ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
     MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
-    StructureForm, TrainingFormHighSchool
+    SlotMassUpdateForm, StructureForm, TrainingFormHighSchool
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
@@ -45,6 +45,7 @@ from .models import (
 )
 
 from .serializers import PeriodSerializer
+from ..context_processors import establishments
 
 logger = logging.getLogger(__name__)
 
@@ -1348,6 +1349,51 @@ class CourseSlotUpdate(generic.UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, _("Course slot \"%s\" not updated.") % form.instance)
         return super().form_invalid(form)
+
+
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC')
+def course_slot_mass_update(request):
+    form_class = SlotMassUpdateForm
+    template_name = "core/course_slot_mass_update.html"
+    form = None
+    form_kwargs = {}
+    context = {}
+
+    if request.POST:
+
+        pass
+    else:
+        try:
+            slot_ids = request.GET.get('mass_slots_list')
+            slot_ids = slot_ids.split(',')
+        except Exception:
+            return redirect(reverse('courses_slots'))
+
+        # Same course ?
+        if Slot.objects.filter(id__in=slot_ids).values('course').distinct().count() == 1:
+            form_kwargs['speakers'] = Slot.objects.get(pk=slot_ids[0]).course.speakers.all().values('id')
+
+        # Same establishment ? => send to form to initializer campuses queryset
+        if Slot.objects.filter(id__in=slot_ids).values('course__structure__establishment').distinct().count() == 1:
+            try:
+                establishment_id = Slot.objects.get(pk=slot_ids[0]).course.structure.establishment.pk
+                form_kwargs['establishment'] = establishment_id
+                context['establishment_id'] = establishment_id
+            except:
+                # Slot course has not structure (linked to a highschool)
+                pass
+
+        form = form_class(**form_kwargs)
+
+    context.update({
+        "form": form,
+        "slot_ids": slot_ids,
+        "periods": json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        })
+    })
+
+    return render(request, template_name, context)
 
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")

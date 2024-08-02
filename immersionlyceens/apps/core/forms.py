@@ -14,6 +14,7 @@ from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from django_countries.fields import CountryField
 from rest_framework.exceptions import ValidationError
 
+from ..user.models import Student
 from ...libs.utils import get_general_setting
 from ..immersion.forms import StudentRecordForm
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -576,6 +577,78 @@ class SlotForm(forms.ModelForm):
             'end_time': TimeInput(format='%H:%M'),
         }
 
+        localized_fields = ('date', 'repeat')
+
+
+class SlotMassUpdateForm(forms.Form):
+    course_type = forms.ModelChoiceField(queryset=CourseType.objects.all(), required=True)
+    campus = forms.ModelChoiceField(queryset=Campus.objects.none(), required=False)
+    building = forms.ModelChoiceField(queryset=Building.objects.none(), required=False)
+    room = forms.CharField(max_length=128, required=False) # also known as 'meeting place'
+    date = forms.DateField(required=True)
+    period = forms.ModelChoiceField(queryset=Period.objects.none(), required=False)
+    start_time = forms.TimeField(required=True)
+    end_time = forms.TimeField(required=True)
+    registration_limit_delay = forms.IntegerField(required=False)
+    cancellation_limit_delay = forms.IntegerField(required=False)
+    speakers = forms.ModelMultipleChoiceField(queryset=ImmersionUser.objects.none())
+    allow_individual_registrations = forms.BooleanField()
+    allow_group_registrations = forms.BooleanField()
+    group_mode = forms.ChoiceField(choices=Slot.GROUP_MODES)
+    n_places = forms.IntegerField()
+    n_group_places = forms.IntegerField()
+    public_group = forms.BooleanField()
+    additional_information = forms.CharField(required=False)
+    establishments_restrictions = forms.BooleanField()
+    levels_restrictions = forms.BooleanField()
+    bachelors_restrictions = forms.BooleanField()
+    allowed_establishments = forms.ModelMultipleChoiceField(queryset=Establishment.objects.all())
+    allowed_highschools = forms.ModelMultipleChoiceField(queryset=HighSchool.objects.all())
+    allowed_highschool_levels = forms.ModelMultipleChoiceField(queryset=HighSchoolLevel.objects.all())
+    allowed_student_levels = forms.ModelMultipleChoiceField(queryset=StudentLevel.objects.all())
+    allowed_post_bachelor_levels = forms.ModelMultipleChoiceField(queryset=PostBachelorLevel.objects.all())
+    allowed_bachelor_types = forms.ModelMultipleChoiceField(queryset=BachelorType.objects.all())
+    allowed_bachelor_mentions = forms.ModelMultipleChoiceField(queryset=BachelorMention.objects.all())
+    allowed_bachelor_teachings = forms.ModelMultipleChoiceField(queryset=GeneralBachelorTeaching.objects.all())
+    published = forms.BooleanField()
+
+    def __init__(self, *args, **kwargs):
+        establishment = kwargs.pop("establishment")
+        speakers = kwargs.pop("speakers")
+
+        super().__init__(*args, **kwargs)
+
+        # set querysets if all selected slots share some values
+        if speakers:
+            self.fields["speakers"].queryset = ImmersionUser.objects.filter(pk__in=speakers)
+
+        if establishment:
+            self.fields["campus"].queryset = Campus.objects.filter(active=True, establishment_id=establishment)
+        else:
+            # Multiple establishments : can't update campus/building
+            self.fields["campus"].disabled = True
+            self.fields["building"].disabled = True
+
+        # Widgets
+        self.fields['date'].widget = forms.DateInput(
+            format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
+        )
+
+        self.fields['start_time'].widget = TimeInput(format='%H:%M')
+        self.fields['end_time'].widget = TimeInput(format='%H:%M')
+
+        self.fields['room'].widget = forms.TextInput(attrs={'placeholder': _('Enter the room name')})
+        self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': 200})
+        self.fields['additional_information'].widget = forms.Textarea(attrs={'placeholder': _('Enter additional information'),})
+
+        for elem in ['course_type', 'campus', 'building', 'room', 'start_time', 'end_time', 'n_places',
+                     'additional_information', 'allowed_establishments', 'allowed_highschools',
+                     'allowed_highschool_levels', 'allowed_student_levels', 'allowed_post_bachelor_levels',
+                     'allowed_bachelor_types', 'allowed_bachelor_mentions', 'allowed_bachelor_teachings',
+                     'registration_limit_delay', 'cancellation_limit_delay', 'period']:
+            self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+    class Meta:
         localized_fields = ('date', 'repeat')
 
 
