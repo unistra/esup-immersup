@@ -364,6 +364,8 @@ def shibbolethLogin(request, profile=None):
             is_student = True
             mandatory_attributes += student_attribute
             group_name = 'ETU'
+    else:
+        shib_attrs['username'] = shib_attrs.get('email', None)
 
     if not is_high_school_student:
         # Attributes cleaning
