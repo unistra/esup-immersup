@@ -1360,13 +1360,14 @@ def course_slot_mass_update(request):
     context = {}
 
     if request.POST:
-
         pass
     else:
         try:
-            slot_ids = request.GET.get('mass_slots_list')
-            slot_ids = slot_ids.split(',')
+            slot_ids = request.GET.get('mass_slots_list', "")
+            slot_ids = list(filter(lambda x:x, slot_ids.split(',')))
+            assert slot_ids
         except Exception:
+            # FIXME possibility to return to events_slots ?
             return redirect(reverse('courses_slots'))
 
         # Same course ?

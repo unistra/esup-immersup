@@ -92,16 +92,16 @@ function init_datatable() {
 
               }
               if(row.n_register === 0 && row.is_past === false && show_delete_btn) {
-                element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
+                element += `<button type="button" class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
               }
 
               if(row.attendances_value === 1) {
-                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
+                element += `<button type="button" class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                            `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                            `</button>`;
               }
               else if(row.attendances_value !== -1) {
-                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+                element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
                            `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                            `</button>`;
               }
