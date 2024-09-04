@@ -125,6 +125,7 @@
 <script type="text/javascript">
   var dt;
   var updatable = "{{ can_update_courses }}";
+  var year_is_valid = "{{ year_is_valid }}" === "True";
   var feedback;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
@@ -304,7 +305,7 @@
                 }
 
                 // direct link to new slot form
-                if(!is_structure_consultant) {
+                if(!is_structure_consultant && year_is_valid) {
 
                     icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
                         "<i class=\"fa fas fa-plus fa-2x\"></i>" +
