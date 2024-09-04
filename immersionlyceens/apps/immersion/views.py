@@ -1087,13 +1087,20 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, _("Cannot send email. The administrators have been notified."))
                         logger.error(f"Error while sending email update notification : {msg}")
                     else:
-                        messages.warning(
-                            request, _(
-                                """You have updated the email."""
+                        if not student.uses_federation():
+                            msg = _(
+                                """You have updated your email address."""
                                 """<br>Warning : the new email is also the new login."""
                                 """<br>A new activation email has been sent."""
-                            ),
-                        )
+                            )
+                        else:
+                            msg = _(
+                                """You have updated your email address."""
+                                """<br>A new activation email has been sent."""
+                            )
+
+                        messages.warning(request, msg)
+
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
         else:
@@ -1512,7 +1519,7 @@ def student_record(request, student_id=None, record_id=None):
                     else:
                         messages.warning(
                             request,
-                            _("""You have updated the email.""" """<br>A new activation email has been sent.""")
+                            _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
                         )
                 except Exception as e:
                     logger.exception("Error while sending email update notification : %s", e)
@@ -1931,7 +1938,7 @@ class VisitorRecordView(FormView):
                 messages.warning(
                     self.request,
                     _(
-                        """You have updated the email."""
+                        """You have updated your email address."""
                         """<br>Warning : the new email is also the new login."""
                         """<br>A new activation email has been sent."""
                     ),

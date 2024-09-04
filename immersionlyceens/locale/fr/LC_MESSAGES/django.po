@@ -5889,7 +5889,7 @@ msgstr "#id invalide"
 #: immersionlyceens/apps/immersion/views.py:1090
 #: immersionlyceens/apps/immersion/views.py:1932
 msgid ""
-"You have updated the email.<br>Warning : the new email is also the new login."
+"You have updated your email address.<br>Warning : the new email is also the new login."
 "<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Attention : cette nouvelle adresse sera "
@@ -5964,7 +5964,7 @@ msgid "Current record status : %s"
 msgstr "Statut de la fiche : %s"
 
 #: immersionlyceens/apps/immersion/views.py:1513
-msgid "You have updated the email.<br>A new activation email has been sent."
+msgid "You have updated your email address.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
 "envoyée."
