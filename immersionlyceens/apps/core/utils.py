@@ -71,7 +71,7 @@ def slots(request):
     establishment_id = request.GET.get('establishment_id')
     events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
-    cohorts_only = request.GET.get('cohorts_only', False) == 'true'
+    cohorts_only = request.GET.get('cohorts_only', False) == "true"
 
     try:
         year = UniversityYear.objects.get(active=True)
@@ -79,6 +79,7 @@ def slots(request):
 
     except UniversityYear.DoesNotExist:
         pass
+
     try:
         int(establishment_id)
     except (TypeError, ValueError):
@@ -300,7 +301,13 @@ def slots(request):
                         Q(ExpressionWrapper(F('can_update_registrations'), output_field=BooleanField()))
                         & Q(Value(can_update_attendances))
                     )
-                    | (Q(Value(user.is_speaker())) & Q(speakers=user)),
+                    | (Q(Value(user.is_speaker())) & Q(speakers=user))
+                    | Q(
+                            Value(user.is_high_school_manager()),
+                            Q(course__highschool=user_highschool)
+                            | Q(event__highschool=user_highschool)
+                            | Value(cohorts_only),
+                        ),
                     then=True,
                 ),
                 default=False,
