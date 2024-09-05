@@ -251,14 +251,53 @@
     yadcf.init(dt, [
       {
         column_number: 0,
-        filter_match_mode: "exact",
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "name_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "level_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 3,
+        filter_default_label: "",
+        filter_container_id: "class_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 4,
+        filter_default_label: "",
+        filter_container_id: "bachelor_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 5,
+        filter_default_label: "",
+        filter_container_id: "registered_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }
+    ]);
+  }
+  else {
+    yadcf.init(dt, [
+      {
+        column_number: 0,
         filter_default_label: "",
         filter_container_id: "type_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
-        column_number: 1,
+        column_number: 2,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "name_filter",
@@ -278,13 +317,15 @@
         filter_container_id: "level_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
-      }, {
+      },
+      {
         column_number: 5,
         filter_default_label: "",
         filter_container_id: "class_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
-      }, {
+      },
+      {
         column_number: 6,
         filter_default_label: "",
         filter_container_id: "bachelor_filter",
@@ -292,44 +333,14 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 7,
+        column_number: 6,
         filter_default_label: "",
         filter_container_id: "post_bachelor_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
-        column_number: 8,
-        filter_default_label: "",
-        filter_container_id: "registered_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }
-    ]);
-  }
-  else {
-    yadcf.init(dt, [
-      {
-        column_number: 2,
-        filter_default_label: "",
-        filter_container_id: "level_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }, {
-        column_number: 3,
-        filter_default_label: "",
-        filter_container_id: "class_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }, {
-        column_number: 4,
-        filter_default_label: "",
-        filter_container_id: "bachelor_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 5,
+        column_number: 7,
         filter_default_label: "",
         filter_container_id: "registered_filter",
         style_class: "form-control form-control-sm",
