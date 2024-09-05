@@ -75,8 +75,8 @@ def slots(request):
 
     try:
         year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today <= year.end_date and not cohorts_only
-
+        year_is_valid = today <= year.end_date
+        can_update_attendances = year_is_valid and not cohorts_only
     except UniversityYear.DoesNotExist:
         pass
 
@@ -193,8 +193,27 @@ def slots(request):
     ).filter(**filters)
 
     if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
-        user_filter = {user_filter_key: user.structures.all()}
-        slots = slots.filter(**user_filter)
+        # Structure managers and consultants : filter on their own structures
+        # exception : if the user is also a speaker, make sure to grab these slots too
+        if not user_filter:
+            user_filter = {
+                user_filter_key: user.structures.all()
+            }
+
+            slots = slots.filter(**user_filter)
+        else:
+            # User is also a speaker
+            speaker_filter = {
+                user_filter_key: user.structures.all(),
+                "speakers__in": user.linked_users()
+            }
+
+            user_filter = reduce(lambda x, y: x | y,
+                [Q(**{k : v}) for k, v in speaker_filter.items()]
+            )
+
+            slots = slots.filter(user_filter)
+
 
     if not past_slots:
         slots = slots.filter(
@@ -376,9 +395,15 @@ def slots(request):
                 distinct=True,
             ),
             attendances_value=Case(
-                When(Q(is_past=False), then=0),
-                When(~Q(Value(can_update_attendances)) | (Q(Value(events)) & Q(place=Slot.REMOTE)), then=Value(2)),
-                When(Q(Value(can_update_attendances), is_past=True, n_register__gt=0), then=Value(1)),
+                When(Q(is_past=False), then=0), # Future slots : can not update yet
+                When(
+                    ~Q(Value(can_update_attendances)) | (Q(Value(events)) & Q(place=Slot.REMOTE)),
+                    then=Value(2) # Nothing to enter : year is over or remote event slot
+                ),
+                When(
+                    Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
+                    then=Value(1) # There are some attendances to enter
+                ),
                 default=Value(-1),
             ),
             attendances_status=Case(
