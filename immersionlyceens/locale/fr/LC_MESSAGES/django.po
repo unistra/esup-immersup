@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-05 14:49+0200\n"
+"POT-Creation-Date: 2024-09-05 17:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5087,31 +5087,31 @@ msgstr "Erreur : un établissement ou un lycée doit être sélectionné"
 msgid "Error : a valid training must be selected"
 msgstr "Erreur : une formation valide doit être sélectionnée"
 
-#: immersionlyceens/apps/core/utils.py:389
+#: immersionlyceens/apps/core/utils.py:414
 msgid "Future slot"
 msgstr "Créneau à venir"
 
-#: immersionlyceens/apps/core/utils.py:390
+#: immersionlyceens/apps/core/utils.py:415
 msgid "University year is over"
 msgstr "Année universitaire terminée"
 
-#: immersionlyceens/apps/core/utils.py:391
+#: immersionlyceens/apps/core/utils.py:416
 msgid "To enter"
 msgstr "A saisir"
 
-#: immersionlyceens/apps/core/utils.py:593
+#: immersionlyceens/apps/core/utils.py:618
 msgid "Training not found"
 msgstr "Formation non trouvée"
 
-#: immersionlyceens/apps/core/utils.py:596
+#: immersionlyceens/apps/core/utils.py:621
 msgid "You are not allowed to set quota for this high school"
 msgstr "Vous n'êtes pas autorisé(e) à paramétrer le quota pour ce lycée"
 
-#: immersionlyceens/apps/core/utils.py:600
+#: immersionlyceens/apps/core/utils.py:625
 msgid "You are not allowed to set quota for this training"
 msgstr "Vous n'êtes pas autorisé(e) à paramétrer le quota pour cette formation"
 
-#: immersionlyceens/apps/core/utils.py:606
+#: immersionlyceens/apps/core/utils.py:631
 msgid "Bad quota value (positive integer required)"
 msgstr "La valeur du quota doit être un entier positif supérieur à 0"
 
@@ -8374,7 +8374,7 @@ msgstr "Valider les profils visiteurs"
 
 #: immersionlyceens/templates/fragments/main_menu.html:204
 msgid "Cohorts"
-msgstr ""
+msgstr "Cohortes"
 
 #: immersionlyceens/templates/fragments/main_menu.html:207
 msgid "Cohorts courses"
