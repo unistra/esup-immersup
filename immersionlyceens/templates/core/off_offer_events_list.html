@@ -100,7 +100,7 @@
             <th id="label_filter" style="width:20%">{% trans 'Label' %}</th>
             <th id="speakers_filter">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
-            <th class="align-top">{% trans 'Registered students' %}</th>
+            <th class="align-top">{% trans 'Registrations' %}</th>
           </tr>
         </thead>
         <tfoot>
@@ -352,7 +352,8 @@
                        "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
                        "</a>\n";
             }
-            if(!is_structure_consultant && year_is_valid) {
+
+            if(row.has_rights && year_is_valid) {
               // direct link to new slot form
               icons += "<a href='" + add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
                       "<i class=\"fa fas fa-plus fa-2x\"></i>" +
@@ -442,9 +443,9 @@
             return data + "/" + row.slots_count;
           }
         },
-        { "data": "registrations_count",
+        { "data": "",
           "render": function(data, type, row) {
-            let current = data;
+            let current = row.registrations_count;
             let n = row.n_places;
 
             element = '<span>' + current + '/' + n + '</span>' +
@@ -458,6 +459,11 @@
                   '    style="width: ' + Math.round(current/n * 100) + '%">' +
                   '  </div>' +
                   '</div>';
+
+            if(row.registered_groups_count) {
+              element += `<br><span>{% trans 'Groups' %}: ${row.registered_groups_count}</span>`
+            }
+
             return element;
           }
         }

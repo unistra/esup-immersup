@@ -4606,10 +4606,20 @@ class OffOfferEventList(generics.ListAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', 'structure', 'highschool']
 
+    def __init__(self, *args, **kwargs):
+        self.message = {}
+        self.status = ""
+        self.user = None
+        self.user_events = False
+        self.user_filter = False
+        self.filters = {}
+
+        super().__init__(*args, **kwargs)
+
     def get_queryset(self):
         queryset = OffOfferEvent.objects.all()
         user = self.request.user
-
+        self.user_filter = False
         user_events = self.request.GET.get('user_events', False) == 'true'
 
         force_user_filter = [
@@ -4626,6 +4636,9 @@ class OffOfferEventList(generics.ListAPIView):
                 ]
             ),
         ]
+
+        if any(force_user_filter):
+            self.user_filter = True
 
         if not user.is_superuser:
             if any(force_user_filter):
@@ -4661,6 +4674,33 @@ class OffOfferEventList(generics.ListAPIView):
 
         return queryset.filter(**filters)
 
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        """
+        Look for speaker emails and try to create/add them to serializer data
+        """
+        if data is not None:
+            many = isinstance(data, list)
+
+            if many:
+                for event_data in data:
+                    try:
+                        event_data = get_or_create_user(self.request, event_data)
+                    except Exception as e:
+                        raise
+            else:
+                try:
+                    data = get_or_create_user(self.request, data)
+                except Exception as e:
+                    raise
+
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(
+                instance=instance,
+                many=many,
+                partial=partial,
+                context={'user_events': self.user_filter, 'request': self.request},
+            )
 
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventDetail(generics.DestroyAPIView):
