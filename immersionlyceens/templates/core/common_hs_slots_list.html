@@ -132,6 +132,7 @@
   let course_label_filter = "{{ course_label_filter }}"
   let highschool_filter = "{{ highschool_filter }}"
   let managed_by_filter = "{{ managed_by_filter }}"
+  var current_slots_only = true
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
@@ -278,16 +279,14 @@
       set_trainings('highschool', current_highschool_id);
     }
 
-    if (current_highschool_id !== "") {
-      reload_data();
-    }
-
     set_session_values(slot_mode, {
       "current_highschool_id": current_highschool_id,
       "current_establishment_id": current_establishment_id,
       "current_structure_id": current_structure_id,
       "current_training_id": current_training_id,
     })
+
+    reload_data()
   });
 
   // Reload the table when structure changes in selectbox

@@ -81,10 +81,6 @@
               {% if not authorized_groups|in_groups:"CONS-STR" %}
               <a class="dropdown-item" href="{% url 'add_course_slot' %}">{% trans 'New slot' %}</a>
               {% endif %}
-
-              {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
-              <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Cohorts courses" %}</a>
-              {% endif %}
             </div>
           </div>
         {% endif %}
@@ -104,9 +100,6 @@
             <a class="dropdown-item" href="{% url 'off_offer_events_slots' %}">{% trans 'Off offer events slots list' %}</a>
             {% if not authorized_groups|in_groups:"CONS-STR" %}
             <a class="dropdown-item" href="{% url 'add_off_offer_event_slot' %}">{% trans 'New off offer event slot' %}</a>
-            {% endif %}
-            {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
-            <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Cohorts events" %}</a>
             {% endif %}
           </div>
         </div>
@@ -201,6 +194,19 @@
                 {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" and visitors_activated %}
                   <a class="dropdown-item" href="{% url 'visitor_validation' %}">{% trans 'Validate visitor profiles' %}</a>
                 {% endif %}
+              </div>
+            </div>
+          {% endif %}
+          {# Cohorts for high school manager #}
+          {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarCohorts" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {% trans 'Cohorts' %}
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarCohorts">
+                <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Cohorts courses" %}</a>
+                <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Cohorts events" %}</a>
+                <a class="dropdown-item" href="">{% trans "Consult my registrations" %}</a>
               </div>
             </div>
           {% endif %}

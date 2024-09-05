@@ -4,6 +4,7 @@ function init_datatable() {
   show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
   show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
   cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+  current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
 
   dt = $('#slots_list').DataTable({
     ajax: {
@@ -25,6 +26,10 @@ function init_datatable() {
 
         if(is_set(cohorts_only)) {
           d.cohorts_only = cohorts_only;
+        }
+
+        if(is_set(current_slots_only)) {
+          d.current_slots_only = current_slots_only;
         }
 
         d.past = $('#filter_past_slots').is(':checked');

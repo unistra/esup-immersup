@@ -61,6 +61,7 @@ def slots(request):
 
     can_update_attendances = False
     user_filter = False
+    slots_filters = Q()
     user_slots = request.GET.get('user_slots', False) == 'true'
     filters = {}
 
@@ -72,6 +73,7 @@ def slots(request):
     events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
     cohorts_only = request.GET.get('cohorts_only', False) == "true"
+    current_slots_only = request.GET.get('current_slots_only', False) == "true"
 
     try:
         year = UniversityYear.objects.get(active=True)
@@ -196,19 +198,21 @@ def slots(request):
         user_filter = {user_filter_key: user.structures.all()}
         slots = slots.filter(**user_filter)
 
-    if not past_slots:
-        slots = slots.filter(
-            Q(date__isnull=True)
-            | Q(date__gte=today)
-            | Q(date=today, end_time__gte=now)
-            | Q(
-                place__in=[Slot.FACE_TO_FACE, Slot.OUTSIDE],
-                immersions__attendance_status=0,
-                immersions__cancellation_type__isnull=True,
-            )
-        ).distinct()
+    if current_slots_only:
+        slots_filters =  Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now)
 
+    elif not past_slots:
+        slots_filters = Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now) | Q(
+            place__in=[Slot.FACE_TO_FACE, Slot.OUTSIDE],
+            immersions__attendance_status=0,
+            immersions__cancellation_type__isnull=True,
+        )
+
+    slots = slots.filter(slots_filters).distinct()
+
+    # TODO: Check if this is necessary
     all_data = []
+
     allowed_structures = user.get_authorized_structures()
     user_establishment = user.establishment
     user_highschool = user.highschool
