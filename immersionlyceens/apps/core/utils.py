@@ -298,10 +298,6 @@ def slots(request):
                     Q(published=True)
                     & (
                         Q(
-                            Value(user.is_structure_consultant()),
-                            Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
-                        )
-                        | Q(
                             Value(user.is_structure_manager()),
                             Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
                         )
@@ -318,17 +314,18 @@ def slots(request):
             ),
             can_update_attendances=Case(
                 When(
-                    Q(
-                        Q(ExpressionWrapper(F('can_update_registrations'), output_field=BooleanField()))
-                        & Q(Value(can_update_attendances))
-                    )
-                    | (Q(Value(user.is_speaker())) & Q(speakers=user))
+                    Q(Value(can_update_attendances))
+                    & (Q(Value(user.is_speaker())) & Q(speakers=user)
                     | Q(
-                            Value(user.is_high_school_manager()),
-                            Q(course__highschool=user_highschool)
-                            | Q(event__highschool=user_highschool)
-                            | Value(cohorts_only),
-                        ),
+                          Value(user.is_structure_manager()),
+                          Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                       )
+                    | Q(
+                          Value(user.is_high_school_manager()),
+                          Q(course__highschool=user_highschool)
+                          | Q(event__highschool=user_highschool)
+                          | Value(cohorts_only),
+                    )),
                     then=True,
                 ),
                 default=False,
@@ -396,6 +393,11 @@ def slots(request):
                 filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
                 distinct=True,
             ),
+            group_attendances_to_enter=Count(
+                'group_immersions',
+                filter=Q(group_immersions__attendance_status=0, group_immersions__cancellation_type__isnull=True),
+                distinct=True,
+            ),
             attendances_value=Case(
                 When(Q(is_past=False), then=0), # Future slots : can not update yet
                 When(
@@ -403,7 +405,11 @@ def slots(request):
                     then=Value(2) # Nothing to enter : year is over or remote event slot
                 ),
                 When(
-                    Q(Q(n_register__gt=0)|Q(n_group_register__gt=0), Value(can_update_attendances), is_past=True),
+                    Q(
+                        Q(n_register__gt=0, attendances_to_enter__gt=0)
+                       |Q(n_group_register__gt=0, group_attendances_to_enter__gt=0),
+                        Value(can_update_attendances), is_past=True
+                    ),
                     then=Value(1) # There are some attendances to enter (individuals and/or groups)
                 ),
                 default=Value(-1),
@@ -548,6 +554,8 @@ def slots(request):
             'n_group_register',
             'n_group_students',
             'n_group_guides',
+            'attendances_to_enter',
+            'group_attendances_to_enter',
         )
     )
 
