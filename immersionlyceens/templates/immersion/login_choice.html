@@ -19,7 +19,7 @@
       <div class="form-group row justify-content-center">
         <div class="col-sm-6 col-md-6">
           <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
-             title="{% trans 'All public high schools and private high schools under contract' %}">
+             title="{% blocktrans %}Please go to Procedure / High schools to check if your high school uses {{ federation_name }}{% endblocktrans %}">
             {% trans 'My high school uses' %} {{ federation_name }}
           </a>
           <p class="float-right mt-4">

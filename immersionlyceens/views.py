@@ -519,26 +519,34 @@ def highschools(request):
     """ Highschools public view"""
 
     affiliated_highschools = HighSchool.objects.filter(
-        active=True, with_convention=True, allow_individual_immersions=True
-    ).values("city", "label", "email")
+        active=True,
+        with_convention=True,
+        allow_individual_immersions=True
+    ).values("city", "label", "email", "uses_student_federation")
 
     try:
-        affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
-                                                                      active=True).content
+        affiliated_highschools_intro_txt = InformationText.objects.get(
+            code="INTRO_LYCEES_CONVENTIONNES",
+            active=True
+        ).content
     except InformationText.DoesNotExist:
         # TODO: Default txt value ?
         affiliated_highschools_intro_txt = ''
 
     try:
-        not_affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_NON_CONVENTIONNES", \
-                                                                      active=True).content
+        not_affiliated_highschools_intro_txt = InformationText.objects.get(
+            code="INTRO_LYCEES_NON_CONVENTIONNES",
+            active=True
+        ).content
     except InformationText.DoesNotExist:
         # TODO: Default txt value ?
         not_affiliated_highschools_intro_txt = ''
 
     not_affiliated_highschools = HighSchool.objects.filter(
-        active=True, with_convention=False, allow_individual_immersions=True
-    ).values("city", "label", "email")
+        active=True,
+        with_convention=False,
+        allow_individual_immersions=True
+    ).values("city", "label", "email", "uses_student_federation")
 
     context = {
         'affiliated_highschools': json.dumps(list(affiliated_highschools)),
