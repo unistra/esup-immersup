@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-06 20:43+0200\n"
+"POT-Creation-Date: 2024-09-06 21:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5732,12 +5732,12 @@ msgstr "Votre compte n'est pas encore activé"
 msgid "Authentication error"
 msgstr "Erreur d'identification"
 
-#: immersionlyceens/apps/immersion/views.py:232
+#: immersionlyceens/apps/immersion/views.py:222
 msgid "EduConnect"
 msgstr "EduConnect"
 
-#: immersionlyceens/apps/immersion/views.py:234
-#: immersionlyceens/apps/immersion/views.py:236
+#: immersionlyceens/apps/immersion/views.py:225
+#: immersionlyceens/apps/immersion/views.py:228
 msgid "the agent federation"
 msgstr "la fédération d'identité pour les agents"
 
@@ -8999,26 +8999,30 @@ msgstr "Mot de passe oublié ?"
 msgid "Not registered yet ?"
 msgstr "Pas encore inscrit ?"
 
-#: immersionlyceens/templates/immersion/login_choice.html:22
+#: immersionlyceens/templates/immersion/login_choice.html:34
 #, python-format
 msgid ""
 "Please go to Procedure / High schools to check if your high school uses "
 "%(federation_name)s"
 msgstr ""
-"Pour savoir si votre lycée utilise %(federation_name)s, voir la "
-"page Procédure / Lycée"
+"Pour savoir si votre lycée utilise %(federation_name)s, voir la page "
+"Procédure / Lycée"
 
-#: immersionlyceens/templates/immersion/login_choice.html:23
+#: immersionlyceens/templates/immersion/login_choice.html:36
+msgid "All public high schools and private high schools under contract"
+msgstr "Tous les lycées publics et lycées privés sous contrat"
+
+#: immersionlyceens/templates/immersion/login_choice.html:38
 msgid "My high school uses"
 msgstr "Mon lycée utilise"
 
-#: immersionlyceens/templates/immersion/login_choice.html:27
+#: immersionlyceens/templates/immersion/login_choice.html:42
 msgid "On the next page, select \"Educonnect\" in the establishments list"
 msgstr ""
 "Sur la page suivante, il vous faudra choisir 'Educonnect' dans la liste des "
 "établissements"
 
-#: immersionlyceens/templates/immersion/login_choice.html:29
+#: immersionlyceens/templates/immersion/login_choice.html:44
 msgid ""
 "On the next page, select \"Education Nationale - accès académies et "
 "administration centrale\" in the establishments list"
@@ -9026,7 +9030,7 @@ msgstr ""
 "Sur la page suivante, il vous faudra choisir 'Education Nationale - accès "
 "académies et administration centrale' dans la liste des établissements"
 
-#: immersionlyceens/templates/immersion/login_choice.html:35
+#: immersionlyceens/templates/immersion/login_choice.html:50
 msgid "My High school does not use"
 msgstr "Mon lycée n'utilise pas"
 
@@ -9684,9 +9688,6 @@ msgid ""
 msgstr ""
 "Une immersion en cohorte est réservée aux établissements scolaires qui "
 "souhaitent inscrire un groupe d'élève en immersion"
-
-#~ msgid "All public high schools and private high schools under contract"
-#~ msgstr "Tous les lycées publics et lycées privés sous contrat"
 
 #~ msgid "Record saved. Please check the optional documents to send below."
 #~ msgstr "Veuillez verifier les documents facultatifs à joindre ci-dessous."

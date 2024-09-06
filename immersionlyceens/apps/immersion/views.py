@@ -46,9 +46,9 @@ from shibboleth.app_settings import LOGOUT_URL, LOGOUT_REDIRECT_URL
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorType, CancelType, CertificateLogo,
     CertificateSignature, GeneralSettings, HigherEducationInstitution,
-    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
-    MefStat, PendingUserGroup, Period, PostBachelorLevel, Slot, StudentLevel,
-    UniversityYear, UserCourseAlert,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, InformationText,
+    MailTemplate, MefStat, PendingUserGroup, Period, Slot, UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -210,36 +210,36 @@ def loginChoice(request, profile=None):
     :param profile:
     :return:
     """
-
+    intro_connection_code = None
+    intro_connection = ""
     is_reg_possible, is_year_valid, year = check_active_year()
 
     if not year or not is_reg_possible:
         return redirect(reverse('immersion:register'), profile=profile)
 
-        """
-        messages.warning(request, _("Sorry, you can't register right now."))
-        context = {
-            'start_date': year.start_date if year else None,
-            'end_date': year.end_date if year else None,
-            'reg_date': year.registration_start_date if year else None,
-        }
-        return render(request, 'immersion/nologin.html', context)
-        """
-
-
     match profile:
         case 'lyc':
             federation_name = _("EduConnect")
+            intro_connection_code = "INTRO_HIGHSCHOOL_CONNECTION"
         case 'ref-lyc':
             federation_name = _("the agent federation")
+            intro_connection_code = "INTRO_AGENT_CONNECTION"
         case 'speaker':
             federation_name = _("the agent federation")
+            intro_connection_code = "INTRO_AGENT_CONNECTION"
         case _:
             federation_name = ''
 
+    if federation_name and intro_connection_code:
+        try:
+            intro_connection = InformationText.objects.get(code=intro_connection_code, active=True).content
+        except InformationText.DoesNotExist:
+            intro_connection = ""
+
     context = {
         'federation_name': federation_name,
-        'profile': profile
+        'profile': profile,
+        'intro_connection': intro_connection
     }
 
     template = "immersion/login_choice.html" if federation_name else "immersion/login.html"
