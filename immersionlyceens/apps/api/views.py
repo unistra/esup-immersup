@@ -4329,16 +4329,14 @@ class CourseList(generics.ListCreateAPIView):
         force_user_filter = [
             self.user_courses,
             self.user.is_speaker()
-            and not any(
-                [
-                    self.user.is_master_establishment_manager(),
-                    self.user.is_establishment_manager(),
-                    self.user.is_high_school_manager(),
-                    self.user.is_structure_manager(),
-                    self.user.is_structure_consultant(),
-                    self.user.is_operator(),
-                ]
-            ),
+            and not any([
+                self.user.is_master_establishment_manager(),
+                self.user.is_establishment_manager(),
+                self.user.is_high_school_manager(),
+                self.user.is_structure_manager(),
+                self.user.is_structure_consultant(),
+                self.user.is_operator(),
+            ]),
         ]
 
         if any(force_user_filter):

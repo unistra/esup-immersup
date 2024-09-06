@@ -482,6 +482,7 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
                     user.is_structure_consultant() or user.is_speaker(),
                     not user.is_master_establishment_manager(),
                     not user.is_establishment_manager(),
+                    not user.is_structure_manager(),
                     not user.is_operator(),
                 ])
 
@@ -630,6 +631,7 @@ class CourseSerializer(serializers.ModelSerializer):
                     user.is_structure_consultant() or user.is_speaker(),
                     not user.is_master_establishment_manager(),
                     not user.is_establishment_manager(),
+                    not user.is_structure_manager(),
                     not user.is_operator(),
                 ])
 
