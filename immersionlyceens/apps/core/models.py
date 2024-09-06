@@ -1038,13 +1038,13 @@ class TrainingSubdomain(models.Model):
             course__training__training_subdomains=self,
             published=True,
             event__isnull=True,
-            allow_group_registrations=False
+            allow_individual_registrations=True,
         ).prefetch_related('course__training__training_subdomains__training_domain') \
         .filter(
             Q(date__isnull=True)
             | Q(date__gte=today.date())
             | Q(date=today.date(), end_time__gte=today.time())
-        ).count()
+        ).distinct().count()
 
         return slots_count
 

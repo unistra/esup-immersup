@@ -100,7 +100,7 @@ def offer(request):
 
     today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = Slot.objects.filter(published=True, event__isnull=True).filter(
+    slots_count = Slot.objects.filter(published=True, event__isnull=True, allow_individual_registrations=True).filter(
         Q(date__isnull=True)
         | Q(date__gte=today.date())
         | Q(date=today.date(), end_time__gte=today.time())
@@ -278,7 +278,7 @@ def offer_subdomain(request, subdomain_id):
 
         for course in training_courses:
             slots = Slot.objects.filter(
-                course__id=course.id, published=True, date__gte=today
+                course__id=course.id, published=True, date__gte=today, allow_individual_registrations=True
             ).order_by('date', 'start_time', 'end_time')
 
             training_data = {
