@@ -1048,7 +1048,9 @@ class CoreViewsTestCase(TestCase):
         data = {
             'last_name': "Test_lastname",
             'first_name': "Test_firstname",
-            'email': "test_speaker@test.com"
+            'email': "test_speaker@test.com",
+            'password1': "this is a test password",
+            'password2': "this is a test password",
         }
 
         response = self.client.post(reverse('speaker'), data, follow=True)

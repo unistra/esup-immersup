@@ -201,7 +201,6 @@ def slots(request):
             user_filter = {
                 user_filter_key: user.structures.all()
             }
-
             slots = slots.filter(**user_filter)
         else:
             # User is also a speaker
@@ -215,7 +214,6 @@ def slots(request):
             )
 
             slots = slots.filter(user_filter)
-
 
     if current_slots_only:
         slots_filters =  Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now)
@@ -406,7 +404,7 @@ def slots(request):
                 ),
                 When(
                     Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
-                    then=Value(1) # There are some attendances to enter
+                    then=Value(1) # There are some attendances to enter (individuals only, not for groups)
                 ),
                 default=Value(-1),
             ),

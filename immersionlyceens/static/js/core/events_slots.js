@@ -78,18 +78,18 @@ function init_datatable() {
             if(row.is_past === false) {
               element += `<a href="/core/off_offer_event_slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
             }
-            if(row.n_register === 0 && row.is_past === false) {
+            if(row.n_register === 0 && row.n_group_register === 0 && row.is_past === false) {
               element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog(\'open\')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
             }
           }
 
           if (row['can_update_attendances']) {
-            if (row.attendances_value === 1) {
+            if (row.attendances_value === attendance_to_enter) {
               element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                          `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                          `</button>`;
             }
-            else if (row.attendances_value !== -1) {
+            else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_group_register > 0) {
               element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
                          `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                          `</button>`;

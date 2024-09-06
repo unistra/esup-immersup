@@ -438,6 +438,81 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
     registrations_count = serializers.IntegerField()
     n_places = serializers.IntegerField(source="free_seats")
 
+    def to_representation(self, instance):
+        """
+        Inject status and warning messages in response
+        """
+        data = super().to_representation(instance)
+
+        if hasattr(self, "initial_data"):
+            if isinstance(self.initial_data, list):
+                objects = { c["label"]: c for c in self.initial_data }
+                status = objects.get(data["label"]).get("status", "success")
+                message = objects.get(data["label"]).get("msg", "")
+            else:
+                status = self.initial_data.get("status", "success")
+                message = self.initial_data.get("msg", "")
+
+            response = {
+                "data": data,
+                "status": status,
+                "msg": message,
+            }
+
+            return response
+        else:
+            request = self.context.get("request")
+            user_events = self.context.get("user_events", False)
+            speaker_filter = {}
+
+            if request and instance:
+                user = request.user
+                allowed_structures = user.get_authorized_structures()
+                has_rights = False
+
+                if user_events:
+                    speaker_filter["speakers"] = user.linked_users()
+
+                # ------------
+                # Rights
+                # ------------
+
+                # Default, will be overridden later
+                has_no_rights = all([
+                    user.is_structure_consultant() or user.is_speaker(),
+                    not user.is_master_establishment_manager(),
+                    not user.is_establishment_manager(),
+                    not user.is_operator(),
+                ])
+
+                if instance.structure:
+                    has_rights = all([
+                        not has_no_rights,
+                        (Structure.objects.filter(pk=instance.structure.id) & allowed_structures).exists()
+                    ])
+                elif instance.highschool:
+                    has_rights = any([
+                        user.is_master_establishment_manager(),
+                        user.is_operator(),
+                        instance.highschool == user.highschool
+                    ])
+                else:
+                    has_rights = any([
+                        user.is_master_establishment_manager(),
+                        user.is_operator(),
+                        user.is_establishment_manager() and user.establishment == instance.establishment
+                    ])
+
+                data['has_rights'] = has_rights
+                data['slots_count'] = instance.slots_count(**speaker_filter)
+                data['n_places'] = instance.free_seats(**speaker_filter)
+                data['published_slots_count'] = instance.published_slots_count(**speaker_filter)
+                data['registered_students_count'] = instance.registrations_count(**speaker_filter)
+                data['registered_groups_count'] = instance.groups_registrations_count(**speaker_filter)
+                data['can_delete'] = not instance.slots.exists()
+
+            return data
+
     class Meta:
         model = OffOfferEvent
         fields = "__all__"
@@ -550,13 +625,30 @@ class CourseSerializer(serializers.ModelSerializer):
                 if user_courses:
                     speaker_filter["speakers"] = user.linked_users()
 
+                # Default
+                has_no_rights = all([
+                    user.is_structure_consultant() or user.is_speaker(),
+                    not user.is_master_establishment_manager(),
+                    not user.is_establishment_manager(),
+                    not user.is_operator(),
+                ])
+
                 if instance.structure:
-                    has_rights = (Structure.objects.filter(pk=instance.structure.id) & allowed_structures).exists()
+                    has_rights = all([
+                        not has_no_rights,
+                        (Structure.objects.filter(pk=instance.structure.id) & allowed_structures).exists()
+                    ])
                 elif instance.highschool:
                     has_rights = any([
                         user.is_master_establishment_manager(),
                         user.is_operator(),
                         instance.highschool == user.highschool
+                    ])
+                else:
+                    has_rights = any([
+                        user.is_master_establishment_manager(),
+                        user.is_operator(),
+                        user.is_establishment_manager() and user.establishment == instance.establishment
                     ])
 
                 data['has_rights'] = has_rights
@@ -564,6 +656,7 @@ class CourseSerializer(serializers.ModelSerializer):
                 data['n_places'] = instance.free_seats(**speaker_filter)
                 data['published_slots_count'] = instance.published_slots_count(**speaker_filter)
                 data['registered_students_count'] = instance.registrations_count(**speaker_filter)
+                data['registered_groups_count'] = instance.groups_registrations_count(**speaker_filter)
                 data['can_delete'] = not instance.slots.exists()
                 data['alerts_count'] = instance.get_alerts_count()
 
