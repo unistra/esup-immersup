@@ -155,6 +155,11 @@
   let highschool_filter = "{{ highschool_filter }}"
   let managed_by_filter = "{{ managed_by_filter }}"
 
+  let attendance_not_yet = 0
+  let attendance_to_enter = 1
+  let attendance_nothing_to_enter = 2
+  let attendance_default = -1
+
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
   }

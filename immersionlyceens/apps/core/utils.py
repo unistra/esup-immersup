@@ -402,7 +402,7 @@ def slots(request):
                 ),
                 When(
                     Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
-                    then=Value(1) # There are some attendances to enter
+                    then=Value(1) # There are some attendances to enter (individuals only, not for groups)
                 ),
                 default=Value(-1),
             ),

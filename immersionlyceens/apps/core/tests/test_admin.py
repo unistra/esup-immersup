@@ -2002,10 +2002,13 @@ class AdminFormsTestCase(TestCase):
             'username' : 'speaker3',
             'email' : 'speaker3@no-reply.com',
             'first_name' : 'speaker3',
-            'last_name' : 'speaker3'
+            'last_name' : 'speaker3',
+            'password1': "this is a test password",
+            'password2': "this is a test password",
         }
 
         form = ImmersionUserCreationForm(data=data, request=request)
+
         self.assertTrue(form.is_valid())
         new_speaker = form.save()
 
