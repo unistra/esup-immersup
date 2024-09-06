@@ -44,6 +44,7 @@ urlpatterns = [
     path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
     path('send_email', views.ajax_send_email, name='SendEmail'),
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
+    path('set_group_attendance', views.ajax_set_group_attendance, name='SetGroupAttendance'),
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
     path('remove_link', views.remove_link, name='remove_link'),

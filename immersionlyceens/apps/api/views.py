@@ -1130,6 +1130,87 @@ def ajax_set_attendance(request):
 
 
 @is_ajax_request
+@is_post_request
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'CONS-STR')
+def ajax_set_group_attendance(request):
+    """
+    Update group immersion attendance status
+    """
+    immersion_group_id = request.POST.get('immersion_group_id', None)
+    immersion_group_ids = request.POST.get('immersion_group_ids', None)
+    user = request.user
+    allowed_structures = user.get_authorized_structures()
+
+    # Control if we can cancel a group immersion by clicking again on its status
+    single_immersion = True
+
+    response = {'success': '', 'error': '', 'data': []}
+
+    if immersion_group_ids:
+        immersion_group_ids = json.loads(immersion_group_ids)
+        single_immersion = False
+
+    try:
+        attendance_value = int(request.POST.get('attendance_value'))
+    except:
+        attendance_value = None
+
+    if not attendance_value:
+        response['error'] = gettext("Error: no attendance status set in parameter")
+        return JsonResponse(response, safe=False)
+
+    if not immersion_group_id and not immersion_group_ids:
+        response['error'] = gettext("Error: missing immersion id parameter")
+        return JsonResponse(response, safe=False)
+
+    if immersion_group_id and not immersion_group_ids:
+        immersion_group_ids = [immersion_group_id]
+
+    for immersion_id in immersion_group_ids:
+        immersion = None
+        try:
+            immersion = ImmersionGroupRecord.objects.get(pk=immersion_id)
+        except ImmersionGroupRecord.DoesNotExist:
+            response['error'] = gettext("Error : query contains some invalid group immersion ids")
+
+        if immersion:
+            response['error'] += "<br>" if response['error'] else ""
+            response['success'] += "<br>" if response['success'] else ""
+
+            slot_establishment = immersion.slot.get_establishment()
+            slot_structure = immersion.slot.get_structure()
+            slot_highschool = immersion.slot.get_highschool()
+
+            # Check authenticated user rights on this registration
+            valid_conditions = [
+                user.is_master_establishment_manager(),
+                user.is_operator(),
+                user.is_establishment_manager() and slot_establishment == user.establishment,
+                user.is_structure_manager() and slot_structure in allowed_structures,
+                user.is_speaker() and user in immersion.slot.speakers.all(),
+                user.is_high_school_manager() and slot_highschool and user.highschool == slot_highschool,
+                user.is_structure_consultant() and slot_structure in allowed_structures,
+            ]
+
+            if any(valid_conditions):
+                # current status cancellation ? (= set 0)
+                if single_immersion and immersion.attendance_status == attendance_value:
+                    immersion.attendance_status = 0
+                else:
+                    immersion.attendance_status = attendance_value
+
+                immersion.save()
+                response['success'] += f"{immersion.highschool} : {gettext('attendance status updated')}"
+            else:
+                response['error'] += "%s : %s" % (
+                    immersion.highschool,
+                    gettext("you don't have enough privileges to set the attendance status"),
+                )
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
 @login_required
 @is_post_request
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'VIS')

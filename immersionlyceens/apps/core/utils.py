@@ -220,9 +220,9 @@ def slots(request):
 
     elif not past_slots:
         slots_filters = Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now) | Q(
+            Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+            | Q(group_immersions__attendance_status=0, group_immersions__cancellation_type__isnull=True),
             place__in=[Slot.FACE_TO_FACE, Slot.OUTSIDE],
-            immersions__attendance_status=0,
-            immersions__cancellation_type__isnull=True,
         )
 
     slots = slots.filter(slots_filters).distinct()
@@ -403,8 +403,8 @@ def slots(request):
                     then=Value(2) # Nothing to enter : year is over or remote event slot
                 ),
                 When(
-                    Q(Value(can_update_attendances), is_past=True, n_register__gt=0),
-                    then=Value(1) # There are some attendances to enter (individuals only, not for groups)
+                    Q(Q(n_register__gt=0)|Q(n_group_register__gt=0), Value(can_update_attendances), is_past=True),
+                    then=Value(1) # There are some attendances to enter (individuals and/or groups)
                 ),
                 default=Value(-1),
             ),

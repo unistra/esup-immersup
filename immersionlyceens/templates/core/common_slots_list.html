@@ -138,6 +138,7 @@
   var slot_allow_group_registrations = false;
   var slot_allow_individual_registrations = false;
   var slot_group_mode;
+  var slot_location;
 
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
@@ -239,7 +240,7 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place=1) {
+  function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place) {
     can_update_registrations = update_registrations
     current_slot_id = slot_id;
     slot_places = n_places;
@@ -247,11 +248,12 @@
     slot_allow_group_registrations = allowed_group_registrations;
     slot_allow_individual_registrations = allowed_individual_registrations;
     slot_group_mode = group_mode;
+    slot_location = place;
 
     let face_to_face = 0
     let outside = 2
 
-    if(place === face_to_face || place === outside) {
+    if(slot_location === face_to_face || slot_location === outside) {
         $("#id_attendances").show()
         $("#id_groups_attendances").show()
     }
