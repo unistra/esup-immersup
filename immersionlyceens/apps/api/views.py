@@ -5284,7 +5284,7 @@ def ajax_can_register_slot(request, slot_id=None):
     period = slot.period
 
     if period:
-        if today < period.registration_start_date:
+        if now < period.registration_start_date:
             response['msg'] = _("You can't register to this slot yet")
             return JsonResponse(response, safe=False)
 
