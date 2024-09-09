@@ -180,11 +180,11 @@
           let end = `${end_split[0]}h${end_split[1]}`
 
           // format date only for display and filter, not for sorting
-          if(type === "display") {
+          if(type === "display" || type === "filter") {
             return `${date}<br />${start} - ${end}`
           }
 
-          return `${date} - ${start} ${end}`
+          return `${data} - ${start} ${end}`
         }
       },
       { "data": "student_profile",

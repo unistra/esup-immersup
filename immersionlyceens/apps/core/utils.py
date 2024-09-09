@@ -316,16 +316,23 @@ def slots(request):
                 When(
                     Q(Value(can_update_attendances))
                     & (Q(Value(user.is_speaker())) & Q(speakers=user)
-                    | Q(
-                          Value(user.is_structure_manager()),
-                          Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
-                       )
-                    | Q(
-                          Value(user.is_high_school_manager()),
-                          Q(course__highschool=user_highschool)
-                          | Q(event__highschool=user_highschool)
-                          | Value(cohorts_only),
-                    )),
+                        | Q(
+                              Value(user.is_structure_manager()),
+                              Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                           )
+                        | Q(
+                              Value(user.is_high_school_manager()),
+                              Q(course__highschool=user_highschool)
+                              | Q(event__highschool=user_highschool)
+                              | Value(cohorts_only),
+                          )
+                        | Q(Value(user.is_master_establishment_manager()))
+                        | Q(
+                            Value(user.is_establishment_manager()),
+                            Q(course__structure__establishment=user_establishment)
+                            | Q(event__establishment=user_establishment)
+                          )
+                    ),
                     then=True,
                 ),
                 default=False,
