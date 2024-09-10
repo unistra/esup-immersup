@@ -849,19 +849,27 @@ class TrainingList(generic.TemplateView):
             context["structures"] = self.request.user.get_authorized_structures()
         elif self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
             context["structures"] = self.request.user.get_authorized_structures()
+            context['establishments'] = Establishment.objects.filter(
+                structures__in=self.request.user.get_authorized_structures()
+            ).distinct()
         elif self.request.user.is_high_school_manager():
             context["highschools"] = HighSchool.objects.filter(pk=self.request.user.highschool.id)
 
         if context["establishments"].count() == 1:
             context["establishment_id"] = context["establishments"].first().id
         else:
-            context["establishment_id"] = get_session_value(self.request, "trainings", "current_establishment_id")
+            context["establishment_id"] = get_session_value(
+                self.request,
+                "trainings",
+                "current_establishment_id"
+            )
 
-        if len(context['structures']) == 1:
+        if len(context['structures']) >= 1:
             context['structure_id'] = context['structures'].first().id
             context['establishment_id'] = context['structures'].first().establishment.id
         else:
             context['structure_id'] = ""
+            context['establishment_id'] = ""
 
         try:
             training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
