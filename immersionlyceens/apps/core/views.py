@@ -146,6 +146,7 @@ def courses_list(request):
         return HttpResponseRedirect("/")
 
     can_update_courses = False
+    year_is_valid = False
 
     allowed_highschools = HighSchool.objects.none()
     allowed_establishments = Establishment.objects.none()
@@ -189,11 +190,13 @@ def courses_list(request):
     # Check if we can add/update courses
     try:
         active_year = UniversityYear.objects.get(active=True)
-        can_update_courses = active_year.date_is_between(datetime.today().date()) \
-            and not request.user.is_structure_consultant()
+        year_is_valid = active_year.date_is_between(datetime.today().date())
+        can_update_courses = year_is_valid and not request.user.is_structure_consultant()
     except UniversityYear.DoesNotExist:
+        # FIXME
         pass
     except UniversityYear.MultipleObjectsReturned:
+        # FIXME
         pass
 
     if not can_update_courses and not request.user.is_structure_consultant():
@@ -212,7 +215,8 @@ def courses_list(request):
         "structure_id": structure_id,
         "establishment_id": establishment_id,
         "highschool_id": highschool_id,
-        "can_update_courses": can_update_courses
+        "can_update_courses": can_update_courses,
+        "year_is_valid": year_is_valid,
     }
 
     return render(request, 'core/courses_list.html', context)
@@ -845,19 +849,27 @@ class TrainingList(generic.TemplateView):
             context["structures"] = self.request.user.get_authorized_structures()
         elif self.request.user.is_structure_manager() or self.request.user.is_structure_consultant():
             context["structures"] = self.request.user.get_authorized_structures()
+            context['establishments'] = Establishment.objects.filter(
+                structures__in=self.request.user.get_authorized_structures()
+            ).distinct()
         elif self.request.user.is_high_school_manager():
             context["highschools"] = HighSchool.objects.filter(pk=self.request.user.highschool.id)
 
         if context["establishments"].count() == 1:
             context["establishment_id"] = context["establishments"].first().id
         else:
-            context["establishment_id"] = get_session_value(self.request, "trainings", "current_establishment_id")
+            context["establishment_id"] = get_session_value(
+                self.request,
+                "trainings",
+                "current_establishment_id"
+            )
 
-        if len(context['structures']) == 1:
+        if len(context['structures']) >= 1:
             context['structure_id'] = context['structures'].first().id
             context['establishment_id'] = context['structures'].first().establishment.id
         else:
             context['structure_id'] = ""
+            context['establishment_id'] = ""
 
         try:
             training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
@@ -1357,6 +1369,15 @@ class OffOfferEventsList(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True # FixMe
+        context["year_is_valid"] = False
+
+        try:
+            active_year = UniversityYear.objects.get(active=True)
+            context["year_is_valid"] = active_year.date_is_between(datetime.today().date())
+        except UniversityYear.DoesNotExist:
+            pass
+        except UniversityYear.MultipleObjectsReturned:
+            pass
 
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by("city", "label")
         context["establishments"] = Establishment.activated.filter(is_host_establishment=True)

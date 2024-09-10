@@ -1038,13 +1038,13 @@ class TrainingSubdomain(models.Model):
             course__training__training_subdomains=self,
             published=True,
             event__isnull=True,
-            allow_group_registrations=False
+            allow_individual_registrations=True,
         ).prefetch_related('course__training__training_subdomains__training_domain') \
         .filter(
             Q(date__isnull=True)
             | Q(date__gte=today.date())
             | Q(date=today.date(), end_time__gte=today.time())
-        ).count()
+        ).distinct().count()
 
         return slots_count
 
@@ -1803,6 +1803,22 @@ class Course(models.Model):
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
+    def groups_registrations_count(self, speakers=None):
+            """
+            :speakers: optional : only consider slots attached to 'speakers'
+            :return: the number of non-cancelled registered groups on all the slots
+            under this course (past and future)
+            """
+            filters = {'slot__course': self, 'cancellation_type__isnull': True}
+
+            if speakers:
+                if not isinstance(speakers, list):
+                    speakers = [speakers]
+
+                filters['slot__speakers__in'] = speakers
+
+            return ImmersionGroupRecord.objects.prefetch_related('slot').filter(**filters).count()
+
     def get_alerts_count(self):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
 
@@ -2002,6 +2018,22 @@ class OffOfferEvent(models.Model):
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
+
+    def groups_registrations_count(self, speakers=None):
+            """
+            :speakers: optional : only consider slots attached to 'speakers'
+            :return: the number of non-cancelled registered groups on all the slots
+            under this event (past and future)
+            """
+            filters = {'slot__event': self, 'cancellation_type__isnull': True}
+
+            if speakers:
+                if not isinstance(speakers, list):
+                    speakers = [speakers]
+
+                filters['slot__speakers__in'] = speakers
+
+            return ImmersionGroupRecord.objects.prefetch_related('slot').filter(**filters).count()
 
     def clean(self):
         if [self.establishment, self.highschool].count(None) != 1:

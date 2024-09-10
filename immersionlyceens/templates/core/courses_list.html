@@ -125,6 +125,7 @@
 <script type="text/javascript">
   var dt;
   var updatable = "{{ can_update_courses }}";
+  var year_is_valid = "{{ year_is_valid }}" === "True";
   var feedback;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
@@ -286,49 +287,47 @@
               let slot_url = '/core/slots/'
               let add_slot_url = '/core/slot/add/'
 
-              if(row.has_rights) {
-                if(is_set(row.structure) && is_set(row.structure.establishment) && is_set(row.structure.id) && is_set(row.training.id)) {
-                    slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
-                    add_slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
-                }
-                else if(is_set(row.highschool) && is_set(row.highschool.id) && is_set(row.training.id)) {
-                    slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
-                    add_slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
-                }
-
-                // direct link to slots list
-                if(row.slots_count) {
-                  icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this course' %}\">" +
-                           "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
-                           "</a>\n";
-                }
-
-                // direct link to new slot form
-                if(!is_structure_consultant) {
-
-                    icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
-                        "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                        "</a>\n";
-
-
-                    icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                        "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                        "</a>\n";
-
-                    if(updatable === "True") {
-                        icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                            "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
-                            "</a>\n";
-                    }
-
-                    if(row.can_delete) {
-                      icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
-                               "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                               "</button>";
-                    }
-                }
-
+              if(is_set(row.structure) && is_set(row.structure.establishment) && is_set(row.structure.id) && is_set(row.training.id)) {
+                  slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
+                  add_slot_url += row.structure.establishment + "/" + row.structure.id + "/" + row.training.id + "/" + row.id
               }
+              else if(is_set(row.highschool) && is_set(row.highschool.id) && is_set(row.training.id)) {
+                  slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
+                  add_slot_url += row.highschool.id + "/" + row.training.id + "/" + row.id
+              }
+
+              // direct link to slots list
+              if(row.slots_count) {
+                icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this course' %}\">" +
+                         "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                         "</a>\n";
+              }
+
+              // direct link to new slot form
+              if(row.has_rights && !is_structure_consultant && year_is_valid) {
+
+                  icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
+                      "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                      "</a>\n";
+
+
+                  icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                      "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                      "</a>\n";
+
+                  if(updatable === "True") {
+                      icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                          "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
+                          "</a>\n";
+                  }
+
+                  if(row.can_delete) {
+                    icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
+                             "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                             "</button>";
+                  }
+              }
+
               return icons;
             },
           },
@@ -375,9 +374,9 @@
               return data + "/" + row.slots_count;
             }
           },
-          { "data": "registered_students_count",
+          { "data": "",
             "render": function(data, type, row) {
-              let current = data;
+              let current = row.registered_students_count;
               let n = row.n_places;
 
               element = '<span>' + current + '/' + n + '</span>' +
@@ -391,6 +390,11 @@
                     '    style="width: ' + Math.round(current/n * 100) + '%">' +
                     '  </div>' +
                     '</div>';
+
+              if(row.registered_groups_count) {
+                element += `<br><span>{% trans 'Groups' %}: ${row.registered_groups_count}</span>`
+              }
+
               return element;
             }
           },

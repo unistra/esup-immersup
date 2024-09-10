@@ -16,10 +16,25 @@
 <div>
   <section class="py-5">
     <div class="container">
+      <div class="row">
+        <div class="col lead">
+          {% if intro_connection %}
+            {{ intro_connection|safe }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="py-5">
+    <div class="container">
       <div class="form-group row justify-content-center">
         <div class="col-sm-6 col-md-6">
           <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
-             title="{% trans 'All public high schools and private high schools under contract' %}">
+             {% if profile == "lyc" %}
+               title="{% blocktrans %}Please go to Procedure / High schools to check if your high school uses {{ federation_name }}{% endblocktrans %}"
+             {% else %}
+               title="{% trans 'All public high schools and private high schools under contract' %}"
+             {% endif %}>
             {% trans 'My high school uses' %} {{ federation_name }}
           </a>
           <p class="float-right mt-4">

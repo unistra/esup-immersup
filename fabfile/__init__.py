@@ -415,7 +415,11 @@ def deploy_all_preprod():
     deploy()
     preprod_reims()
     deploy()
+    preprod_lemans()
+    deploy()
     preprod_rouen()
+    deploy()
+    preprod_savoie()
     deploy()
 
 @task

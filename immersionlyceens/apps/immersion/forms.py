@@ -273,12 +273,8 @@ class EmailForm(forms.ModelForm):
         initial = kwargs.get('initial', {})
 
         # Override email value if it's still the EduConnect temporary email
-        try:
-            if request.user.email == f"{request.user.username}@domain.tld":
-                initial['email'] = ''
-                kwargs['initial'] = initial
-        except:
-            pass
+        initial['email'] = ''
+        kwargs['initial'] = initial
 
         super().__init__(*args, **kwargs)
 

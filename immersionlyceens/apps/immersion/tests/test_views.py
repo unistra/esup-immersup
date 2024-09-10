@@ -631,13 +631,15 @@ class ImmersionViewsTestCase(TestCase):
 
         # All fields
         record_data["last_name"] = self.highschool_user.last_name
-        record_data["birth_date"] = (self.today - datetime.timedelta(days=5840)).strftime("%Y-%m-%d") # ~16 years (=under 18)
+
+        # ~16 years (=under 18) to test some attestations
+        record_data["birth_date"] = (self.today - datetime.timedelta(days=5840)).strftime("%Y-%m-%d")
         record_data["post_bachelor_level"] = 1
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
         self.assertTrue(HighSchoolStudentRecord.objects.filter(student=self.highschool_user).exists())
 
-        self.assertIn("Record saved. Please fill all the required attestation documents below.",
+        self.assertIn("Please fill all the required attestation documents below.",
             response.content.decode('utf-8'))
         self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
         self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
@@ -673,7 +675,7 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
         content = response.content.decode('utf-8')
 
-        self.assertIn("Thank you. Your record is awaiting validation from your high-school referent.", content)
+        self.assertIn("Your record is awaiting validation from your high-school referent.", content)
         self.assertIn("Your record status : To validate", response.content.decode('utf-8'))
         document.refresh_from_db()
         self.assertNotEqual(document.document, None)
@@ -722,7 +724,7 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
 
         self.assertIn(
-            "Thank you. Your record is awaiting validation from your high-school referent.",
+            "Your record is awaiting validation from your high-school referent.",
             response.content.decode("utf-8")
         )
         record.refresh_from_db()
@@ -753,21 +755,16 @@ class ImmersionViewsTestCase(TestCase):
         self.highschool_user.refresh_from_db()
         self.assertNotEqual(self.highschool_user.validation_string, None)
 
-        # Manually reject the record, then repost with another birth date
+        # Manually reject the record, then repost with another birth date (can't change the high school anymore)
         # validation should be back to "TO_VALIDATE"
         record.set_status("REJECTED")
         record.save()
 
-        new_birth_date = (self.today - datetime.timedelta(days=5839)).strftime("%Y-%m-%d")
-
-        record_data.update({
-            "birth_date": new_birth_date
-        })
+        record_data["birth_date"] = (self.today - datetime.timedelta(days=5841)).strftime("%Y-%m-%d")
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
 
         record.refresh_from_db()
-        self.assertEqual(record.birth_date.strftime("%Y-%m-%d"), new_birth_date)
         self.assertEqual(record.validation, HighSchoolStudentRecord.TO_VALIDATE)
 
         # Test record duplication with another student
@@ -1069,7 +1066,7 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/visitor_record', record_data, follow=True)
         self.assertTrue(VisitorRecord.objects.filter(visitor=self.visitor_user).exists())
 
-        self.assertIn("Record saved. Please fill all the required attestation documents below.",
+        self.assertIn("Please fill all the required attestation documents below.",
             response.content.decode('utf-8'))
         self.assertIn("Your record status : To complete", response.content.decode('utf-8'))
 

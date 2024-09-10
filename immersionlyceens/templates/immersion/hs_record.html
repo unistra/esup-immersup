@@ -344,7 +344,7 @@
           <label class="col-sm-4 col-form-label">{% trans "File status" %} :</label>
           <div class="col-sm-4">
 
-            {% if record.validation == 0 %}
+            {% if record.validation == 0 or record.validation == 5 %}
               <span class="badge badge-pill badge-warning" id="record_status">
               {% trans "To complete" %}
 

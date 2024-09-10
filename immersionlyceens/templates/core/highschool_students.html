@@ -51,6 +51,16 @@
         <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
           <thead>
             <tr>
+              <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
+              <th id="name_filter" class="align-top">{% trans 'Name' %}</th>
+              <th class="align-top">{% trans 'Birth date' %}</th>
+              <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
+              <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
+              <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
+              <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
+              <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
+              <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
+              <!--
               {% if can_show_users_without_record %}
               <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
               {% endif %}
@@ -66,15 +76,14 @@
               <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
               {% endif %}
               <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
+              -->
             </tr>
           </thead>
           <tbody>
             <tr>
-              {% if can_show_users_without_record %}
               <td></td>
               <td></td>
               <td></td>
-              {% endif %}
               <td></td>
               <td></td>
               <td></td>
@@ -91,6 +100,7 @@
 <script type="text/javascript">
   var dt;
   var current_student_id;
+  var can_show_users_without_record = "{{ can_show_users_without_record }}" === "True";
   const is_ref_etab = "{{ is_establishment_manager }}" === "True";
   const is_ref_etab_maitre = "{{ request.user.is_master_establishment_manager }}" === "True";
   const is_ref_tec = "{{ request.user.is_operator }}" === "True";
@@ -132,106 +142,112 @@
     },
     {% endif %}
     'columns': [
-    {% if can_show_users_without_record %}
-    { "data": "user_type" },
-    {% endif %}
-    { "data": "last_name",
-      "render": function(data, type, row) {
-        let name = `${row.last_name.toUpperCase()} ${row.first_name}`
+      { "data": "user_type",
+        "name": "user_type"
+      },
+      { "data": "last_name",
+        "name": "last_name",
+        "render": function(data, type, row) {
+          let name = `${row.last_name.toUpperCase()} ${row.first_name}`
 
-        if(type === "sort") {
-          return name.toLowerCase()
-        }
-
-        if(type === "display" && (
-            is_ref_etab || is_ref_etab_maitre || is_ref_tec || (is_ref_lyc && parseInt(high_school_id) === row.high_school_id))
-        ) {
-          if (row.high_school_record_id) {
-            return `<a href='/immersion/hs_record/${row.high_school_record_id}'>${name}</a>`;
-          } else if (row.student_record_id) {
-            return `<a href='/immersion/student_record/${row.student_record_id}'>${name}</a>`;
-          } else if (row.visitor_record_id) {
-            return `<a href='/immersion/visitor_record/${row.visitor_record_id}'>${name}</a>`;
-          }
-        }
-        return name;
-      }
-    },
-    { "data": "birth_date",
-      "render": function(data, type, row) {
-        if (data && type === "display") {
-          let date = new Date(data.replace(/(\d{4})-(\d{2})-(\d{2})/, "$2/$3/$1"))
-          return date.toLocaleDateString(undefined, date_format)
-        }
-
-        return data
-      }
-    },
-    {% if can_show_users_without_record %}
-    { "data": "institution",
-      "render": function(data, type, row) {
-        if (row.student_record_id && data === null) {
-          return row.uai_code
-        }
-        return data
-      }
-    },
-    {% endif %}
-    { "data": "level" },
-    { "data": "class_name" },
-    { "data": "bachelor",
-      "render": function(data, type, row) {
-        if(row.student_record_id) {
-          return row.student_origin_bachelor
-        }
-
-        if(row.is_post_bachelor && row.high_school_record_id) {
-          return row.hs_origin_bachelor
-        }
-
-        return data
-      }
-    },
-    {% if can_show_users_without_record %}
-    { "data": "post_bachelor_level",
-      "render": function(data, type, row) {
-        if (row.high_school_record_id && row.is_post_bachelor) {
-          let txt = row.level
-
-          if (data) {
-            txt += ` - ${data}`
+          if(type === "sort") {
+            return name.toLowerCase()
           }
 
-          return txt
-        }
-        return data
-      }
-    },
-    {% endif %}
-    { "data": "registered",
-      "render": function(data, type, row) {
-        if(data) {
-          let txt = "{% trans 'Yes' %} "
-
-          if(row.allow_high_school_consultation) {
-            txt += "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
-                   "<i class='fa fas fa-eye fa-2x'></i>" +
-                   "</button>";
+          if(type === "display" && (
+              is_ref_etab || is_ref_etab_maitre || is_ref_tec || (is_ref_lyc && parseInt(high_school_id) === row.high_school_id))
+          ) {
+            if (row.high_school_record_id) {
+              return `<a href='/immersion/hs_record/${row.high_school_record_id}'>${name}</a>`;
+            } else if (row.student_record_id) {
+              return `<a href='/immersion/student_record/${row.student_record_id}'>${name}</a>`;
+            } else if (row.visitor_record_id) {
+              return `<a href='/immersion/visitor_record/${row.visitor_record_id}'>${name}</a>`;
+            }
           }
-          else {
-            txt += "<button class=\"btn btn-warning btn-sm ml-4\" title=\"{% trans 'Not allowed by the student' %}\">" +
-                   "<i class='fa fas fa-eye-slash fa-2x'></i>" +
-                   "</button>";
-          }
-
-          return txt
-        }
-        else {
-          return "{% trans 'No' %}";
+          return name;
         }
       },
-    },
-  ],
+      { "data": "birth_date",
+        "name": "birth_date",
+        "render": function(data, type, row) {
+          if (data && type === "display") {
+            let date = new Date(data.replace(/(\d{4})-(\d{2})-(\d{2})/, "$2/$3/$1"))
+            return date.toLocaleDateString(undefined, date_format)
+          }
+
+          return data
+        }
+      },
+      { "data": "institution",
+        "name": "institution",
+        "render": function(data, type, row) {
+          if (row.student_record_id && data === null) {
+            return row.uai_code
+          }
+          return data
+        }
+      },
+      { "data": "level",
+        "name": "level"
+      },
+      { "data": "class_name",
+        "name": "class_name"
+      },
+      { "data": "bachelor",
+        "name": "bachelor",
+        "render": function(data, type, row) {
+          if(row.student_record_id) {
+            return row.student_origin_bachelor
+          }
+
+          if(row.is_post_bachelor && row.high_school_record_id) {
+            return row.hs_origin_bachelor
+          }
+
+          return data
+        }
+      },
+      { "data": "post_bachelor_level",
+        "name": "post_bachelor_level",
+        "render": function(data, type, row) {
+          if (row.high_school_record_id && row.is_post_bachelor) {
+            let txt = row.level
+
+            if (data) {
+              txt += ` - ${data}`
+            }
+
+            return txt
+          }
+          return data
+        }
+      },
+      { "data": "registered",
+        "name": "registered",
+        "render": function(data, type, row) {
+          if(data) {
+            let txt = "{% trans 'Yes' %} "
+
+            if(row.allow_high_school_consultation) {
+              txt += "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
+                     "<i class='fa fas fa-eye fa-2x'></i>" +
+                     "</button>";
+            }
+            else {
+              txt += "<button class=\"btn btn-warning btn-sm ml-4\" title=\"{% trans 'Not allowed by the student' %}\">" +
+                     "<i class='fa fas fa-eye-slash fa-2x'></i>" +
+                     "</button>";
+            }
+
+            return txt
+          }
+          else {
+            return "{% trans 'No' %}";
+          }
+        },
+      },
+    ],
     "columnDefs": [
       {
         "defaultContent": "",
@@ -239,6 +255,18 @@
         "className": "all",
       },
     ],
+    initComplete: function() {
+      var api = this.api();
+
+      // Hide some columns
+      if(!can_show_users_without_record) {
+        api.columns([
+          "user_type:name",
+          "institution:name",
+          "post_bachelor_level:name"
+        ]).visible(false)
+      }
+    }
   });
 
   // All filters reset action
@@ -247,96 +275,59 @@
   });
 
   // Filters init
-  if (is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc) {
-    yadcf.init(dt, [
-      {
-        column_number: 0,
-        filter_match_mode: "exact",
-        filter_default_label: "",
-        filter_container_id: "type_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 1,
-        filter_type: "text",
-        filter_default_label: "",
-        filter_container_id: "name_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 3,
-        filter_default_label: "",
-        filter_container_id: "etab_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 4,
-        filter_default_label: "",
-        filter_container_id: "level_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }, {
-        column_number: 5,
-        filter_default_label: "",
-        filter_container_id: "class_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }, {
-        column_number: 6,
-        filter_default_label: "",
-        filter_container_id: "bachelor_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 7,
-        filter_default_label: "",
-        filter_container_id: "post_bachelor_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 8,
-        filter_default_label: "",
-        filter_container_id: "registered_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }
-    ]);
-  }
-  else {
-    yadcf.init(dt, [
-      {
-        column_number: 2,
-        filter_default_label: "",
-        filter_container_id: "level_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }, {
-        column_number: 3,
-        filter_default_label: "",
-        filter_container_id: "class_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }, {
-        column_number: 4,
-        filter_default_label: "",
-        filter_container_id: "bachelor_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 5,
-        filter_default_label: "",
-        filter_container_id: "registered_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      }
-    ]);
-  }
+  yadcf.init(dt, [
+    {
+      column_number: 0,
+      filter_default_label: "",
+      filter_container_id: "type_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 1,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "name_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 3,
+      filter_default_label: "",
+      filter_container_id: "etab_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 4,
+      filter_default_label: "",
+      filter_container_id: "level_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 5,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "class_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 6,
+      filter_default_label: "",
+      filter_container_id: "bachelor_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 8,
+      filter_default_label: "",
+      filter_container_id: "registered_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }
+  ]);
 
   dt.on( 'draw', function () {
     $('[data-toggle="tooltip"]').tooltip();

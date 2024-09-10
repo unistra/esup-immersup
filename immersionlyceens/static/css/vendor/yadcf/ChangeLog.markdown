@@ -1,7 +1,50 @@
 # Yet Another DataTables Column Filter (yadcf) Change-log
 
+ 
+## 0.9.6 (skipped 0.9.4 and 0.9.5)
 
+* PR (by @stringfellow) Use dynamic event handlers on elements to prevent nonce-based CSP errors (unsafe-inline disallowed) - https://github.com/vedmack/yadcf/pull/675
+* PR (by m417z) Use proper jQuery objects instead of strings for better security - https://github.com/vedmack/yadcf/pull/630
+* Added (by @misanek) "regex" filtering mode checkbox (currently available for the text filter) - https://github.com/vedmack/yadcf/pull/490
+* Added babel transpiled version (es5) in /build folder
+* Fixed cumulative filtering issue (not calling proper dt api / version) 
+* Added "column_selector" - more flexability in column selectors (instead of hard coded column_number)- https://github.com/vedmack/yadcf/issues/513
+* Support for stateSave with serverSide currently only for filter_type: 'text'
+* Support Date Range Picker plugin (datepicker_type: 'daterangepicker') - https://github.com/vedmack/yadcf/issues/537
+* Added column_data_type: 'html5_data_complex' type to parse value/display from datatable html5 attributes - https://github.com/vedmack/yadcf/issues/581
+* Added range_data_type: 'delimiter' , to allow range slider filter to handle multiple values per cell - https://github.com/vedmack/yadcf/issues/580
+* Added initOnDtXhrComplete: Allows to set a callback function to be called after dt xhr finishes - https://github.com/vedmack/yadcf/issues/609
+* Added initDefaults: Init global defaults for all yadcf instances. Usage example: yadcf.initDefaults({language: {select: 'Pick some'}}); thanks goes to @bytestream
+* Misc bug fixed issues:
+	* https://github.com/vedmack/yadcf/issues/469 - Cannot apply style_class on date filter
+	* https://github.com/vedmack/yadcf/issues/470 - filter_delay not working on range_date
+	* https://github.com/vedmack/yadcf/issues/482 - Autocomplete is not reading filter_plugin_options
+	* https://github.com/vedmack/yadcf/issues/493 - Set the state preselected value only if the option exists in the select dropdown
+	* https://github.com/vedmack/yadcf/issues/510 - Can't handle null value case in deep data properties
+	* https://github.com/vedmack/yadcf/issues/522 - Selectize bug (initSelectPluginCustomTriggers 'select_type': 'custom_select' )
+	* https://github.com/vedmack/yadcf/issues/524 - range_date filter with bootstrap-datetimepicker date format issue (moment_date_format)
+	* https://github.com/vedmack/yadcf/issues/500 - multi_select not working "The select2('close') method was called on an element that is not using Select2.
+	* https://github.com/vedmack/yadcf/issues/530 - Using Select2 with ajax load multiselect my tags are removed instantly.
+	* https://github.com/vedmack/yadcf/issues/531 - Ctrl+A does not work inside text searches.
+	* https://github.com/vedmack/yadcf/issues/534 - initMultipleTables trows a TypeError: "tablesArray[i] is undefined"
+	* https://github.com/vedmack/yadcf/issues/540 - Individual Search Columns in the footer with ScrollX not searching properly 
+	* https://github.com/vedmack/yadcf/issues/552 - Error when using orthogonal data and text_data_delimiter (support columns.data.filter)
+	* https://github.com/vedmack/yadcf/issues/554 - DT render not working properly - range number / slider filters
+	* https://github.com/vedmack/yadcf/issues/557 - startsWith being ignored when exclude option set
+	* https://github.com/vedmack/yadcf/issues/553 - Using orthogonal data and text_data_delimiter with columns.data function
+	* https://github.com/vedmack/yadcf/issues/535 - Feature request: DataTables Editor DateTime picker support.
+	* https://github.com/vedmack/yadcf/issues/562 - multi_select_custom_func not considered in exGetColumnFilterVal
+	* https://github.com/vedmack/yadcf/issues/564 - Error undefinded ColumnObj with ServerSide, Range_Number and Custom_Range_Delimiter
+	* https://github.com/vedmack/yadcf/issues/587 - Applying style_class to range_date uses the wrong element
+	* https://github.com/vedmack/yadcf/issues/602 - Filter not working on dynamic input in Firefox but in Chrome
+	* https://github.com/vedmack/yadcf/issues/603 - Date range with jquery-ui datepicker disables "future" dates even after they have been cleared
+	* https://github.com/vedmack/yadcf/issues/149 - forgot to define html5_data attribute column x error
+	* https://github.com/vedmack/yadcf/issues/612 - Pre Selecting an escaped value
+	* https://github.com/vedmack/yadcf/issues/610 - Configure globally
+	* https://github.com/vedmack/yadcf/issues/614 - Uncaught TypeError: Cannot read property 'yadcfState' of null
+	* and more
 
+	
 ## 0.9.3
 
 * Added support for col reorder in range filters - https://github.com/vedmack/yadcf/issues/429
@@ -83,7 +126,7 @@
 * Add regex for filter_match_mode property (xmikew)
 * Added `alphaNum` and `custom` to the `sort_as` and added `sort_as_custom_func`
 * New property, style_class - allows adding additional class/classes to filter 
-* Added and exclude filtering checkbox (currently available for the text filter)
+* Added "exclude" filtering checkbox (currently available for the text filter)
 * New property, append_data_to_table_data to place your data array in addition to the values that yadcf grabs from the table
 * Aded support for Select2 v.4.0 
 * Added exResetFilters function to reset specific filters (one or more) https://github.com/vedmack/yadcf/issues/162

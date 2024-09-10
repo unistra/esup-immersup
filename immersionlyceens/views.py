@@ -100,7 +100,7 @@ def offer(request):
 
     today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = Slot.objects.filter(published=True, event__isnull=True).filter(
+    slots_count = Slot.objects.filter(published=True, event__isnull=True, allow_individual_registrations=True).filter(
         Q(date__isnull=True)
         | Q(date__gte=today.date())
         | Q(date=today.date(), end_time__gte=today.time())
@@ -278,7 +278,7 @@ def offer_subdomain(request, subdomain_id):
 
         for course in training_courses:
             slots = Slot.objects.filter(
-                course__id=course.id, published=True, date__gte=today
+                course__id=course.id, published=True, date__gte=today, allow_individual_registrations=True
             ).order_by('date', 'start_time', 'end_time')
 
             training_data = {
@@ -519,26 +519,34 @@ def highschools(request):
     """ Highschools public view"""
 
     affiliated_highschools = HighSchool.objects.filter(
-        active=True, with_convention=True, allow_individual_immersions=True
-    ).values("city", "label", "email")
+        active=True,
+        with_convention=True,
+        allow_individual_immersions=True
+    ).values("city", "label", "email", "uses_student_federation")
 
     try:
-        affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_CONVENTIONNES", \
-                                                                      active=True).content
+        affiliated_highschools_intro_txt = InformationText.objects.get(
+            code="INTRO_LYCEES_CONVENTIONNES",
+            active=True
+        ).content
     except InformationText.DoesNotExist:
         # TODO: Default txt value ?
         affiliated_highschools_intro_txt = ''
 
     try:
-        not_affiliated_highschools_intro_txt = InformationText.objects.get(code="INTRO_LYCEES_NON_CONVENTIONNES", \
-                                                                      active=True).content
+        not_affiliated_highschools_intro_txt = InformationText.objects.get(
+            code="INTRO_LYCEES_NON_CONVENTIONNES",
+            active=True
+        ).content
     except InformationText.DoesNotExist:
         # TODO: Default txt value ?
         not_affiliated_highschools_intro_txt = ''
 
     not_affiliated_highschools = HighSchool.objects.filter(
-        active=True, with_convention=False, allow_individual_immersions=True
-    ).values("city", "label", "email")
+        active=True,
+        with_convention=False,
+        allow_individual_immersions=True
+    ).values("city", "label", "email", "uses_student_federation")
 
     context = {
         'affiliated_highschools': json.dumps(list(affiliated_highschools)),

@@ -18,11 +18,11 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="id_group_highschool">{% trans 'Educational establishment' %} *</label>
                 {% if user.is_high_school_manager %}
-                  <input id="id_group_highschool" type="hidden" class="form-control" required="required" value="{{ user.highschool.id }}">
-                  {{ highschool }}
+                <input id="id_group_highschool" type="hidden" class="form-control" required="required" value="{{ user.highschool.id }}">
+                {{ highschool }}
                 {% else %}
+                <label for="id_group_highschool">{% trans 'Educational establishment' %} *</label>
                 <select id="id_group_highschool" class="form-control" required="required">
                   <option value="">------------</option>
                   {% for highschool in group_highschools %}
@@ -81,7 +81,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" name="register" onclick="register_group()">{% trans 'Add this group' %}</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Cancel' %}</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
       </div>
       </form>
     </div>

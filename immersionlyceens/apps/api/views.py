@@ -1130,6 +1130,87 @@ def ajax_set_attendance(request):
 
 
 @is_ajax_request
+@is_post_request
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'CONS-STR')
+def ajax_set_group_attendance(request):
+    """
+    Update group immersion attendance status
+    """
+    immersion_group_id = request.POST.get('immersion_group_id', None)
+    immersion_group_ids = request.POST.get('immersion_group_ids', None)
+    user = request.user
+    allowed_structures = user.get_authorized_structures()
+
+    # Control if we can cancel a group immersion by clicking again on its status
+    single_immersion = True
+
+    response = {'success': '', 'error': '', 'data': []}
+
+    if immersion_group_ids:
+        immersion_group_ids = json.loads(immersion_group_ids)
+        single_immersion = False
+
+    try:
+        attendance_value = int(request.POST.get('attendance_value'))
+    except:
+        attendance_value = None
+
+    if not attendance_value:
+        response['error'] = gettext("Error: no attendance status set in parameter")
+        return JsonResponse(response, safe=False)
+
+    if not immersion_group_id and not immersion_group_ids:
+        response['error'] = gettext("Error: missing immersion id parameter")
+        return JsonResponse(response, safe=False)
+
+    if immersion_group_id and not immersion_group_ids:
+        immersion_group_ids = [immersion_group_id]
+
+    for immersion_id in immersion_group_ids:
+        immersion = None
+        try:
+            immersion = ImmersionGroupRecord.objects.get(pk=immersion_id)
+        except ImmersionGroupRecord.DoesNotExist:
+            response['error'] = gettext("Error : query contains some invalid group immersion ids")
+
+        if immersion:
+            response['error'] += "<br>" if response['error'] else ""
+            response['success'] += "<br>" if response['success'] else ""
+
+            slot_establishment = immersion.slot.get_establishment()
+            slot_structure = immersion.slot.get_structure()
+            slot_highschool = immersion.slot.get_highschool()
+
+            # Check authenticated user rights on this registration
+            valid_conditions = [
+                user.is_master_establishment_manager(),
+                user.is_operator(),
+                user.is_establishment_manager() and slot_establishment == user.establishment,
+                user.is_structure_manager() and slot_structure in allowed_structures,
+                user.is_speaker() and user in immersion.slot.speakers.all(),
+                user.is_high_school_manager() and slot_highschool and user.highschool == slot_highschool,
+                user.is_structure_consultant() and slot_structure in allowed_structures,
+            ]
+
+            if any(valid_conditions):
+                # current status cancellation ? (= set 0)
+                if single_immersion and immersion.attendance_status == attendance_value:
+                    immersion.attendance_status = 0
+                else:
+                    immersion.attendance_status = attendance_value
+
+                immersion.save()
+                response['success'] += f"{immersion.highschool} : {gettext('attendance status updated')}"
+            else:
+                response['error'] += "%s : %s" % (
+                    immersion.highschool,
+                    gettext("you don't have enough privileges to set the attendance status"),
+                )
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
 @login_required
 @is_post_request
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'VIS')
@@ -1483,7 +1564,7 @@ def ajax_group_slot_registration(request):
         response = {'error': True, 'msg': _("This slot doesn't allow group registrations")}
         return JsonResponse(response, safe=False)
 
-    if slot.group_mode == Slot.ONE_GROUP:
+    if slot.group_mode == Slot.ONE_GROUP and id:
         if slot.group_immersions.filter(cancellation_type__isnull=True).exclude(pk=id).count() > 0:
             response = {'error': True, 'msg': _("This slot accepts only one registered group")}
             return JsonResponse(response, safe=False)
@@ -3579,41 +3660,46 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
-def ajax_get_student_presence(request, date_from=None, date_until=None):
+@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC')
+def ajax_get_student_presence(request):
+    """
+    List of registrations to every slot
+    GET params: from_date, until_date, place (0:face to face or 2:outside of the establishment)
+    """
+
     response = {'data': [], 'msg': ''}
 
-    filters = {}
+    from_date = request.GET.get('from_date')
+    until_date = request.GET.get('until_date')
+
+    try:
+        place = int(request.GET.get('place', 0))
+    except:
+        place = 0
+
+    filters = {'slot__place': place}
     Q_filters = Q()
 
-    if date_from and date_from != "None":
-        filters["slot__date__gte"] = date_from
+    if from_date and from_date != "None":
+        filters["slot__date__gte"] = from_date
 
-    if date_until and date_until != "None":
-        filters["slot__date__lte"] = date_until
+    if until_date and until_date != "None":
+        filters["slot__date__lte"] = until_date
 
-    if not request.user.is_superuser and (
-        request.user.is_establishment_manager() or request.user.is_legal_department_staff()
-    ):
+    if request.user.is_superuser or request.user.is_operator() or request.user.is_master_establishment_manager():
+        Q_filters = (
+            Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
+            | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
+            | Q(slot__course__isnull=False)
+        )
+
+    elif request.user.is_establishment_manager() or request.user.is_legal_department_staff():
         structures = request.user.establishment.structures.all()
 
         Q_filters = (
             Q(slot__course__structure__in=structures)
             | Q(slot__event__structure__in=structures, slot__place=Slot.FACE_TO_FACE)
             | Q(slot__event__structure__in=structures, slot__place=Slot.OUTSIDE)
-        )
-
-    elif request.user.is_high_school_manager() and not request.user.is_superuser:
-        Q_filters = (
-            Q(slot__course__highschool=request.user.highschool)
-            | Q(slot__event__highschool=request.user.highschool, slot__place=Slot.FACE_TO_FACE)
-            | Q(slot__event__highschool=request.user.highschool, slot__place=Slot.OUTSIDE)
-        )
-    else:
-        Q_filters = (
-            Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
-            | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
-            | Q(slot__course__isnull=False)
         )
 
     immersions = (
@@ -3630,6 +3716,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
         )
         .filter(Q_filters, **filters, cancellation_type__isnull=True)
         .annotate(
+            datatype=Value('student'),
             date=F('slot__date'),
             start_time=F('slot__start_time'),
             end_time=F('slot__end_time'),
@@ -3673,12 +3760,55 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             structure=Coalesce(
                 F('slot__course__structure__label'),
                 F('slot__event__structure__label'),
-            ),
+            )
         )
         .values()
     )
 
-    response['data'] = [i for i in immersions]
+    # Build a second queryset with group immersions
+
+    group_immersions = (
+        ImmersionGroupRecord.objects.prefetch_related(
+            'slot__campus',
+            'slot__building',
+            'slot__course__structure__establishment',
+            'slot__event__establishment',
+            'slot__course__structure',
+            'slot__event__structure'
+            'highschool'
+        )
+        .filter(Q_filters, **filters, cancellation_type__isnull=True)
+        .annotate(
+            datatype=Value('group'),
+            date=F('slot__date'),
+            start_time=F('slot__start_time'),
+            end_time=F('slot__end_time'),
+            student_profile=Value(gettext('Group')),
+            institution=F('highschool__label'),
+            campus=F('slot__campus__label'),
+            building=F('slot__building__label'),
+            meeting_place=Case(
+                When(slot__place=Slot.FACE_TO_FACE, then=F('slot__room')),
+                When(slot__place=Slot.OUTSIDE, then=F('slot__room')),
+                default=Value(gettext('Remote')),
+            ),
+            establishment=Coalesce(
+                F('slot__course__structure__establishment__label'),
+                F('slot__event__establishment__label'),
+                F('slot__course__highschool__label'),
+                F('slot__event__highschool__label'),
+            ),
+            structure=Coalesce(
+                F('slot__course__structure__label'),
+                F('slot__event__structure__label'),
+            )
+        )
+        .values()
+    )
+
+    # Return a list with mixed values, 'datatype' field must be used to know
+    # what to display in datatable
+    response['data'] = list(immersions) + list(group_immersions)
 
     return JsonResponse(response, safe=False)
 
@@ -4280,16 +4410,14 @@ class CourseList(generics.ListCreateAPIView):
         force_user_filter = [
             self.user_courses,
             self.user.is_speaker()
-            and not any(
-                [
-                    self.user.is_master_establishment_manager(),
-                    self.user.is_establishment_manager(),
-                    self.user.is_high_school_manager(),
-                    self.user.is_structure_manager(),
-                    self.user.is_structure_consultant(),
-                    self.user.is_operator(),
-                ]
-            ),
+            and not any([
+                self.user.is_master_establishment_manager(),
+                self.user.is_establishment_manager(),
+                self.user.is_high_school_manager(),
+                self.user.is_structure_manager(),
+                self.user.is_structure_consultant(),
+                self.user.is_operator(),
+            ]),
         ]
 
         if any(force_user_filter):
@@ -4557,10 +4685,20 @@ class OffOfferEventList(generics.ListAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', 'structure', 'highschool']
 
+    def __init__(self, *args, **kwargs):
+        self.message = {}
+        self.status = ""
+        self.user = None
+        self.user_events = False
+        self.user_filter = False
+        self.filters = {}
+
+        super().__init__(*args, **kwargs)
+
     def get_queryset(self):
         queryset = OffOfferEvent.objects.all()
         user = self.request.user
-
+        self.user_filter = False
         user_events = self.request.GET.get('user_events', False) == 'true'
 
         force_user_filter = [
@@ -4577,6 +4715,9 @@ class OffOfferEventList(generics.ListAPIView):
                 ]
             ),
         ]
+
+        if any(force_user_filter):
+            self.user_filter = True
 
         if not user.is_superuser:
             if any(force_user_filter):
@@ -4612,6 +4753,33 @@ class OffOfferEventList(generics.ListAPIView):
 
         return queryset.filter(**filters)
 
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        """
+        Look for speaker emails and try to create/add them to serializer data
+        """
+        if data is not None:
+            many = isinstance(data, list)
+
+            if many:
+                for event_data in data:
+                    try:
+                        event_data = get_or_create_user(self.request, event_data)
+                    except Exception as e:
+                        raise
+            else:
+                try:
+                    data = get_or_create_user(self.request, data)
+                except Exception as e:
+                    raise
+
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(
+                instance=instance,
+                many=many,
+                partial=partial,
+                context={'user_events': self.user_filter, 'request': self.request},
+            )
 
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventDetail(generics.DestroyAPIView):
@@ -5116,7 +5284,7 @@ def ajax_can_register_slot(request, slot_id=None):
     period = slot.period
 
     if period:
-        if today < period.registration_start_date:
+        if now < period.registration_start_date:
             response['msg'] = _("You can't register to this slot yet")
             return JsonResponse(response, safe=False)
 

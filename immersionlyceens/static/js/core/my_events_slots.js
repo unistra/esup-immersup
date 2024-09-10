@@ -192,13 +192,15 @@ function init_datatable() {
           let msg = "";
           let edit_mode = 0;
 
-          if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
+          // if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
+          if(row.is_past === true && (row.n_register > 0 || row.n_group_register > 0) && (row.can_update_course_slot || row.can_update_attendances)) {
             edit_mode = 1
             msg = `<button class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                   `<i class='fa fas fa-edit fa-2x'></i>` +
                   `</button>`;
           }
-          else if (row.attendances_value !== -1) {
+          // else if (row.attendances_value !== -1) {
+          else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0) {
             msg = `<button class="btn btn-light btn-sm mr-4" name="view" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places})" title="${registered_text}">` +
                   `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                   `</button>`;

@@ -198,6 +198,10 @@ var groups_counterChecked = 0;
 var n_group_places = 0;
 var total_registered = 0;
 var n_groups = 0;
+var slot_is_past;
+
+let face_to_face = 0
+let outside = 2
 
 function set_attendance(immersion_id, value) {
   $.ajax({
@@ -222,7 +226,32 @@ function set_attendance(immersion_id, value) {
       console.log(json);
     }
   })
-};
+}
+
+function set_group_attendance(immersion_group_id, value) {
+  $.ajax({
+    url: "{% url 'SetGroupAttendance' %}",
+    type: 'POST',
+    data: {
+      'immersion_group_id': immersion_group_id,
+      'attendance_value': value,
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (json) {
+      if(json['error']) {
+        $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
+        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
+      groups_dtr.ajax.reload();
+
+      // Refresh main table and jump to the previous page
+      dt.ajax.reload(null, false);
+    },
+    error: function(json) {
+      console.log(json);
+    }
+  })
+}
 
 function set_all_attendances(value) {
   var datas = dtr.rows().data();
@@ -246,6 +275,36 @@ function set_all_attendances(value) {
         setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
       }
       reload_table();
+      dt.ajax.reload();
+    },
+    error: function(json) {
+      console.log(json);
+    }
+  });
+}
+
+function set_all_groups_attendances(value) {
+  var datas = groups_dtr.rows().data();
+  var id_array = [];
+
+  datas.each(function(item, index) {
+    id_array.push(item.id);
+  });
+
+  $.ajax({
+    url: "{% url 'SetGroupAttendance' %}",
+    type: 'POST',
+    data: {
+      'immersion_group_ids': JSON.stringify(id_array),
+      'attendance_value': value,
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (json) {
+      if(json['error']) {
+        $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
+        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
+      reload_groups_table();
       dt.ajax.reload();
     },
     error: function(json) {
@@ -388,7 +447,8 @@ dtr = $('#students_list').DataTable({
         else if (row.attendance_status === 2) {
           absent_color="style='color:red';";
         }
-        if(can_update_attendances === true && (place === "0" || place === "2")) {
+
+        if(can_update_attendances === true && (slot_location === 0 || pslot_location === 2)) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
@@ -498,10 +558,14 @@ groups_dtr = $('#groups_list').DataTable({
      "render": function (data, type, row) {
         let update = ""
 
-        if((is_highschool_manager && current_highschool_id === user_highschool)
+        /* the following should equivalent to "can_update_registrations"
+        (is_highschool_manager && current_highschool_id === user_highschool)
            || (is_highschool_manager && row.highschool_id === user_highschool)
            || (is_establishment_manager && current_establishment_id === user_establishment)
-           || is_master_establishment_manager || is_operator) {
+           || is_master_establishment_manager || is_operator)) {
+        */
+
+        if(!slot_is_past && can_update_registrations) {
           update = `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_group_modal('${row.id}', '${row.highschool_id}', '${row.students_count}', '${row.guides_count}', '${row.file_link}', '${row.file_name}', '${row.emails}', '${row.comments}')" title="${update_group_txt}">`
                  + `<i class='fa fas fa-edit fa-2x centered-icon'></i>`
                  + `</button>`
@@ -564,11 +628,11 @@ groups_dtr = $('#groups_list').DataTable({
         else if (row.attendance_status === 2) {
           absent_color = "style='color:red';";
         }
-        if(can_update_attendances === true && (place === "0" || place === "2")) {
-          return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_groups_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
+        if(can_update_attendances === true && (slot_location === 0 || slot_location === 2)) {
+          return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_group_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
-                 "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_groups_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
+                 "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_group_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
                  "<i class='fa fas fa-times' "+absent_color+"></i>" +
                  "</button>" +
                  "<span "+present_color+" "+absent_color+">"+data+"</span>";
@@ -642,9 +706,10 @@ $('#groups_list').on('draw.dt', function () {
 $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
   reload_groups_table();
+  slot_is_past = $('#modal_view_slot_immersions').data('ispast')
 
   // show or hide register & cancel btn when slot != past or authenticated user can't update registrations
-  if ($('#modal_view_slot_immersions').data('ispast') || can_update_registrations === false) {
+  if (slot_is_past || can_update_registrations === false) {
     $('#btn_cancel_registrations').hide();
     $('#btn_register_student').hide();
     $('#lbl_select_cancel_type').hide();

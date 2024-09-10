@@ -46,9 +46,9 @@ from shibboleth.app_settings import LOGOUT_URL, LOGOUT_REDIRECT_URL
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorType, CancelType, CertificateLogo,
     CertificateSignature, GeneralSettings, HigherEducationInstitution,
-    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
-    MefStat, PendingUserGroup, Period, PostBachelorLevel, Slot, StudentLevel,
-    UniversityYear, UserCourseAlert,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, InformationText,
+    MailTemplate, MefStat, PendingUserGroup, Period, Slot, UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -210,20 +210,36 @@ def loginChoice(request, profile=None):
     :param profile:
     :return:
     """
+    intro_connection_code = None
+    intro_connection = ""
+    is_reg_possible, is_year_valid, year = check_active_year()
+
+    if not year or not is_reg_possible:
+        return redirect(reverse('immersion:register'), profile=profile)
 
     match profile:
         case 'lyc':
             federation_name = _("EduConnect")
+            intro_connection_code = "INTRO_HIGHSCHOOL_CONNECTION"
         case 'ref-lyc':
             federation_name = _("the agent federation")
+            intro_connection_code = "INTRO_AGENT_CONNECTION"
         case 'speaker':
             federation_name = _("the agent federation")
+            intro_connection_code = "INTRO_AGENT_CONNECTION"
         case _:
             federation_name = ''
 
+    if federation_name and intro_connection_code:
+        try:
+            intro_connection = InformationText.objects.get(code=intro_connection_code, active=True).content
+        except InformationText.DoesNotExist:
+            intro_connection = ""
+
     context = {
         'federation_name': federation_name,
-        'profile': profile
+        'profile': profile,
+        'intro_connection': intro_connection
     }
 
     template = "immersion/login_choice.html" if federation_name else "immersion/login.html"
@@ -243,6 +259,7 @@ def shibbolethLogin(request, profile=None):
     level = None
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
+
 
     """
     # --------------- <shib dev> ----------------------
@@ -290,6 +307,7 @@ def shibbolethLogin(request, profile=None):
     ]
 
     optional_attributes = []
+
 
     # Extract all affiliations, clean empty lists and remove scopes (something@domain)
     try:
@@ -362,6 +380,17 @@ def shibbolethLogin(request, profile=None):
             is_student = True
             mandatory_attributes += student_attribute
             group_name = 'ETU'
+    else:
+        shib_attrs['username'] = shib_attrs.get('email', None)
+
+    if not is_high_school_student:
+        # Attributes cleaning
+        try:
+            shib_attrs['username'] = shib_attrs['username'].strip().lower()
+            shib_attrs['email'] = shib_attrs['email'].strip().lower()
+        except:
+            # KeyError ? nothing to do
+            pass
 
     # parse affiliations:
     if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
@@ -380,8 +409,8 @@ def shibbolethLogin(request, profile=None):
             return HttpResponseRedirect("/")
 
         if is_high_school_student:
-            # Ignore email
-            shib_attrs.pop('email', None)
+            # replace email with a unique string
+            shib_attrs['email'] = uuid.uuid4().hex
 
         # Store unneeded attributes from shib_attrs for account creation
         other_fields = {
@@ -1074,13 +1103,20 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, _("Cannot send email. The administrators have been notified."))
                         logger.error(f"Error while sending email update notification : {msg}")
                     else:
-                        messages.warning(
-                            request, _(
-                                """You have updated the email."""
+                        if not student.uses_federation():
+                            msg = _(
+                                """You have updated your email address."""
                                 """<br>Warning : the new email is also the new login."""
                                 """<br>A new activation email has been sent."""
-                            ),
-                        )
+                            )
+                        else:
+                            msg = _(
+                                """You have updated your email address."""
+                                """<br>A new activation email has been sent."""
+                            )
+
+                        messages.warning(request, msg)
+
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
         else:
@@ -1096,7 +1132,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
-                if not user.uses_federation() and record.validation != HighSchoolStudentRecord.TO_COMPLETE:
+                if (not user.uses_federation()
+                    and record.validation not in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]
+                ):
                     validation_needed = True
                     messages.info(
                         request,
@@ -1201,7 +1239,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         validation_needed = True
                         # Only optional documents to send
                         messages.warning(
-                            request, _("Record saved. Please check the optional documents to send below.")
+                            request, _("Please check the optional documents to send below.")
                         )
             else:
                 documents = HighSchoolStudentRecordDocument.objects\
@@ -1249,7 +1287,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         pass
                     case _:
                         record.set_status("TO_VALIDATE")
-            elif record.validation == HighSchoolStudentRecord.TO_COMPLETE:
+            elif record.validation in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]:
                 if not user.uses_federation():
                     record.set_status("TO_VALIDATE")
                 else:
@@ -1273,16 +1311,16 @@ def high_school_student_record(request, student_id=None, record_id=None):
             if request.user.is_high_school_student():
                 if display_documents_message:
                     messages.warning(
-                        request, _("Record saved. Please fill all the required attestation documents below.")
+                        request, _("Please fill all the required attestation documents below.")
                     )
                 elif record.validation in [record.STATUSES["TO_VALIDATE"], record.STATUSES["TO_REVALIDATE"]]:
                     if record.highschool.with_convention:
                         messages.success(
-                            request, _("Thank you. Your record is awaiting validation from your high-school referent.")
+                            request, _("Your record is awaiting validation from your high-school referent.")
                         )
                     else:
                         messages.success(
-                            request, _("Thank you. Your record is awaiting validation by the establishment referent.")
+                            request, _("Your record is awaiting validation by the establishment referent.")
                         )
 
             return HttpResponseRedirect(reverse('immersion:modify_hs_record', kwargs={'record_id': record.id}))
@@ -1497,7 +1535,7 @@ def student_record(request, student_id=None, record_id=None):
                     else:
                         messages.warning(
                             request,
-                            _("""You have updated the email.""" """<br>A new activation email has been sent.""")
+                            _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
                         )
                 except Exception as e:
                     logger.exception("Error while sending email update notification : %s", e)
@@ -1916,7 +1954,7 @@ class VisitorRecordView(FormView):
                 messages.warning(
                     self.request,
                     _(
-                        """You have updated the email."""
+                        """You have updated your email address."""
                         """<br>Warning : the new email is also the new login."""
                         """<br>A new activation email has been sent."""
                     ),
@@ -2054,7 +2092,7 @@ class VisitorRecordView(FormView):
                         validation_needed = True
                         # Optional documents to send
                         messages.warning(
-                            request, _("Record saved. Please check the optional documents to send below.")
+                            request, _("Please check the optional documents to send below.")
                         )
             else:
                 documents = VisitorRecordDocument.objects \
@@ -2119,7 +2157,7 @@ class VisitorRecordView(FormView):
             if valid_forms:
                 if request.user.is_visitor() and display_documents_message:
                     messages.warning(
-                        request, _("Record saved. Please fill all the required attestation documents below.")
+                        request, _("Please fill all the required attestation documents below.")
                     )
 
                 return self.form_valid(form)

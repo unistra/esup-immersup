@@ -19,7 +19,6 @@
                 <tr>
                   <th>{% trans 'Type' %}</th>
                   <th>{% trans 'Managed by' %}</th>
-                  <th>{% trans 'High school' %}</th>
                   <th>{% trans 'Details' %}</th>
                   <th>{% trans 'Campus' %}</th>
                   <th>{% trans 'Place' %}</th>
@@ -34,7 +33,6 @@
               </thead>
               <tbody>
                 <tr>
-                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -69,7 +67,7 @@ $.fn.dataTableExt.errMode = 'console';
 dtr = $('#immersions_table').DataTable({
   'processing': false,
   'order': [
-    [6, "asc"]
+    [5, "asc"]
   ],
   'pageLength': 10,
   'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -99,7 +97,6 @@ dtr = $('#immersions_table').DataTable({
         return data;
       }
     },
-    { "data": "highschool" },
     { "data": "",
       "render": function(data, type, row) {
         let txt

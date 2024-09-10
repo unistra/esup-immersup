@@ -63,7 +63,7 @@
         {% if request.user.is_master_establishment_manager or request.user.is_operator %}
           <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
         {% endif %}
-        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
           <div class="col-md-3">
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
@@ -79,8 +79,6 @@
               </select>
             </div>
           </div>
-        {% endif %}
-        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator or request.user.is_structure_consultant %}
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="strs">{% trans 'Select a structure' %} :</label>

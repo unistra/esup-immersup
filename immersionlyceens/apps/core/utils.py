@@ -61,6 +61,7 @@ def slots(request):
 
     can_update_attendances = False
     user_filter = False
+    slots_filters = Q()
     user_slots = request.GET.get('user_slots', False) == 'true'
     filters = {}
 
@@ -71,14 +72,16 @@ def slots(request):
     establishment_id = request.GET.get('establishment_id')
     events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
-    cohorts_only = request.GET.get('cohorts_only', False) == 'true'
+    cohorts_only = request.GET.get('cohorts_only', False) == "true"
+    current_slots_only = request.GET.get('current_slots_only', False) == "true"
 
     try:
         year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today <= year.end_date and not cohorts_only
-
+        year_is_valid = today <= year.end_date
+        can_update_attendances = year_is_valid and not cohorts_only
     except UniversityYear.DoesNotExist:
         pass
+
     try:
         int(establishment_id)
     except (TypeError, ValueError):
@@ -192,22 +195,41 @@ def slots(request):
     ).filter(**filters)
 
     if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
-        user_filter = {user_filter_key: user.structures.all()}
-        slots = slots.filter(**user_filter)
+        # Structure managers and consultants : filter on their own structures
+        # exception : if the user is also a speaker, make sure to grab these slots too
+        if not user_filter:
+            user_filter = {
+                user_filter_key: user.structures.all()
+            }
+            slots = slots.filter(**user_filter)
+        else:
+            # User is also a speaker
+            speaker_filter = {
+                user_filter_key: user.structures.all(),
+                "speakers__in": user.linked_users()
+            }
 
-    if not past_slots:
-        slots = slots.filter(
-            Q(date__isnull=True)
-            | Q(date__gte=today)
-            | Q(date=today, end_time__gte=now)
-            | Q(
-                place__in=[Slot.FACE_TO_FACE, Slot.OUTSIDE],
-                immersions__attendance_status=0,
-                immersions__cancellation_type__isnull=True,
+            user_filter = reduce(lambda x, y: x | y,
+                [Q(**{k : v}) for k, v in speaker_filter.items()]
             )
-        ).distinct()
 
+            slots = slots.filter(user_filter)
+
+    if current_slots_only:
+        slots_filters =  Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now)
+
+    elif not past_slots:
+        slots_filters = Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now) | Q(
+            Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+            | Q(group_immersions__attendance_status=0, group_immersions__cancellation_type__isnull=True),
+            place__in=[Slot.FACE_TO_FACE, Slot.OUTSIDE],
+        )
+
+    slots = slots.filter(slots_filters).distinct()
+
+    # TODO: Check if this is necessary
     all_data = []
+
     allowed_structures = user.get_authorized_structures()
     user_establishment = user.establishment
     user_highschool = user.highschool
@@ -276,10 +298,6 @@ def slots(request):
                     Q(published=True)
                     & (
                         Q(
-                            Value(user.is_structure_consultant()),
-                            Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
-                        )
-                        | Q(
                             Value(user.is_structure_manager()),
                             Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
                         )
@@ -296,11 +314,25 @@ def slots(request):
             ),
             can_update_attendances=Case(
                 When(
-                    Q(
-                        Q(ExpressionWrapper(F('can_update_registrations'), output_field=BooleanField()))
-                        & Q(Value(can_update_attendances))
-                    )
-                    | (Q(Value(user.is_speaker())) & Q(speakers=user)),
+                    Q(Value(can_update_attendances))
+                    & (Q(Value(user.is_speaker())) & Q(speakers=user)
+                        | Q(
+                              Value(user.is_structure_manager()),
+                              Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                           )
+                        | Q(
+                              Value(user.is_high_school_manager()),
+                              Q(course__highschool=user_highschool)
+                              | Q(event__highschool=user_highschool)
+                              | Value(cohorts_only),
+                          )
+                        | Q(Value(user.is_master_establishment_manager()))
+                        | Q(
+                            Value(user.is_establishment_manager()),
+                            Q(course__structure__establishment=user_establishment)
+                            | Q(event__establishment=user_establishment)
+                          )
+                    ),
                     then=True,
                 ),
                 default=False,
@@ -368,10 +400,25 @@ def slots(request):
                 filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
                 distinct=True,
             ),
+            group_attendances_to_enter=Count(
+                'group_immersions',
+                filter=Q(group_immersions__attendance_status=0, group_immersions__cancellation_type__isnull=True),
+                distinct=True,
+            ),
             attendances_value=Case(
-                When(Q(is_past=False), then=0),
-                When(~Q(Value(can_update_attendances)) | (Q(Value(events)) & Q(place=Slot.REMOTE)), then=Value(2)),
-                When(Q(Value(can_update_attendances), is_past=True, n_register__gt=0), then=Value(1)),
+                When(Q(is_past=False), then=0), # Future slots : can not update yet
+                When(
+                    ~Q(Value(can_update_attendances)) | (Q(Value(events)) & Q(place=Slot.REMOTE)),
+                    then=Value(2) # Nothing to enter : year is over or remote event slot
+                ),
+                When(
+                    Q(
+                        Q(n_register__gt=0, attendances_to_enter__gt=0)
+                       |Q(n_group_register__gt=0, group_attendances_to_enter__gt=0),
+                        Value(can_update_attendances), is_past=True
+                    ),
+                    then=Value(1) # There are some attendances to enter (individuals and/or groups)
+                ),
                 default=Value(-1),
             ),
             attendances_status=Case(
@@ -514,6 +561,8 @@ def slots(request):
             'n_group_register',
             'n_group_students',
             'n_group_guides',
+            'attendances_to_enter',
+            'group_attendances_to_enter',
         )
     )
 

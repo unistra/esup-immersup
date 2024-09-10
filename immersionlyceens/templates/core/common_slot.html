@@ -578,7 +578,7 @@
   var courses = Array();
 
   // var periods = Array();
-  var periods = is_set('{{ periods|safe }}') ? JSON.parse('{{ periods|safe }}') : Array();
+  var periods = is_set(`{{ periods|safe }}`) ? JSON.parse(`{{ periods|safe }}`) : Array();
 
   let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
   let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
@@ -592,6 +592,8 @@
   {% autoescape off %}
     var bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
   {% endautoescape %}
+
+  var cohorts_list_only = "{{ request.session.cohorts.only_cohorts_lists}}" === "True"
 
   empty_speakers()
 
@@ -1866,11 +1868,17 @@ $(document).ready(function(){
         "class": 'dialog-button',
         click: function () {
           let url = ""
-          if (slot_mode === 'courses') {
+          if (slot_mode === 'courses' && !cohorts_list_only) {
             url = "/core/slots"
           }
-          else if (slot_mode === 'events') {
+          else if (slot_mode === 'courses' && cohorts_list_only) {
+            url = "/core/high_school/cohorts/courses"
+          }
+          else if (slot_mode === 'events' && !cohorts_list_only) {
             url = "/core/off_offer_events_slots"
+          }
+          else if (slot_mode === 'events' && cohorts_list_only) {
+            url = "/core/high_school/cohorts/events"
           }
 
           window.location = url;

@@ -100,7 +100,7 @@
             <th id="label_filter" style="width:20%">{% trans 'Label' %}</th>
             <th id="speakers_filter">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
-            <th class="align-top">{% trans 'Registered students' %}</th>
+            <th class="align-top">{% trans 'Registrations' %}</th>
           </tr>
         </thead>
         <tfoot>
@@ -123,6 +123,7 @@
 <script type="text/javascript">
   var dt;
   var updatable = "{{ can_update_events }}";
+  var year_is_valid = "{{ year_is_valid }}" === "True";
   var feedback;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
@@ -130,7 +131,8 @@
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var confirmDialog;
-  let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+  var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+  var is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
@@ -350,26 +352,27 @@
                        "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
                        "</a>\n";
             }
-            {% if not request.user.is_structure_consultant %}
-            // direct link to new slot form
-            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
-                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                     "</a>\n";
 
-            icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                "</a>\n";
+            if(row.has_rights && year_is_valid) {
+              // direct link to new slot form
+              icons += "<a href='" + add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
+                      "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                      "</a>\n";
 
-            icons += "<a href='/core/off_offer_event/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
-                "</a>\n";
+              icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                      "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                      "</a>\n";
 
-            if (row.can_delete) {
-              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('event_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
-                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                  "</button>";
+              icons += "<a href='/core/off_offer_event/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                      "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
+                      "</a>\n";
+
+              if (row.can_delete) {
+                icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('event_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
+                        "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                        "</button>";
+              }
             }
-            {% endif %}
 
             return icons;
           },
@@ -440,9 +443,9 @@
             return data + "/" + row.slots_count;
           }
         },
-        { "data": "registrations_count",
+        { "data": "",
           "render": function(data, type, row) {
-            let current = data;
+            let current = row.registrations_count;
             let n = row.n_places;
 
             element = '<span>' + current + '/' + n + '</span>' +
@@ -456,6 +459,11 @@
                   '    style="width: ' + Math.round(current/n * 100) + '%">' +
                   '  </div>' +
                   '</div>';
+
+            if(row.registered_groups_count) {
+              element += `<br><span>{% trans 'Groups' %}: ${row.registered_groups_count}</span>`
+            }
+
             return element;
           }
         }

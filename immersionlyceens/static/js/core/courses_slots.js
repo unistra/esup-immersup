@@ -65,6 +65,7 @@ function init_datatable() {
         { data: 'id',
           render: function(data, type, row) {
             let element = ""
+            let edit_mode = 0;
 
             if ( row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me || cohorts_only ) {
               if ( show_duplicate_btn ) {
@@ -72,20 +73,27 @@ function init_datatable() {
                            `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
               }
 
+              // Future slot : edit button
               if(row.is_past === false && show_modify_btn) {
                 element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
               }
-              if(row.n_register === 0 && row.is_past === false && show_delete_btn) {
+
+              // Future slot and no registration : delete button
+              if(row.n_register === 0 && row.n_group_register === 0 && row.is_past === false && show_delete_btn) {
                 element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
               }
 
-              if(row.attendances_value === 1) {
-                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
+              // if(row.attendances_value === attendance_to_enter) {
+              // Past slot with registrations : can update attendances
+              if(row.is_past === true && (row.n_register > 0 || row.n_group_register > 0)) {
+                edit_mode = 1
+                element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                            `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                            `</button>`;
               }
-              else if(row.attendances_value !== -1) {
-                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+              // no attendance to enter : can view registered users or groups
+              else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0) {
+                element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                            `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                            `</button>`;
               }

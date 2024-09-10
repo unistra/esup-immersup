@@ -4,6 +4,7 @@ function init_datatable() {
   show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
   show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
   cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+  current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
 
   dt = $('#slots_list').DataTable({
     ajax: {
@@ -25,6 +26,10 @@ function init_datatable() {
 
         if(is_set(cohorts_only)) {
           d.cohorts_only = cohorts_only;
+        }
+
+        if(is_set(current_slots_only)) {
+          d.current_slots_only = current_slots_only;
         }
 
         d.past = $('#filter_past_slots').is(':checked');
@@ -65,6 +70,7 @@ function init_datatable() {
       { data: 'id',
         render: function(data, type, row) {
           let element = ""
+          let edit_mode = 0;
 
           if (row['can_update_event_slot']) {
             element += `<a href="/core/off_offer_event_slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
@@ -73,19 +79,21 @@ function init_datatable() {
             if(row.is_past === false) {
               element += `<a href="/core/off_offer_event_slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
             }
-            if(row.n_register === 0 && row.is_past === false) {
+            if(row.n_register === 0 && row.n_group_register === 0 && row.is_past === false) {
               element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog(\'open\')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
             }
           }
 
           if (row['can_update_attendances']) {
-            if (row.attendances_value === 1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
+            // Past slot with registrations : can update attendances
+            if(row.is_past === true && (row.n_register > 0 || row.n_group_register > 0)) {
+              edit_mode = 1;
+              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                          `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                          `</button>`;
             }
-            else if (row.attendances_value !== -1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
+            else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter|| row.n_register > 0 || row.n_group_register > 0) {
+              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                          `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                          `</button>`;
             }

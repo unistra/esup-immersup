@@ -36,11 +36,6 @@ urlpatterns = [
     ),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_students_presence', views.ajax_get_student_presence, name='ajax_get_student_presence'),
-    path(
-        'get_students_presence/<date_from>/<date_until>',
-        views.ajax_get_student_presence,
-        name='ajax_get_student_presence_dates',
-    ),
 
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),
     path('register', views.ajax_slot_registration, name='SlotRegistration'),
@@ -49,6 +44,7 @@ urlpatterns = [
     path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
     path('send_email', views.ajax_send_email, name='SendEmail'),
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
+    path('set_group_attendance', views.ajax_set_group_attendance, name='SetGroupAttendance'),
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
     path('remove_link', views.remove_link, name='remove_link'),
