@@ -27,6 +27,10 @@ function init_datatable() {
             d.cohorts_only = cohorts_only;
           }
 
+          if (current_slots_only) {
+            d.current_slots_only = current_slots_only;
+          }
+
           d.past = $('#filter_past_slots').is(':checked')
 
           return d
@@ -85,7 +89,7 @@ function init_datatable() {
 
               // if(row.attendances_value === attendance_to_enter) {
               // Past slot with registrations : can update attendances
-              if(row.is_past === true && (row.n_register > 0 || row.n_group_register > 0)) {
+              if (cohorts_only === false && row.is_past === true && (row.n_register > 0 || row.n_group_register > 0)) {
                 edit_mode = 1
                 element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                            `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +

@@ -117,6 +117,7 @@
   var slot_allow_group_registrations = false;
   var slot_allow_individual_registrations = false;
   var slot_group_mode;
+  var slot_location;
   var cohorts_only = true;
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
@@ -204,7 +205,7 @@
     let face_to_face = 0
     let outside = 2
 
-    if(place === face_to_face || place === outside) {
+    if(slot_location === face_to_face || slot_location === outside) {
         $("#id_attendances").show()
         $("#id_groups_attendances").show()
     }
