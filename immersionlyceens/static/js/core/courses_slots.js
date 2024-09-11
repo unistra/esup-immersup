@@ -3,6 +3,7 @@ function init_datatable() {
   show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
   show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
   cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+  current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
 
   dt = $('#slots_list').DataTable({
     ajax: {
@@ -100,6 +101,11 @@ function init_datatable() {
                 element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                            `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                            `</button>`;
+              }
+              if (cohorts_only === true) {
+                element += `<span data-toggle="tooltip" data-html="true" data-contrainer="body" title="${registration_date_limit_txt} : <br>${formatDate(row.registration_limit_date)}">` +
+                           `<i class="fa fas fa-calendar pr-2"></i>` +
+                           `</span>`;
               }
             }
             return element;

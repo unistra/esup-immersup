@@ -568,6 +568,8 @@ def slots(request):
             'n_group_guides',
             'attendances_to_enter',
             'group_attendances_to_enter',
+            'registration_limit_date',
+            'cancellation_limit_date',
         )
     )
 
