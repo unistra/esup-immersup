@@ -2386,9 +2386,9 @@ msgstr ""
 #: immersionlyceens/apps/core/admin_forms.py:1423
 msgid ""
 "This field cannot be changed because this high school already has student "
-"records"
+"accounts"
 msgstr ""
-"Ce champ ne peut pas être modifié car des dossiers sont déjà rattachés à ce "
+"Ce champ ne peut pas être modifié car des comptes lycéens sont déjà rattachés à ce "
 "lycée"
 
 #: immersionlyceens/apps/core/admin_forms.py:1429
@@ -2415,9 +2415,9 @@ msgstr ""
 
 #: immersionlyceens/apps/core/admin_forms.py:1520
 msgid ""
-"You can't change this setting because this high school already has records."
+"You can't change this setting because this high school already has student accounts."
 msgstr ""
-"Ce paramètre ne peut pas être modifié car des dossiers sont déjà rattachés à "
+"Ce paramètre ne peut pas être modifié car des comptes lycéens sont déjà rattachés à "
 "ce lycée"
 
 #: immersionlyceens/apps/core/admin_forms.py:1526

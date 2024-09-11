@@ -1420,7 +1420,7 @@ class HighSchoolForm(forms.ModelForm):
         elif self.instance.pk and self.instance.student_records.exists():
             # Disable student identity federation choice if the high school has students
             self.fields['uses_student_federation'].help_text = _(
-                "This field cannot be changed because this high school already has student records"
+                "This field cannot be changed because this high school already has student accounts"
             )
 
         if not agent_federation_setting:
@@ -1517,7 +1517,7 @@ class HighSchoolForm(forms.ModelForm):
                 and uses_student_federation != self.instance.uses_student_federation):
                 raise forms.ValidationError({
                     'uses_student_federation': _(
-                        "You can't change this setting because this high school already has records."
+                        "You can't change this setting because this high school already has student accounts."
                     ),
                 })
 
