@@ -2271,13 +2271,8 @@ def ajax_groups_batch_cancel_registration(request):
             and (slot.course or slot.event)
             and slot_highschool
             and user.highschool == slot_highschool,
-            user.is_high_school_manager() and (slot.course or slot.event) and other_hs_count>0,
+            user.is_high_school_manager() and (slot.course or slot.event) and other_hs_count == 0,
         ]
-
-        print("sh:", slot_highschool)
-        print("uh:", user.highschool)
-        print("user is hs", user.is_high_school_manager())
-        print("other hs count", other_hs_count)
 
         if not any(valid_conditions):
             response = {'error': True, 'msg': _("You don't have enough privileges to cancel these registrations")}

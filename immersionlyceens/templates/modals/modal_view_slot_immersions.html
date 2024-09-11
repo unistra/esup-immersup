@@ -203,6 +203,8 @@ var slot_is_past;
 let face_to_face = 0
 let outside = 2
 
+var cohorts_only = cohorts_only || false
+
 function set_attendance(immersion_id, value) {
   $.ajax({
     url: "{% url 'SetAttendance' %}",
@@ -558,15 +560,8 @@ groups_dtr = $('#groups_list').DataTable({
      "render": function (data, type, row) {
         let update = ""
 
-        /* the following should equivalent to "can_update_registrations"
-        (is_highschool_manager && current_highschool_id === user_highschool)
-           || (is_highschool_manager && row.highschool_id === user_highschool)
-           || (is_establishment_manager && current_establishment_id === user_establishment)
-           || is_master_establishment_manager || is_operator)) {
-        */
-
-        if(!slot_is_past && can_update_registrations) {
-          update = `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_group_modal('${row.id}', '${row.highschool_id}', '${row.students_count}', '${row.guides_count}', '${row.file_link}', '${row.file_name}', '${row.emails}', '${row.comments}')" title="${update_group_txt}">`
+        if(!slot_is_past && (can_update_registrations || (is_highschool_manager && parseInt(row.highschool_id) === parseInt(user_highschool)))) {
+          update = `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_group_modal('${row.id}', '${row.highschool_id}', '${row.students_count}', '${row.guides_count}', '${row.file_link}', '${row.file_name}', '${row.emails}', '${row.comments}', '${cohorts_only}')" title="${update_group_txt}">`
                  + `<i class='fa fas fa-edit fa-2x centered-icon'></i>`
                  + `</button>`
         }
@@ -609,7 +604,7 @@ groups_dtr = $('#groups_list').DataTable({
     },
     {"data": "file_name",
      "render": function(data, type, row) {
-        if(is_set(data)) {
+        if(is_set(data) && (!cohorts_only || is_highschool_manager && parseInt(row.highschool_id) === parseInt(user_highschool))) {
           return `<a href="${row.file_link}" class="sun-row">${data}</a>`
         }
 
@@ -666,7 +661,11 @@ $('#groups_list').on('draw.dt', function () {
   if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
   if (typeof slot_group_mode == 'undefined') slot_group_mode = '';
 
-  if(n_groups == 0) {
+  if(cohorts_only){
+    $("#btn_contact_groups").hide();
+    $("#btn_contact_groups").prop('disabled', true);
+  }
+  else if(n_groups == 0) {
     $("#btn_contact_groups").prop('disabled', true);
     $("#btn_contact_groups").prop('title', "{% trans 'No registered groups' %}");
   }
@@ -709,7 +708,7 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   slot_is_past = $('#modal_view_slot_immersions').data('ispast')
 
   // show or hide register & cancel btn when slot != past or authenticated user can't update registrations
-  if (slot_is_past || can_update_registrations === false) {
+  if (slot_is_past || can_update_registrations === false && cohorts_only === false) {
     $('#btn_cancel_registrations').hide();
     $('#btn_register_student').hide();
     $('#lbl_select_cancel_type').hide();
@@ -720,7 +719,7 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
     $('#groups_lbl_select_cancel_type').hide();
     $('#groups_select_cancel_type').hide();
 
-  } else if(can_update_registrations === true) {
+  } else if(can_update_registrations === true || cohorts_only === true) {
     $('#btn_cancel_registrations').show();
     $('#btn_register_student').show();
     $('#lbl_select_cancel_type').show();
