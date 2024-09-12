@@ -752,7 +752,6 @@ $(document).ready(function(){
   $('#groups_checkall').change(function() {
     let isChecked = $(this).prop('checked');
     isChecked ? groups_dtr.rows().select() : groups_dtr.rows().deselect();
-    console.log('la!',isChecked)
     let d = $('#groups_list').DataTable().rows().data();
     $.each(d, function (i, item) {
       // TODO: very dirty enhance me please !!!!
