@@ -450,7 +450,7 @@ dtr = $('#students_list').DataTable({
           absent_color="style='color:red';";
         }
 
-        if(can_update_attendances === true && (slot_location === 0 || pslot_location === 2)) {
+        if(can_update_attendances === true && (slot_location === 0 || slot_location === 2)) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
@@ -566,7 +566,9 @@ groups_dtr = $('#groups_list').DataTable({
                  + `</button>`
         }
 
-        let input = data ? '<input class="chk" checked type="checkbox">' : '<input class="chk" type="checkbox">';
+        let disabled = (is_highschool_manager && can_update_registrations || is_highschool_manager && parseInt(row.highschool_id) === parseInt(user_highschool)) ? "" : "disabled";
+
+        let input = data ? '<input class="chk" checked type="checkbox">' : `<input class="chk" type="checkbox" ${disabled}>`;
 
         return `${input} ${update}`
       }
@@ -661,11 +663,7 @@ $('#groups_list').on('draw.dt', function () {
   if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
   if (typeof slot_group_mode == 'undefined') slot_group_mode = '';
 
-  if(cohorts_only){
-    $("#btn_contact_groups").hide();
-    $("#btn_contact_groups").prop('disabled', true);
-  }
-  else if(n_groups == 0) {
+  if(n_groups == 0) {
     $("#btn_contact_groups").prop('disabled', true);
     $("#btn_contact_groups").prop('title', "{% trans 'No registered groups' %}");
   }
@@ -754,6 +752,7 @@ $(document).ready(function(){
   $('#groups_checkall').change(function() {
     let isChecked = $(this).prop('checked');
     isChecked ? groups_dtr.rows().select() : groups_dtr.rows().deselect();
+    console.log('la!',isChecked)
     let d = $('#groups_list').DataTable().rows().data();
     $.each(d, function (i, item) {
       // TODO: very dirty enhance me please !!!!
@@ -764,8 +763,8 @@ $(document).ready(function(){
       }
       item.isChecked = isChecked;
     });
-    $("#groups_list .checkcell input").prop("checked", isChecked);
-    $('#groups_list td input[type="checkbox"]').change();
+    $("#groups_list .checkcell input").not(":disabled").prop("checked", isChecked);
+    $('#groups_list td input[type="checkbox"]').not(":disabled").change();
   });
 
   $('#students_list').on('change', 'td input[type="checkbox"]', function() {

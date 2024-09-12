@@ -307,8 +307,8 @@ def slots(request):
                         )
                         | Q(
                             Value(user.is_high_school_manager()),
-                            Q(course__highschool=user_highschool) & ~Q(Value(cohorts_only))
-                            | Q(event__highschool=user_highschool) & ~Q(Value(cohorts_only)),
+                            Q(course__highschool=user_highschool)
+                            | Q(event__highschool=user_highschool),
                         )
                     ),
                     then=True,
