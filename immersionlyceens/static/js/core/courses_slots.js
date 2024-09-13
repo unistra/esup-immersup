@@ -154,11 +154,6 @@ function init_datatable() {
             return display_slot_date(data, type, row)
           }
         },
-        { data: 'n_register',
-          render: function(data, type, row) {
-            return display_n_register(data, type, row);
-          }
-        },
         { data: 'campus_label',
           render: function(data, type, row) {
             let campus_label = data
@@ -181,6 +176,12 @@ function init_datatable() {
         { data: 'speaker_list',
           render: function(data, type, row) {
             return display_slot_speakers(data, type, row)
+          }
+        },
+        {
+          data: 'n_register',
+          render: function (data, type, row) {
+            return display_n_register(data, type, row);
           }
         },
         { data: 'additional_information',
@@ -213,7 +214,7 @@ function init_datatable() {
 
     initComplete: function () {
       var api = this.api();
-      var columns_idx = [4, 7, 8]
+      var columns_idx = [4, 6, 7]
       var initial_values = { 4: course_label_filter };
 
       columns_idx.forEach(function(col_idx) {
@@ -267,7 +268,7 @@ function init_datatable() {
     yadcf.exResetAllFilters(dt);
 
     // Clear search inputs
-    let columns_idx = [4, 7, 8]
+    let columns_idx = [4, 6, 7]
 
     columns_idx.forEach(function(col_idx) {
       let column = dt.column(col_idx)
@@ -321,7 +322,7 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
     {
-        column_number: 6,
+        column_number: 8,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "registration_filter",
