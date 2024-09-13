@@ -206,7 +206,7 @@
               <div class="dropdown-menu" aria-labelledby="navbarCohorts">
                 <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Cohorts courses" %}</a>
                 <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Cohorts events" %}</a>
-                <a class="dropdown-item" href="">{% trans "Consult my registrations" %}</a>
+                {% comment %} <a class="dropdown-item" href="">{% trans "Consult my registrations" %}</a> {% endcomment %}
               </div>
             </div>
           {% endif %}
