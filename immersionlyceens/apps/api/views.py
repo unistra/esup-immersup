@@ -2118,6 +2118,7 @@ def ajax_batch_cancel_registration(request):
             and user.highschool == slot_highschool,
         ]
 
+
         if not any(valid_conditions):
             response = {'error': True, 'msg': _("You don't have enough privileges to cancel these registrations")}
             return JsonResponse(response, safe=False)
@@ -2270,7 +2271,7 @@ def ajax_groups_batch_cancel_registration(request):
             and (slot.course or slot.event)
             and slot_highschool
             and user.highschool == slot_highschool,
-            user.is_high_school_manager() and (slot.course or slot.event) and other_hs_count>0,
+            user.is_high_school_manager() and (slot.course or slot.event) and other_hs_count == 0,
         ]
 
         if not any(valid_conditions):
@@ -5605,3 +5606,44 @@ def ajax_get_slot_restrictions(request, slot_id=None):
     response['data'] = {'restrictions': list(slot)}
 
     return JsonResponse(response, safe=False)
+
+
+class TrainingAllList(generics.ListCreateAPIView):
+    """
+    Training list without restrictions for REF-LYC
+    """
+
+    # queryset = Training.objects.all()
+    serializer_class = TrainingSerializer
+    permission_classes = [
+        IsRefLycPermissions,
+    ]
+    filterset_fields = [
+        'structures',
+        'highschool',
+    ]
+
+    # Auth : default (see settings/base.py)
+
+    def get_queryset(self):
+        user = self.request.user
+        trainings_queryset = (
+            Training.objects.prefetch_related('highschool', 'structures__establishment', 'courses')
+            .filter(active=True)
+            .annotate(
+                nb_courses=Count('courses'),
+            )
+        )
+
+        return trainings_queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)

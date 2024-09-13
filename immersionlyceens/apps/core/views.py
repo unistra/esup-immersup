@@ -2056,7 +2056,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
         context["establishment_id"] = kwargs.get(
-            'establishment_id', get_session_value(self.request, "events", "current_establishment_id")
+            'establishment_id', get_session_value(self.request, "cohorts_events", "current_establishment_id")
         )
 
         try:
@@ -2070,7 +2070,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         if context["structure_id"] == "null":
             context["structure_id"] = ""
         elif context["structure_id"] is None:
-            context["structure_id"] = get_session_value(self.request, "events", "current_structure_id")
+            context["structure_id"] = get_session_value(self.request, "cohorts_events", "current_structure_id")
         else:
             try:
                 structure = Structure.objects.get(pk=context["structure_id"])
@@ -2086,7 +2086,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
             except HighSchool.DoesNotExist:
                 pass
         else:
-            context["highschool_id"] = get_session_value(self.request, "events", "current_highschool_id")
+            context["highschool_id"] = get_session_value(self.request, "cohorts_events", "current_highschool_id")
 
         context["event_id"] = kwargs.get('event_id', None)
 
@@ -2119,16 +2119,16 @@ class HighSchoolCohortsCoursesList(generic.TemplateView):
                 "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
                 "group_highschools": HighSchool.agreed.order_by('city', 'label'),
                 "establishment_id": kwargs.get(
-                    'establishment_id', get_session_value(self.request, "courses", "current_establishment_id")
+                    'establishment_id', get_session_value(self.request, "cohorts_courses", "current_establishment_id")
                 ),
                 "structure_id": kwargs.get(
-                    'structure_id', get_session_value(self.request, "courses", "current_structure_id")
+                    'structure_id', get_session_value(self.request, "cohorts_courses", "current_structure_id")
                 ),
                 "highschool_id": kwargs.get(
-                    'highschool_id', get_session_value(self.request, "courses", "current_highschool_id")
+                    'highschool_id', get_session_value(self.request, "cohorts_courses", "current_highschool_id")
                 ),
                 "training_id": kwargs.get(
-                    'training_id', get_session_value(self.request, "courses", "current_training_id")
+                    'training_id', get_session_value(self.request, "cohorts_courses", "current_training_id")
                 ),
                 "course_id": kwargs.get('course_id', None),
                 "group_file_help_text": ImmersionGroupRecord.file.field.help_text,

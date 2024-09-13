@@ -66,6 +66,7 @@ urlpatterns = [
 
     # Trainings
     path('trainings', views.TrainingList.as_view(), name='training_list'),
+    path('trainings/all', views.TrainingAllList.as_view(), name='full_training_list'),
     path("training/<int:pk>", views.TrainingDetail.as_view(), name="training_detail"),
 
     # Courses

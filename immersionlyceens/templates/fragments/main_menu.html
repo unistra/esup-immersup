@@ -198,7 +198,6 @@
             </div>
           {% endif %}
           {# Cohorts for high school manager #}
-          <!--
           {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navbarCohorts" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -207,11 +206,10 @@
               <div class="dropdown-menu" aria-labelledby="navbarCohorts">
                 <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Cohorts courses" %}</a>
                 <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Cohorts events" %}</a>
-                <a class="dropdown-item" href="">{% trans "Consult my registrations" %}</a>
+                {% comment %} <a class="dropdown-item" href="">{% trans "Consult my registrations" %}</a> {% endcomment %}
               </div>
             </div>
           {% endif %}
-          -->
         {% endif %}
         {# charts #}
         {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-ETAB-MAITRE,REF-TEC,REF-STR" %}
