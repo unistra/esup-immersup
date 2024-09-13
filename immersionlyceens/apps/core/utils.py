@@ -170,7 +170,10 @@ def slots(request):
     if cohorts_only:
         filters['allow_group_registrations'] = True
         if highschool_id:
-            filters['course__highschool__id'] = highschool_id
+            if events:
+                filters['event__highschool__id'] = highschool_id
+            else:
+                filters['course__highschool__id'] = highschool_id
 
     slots = Slot.objects.prefetch_related(
         'course__training__highschool',

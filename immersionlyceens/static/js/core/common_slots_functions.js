@@ -13,7 +13,7 @@ function display_additional_information(data) {
     return ""
 }
 
-function display_n_register(data, type, row) {
+function display_n_register(data, type, row, cohorts_only = false) {
     // display registered persons with a progress bar
     let current_students = data;
     let n_places = row['n_places'];
@@ -30,7 +30,7 @@ function display_n_register(data, type, row) {
 
     let element = ""
 
-    if(allow_individual_registrations) {
+  if (allow_individual_registrations && !cohorts_only) {
         element += '<span>Ind. ' + current_students + '/' + n_places + '</span>' +
             '<div class="progress">' +
             '    <div' +
