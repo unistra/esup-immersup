@@ -214,7 +214,7 @@ def loginChoice(request, profile=None):
     intro_connection = ""
     is_reg_possible, is_year_valid, year = check_active_year()
 
-    if not year or not is_reg_possible:
+    if profile is "lyc" and (not year or not is_reg_possible):
         return redirect(reverse('immersion:register'), profile=profile)
 
     match profile:
