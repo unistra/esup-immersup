@@ -15,8 +15,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -1359,8 +1360,46 @@ def course_slot_mass_update(request):
     form_kwargs = {}
     context = {}
 
+    m2ms = [
+        'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+        'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
+        'allowed_bachelor_mentions', 'allowed_bachelor_teachings'
+    ]
+
+    fields = [
+        'course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time',
+        'end_time', 'registration_limit_delay', 'cancellation_limit_delay',
+        'allow_individual_registrations', 'allow_group_registrations', 'n_places',
+        'n_group_places', 'group_mode', 'public_group', 'establishments_restrictions',
+        'levels_restrictions', 'bachelors_restrictions', 'additional_information',
+        'published'
+    ]
+
     if request.POST:
-        pass
+        slot_ids = request.POST.getlist('slot_ids', [])
+
+        print(f"slot_ids: {slot_ids}, type: {type(slot_ids)}")
+
+        updates = {}
+        for field in fields:
+            value = request.POST.get(field)
+            if request.POST.get(f"mass_{field}", "keep") == "update":
+                updates[field] = value
+
+        if updates:
+            # Do not call .update() on the queryset, Slot .save() has to be called for each
+            for slot_id in slot_ids:
+                try:
+                    slot = Slot.objects.get(pk=slot_id)
+                    for field, value in updates.items():
+                        setattr(slot, field, value)
+                    slot.save()
+                except Slot.DoesNotExist:
+                    print(f"slot id {slot_id} not found")
+                    # Nothing to update if the slot does not exist anymore
+                    pass
+
+        return redirect(reverse('courses_slots'))
     else:
         try:
             slot_ids = request.GET.get('mass_slots_list', "")
@@ -1370,9 +1409,59 @@ def course_slot_mass_update(request):
             # FIXME possibility to return to events_slots ?
             return redirect(reverse('courses_slots'))
 
-        # Same course ?
-        if Slot.objects.filter(id__in=slot_ids).values('course').distinct().count() == 1:
+        initials = {}
+
+
+
+        m2m_annotations = {
+            "%s_pks" % m2m: ArrayAgg(F'%s' % m2m) for m2m in m2ms
+        }
+
+        m2m_aggregations = {
+            "%s" % m2m: Count("%s_pks" % m2m, distinct=True) for m2m in m2ms
+        }
+
+        # Common objects between slots
+        aggs = (Slot.objects.filter(pk__in=slot_ids)
+        .annotate(**m2m_annotations)
+        .aggregate(
+            course=Count('course', distinct=True),
+            course_type=Count('course_type', distinct=True),
+            campus=Count('campus', distinct=True),
+            building=Count('building', distinct=True),
+            room=Count('room', distinct=True),
+            date=Count('date', distinct=True),
+            period=Count('period', distinct=True),
+            start_time=Count('start_time', distinct=True),
+            end_time=Count('end_time', distinct=True),
+            registration_limit_delay=Count('registration_limit_delay', distinct=True),
+            cancellation_limit_delay=Count('cancellation_limit_delay', distinct=True),
+            allow_individual_registrations=Count('allow_individual_registrations', distinct=True),
+            allow_group_registrations=Count('allow_group_registrations', distinct=True),
+            n_places=Count('n_places', distinct=True),
+            n_group_places=Count('n_group_places', distinct=True),
+            group_mode=Count('group_mode', distinct=True),
+            public_group=Count('public_group', distinct=True),
+            establishments_restrictions=Count('establishments_restrictions', distinct=True),
+            levels_restrictions=Count('levels_restrictions', distinct=True),
+            bachelors_restrictions=Count('bachelors_restrictions', distinct=True),
+            additional_information=Count('additional_information', distinct=True),
+            published=Count('published', distinct=True),
+            **m2m_aggregations
+        ))
+
+        # Get first slot for common values to set
+        first_slot = Slot.objects.get(pk=slot_ids[0])
+
+        if aggs.pop('course', None) == 1:
             form_kwargs['speakers'] = Slot.objects.get(pk=slot_ids[0]).course.speakers.all().values('id')
+
+        for attr, count in aggs.items():
+            if count == 1:
+                if attr not in m2ms:
+                    initials[attr] = getattr(first_slot, attr)
+                else:
+                    initials[attr] = getattr(first_slot, attr).values_list('pk', flat=True)
 
         # Same establishment ? => send to form to initializer campuses queryset
         if Slot.objects.filter(id__in=slot_ids).values('course__structure__establishment').distinct().count() == 1:
@@ -1381,17 +1470,27 @@ def course_slot_mass_update(request):
                 form_kwargs['establishment'] = establishment_id
                 context['establishment_id'] = establishment_id
             except:
-                # Slot course has not structure (linked to a highschool)
+                # Slot course has no structure (linked to a highschool)
                 pass
 
-        form = form_class(**form_kwargs)
+        form = form_class(**form_kwargs, initial=initials)
+
+    # Bachelor types for restrictions
+    bachelor_types = json.dumps({
+        bt.id: {
+            'is_general': bt.general,
+            'is_technological': bt.technological,
+            'is_professional': bt.professional,
+        } for bt in BachelorType.objects.filter(active=True)
+    })
 
     context.update({
         "form": form,
         "slot_ids": slot_ids,
         "periods": json.dumps({
             period.pk: PeriodSerializer(period).data for period in Period.objects.all()
-        })
+        }),
+        "bachelor_types": bachelor_types
     })
 
     return render(request, template_name, context)
