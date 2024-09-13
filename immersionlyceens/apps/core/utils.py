@@ -153,6 +153,7 @@ def slots(request):
         user_filter_key = "event__structure__in"
 
     else:
+
         filters["event__isnull"] = True
 
         if establishment_id is not None:
@@ -168,6 +169,8 @@ def slots(request):
 
     if cohorts_only:
         filters['allow_group_registrations'] = True
+        if highschool_id:
+            filters['course__highschool__id'] = highschool_id
 
     slots = Slot.objects.prefetch_related(
         'course__training__highschool',
