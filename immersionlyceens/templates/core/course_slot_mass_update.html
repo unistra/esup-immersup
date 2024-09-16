@@ -55,7 +55,7 @@
           {% csrf_token %}
 
           <input type="hidden" id="id_place" name="place" value="0">
-          <input type="hidden" id="id_slot_ids" name="slot_ids" value="{{ slot_ids }}">
+          <input type="hidden" name="mass_slots_list" value="{{ mass_slots_list }}">
           <div class="form-group row">
             <label for="id_course_type" class="col-form-label col-sm-3">
               <i id='id_mandatory_course_type' class="fa fas fa-asterisk" style="display:none"></i>
@@ -85,16 +85,7 @@
               {% trans 'Campus' %}
             </label>
             <div class="col-sm-3">
-              {% if slot %}
-              <select name="campus" id="id_campus" class="form-control">
-                <option value="" selected>--------</option>
-                {% for c in campus %}
-                  <option value="{{ c.id }}">{{ c.label }}</option>
-                {% endfor %}
-              </select>
-              {% else %}
-                {{ form.campus }}
-              {% endif %}
+              {{ form.campus }}
             </div>
             <div class="col-sm-6">
               <input class="chk" type="radio" id="id_mass_campus_keep" name="mass_campus" value="keep" checked>

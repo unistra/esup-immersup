@@ -1356,14 +1356,17 @@ class CourseSlotUpdate(generic.UpdateView):
 def course_slot_mass_update(request):
     form_class = SlotMassUpdateForm
     template_name = "core/course_slot_mass_update.html"
-    form = None
+    mass_update_form = None
     form_kwargs = {}
     context = {}
+    slot_ids = []
+    mass_slots_list = {}
+    initials = {}
 
     m2ms = [
         'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
         'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
-        'allowed_bachelor_mentions', 'allowed_bachelor_teachings'
+        'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers'
     ]
 
     fields = [
@@ -1376,42 +1379,63 @@ def course_slot_mass_update(request):
     ]
 
     if request.POST:
-        slot_ids = request.POST.getlist('slot_ids', [])
+        # Update selected slots
+        if not request.POST.get("mass_update"):
+            try:
+                mass_slots_list = request.POST.get('mass_slots_list', "{}")
+                slot_ids = json.loads(request.POST.get('mass_slots_list', "{}"))
+                slot_ids = slot_ids.get("values", [])
+                assert slot_ids
+            except Exception:
+                # FIXME possibility to return to events_slots ?
+                return redirect(reverse('courses_slots'))
 
-        print(f"slot_ids: {slot_ids}, type: {type(slot_ids)}")
+            mass_update_form = SlotMassUpdateForm(request.POST)
 
-        updates = {}
-        for field in fields:
-            value = request.POST.get(field)
-            if request.POST.get(f"mass_{field}", "keep") == "update":
-                updates[field] = value
+            if mass_update_form.is_valid():
+                updates = {}
+                for field in fields:
+                    value = mass_update_form.cleaned_data.get(field)
 
-        if updates:
-            # Do not call .update() on the queryset, Slot .save() has to be called for each
-            for slot_id in slot_ids:
-                try:
-                    slot = Slot.objects.get(pk=slot_id)
-                    for field, value in updates.items():
-                        setattr(slot, field, value)
-                    slot.save()
-                except Slot.DoesNotExist:
-                    print(f"slot id {slot_id} not found")
-                    # Nothing to update if the slot does not exist anymore
-                    pass
+                    if request.POST.get(f"mass_{field}", "keep") == "update":
+                        updates[field] = value
 
-        return redirect(reverse('courses_slots'))
-    else:
-        try:
-            slot_ids = request.GET.get('mass_slots_list', "")
-            slot_ids = list(filter(lambda x:x, slot_ids.split(',')))
-            assert slot_ids
-        except Exception:
-            # FIXME possibility to return to events_slots ?
-            return redirect(reverse('courses_slots'))
+                # print(f"updates: {updates}")
 
-        initials = {}
+                if updates:
+                    # Do not call .update() on the queryset, Slot .save() has to be called for each
+                    for slot_id in slot_ids:
+                        try:
+                            slot = Slot.objects.get(pk=slot_id)
+                            for field, value in updates.items():
+                                setattr(slot, field, value)
+                            slot.save()
+                        except Slot.DoesNotExist:
+                            print(f"slot id {slot_id} not found")
+                            # Nothing to update if the slot does not exist anymore
+                            pass
 
+                return redirect(reverse('courses_slots'))
+            else:
+                for err_field, err_list in mass_update_form.errors.get_json_data().items():
+                    for error in err_list:
+                        if error.get("message"):
+                            messages.error(request, error.get("message"))
+                """
+                for k, v in mass_update_form.cleaned_data.items():
+                    print(f"{k}: {v}")
+                print(mass_update_form.errors)
+                """
 
+        else:
+            try:
+                mass_slots_list = request.POST.get('mass_slots_list', "{}")
+                slot_ids = json.loads(request.POST.get('mass_slots_list', "{}"))
+                slot_ids = slot_ids.get("values", [])
+                assert slot_ids
+            except Exception:
+                # FIXME possibility to return to events_slots ?
+                return redirect(reverse('courses_slots'))
 
         m2m_annotations = {
             "%s_pks" % m2m: ArrayAgg(F'%s' % m2m) for m2m in m2ms
@@ -1459,7 +1483,10 @@ def course_slot_mass_update(request):
         for attr, count in aggs.items():
             if count == 1:
                 if attr not in m2ms:
-                    initials[attr] = getattr(first_slot, attr)
+                    try:
+                        initials[attr] = getattr(first_slot, attr).pk
+                    except AttributeError:
+                        initials[attr] = getattr(first_slot, attr)
                 else:
                     initials[attr] = getattr(first_slot, attr).values_list('pk', flat=True)
 
@@ -1473,7 +1500,7 @@ def course_slot_mass_update(request):
                 # Slot course has no structure (linked to a highschool)
                 pass
 
-        form = form_class(**form_kwargs, initial=initials)
+        mass_update_form = form_class(**form_kwargs, initial=initials)
 
     # Bachelor types for restrictions
     bachelor_types = json.dumps({
@@ -1485,8 +1512,8 @@ def course_slot_mass_update(request):
     })
 
     context.update({
-        "form": form,
-        "slot_ids": slot_ids,
+        "form": mass_update_form,
+        "mass_slots_list": mass_slots_list,
         "periods": json.dumps({
             period.pk: PeriodSerializer(period).data for period in Period.objects.all()
         }),

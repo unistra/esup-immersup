@@ -39,7 +39,8 @@
   {% block slot_deletion %}{% endblock %}
   <br>
   <div class="card">
-    <form action="/core/slot_mass_update">
+    <form action="/core/slot_mass_update" method="POST">
+    {% csrf_token %}
     {% block card_header %}{% endblock %}
       <div class="card-body">
         {% block card_title %}{% endblock %}

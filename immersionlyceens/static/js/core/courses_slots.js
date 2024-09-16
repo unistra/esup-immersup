@@ -1,4 +1,5 @@
-var selected_slots = Array()
+// var selected_slots = Array()
+var selected_slots = {"values": Array()}
 
 function slot_mass_update() {
     let slots_array = $("input:checkbox[name=select_for_mass_update]:checked")
@@ -263,6 +264,7 @@ function init_datatable() {
   });
 
   // Jquery $(name=) events doesn't fire up with checkboxes in datatable, so use this instead:
+    /*
   $(document).on("change", ".mass", function() {
     if(!$(this).is(':checked')) {
       // let filtered_array = selected_slots.filter(function(e) { return e !== $(this).val()})
@@ -274,6 +276,18 @@ function init_datatable() {
 
     $("[name='mass_slots_list']").val(selected_slots)
   });
+  */
+  $(document).on("change", ".mass", function() {
+    if(!$(this).is(':checked')) {
+      selected_slots["values"] = selected_slots["values"].filter(e => e !== $(this).val())
+    }
+    else {
+      selected_slots["values"].push($(this).val())
+    }
+
+    $("[name='mass_slots_list']").val(JSON.stringify(selected_slots))
+  });
+
 
   // All filters reset action
   $('#filters_reset_all').click(function () {
