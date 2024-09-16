@@ -4537,18 +4537,22 @@ class CourseDetail(generics.RetrieveUpdateDestroyAPIView):
             self.user_filter = True
             self.filters["speakers__in"] = self.user.linked_users()
 
-        try:
-            data = get_or_create_user(self.request, data)
-        except Exception as e:
-            raise
+        serializer_kwargs = {
+            "instance": instance,
+            "many": False,
+            "partial": partial,
+            "context": {'user_courses': self.user_filter, 'request': self.request},
+        }
 
-        return super().get_serializer(
-            instance=instance,
-            data=data,
-            many=False,
-            partial=partial,
-            context={'user_courses': self.user_filter, 'request': self.request},
-        )
+        if data:
+            try:
+                data = get_or_create_user(self.request, data)
+                if data:
+                    serializer_kwargs["data"] = data
+            except Exception as e:
+                raise
+
+        return super().get_serializer(**serializer_kwargs)
 
     def delete(self, request, *args, **kwargs):
         course_id = kwargs.get("pk")
