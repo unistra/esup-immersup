@@ -78,7 +78,7 @@ function init_datatable() {
           render: function(data, type, row) {
             let element = ""
 
-            if(row.is_past === false && show_modify_btn && enabled_mass_update === true) {
+            if((row.is_past === false || !is_set(row.date)) && show_modify_btn && enabled_mass_update === true) {
                 element += `<input class="mass chk mr-1" type="checkbox" name="select_for_mass_update_${data}" value="${data}">`
             }
 

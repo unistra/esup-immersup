@@ -21,11 +21,6 @@
 
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
-  <div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm course slot mass update" %}">
-    <span>
-    {% trans 'This date is inside a vacation or a holiday. Do you really want to create a course slot with this date ?' %}
-    </span>
-  </div>
   <div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course publication" %}'>
     <span>
       {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
@@ -35,12 +30,6 @@
   <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
     <span>
       {% trans 'Do you really want to cancel this update ?' %}
-    </span>
-  </div>
-
-  <div id="date-error-dialog" style='z-index:3000;' title='{% trans "Date error" %}'>
-    <span>
-      {% trans "You can't select an end date anterior to the current slot date" %}
     </span>
   </div>
 
@@ -73,7 +62,7 @@
           </div>
           {% if slot_form.course_type.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.course_type.errors }}
               </div>
             </div>
@@ -97,7 +86,7 @@
 
           {% if form.campus.errors %}
           <div class="form-group row">
-            <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+            <div class="offset-sm-3 col-sm-6 alert alert-danger">
               {{ form.campus.errors }}
             </div>
           </div>
@@ -121,7 +110,7 @@
 
           {% if form.building.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.building.errors }}
               </div>
             </div>
@@ -145,55 +134,8 @@
 
           {% if form.room.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.room.errors }}
-              </div>
-            </div>
-          {% endif %}
-
-          <div class="form-group row">
-            <label for="date" class="col-form-label col-sm-3">
-              <i id='id_mandatory_date' class="fa fas fa-asterisk" style="display:none"></i>
-              {% trans 'Date' %}
-            </label>
-            <div class="col-sm-3">
-              {{ form.date }}
-            </div>
-            <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_date_keep" name="mass_date" value="keep" checked>
-              <label for="id_mass_date_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_date_update" name="mass_date" value="update">
-              <label for="id_mass_date_update" class="col-form-label">{% trans 'Update all' %}</label>
-            </div>
-          </div>
-          {% if form.date.errors %}
-            <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
-                {{ form.date.errors }}
-              </div>
-            </div>
-          {% endif %}
-
-          <div class="form-group row" id="id_div_period">
-            <label for="period" class="col-form-label col-sm-3">
-              <i id='id_mandatory_period' class="fa fas fa-asterisk" style="display:none"></i>
-              {% trans 'Period' %}
-            </label>
-            <div class="col-sm-3">
-              {{ form.period }}
-            </div>
-            <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_period_keep" name="mass_period" value="keep" checked>
-              <label for="id_mass_period_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_period_update" name="mass_period" value="update">
-              <label for="id_mass_period_update" class="col-form-label">{% trans 'Update all' %}</label>
-            </div>
-          </div>
-
-          {% if form.period.errors %}
-            <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
-                {{ form.period.errors }}
               </div>
             </div>
           {% endif %}
@@ -215,7 +157,7 @@
           </div>
           {% if form.start_time.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.start_time.errors }}
               </div>
             </div>
@@ -238,7 +180,7 @@
           </div>
           {% if form.end_time.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.end_time.errors }}
               </div>
             </div>
@@ -260,17 +202,12 @@
           </div>
           {% if form.registration_limit_delay.errors %}
           <div class="form-group row">
-            <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+            <div class="offset-sm-3 col-sm-6 alert alert-danger">
               {{ form.registration_limit_delay.errors }}
             </div>
           </div>
           {% endif %}
-          <div class="form-group row">
-            <div class="col-sm-offset-3 col-sm-6">
-              <span id="id_registration_limit_text" style="display:none">{% trans 'Limit' %} :</span>
-              <span id="id_registration_limit_value" class="pl-1" style="display:none"></span>
-            </div>
-          </div>
+
           <div class="form-group row">
             <label for="cancellation_limit_delay" class="col-form-label col-sm-3">
               {% trans 'Cancellation limit (in hours)' %}
@@ -287,18 +224,11 @@
           </div>
           {% if form.cancellation_limit_delay.errors %}
           <div class="form-group row">
-            <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+            <div class="offset-sm-3 col-sm-6 alert alert-danger">
               {{ form.cancellation_limit_delay.errors }}
             </div>
           </div>
           {% endif %}
-
-          <div class="form-group row">
-            <div class="col-sm-offset-3 col-sm-6">
-              <span id="id_cancellation_limit_text" style="display:none">{% trans 'Limit' %} :</span>
-              <span id="id_cancellation_limit_value" class="pl-1" style="display:none"></span>
-            </div>
-          </div>
 
           <div class="form-group row">
             <label class="col-sm-3">
@@ -306,18 +236,25 @@
               {% trans 'Speakers' %}
             </label>
             <div class="col-sm-3">
-              {{ form.speakers }}
+              {% if form.speakers.field.queryset %}
+                {{ form.speakers }}
+              {% else %}
+                <select id="id_speakers" name="speakers" style="display:none"></select>
+                {% trans "Unavailable (different courses)" %}
+              {% endif %}
             </div>
             <div class="col-sm-6">
               <input class="chk" type="radio" id="id_mass_speakers_keep" name="mass_speakers" value="keep" checked>
               <label for="id_mass_speakers_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              {% if form.speakers.field.queryset %}
               <input class="chk ml-2" type="radio" id="id_mass_speakers_update" name="mass_speakers" value="update">
               <label for="id_mass_speakers_update" class="col-form-label">{% trans 'Update all' %}</label>
+              {% endif %}
             </div>
           </div>
           {% if form.speakers.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.speakers.errors }}
               </div>
             </div>
@@ -327,6 +264,9 @@
             <div class="form-group row" id="id_div_allow_group_registrations">
               <label for="allow_group_registrations" class="col-form-label col-sm-3">
                 {% trans 'Allow group registrations' %} ?
+                {% if has_group_immersions %}
+                  <br><i>{% trans "Can't be mass disabled (immersions exist)" %}</i>
+                {% endif %}
               </label>
               <div class="col-sm-3">
                 {{ form.allow_group_registrations }}
@@ -341,7 +281,7 @@
             </div>
             {% if form.allow_group_registrations.errors %}
               <div class="form-group row">
-                <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
                   {{ form.allow_group_registrations.errors }}
                 </div>
               </div>
@@ -364,7 +304,7 @@
             </div>
             {% if form.group_mode.errors %}
               <div class="form-group row">
-                <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
                   {{ form.group_mode.errors }}
                 </div>
               </div>
@@ -379,15 +319,15 @@
                 {{ form.n_group_places }}
               </div>
               <div class="col-sm-6">
-                <input class="chk" type="radio" id="id_mass_group_places_keep" name="mass_group_places" value="keep" checked>
-                <label for="id_mass_group_places_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-                <input class="chk ml-2" type="radio" id="id_mass_group_places_update" name="mass_group_places" value="update">
-                <label for="id_mass_group_places_update" class="col-form-label">{% trans 'Update all' %}</label>
+                <input class="chk" type="radio" id="id_mass_n_group_places_keep" name="mass_n_group_places" value="keep" checked>
+                <label for="id_mass_n_group_places_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_n_group_places_update" name="mass_n_group_places" value="update">
+                <label for="id_mass_n_group_places_update" class="col-form-label">{% trans 'Update all' %}</label>
               </div>
             </div>
             {% if form.n_group_places.errors %}
               <div class="form-group row">
-                <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
                   {{ form.n_group_places.errors }}
                 </div>
               </div>
@@ -410,7 +350,7 @@
             </div>
             {% if form.public_group.errors %}
               <div class="form-group row">
-                <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
                   {{ form.public_group.errors }}
                 </div>
               </div>
@@ -419,6 +359,9 @@
             <div class="form-group row" id="id_div_allow_individual_registrations">
               <label for="allow_individual_registrations" class="col-form-label col-sm-3">
                 {% trans 'Allow individual registrations' %} ?
+                {% if has_immersions %}
+                  <br><i>{% trans "Can't be mass disabled (immersions exist)" %}</i>
+                {% endif %}
               </label>
               <div class="col-sm-3">
                 {{ form.allow_individual_registrations }}
@@ -433,7 +376,7 @@
             </div>
             {% if form.allow_individual_registrations.errors %}
               <div class="form-group row">
-                <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
                   {{ form.allow_individual_registrations.errors }}
                 </div>
               </div>
@@ -457,7 +400,7 @@
           </div>
           {% if form.n_places.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.n_places.errors }}
               </div>
             </div>
@@ -482,7 +425,7 @@
           </div>
           {% if form.establishments_restrictions.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.establishments_restrictions.errors }}
               </div>
             </div>
@@ -535,7 +478,7 @@
 
           {% if form.levels_restrictions.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.levels_restrictions.errors }}
               </div>
             </div>
@@ -585,7 +528,7 @@
 
           {% if form.bachelors_restrictions.errors %}
             <div class="form-group row">
-              <div class="col-sm-offset-3 col-sm-6 alert alert-danger">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
                 {{ form.bachelors_restrictions.errors }}
               </div>
             </div>
@@ -687,30 +630,22 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
 {% endif %}
 <script>
-    var dateDialog;
     var publicationDialog;
     var cancelDialog;
-    var dateErrorDialog;
     var establishment_id = "{{ establishment_id }}";
     var structure_id = "{{ structure_id }}";
     var highschool_id = "{{ highschool_id }}";
     var training_id = "{{ training_id }}";
     var campus_id = "{{ form.campus.value }}";
     var building_id = "{{ form.building.value }}";
-
-    var period_id = parseInt("{{ form.period.value }}") || "{{ period_id }}";
-
-    // var periods = Array();
-    var periods = is_set(`{{ periods|safe }}`) ? JSON.parse(`{{ periods|safe }}`) : Array();
+    var has_immersions = "{{ has_immersions }}" === "True";
+    var has_group_immersions = "{{ has_group_immersions }}" === "True";
 
     let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
     let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
 
     var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
     var slot_mode = "{{ slot_mode }}"
-
-    var slot_dates = "{{ slot_dates|safe }}"
-    slot_dates = slot_dates !== "None" ? slot_dates.split(",") : undefined
 
     {% autoescape off %}
     var bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
@@ -755,182 +690,6 @@
       })
     }
 
-
-    function set_periods(date=$('#id_date').val()) {
-        $.ajax({
-            url: "{% url 'period_list' %}",
-            type: 'GET',
-            async: false,
-            data: {
-                'date': date === "" ? null : date,
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-            },
-            success: function (json) {
-                // periods = Array()
-                let options = ''
-
-                let period_date_options = { dateStyle: 'short' };
-
-                if(json.length === 0) {
-                    options += '<option value="">{% trans "No available period for this date" %}</option>'
-                }
-
-                // More than one period : add an empty choice
-                if(json.length > 1) {
-                    options += '<option value="">---------</option>'
-                }
-
-                for (let i = 0; i < json.length; i++) {
-                    let selected = json[i]['id'] === parseInt(period_id) ? "selected='selected'" : ""
-
-                    let start_date = formatDate(json[i]['immersion_start_date'], period_date_options)
-                    let end_date = formatDate(json[i]['immersion_end_date'], period_date_options)
-
-                    options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} - ${start_date} - ${end_date}</option>`
-                    // periods[json[i]['id']] = json[i]
-                }
-                $('select#id_period').html(options)
-
-                if(period_id) {
-                    $("#id_period").val(period_id);
-                }
-                else {
-                    $("#id_period").val($("#id_period option:first").val());
-                }
-            }
-        })
-    }
-
-    function get_new_date(from_date, start_time, delta_hours) {
-        const options = {
-            weekday: "short",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-        };
-
-        let date_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
-
-        let date_ms = from_date.getTime()
-
-        let start_time_split = start_time.split(":")
-        let start_time_ms = (start_time_split[0] * 3600 * 1000) + (start_time_split[1] * 60 * 1000)
-
-        // convert registration_limit_delay from hours to milliseconds
-        let remove_ms = delta_hours * 3600 * 1000
-
-        return new Date(date_ms + start_time_ms - remove_ms).toLocaleString(date_locale, options)
-    }
-
-    function display_registration_limit_delay() {
-        let date = $("#id_date").datepicker("getDate")
-        let start_time = $("#id_start_time").val()
-        let registration_limit_delay = $("#id_registration_limit_delay").val()
-        let period_id = $("#id_period").val()
-        let registration_end_date_policy = null
-        let registration_end_date = null
-        let end_date = null
-
-        const options = {
-            weekday: "short",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-        };
-
-        // if we use period registration end date
-        if(is_set(period_id)) {
-            let period = periods[period_id]
-            registration_end_date_policy = period.registration_end_date_policy
-            registration_end_date = period.registration_end_date
-
-            end_date = new Date(registration_end_date)
-            end_date = formatDate(end_date, date_options=options)
-        }
-        else {
-            $("#id_registration_limit_text").hide()
-            $("#id_registration_limit_value").hide()
-        }
-
-        if(registration_end_date_policy === 0) {
-            $("#id_registration_limit_delay").prop('disabled', true)
-
-            $("#id_registration_limit_text").show()
-            $("#id_registration_limit_value").text(end_date)
-            $("#id_registration_limit_value").show()
-        }
-        else {
-            $("#id_registration_limit_delay").prop('disabled', false)
-
-            if (is_set(date) && is_set(start_time) && is_set(registration_limit_delay)) {
-                let new_date = get_new_date(date, start_time, registration_limit_delay)
-
-                $("#id_registration_limit_text").show()
-                $("#id_registration_limit_value").text(new_date)
-                $("#id_registration_limit_value").show()
-            } else {
-                $("#id_registration_limit_text").hide()
-                $("#id_registration_limit_value").hide()
-            }
-        }
-    }
-
-    function display_cancellation_limit_delay() {
-        let date = $("#id_date").datepicker("getDate")
-        let start_time = $("#id_start_time").val()
-        let cancellation_limit_delay = $("#id_cancellation_limit_delay").val() // when slot controlled
-        let period_id = $("#id_period").val()
-        let registration_end_date_policy = null
-        let period;
-
-        // if we use period registration end date
-        if(is_set(period_id)) {
-            period = periods[period_id]
-            registration_end_date_policy = period.registration_end_date_policy
-        }
-        else {
-            $("#id_cancellation_limit_text").hide()
-            $("#id_cancellation_limit_value").hide()
-        }
-
-        if(is_set(period) && registration_end_date_policy === 0) {
-            cancellation_limit_delay = period.cancellation_limit_delay
-            $("#id_cancellation_limit_delay").prop('disabled', true)
-        }
-        else {
-            $("#id_cancellation_limit_delay").prop('disabled', false)
-        }
-
-        if(is_set(date) && is_set(start_time) && is_set(cancellation_limit_delay)) {
-            let new_date = get_new_date(date, start_time, cancellation_limit_delay)
-
-            $("#id_cancellation_limit_text").show()
-            $("#id_cancellation_limit_value").text(new_date)
-            $("#id_cancellation_limit_value").show()
-        }
-        else {
-            $("#id_cancellation_limit_text").hide()
-            $("#id_cancellation_limit_value").hide()
-        }
-    }
-
-    $("#id_start_time").change(function() {
-        display_registration_limit_delay()
-        display_cancellation_limit_delay()
-    })
-
-    $("#id_registration_limit_delay").change(function() {
-        display_registration_limit_delay()
-    })
-
-    $("#id_cancellation_limit_delay").change(function() {
-        display_cancellation_limit_delay()
-    })
-
     $('#id_campus').change( function() {
         campus_id = $('#id_campus option:selected').val();
 
@@ -952,13 +711,14 @@
         let outside = 2
 
         let published = $('#id_published').prop('checked')
+        let update_all_published = $("[name='mass_published']:checked").val() === "update"
         let place = parseInt($('#id_place').val())
         let allow_group_registrations = $('#id_allow_group_registrations').prop('checked')
         let allow_individual_registrations = $('#id_allow_individual_registrations').prop('checked')
         let group_mode = $('#id_group_mode').val()
 
-        if (published) {
-            let mandatory = ['date', 'period', 'start_time', 'end_time', 'speakers', 'course_type', 'room']
+        if (published && update_all_published) {
+            let mandatory = ['start_time', 'end_time', 'speakers', 'course_type', 'room']
             let not_mandatory = Array()
 
             // Depends on group registrations
@@ -980,7 +740,9 @@
             }
 
             mandatory.forEach(function(e){
-                if ($('#id_mass_' + e).val() == "update") {
+                $('#id_mandatory_' + e).show();
+                /*
+                if ($(`[name='mass_${e}']:checked`).val() == "update") {
                   $('#id_' + e).attr('required', 'required');
                   $('#id_mandatory_' + e).show();
                 }
@@ -988,6 +750,7 @@
                   $('#id_' + e).removeAttr('required');
                   $('#id_mandatory_' + e).hide();
                 }
+                */
             });
 
             not_mandatory.forEach(function(e){
@@ -997,7 +760,7 @@
         }
         else {
             let not_mandatory = [
-                'room', 'building', 'campus', 'url', 'date', 'period', 'start_time', 'end_time', 'course_type',
+                'room', 'building', 'campus', 'url', 'start_time', 'end_time', 'course_type',
                 'speakers', 'n_places', 'n_group_places'
             ];
 
@@ -1139,54 +902,23 @@
         }
     }
 
-    function check_date(date=$('#id_date').val(), dialog=true, callback) {
-        if(date && $('#id_period').val()) {
-            return $.ajax({
-                url: '/api/validate_slot_date',
-                data: {
-                    date: date,
-                    period: $('#id_period').val()
-                },
-                success: function (data) {
-                    if (data['data']) {
-                        if (data['data']['is_between']) {
-                            if (dialog) {
-                                dateDialog.dialog('open');
-                            } else if (callback) {
-                                callback(data['data']['is_between'])
-                            }
-                        }
-                    }
-                },
-            });
+    function check_mass_individual_disable() {
+      let update_allow_individual_registrations = $("[name='mass_allow_individual_registrations']:checked").val() === "update"
+      if(update_allow_individual_registrations && has_immersions) {
+        if($('#id_allow_individual_registrations').prop('checked') === false) {
+          $('#id_allow_individual_registrations').click()
         }
+      }
     }
 
-    function addDays(date, days) {
-        var result = new Date(date);
-        result.setDate(result.getDate() + days);
-        return result;
-    }
-
-    function toggle_period_display() {
-        if(!is_set($("#id_date").val())) {
-            $("#id_div_period").hide()
+    function check_mass_group_disable() {
+      let update_allow_group_registrations = $("[name='mass_allow_group_registrations']:checked").val() === "update"
+      if(update_allow_group_registrations && has_group_immersions) {
+        if($('#id_allow_group_registrations').prop('checked') === false) {
+          $('#id_allow_group_registrations').click()
         }
-        else {
-            $("#id_div_period").show()
-
-            if(is_set($("#id_period").val())) {
-                display_registration_limit_delay()
-                display_cancellation_limit_delay()
-            }
-        }
+      }
     }
-
-    $('#id_period').change( function() {
-        display_registration_limit_delay()
-        display_cancellation_limit_delay()
-    })
-
 
     $(document).ready(function(){
         // initialize base values
@@ -1230,31 +962,6 @@
         initFeedback();
         // reset feedback
         setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-
-        dateDialog = $("#date-dialog-form").dialog({
-            autoOpen: false,
-            closeOnEscape: false,
-            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
-            closeText: "hide",
-            width: 'auto',
-            modal: true,
-
-            buttons: [{
-                text: "{% trans 'Yes' %}",
-                "class": 'dialog-button',
-                click: function () {
-                    dateDialog.dialog("close");
-                },
-            },
-                {
-                    text: "{% trans 'No' %}",
-                    "class": 'dialog-button',
-                    click: function () {
-                        $('#id_date').val('');
-                        dateDialog.dialog("close");
-                    },
-                }],
-        });
 
         publicationDialog = $("#publication-dialog-form").dialog({
             autoOpen: false,
@@ -1315,43 +1022,19 @@
                 }],
         });
 
-        dateErrorDialog = $("#date-error-dialog").dialog({
-            autoOpen: false,
-            closeOnEscape: false,
-            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
-            closeText: "hide",
-            width: 'auto',
-            modal: true,
-
-            buttons: [{
-                text: "{% trans 'Ok' %}",
-                "class": 'dialog-button',
-                click: function () {
-                    dateErrorDialog.dialog("close");
-                },
-            }],
-        });
-
         // Change input type
         $('#id_start_time').get(0).type = 'time';
         $('#id_end_time').get(0).type = 'time';
 
-        // Date check
-        $('#id_date').on('change', function() {
-            check_date();
-            toggle_period_display();
-            set_periods();
-            display_registration_limit_delay()
-            display_cancellation_limit_delay()
-        });
-
         // groups registrations
         $('#id_allow_group_registrations').on('change', function() {
             toggle_group_fields()
+            check_mass_group_disable()
         })
 
         $('#id_allow_individual_registrations').on('change', function() {
             toggle_group_fields()
+            check_mass_individual_disable()
         })
 
         $('#id_group_mode').on('change', function() {
@@ -1363,16 +1046,19 @@
             cancelDialog.dialog('open');
         });
 
-        $(".datepicker").datepicker({
-            dateFormat: 'dd/mm/yy',
-            changeMonth: true,
-            changeYear: true,
-            yearRange: "2020:2100",
-        });
-
         // toggle
         toggle_required_fields();
         $('#id_published').on('change', function(){ toggle_required_fields(); });
+
+        $("[name='mass_published']").on('change', function(){ toggle_required_fields(); });
+
+        $("[name='mass_allow_individual_registrations']").on('change', function() {
+          check_mass_individual_disable()
+        });
+
+        $("[name='mass_allow_group_registrations']").on('change', function() {
+          check_mass_group_disable()
+        });
 
         toggle_establishments_restrictions();
         $('#id_establishments_restrictions').on('change', function() { toggle_establishments_restrictions() });
@@ -1392,13 +1078,6 @@
             const selectedVals = [...this.selectedOptions].map(o => o.value);
             toggle_bachelors_options(selectedVals);
         });
-
-        set_periods();
-        toggle_period_display();
-
-        // Be sure to run the following functions _after_ datepicker initialization above
-        display_registration_limit_delay();
-        display_cancellation_limit_delay();
 
         toggle_group_fields();
 

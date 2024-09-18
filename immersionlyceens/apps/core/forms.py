@@ -155,11 +155,12 @@ class SlotForm(forms.ModelForm):
         course = self.instance.course if self.instance and self.instance.course_id else None
 
         for elem in ['establishment', 'highschool', 'structure', 'event', 'training', 'course', 'course_type',
-            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
-            'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'allowed_bachelor_types', 'allowed_bachelor_mentions',
-            'allowed_bachelor_teachings', 'registration_limit_delay', 'cancellation_limit_delay',
-            'period', 'place']:
+            'campus', 'building', 'room', 'start_time', 'end_time', 'n_group_places', 'n_places',
+            'additional_information', 'url', 'allowed_establishments', 'allowed_highschools',
+            'allowed_highschool_levels', 'allowed_student_levels', 'allowed_post_bachelor_levels',
+            'allowed_bachelor_types', 'allowed_bachelor_mentions', 'allowed_bachelor_teachings',
+            'registration_limit_delay', 'cancellation_limit_delay', 'period', 'place', 'group_mode',
+            'speakers']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # Disable autocomplete for date fields
@@ -581,22 +582,20 @@ class SlotForm(forms.ModelForm):
 
 
 class SlotMassUpdateForm(forms.Form):
-    course_type = forms.ModelChoiceField(queryset=CourseType.objects.filter(active=True), required=True)
+    course_type = forms.ModelChoiceField(queryset=CourseType.objects.filter(active=True), required=False)
     campus = forms.ModelChoiceField(queryset=Campus.objects.filter(active=True), required=False)
     building = forms.ModelChoiceField(queryset=Building.objects.filter(active=True), required=False)
     room = forms.CharField(max_length=128, required=False) # also known as 'meeting place'
-    date = forms.DateField(required=True)
-    period = forms.ModelChoiceField(queryset=Period.objects.all(), required=False)
-    start_time = forms.TimeField(required=True)
-    end_time = forms.TimeField(required=True)
+    start_time = forms.TimeField(required=False)
+    end_time = forms.TimeField(required=False)
     registration_limit_delay = forms.IntegerField(required=False)
     cancellation_limit_delay = forms.IntegerField(required=False)
-    speakers = forms.ModelMultipleChoiceField(queryset=ImmersionUser.objects.filter(groups__name='INTER'))
+    speakers = forms.ModelMultipleChoiceField(queryset=ImmersionUser.objects.none(), required=False)
     allow_individual_registrations = forms.BooleanField(required=False)
     allow_group_registrations = forms.BooleanField(required=False)
     group_mode = forms.ChoiceField(choices=Slot.GROUP_MODES)
-    n_places = forms.IntegerField()
-    n_group_places = forms.IntegerField()
+    n_places = forms.IntegerField(required=False)
+    n_group_places = forms.IntegerField(required=False)
     public_group = forms.BooleanField(required=False)
     additional_information = forms.CharField(required=False)
     establishments_restrictions = forms.BooleanField(required=False)
@@ -630,10 +629,6 @@ class SlotMassUpdateForm(forms.Form):
             self.fields["building"].disabled = True
 
         # Widgets
-        self.fields['date'].widget = forms.DateInput(
-            format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
-        )
-
         self.fields['start_time'].widget = TimeInput(format='%H:%M')
         self.fields['end_time'].widget = TimeInput(format='%H:%M')
 
@@ -641,15 +636,13 @@ class SlotMassUpdateForm(forms.Form):
         self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': 200})
         self.fields['additional_information'].widget = forms.Textarea(attrs={'placeholder': _('Enter additional information'),})
 
-        for elem in ['course_type', 'campus', 'building', 'room', 'start_time', 'end_time', 'n_places',
-                     'additional_information', 'allowed_establishments', 'allowed_highschools',
+        for elem in ['course_type', 'campus', 'building', 'room', 'start_time', 'end_time', 'n_group_places',
+                     'n_places', 'additional_information', 'allowed_establishments', 'allowed_highschools',
                      'allowed_highschool_levels', 'allowed_student_levels', 'allowed_post_bachelor_levels',
                      'allowed_bachelor_types', 'allowed_bachelor_mentions', 'allowed_bachelor_teachings',
-                     'registration_limit_delay', 'cancellation_limit_delay', 'period']:
+                     'registration_limit_delay', 'cancellation_limit_delay', 'group_mode', 'speakers']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
-    class Meta:
-        localized_fields = ('date', 'repeat')
 
 
 class OffOfferEventSlotForm(SlotForm):
