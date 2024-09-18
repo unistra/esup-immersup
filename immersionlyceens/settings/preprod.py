@@ -33,11 +33,10 @@ CSRF_TRUSTED_ORIGINS = [
     '{{ csrf_trusted_origins }}',
 ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
-
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-
 
 #####################
 # Log configuration #
