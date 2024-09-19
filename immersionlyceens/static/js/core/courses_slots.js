@@ -1,3 +1,15 @@
+// var selected_slots = Array()
+var selected_slots = {"values": Array()}
+
+function slot_mass_update() {
+    let slots_array = $("input:checkbox[name=select_for_mass_update]:checked")
+        .map(function (){
+          return $(this).val();
+        }).toArray();
+
+    window.location.href = "/core/";
+}
+
 function init_datatable() {
   show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
   show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
@@ -8,7 +20,7 @@ function init_datatable() {
 
   if (cohorts_only) {
 
-    // Colums for cohorts slots pages
+    // Columns for cohorts slots pages
     dt_columns = [
       {
         data: 'id',
@@ -192,6 +204,10 @@ function init_datatable() {
         render: function (data, type, row) {
           let element = ""
           let edit_mode = 0;
+
+          if((row.is_past === false || !is_set(row.date)) && show_modify_btn && enabled_mass_update === true) {
+            element += `<input class="mass chk mr-1" type="checkbox" name="select_for_mass_update_${data}" value="${data}">`
+          }
 
           if (row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me || cohorts_only) {
             if (show_duplicate_btn) {
@@ -511,6 +527,32 @@ function init_datatable() {
     }
   });
 
+  // Jquery $(name=) events doesn't fire up with checkboxes in datatable, so use this instead:
+    /*
+  $(document).on("change", ".mass", function() {
+    if(!$(this).is(':checked')) {
+      // let filtered_array = selected_slots.filter(function(e) { return e !== $(this).val()})
+      selected_slots = selected_slots.filter(e => e !== $(this).val())
+    }
+    else {
+      selected_slots.push($(this).val())
+    }
+
+    $("[name='mass_slots_list']").val(selected_slots)
+  });
+  */
+  $(document).on("change", ".mass", function() {
+    if(!$(this).is(':checked')) {
+      selected_slots["values"] = selected_slots["values"].filter(e => e !== $(this).val())
+    }
+    else {
+      selected_slots["values"].push($(this).val())
+    }
+
+    $("[name='mass_slots_list']").val(JSON.stringify(selected_slots))
+  });
+
+
   // All filters reset action
   $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
@@ -536,5 +578,4 @@ function init_datatable() {
   });
 
   yadcf.init(dt, yadcf_filters)
-
 }

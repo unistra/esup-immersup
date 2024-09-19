@@ -1564,8 +1564,10 @@ def ajax_group_slot_registration(request):
         response = {'error': True, 'msg': _("This slot doesn't allow group registrations")}
         return JsonResponse(response, safe=False)
 
-    if slot.group_mode == Slot.ONE_GROUP and id:
-        if slot.group_immersions.filter(cancellation_type__isnull=True).exclude(pk=id).count() > 0:
+    if slot.group_mode == Slot.ONE_GROUP:
+        excludes = {"pk": id} if id else {}
+
+        if slot.group_immersions.filter(cancellation_type__isnull=True).exclude(**excludes).count() > 0:
             response = {'error': True, 'msg': _("This slot accepts only one registered group")}
             return JsonResponse(response, safe=False)
 

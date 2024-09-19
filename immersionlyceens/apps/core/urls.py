@@ -51,6 +51,7 @@ urlpatterns = [
         name='add_establishment_course_slot',
     ),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
+    path('slot_mass_update', views.course_slot_mass_update, name='course_slot_mass_update'),
     path('stats/', views.stats, name="stats"),
     path('visitor_validation/', views.VisitorValidationView.as_view(), name="visitor_validation"),
     path('student_validation/', views.student_validation, name='student_validation_global'),
