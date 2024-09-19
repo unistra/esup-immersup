@@ -2181,6 +2181,7 @@ class CustomThemeFileForm(forms.ModelForm):
             # TODO: check later cause text/javascript is deprecated !
             #mimetypes.add_type("text/javascript", ".js")
             #allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
+
             if not file.content_type in CustomThemeFile.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 

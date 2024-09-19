@@ -3250,6 +3250,8 @@ class CustomThemeFile(models.Model):
         'ico': "image/vnd.microsoft.icon",
         'css': "text/css",
         'js': "text/javascript",
+        'a-js': "application/javascript",
+        'x-js': "application/x-javascript",
     }
 
     FILE_TYPE = [
