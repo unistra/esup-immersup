@@ -1221,7 +1221,7 @@ class AdminFormsTestCase(TestCase):
         # Can't change this field
         self.assertFalse(form.is_valid())
         self.assertIn(
-            "You can't change this setting because this high school already has records.",
+            "You can't change this setting because this high school already has student accounts.",
             form.errors["uses_student_federation"]
         )
 
