@@ -22,6 +22,7 @@ from django.contrib.auth.password_validation import (
 )
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -260,7 +261,6 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
-
     """
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
@@ -276,7 +276,7 @@ def shibbolethLogin(request, profile=None):
     })
     # --------------- </shib dev> ----------------------
     """
-
+    
     if error:
         logger.error(f"Shibboleth error : {error}")
         messages.error(request, _("Incomplete data for account creation"))
@@ -526,7 +526,17 @@ def shibbolethLogin(request, profile=None):
 
         # Activated account ?
         if not request.user.is_valid():
-            # messages.error(request, _("Your account hasn't been enabled yet."))
+            # high school student and invalid email ? redirect to set_email
+            if request.user.is_high_school_student():
+                try:
+                    validate_email(request.user.email)
+                except ValidationError as e:
+                    messages.success(
+                        request,
+                        _("Your account is almost ready, please enter you email address for the activation procedure")
+                    )
+                    return HttpResponseRedirect("/immersion/set_email")
+
             return render(request, 'immersion/activation_needed.html', {})
         else:
             # Existing account or external student
