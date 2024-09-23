@@ -1015,3 +1015,4 @@ class FormTestCase(TestCase):
         self.assertIn("At least one profile is required", form.errors["__all__"])
 
         self.assertFalse(form.is_valid())
+

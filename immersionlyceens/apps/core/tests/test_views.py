@@ -1498,3 +1498,93 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get(reverse('structures_notifications'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/structures_notifications.html")
+
+    def test_mass_slot_update_missing_fields(self):
+        """
+        Test mass slot updates with a published slot another and one that's not
+        """
+        self.client.login(username='ref_master_etab', password='pass')
+
+        published_slot = Slot.objects.create(
+            period=self.period1,
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 1',
+            date=self.today + datetime.timedelta(days=5),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20,
+            published=True
+        )
+
+        unpublished_slot = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            n_places=20,
+            published=False
+        )
+
+        self.assertTrue(published_slot.published)
+        self.assertFalse(unpublished_slot.published)
+
+        # Publish both fields without filling all required attributes
+        # Only the published slot should have the 'room' updated
+        data = {
+            'place': '0',
+            'mass_slots_list': '{"values":["%s","%s"]}' % (published_slot.pk, unpublished_slot.pk),
+            'course_type': '',
+            'mass_course_type': 'keep',
+            'campus': '',
+            'mass_campus': 'keep',
+            'building': '',
+            'mass_building': 'keep',
+            'room': 'New room',
+            'mass_room': 'update',
+            'start_time': '',
+            'mass_start_time': 'keep',
+            'end_time': '',
+            'mass_end_time': 'keep',
+            'registration_limit_delay': '',
+            'mass_registration_limit_delay': 'keep',
+            'cancellation_limit_delay': '',
+            'mass_cancellation_limit_delay': 'keep',
+            'mass_speakers': 'keep',
+            'allow_group_registrations': 'on',
+            'mass_allow_group_registrations': 'keep',
+            'group_mode': '0',
+            'mass_group_mode': 'keep',
+            'n_group_places': '',
+            'mass_n_group_places': 'keep',
+            'mass_public_group': 'keep',
+            'allow_individual_registrations': 'on',
+            'mass_allow_individual_registrations': 'keep',
+            'n_places': '',
+            'mass_n_places': 'keep',
+            'mass_establishments_restrictions': 'keep',
+            'mass_levels_restrictions': 'keep',
+            'mass_bachelors_restrictions': 'keep',
+            'mass_additional_information': 'keep',
+            'additional_information': '',
+            'published': 'on',
+            'mass_published': 'update',
+        }
+
+        print(f"start : {published_slot.start_time}")
+        print(f"end {published_slot.end_time}")
+        print(f"course_type {published_slot.course_type}")
+        print(f"room {published_slot.room}")
+
+        response = self.client.post("/core/slot_mass_update", data, follow=True)
+        # print(response.content.decode('utf-8'))
+
+        published_slot.refresh_from_db()
+        unpublished_slot.refresh_from_db()
+
+        self.assertEqual(published_slot.room, 'New room')
+        self.assertEqual(unpublished_slot.room, 'room 1')
+        self.assertFalse(unpublished_slot.published, 'room 1')

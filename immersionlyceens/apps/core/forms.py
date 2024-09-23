@@ -644,7 +644,6 @@ class SlotMassUpdateForm(forms.Form):
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
 
-
 class OffOfferEventSlotForm(SlotForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
