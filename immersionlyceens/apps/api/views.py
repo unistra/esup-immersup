@@ -4227,7 +4227,7 @@ class SpeakerList(generics.ListCreateAPIView):
     serializer_class = SpeakerSerializer
     permission_classes = [SpeakersReadOnlyPermissions | CustomDjangoModelPermissions]
     filterset_fields = [
-        'highschool',
+        'highschool', 'email'
     ]
     # Auth : default (see settings/base.py)
 
