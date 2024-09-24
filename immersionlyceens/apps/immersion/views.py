@@ -215,7 +215,7 @@ def loginChoice(request, profile=None):
     intro_connection = ""
     is_reg_possible, is_year_valid, year = check_active_year()
 
-    if profile is "lyc" and (not year or not is_reg_possible):
+    if profile == "lyc" and (not year or not is_reg_possible):
         messages.warning(request, _("Sorry, you can't register right now."))
         context = {
             'start_date': year.start_date if year else None,
@@ -339,6 +339,19 @@ def shibbolethLogin(request, profile=None):
         """
         Can be a student or a high school student
         """
+
+        # Check registration dates
+        is_reg_possible, is_year_valid, year = check_active_year()
+
+        if not year or not is_reg_possible:
+            messages.warning(request, _("Sorry, you can't register right now."))
+            context = {
+                'start_date': year.start_date if year else None,
+                'end_date': year.end_date if year else None,
+                'reg_date': year.registration_start_date if year else None,
+            }
+            return render(request, 'immersion/nologin.html', context)
+
         # Common field for students and high school students
         uai_code = shib_attrs.get("uai_code", "")
 
