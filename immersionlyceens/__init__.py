@@ -1,4 +1,4 @@
-VERSION = (4, 0, 5)
+VERSION = (4, 0, 6)
 
 def get_version():
     if not VERSION[2] and len(VERSION) > 3:
