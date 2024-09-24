@@ -215,7 +215,7 @@ def loginChoice(request, profile=None):
     intro_connection = ""
     is_reg_possible, is_year_valid, year = check_active_year()
 
-    if not year or not is_reg_possible:
+    if profile is "lyc" and (not year or not is_reg_possible):
         messages.warning(request, _("Sorry, you can't register right now."))
         context = {
             'start_date': year.start_date if year else None,
