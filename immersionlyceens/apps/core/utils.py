@@ -64,15 +64,21 @@ def slots(request):
     slots_filters = Q()
     user_slots = request.GET.get('user_slots', False) == 'true'
     filters = {}
+    args_filters = []
 
     training_id = request.GET.get('training_id')
     structure_id = request.GET.get('structure_id')
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
+    courses = request.GET.get('courses', False) == "true"
     events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
     cohorts_only = request.GET.get('cohorts_only', False) == "true"
     current_slots_only = request.GET.get('current_slots_only', False) == "true"
+    highschool_cohorts_registrations_only = request.GET.get('highschool_cohorts_registrations_only', False) == "true"
+
+    if not courses and not events:
+        courses = True
 
     try:
         year = UniversityYear.objects.get(active=True)
@@ -140,7 +146,28 @@ def slots(request):
             response['msg'] = gettext("Error : a valid training must be selected")
             return JsonResponse(response, safe=False)
 
-    if events:
+    if courses and events:
+        if establishment_id:
+            kw_courses_filters = {'course__training__structures__establishment__id': establishment_id}
+            kw_events_filters = {'event__establishment__id': establishment_id}
+
+            if structure_id is not None:
+                kw_courses_filters['course__training__structures'] = structure_id
+                kw_events_filters['event__structure__id'] = structure_id
+
+            if training_id is not None:
+                kw_courses_filters['course__training__id'] = training_id
+
+            args_filters.append(
+                Q(**kw_courses_filters)
+                | Q(**kw_events_filters)
+            )
+        elif highschool_id:
+            filters['event__highschool__id'] = highschool_id
+
+        user_filter_key = ['course__training__structures__in', 'event__structure__in']
+
+    elif events:
         filters["course__isnull"] = True
 
         if establishment_id:
@@ -153,7 +180,6 @@ def slots(request):
         user_filter_key = "event__structure__in"
 
     else:
-
         filters["event__isnull"] = True
 
         if establishment_id is not None:
@@ -170,10 +196,24 @@ def slots(request):
     if cohorts_only:
         filters['allow_group_registrations'] = True
         if highschool_id:
-            if events:
+            if courses and events:
+                args_filters.append(
+                    Q(event__highschool__id=highschool_id)
+                    |Q(course__highschool__id=highschool_id)
+                )
+            elif events:
                 filters['event__highschool__id'] = highschool_id
             else:
                 filters['course__highschool__id'] = highschool_id
+
+    if highschool_cohorts_registrations_only:
+        """
+        Retrieve only slots with group registrations from current user highschool_id
+        """
+        filters.update({
+            'group_immersions__highschool__id': user.highschool.id,
+            'group_immersions__cancellation_type__isnull': True,
+        })
 
     slots = Slot.objects.prefetch_related(
         'course__training__highschool',
@@ -197,28 +237,46 @@ def slots(request):
         'allowed_bachelor_types',
         'allowed_bachelor_mentions',
         'allowed_bachelor_teachings',
-    ).filter(**filters)
+        'group_immersions',
+    ).filter(*args_filters, **filters)
 
     if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
         # Structure managers and consultants : filter on their own structures
         # exception : if the user is also a speaker, make sure to grab these slots too
         if not user_filter:
-            user_filter = {
-                user_filter_key: user.structures.all()
-            }
-            slots = slots.filter(**user_filter)
+            args_user_filter = []
+            user_filter = {}
+
+            if isinstance(user_filter_key, list):
+                args_user_filter = list(reduce(lambda x, y: x | y, [
+                    Q(**{v: user.structures.all()}) for v in user_filter_key
+                ]))
+            else:
+                user_filter = {
+                    user_filter_key: user.structures.all()
+                }
+
+            slots = slots.filter(*args_user_filter, **user_filter)
         else:
             # User is also a speaker
-            speaker_filter = {
-                user_filter_key: user.structures.all(),
-                "speakers__in": user.linked_users()
-            }
+            if isinstance(user_filter_key, list):
+                args_user_filter = list(reduce(lambda x, y: x | y, [
+                    Q(**{v: user.structures.all()}) for v in user_filter_key
+                ]))
 
-            user_filter = reduce(lambda x, y: x | y,
-                [Q(**{k : v}) for k, v in speaker_filter.items()]
-            )
+                slots = slots.filter(Q(*args_user_filter)|Q(speakers__in=user.linked_users()))
 
-            slots = slots.filter(user_filter)
+            else:
+                speaker_filter = {
+                    user_filter_key: user.structures.all(),
+                    "speakers__in": user.linked_users()
+                }
+
+                user_filter = reduce(lambda x, y: x | y,
+                    [Q(**{k : v}) for k, v in speaker_filter.items()]
+                )
+
+                slots = slots.filter(user_filter)
 
     if current_slots_only:
         slots_filters =  Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now)

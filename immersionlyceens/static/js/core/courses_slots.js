@@ -389,6 +389,9 @@ function init_datatable() {
     ajax: {
       url: "/core/utils/slots",
       data: function(d) {
+          d.courses = true;
+          d.events = false;
+
           if(is_set(current_establishment_id) || $('#id_establishment').val()) {
             d.establishment_id = current_establishment_id || $('#id_establishment').val();
           }

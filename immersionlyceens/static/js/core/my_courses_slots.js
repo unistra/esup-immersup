@@ -12,6 +12,7 @@ function init_datatable() {
       url: "/core/utils/slots",
       data: function(d) {
         d.past = $('#filter_past_slots').is(':checked')
+        d.courses = true
         d.events = false
         d.user_slots = true
         return d

@@ -57,7 +57,7 @@
             </div>
           <!-- </form> -->
         </div>
-        {% if not user_slots %}
+        {% if not user_slots and not cohorts_only %}
           {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
             <div class="row">
               {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
@@ -154,6 +154,7 @@
   var is_operator = "{{ request.user.is_operator }}" === "True"
   var user_highschool = "{{ request.user.highschool_id }}"
   var user_establishment = "{{ request.user.establishment_id }}"
+  var cohorts_only = "{{ cohorts_only }}" === "True"
 
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
@@ -214,6 +215,7 @@
   let regs_individual_only_txt = "{% trans 'Indiv. only' %}"
   let regs_groups_only_txt = "{% trans 'Group only' %}"
   let regs_groups_and_individual_txt = "{% trans 'Indiv + Group' %}"
+  let registration_date_limit_txt = "{% trans 'Registration limit' %}"
 
   let no_city_txt = "{% trans 'No city' %}"
 
@@ -285,7 +287,7 @@
       $('#id_div_group_registrations').hide();
     }
 
-    if(slot_allow_individual_registrations) {
+    if(slot_allow_individual_registrations && cohorts_only === false) {
       $('#id_div_individual_registrations').show();
       $('#id_modal_group_header').addClass("pt-0");
     }

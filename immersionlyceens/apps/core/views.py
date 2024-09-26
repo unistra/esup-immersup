@@ -2488,3 +2488,50 @@ class HighSchoolCohortsCoursesList(generic.TemplateView):
             context["training_id"] = None
 
         return context
+
+
+@method_decorator(groups_required('REF-LYC',), name="dispatch")
+class HighSchoolCohortsRegistrations(generic.TemplateView):
+    template_name = "core/hs_cohorts_registrations.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            "cohorts_only": True,
+            "slot_mode": "all",
+            "contact_form": ContactForm(),
+            "cancel_types": CancelType.objects.filter(active=True, students=True),
+            "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+            "establishments": Establishment.activated.filter(is_host_establishment=True),
+            "structures": Structure.activated.all(),
+            "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+            "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+            "establishment_id": kwargs.get(
+                'establishment_id', get_session_value(self.request, "cohorts_courses", "current_establishment_id")
+            ),
+            "structure_id": kwargs.get(
+                'structure_id', get_session_value(self.request, "cohorts_courses", "current_structure_id")
+            ),
+            "highschool_id": kwargs.get(
+                'highschool_id', get_session_value(self.request, "cohorts_courses", "current_highschool_id")
+            ),
+            "training_id": kwargs.get(
+                'training_id', get_session_value(self.request, "cohorts_courses", "current_training_id")
+            ),
+            "course_id": kwargs.get('course_id', None),
+            "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
+        })
+
+        try:
+            course = Course.objects.get(pk=int(context["course_id"]))
+            context["course_label_filter"] = course.label
+        except (ValueError, TypeError, Course.DoesNotExist):
+            context["course_id"] = None
+
+        try:
+            Training.objects.get(pk=int(context["training_id"]))
+        except (ValueError, TypeError, Training.DoesNotExist):
+            context["training_id"] = None
+
+        return context

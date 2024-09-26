@@ -98,6 +98,19 @@ urlpatterns = [
     ),
     path('charter', views.charter, name='charter'),
     path('structures_notifications', views.structures_notifications, name='structures_notifications'),
-    path('high_school/cohorts/events', views.HighSchoolCohortsEventsList.as_view(), name='highschool_cohorts_events'),
-    path('high_school/cohorts/courses', views.HighSchoolCohortsCoursesList.as_view(), name='highschool_cohorts_courses'),
+    path(
+        'high_school/cohorts/events',
+        views.HighSchoolCohortsEventsList.as_view(),
+        name='highschool_cohorts_events'
+    ),
+    path(
+        'high_school/cohorts/courses',
+        views.HighSchoolCohortsCoursesList.as_view(),
+        name='highschool_cohorts_courses'
+    ),
+    path(
+        'high_school/cohorts/registrations',
+        views.HighSchoolCohortsRegistrations.as_view(),
+        name='highschool_cohorts_registrations'
+    ),
 ]
