@@ -34,7 +34,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Coalesce, JSONObject
+from django.db.models.functions import Coalesce, JSONObject, Now
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.http import JsonResponse
 from django.utils import timezone
@@ -496,6 +496,7 @@ def slots(request):
                 When(Q(attendances_value=1), then=Value(gettext("To enter"))),
                 default=Value(''),
             ),
+            registration_limit_date_is_past=Q(registration_limit_date__lte=Now()),
             speaker_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
@@ -633,6 +634,7 @@ def slots(request):
             'attendances_to_enter',
             'group_attendances_to_enter',
             'registration_limit_date',
+            'registration_limit_date_is_past',
             'cancellation_limit_date',
         )
     )

@@ -30,16 +30,21 @@ function init_datatable() {
         render: function (data, type, row) {
           let element = ""
           let edit_mode = 0;
+          let can_register = row.registration_limit_date_is_past === false
+          let badge_class = "badge-info"
 
           // Future slot : register button
-          // TODO: add registration limit date test
           if (row.is_past === false) {
             element += `<button type="button" class="badge badge-pill badge-primary" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                        `${group_registrations_txt}` +
                        `</button>`;
           }
 
-          element += `<br><span class="badge badge-pill badge-info">` +
+          if(can_register === false) {
+            badge_class = "badge-danger"
+          }
+
+          element += `<br><span class="badge badge-pill ${badge_class}">` +
                      `  ${registration_date_limit_txt} : ${formatDate(row.registration_limit_date, register_date_options)}` +
                      `</span>`
           return element;
