@@ -231,7 +231,7 @@ function init_datatable() {
         return [];
       }
     },
-    order: [[5, "asc"]],
+    order: [[4, "asc"]],
     processing: false,
     serverSide: false,
     responsive: false,
