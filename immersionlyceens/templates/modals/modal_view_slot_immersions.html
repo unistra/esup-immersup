@@ -566,7 +566,11 @@ groups_dtr = $('#groups_list').DataTable({
                  + `</button>`
         }
 
-        let disabled = (is_highschool_manager && can_update_registrations || is_highschool_manager && parseInt(row.highschool_id) === parseInt(user_highschool)) ? "" : "disabled";
+        let disabled = (
+                is_highschool_manager && can_update_registrations
+                || is_highschool_manager && parseInt(row.highschool_id) === parseInt(user_highschool)
+                || can_update_registrations
+        ) ? "" : "disabled";
 
         let input = data ? '<input class="chk" checked type="checkbox">' : `<input class="chk" type="checkbox" ${disabled}>`;
 

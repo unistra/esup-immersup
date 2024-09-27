@@ -2387,7 +2387,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         context["slot_mode"] = "events"
         context["contact_form"] = ContactForm(),
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
-        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True, managers=False)
         context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
         context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
@@ -2454,7 +2454,7 @@ class HighSchoolCohortsCoursesList(generic.TemplateView):
                 "slot_mode": "courses",
                 "contact_form": ContactForm(),
                 "cancel_types": CancelType.objects.filter(active=True, students=True),
-                "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+                "groups_cancel_types": CancelType.objects.filter(active=True, groups=True, managers=False),
                 "establishments": Establishment.activated.filter(is_host_establishment=True),
                 "structures": Structure.activated.all(),
                 "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
@@ -2502,7 +2502,7 @@ class HighSchoolCohortsRegistrations(generic.TemplateView):
             "slot_mode": "all",
             "contact_form": ContactForm(),
             "cancel_types": CancelType.objects.filter(active=True, students=True),
-            "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+            "groups_cancel_types": CancelType.objects.filter(active=True, groups=True, managers=False),
             "establishments": Establishment.activated.filter(is_host_establishment=True),
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),

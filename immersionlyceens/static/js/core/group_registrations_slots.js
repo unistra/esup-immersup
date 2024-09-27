@@ -27,7 +27,7 @@ function init_datatable() {
         // if (row.is_past === false) {
           element += `<button type="button" class="badge badge-pill badge-primary" name="view" title="${registered_text}" ` +
                        `onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})">` +
-                       `${group_registrations_txt}` +
+                       `${register_groups_txt}` +
                      `</button>`;
         // }
 
