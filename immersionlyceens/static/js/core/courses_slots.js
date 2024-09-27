@@ -32,9 +32,20 @@ function init_datatable() {
           let edit_mode = 0;
           let can_register = row.registration_limit_date_is_past === false
           let badge_class = "badge-info"
+          let valid_restrictions = false
+
+          if(row.allowed_highschools_list.length > 0) {
+            let found = row.allowed_highschools_list.find(({id}) => id === user_highschool);
+            if(is_set(found)) {
+              valid_restrictions = true
+            }
+          }
+          else {
+            valid_restrictions = true
+          }
 
           // Future slot : register button
-          if (row.is_past === false) {
+          if (row.is_past === false && valid_restrictions === true) {
             element += `<button type="button" class="badge badge-pill badge-primary" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                        `${group_registrations_txt}` +
                        `</button>`;

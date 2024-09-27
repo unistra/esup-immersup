@@ -519,7 +519,11 @@ def slots(request):
             ),
             allowed_highschools_list=Coalesce(
                 ArrayAgg(
-                    JSONObject(city=F('allowed_highschools__city'), label=F('allowed_highschools__label')),
+                    JSONObject(
+                        id=F('allowed_highschools__id'),
+                        city=F('allowed_highschools__city'),
+                        label=F('allowed_highschools__label')
+                    ),
                     filter=Q(allowed_highschools__isnull=False),
                     distinct=True,
                 ),

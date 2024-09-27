@@ -17,9 +17,20 @@ function init_datatable() {
           let edit_mode = 0;
           let can_register = row.registration_limit_date_is_past === false
           let badge_class = "badge-info"
+          let valid_restrictions = false
+
+          if(row.allowed_highschools_list.length > 0) {
+            let found = row.allowed_highschools_list.find(({id}) => id === user_highschool);
+            if(is_set(found)) {
+              valid_restrictions = true
+            }
+          }
+          else {
+            valid_restrictions = true
+          }
 
           // Future slot : register button
-          if (row.is_past === false) {
+          if (row.is_past === false && valid_restrictions === true) {
             element += `<button type="button" class="badge badge-pill badge-primary" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                        `  ${group_registrations_txt}` +
                        `</button>`;
@@ -205,48 +216,20 @@ function init_datatable() {
             // Past slot with registrations : can update attendances
             if (row.is_past === true && (row.n_register > 0 || row.n_group_register > 0)) {
               edit_mode = 1;
-              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
+              element += `<button type="button" class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
                 `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                 `</button>`;
             }
             else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
+              element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                 `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                 `</button>`;
             }
           }
 
-          /*
-          # KEEP THIS FOR FUTURE FIXES
-
-          if (row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me || cohorts_only ) {
-            if (show_duplicate_btn) {
-              element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
-                `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
-            }
-
-            if (row.is_past === false && show_modify_btn) {
-              element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
-            }
-            if (row.n_register === 0 && row.is_past === false && show_delete_btn) {
-              element += `<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
-            }
-
-            if (row.attendances_value === 1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="edit" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
-                `<i class='fa fas fa-edit fa-2x centered-icon'></i>` +
-                `</button>`;
-            }
-            else if (row.attendances_value !== -1) {
-              element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${row.attendances_value}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations})" title="${registered_text}">` +
-                `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
-                `</button>`;
-            }
-          }
-          */
           // We can update registrations when group slot is public or when we manage the high school
           if ((row.can_update_registrations || row.public_group) && cohorts_only === true) {
-            element += `<button class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
+            element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
               `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
               `</button>`;
           }

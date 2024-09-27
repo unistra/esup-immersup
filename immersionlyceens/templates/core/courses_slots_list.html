@@ -29,14 +29,9 @@
   {% if not request.user.is_structure_consultant %}
   <div class="mb-2">
     <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
-    <!--
-    <button id='id_mass_update' class="btn btn-primary ml-4" title="{% trans 'Mass update' %}">
-      {% trans 'Mass update' %}
-    </button>
-    -->
     {% if activate_mass_update %}
-    <input id='id_mass_update' name="mass_update" class="btn btn-primary ml-4" value="{% trans 'Mass update' %}" type="submit">
-    <input type="hidden" name="mass_slots_list" value="">
+      <input id='id_mass_update' name="mass_update" class="btn btn-primary ml-4" value="{% trans 'Mass update' %}" type="submit">
+      <input type="hidden" name="mass_slots_list" value="">
     {% endif %}
   </div>
   {% endif %}
