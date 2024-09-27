@@ -51,6 +51,12 @@ function init_datatable() {
           let city = is_set(row.highschool_city) ? row.highschool_city : no_city_txt
           return `${city} - ${row.highschool_label}`
         }
+        else if (row.establishment_code) {
+          let txt = row.establishment_code
+          txt += is_set(row.structure_code) ? ` - ${row.structure_code}` : ''
+
+          return txt
+        }
 
         return ""
       },
