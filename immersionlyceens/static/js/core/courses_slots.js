@@ -47,7 +47,7 @@ function init_datatable() {
           // Future slot : register button
           if (row.is_past === false && valid_restrictions === true) {
             element += `<button type="button" class="badge badge-pill badge-primary" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
-                       `${group_registrations_txt}` +
+                       `${register_groups_txt}` +
                        `</button>`;
           }
 
@@ -468,8 +468,13 @@ function init_datatable() {
       url: language_file
     },
     columns: dt_columns,
-    columnDefs: [
-        { defaultContent: '-', targets: '_all' },
+    columnDefs: [{
+      defaultContent: '-',
+      targets: '_all'
+    }, {
+        "targets": 0,
+        "orderable": false,
+      }
     ],
 
     initComplete: function () {

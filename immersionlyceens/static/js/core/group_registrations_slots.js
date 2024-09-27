@@ -261,8 +261,13 @@ function init_datatable() {
       url: language_file
     },
     columns: dt_columns,
-    columnDefs: [
-        { defaultContent: '-', targets: '_all' },
+    columnDefs: [{
+      defaultContent: '-',
+      targets: '_all'
+    }, {
+       "targets": 0,
+       "orderable": false,
+      }
     ],
 
     initComplete: function () {
