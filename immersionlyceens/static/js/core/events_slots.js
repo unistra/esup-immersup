@@ -463,7 +463,7 @@ function init_datatable() {
         return [];
       }
     },
-    order: [[5, "asc"], [2, "asc"], [3, "asc"], [4, "asc"]],
+    order: order,
     processing: false,
     serverSide: false,
     responsive: false,
