@@ -156,6 +156,7 @@ function init_datatable() {
     var columns_idx = [3, 5, 6]
     var initial_values = { 3: event_label_filter };
     var columns_idx = [3, 5, 6]
+    var order = [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]]
 
     var yadcf_filters = [
       {
@@ -371,6 +372,8 @@ function init_datatable() {
     var columns_idx = [4, 6, 7]
     var initial_values = { 4: event_label_filter };
     var columns_idx = [4, 6, 7]
+    var order = [[5, "asc"], [2, "asc"], [3, "asc"], [4, "asc"]]
+
     var yadcf_filters = [
       {
         column_number: 1,

@@ -188,6 +188,7 @@ function init_datatable() {
     var columns_idx = [3, 5, 6]
     var initial_values = { 3: course_label_filter }
     var columns_idx = [3, 5, 6]
+    var order = [[4, "asc"]]
 
   } else {
 
@@ -398,6 +399,7 @@ function init_datatable() {
     var columns_idx = [4, 6, 7]
     var initial_values = { 4: course_label_filter };
     var columns_idx = [4, 6, 7]
+    var order = [[5, "asc"]]
   }
 
 
@@ -442,7 +444,7 @@ function init_datatable() {
         return [];
       }
     },
-    order: [[5, "asc"]],
+    order: order,
     processing: false,
     serverSide: false,
     responsive: false,
