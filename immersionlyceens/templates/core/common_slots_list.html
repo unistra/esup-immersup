@@ -44,17 +44,7 @@
     {% block card_header %}{% endblock %}
       <div class="card-body">
         {% block card_title %}{% endblock %}
-        <div>
-          <div class="form-group">
-            <div class="form-group form-check mx-sm-3 mb-2">
-              <input type="checkbox" id="filter_past_slots" class="form-check-input">
-              <label for="filter_past_slots" class="form-check-label ml-md-2"> {% trans 'Include past slots with attendances' %}</label>
-            </div>
-            <div class="form-group mb-2">
-              <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
-            </div>
-          </div>
-        </div>
+        {% block card_filters %}{% endblock %}
         {% if not user_slots and not cohorts_only %}
           {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
             <div class="row">

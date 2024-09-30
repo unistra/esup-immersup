@@ -72,9 +72,10 @@ def slots(request):
     establishment_id = request.GET.get('establishment_id')
     courses = request.GET.get('courses', False) == "true"
     events = request.GET.get('events', False) == "true"
-    past_slots = request.GET.get('past', False) == "true"
+    past_slots_with_attendances = request.GET.get('past', False) == "true"
     cohorts_only = request.GET.get('cohorts_only', False) == "true"
     current_slots_only = request.GET.get('current_slots_only', False) == "true"
+    all_slots = request.GET.get('all_slots', False) == "true"
     highschool_cohorts_registrations_only = request.GET.get('highschool_cohorts_registrations_only', False) == "true"
 
     if not courses and not events:
@@ -280,8 +281,7 @@ def slots(request):
 
     if current_slots_only:
         slots_filters =  Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now)
-
-    elif not past_slots:
+    elif not past_slots_with_attendances:
         slots_filters = Q(date__isnull=True) | Q(date__gte=today) | Q(date=today, end_time__gte=now) | Q(
             Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
             | Q(group_immersions__attendance_status=0, group_immersions__cancellation_type__isnull=True),

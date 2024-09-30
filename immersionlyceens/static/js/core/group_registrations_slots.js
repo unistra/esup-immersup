@@ -222,11 +222,9 @@ function init_datatable() {
           d.cohorts_only = true;
           d.highschool_cohorts_registrations_only = true;
 
-          if (current_slots_only) {
-            d.current_slots_only = current_slots_only;
-          }
-
-          d.past = $('#filter_past_slots').is(':checked')
+          // Retrieve all group slots for this high school
+          d.all_slots = true;
+          d.past_slots_with_attendances = true;
 
           return d
       },
