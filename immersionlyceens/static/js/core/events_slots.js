@@ -20,7 +20,7 @@ function init_datatable() {
           let valid_restrictions = false
 
           if(row.allowed_highschools_list.length > 0) {
-            let found = row.allowed_highschools_list.find(({id}) => id === user_highschool);
+            let found = row.allowed_highschools_list.find(({id}) => id === parseInt(user_highschool));
             if(is_set(found)) {
               valid_restrictions = true
             }
