@@ -175,7 +175,7 @@
             <button type="button" id="btn_register_group" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_group">{% trans 'Add registration' %}</button>
           {% endif %}
 
-          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC,CONS-STR" %}
+          {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-LYC,REF-TEC,CONS-STR" %}
             <button type="button" id="btn_contact_groups" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-mode="group" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
           {% endif %}
           </div>

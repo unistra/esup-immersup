@@ -285,6 +285,11 @@
       $('#id_modal_group_header').removeClass("pt-0");
     }
 
+    // Contact button : hide for high school managers for cohorts-only mode
+    if (cohorts_only && is_highschool_manager) {
+      $('#btn_contact_groups').hide()
+    }
+
     // put slot id in register button in modal
     $('#btn_register_student').data('id', slot_id);
     $('#modal_view_slot_immersions').data('ispast', is_past)
