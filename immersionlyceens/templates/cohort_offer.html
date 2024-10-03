@@ -299,8 +299,12 @@
                                                                     <span class="badge badge-pill {% if s.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ s.registration_limit_date }}</span><br>
                                                                     {% if authorized_groups|in_groups:'REF-LYC' %}
                                                                       {% if not s.allowed_highschools.all or request.user.highschool in s.allowed_highschools.all %}
-                                                                        <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
-                                                                        <div id="feedback_{{ pk }}"></div>
+                                                                        {% if s.valid_registration_start_date %}
+                                                                          <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
+                                                                          <div id="feedback_{{ pk }}"></div>
+                                                                        {% else %}
+                                                                          <span class="badge badge-pill badge-info">{% trans 'Registration from' %} : {{ s.period.registration_start_date }}</span><br>
+                                                                        {% endif %}
                                                                       {% endif %}
                                                                     {% endif %}
                                                                   {% endif %}
@@ -312,8 +316,12 @@
                                                                     <span class="badge badge-pill {% if s.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ s.registration_limit_date }}</span><br>
                                                                       {% if authorized_groups|in_groups:'REF-LYC' %}
                                                                         {% if not s.allowed_highschools.all or request.user.highschool in s.allowed_highschools.all %}
-                                                                          <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
-                                                                          <div id="feedback_{{ pk }}"></div>
+                                                                          {% if s.valid_registration_start_date %}
+                                                                            <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
+                                                                            <div id="feedback_{{ pk }}"></div>
+                                                                          {% else %}
+                                                                            <span class="badge badge-pill badge-info">{% trans 'Registration from' %} : {{ s.period.registration_start_date }}</span><br>
+                                                                          {% endif %}
                                                                         {% endif %}
                                                                       {% endif %}
                                                                   {% else %}
@@ -343,7 +351,7 @@
                                                             </td>
                                                             <td style="width: 10%">
                                                               {% if s.building %}
-                                                 >               <i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %}: {{ s.building }}
+                                                                <i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %}: {{ s.building }}
                                                               {% endif %}
                                                               {% if s.building.url %}
                                                                 <a href="{{ s.building.url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>

@@ -15,7 +15,6 @@ function init_datatable() {
         render: function (data, type, row) {
           let element = ""
           let edit_mode = 0;
-          let can_register = row.registration_limit_date_is_past === false
           let badge_class = "badge-info"
           let valid_restrictions = false
 
@@ -29,18 +28,27 @@ function init_datatable() {
             valid_restrictions = true
           }
 
+          let can_register = valid_restrictions && !row.is_past && !row.registration_limit_date_is_past && row.valid_registration_start_date
+
           // Future slot : register button
-          if (row.is_past === false && valid_restrictions === true) {
+          if (can_register) {
             element += `<button type="button" class="badge badge-pill badge-primary" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                        `  ${register_groups_txt}` +
                        `</button>`;
           }
+          else if(!row.valid_registration_start_date) {
+            element += `<span class="badge badge-pill badge-info">` +
+                       `  ${registration_start_date_txt} : ${formatDate(row.registration_start_date, register_date_options)}` +
+                       `</span>`
+          }
 
-          if(can_register === false) {
+          element += element === "" ? "" : "<br>"
+
+          if(row.registration_limit_date_is_past) {
             badge_class = "badge-danger"
           }
 
-          element += `<br><span class="badge badge-pill ${badge_class}">` +
+          element += `<span class="badge badge-pill ${badge_class}">` +
                      `  ${registration_date_limit_txt} : ${formatDate(row.registration_limit_date, register_date_options)}` +
                      `</span>`
 
