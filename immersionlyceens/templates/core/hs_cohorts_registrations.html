@@ -1,18 +1,21 @@
-{% extends "./common_hs_slots_list.html" %}
+{% extends "./common_slots_list.html" %}
 
 {% load i18n %}
 {% load static %}
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
-{% block title %}{% trans "Course slots" %}{% endblock%}
+{% block title %}{% trans "High school cohorts registrations" %}{% endblock%}
 {% block head-javascript %}
 {{ block.super }}
-<script src="{% static 'js/core/courses_slots.min.js' %}"></script>
+<script src="{% static 'js/core/group_registrations_slots.min.js' %}"></script>
+{% endblock %}
+
+{% block card_filters %}
 {% endblock %}
 
 {% block card_header %}
 <div class="card-header text-white bg-secondary">
-  {% trans "Cohorts courses slots" %}
+  {% trans "My cohorts registrations (courses and events)" %}
 </div>
 {% endblock %}
 
@@ -37,8 +40,8 @@
   <tr>
     <th class="align-top"></th>
     <th id="managed_by_filter" class="align-top">{% trans 'Managed By' context "slots" %}</th>
-    <th id="training_filter" class="align-top" style="width:15%">{% trans 'Training label' %}</th>
-    <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
+    <th id="training_or_type_filter" class="align-top" style="width:15%">{% trans 'Training/type' %}</th>
+    <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
     <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
     <th id="building_filter" class="align-top">{% trans 'Meeting place' %}</th>
     <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>

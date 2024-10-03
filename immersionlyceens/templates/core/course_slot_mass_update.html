@@ -1,0 +1,1097 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
+{% endblock %}
+
+{% block head-javascript %}
+
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+{% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
+
+<div id="feedback" class="container"></div>
+<div class="container-fluid" style="padding-top: 20px; width: 70%;">
+  <div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course publication" %}'>
+    <span>
+      {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+    </span>
+  </div>
+
+  <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
+    <span>
+      {% trans 'Do you really want to cancel this update ?' %}
+    </span>
+  </div>
+
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Slots mass update" %}
+    </div>
+    <div class="card-body">
+      <form method="POST" class="form-group" role="form" id="add_slot">
+        <fieldset>
+          <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
+          {% csrf_token %}
+
+          <input type="hidden" id="id_place" name="place" value="0">
+          <input type="hidden" name="mass_slots_list" value="{{ mass_slots_list }}">
+          <div class="form-group row">
+            <label for="id_course_type" class="col-form-label col-sm-3">
+              <i id='id_mandatory_course_type' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Course type' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.course_type }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_course_type_keep" name="mass_course_type" value="keep" checked>
+              <label for="id_mass_course_type_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_course_type_update" name="mass_course_type" value="update">
+              <label for="id_mass_course_type_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if slot_form.course_type.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.course_type.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row" id="id_div_campus">
+            <label for="id_campus" class="col-form-label col-sm-3">
+              <i id='id_mandatory_campus' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Campus' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.campus }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_campus_keep" name="mass_campus" value="keep" checked>
+              <label for="id_mass_campus_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_campus_update" name="mass_campus" value="update">
+              <label for="id_mass_campus_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          {% if form.campus.errors %}
+          <div class="form-group row">
+            <div class="offset-sm-3 col-sm-6 alert alert-danger">
+              {{ form.campus.errors }}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-group row" id="id_div_building">
+            <label for="building" class="col-form-label col-sm-3">
+              <i id='id_mandatory_building' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Building' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.building }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_building_keep" name="mass_building" value="keep" checked>
+              <label for="id_mass_building_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_building_update" name="mass_building" value="update">
+              <label for="id_mass_building_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          {% if form.building.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.building.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row" id="id_div_room">
+            <label for="id_room" class="col-form-label col-sm-3">
+              <i id='id_mandatory_room' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Meeting place' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.room }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_room_keep" name="mass_room" value="keep" checked>
+              <label for="id_mass_room_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_room_update" name="mass_room" value="update">
+              <label for="id_mass_room_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          {% if form.room.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.room.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row">
+            <label for="start_time" class="col-form-label col-sm-3">
+              <i id='id_mandatory_start_time' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Start time' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.start_time }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_start_time_keep" name="mass_start_time" value="keep" checked>
+              <label for="id_mass_start_time_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_start_time_update" name="mass_start_time" value="update">
+              <label for="id_mass_start_time_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if form.start_time.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.start_time.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row">
+            <label for="end_time" class="col-form-label col-sm-3">
+              <i id='id_mandatory_end_time' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'End time' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.end_time }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_end_time_keep" name="mass_end_time" value="keep" checked>
+              <label for="id_mass_end_time_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_end_time_update" name="mass_end_time" value="update">
+              <label for="id_mass_end_time_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if form.end_time.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.end_time.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row">
+            <label for="registration_limit_delay" class="col-form-label col-sm-3">
+              {% trans 'Registration limit (in hours)' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.registration_limit_delay }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_registration_limit_delay_keep" name="mass_registration_limit_delay" value="keep" checked>
+              <label for="id_mass_registration_limit_delay_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_registration_limit_delay_update" name="mass_registration_limit_delay" value="update">
+              <label for="id_mass_registration_limit_delay_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if form.registration_limit_delay.errors %}
+          <div class="form-group row">
+            <div class="offset-sm-3 col-sm-6 alert alert-danger">
+              {{ form.registration_limit_delay.errors }}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-group row">
+            <label for="cancellation_limit_delay" class="col-form-label col-sm-3">
+              {% trans 'Cancellation limit (in hours)' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.cancellation_limit_delay }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_cancellation_limit_delay_keep" name="mass_cancellation_limit_delay" value="keep" checked>
+              <label for="id_mass_cancellation_limit_delay_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_cancellation_limit_delay_update" name="mass_cancellation_limit_delay" value="update">
+              <label for="id_mass_cancellation_limit_delay_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if form.cancellation_limit_delay.errors %}
+          <div class="form-group row">
+            <div class="offset-sm-3 col-sm-6 alert alert-danger">
+              {{ form.cancellation_limit_delay.errors }}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-group row">
+            <label class="col-sm-3">
+              <i id='id_mandatory_speakers' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Speakers' %}
+            </label>
+            <div class="col-sm-3">
+              {% if form.speakers.field.queryset %}
+                {{ form.speakers }}
+              {% else %}
+                <select id="id_speakers" name="speakers" style="display:none"></select>
+                {% trans "Unavailable (different courses)" %}
+              {% endif %}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_speakers_keep" name="mass_speakers" value="keep" checked>
+              <label for="id_mass_speakers_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              {% if form.speakers.field.queryset %}
+              <input class="chk ml-2" type="radio" id="id_mass_speakers_update" name="mass_speakers" value="update">
+              <label for="id_mass_speakers_update" class="col-form-label">{% trans 'Update all' %}</label>
+              {% endif %}
+            </div>
+          </div>
+          {% if form.speakers.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.speakers.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          {% if enabled_groups_registrations %}
+            <div class="form-group row" id="id_div_allow_group_registrations">
+              <label for="allow_group_registrations" class="col-form-label col-sm-3">
+                {% trans 'Allow group registrations' %} ?
+                {% if has_group_immersions %}
+                  <br><i>{% trans "Can't be mass disabled (immersions exist)" %}</i>
+                {% endif %}
+              </label>
+              <div class="col-sm-3">
+                {{ form.allow_group_registrations }}
+                {{ form.allow_group_registrations.help_text }}
+              </div>
+              <div class="col-sm-6">
+                <input class="chk" type="radio" id="id_mass_allow_group_registrations_keep" name="mass_allow_group_registrations" value="keep" checked>
+                <label for="id_mass_allow_group_registrations_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_allow_group_registrations_update" name="mass_allow_group_registrations" value="update">
+                <label for="id_mass_allow_group_registrations_update" class="col-form-label">{% trans 'Update all' %}</label>
+              </div>
+            </div>
+            {% if form.allow_group_registrations.errors %}
+              <div class="form-group row">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                  {{ form.allow_group_registrations.errors }}
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="form-group row" id="id_div_group_mode">
+              <label for="group_mode" class="col-form-label col-sm-3">
+                <i id='id_mandatory_group_mode' class="fa fas fa-asterisk" style="display:none"></i>
+                {% trans 'Group management mode' %}
+              </label>
+              <div class="col-sm-3">
+                {{ form.group_mode }}
+              </div>
+              <div class="col-sm-6">
+                <input class="chk" type="radio" id="id_mass_group_mode_keep" name="mass_group_mode" value="keep" checked>
+                <label for="id_mass_group_mode_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_group_mode_update" name="mass_group_mode" value="update">
+                <label for="id_mass_group_mode_update" class="col-form-label">{% trans 'Update all' %}</label>
+              </div>
+            </div>
+            {% if form.group_mode.errors %}
+              <div class="form-group row">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                  {{ form.group_mode.errors }}
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="form-group row" id="id_div_n_group_places">
+              <label for="n_group_places" class="col-form-label col-sm-3">
+                <i id='id_mandatory_n_group_places' class="fa fas fa-asterisk" style="display:none"></i>
+                {% trans 'Number of places for groups' %}
+              </label>
+              <div class="col-sm-3">
+                {{ form.n_group_places }}
+              </div>
+              <div class="col-sm-6">
+                <input class="chk" type="radio" id="id_mass_n_group_places_keep" name="mass_n_group_places" value="keep" checked>
+                <label for="id_mass_n_group_places_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_n_group_places_update" name="mass_n_group_places" value="update">
+                <label for="id_mass_n_group_places_update" class="col-form-label">{% trans 'Update all' %}</label>
+              </div>
+            </div>
+            {% if form.n_group_places.errors %}
+              <div class="form-group row">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                  {{ form.n_group_places.errors }}
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="form-group row" id="id_div_public_group">
+              <label for="public_group" class="col-form-label col-sm-3">
+                <i id='id_public_group' class="fa fas fa-asterisk" style="display:none"></i>
+                {% trans 'Public group registrations' %}
+              </label>
+              <div class="col-sm-3">
+                {{ form.public_group }}
+              </div>
+              <div class="col-sm-6">
+                <input class="chk" type="radio" id="id_mass_public_group_keep" name="mass_public_group" value="keep" checked>
+                <label for="id_mass_public_group_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_public_group_update" name="mass_public_group" value="update">
+                <label for="id_mass_public_group_update" class="col-form-label">{% trans 'Update all' %}</label>
+              </div>
+            </div>
+            {% if form.public_group.errors %}
+              <div class="form-group row">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                  {{ form.public_group.errors }}
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="form-group row" id="id_div_allow_individual_registrations">
+              <label for="allow_individual_registrations" class="col-form-label col-sm-3">
+                {% trans 'Allow individual registrations' %} ?
+                {% if has_immersions %}
+                  <br><i>{% trans "Can't be mass disabled (immersions exist)" %}</i>
+                {% endif %}
+              </label>
+              <div class="col-sm-3">
+                {{ form.allow_individual_registrations }}
+                {{ form.allow_individual_registrations.help_text }}
+              </div>
+              <div class="col-sm-6">
+                <input class="chk" type="radio" id="id_mass_allow_individual_registrations_keep" name="mass_allow_individual_registrations" value="keep" checked>
+                <label for="id_mass_allow_individual_registrations_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_allow_individual_registrations_update" name="mass_allow_individual_registrations" value="update">
+                <label for="id_mass_allow_individual_registrations_update" class="col-form-label">{% trans 'Update all' %}</label>
+              </div>
+            </div>
+            {% if form.allow_individual_registrations.errors %}
+              <div class="form-group row">
+                <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                  {{ form.allow_individual_registrations.errors }}
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+
+          <div class="form-group row" id="id_div_n_places">
+            <label for="id_n_places" class="col-form-label col-sm-3">
+              <i id='id_mandatory_n_places' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Number of individual places' %}
+            </label>
+            <div class="col-sm-3">
+              {{ form.n_places }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_n_places_keep" name="mass_n_places" value="keep" checked>
+              <label for="id_mass_n_places_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_n_places_update" name="mass_n_places" value="update">
+              <label for="id_mass_n_places_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if form.n_places.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.n_places.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row">
+            <label for="id_establishments_restrictions" class="col-form-label col-sm-3">
+              {% trans 'Use establishments restrictions' %} ?
+            </label>
+            <div class="col-sm-3">
+              {{ form.establishments_restrictions }}
+              <span id="establishments_restrictions_hint">
+                <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+              </span>
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_establishments_restrictions_keep" name="mass_establishments_restrictions" value="keep" checked>
+              <label for="id_mass_establishments_restrictions_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_establishments_restrictions_update" name="mass_establishments_restrictions" value="update">
+              <label for="id_mass_establishments_restrictions_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+          {% if form.establishments_restrictions.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.establishments_restrictions.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row" id="id_div_allowed_establishments">
+            <div class="col-sm-9 offset-sm-3">
+              <label for="id_allowed_establishments" class="col-form-label">
+                {% trans 'Allowed establishments' %}
+              </label>
+              {{ form.allowed_establishments }}
+              {% if form.allowed_establishments.errors %}
+                <div class="col-sm-4 alert alert-danger">
+                  {{ form.allowed_establishments.errors }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="form-group row" id="id_div_allowed_highschools">
+            <div class="col-sm-9 offset-sm-3">
+              <label for="id_allowed_highschools" class="col-form-label">
+                {% trans 'Allowed high schools' %}
+              </label>
+              {{ form.allowed_highschools }}
+              {% if form.allowed_highschools.errors %}
+                <div class="col-sm-5 alert alert-danger">
+                  {{ form.allowed_highschools.errors }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="id_levels_restrictions" class="col-form-label col-sm-3">
+              {% trans 'Use levels restrictions' %} ?
+            </label>
+            <div class="col-sm-3">
+              {{ form.levels_restrictions }}
+              <span id="levels_restrictions_hint">
+                <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+              </span>
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_levels_restrictions_keep" name="mass_levels_restrictions" value="keep" checked>
+              <label for="id_mass_levels_restrictions_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_levels_restrictions_update" name="mass_levels_restrictions" value="update">
+              <label for="id_mass_levels_restrictions_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          {% if form.levels_restrictions.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.levels_restrictions.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row" id="id_div_allowed_levels">
+            <div class="col-sm-3 offset-sm-3">
+              <label for="id_allowed_highschool_levels" class="col-form-label">
+                {% trans 'Allowed high school levels' %}
+              </label>
+              {{ form.allowed_highschool_levels }}
+              {{ form.allowed_highschool_levels.errors }}
+            </div>
+            <div class="col-sm-3">
+              <label for="id_allowed_student_levels" class="col-form-label">
+                {% trans 'Allowed student levels' %}
+              </label>
+              {{ form.allowed_student_levels }}
+              {{ form.allowed_student_levels.errors }}
+            </div>
+            <div class="col-sm-3">
+              <label for="id_allowed_post_bachelor_levels" class="col-form-label">
+                {% trans 'Allowed post bachelor levels' %}
+              </label>
+              {{ form.allowed_post_bachelor_levels }}
+              {{ form.allowed_post_bachelor_levels.errors }}
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="id_bachelors_restrictions" class="col-form-label col-sm-3">
+              {% trans 'Use bachelor type restrictions' %} ?
+            </label>
+            <div class="col-sm-3">
+              {{ form.bachelors_restrictions }}
+              <span id="bachelors_restrictions_hint">
+                <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+              </span>
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_bachelors_restrictions_keep" name="mass_bachelors_restrictions" value="keep" checked>
+              <label for="id_mass_bachelors_restrictions_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_bachelors_restrictions_update" name="mass_bachelors_restrictions" value="update">
+              <label for="id_mass_bachelors_restrictions_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          {% if form.bachelors_restrictions.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.bachelors_restrictions.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row" id="id_div_allowed_bachelors">
+            <div class="col-sm-2 offset-sm-3">
+              <label for="id_allowed_bachelor_types" class="col-form-label">
+                {% trans 'Allowed bachelor types' %}
+              </label>
+              {{ form.allowed_bachelor_types }}
+              {{ form.allowed_bachelor_types.errors }}
+            </div>
+            <div class="col-sm-4" id="id_div_bachelor_mentions">
+              <label for="id_allowed_bachelor_mentions" class="col-form-label">
+                {% trans 'Allowed bachelor mentions' %}
+              </label>
+              {{ form.allowed_bachelor_mentions }}
+              {{ form.allowed_bachelor_mentions.errors }}
+            </div>
+            <div class="col-sm-3" id="id_div_bachelor_teachings">
+              <label for="id_allowed_bachelor_teachings" class="col-form-label">
+                {% trans 'Allowed bachelor teachings' %}
+              </label>
+              {{ form.allowed_bachelor_teachings }}
+              {{ form.allowed_bachelor_teachings.errors }}
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="additional_information" class="col-form-label col-sm-3">
+              <i id='id_mandatory_additional_information' class="fa fas fa-asterisk" style="display:none"></i>
+              {% trans 'Additional information' %}
+            </label>
+            <div class="offset-sm-3 col-sm-6">
+              <input class="chk" type="radio" id="id_mass_additional_information_keep" name="mass_additional_information" value="keep" checked>
+              <label for="id_mass_additional_information_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_additional_information_update" name="mass_additional_information" value="update">
+              <label for="id_mass_additional_information_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <div class="col-sm-6 offset-sm-3">
+              {{ form.additional_information }}
+            </div>
+            {% if form.additional_information.errors %}
+              <div class="col-sm-3 alert alert-danger">
+                {{ form.additional_information.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label for="published" class="col-form-label col-sm-3">
+              {% trans 'Published' %} ?
+            </label>
+            <div class="col-sm-3">
+              {{ form.published }}
+            </div>
+            <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_published_keep" name="mass_published" value="keep" checked>
+              <label for="id_mass_published_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_published_update" name="mass_published" value="update">
+              <label for="id_mass_published_update" class="col-form-label">{% trans 'Update all' %}</label>
+            </div>
+          </div>
+
+          {% if form.published.errors %}
+            <div class="form-group row">
+              <div class="offset-sm-3 col-sm-6 alert alert-danger">
+                {{ form.published.errors }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="form-group row">
+              <label for="notify_student" class="col-form-label col-sm-3">{% trans "Notify registrants of these changes?" %}</label>
+              <div class="col-sm-1">
+                <input type="checkbox" name="notify_student">
+              </div>
+          </div>
+          <br>
+          <div class="form-group">
+            <button type="button" name="cancel" class="btn btn-danger back_btn mb-1">{% trans 'Cancel' %}</button>
+            <input name="save" class="btn btn-primary mb-1" value="{% trans 'Save' %}" type="submit">
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block foot-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+{% comment "" %}TODO: add here other languages for jquery-ui !!{% endcomment %}
+{% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
+<script>
+    var publicationDialog;
+    var cancelDialog;
+    var establishment_id = "{{ establishment_id }}";
+    var structure_id = "{{ structure_id }}";
+    var highschool_id = "{{ highschool_id }}";
+    var training_id = "{{ training_id }}";
+    var campus_id = "{{ form.campus.value }}";
+    var building_id = "{{ form.building.value }}";
+    var has_immersions = "{{ has_immersions }}" === "True";
+    var has_group_immersions = "{{ has_group_immersions }}" === "True";
+
+    let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
+    let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
+
+    var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+    var slot_mode = "{{ slot_mode }}"
+
+    {% autoescape off %}
+    var bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
+    {% endautoescape %}
+
+    function empty_buildings() {
+      let options = '<option value="">---------</option>'
+      $('select#id_building').html(options)
+      building_id = ''
+    }
+
+    function set_buildings(campus_id) {
+      $.ajax({
+        url: "{% url 'building_list' %}",
+        type: 'GET',
+        data: {
+          'campus': campus_id,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function (json) {
+          let options = ""
+
+          if(json.length>0) {
+            options = '<option value="">---------</option>'
+            for (let i = 0; i < json.length; i++) {
+              options += `<option value="${json[i]['id']}">${json[i]['label']}</option>`
+            }
+          }
+          else {
+            options = '<option value="">{% trans 'No building available' %}</option>'
+          }
+
+          $('select#id_building').html(options)
+
+          if(building_id) {
+            $("#id_building").val(building_id);
+          }
+          else {
+            $("#id_building").val($("#id_building option:first").val());
+          }
+        }
+      })
+    }
+
+    $('#id_campus').change( function() {
+        campus_id = $('#id_campus option:selected').val();
+
+        if(campus_id !== "") {
+            set_buildings(campus_id)
+        }
+        else {
+            empty_buildings()
+        }
+    });
+
+    function toggle_required_fields () {
+        const ONE_GROUP="0"
+        const BY_PLACES="1"
+
+        // FIXME : define global variables
+        let face_to_face = 0
+        let remote = 1
+        let outside = 2
+
+        let published = $('#id_published').prop('checked')
+        let update_all_published = $("[name='mass_published']:checked").val() === "update"
+        let place = parseInt($('#id_place').val())
+        let allow_group_registrations = $('#id_allow_group_registrations').prop('checked')
+        let allow_individual_registrations = $('#id_allow_individual_registrations').prop('checked')
+        let group_mode = $('#id_group_mode').val()
+
+        if (published && update_all_published) {
+            let mandatory = ['start_time', 'end_time', 'speakers', 'course_type', 'room']
+            let not_mandatory = Array()
+
+            // Depends on group registrations
+            if((!is_set(allow_group_registrations)
+                    || allow_group_registrations === false)
+                || allow_individual_registrations === true) {
+                mandatory.push('n_places')
+            }
+
+            if(allow_group_registrations === true) {
+                mandatory.push('n_group_places')
+            }
+
+            if(establishment_id && place === face_to_face) {
+              mandatory = mandatory.concat(['campus', 'building'])
+            }
+            else {
+              not_mandatory = not_mandatory.concat(['campus', 'building'])
+            }
+
+            mandatory.forEach(function(e){
+                $('#id_mandatory_' + e).show();
+                /*
+                if ($(`[name='mass_${e}']:checked`).val() == "update") {
+                  $('#id_' + e).attr('required', 'required');
+                  $('#id_mandatory_' + e).show();
+                }
+                else {
+                  $('#id_' + e).removeAttr('required');
+                  $('#id_mandatory_' + e).hide();
+                }
+                */
+            });
+
+            not_mandatory.forEach(function(e){
+                $('#id_' + e).removeAttr('required');
+                $('#id_mandatory_' + e).hide();
+            });
+        }
+        else {
+            let not_mandatory = [
+                'room', 'building', 'campus', 'url', 'start_time', 'end_time', 'course_type',
+                'speakers', 'n_places', 'n_group_places'
+            ];
+
+            let mandatory = Array()
+
+            not_mandatory.forEach(function(e){
+                $('#id_' + e).removeAttr('required');
+                $('#id_mandatory_' + e).hide();
+            });
+
+            mandatory.forEach(function(e){
+                $('#id_' + e).attr('required', 'required');
+                $('#id_mandatory_' + e).show();
+            });
+        }
+    }
+
+    function toggle_group_fields() {
+        const ONE_GROUP="0"
+        const BY_PLACES="1"
+
+        let allow_group_registrations = $("#id_allow_group_registrations").prop('checked')
+        let allow_individual_registrations = $("#id_allow_individual_registrations").prop('checked')
+        let group_mode = $("#id_group_mode").val()
+        // let published = $("#id_published").prop('checked')
+
+        if(allow_group_registrations === true) {
+            $("#id_div_allow_individual_registrations").show()
+            $("#id_div_group_mode").show()
+            $("#id_group_mode").attr('required', 'required');
+            $("#id_div_public_group").show()
+            // $("#id_public_group").attr('required', 'required');
+
+            $("#id_div_n_group_places").show()
+            $("#id_n_group_places").attr('required', 'required');
+            $('#id_mandatory_n_group_places').show()
+
+            if(allow_individual_registrations === true) {
+                $("#id_div_n_places").show()
+                $("#id_n_places").attr('required', 'required');
+                $('#id_mandatory_n_places').show()
+            }
+            else {
+                $("#id_div_n_places").hide()
+                $("#id_n_places").removeAttr('required');
+                $('#id_mandatory_n_places').hide()
+            }
+        }
+        else {
+            $("#id_div_allow_individual_registrations").hide()
+            $("#id_allow_individual_registrations").prop('checked', true)
+            $("#id_div_n_places").show()
+            $("#id_n_places").attr('required', 'required');
+
+            $("#id_div_group_mode").hide()
+            $("#id_group_mode").removeAttr('required');
+            $("#id_div_n_group_places").hide()
+            $("#id_group_n_places").removeAttr('required');
+            $("#id_div_public_group").hide()
+            // $("#id_public_group").removeAttr('required');
+        }
+
+        toggle_required_fields()
+    }
+
+    function toggle_establishments_restrictions() {
+        if ($('#id_establishments_restrictions').prop('checked')) {
+            $('#id_div_allowed_establishments').show()
+            $('#id_div_allowed_highschools').show()
+            $('#establishments_restrictions_hint').show()
+        }
+        else {
+            $('#id_div_allowed_establishments').hide()
+            $('#id_div_allowed_highschools').hide()
+            $('#establishments_restrictions_hint').hide()
+            $('#id_allowed_establishments').find('option').prop('selected',false)
+            $('#id_allowed_highschools').find('option').prop('selected',false)
+        }
+    }
+
+    function toggle_levels_restrictions() {
+        if ($('#id_levels_restrictions').prop('checked')) {
+            $('#id_div_allowed_levels').show()
+            $('#levels_restrictions_hint').show()
+        }
+        else {
+            $('#id_div_allowed_levels').hide()
+            $('#levels_restrictions_hint').hide()
+            $('#id_allowed_highschool_levels').find('option').prop('selected',false)
+            $('#id_allowed_student_levels').find('option').prop('selected',false)
+            $('#id_allowed_post_bachelor_levels').find('option').prop('selected',false)
+        }
+    }
+
+    function toggle_bachelors_restrictions() {
+        if ($('#id_bachelors_restrictions').prop('checked')) {
+            $('#id_div_allowed_bachelors').show()
+            $('#bachelors_restrictions_hint').show()
+        }
+        else {
+            $('#id_div_allowed_bachelors').hide()
+            $('#bachelors_restrictions_hint').hide()
+            $('#id_allowed_bachelor_types').find('option').prop('selected',false)
+            $('#id_allowed_bachelor_mentions').find('option').prop('selected',false)
+            $('#id_allowed_bachelor_teachings').find('option').prop('selected',false)
+        }
+    }
+
+    function toggle_bachelors_options(selected_types) {
+        let display_technological_mentions = false
+        let display_general_teachings = false
+
+        selected_types.forEach(e => {
+            if(is_set(bachelor_types[e])) {
+                if(bachelor_types[e]["is_general"]) {
+                    display_general_teachings = true
+                }
+
+                if(bachelor_types[e]["is_technological"]) {
+                    display_technological_mentions = true
+                }
+            }
+        })
+
+        if(display_technological_mentions) {
+            $('#id_div_bachelor_mentions').show()
+        }
+        else {
+            $('#id_div_bachelor_mentions').hide()
+            $('#id_allowed_bachelor_mentions').find('option').prop('selected',false)
+        }
+
+        if(display_general_teachings) {
+            $('#id_div_bachelor_teachings').show()
+        }
+        else {
+            $('#id_div_bachelor_teachings').hide()
+            $('#id_allowed_bachelor_teachings').find('option').prop('selected',false)
+        }
+    }
+
+    function check_mass_individual_disable() {
+      let update_allow_individual_registrations = $("[name='mass_allow_individual_registrations']:checked").val() === "update"
+      if(update_allow_individual_registrations && has_immersions) {
+        if($('#id_allow_individual_registrations').prop('checked') === false) {
+          $('#id_allow_individual_registrations').click()
+        }
+      }
+    }
+
+    function check_mass_group_disable() {
+      let update_allow_group_registrations = $("[name='mass_allow_group_registrations']:checked").val() === "update"
+      if(update_allow_group_registrations && has_group_immersions) {
+        if($('#id_allow_group_registrations').prop('checked') === false) {
+          $('#id_allow_group_registrations').click()
+        }
+      }
+    }
+
+    $(document).ready(function(){
+        // initialize base values
+        if(!is_set(campus_id)) {
+            campus_id = $("#id_campus").val()
+        }
+        else {
+            $("#id_campus").val(campus_id)
+        }
+
+        if(campus_id) {
+            set_buildings(campus_id)
+        }
+
+        if(!is_set(building_id)) {
+            building_id = $("#id_building").val()
+        }
+        else {
+            $("#id_building").val(building_id)
+        }
+
+        let place = parseInt($('#id_place').val())
+        let face_to_face = 0
+        let outside = 2
+
+        if(place === face_to_face || place === outside) {
+            $("#id_div_room").show()
+            $('#id_room').attr('required', 'required');
+
+            $("#id_div_url").hide()
+            $('#id_url').removeAttr('required');
+        }
+        else {
+            $("#id_div_room").hide()
+            $('#id_room').removeAttr('required');
+
+            $("#id_div_url").show()
+            $('#id_url').attr('required', 'required');
+        }
+
+        initFeedback();
+        // reset feedback
+        setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
+        publicationDialog = $("#publication-dialog-form").dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+            closeText: "hide",
+            width: 'auto',
+            modal: true,
+
+            buttons: [{
+                text: "{% trans 'Yes' %}",
+                "class": 'dialog-button',
+                click: function () {
+                    publicationDialog.dialog("close");
+                },
+            },
+                {
+                    text: "{% trans 'No' %}",
+                    "class": 'dialog-button',
+                    click: function () {
+                        $('#id_event').val('');
+                        $('#id_course').val('');
+                        publicationDialog.dialog("close");
+                    },
+                }],
+        });
+
+        cancelDialog = $("#cancel-dialog-form").dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+            closeText: "hide",
+            width: 'auto',
+            modal: true,
+
+            buttons: [{
+                text: "{% trans 'Yes' %}",
+                "class": 'dialog-button',
+                click: function () {
+                    let url = ""
+                    if (slot_mode === 'courses') {
+                        url = "/core/slots"
+                    }
+                    else if (slot_mode === 'events') {
+                        url = "/core/off_offer_events_slots"
+                    }
+
+                    window.location = url;
+                    cancelDialog.dialog("close");
+                },
+            },
+                {
+                    text: "{% trans 'No' %}",
+                    "class": 'dialog-button',
+                    click: function () {
+                        cancelDialog.dialog("close");
+                    },
+                }],
+        });
+
+        // Change input type
+        $('#id_start_time').get(0).type = 'time';
+        $('#id_end_time').get(0).type = 'time';
+
+        // groups registrations
+        $('#id_allow_group_registrations').on('change', function() {
+            toggle_group_fields()
+            check_mass_group_disable()
+        })
+
+        $('#id_allow_individual_registrations').on('change', function() {
+            toggle_group_fields()
+            check_mass_individual_disable()
+        })
+
+        $('#id_group_mode').on('change', function() {
+            toggle_group_fields()
+        })
+
+        // Back button + confirm
+        $('.back_btn').click(function (event) {
+            cancelDialog.dialog('open');
+        });
+
+        // toggle
+        toggle_required_fields();
+        $('#id_published').on('change', function(){ toggle_required_fields(); });
+
+        $("[name='mass_published']").on('change', function(){ toggle_required_fields(); });
+
+        $("[name='mass_allow_individual_registrations']").on('change', function() {
+          check_mass_individual_disable()
+        });
+
+        $("[name='mass_allow_group_registrations']").on('change', function() {
+          check_mass_group_disable()
+        });
+
+        toggle_establishments_restrictions();
+        $('#id_establishments_restrictions').on('change', function() { toggle_establishments_restrictions() });
+
+        toggle_levels_restrictions();
+        $('#id_levels_restrictions').on('change', function() { toggle_levels_restrictions() });
+
+        toggle_bachelors_restrictions();
+        $('#id_bachelors_restrictions').on('change', function() { toggle_bachelors_restrictions() });
+
+        let selectedVals = Array.from(
+            $('#id_allowed_bachelor_types')[0].selectedOptions, option => option.value
+        );
+
+        toggle_bachelors_options(selectedVals);
+        $('#id_allowed_bachelor_types').on('change', function() {
+            const selectedVals = [...this.selectedOptions].map(o => o.value);
+            toggle_bachelors_options(selectedVals);
+        });
+
+        toggle_group_fields();
+
+        {% if slot or request.POST.structure %}
+          {% if slot %}
+          setTimeout(function() {
+                  $('#ok_modify').fadeOut(1000, function(){
+                      $('#ok_modify').hide();
+                  });
+              },
+              {% settings_get 'MESSAGES_TIMEOUT' %}
+          );
+          {% endif %}
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -51,6 +51,7 @@ urlpatterns = [
         name='add_establishment_course_slot',
     ),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
+    path('slot_mass_update', views.course_slot_mass_update, name='course_slot_mass_update'),
     path('stats/', views.stats, name="stats"),
     path('visitor_validation/', views.VisitorValidationView.as_view(), name="visitor_validation"),
     path('student_validation/', views.student_validation, name='student_validation_global'),
@@ -97,6 +98,19 @@ urlpatterns = [
     ),
     path('charter', views.charter, name='charter'),
     path('structures_notifications', views.structures_notifications, name='structures_notifications'),
-    path('high_school/cohorts/events', views.HighSchoolCohortsEventsList.as_view(), name='highschool_cohorts_events'),
-    path('high_school/cohorts/courses', views.HighSchoolCohortsCoursesList.as_view(), name='highschool_cohorts_courses'),
+    path(
+        'high_school/cohorts/events',
+        views.HighSchoolCohortsEventsList.as_view(),
+        name='highschool_cohorts_events'
+    ),
+    path(
+        'high_school/cohorts/courses',
+        views.HighSchoolCohortsCoursesList.as_view(),
+        name='highschool_cohorts_courses'
+    ),
+    path(
+        'high_school/cohorts/registrations',
+        views.HighSchoolCohortsRegistrations.as_view(),
+        name='highschool_cohorts_registrations'
+    ),
 ]

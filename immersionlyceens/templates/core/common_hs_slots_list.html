@@ -39,57 +39,54 @@
   <br>
   <div class="card">
     {% block card_header %}{% endblock %}
-      <div class="card-body">
-        {% block card_title %}{% endblock %}
-        {% if not user_slots %}
-
-            <div class="row">
-
-                <div class="col-md-3">
-                  <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
-                    <label for="id_highschool">{% trans 'Select a high school' %} :</label>
-                    <select id="id_highschool" class="form-control">
-                      <option value="">------------</option>
-                      {% for highschool in highschools %}
-                        <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
-                          {{ highschool }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-
-                <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
-                <div class="col-md-3">
-                  <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
-                    <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
-                    <select id="id_establishment" class="form-control">
-                        <option value="">------------</option>
-                      {% for establishment in establishments %}
-                        <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
-                          {{ establishment.code }} - {{ establishment.label }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-5" id="id_div_structures">
-                  <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
-                    <label for="id_structure">{% trans 'Select a structure' %} :</label>
-                    <select id="id_structure" class="form-control">
-                      <option value="">------------</option>
-                      {% for structure in structures %}
-                        <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
-                          {{ structure.code }} - {{ structure.label }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-            </div>
-            {% block trainings_filter %}{% endblock %}
-            <br>
-        {% endif %}
+    <div class="card-body">
+      {% block card_title %}{% endblock %}
+      {% if not user_slots %}
+      <div class="row">
+        <div class="col-md-3">
+          <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
+            <label for="id_highschool">{% trans 'Select a high school' %} :</label>
+            <select id="id_highschool" class="form-control">
+              <option value="">------------</option>
+              {% for highschool in highschools %}
+                <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
+                  {{ highschool }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
+        <div class="col-md-3">
+          <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
+            <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
+              <select id="id_establishment" class="form-control">
+                  <option value="">------------</option>
+                {% for establishment in establishments %}
+                  <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
+                    {{ establishment.code }} - {{ establishment.label }}
+                  </option>
+                {% endfor %}
+              </select>
+          </div>
+        </div>
+        <div class="col-md-5" id="id_div_structures">
+          <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+            <label for="id_structure">{% trans 'Select a structure' %} :</label>
+            <select id="id_structure" class="form-control">
+              <option value="">------------</option>
+              {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
+                  {{ structure.code }} - {{ structure.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      {% block trainings_filter %}{% endblock %}
+      <br>
+      {% endif %}
       <div class="col-12 col-sm-12 col-lg-12 table-responsive">
         <table id="slots_list" class="table table-sm table-striped table-bordered compact dt-head-nowrap" style="max-width: none !important;">
           {% block table_definition %}{% endblock %}
@@ -117,6 +114,7 @@
   var slot_allow_group_registrations = false;
   var slot_allow_individual_registrations = false;
   var slot_group_mode;
+  var slot_location;
   var cohorts_only = true;
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
@@ -127,12 +125,14 @@
   var is_operator = "{{ request.user.is_operator }}" === "True"
   var user_highschool = "{{ request.user.highschool_id }}"
   var user_establishment = "{{ request.user.establishment_id }}"
+  var current_slots_only = true
+
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
   let course_label_filter = "{{ course_label_filter }}"
   let highschool_filter = "{{ highschool_filter }}"
   let managed_by_filter = "{{ managed_by_filter }}"
-  var current_slots_only = true
+
 
   let attendance_not_yet = 0
   let attendance_to_enter = 1
@@ -174,6 +174,7 @@
   let places_txt = "{% trans 'Places' %}"
   let individual_registrations_txt = "{% trans 'Individual registrations' %}"
   let group_registrations_txt = "{% trans 'Group registrations' %}"
+  let register_groups_txt = "{% trans 'Registrations' %}"
   let update_group_txt = "{% trans 'Update group registration' %}"
   let register_group_txt = "{% trans 'Register this group' %}"
   let mode_txt = "{% trans 'Mode' %}"
@@ -191,6 +192,7 @@
   let no_city_txt = "{% trans 'No city' %}"
 
   let show_modify_btn = show_delete_btn = show_duplicate_btn = false
+  let registration_date_limit_txt = "{% trans 'Registration limit' %}"
 
   function open_modal(slot_id, edit_mode, n_places, allowed_individual_registrations, allowed_group_registrations, group_mode, n_group_places, is_past=false, update_registrations=false, place=1, cohorts_only=true) {
     can_update_registrations = update_registrations
@@ -200,11 +202,12 @@
     slot_allow_group_registrations = allowed_group_registrations;
     slot_allow_individual_registrations = allowed_individual_registrations;
     slot_group_mode = group_mode;
+    slot_lodation = place;
 
     let face_to_face = 0
     let outside = 2
 
-    if(place === face_to_face || place === outside) {
+    if(slot_location === face_to_face || slot_location === outside) {
         $("#id_attendances").show()
         $("#id_groups_attendances").show()
     }
@@ -235,6 +238,11 @@
     $('#id_div_individual_registrations').hide();
     $('#id_modal_group_header').removeClass("pt-0");
 
+    // Contact button : hide for high school managers for cohorts-only mode
+    if (cohorts_only && is_highschool_manager) {
+      $('#btn_contact_groups').hide()
+    }
+
     // put slot id in register button in modal
     $('#btn_register_student').data('id', slot_id);
     $('#modal_view_slot_immersions').data('ispast', is_past)
@@ -261,7 +269,7 @@
       reload_data()
     }
 
-    set_session_values(slot_mode, {
+    set_session_values("cohorts_" + slot_mode, {
       "current_highschool_id": current_highschool_id,
       "current_establishment_id": current_establishment_id,
       "current_structure_id": current_structure_id,
@@ -284,7 +292,7 @@
       set_trainings('highschool', current_highschool_id);
     }
 
-    set_session_values(slot_mode, {
+    set_session_values("cohorts_" + slot_mode, {
       "current_highschool_id": current_highschool_id,
       "current_establishment_id": current_establishment_id,
       "current_structure_id": current_structure_id,
@@ -308,7 +316,7 @@
 
     reload_data();
 
-    set_session_values(slot_mode, {
+    set_session_values("cohorts_" + slot_mode, {
       "current_structure_id": current_structure_id,
       "current_training_id": current_training_id,
     })
@@ -319,7 +327,7 @@
 
     reload_data();
 
-    set_session_values(slot_mode, {
+    set_session_values("cohorts_" + slot_mode, {
       "current_training_id": current_training_id,
     })
   });
@@ -377,7 +385,7 @@
     }
 
     $.get({
-      url: "{% url 'training_list' %}",
+      url: "{% url 'full_training_list' %}",
       data: {
         "csrfmiddlewaretoken": '{{ csrf_token }}',
         [type]: object_id

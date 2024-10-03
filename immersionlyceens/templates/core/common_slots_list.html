@@ -39,23 +39,13 @@
   {% block slot_deletion %}{% endblock %}
   <br>
   <div class="card">
+    <form action="/core/slot_mass_update" method="POST">
+    {% csrf_token %}
     {% block card_header %}{% endblock %}
       <div class="card-body">
         {% block card_title %}{% endblock %}
-        <div>
-          <form class="form-inline">
-            <div class="form-group">
-              <div class="form-group form-check mx-sm-3 mb-2">
-                <input type="checkbox" id="filter_past_slots" class="form-check-input">
-                <label for="filter_past_slots" class="form-check-label ml-md-2"> {% trans 'Include past slots with attendances' %}</label>
-              </div>
-              <div class="form-group mb-2">
-                <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
-              </div>
-            </div>
-          </form>
-        </div>
-        {% if not user_slots %}
+        {% block card_filters %}{% endblock %}
+        {% if not user_slots and not cohorts_only %}
           {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager or request.user.is_structure_consultant %}
             <div class="row">
               {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
@@ -117,11 +107,14 @@
         </table>
       </div>
     </div>
+    </form>
   </div>
 </div>
 {% endblock %}
 
 {% block foot-javascript %}
+{% general_settings_get 'ACTIVATE_MASS_UPDATE' as activate_mass_update %}
+
 <script>
   var dt;
   var slot_mode = "{{ slot_mode }}"
@@ -139,7 +132,7 @@
   var slot_allow_individual_registrations = false;
   var slot_group_mode;
   var slot_location;
-
+  var enabled_mass_update = "{{ activate_mass_update }}" === "True"
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
   var is_consultant_manager = "{{ request.user.is_structure_consultant }}" === "True"
@@ -149,6 +142,7 @@
   var is_operator = "{{ request.user.is_operator }}" === "True"
   var user_highschool = "{{ request.user.highschool_id }}"
   var user_establishment = "{{ request.user.establishment_id }}"
+  var cohorts_only = "{{ cohorts_only }}" === "True"
 
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
@@ -198,6 +192,7 @@
   let group_registrations_txt = "{% trans 'Group registrations' %}"
   let update_group_txt = "{% trans 'Update group registration' %}"
   let register_group_txt = "{% trans 'Register this group' %}"
+  let register_groups_txt = "{% trans 'Registrations' %}"
   let mode_txt = "{% trans 'Mode' %}"
   let one_group_txt = "{% trans 'One group' %}"
   let by_places_txt = "{% trans 'By number of places' %}"
@@ -209,6 +204,7 @@
   let regs_individual_only_txt = "{% trans 'Indiv. only' %}"
   let regs_groups_only_txt = "{% trans 'Group only' %}"
   let regs_groups_and_individual_txt = "{% trans 'Indiv + Group' %}"
+  let registration_date_limit_txt = "{% trans 'Registration limit' %}"
 
   let no_city_txt = "{% trans 'No city' %}"
 
@@ -280,13 +276,18 @@
       $('#id_div_group_registrations').hide();
     }
 
-    if(slot_allow_individual_registrations) {
+    if(slot_allow_individual_registrations && cohorts_only === false) {
       $('#id_div_individual_registrations').show();
       $('#id_modal_group_header').addClass("pt-0");
     }
     else {
       $('#id_div_individual_registrations').hide();
       $('#id_modal_group_header').removeClass("pt-0");
+    }
+
+    // Contact button : hide for high school managers for cohorts-only mode
+    if (cohorts_only && is_highschool_manager) {
+      $('#btn_contact_groups').hide()
     }
 
     // put slot id in register button in modal
@@ -460,101 +461,98 @@
       },
     });
   }
-</script>
 
-<script>
-$(document).ready(function(){
-  // reset feedback
-  setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
-  initFeedback();
+  $(document).ready(function(){
+    // reset feedback
+    setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
+    initFeedback();
 
-  function csrfSafeMethod(method) {
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-  }
+    function csrfSafeMethod(method) {
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
 
-  $.fn.dataTableExt.errMode = 'console';
-  $.ajaxSetup({
-    beforeSend: function(xhr, settings) {
-      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    $.fn.dataTableExt.errMode = 'console';
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+          xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
       }
-    }
-  });
+    });
 
-  $('#top_indicator').hide();
+    $('#top_indicator').hide();
 
-  if(is_set(current_establishment_id)) {
-    $("#id_establishment").val(current_establishment_id)
-    set_structures(current_establishment_id)
-  }
-  else {
-    empty_structures()
-  }
-
-  if(is_set(current_structure_id)) {
-    $("#id_structure").val(current_structure_id)
-    if(slot_mode === "courses") {
-      set_trainings('structures', current_structure_id)
-    }
-  }
-
-  if(is_set(current_highschool_id)) {
-    $("#id_highschool").val(current_highschool_id)
-    set_trainings('highschool', current_highschool_id);
-  }
-
-  if(slot_mode === "courses" && is_set(current_training_id)) {
-    $("#id_training").val(current_training_id);
-  }
-
-  init_datatable();
-});
-
-
-function delete_slot(slot_id) {
-  $.post({
-      url: "/core/slot/delete/" + slot_id,
-      success: function(data) {
-          if(data === "ok") {
-            show_top_indicator("{% trans 'The slot has been successfully deleted' %}", "success");
-            reload_data();
-          }
-          else {
-            show_top_indicator(data, "error");
-          }
-      },
-  });
-}
-
-function reload_data() {
-  yadcf.exResetAllFilters(dt);
-  dt.clear().draw();
-  dt.ajax.reload();
-}
-
-function show_top_indicator(text, mode) {
-    let fade = 1000;
-    let display = {% settings_get 'MESSAGES_TIMEOUT' %};
-    $('#top_indicator__content').html(text);
-    $('#top_indicator').removeClass('hide');
-
-    if(mode == "error") {
-      $('#top_indicator').removeClass('bg-success');
-      $('#top_indicator').addClass('bg-danger');
+    if(is_set(current_establishment_id)) {
+      $("#id_establishment").val(current_establishment_id)
+      set_structures(current_establishment_id)
     }
     else {
-      $('#top_indicator').removeClass('bg-danger');
-      $('#top_indicator').addClass('bg-success');
+      empty_structures()
     }
 
-    $('#top_indicator').show();
-    setTimeout(function() {
-          $('#top_indicator').fadeOut(fade, function(){
-              $('#top_indicator').hide();
-          });
-      },
-      display
-    );
-}
+    if(is_set(current_structure_id)) {
+      $("#id_structure").val(current_structure_id)
+      if(slot_mode === "courses") {
+        set_trainings('structures', current_structure_id)
+      }
+    }
+
+    if(is_set(current_highschool_id)) {
+      $("#id_highschool").val(current_highschool_id)
+      set_trainings('highschool', current_highschool_id);
+    }
+
+    if(slot_mode === "courses" && is_set(current_training_id)) {
+      $("#id_training").val(current_training_id);
+    }
+
+    init_datatable();
+  });
+
+  function delete_slot(slot_id) {
+    $.post({
+        url: "/core/slot/delete/" + slot_id,
+        success: function(data) {
+            if(data === "ok") {
+              show_top_indicator("{% trans 'The slot has been successfully deleted' %}", "success");
+              reload_data();
+            }
+            else {
+              show_top_indicator(data, "error");
+            }
+        },
+    });
+  }
+
+  function reload_data() {
+    yadcf.exResetAllFilters(dt);
+    dt.clear().draw();
+    dt.ajax.reload();
+  }
+
+  function show_top_indicator(text, mode) {
+      let fade = 1000;
+      let display = {% settings_get 'MESSAGES_TIMEOUT' %};
+      $('#top_indicator__content').html(text);
+      $('#top_indicator').removeClass('hide');
+
+      if(mode == "error") {
+        $('#top_indicator').removeClass('bg-success');
+        $('#top_indicator').addClass('bg-danger');
+      }
+      else {
+        $('#top_indicator').removeClass('bg-danger');
+        $('#top_indicator').addClass('bg-success');
+      }
+
+      $('#top_indicator').show();
+      setTimeout(function() {
+            $('#top_indicator').fadeOut(fade, function(){
+                $('#top_indicator').hide();
+            });
+        },
+        display
+      );
+  }
 </script>
 {% endblock %}

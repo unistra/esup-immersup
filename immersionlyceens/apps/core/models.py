@@ -25,6 +25,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.functions import Coalesce
@@ -431,6 +432,21 @@ class ImmersionUser(AbstractUser):
         blank=True,
         on_delete=models.CASCADE,
         related_name="users",
+    )
+
+    username = models.CharField(
+        _("username"),
+        max_length=150,
+        unique=True,
+        help_text=_(
+            "Required. 150 characters or fewer. Letters, digits, @/./+/-/_/!/: and / only."
+        ),
+        validators=[
+            RegexValidator(r'^[\w. @:/!+-]+$', _('Enter a valid username.'), 'invalid')
+        ],
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
     )
 
     destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
@@ -3250,6 +3266,8 @@ class CustomThemeFile(models.Model):
         'ico': "image/vnd.microsoft.icon",
         'css': "text/css",
         'js': "text/javascript",
+        'a-js': "application/javascript",
+        'x-js': "application/x-javascript",
     }
 
     FILE_TYPE = [

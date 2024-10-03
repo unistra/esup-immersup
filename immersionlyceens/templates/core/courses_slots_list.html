@@ -25,11 +25,30 @@
 {% endblock %}
 
 {% block card_title %}
-{% if not request.user.is_structure_consultant %}
-<div>
+  {% general_settings_get 'ACTIVATE_MASS_UPDATE' as activate_mass_update %}
+  {% if not request.user.is_structure_consultant %}
+  <div class="mb-2">
     <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
+    {% if activate_mass_update %}
+      <input id='id_mass_update' name="mass_update" class="btn btn-primary ml-4" value="{% trans 'Mass update' %}" type="submit">
+      <input type="hidden" name="mass_slots_list" value="">
+    {% endif %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block card_filters %}
+<div>
+  <div class="form-group">
+    <div class="form-group form-check mx-sm-3 mb-2">
+      <input type="checkbox" id="filter_past_slots" class="form-check-input">
+      <label for="filter_past_slots" class="form-check-label ml-md-2"> {% trans 'Include past slots with attendances' %}</label>
+    </div>
+    <div class="form-group mb-2">
+      <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
+    </div>
+  </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block trainings_filter %}
@@ -57,9 +76,9 @@
     <th id="training_filter" class="align-top" style="width:15%">{% trans 'Training label' %}</th>
     <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
     <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
-    <th id="registration_filter" class="align-top">{% trans 'Registrants' %}</th>
     <th id="building_filter" class="align-top">{% trans 'Meeting place' %}</th>
     <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+    <th id="registration_filter" class="align-top">{% trans 'Registrants' %}</th>
     <th class="align-top">{% trans 'Info.' %}</th>
     <th class="align-top">{% trans 'Restr.' %}</th>
     <th id="groups_filter" class="align-top">{% trans 'Groups' %}</th>

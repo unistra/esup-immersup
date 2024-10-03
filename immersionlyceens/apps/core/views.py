@@ -15,8 +15,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Count, F, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -26,7 +27,7 @@ from django.views import generic
 from hijack import signals
 
 from immersionlyceens.decorators import groups_required
-
+from ...libs.utils import get_general_setting
 from .utils import get_session_value, set_session_values
 
 from .admin_forms import (
@@ -35,7 +36,7 @@ from .admin_forms import (
 from .forms import (
     ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
     MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
-    StructureForm, TrainingFormHighSchool
+    SlotMassUpdateForm, StructureForm, TrainingFormHighSchool
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
@@ -45,6 +46,7 @@ from .models import (
 )
 
 from .serializers import PeriodSerializer
+from ..context_processors import establishments
 
 logger = logging.getLogger(__name__)
 
@@ -1362,6 +1364,345 @@ class CourseSlotUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC')
+def course_slot_mass_update(request):
+    form_class = SlotMassUpdateForm
+    template_name = "core/course_slot_mass_update.html"
+    mass_update_form = None
+    form_kwargs = {}
+    context = {}
+    slot_ids = []
+    mass_slots_list = {}
+    initials = {}
+    mandatory_fields = []
+    mandatory_m2m = []
+    errors = []
+    errors_slots_set = set()
+    aggs = Slot.objects.none()
+    has_immersions = True
+    has_group_immersions = True
+    has_updates = False
+
+    m2ms = [
+        'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+        'allowed_student_levels', 'allowed_post_bachelor_levels', 'allowed_bachelor_types',
+        'allowed_bachelor_mentions', 'allowed_bachelor_teachings', 'speakers'
+    ]
+
+    fields = [
+        'course', 'course_type', 'campus', 'building', 'room', 'start_time',
+        'end_time', 'registration_limit_delay', 'cancellation_limit_delay',
+        'allow_individual_registrations', 'allow_group_registrations', 'n_places',
+        'n_group_places', 'group_mode', 'public_group', 'establishments_restrictions',
+        'levels_restrictions', 'bachelors_restrictions', 'additional_information',
+        'published'
+    ]
+
+    m2m_annotations = {
+        "%s_pks" % m2m: ArrayAgg(F'%s' % m2m) for m2m in m2ms
+    }
+
+    m2m_aggregations = {
+        "%s" % m2m: Count("%s_pks" % m2m, distinct=True) for m2m in m2ms
+    }
+
+    if request.POST:
+        try:
+            mass_slots_list = request.POST.get('mass_slots_list', "{}")
+            slot_ids = json.loads(request.POST.get('mass_slots_list', "{}"))
+            slot_ids = slot_ids.get("values", [])
+            assert slot_ids
+        except Exception:
+            # FIXME possibility to return to events_slots ?
+            return redirect(reverse('courses_slots'))
+
+
+        # Common objects between slots, used to initialize or check form after submit
+        aggs = (Slot.objects.filter(pk__in=slot_ids)
+            .annotate(**m2m_annotations)
+            .aggregate(
+                course=Count('course', distinct=True),
+                course_type=Count('course_type', distinct=True),
+                campus=Count('campus', distinct=True),
+                building=Count('building', distinct=True),
+                room=Count('room', distinct=True),
+                start_time=Count('start_time', distinct=True),
+                end_time=Count('end_time', distinct=True),
+                registration_limit_delay=Count('registration_limit_delay', distinct=True),
+                cancellation_limit_delay=Count('cancellation_limit_delay', distinct=True),
+                allow_individual_registrations=Count('allow_individual_registrations', distinct=True),
+                allow_group_registrations=Count('allow_group_registrations', distinct=True),
+                n_places=Count('n_places', distinct=True),
+                n_group_places=Count('n_group_places', distinct=True),
+                group_mode=Count('group_mode', distinct=True),
+                public_group=Count('public_group', distinct=True),
+                establishments_restrictions=Count('establishments_restrictions', distinct=True),
+                levels_restrictions=Count('levels_restrictions', distinct=True),
+                bachelors_restrictions=Count('bachelors_restrictions', distinct=True),
+                additional_information=Count('additional_information', distinct=True),
+                published=Count('published', distinct=True),
+                immersions=Count(F('immersions')),
+                group_immersions=Count(F('group_immersions')),
+                **m2m_aggregations
+            )
+        )
+
+        # Get first slot for common values to set
+        first_slot = Slot.objects.get(pk=slot_ids[0])
+
+        if aggs.get('course', None) == 1:
+            form_kwargs['speakers'] = Slot.objects.get(pk=slot_ids[0]).course.speakers.all().values('id')
+
+        for attr, count in aggs.items():
+            if count == 1:
+                if attr not in m2ms:
+                    try:
+                        initials[attr] = getattr(first_slot, attr).pk
+                    except AttributeError:
+                        initials[attr] = getattr(first_slot, attr)
+                else:
+                    initials[attr] = getattr(first_slot, attr).values_list('pk', flat=True)
+
+        # exceptions : can't mass disable these if one slot has immersions (same for group immersions)
+        has_immersions = aggs.get("immersions", 0) > 0
+        has_group_immersions = aggs.get("group_immersions", 0) > 0
+
+        if has_immersions:
+            initials['allow_individual_registrations'] = True
+
+        if has_group_immersions:
+            initials['allow_group_registrations'] = True
+
+        # Same establishment ? => send to form to initializer campuses queryset
+        if Slot.objects.filter(id__in=slot_ids).values('course__structure__establishment').distinct().count() == 1:
+            try:
+                establishment_id = Slot.objects.get(pk=slot_ids[0]).course.structure.establishment.pk
+                form_kwargs['establishment'] = establishment_id
+                context['establishment_id'] = establishment_id
+            except:
+                # Slot course has no structure (linked to a highschool)
+                pass
+
+
+        # Update selected slots
+        if not request.POST.get("mass_update"):
+            # Groups settings
+            try:
+                enabled_groups = get_general_setting("ACTIVATE_COHORT")
+            except (ValueError, NameError):
+                enabled_groups = False
+
+            mass_update_form = SlotMassUpdateForm(request.POST, **form_kwargs)
+
+            if mass_update_form.is_valid():
+                #FIXME: should the following part be in forms.py instead of this view ?
+                updates = {}
+
+                # Check field updates and store new values (not m2m)
+                for field in fields + m2ms:
+                    if request.POST.get(f"mass_{field}", "keep") == "update":
+                        has_updates = True
+
+                        if field not in m2ms:
+                            value = mass_update_form.cleaned_data.get(field)
+                            updates[field] = value
+
+                # Published flag
+                # if True, check that all required fields are set for each selected slot
+                published = mass_update_form.cleaned_data.get("published")
+                mass_update_published = request.POST.get(f"mass_published", "keep") == "update"
+                update_establishments_restrictions = request.POST.get(f"mass_establishments_restrictions", "keep") == "update"
+                update_levels_restrictions = request.POST.get(f"mass_levels_restrictions", "keep") == "update"
+                update_bachelors_restrictions = request.POST.get(f"mass_bachelors_restrictions", "keep") == "update"
+                update_speakers = request.POST.get(f"mass_speakers", "keep") == "update"
+
+                if published and mass_update_published:
+                    mandatory_fields = ['start_time', 'end_time', 'course_type', 'room']
+                    mandatory_m2m = ['speakers']
+
+                    if not enabled_groups:
+                        mandatory_fields.append("n_places")
+
+                if has_updates:
+                    # Do not call .update() on the queryset, Slot .save() has to be called for each
+                    for slot_id in slot_ids:
+                        exception_fields = [] # to prevent some field updates
+
+                        try:
+                            slot = Slot.objects.get(pk=slot_id)
+
+                            # Check mandatory fields and m2m => blocking errors
+                            for m_field in mandatory_fields:
+                                if not getattr(slot, m_field):
+                                    print(f"getattr: {getattr(slot, m_field)} => {m_field} value is missing for slot {slot} (published: {slot.published})")
+                                    errors_slots_set.add(slot_id)
+                                    errors.append(gettext(
+                                        "Published slot '%s' has missing required fields : not updated" % slot
+                                    ))
+
+                            for m_field in mandatory_m2m:
+                                if getattr(slot, m_field).count() == 0:
+                                    errors_slots_set.add(slot_id)
+                                    errors.append(gettext(
+                                        "Published slot '%s' has missing required fields : not updated" % slot
+                                    ))
+
+                            if slot_id not in errors_slots_set:
+                                # Check group and individual registrations related fields
+                                allow_individual_registrations = mass_update_form.cleaned_data.get("allow_individual_registrations")
+                                allow_group_registrations = mass_update_form.cleaned_data.get("allow_group_registrations")
+                                group_mode = mass_update_form.cleaned_data.get("group_mode")
+                                n_places = mass_update_form.cleaned_data.get("n_places")
+                                n_group_places = mass_update_form.cleaned_data.get("n_group_places")
+                                establishments_restrictions = mass_update_form.cleaned_data.get("establishments_restrictions")
+                                levels_restrictions = mass_update_form.cleaned_data.get("levels_restrictions")
+                                bachelors_restrictions = mass_update_form.cleaned_data.get("bachelors_restrictions")
+
+
+                                if allow_group_registrations:
+                                    registered = slot.registered_groups_people_count()
+
+                                    if not allow_individual_registrations \
+                                        and slot.immersions.filter(cancellation_type__isnull=True).count():
+                                        exception_fields.append("allow_individual_registrations")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots individual registrations have not been disabled """
+                                                """because immersions already exist"""
+                                            )
+                                        )
+
+                                    if not allow_group_registrations \
+                                        and slot.group_immersions.filter(cancellation_type__isnull=True).count():
+                                        exception_fields.append("allow_group_registrations")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots group registrations have not been disabled """
+                                                """because group immersions already exist"""
+                                            )
+                                        )
+
+                                    if group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
+                                        exception_fields.append("group_mode")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots group mode have not been updated because they """
+                                                """have already more than one registered groups"""
+                                            )
+                                        )
+
+                                    if n_group_places:
+                                        if n_group_places < (registered['students'] + registered['guides']):
+                                            exception_fields.append("n_group_places")
+                                            errors.append(
+                                                gettext(
+                                                    """Some slots group places have not been updated because they """
+                                                    """already have more registered people"""
+                                                )
+                                            )
+
+                                if n_places:
+                                    if n_places < slot.immersions.filter(cancellation_type__isnull=True).count():
+                                        exception_fields.append("n_places")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots individual places have not been updated because they """
+                                                """already have more registered people"""
+                                            )
+                                        )
+
+                                # M2M updates
+
+                                # Restrictions
+                                if update_establishments_restrictions:
+                                    slot.allowed_establishments.clear()
+                                    slot.allowed_highschools.clear()
+                                    if establishments_restrictions:
+                                        for e in mass_update_form.cleaned_data.get("allowed_establishments"):
+                                            slot.allowed_establishments.add(e)
+                                        for e in mass_update_form.cleaned_data.get("allowed_highschools"):
+                                            slot.allowed_highschools.add(e)
+
+                                if update_levels_restrictions:
+                                    slot.allowed_highschool_levels.clear()
+                                    slot.allowed_student_levels.clear()
+                                    slot.allowed_post_bachelor_levels.clear()
+                                    if levels_restrictions:
+                                        for e in mass_update_form.cleaned_data.get("allowed_highschool_levels"):
+                                            slot.allowed_highschool_levels.add(e)
+                                        for e in mass_update_form.cleaned_data.get("allowed_student_levels"):
+                                            slot.allowed_student_levels.add(e)
+                                        for e in mass_update_form.cleaned_data.get("allowed_post_bachelor_levels"):
+                                            slot.allowed_post_bachelor_levels.add(e)
+
+                                if update_bachelors_restrictions:
+                                    slot.allowed_bachelor_types.clear()
+                                    slot.allowed_bachelor_mentions.clear()
+                                    slot.allowed_bachelor_teachings.clear()
+                                    if bachelors_restrictions:
+                                        for e in mass_update_form.cleaned_data.get("allowed_bachelor_types"):
+                                            slot.allowed_bachelor_types.add(e)
+                                        for e in mass_update_form.cleaned_data.get("allowed_bachelor_mentions"):
+                                            slot.allowed_bachelor_mentions.add(e)
+                                        for e in mass_update_form.cleaned_data.get("allowed_bachelor_teachings"):
+                                            slot.allowed_bachelor_teachings.add(e)
+
+                                # Speakers
+                                # Can only update if selected slots have only one common course
+                                if update_speakers and aggs.get('course', None) == 1:
+                                    slot.speakers.clear()
+                                    if mass_update_form.cleaned_data.get("speakers"):
+                                        for e in mass_update_form.cleaned_data.get("speakers"):
+                                            slot.speakers.add(e)
+
+                                for field, value in updates.items():
+                                    if field not in exception_fields:
+                                        setattr(slot, field, value)
+
+                                slot.save()
+
+                        except Slot.DoesNotExist:
+                            # Nothing to update if the slot does not exist anymore
+                            pass
+
+                if errors:
+                    messages.error(request, "<br>".join(set(errors)))
+
+                return redirect(reverse('courses_slots'))
+            else:
+                for err_field, err_list in mass_update_form.errors.get_json_data().items():
+                    for error in err_list:
+                        if error.get("message"):
+                            messages.error(request, f"{err_field} - {error.get('message')}")
+
+        else:
+            mass_update_form = form_class(**form_kwargs, initial=initials)
+
+
+    # Bachelor types for restrictions
+    bachelor_types = json.dumps({
+        bt.id: {
+            'is_general': bt.general,
+            'is_technological': bt.technological,
+            'is_professional': bt.professional,
+        } for bt in BachelorType.objects.filter(active=True)
+    })
+
+    context.update({
+        "form": mass_update_form,
+        "slot_mode": "courses",
+        "mass_slots_list": mass_slots_list,
+        "has_immersions": has_immersions,
+        "has_group_immersions": has_group_immersions,
+        "periods": json.dumps({
+            period.pk: PeriodSerializer(period).data for period in Period.objects.all()
+        }),
+        "bachelor_types": bachelor_types
+    })
+
+    return render(request, template_name, context)
+
+
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC', 'CONS-STR'), name="dispatch")
 class OffOfferEventsList(generic.TemplateView):
     template_name = "core/off_offer_events_list.html"
@@ -2046,7 +2387,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         context["slot_mode"] = "events"
         context["contact_form"] = ContactForm(),
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
-        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
+        context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True, managers=False)
         context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
         context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
@@ -2056,7 +2397,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
         context["establishment_id"] = kwargs.get(
-            'establishment_id', get_session_value(self.request, "events", "current_establishment_id")
+            'establishment_id', get_session_value(self.request, "cohorts_events", "current_establishment_id")
         )
 
         try:
@@ -2070,7 +2411,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         if context["structure_id"] == "null":
             context["structure_id"] = ""
         elif context["structure_id"] is None:
-            context["structure_id"] = get_session_value(self.request, "events", "current_structure_id")
+            context["structure_id"] = get_session_value(self.request, "cohorts_events", "current_structure_id")
         else:
             try:
                 structure = Structure.objects.get(pk=context["structure_id"])
@@ -2086,7 +2427,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
             except HighSchool.DoesNotExist:
                 pass
         else:
-            context["highschool_id"] = get_session_value(self.request, "events", "current_highschool_id")
+            context["highschool_id"] = get_session_value(self.request, "cohorts_events", "current_highschool_id")
 
         context["event_id"] = kwargs.get('event_id', None)
 
@@ -2113,27 +2454,74 @@ class HighSchoolCohortsCoursesList(generic.TemplateView):
                 "slot_mode": "courses",
                 "contact_form": ContactForm(),
                 "cancel_types": CancelType.objects.filter(active=True, students=True),
-                "groups_cancel_types": CancelType.objects.filter(active=True, groups=True),
+                "groups_cancel_types": CancelType.objects.filter(active=True, groups=True, managers=False),
                 "establishments": Establishment.activated.filter(is_host_establishment=True),
                 "structures": Structure.activated.all(),
                 "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
                 "group_highschools": HighSchool.agreed.order_by('city', 'label'),
                 "establishment_id": kwargs.get(
-                    'establishment_id', get_session_value(self.request, "courses", "current_establishment_id")
+                    'establishment_id', get_session_value(self.request, "cohorts_courses", "current_establishment_id")
                 ),
                 "structure_id": kwargs.get(
-                    'structure_id', get_session_value(self.request, "courses", "current_structure_id")
+                    'structure_id', get_session_value(self.request, "cohorts_courses", "current_structure_id")
                 ),
                 "highschool_id": kwargs.get(
-                    'highschool_id', get_session_value(self.request, "courses", "current_highschool_id")
+                    'highschool_id', get_session_value(self.request, "cohorts_courses", "current_highschool_id")
                 ),
                 "training_id": kwargs.get(
-                    'training_id', get_session_value(self.request, "courses", "current_training_id")
+                    'training_id', get_session_value(self.request, "cohorts_courses", "current_training_id")
                 ),
                 "course_id": kwargs.get('course_id', None),
                 "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
             }
         )
+
+        try:
+            course = Course.objects.get(pk=int(context["course_id"]))
+            context["course_label_filter"] = course.label
+        except (ValueError, TypeError, Course.DoesNotExist):
+            context["course_id"] = None
+
+        try:
+            Training.objects.get(pk=int(context["training_id"]))
+        except (ValueError, TypeError, Training.DoesNotExist):
+            context["training_id"] = None
+
+        return context
+
+
+@method_decorator(groups_required('REF-LYC',), name="dispatch")
+class HighSchoolCohortsRegistrations(generic.TemplateView):
+    template_name = "core/hs_cohorts_registrations.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            "cohorts_only": True,
+            "slot_mode": "all",
+            "contact_form": ContactForm(),
+            "cancel_types": CancelType.objects.filter(active=True, students=True),
+            "groups_cancel_types": CancelType.objects.filter(active=True, groups=True, managers=False),
+            "establishments": Establishment.activated.filter(is_host_establishment=True),
+            "structures": Structure.activated.all(),
+            "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
+            "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+            "establishment_id": kwargs.get(
+                'establishment_id', get_session_value(self.request, "cohorts_courses", "current_establishment_id")
+            ),
+            "structure_id": kwargs.get(
+                'structure_id', get_session_value(self.request, "cohorts_courses", "current_structure_id")
+            ),
+            "highschool_id": kwargs.get(
+                'highschool_id', get_session_value(self.request, "cohorts_courses", "current_highschool_id")
+            ),
+            "training_id": kwargs.get(
+                'training_id', get_session_value(self.request, "cohorts_courses", "current_training_id")
+            ),
+            "course_id": kwargs.get('course_id', None),
+            "group_file_help_text": ImmersionGroupRecord.file.field.help_text,
+        })
 
         try:
             course = Course.objects.get(pk=int(context["course_id"]))
