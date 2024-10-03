@@ -1412,42 +1412,30 @@ class HighSchoolForm(forms.ModelForm):
         except Exception as e:
             raise forms.ValidationError(str(e)) from e
 
-        if not educonnect_federation_setting:
-            self.fields['uses_student_federation'].disabled = True
-            self.fields['uses_student_federation'].help_text = _(
-                "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
-            )
-        elif self.instance.pk and self.instance.student_records.exists():
-            # Disable student identity federation choice if the high school has students
-            self.fields['uses_student_federation'].help_text = _(
-                "This field cannot be changed because this high school already has student accounts"
-            )
+        if 'uses_student_federation' in self.fields:
+            if not educonnect_federation_setting:
+                self.fields['uses_student_federation'].disabled = True
+                self.fields['uses_student_federation'].help_text = _(
+                    "This field cannot be changed because ACTIVATE_EDUCONNECT is not set"
+                )
+            elif self.instance.pk and self.instance.student_records.exists():
+                # Disable student identity federation choice if the high school has students
+                self.fields['uses_student_federation'].help_text = _(
+                    "This field cannot be changed because this high school already has student accounts"
+                )
 
-        if not agent_federation_setting:
-            self.fields['uses_student_federation'].disabled = True
-            self.fields['uses_agent_federation'].help_text = _(
-                "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
-            )
-        else:
-            self.fields['uses_agent_federation'].help_text = _(
-                "Please be careful when activating this setting : usernames of users of this establishment "
-                "must match the agent federation ones."
-            )
-
-    """
-    def clean_uses_student_federation(self):
-        instance = getattr(self, 'instance', None)
-
-        print(f"cleaned data uses_student_federation : {self.cleaned_data.get('uses_student_federation')}")
-
-        if 'uses_student_federation' not in self.cleaned_data:
-            if instance and instance.pk:
-                return instance.uses_student_federation
+        if 'uses_agent_federation' in self.fields:
+            if not agent_federation_setting:
+                self.fields['uses_agent_federation'].disabled = True
+                self.fields['uses_agent_federation'].help_text = _(
+                    "This field cannot be changed because ACTIVATE_FEDERATION_AGENT is not set"
+                )
             else:
-                return False
-        else:
-            return self.cleaned_data['uses_student_federation']
-    """
+                self.fields['uses_agent_federation'].help_text = _(
+                    "Please be careful when activating this setting : usernames of users of this establishment "
+                    "must match the agent federation ones."
+                )
+
 
     def clean(self):
         valid_user = False
