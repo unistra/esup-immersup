@@ -497,6 +497,8 @@ def slots(request):
                 default=Value(''),
             ),
             registration_limit_date_is_past=Q(registration_limit_date__lte=Now()),
+            valid_registration_start_date=Q(period__registration_start_date__lte=Now()),
+            registration_start_date=F('period__registration_start_date'),
             speaker_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
@@ -640,6 +642,8 @@ def slots(request):
             'registration_limit_date',
             'registration_limit_date_is_past',
             'cancellation_limit_date',
+            'registration_start_date',
+            'valid_registration_start_date',
         )
     )
 

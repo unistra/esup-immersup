@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-03 09:31+0200\n"
+"POT-Creation-Date: 2024-10-03 14:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1677,7 +1677,7 @@ msgstr "Groupes"
 #: immersionlyceens/apps/core/models.py:1724
 #: immersionlyceens/apps/core/models.py:1937
 #: immersionlyceens/templates/charts/global_trainings_charts.html:48
-#: immersionlyceens/templates/cohort_offer.html:332
+#: immersionlyceens/templates/cohort_offer.html:340
 #: immersionlyceens/templates/core/common_slot.html:78
 #: immersionlyceens/templates/core/course.html:69
 #: immersionlyceens/templates/core/off_offer_event.html:76
@@ -3726,8 +3726,8 @@ msgstr "Un campus de même nom existe déjà dans cet établissement"
 #: immersionlyceens/apps/core/models.py:1218
 #: immersionlyceens/apps/core/models.py:1289
 #: immersionlyceens/apps/core/models.py:2523
-#: immersionlyceens/templates/cohort_offer.html:339
-#: immersionlyceens/templates/cohort_offer_subdomains.html:286
+#: immersionlyceens/templates/cohort_offer.html:347
+#: immersionlyceens/templates/cohort_offer_subdomains.html:294
 #: immersionlyceens/templates/core/common_slot.html:109
 #: immersionlyceens/templates/core/course_slot_mass_update.html:74
 #: immersionlyceens/templates/core/students_presence.html:60
@@ -3811,8 +3811,8 @@ msgstr "Un bâtiment avec ce nom existe déjà pour ce campus"
 
 #: immersionlyceens/apps/core/models.py:1305
 #: immersionlyceens/apps/core/models.py:2526
-#: immersionlyceens/templates/cohort_offer.html:346
-#: immersionlyceens/templates/cohort_offer_subdomains.html:299
+#: immersionlyceens/templates/cohort_offer.html:354
+#: immersionlyceens/templates/cohort_offer_subdomains.html:307
 #: immersionlyceens/templates/core/common_slot.html:133
 #: immersionlyceens/templates/core/course_slot_mass_update.html:98
 #: immersionlyceens/templates/core/students_presence.html:61
@@ -4341,8 +4341,8 @@ msgid "Number of places for groups"
 msgstr "Nombre de places pour les groupes"
 
 #: immersionlyceens/apps/core/models.py:2540
-#: immersionlyceens/templates/cohort_offer.html:355
-#: immersionlyceens/templates/cohort_offer_subdomains.html:313
+#: immersionlyceens/templates/cohort_offer.html:363
+#: immersionlyceens/templates/cohort_offer_subdomains.html:321
 #: immersionlyceens/templates/core/common_slot.html:510
 #: immersionlyceens/templates/core/course_slot_mass_update.html:564
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:94
@@ -4453,9 +4453,9 @@ msgstr "Délai pour l'inscription (en heures)"
 
 #: immersionlyceens/apps/core/models.py:2604
 #: immersionlyceens/templates/cohort_offer.html:299
-#: immersionlyceens/templates/cohort_offer.html:312
+#: immersionlyceens/templates/cohort_offer.html:316
 #: immersionlyceens/templates/cohort_offer_subdomains.html:252
-#: immersionlyceens/templates/cohort_offer_subdomains.html:265
+#: immersionlyceens/templates/cohort_offer_subdomains.html:269
 #: immersionlyceens/templates/core/common_hs_slots_list.html:195
 #: immersionlyceens/templates/core/common_slots_list.html:207
 #: immersionlyceens/templates/modals/modal_myimmersions_slot_details.html:118
@@ -5160,19 +5160,19 @@ msgstr "Année universitaire terminée"
 msgid "To enter"
 msgstr "A saisir"
 
-#: immersionlyceens/apps/core/utils.py:708
+#: immersionlyceens/apps/core/utils.py:712
 msgid "Training not found"
 msgstr "Formation non trouvée"
 
-#: immersionlyceens/apps/core/utils.py:711
+#: immersionlyceens/apps/core/utils.py:715
 msgid "You are not allowed to set quota for this high school"
 msgstr "Vous n'êtes pas autorisé(e) à paramétrer le quota pour ce lycée"
 
-#: immersionlyceens/apps/core/utils.py:715
+#: immersionlyceens/apps/core/utils.py:719
 msgid "You are not allowed to set quota for this training"
 msgstr "Vous n'êtes pas autorisé(e) à paramétrer le quota pour cette formation"
 
-#: immersionlyceens/apps/core/utils.py:721
+#: immersionlyceens/apps/core/utils.py:725
 msgid "Bad quota value (positive integer required)"
 msgstr "La valeur du quota doit être un entier positif supérieur à 0"
 
@@ -6800,7 +6800,7 @@ msgid "Type"
 msgstr "Type"
 
 #: immersionlyceens/templates/cohort_offer.html:173
-#: immersionlyceens/templates/cohort_offer_subdomains.html:307
+#: immersionlyceens/templates/cohort_offer_subdomains.html:315
 #: immersionlyceens/templates/core/common_slot.html:148
 #: immersionlyceens/templates/core/course_slot_mass_update.html:122
 #: immersionlyceens/templates/core/courses_slots_list.html:79
@@ -6932,10 +6932,10 @@ msgstr "Places restantes"
 
 #: immersionlyceens/templates/cohort_offer.html:282
 #: immersionlyceens/templates/cohort_offer.html:294
-#: immersionlyceens/templates/cohort_offer.html:320
+#: immersionlyceens/templates/cohort_offer.html:328
 #: immersionlyceens/templates/cohort_offer_subdomains.html:235
 #: immersionlyceens/templates/cohort_offer_subdomains.html:247
-#: immersionlyceens/templates/cohort_offer_subdomains.html:273
+#: immersionlyceens/templates/cohort_offer_subdomains.html:281
 #: immersionlyceens/templates/immersion/my_registrations.html:1010
 #: immersionlyceens/templates/modals/modal_register_group.html:149
 #: immersionlyceens/templates/modals/modal_register_group.html:156
@@ -6950,16 +6950,24 @@ msgstr "Complet"
 msgid "Only one group of %(total_groups_places)s persons max"
 msgstr "Un seul groupe de %(total_groups_places)s personnes max"
 
-#: immersionlyceens/templates/cohort_offer.html:302
-#: immersionlyceens/templates/cohort_offer.html:315
-#: immersionlyceens/templates/cohort_offer_subdomains.html:255
-#: immersionlyceens/templates/cohort_offer_subdomains.html:268
+#: immersionlyceens/templates/cohort_offer.html:303
+#: immersionlyceens/templates/cohort_offer.html:320
+#: immersionlyceens/templates/cohort_offer_subdomains.html:256
+#: immersionlyceens/templates/cohort_offer_subdomains.html:273
 #: immersionlyceens/templates/modals/modal_register_group.html:7
 msgid "Register a group"
 msgstr "Inscrire un groupe"
 
-#: immersionlyceens/templates/cohort_offer.html:310
-#: immersionlyceens/templates/cohort_offer_subdomains.html:263
+#: immersionlyceens/templates/cohort_offer.html:306
+#: immersionlyceens/templates/cohort_offer.html:323
+#: immersionlyceens/templates/cohort_offer_subdomains.html:259
+#: immersionlyceens/templates/cohort_offer_subdomains.html:276
+#: immersionlyceens/templates/core/common_hs_slots_list.html:196
+msgid "Registration from"
+msgstr "Inscription à partir du"
+
+#: immersionlyceens/templates/cohort_offer.html:314
+#: immersionlyceens/templates/cohort_offer_subdomains.html:267
 #, python-format
 msgid ""
 "group(s) of <span "
@@ -6969,14 +6977,14 @@ msgstr ""
 "id=\"group_registrations_counter_%(pk)s\">%(total_groups)s</span> personnes "
 "max"
 
-#: immersionlyceens/templates/cohort_offer.html:320
-#: immersionlyceens/templates/cohort_offer_subdomains.html:273
+#: immersionlyceens/templates/cohort_offer.html:328
+#: immersionlyceens/templates/cohort_offer_subdomains.html:281
 #: immersionlyceens/templates/modals/modal_register_group.html:156
 msgid "group(s) registered"
 msgstr "groupe(s) inscrit(s)"
 
-#: immersionlyceens/templates/cohort_offer.html:349
-#: immersionlyceens/templates/cohort_offer_subdomains.html:302
+#: immersionlyceens/templates/cohort_offer.html:357
+#: immersionlyceens/templates/cohort_offer_subdomains.html:310
 #: immersionlyceens/templates/immersion/my_registrations.html:1078
 #: immersionlyceens/templates/offer_off_offer_events.html:273
 #: immersionlyceens/templates/offer_subdomains.html:256
@@ -6984,13 +6992,13 @@ msgstr "groupe(s) inscrit(s)"
 msgid "Show map url"
 msgstr "Voir l'adresse de la carte"
 
-#: immersionlyceens/templates/cohort_offer.html:384
+#: immersionlyceens/templates/cohort_offer.html:392
 #: immersionlyceens/templates/offer_off_offer_events.html:304
 msgid "No off offer event available"
 msgstr "Pas d'offre d'évènements hors offre disponible"
 
-#: immersionlyceens/templates/cohort_offer.html:394
-#: immersionlyceens/templates/cohort_offer_subdomains.html:343
+#: immersionlyceens/templates/cohort_offer.html:402
+#: immersionlyceens/templates/cohort_offer_subdomains.html:351
 #: immersionlyceens/templates/core/common_hs_slots_list.html:179
 #: immersionlyceens/templates/core/common_slots_list.html:194
 msgid "Register this group"
@@ -7062,7 +7070,7 @@ msgstr "Déjà inscrit(e)"
 msgid "Register"
 msgstr "S'inscrire"
 
-#: immersionlyceens/templates/cohort_offer_subdomains.html:292
+#: immersionlyceens/templates/cohort_offer_subdomains.html:300
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:21
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:68
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:115
@@ -7070,12 +7078,12 @@ msgstr "S'inscrire"
 msgid "Organizing structure"
 msgstr "Structure organisatrice"
 
-#: immersionlyceens/templates/cohort_offer_subdomains.html:332
+#: immersionlyceens/templates/cohort_offer_subdomains.html:340
 #: immersionlyceens/templates/offer_subdomains.html:286
 msgid "No training available for the selected domain"
 msgstr "Pas de formation pour le domaine sélectionné"
 
-#: immersionlyceens/templates/cohort_offer_subdomains.html:333
+#: immersionlyceens/templates/cohort_offer_subdomains.html:341
 #: immersionlyceens/templates/offer_subdomains.html:287
 msgid "Click here to return to offer selection"
 msgstr "Cliquez ici pour revenir sur la selection de l'offre"
@@ -9809,24 +9817,3 @@ msgid ""
 msgstr ""
 "Une immersion en cohorte est réservée aux établissements scolaires qui "
 "souhaitent inscrire un groupe d'élève en immersion"
-
-#~ msgid "Cohorts courses"
-#~ msgstr "Cours en groupes"
-
-#~ msgid "Cohorts events"
-#~ msgstr "Évènements en groupes"
-
-#~ msgid "Consult my registrations"
-#~ msgstr "Consulter mes inscriptions"
-
-#~ msgid "Confirm course slot mass update"
-#~ msgstr "Veuillez confirmer la modification de masse des créneaux de cours"
-
-#~ msgid "Record saved. Please check the optional documents to send below."
-#~ msgstr "Veuillez verifier les documents facultatifs à joindre ci-dessous."
-
-#~ msgid ""
-#~ "You can't change this setting because this high school already has users."
-#~ msgstr ""
-#~ "Ce paramètre ne peut pas être modifié car des utilisateurs sont déjà "
-#~ "rattachés à ce lycée"

@@ -587,12 +587,13 @@ def cohort_offer(request):
     today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
     slots_count = (
-        Slot.objects.filter(published=True, event__isnull=True, allow_group_registrations=True, public_group=True)
+        Slot.objects
+        .filter(published=True, event__isnull=True, allow_group_registrations=True, public_group=True)
         .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
         .distinct()
         .count()
     )
-
+    now = timezone.now()
     today = timezone.now().date()
     # Published event only & no course
 
@@ -613,10 +614,21 @@ def cohort_offer(request):
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions'
         )
         .filter(**filters)
-        .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
         .annotate(
             group_registered_persons=Subquery(group_registered_persons_query),
+            valid_registration_start_date=Q(period__registration_start_date__lte=now),
+            valid_registration_date=Case(
+              When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
+                then=Q(period__registration_start_date__lte=now,
+                        period__registration_end_date__gte=now)
+              ),
+              default=Q(
+                  period__registration_start_date__lte=now,
+                  registration_limit_date__gte=now
+              )
+            )
         )
+        .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
     )
 
     context = {
@@ -638,6 +650,7 @@ def cohort_offer_subdomain(request, subdomain_id):
     trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
     data = []
+    now = timezone.now()
     today = timezone.localdate()
 
     group_registered_persons_query = (
@@ -663,10 +676,21 @@ def cohort_offer_subdomain(request, subdomain_id):
                     allow_group_registrations=True,
                     public_group=True,
                 )
-                .order_by('date', 'start_time', 'end_time')
-                    .annotate(
-                        group_registered_persons=Subquery(group_registered_persons_query),
+                .annotate(
+                    group_registered_persons=Subquery(group_registered_persons_query),
+                    valid_registration_start_date=Q(period__registration_start_date__lte=now),
+                    valid_registration_date=Case(
+                        When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
+                             then=Q(period__registration_start_date__lte=now,
+                                    period__registration_end_date__gte=now)
+                             ),
+                        default=Q(
+                            period__registration_start_date__lte=now,
+                            registration_limit_date__gte=now
+                        )
                     )
+                )
+                .order_by('date', 'start_time', 'end_time')
             )
 
             training_data = {
