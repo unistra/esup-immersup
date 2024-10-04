@@ -1197,8 +1197,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                     msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
                     self._errors["highschool"] = self.error_class([msg])
                     del cleaned_data["highschool"]
-                elif highschool.postbac_immersion:
-                    cleaned_data['is_staff'] = True
 
             if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
                 msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
