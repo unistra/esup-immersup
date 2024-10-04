@@ -812,9 +812,7 @@ def ajax_get_immersions(request, user_id=None):
 
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
-        elif slot.place == Slot.FACE_TO_FACE:
-            meeting_place = "<br>".join(list(filter(lambda x: x, [building, slot.room])))
-        elif slot.place == Slot.OUTSIDE:
+        elif slot.place in [Slot.FACE_TO_FACE, Slot.OUTSIDE]:
             meeting_place = slot.room
 
         if highschool:
@@ -831,6 +829,7 @@ def ajax_get_immersions(request, user_id=None):
             'highschool': f'{highschool.label} - {highschool.city.title()}' if highschool else "",
             'highschool_address': f'{hs_address} {hs_address2} {hs_address3}' if highschool else "",
             'highschool_city': highschool.city.title() if highschool else "",
+            'highschool_zip_code': highschool.zip_code if highschool else "",
             'structure': structure.label if structure else "",
             'meeting_place': meeting_place,
             'campus': campus,
@@ -866,6 +865,8 @@ def ajax_get_immersions(request, user_id=None):
             'free_seats': 0,
             'can_register': False,
             'place': slot.place,
+            'url': slot.url,
+            'can_show_url': slot.can_show_url(),
             'registration_date': immersion.registration_date,
             'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",
             'campus_city': campus_city.title() if campus_city else "",
