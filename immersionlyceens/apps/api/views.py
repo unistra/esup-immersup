@@ -809,9 +809,6 @@ def ajax_get_immersions(request, user_id=None):
         # Remote course slot not used for now
         if slot.place == Slot.REMOTE:
             meeting_place = gettext('Remote')
-
-            if slot.url and slot.can_show_url():
-                meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
         elif slot.place in [Slot.FACE_TO_FACE, Slot.OUTSIDE]:
             meeting_place = slot.room
 
@@ -865,7 +862,7 @@ def ajax_get_immersions(request, user_id=None):
             'free_seats': 0,
             'can_register': False,
             'place': slot.place,
-            'url': slot.url,
+            'url': slot.url if slot.can_show_url() else gettext("Displayed a few days before event"),
             'can_show_url': slot.can_show_url(),
             'registration_date': immersion.registration_date,
             'cancellation_date': immersion.cancellation_date if immersion.cancellation_date else "",

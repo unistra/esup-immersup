@@ -307,9 +307,8 @@
               label = "<label>{% trans 'URL' %} : </label>";
 
               if(row.can_show_url) {
-                data = row.url
-              }
-              else {
+                data = `<a href="${row.url}">{% trans "Remote link" %}</a>`
+              } else {
                 data = "{% trans 'Displayed a few days before event' %}"
               }
             }
@@ -332,7 +331,12 @@
             }
 
             if(type === "display") {
-              return label + displayLongString(data, 40, html=true) ;
+              if (row.place === remote) {
+                return label + data
+              }
+              else {
+                return label + displayLongString(data, 40, html = true);
+              }
             }
             if(type === 'filter') {
               return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -476,7 +480,7 @@
       }
       if (rowData[0].place === remote) {
           if(Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '' && rowData[0].can_show_url) {
-            url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
+            url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
           }
           else {
             url = "{% trans 'Displayed a few days before event' %}"
@@ -1154,7 +1158,7 @@
       }
       if (rowData[0].place === remote) {
         if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
-          url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
+          url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
         }
       }
       if (rowData[0].can_register) {
