@@ -111,6 +111,11 @@
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
   var modal_open = false;
 
+  // Slot places
+  var face_to_face = 0
+  var remote = 1
+  var outside = 2
+
   const options = {
     month: "long",
     day: "numeric",
@@ -166,10 +171,11 @@
     initFeedback();
     feedback = $("#feedback");
     $.fn.dataTableExt.errMode = 'console';
+
     dt_future = $('#immersions_to_come').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [5, "asc"]
       ],
       'buttons': [
       {extend: 'copy', text: '<fa class="fa fa-copy"></fa>', className: 'btn btn-info d-none d-md-block'},
@@ -177,9 +183,7 @@
       {extend: 'print', text: '<fa class="fa fa-print"></fa>', className: 'btn btn-info d-none d-md-block'},
       ],
       'dom': 'Bfrtp',
-      'pagingType': 'full_numbers',
-      'pageLength': 5,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'paging': false,
       'serverSide': false,
       'responsive': false,
       'select': {
@@ -191,6 +195,392 @@
         url: "/api/get_immersions/" + user_id,
         data: function(d) {
             d.immersion_type = 'future'
+            return d
+        },
+        dataSrc: function (json) {
+          if (json['data'] !== undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+      'language': {
+        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
+      },
+      {% endif %}
+      'columns': [
+        {
+          orderable: false,
+          className: 'text-center',
+          width: '20px',
+          "render": function(data, type, full, meta) {
+              slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              if (slotType === 'c') {
+                  label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
+              } else {
+                  label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
+              }
+              return label;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            if (row.establishment === '' || row.establishment === null) {
+
+              if (row.highschool !== null) {
+                data = row.highschool;
+              } else {
+                data = '&nbsp;';
+              }
+            } else {
+              data = row.establishment;
+            }
+            if(type === "display") {
+              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+
+            if (slotType === 'c') {
+              label = "<label>{% trans "Training" %} :</label>";
+              data = row.course.training;
+            } else {
+              label =  "<label>{% trans "Event type" %} :</label>";
+              data = row.event.type
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            label = "<label>{% trans "Label" %} :</label>";
+            if (slotType === 'c') {
+              data = row.course.label;
+            } else {
+              data = row.event.label;
+            }
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            slotType = row.type[0].toLowerCase();
+            data = (slotType === 'c') ? row.course.type_full : row.event.type;
+            label = "<label>{% trans 'Type' %} :</label>";
+            if(type === "display") {
+              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+            }
+            return data;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            data = row.datetime;
+            label = "<label>{% trans 'Date' %} :</label>";
+            if(type === "display" || type === "filter") {
+              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+            }
+            if (type !== 'sort') {
+              return data ? formatDate(data) : "";
+            }
+            return data
+          },
+        },
+        {
+          "render": function (data, type, row) {
+            if (row.place === outside) {
+                return "<label>{% trans 'Address' %} : </label>";
+            }
+            else if (row.place === remote) {
+              label = "<label>{% trans 'URL' %} : </label>";
+
+              if(row.can_show_url) {
+                data = `<a href="${row.url}">{% trans "Remote link" %}</a>`
+              } else {
+                data = "{% trans 'Displayed a few days before event' %}"
+              }
+            }
+            else {
+              if (row.campus === '' || row.campus === null) {
+                if (row.highschool != null || row.highschool != '') {
+                  label = "<label>{% trans 'Address' %} : </label>";
+                  data = row.highschool_address ? row.highschool_address : '&nbsp;';
+                  data += row.highschool_city ? `, ${row.highschool_city}` : '';
+                }
+                else {
+                  return '&nbsp;';
+                }
+              }
+              else {
+                label = "<label>{% trans 'Campus' %} : </label>";
+                data = row.campus
+                data += row.campus_city ? ` - ${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()}` : '&nbsp;';
+              }
+            }
+
+            if(type === "display") {
+              if (row.place === remote) {
+                return label + data
+              }
+              else {
+                return label + displayLongString(data, 40, html = true);
+              }
+            }
+            if(type === 'filter') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+            return data;
+          }
+        },
+        {
+          "render": function (data, type, row) {
+            if(row.place === face_to_face) {
+                data = `${row.building}<br>${row.room}`
+            }
+            else {
+              data = row.meeting_place
+            }
+            if(type === "display") {
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            }
+
+            return data
+          },
+        },
+        { "data": "registration_date",
+          "render": function(data, type, row) {
+            if (type==='display') {
+              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+            }
+            return data
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            cancellation_limit_date = row.cancellation_limit_date ? formatDate(row.cancellation_limit_date) : "";
+            classLabel = row.cancellable ? "badge-info" : "badge-danger";
+            return `<label>{% trans 'Cancellation limit' %} : </label><span class="badge badge-pill ${classLabel}">${cancellation_limit_date}</span>`;
+          }
+        },
+        {
+          "render": function(data, type, row) {
+            let msg = "";
+
+            if(is_highschool_student === true) {
+              msg += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+                        "<i class='fa fas fa-users fa-15'></i>" +
+                        "</button>";
+            }
+            if(row.cancellable === true) {
+              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+                     "<i class='fa fas fa-trash fa-15'></i>" +
+                     "</button>";
+            }
+            return `<div class="pull-right"><span>${msg}</span><button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></div>`;
+          }
+        }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+        {
+          "orderable": false, "targets": [8,10],
+        },
+      ],
+    }).on('select', function (e, dt, type, indexes) {
+      let rowData = dt.rows(indexes).data().toArray()
+      let speakers_array = "";
+      let url = null;
+      let buildingFull = null;
+      let courseLabelFull = null;
+      let slotType = rowData[0].type[0].toLowerCase();
+      var etab = [];
+      var restrictions = "";
+      let displayedRows = $("[id^=row_]");
+      let selectedRows = [];
+      var filteredRows = ['row_cancellation_date', 'row_cancellation_type', 'row_attendancee'];
+      let availablesSeatslabel = '<ul class="list-inline">';
+      var actions = ""
+
+      if (rowData[0].allow_individual_registrations === true) {
+        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym> " + rowData[0].free_seats + ' / ' + rowData[0].n_places + '</li>'
+      }
+      availablesSeatslabel += '</ul>';
+
+      $.each(rowData[0].speakers, function(i, item) {
+        speakers_array += "<li>" + item + "</li>";
+      });
+      $(displayedRows).show();
+
+      if (slotType === 'c') {
+        if (is_set(rowData[0].establishment)) {
+          etab.push(rowData[0].establishment)
+        }
+        if (is_set(rowData[0].highschool)) {
+          etab.push(rowData[0].highschool)
+        }
+        $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.training);
+        filteredRows.push('row_event_type', 'row_highschool');
+      } else {
+        if (is_set(rowData[0].establishment)) {
+          etab.push(rowData[0].establishment)
+        }
+        if (is_set(rowData[0].highschool)) {
+          etab.push(rowData[0].highschool)
+        }
+        if (is_set(rowData[0].structure)) {
+          etab.push(rowData[0].structure)
+        }
+        filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
+        if (rowData[0].highschool !== null) {
+          $('#modal_myimmersions_slot_details #modal_highschool').html(rowData[0].highschool);
+        } else {
+          $('#modal_myimmersions_slot_details #modal_highschool').html();
+          filteredRows.push('row_highschool');
+        }
+      }
+      if (rowData[0].building !== null) {
+        buildingFull = rowData[0].building;
+      }
+      if (rowData[0].course.training !== null && rowData[0].course.training !== '') {
+        courseLabelFull = rowData[0].course.training;
+      }
+      if (rowData[0].campus === '' || rowData[0].campus === null) {
+        filteredRows.push('row_campus');
+      }
+      if (rowData[0].highschool === '' || rowData[0].highschool === null) {
+        filteredRows.push('row_highschool');
+      }
+      if (rowData[0].highschool_address === '' || rowData[0].highschool === null) {
+        filteredRows.push('row_highschool_address');
+      }
+      if (rowData[0].building === '' || rowData[0].building === null) {
+        filteredRows.push('row_building');
+      }
+      if (rowData[0].info === '' || rowData[0].info === null) {
+        filteredRows.push('row_additional_information');
+      }
+      if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
+        filteredRows.push('row_meeting_place');
+      }
+      if (rowData[0].place === remote) {
+          if(Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '' && rowData[0].can_show_url) {
+            url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
+          }
+          else {
+            url = "{% trans 'Displayed a few days before event' %}"
+          }
+      }
+      else {
+        filteredRows.push('row_url');
+      }
+
+      if (rowData[0].place == remote || rowData[0].place == outside) {
+        filteredRows.push('row_city');
+      }
+      if(is_highschool_student === true) {
+        actions += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+rowData[0].id+",true)\" title=\"{% trans 'Other registrants' %}\">" +
+                  "<i class='fa fas fa-users fa-15'></i>" +
+                  "</button>";
+      }
+      if(rowData[0].cancellable === true) {
+        actions += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + rowData[0].id + ",true)\" title=\"{% trans 'Cancel' %}\">" +
+                "<i class='fa fas fa-trash fa-15'></i>" +
+                "</button>";
+      }
+      $.ajax({
+        url: "/api/get_slot_restrictions/" + rowData[0].slot_id,
+        type: 'GET',
+        success: function (data) {
+          if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
+              restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
+              if (restrictions === '<ul class="list-unstyled"></ul>') {
+                restrictions = "<p>{% trans "Slot open to all" %}</p>";
+              }
+              $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
+            }
+        }
+      })
+
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
+      $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
+      $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
+      $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
+      $('#modal_myimmersions_slot_details #modal_event_type').html(rowData[0].event.type);
+      $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
+      $('#modal_myimmersions_slot_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
+      $('#modal_myimmersions_slot_details #modal_url').html(url);
+      $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
+      $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
+      $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city)
+      $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building )
+      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      $('#modal_myimmersions_slot_details #modal_speakers').html(
+        '<ul class="list-group">' + speakers_array + '</ul>'
+      )
+      $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
+      $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
+      $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
+      $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
+      $('#modal_myimmersions_slot_details #modal_actions').html(actions ? actions : "");
+
+      // rows to hide
+      selectedRows = filteredRows.map(id => `#${id}`).join(',')
+      $(selectedRows).hide();
+      $('#modal_myimmersions_slot_details').modal("show");
+    });
+    dt_future.on("draw.dt", function (e, dt, type, indexes) {
+      if ($(this).find(".dataTables_empty").length == 1) {
+          // Dirty hack cause has() is not supported by firefox :(
+            var elm = $(this).find(".dataTables_empty").parent('tr')
+            elm.css('text-align', 'center');
+            elm.css('float', 'none');
+            elm.css('border', 'none');
+            elm.css('box-shadow', 'none');
+            elm.css('border-radius', 'none');
+            $('[data-toggle="tooltip"]').tooltip()
+        }
+    });
+    /* Past immersions */
+    dt_past = $('#past_immersions').DataTable({
+      'processing': false,
+      'order': [
+        [5, "desc"]
+      ],
+      'buttons': [
+      {extend: 'copy', text: '<fa class="fa fa-copy"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'csv', text: '<fa class="fa fa-file"></fa>', className: 'btn btn-info d-none d-md-block'},
+      {extend: 'print', text: '<fa class="fa fa-print"></fa>', className: 'btn btn-info d-none d-md-block'},
+      ],
+      'dom': 'Bfrtp',
+      'select': {
+        'single': true,
+        'style': 'os',
+        'selector': 'td:not(:last-child), .btn-more-details'
+      },
+      'paging': false,
+      'serverSide': false,
+      'responsive': false,
+      'ajax': {
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'past'
             return d
         },
         dataSrc: function (json) {
@@ -293,340 +683,13 @@
           },
         },
         {
-          "render": function (data, type, row) {
-            if (row.campus === '' || row.campus === null) {
-              if (row.highschool != null || row.highschool != '') {
-                label = "<label>{% trans 'Address' %} : </label>";
-                data = row.highschool ? row.highschool : '&nbsp;';
-              } else {
-                return '&nbsp;';
-              }
-            } else {
-              label = "<label>{% trans 'Campus' %} : </label>";
-              data = row.campus
-              data += row.campus_city ? ` - ${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()}` : '&nbsp;';
-            }
-            if(type === "display") {
-              return label + displayLongString(data, 40, html=true) ;
-            }
-            if(type === 'filter') {
-              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-            }
-            return data;
-          }
-        },
-        {
-          "render": function (data, type, row) {
-            data = row.meeting_place
-            if(type === "display") {
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
-            }
-
-            return data
-          },
-        },
-        { "data": "registration_date",
-          "render": function(data, type, row) {
-            if (type==='display') {
-              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
-            }
-            return data
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            cancellation_limit_date = row.cancellation_limit_date ? formatDate(row.cancellation_limit_date) : "";
-            classLabel = row.cancellable ? "badge-info" : "badge-danger";
-            return `<label>{% trans 'Cancellation limit' %} : </label><span class="badge badge-pill ${classLabel}">${cancellation_limit_date}</span>`;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            let msg = "";
-
-            if(is_highschool_student === true) {
-              msg += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
-                        "<i class='fa fas fa-users fa-15'></i>" +
-                        "</button>";
-            }
-            if(row.cancellable === true) {
-              msg += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
-                     "<i class='fa fas fa-trash fa-15'></i>" +
-                     "</button>";
-            }
-            return `<div class="pull-right"><span>${msg}</span><button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></div>`;
-          }
-        }
-      ],
-      "columnDefs": [
-        {
-          "defaultContent": "",
-          "targets": "_all",
-          "className": "all",
-        },
-        {
-          "orderable": false, "targets": [8,10],
-        },
-      ],
-    }).on('select', function (e, dt, type, indexes) {
-      let rowData = dt.rows(indexes).data().toArray()
-      let speakers_array = "";
-      let url = null;
-      let buildingFull = null;
-      let courseLabelFull = null;
-      let slotType = rowData[0].type[0].toLowerCase();
-      var etab = [];
-      var restrictions = "";
-      let displayedRows = $("[id^=row_]");
-      let selectedRows = [];
-      var filteredRows = ['row_cancellation_date', 'row_cancellation_type', 'row_attendancee'];
-      let availablesSeatslabel = '<ul class="list-inline">';
-      let face_to_face = 0
-      let remote = 1
-      let outside = 2
-      var actions = ""
-
-      if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym> " + rowData[0].free_seats + ' / ' + rowData[0].n_places + '</li>'
-      }
-      availablesSeatslabel += '</ul>';
-
-      $.each(rowData[0].speakers, function(i, item) {
-        speakers_array += "<li>" + item + "</li>";
-      });
-      $(displayedRows).show();
-      if (slotType === 'c') {
-        if (rowData[0].establishment !== null) {
-          etab.push(rowData[0].establishment)
-        }
-        if (rowData[0].highschool !== null) {
-          etab.push(rowData[0].highschool)
-        }
-        $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.training);
-        filteredRows.push('row_highschool');
-      } else {
-        if (rowData[0].establishment !==null) {
-          etab.push(rowData[0].establishment)
-        }
-        if (rowData[0].highschool !== null) {
-          etab.push(rowData[0].highschool)
-        }
-        if (rowData[0].structure !== null) {
-          etab.push(rowData[0].structure)
-        }
-        filteredRows.push('row_course_label', 'row_course_type');
-        if (rowData[0].highschool !== null) {
-          $('#modal_myimmersions_slot_details #modal_highschool').html(rowData[0].highschool);
-        } else {
-          $('#modal_myimmersions_slot_details #modal_highschool').html();
-          filteredRows.push('row_highschool');
-        }
-      }
-      if (rowData[0].building !== null) {
-        buildingFull = rowData[0].building;
-      }
-      if (rowData[0].course.training !== null && rowData[0].course.training !== '') {
-        courseLabelFull = rowData[0].course.training;
-      }
-      if (rowData[0].campus === '' || rowData[0].campus === null) {
-        filteredRows.push('row_campus');
-      }
-      if (rowData[0].highschool === '' || rowData[0].highschool === null) {
-        filteredRows.push('row_highschool');
-      }
-      if (rowData[0].highschool_address === '' || rowData[0].highschool === null) {
-        filteredRows.push('row_highschool_address');
-      }
-      if (rowData[0].building === '' || rowData[0].building === null) {
-        filteredRows.push('row_building');
-      }
-      if (rowData[0].info === '' || rowData[0].info === null) {
-        filteredRows.push('row_additional_information');
-      }
-      if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
-        filteredRows.push('row_meeting_place');
-      }
-      if (rowData[0].place === remote) {
-          if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
-            url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
-          }
-      }
-      if(is_highschool_student === true) {
-        actions += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+rowData[0].id+",true)\" title=\"{% trans 'Other registrants' %}\">" +
-                  "<i class='fa fas fa-users fa-15'></i>" +
-                  "</button>";
-      }
-      if(rowData[0].cancellable === true) {
-        actions += "<button class=\"ml-2 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + rowData[0].id + ",true)\" title=\"{% trans 'Cancel' %}\">" +
-                "<i class='fa fas fa-trash fa-15'></i>" +
-                "</button>";
-      }
-      $.ajax({
-        url: "/api/get_slot_restrictions/" + rowData[0].slot_id,
-        type: 'GET',
-        success: function (data) {
-          if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
-              restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"></ul>') {
-                restrictions = "<p>{% trans "Slot open to all" %}</p>";
-              }
-              $('#modal_myimmersions_slot_details #modal_restrictions').html("<div>"+restrictions+"</div>")
-            }
-        }
-      })
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
-      $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
-      $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
-      $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
-      $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
-      $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
-      $('#modal_myimmersions_slot_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
-      $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
-      $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city)
-      $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building )
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
-      $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
-      $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
-      $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
-      $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
-      $('#modal_myimmersions_slot_details #modal_actions').html(actions ? actions : "");
-
-      // rows to hide
-      selectedRows = filteredRows.map(id => `#${id}`).join(',')
-      $(selectedRows).hide();
-      $('#modal_myimmersions_slot_details').modal("show");
-    });
-    dt_future.on("draw.dt", function (e, dt, type, indexes) {
-      if ($(this).find(".dataTables_empty").length == 1) {
-          // Dirty hack cause has() is not supported by firefox :(
-            var elm = $(this).find(".dataTables_empty").parent('tr')
-            elm.css('text-align', 'center');
-            elm.css('float', 'none');
-            elm.css('border', 'none');
-            elm.css('box-shadow', 'none');
-            elm.css('border-radius', 'none');
-            $('[data-toggle="tooltip"]').tooltip()
-        }
-    });
-    /* Past immersions */
-    dt_past = $('#past_immersions').DataTable({
-      'processing': false,
-      'order': [
-        [6, "desc"]
-      ],
-      'buttons': [
-      {extend: 'copy', text: '<fa class="fa fa-copy"></fa>', className: 'btn btn-info d-none d-md-block'},
-      {extend: 'csv', text: '<fa class="fa fa-file"></fa>', className: 'btn btn-info d-none d-md-block'},
-      {extend: 'print', text: '<fa class="fa fa-print"></fa>', className: 'btn btn-info d-none d-md-block'},
-      ],
-      'dom': 'Bfrtp',
-      'select': {
-        'single': true,
-        'style': 'os',
-        'selector': 'td:not(:last-child), .btn-more-details'
-      },
-      'pageLength': 5,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': false,
-      'ajax': {
-        url: "/api/get_immersions/" + user_id,
-        data: function(d) {
-            d.immersion_type = 'past'
-            return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
-      'searching': true,
-      {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-      'language': {
-        url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
-      },
-      {% endif %}
-      'columns': [
-        {
-          orderable: false, className: 'text-center', width: '20px',
-          "render": function(data, type, full, meta) {
-              slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              if (slotType === 'c') {
-                  label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
-              } else {
-                  label = '<i class="fa fa-calendar slot-type-e" data-toggle="tooltip" title="{% trans "Event" %}"></i>';
-              }
-              return label;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-
-            if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
-              data = row.course.training;
-            } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
-              data = row.event.type
-            }
-            if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
-            }
-            return data;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
-            if (slotType === 'c') {
-              data = row.course.label;
-            } else {
-              data = row.event.label;
-            }
-            if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
-            }
-            return data;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            slotType = row.type[0].toLowerCase();
-            data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
-            if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
-            }
-            return data;
-          }
-        },
-        {
-          "render": function(data, type, row) {
-            data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
-            if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
-            }
-            if (type !== 'sort') {
-              return data ? formatDate(data) : "";
-            }
-            return data
-          },
-        },
-        {
           render: function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
                 label = "<label>{% trans 'Address' %} : </label>";
                 data = row.highschool ? row.highschool : '&nbsp;';
-              } else {
+              }
+              else {
                 return '&nbsp;';
               }
             } else {
@@ -722,23 +785,24 @@
       // display all row_* elements
       $(displayedRows).show();
       if (slotType === 'c') {
-        if (rowData[0].establishment !==null) {
+        if (is_set(rowData[0].establishment)) {
           etab.push(rowData[0].establishment)
         }
-        if (rowData[0].highschool !== null) {
+        if (is_set(rowData[0].highschool)) {
           etab.push(rowData[0].highschool)
         }
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course_training_label);
+        $('#modal_myimmersions_slot_details #row_event_type').hide();
         filteredRows.push('row_highschool');
       } else {
-        if (rowData[0].establishment !==null) {
+        if (is_set(rowData[0].establishment)) {
           etab.push(rowData[0].establishment);
         }
-        if (rowData[0].highschool !== null) {
+        if (is_set(rowData[0].highschool)) {
           etab.push(rowData[0].highschool)
           filteredRows.push('row_highschool');
         }
-        if (rowData[0].structure !== null) {
+        if (is_set(rowData[0].structure)) {
           etab.push(rowData[0].structure);
         }
         filteredRows.push('row_course_label', 'row_course_type');
@@ -764,6 +828,9 @@
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
+      if (rowData[0].place == remote || rowData[0].place == outside) {
+        filteredRows.push('row_city');
+      }
       $('#modal_register_btn').html('');
       $.ajax({
         url: "/api/get_slot_restrictions/" + rowData[0].id,
@@ -783,6 +850,7 @@
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
       $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
+      $('#modal_myimmersions_slot_details #modal_event_type').html(rowData[0].event.type);
       $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
@@ -801,6 +869,7 @@
       $(selectedRows).hide();
       $('#modal_myimmersions_slot_details').modal("show");
     });
+
     dt_past.on("draw.dt", function (e, dt, type, indexes) {
       if ($(this).find(".dataTables_empty").length == 1) {
         // Dirty hack cause has() is not supported by firefox :(
@@ -812,6 +881,7 @@
         elm.css('border-radius', 'none');
       }
     });
+
     /* Cancelled immersions */
     dt_cancelled = $('#cancelled_immersions').DataTable({
       'processing': false,
@@ -829,8 +899,7 @@
         'style': 'os',
         'selector': 'td:not(:last-child), .btn-more-details'
       },
-      'pageLength': 5,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'paging': false,
       'serverSide': false,
       'responsive': false,
       'ajax': {
@@ -971,14 +1040,6 @@
             return data;
           },
         },
-        { "data": "registration_date",
-          "render": function(data, type, row) {
-            if (type==='display') {
-              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
-            }
-            return data
-          }
-        },
         { "data": "cancellation_date",
           "render": function(data, type, row) {
             if (data != null || data != '') {
@@ -1053,23 +1114,23 @@
       $(displayedRows).show();
       $('#modal_register_btn').html('');
       if (slotType === 'c') {
-        if (rowData[0].establishment !==null) {
+        if (is_set(rowData[0].establishment)) {
           etab.push(rowData[0].establishment)
         }
 
-        if (rowData[0].highschool_label !== null) {
+        if (is_set(rowData[0].highschool_label)) {
           etab.push(rowData[0].highschool)
         }
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.label);
         filteredRows.push('row_highschool');
       } else {
-        if (rowData[0].establishment !==null) {
+        if (is_set(rowData[0].establishment)) {
           etab.push(rowData[0].establishment)
         }
-        if (rowData[0].highschool !== null) {
+        if (is_set(rowData[0].highschool)) {
           etab.push(rowData[0].highschool)
         }
-        if (rowData[0].structure !== null) {
+        if (is_set(rowData[0].structure)) {
           etab.push(rowData[0].structure_label)
         }
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
@@ -1097,7 +1158,7 @@
       }
       if (rowData[0].place === remote) {
         if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
-          url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
+          url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
         }
       }
       if (rowData[0].can_register) {
@@ -1122,6 +1183,7 @@
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
       $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
+      $('#modal_myimmersions_slot_details #modal_event_type').html(rowData[0].event.type);
       $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);

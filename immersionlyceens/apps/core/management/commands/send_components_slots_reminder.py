@@ -51,15 +51,15 @@ class Command(BaseCommand, Schedulable):
         if Vacation.date_is_inside_a_vacation(today + datetime.timedelta(days=1)):
             return success
 
-        # from monday in N weeks to sunday at then end of the Nth week
-        slot_min_date = today + datetime.timedelta(days=1) + datetime.timedelta(weeks=weeks)
+        # from (today + N weeks) to (today + N weeks + 6 days)
+        slot_min_date = today + datetime.timedelta(weeks=weeks)
 
         # if min_date is in a vacation period, extend max_date to the end of the period + 1 week
         vacation_period = Vacation.get_vacation_period(slot_min_date)
         if vacation_period:
             slot_max_date = vacation_period.end_date + datetime.timedelta(weeks=1)
         else:
-            slot_max_date = slot_min_date + datetime.timedelta(days=6)  # from monday to the next sunday
+            slot_max_date = slot_min_date + datetime.timedelta(days=6) # interval = 6 days
 
         logger.debug("%s - sending reminders for slots between %s and %s (N = %s week(s))",
             today, slot_min_date, slot_max_date, weeks

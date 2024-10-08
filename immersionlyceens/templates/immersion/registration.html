@@ -106,14 +106,7 @@
         <div class="form-group row justify-content-center">
           <label for="{{ form.record_highschool.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Your high school' %} :</label>
           <div class="col-sm-9 col-md-6">
-            <select id="{{ form.record_highschool.id_for_label }}" name="record_highschool" class="form-control">
-                <option value="">----------------</option>
-              {% for highschool in highschools %}
-                <option value='{{ highschool.id }}' {% if highschool.id == form.highschool.id %}selected="selected"{% endif %}>
-                    {{ highschool }}
-                </option>
-              {% endfor %}
-            </select>
+            {{ form.record_highschool }}
           </div>
         </div>
         {% endif %}
