@@ -654,8 +654,8 @@ def register(request, profile=None):
         return render(request, 'immersion/nologin.html', context)
 
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        redirect_url_name: str = "/immersion/login"
+        form = RegistrationForm(request.POST, required_highschool=(profile == 'lyc'))
+        redirect_url_name: str = "/immersion/login" + f"/{profile}" if profile else ""
 
         registration_type: Optional[str] = request.POST.get("registration_type")
 
@@ -676,7 +676,7 @@ def register(request, profile=None):
                 HighSchoolStudentRecord.objects.create(
                     highschool=record_highschool,
                     student=new_user,
-                    validation = HighSchoolStudentRecord.INIT
+                    validation=HighSchoolStudentRecord.INIT
                 )
 
             group_name: str = "LYC"

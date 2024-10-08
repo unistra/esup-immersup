@@ -75,12 +75,12 @@ class RegistrationForm(UserCreationForm):
     )
 
     def __init__(self, *args, **kwargs):
-        required_highschool = kwargs.pop('required_highschool', False)
+        self.required_highschool = kwargs.pop('required_highschool', False)
 
         super().__init__(*args, **kwargs)
 
         self.fields['record_highschool'].queryset = HighSchool.agreed.order_by('city', 'label')
-        self.fields['record_highschool'].required = required_highschool
+        self.fields['record_highschool'].required = self.required_highschool
 
 
         self.fields['password1'].required = False
@@ -98,10 +98,15 @@ class RegistrationForm(UserCreationForm):
         student_federation_enabled = get_general_setting('ACTIVATE_EDUCONNECT')
         registration_type = cleaned_data.get("registration_type")
 
-        if student_federation_enabled and registration_type == "lyc":
-            # Check that the high school does NOT use federation
-            if highschool and highschool.uses_student_federation:
-                raise forms.ValidationError(_("This high school uses EduConnect, please use it to authenticate."))
+        if registration_type == "lyc":
+            if self.required_highschool and not highschool:
+                self.add_error('record_highschool', _("High school field is required"))
+
+            if student_federation_enabled:
+                # Check that the high school does NOT use federation
+                if highschool and highschool.uses_student_federation:
+                    raise forms.ValidationError(_("This high school uses EduConnect, please use it to authenticate."))
+
 
         if not all([cleaned_data.get('email'), cleaned_data.get('email2'),
                 cleaned_data.get('email') == cleaned_data.get('email2')]):
