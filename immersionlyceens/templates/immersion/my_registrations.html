@@ -466,7 +466,7 @@
       if (rowData[0].highschool === '' || rowData[0].highschool === null) {
         filteredRows.push('row_highschool');
       }
-      if (rowData[0].highschool_address === '' || rowData[0].highschool === null) {
+      if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
       }
       if (rowData[0].building === '' || rowData[0].building === null) {
@@ -492,6 +492,10 @@
 
       if (rowData[0].place == remote || rowData[0].place == outside) {
         filteredRows.push('row_city');
+
+        if(is_set(rowData[0].highschool)) {
+          filteredRows.push('row_highschool_address');
+        }
       }
       if(is_highschool_student === true) {
         actions += "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+rowData[0].id+",true)\" title=\"{% trans 'Other registrants' %}\">" +
@@ -687,7 +691,8 @@
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
                 label = "<label>{% trans 'Address' %} : </label>";
-                data = row.highschool ? row.highschool : '&nbsp;';
+                data = row.highschool_address ? row.highschool_address : '&nbsp;';
+                data += row.highschool_city ? `, ${row.highschool_city}` : '';
               }
               else {
                 return '&nbsp;';
@@ -830,6 +835,10 @@
       }
       if (rowData[0].place == remote || rowData[0].place == outside) {
         filteredRows.push('row_city');
+
+        if(is_set(rowData[0].highschool)) {
+          filteredRows.push('row_highschool_address');
+        }
       }
       $('#modal_register_btn').html('');
       $.ajax({
@@ -845,7 +854,7 @@
             }
         }
       })
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab);
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -1012,8 +1021,8 @@
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
                 label = "<label>{% trans 'Address' %} : </label>";
-                data = row.highschool ? row.highschool : '&nbsp;';
-                data += row.city ? ` (${row.city[0].toUpperCase() + row.city.substring(1).toLowerCase()})` : '&nbsp;';
+                data = row.highschool_address ? row.highschool_address : '&nbsp;';
+                data += row.highschool_city ? `, ${row.highschool_city}` : '';
               } else {
                 return '&nbsp;';
               }
@@ -1161,6 +1170,13 @@
           url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
         }
       }
+      if (rowData[0].place == remote || rowData[0].place == outside) {
+        filteredRows.push('row_city');
+
+        if(is_set(rowData[0].highschool)) {
+          filteredRows.push('row_highschool_address');
+        }
+      }
       if (rowData[0].can_register) {
           actions += "<button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+rowData[0].slot_id+")\">{% trans 'Register again' %}</button>";
       }
@@ -1178,7 +1194,7 @@
         }
       })
 
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab);
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
