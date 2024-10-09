@@ -442,7 +442,8 @@ class Parser:
         if user:
             local_account = not any([
                 user.is_student(),
-                user.establishment and user.establishment.data_source_plugin
+                user.establishment and user.establishment.data_source_plugin,
+                user.highschool and user.highschool.uses_agent_federation
             ])
 
             context: Dict[str, Any] = {
