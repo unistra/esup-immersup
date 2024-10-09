@@ -59,28 +59,13 @@
               <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
               <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
               <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
+              <th id="record_filter" class="align-top">{% trans 'Record status' %}</th>
               <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
-              <!--
-              {% if can_show_users_without_record %}
-              <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
-              {% endif %}
-              <th id="name_filter" class="align-top">{% trans 'Name' %}</th>
-              <th class="align-top">{% trans 'Birth date' %}</th>
-              {% if can_show_users_without_record %}
-              <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
-              {% endif %}
-              <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
-              <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
-              <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-              {% if can_show_users_without_record %}
-              <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
-              {% endif %}
-              <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
-              -->
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -223,6 +208,12 @@
           return data
         }
       },
+      { "data": "record_status_display",
+        "name": "record_status_display",
+        "render": function(data, type, row) {
+          return data
+        }
+      },
       { "data": "registered",
         "name": "registered",
         "render": function(data, type, row) {
@@ -322,6 +313,13 @@
     },
     {
       column_number: 8,
+      filter_default_label: "",
+      filter_container_id: "record_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 9,
       filter_default_label: "",
       filter_container_id: "registered_filter",
       style_class: "form-control form-control-sm",

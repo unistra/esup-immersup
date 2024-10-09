@@ -440,9 +440,15 @@ class Parser:
     @staticmethod
     def get_user_context(user: Optional[ImmersionUser]):
         if user:
+            try:
+                agent_federation = GeneralSettings.get_setting("ACTIVATE_FEDERATION_AGENT")
+            except:
+                agent_federation = False
+
             local_account = not any([
                 user.is_student(),
-                user.establishment and user.establishment.data_source_plugin
+                user.establishment and user.establishment.data_source_plugin,
+                agent_federation and user.highschool and user.highschool.uses_agent_federation
             ])
 
             context: Dict[str, Any] = {
