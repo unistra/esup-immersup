@@ -1978,6 +1978,19 @@ def ajax_get_highschool_students(request):
             ),
             default=True,
         ),
+        record_status=Coalesce(
+            F('high_school_student_record__validation'),
+            F('visitor_record__validation'),
+        ),
+        record_status_display=Case(
+            When(Q(record_status=0), then=Value(gettext('To complete'))),
+            When(Q(record_status=1), then=Value(gettext('To validate'))),
+            When(Q(record_status=2), then=Value(pgettext('record status', 'Validated'))),
+            When(Q(record_status=3), then=Value(pgettext('record status', 'Rejected'))),
+            When(Q(record_status=4), then=Value(gettext('To revalidate'))),
+            When(Q(record_status=5), then=Value(gettext('Initialization (to complete)'))),
+            default=Value("")
+        )
     ).values()
 
     response['data'] = [l for l in students]
