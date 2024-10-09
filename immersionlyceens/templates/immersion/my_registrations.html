@@ -427,25 +427,21 @@
       });
       $(displayedRows).show();
 
+      if (is_set(rowData[0].establishment)) {
+        etab.push(rowData[0].establishment)
+      }
+      if (is_set(rowData[0].highschool)) {
+        etab.push(rowData[0].highschool)
+      }
+      if (is_set(rowData[0].structure)) {
+        etab.push(rowData[0].structure)
+      }
+
       if (slotType === 'c') {
-        if (is_set(rowData[0].establishment)) {
-          etab.push(rowData[0].establishment)
-        }
-        if (is_set(rowData[0].highschool)) {
-          etab.push(rowData[0].highschool)
-        }
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.training);
         filteredRows.push('row_event_type', 'row_highschool');
       } else {
-        if (is_set(rowData[0].establishment)) {
-          etab.push(rowData[0].establishment)
-        }
-        if (is_set(rowData[0].highschool)) {
-          etab.push(rowData[0].highschool)
-        }
-        if (is_set(rowData[0].structure)) {
-          etab.push(rowData[0].structure)
-        }
+
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
         if (rowData[0].highschool !== null) {
           $('#modal_myimmersions_slot_details #modal_highschool').html(rowData[0].highschool);
@@ -789,12 +785,16 @@
       });
       // display all row_* elements
       $(displayedRows).show();
+
       if (slotType === 'c') {
         if (is_set(rowData[0].establishment)) {
           etab.push(rowData[0].establishment)
         }
         if (is_set(rowData[0].highschool)) {
           etab.push(rowData[0].highschool)
+        }
+        if (is_set(rowData[0].structure)) {
+          etab.push(rowData[0].structure);
         }
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course_training_label);
         $('#modal_myimmersions_slot_details #row_event_type').hide();
@@ -1122,28 +1122,24 @@
       // display all row_* elements
       $(displayedRows).show();
       $('#modal_register_btn').html('');
-      if (slotType === 'c') {
-        if (is_set(rowData[0].establishment)) {
-          etab.push(rowData[0].establishment)
-        }
 
-        if (is_set(rowData[0].highschool_label)) {
-          etab.push(rowData[0].highschool)
-        }
+      if (is_set(rowData[0].establishment)) {
+        etab.push(rowData[0].establishment)
+      }
+      if (is_set(rowData[0].highschool)) {
+        etab.push(rowData[0].highschool)
+      }
+      if (is_set(rowData[0].structure)) {
+        etab.push(rowData[0].structure);
+      }
+
+      if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.label);
         filteredRows.push('row_highschool');
       } else {
-        if (is_set(rowData[0].establishment)) {
-          etab.push(rowData[0].establishment)
-        }
-        if (is_set(rowData[0].highschool)) {
-          etab.push(rowData[0].highschool)
-        }
-        if (is_set(rowData[0].structure)) {
-          etab.push(rowData[0].structure_label)
-        }
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
       }
+
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
