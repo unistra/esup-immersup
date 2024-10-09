@@ -1498,7 +1498,7 @@ def course_slot_mass_update(request):
                 #FIXME: should the following part be in forms.py instead of this view ?
                 updates = {}
 
-                # Check field updates and store new values (not m2m)
+                # Check field updates and store new values (not m2m) if "update" has been selected
                 for field in fields + m2ms:
                     if request.POST.get(f"mass_{field}", "keep") == "update":
                         has_updates = True
@@ -1534,7 +1534,6 @@ def course_slot_mass_update(request):
                             # Check mandatory fields and m2m => blocking errors
                             for m_field in mandatory_fields:
                                 if not getattr(slot, m_field):
-                                    print(f"getattr: {getattr(slot, m_field)} => {m_field} value is missing for slot {slot} (published: {slot.published})")
                                     errors_slots_set.add(slot_id)
                                     errors.append(gettext(
                                         "Published slot '%s' has missing required fields : not updated" % slot
@@ -1550,20 +1549,60 @@ def course_slot_mass_update(request):
                             if slot_id not in errors_slots_set:
                                 # Check group and individual registrations related fields
                                 allow_individual_registrations = mass_update_form.cleaned_data.get("allow_individual_registrations")
+                                update_allow_individual_registrations = request.POST.get(
+                                    "mass_allow_individual_registrations", "keep"
+                                ) == "update"
+
                                 allow_group_registrations = mass_update_form.cleaned_data.get("allow_group_registrations")
+                                update_allow_group_registrations = request.POST.get(
+                                    "mass_allow_group_registrations", "keep"
+                                ) == "update"
+
                                 group_mode = mass_update_form.cleaned_data.get("group_mode")
+                                update_group_mode = request.POST.get("mass_group_mode", "keep") == "update"
+
                                 n_places = mass_update_form.cleaned_data.get("n_places")
+                                update_n_places = request.POST.get("mass_n_places", "keep") == "update"
                                 n_group_places = mass_update_form.cleaned_data.get("n_group_places")
+                                update_n_group_places = request.POST.get("mass_n_group_places", "keep") == "update"
+
                                 establishments_restrictions = mass_update_form.cleaned_data.get("establishments_restrictions")
                                 levels_restrictions = mass_update_form.cleaned_data.get("levels_restrictions")
                                 bachelors_restrictions = mass_update_form.cleaned_data.get("bachelors_restrictions")
 
+                                disable_group_registrations = (
+                                        update_allow_group_registrations and not allow_group_registrations
+                                )
+                                enable_group_registrations = (
+                                        update_allow_group_registrations and allow_group_registrations
+                                )
+                                disable_individual_registrations = (
+                                        update_allow_individual_registrations and not allow_individual_registrations
+                                )
+                                enable_individual_registrations = (
+                                        update_allow_individual_registrations and allow_individual_registrations
+                                )
 
-                                if allow_group_registrations:
-                                    registered = slot.registered_groups_people_count()
+                                # Check mutual individual / group registrations : one should always be allowed
+                                lock_cases = [
+                                    not slot.allow_individual_registrations and not enable_individual_registrations
+                                    and disable_group_registrations,
+                                    not slot.allow_group_registrations and not enable_group_registrations
+                                    and disable_individual_registrations
+                                ]
 
-                                    if not allow_individual_registrations \
-                                        and slot.immersions.filter(cancellation_type__isnull=True).count():
+                                if any(lock_cases):
+                                    exception_fields += ["allow_individual_registrations", "allow_group_registrations"]
+                                    errors.append(
+                                        gettext(
+                                            """Some slots have not been updated because at least one of individual """
+                                            """/ cohort registrations must be enabled."""
+                                        )
+                                    )
+
+                                if update_allow_individual_registrations:
+                                    registered_count = slot.immersions.filter(cancellation_type__isnull=True).count()
+                                    if not allow_individual_registrations and registered_count:
                                         exception_fields.append("allow_individual_registrations")
                                         errors.append(
                                             gettext(
@@ -1572,8 +1611,19 @@ def course_slot_mass_update(request):
                                             )
                                         )
 
-                                    if not allow_group_registrations \
-                                        and slot.group_immersions.filter(cancellation_type__isnull=True).count():
+                                    elif allow_individual_registrations:
+                                        if update_n_places and n_places < registered_count:
+                                            exception_fields.append("n_places")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots individual places have not been updated because they """
+                                                """already have more registered people"""
+                                            )
+                                        )
+
+                                if update_allow_group_registrations:
+                                    registered_groups = slot.group_immersions.filter(cancellation_type__isnull=True).count()
+                                    if not allow_group_registrations and registered_groups:
                                         exception_fields.append("allow_group_registrations")
                                         errors.append(
                                             gettext(
@@ -1582,34 +1632,27 @@ def course_slot_mass_update(request):
                                             )
                                         )
 
-                                    if group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
-                                        exception_fields.append("group_mode")
-                                        errors.append(
-                                            gettext(
-                                                """Some slots group mode have not been updated because they """
-                                                """have already more than one registered groups"""
-                                            )
-                                        )
+                                    elif allow_group_registrations:
+                                        registered = slot.registered_groups_people_count()
 
-                                    if n_group_places:
-                                        if n_group_places < (registered['students'] + registered['guides']):
-                                            exception_fields.append("n_group_places")
+                                        if update_group_mode and group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
+                                            exception_fields.append("group_mode")
                                             errors.append(
                                                 gettext(
-                                                    """Some slots group places have not been updated because they """
-                                                    """already have more registered people"""
+                                                    """Some slots group mode have not been updated because they """
+                                                    """have already more than one registered groups"""
                                                 )
                                             )
 
-                                if n_places:
-                                    if n_places < slot.immersions.filter(cancellation_type__isnull=True).count():
-                                        exception_fields.append("n_places")
-                                        errors.append(
-                                            gettext(
-                                                """Some slots individual places have not been updated because they """
-                                                """already have more registered people"""
-                                            )
-                                        )
+                                        if update_n_group_places:
+                                            if n_group_places < (registered['students'] + registered['guides']):
+                                                exception_fields.append("n_group_places")
+                                                errors.append(
+                                                    gettext(
+                                                        """Some slots group places have not been updated because they """
+                                                        """already have more registered people"""
+                                                    )
+                                                )
 
                                 # M2M updates
 
