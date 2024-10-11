@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 11:32+0200\n"
+"POT-Creation-Date: 2024-10-10 09:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,7 +127,7 @@ msgstr "formation"
 #: immersionlyceens/apps/api/views.py:2538
 #: immersionlyceens/apps/api/views.py:3183
 #: immersionlyceens/apps/api/views.py:3224
-#: immersionlyceens/libs/mails/variables_parser.py:601
+#: immersionlyceens/libs/mails/variables_parser.py:607
 msgid "course"
 msgstr "cours"
 
@@ -232,7 +232,7 @@ msgstr "heure de fin"
 #: immersionlyceens/apps/api/views.py:3339
 #: immersionlyceens/apps/api/views.py:3376
 #: immersionlyceens/apps/api/views.py:3476
-#: immersionlyceens/libs/mails/variables_parser.py:590
+#: immersionlyceens/libs/mails/variables_parser.py:596
 msgid "campus"
 msgstr "campus"
 
@@ -254,7 +254,7 @@ msgstr "campus"
 #: immersionlyceens/apps/api/views.py:3340
 #: immersionlyceens/apps/api/views.py:3377
 #: immersionlyceens/apps/api/views.py:3477
-#: immersionlyceens/libs/mails/variables_parser.py:591
+#: immersionlyceens/libs/mails/variables_parser.py:597
 msgid "building"
 msgstr "bâtiment"
 
@@ -2780,7 +2780,7 @@ msgstr "Vous ne pouvez pas paramétrer de date dans le passé"
 
 #: immersionlyceens/apps/core/forms.py:743
 #: immersionlyceens/apps/core/forms.py:762
-#: immersionlyceens/apps/core/views.py:2286
+#: immersionlyceens/apps/core/views.py:2329
 msgid "Event published"
 msgstr "Évènement publié"
 
@@ -5220,7 +5220,7 @@ msgstr "Veuillez d'abord créer une année universitaire active."
 
 #: immersionlyceens/apps/core/views.py:135
 #: immersionlyceens/apps/core/views.py:1221
-#: immersionlyceens/apps/core/views.py:2192
+#: immersionlyceens/apps/core/views.py:2235
 msgid "This slot belongs to another structure"
 msgstr "Ce créneau appartient à une autre structure"
 
@@ -5314,7 +5314,7 @@ msgid "Course slot not created."
 msgstr "Créneau de cours non créé."
 
 #: immersionlyceens/apps/core/views.py:1223
-#: immersionlyceens/apps/core/views.py:2194
+#: immersionlyceens/apps/core/views.py:2237
 msgid "Slot not found"
 msgstr "Créneau non trouvé"
 
@@ -5324,13 +5324,13 @@ msgid "Course slot \"%s\" updated."
 msgstr "Créneau de cours \"%s\" mis à jour."
 
 #: immersionlyceens/apps/core/views.py:1351
-#: immersionlyceens/apps/core/views.py:2310
+#: immersionlyceens/apps/core/views.py:2353
 #, python-format
 msgid "Notifications have been sent (%s)"
 msgstr "Notifications envoyées (%s)"
 
 #: immersionlyceens/apps/core/views.py:1356
-#: immersionlyceens/apps/core/views.py:2315
+#: immersionlyceens/apps/core/views.py:2358
 msgid "{} error(s) occurred :"
 msgstr "{} erreur(s) :"
 
@@ -5339,13 +5339,21 @@ msgstr "{} erreur(s) :"
 msgid "Course slot \"%s\" not updated."
 msgstr "Échec de la mise jour du créneau de cours \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1540
-#: immersionlyceens/apps/core/views.py:1547
+#: immersionlyceens/apps/core/views.py:1539
+#: immersionlyceens/apps/core/views.py:1546
 #, python-format
 msgid "Published slot '%s' has missing required fields : not updated"
 msgstr "Champs non remplis pour le créneau publié '%s' : pas de mise à jour"
 
-#: immersionlyceens/apps/core/views.py:1570
+#: immersionlyceens/apps/core/views.py:1598
+msgid ""
+"Some slots have not been updated because at least one of individual / cohort "
+"registrations must be enabled."
+msgstr ""
+"Des créneaux n'ont pas été modifiés car aucun mode d'inscription (individuelles / "
+" groupes) n'est activé."
+
+#: immersionlyceens/apps/core/views.py:1609
 msgid ""
 "Some slots individual registrations have not been disabled because "
 "immersions already exist"
@@ -5353,31 +5361,7 @@ msgstr ""
 "Les créneaux individuels n'ont pas été désactivés sur certains créneaux car "
 "des personnes sont déjà inscrites."
 
-#: immersionlyceens/apps/core/views.py:1580
-msgid ""
-"Some slots group registrations have not been disabled because group "
-"immersions already exist"
-msgstr ""
-"Les créneaux de groupes n'ont pas été désactivés sur certains créneaux car "
-"des groupes sont déjà inscrits."
-
-#: immersionlyceens/apps/core/views.py:1589
-msgid ""
-"Some slots group mode have not been updated because they have already more "
-"than one registered groups"
-msgstr ""
-"Le mode de gestion des groupes n'a pas été mis à jour sur certains créneaux "
-"car plusieurs groupes sont déjà inscrits."
-
-#: immersionlyceens/apps/core/views.py:1599
-msgid ""
-"Some slots group places have not been updated because they already have more "
-"registered people"
-msgstr ""
-"Les places réservées aux groupes n'ont pas été mises à jour sur certains "
-"créneaux car le nombre de personnes inscrites est supérieur."
-
-#: immersionlyceens/apps/core/views.py:1609
+#: immersionlyceens/apps/core/views.py:1619
 msgid ""
 "Some slots individual places have not been updated because they already have "
 "more registered people"
@@ -5385,40 +5369,64 @@ msgstr ""
 "Les places individuelles n'ont pas été mises à jour sur certains créneaux "
 "car le nombre de personnes inscrites est supérieur."
 
-#: immersionlyceens/apps/core/views.py:1832
+#: immersionlyceens/apps/core/views.py:1630
+msgid ""
+"Some slots group registrations have not been disabled because group "
+"immersions already exist"
+msgstr ""
+"Les créneaux de groupes n'ont pas été désactivés sur certains créneaux car "
+"des groupes sont déjà inscrits."
+
+#: immersionlyceens/apps/core/views.py:1642
+msgid ""
+"Some slots group mode have not been updated because they have already more "
+"than one registered groups"
+msgstr ""
+"Le mode de gestion des groupes n'a pas été mis à jour sur certains créneaux "
+"car plusieurs groupes sont déjà inscrits."
+
+#: immersionlyceens/apps/core/views.py:1652
+msgid ""
+"Some slots group places have not been updated because they already have more "
+"registered people"
+msgstr ""
+"Les places réservées aux groupes n'ont pas été mises à jour sur certains "
+"créneaux car le nombre de personnes inscrites est supérieur."
+
+#: immersionlyceens/apps/core/views.py:1875
 #, python-format
 msgid "Off offer event \"%s\" created."
 msgstr "Évènement hors offre \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:1844
+#: immersionlyceens/apps/core/views.py:1887
 msgid "Off offer event not created."
 msgstr "Évènement hors offre non créé."
 
-#: immersionlyceens/apps/core/views.py:1916
+#: immersionlyceens/apps/core/views.py:1959
 #, python-format
 msgid "Off offer event \"%s\" updated."
 msgstr "Évènement hors offre \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1930
+#: immersionlyceens/apps/core/views.py:1973
 #, python-format
 msgid "Off offer event \"%s\" not updated."
 msgstr "Échec de la mise à jour de l'évènement hors offre \"%s\""
 
-#: immersionlyceens/apps/core/views.py:2170
+#: immersionlyceens/apps/core/views.py:2213
 #, python-format
 msgid "Event slot \"%s\" created."
 msgstr "Créneau d'évènement \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:2177
+#: immersionlyceens/apps/core/views.py:2220
 msgid "Event slot not created."
 msgstr "Créneau d'évènement non créé."
 
-#: immersionlyceens/apps/core/views.py:2275
+#: immersionlyceens/apps/core/views.py:2318
 #, python-format
 msgid "Event slot \"%s\" updated."
 msgstr "Créneau d'évènement \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:2322
+#: immersionlyceens/apps/core/views.py:2365
 #, python-format
 msgid "Event slot \"%s\" not updated."
 msgstr "Échec de la mise jour du créneau d'évènement \"%s\"."
@@ -6216,7 +6224,7 @@ msgid "LDAP plugin setting '%s' not found"
 msgstr "Le paramètre '%s' de l'extension LDAP n'a pas été trouvé"
 
 #: immersionlyceens/libs/mails/variables_parser.py:96
-#: immersionlyceens/libs/mails/variables_parser.py:683
+#: immersionlyceens/libs/mails/variables_parser.py:689
 msgid "not set"
 msgstr "non définie"
 
@@ -6251,37 +6259,37 @@ msgctxt "slot data"
 msgid "None"
 msgstr "Aucune"
 
-#: immersionlyceens/libs/mails/variables_parser.py:477
+#: immersionlyceens/libs/mails/variables_parser.py:483
 msgid "unknown"
 msgstr "inconnu"
 
-#: immersionlyceens/libs/mails/variables_parser.py:539
+#: immersionlyceens/libs/mails/variables_parser.py:545
 #: immersionlyceens/templates/core/common_hs_slots_list.html:187
 #: immersionlyceens/templates/core/common_slots_list.html:203
 msgid "None"
 msgstr "Aucun"
 
-#: immersionlyceens/libs/mails/variables_parser.py:592
+#: immersionlyceens/libs/mails/variables_parser.py:598
 msgid "room"
 msgstr "salle"
 
-#: immersionlyceens/libs/mails/variables_parser.py:594
+#: immersionlyceens/libs/mails/variables_parser.py:600
 msgid "remote slot"
 msgstr "créneau à distance"
 
-#: immersionlyceens/libs/mails/variables_parser.py:599
+#: immersionlyceens/libs/mails/variables_parser.py:605
 msgid "event"
 msgstr "évènement"
 
-#: immersionlyceens/libs/mails/variables_parser.py:608
+#: immersionlyceens/libs/mails/variables_parser.py:614
 #: immersionlyceens/templates/core/common_slot.html:94
 #: immersionlyceens/templates/core/course.html:56
 #: immersionlyceens/templates/core/off_offer_event.html:62
 msgid "high school"
 msgstr "Lycée"
 
-#: immersionlyceens/libs/mails/variables_parser.py:633
-#: immersionlyceens/libs/mails/variables_parser.py:640
+#: immersionlyceens/libs/mails/variables_parser.py:639
+#: immersionlyceens/libs/mails/variables_parser.py:646
 msgid "Link improperly configured"
 msgstr "Lien non renseigné"
 
