@@ -392,6 +392,15 @@ class ImmersionUser(AbstractUser):
     Main user class
     """
 
+    # User preferences with descriptions and default values
+    PREFERENCES = {
+        'RECEIVE_REGISTERED_STUDENTS_LIST': {
+            'description': gettext('Receive a list of students registered to my slots'),
+            'type': 'boolean',
+            'value': False
+        },
+    }
+
     _user_filters = [
         lambda has_group, su: has_group or su,
         lambda has_group, su: has_group and not su,
@@ -454,9 +463,36 @@ class ImmersionUser(AbstractUser):
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
     creation_email_sent = models.BooleanField(_("Creation email sent"), blank=True, null=True, default=False)
+    preferences = models.JSONField(
+        _("User preferences"),
+       blank=True,
+       null=True,
+       default=dict,
+       validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
+    )
 
     def __str__(self):
         return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
+
+    def get_preference(self, name, default):
+        """
+        :param name: name of the preference setting
+        :param default: value tu return if setting does not exist
+        :return: the stored value or default value
+        """
+        try:
+            return self.preferences[name]
+        except KeyError:
+            return default
+
+    def set_preference(self, name, value):
+        """
+        :param name: name of the preference setting
+        :param default: value tu return if setting does not exist
+        :return: the stored value or default value
+        """
+        self.preferences[name] = value
+        return
 
     def has_groups(self, *groups, negated=False):
         """
@@ -928,6 +964,35 @@ class ImmersionUser(AbstractUser):
         verbose_name = _('User')
         ordering = ['last_name', 'first_name', ]
 
+"""
+class ImmersionUserPreference(models.Model):
+    #User settings
+    #Reuse general_settings.json schema as the format is the same
+    setting = models.CharField(_("Setting name"), max_length=128, unique=True)
+    parameters = models.JSONField(
+        _("Setting configuration"),
+        blank=False,
+        default=dict,
+        validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
+    )
+
+    @classmethod
+    def get_user_setting(cls, name:str):
+        try:
+            return cls.objects.get(setting__iexact=name).parameters["value"]
+        except (cls.DoesNotExist, KeyError) as e:
+            raise Exception(
+                _("User setting '%s' is missing or incorrect. Please check your settings.") % name
+            ) from e
+
+    def __str__(self) -> str:
+        return str(self.setting)
+
+    class Meta:
+        verbose_name = _('User preference setting')
+        verbose_name_plural = _('User preferences settings')
+        ordering = ['setting', ]
+"""
 
 class ImmersionUserGroup(models.Model):
     """
@@ -3066,6 +3131,7 @@ class ImmersionGroupRecord(models.Model):
     class Meta:
         verbose_name = _('Group immersion')
         verbose_name_plural = _('Group immersions')
+
 
 class GeneralSettings(models.Model):
     """

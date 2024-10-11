@@ -113,4 +113,5 @@ urlpatterns = [
         views.HighSchoolCohortsRegistrations.as_view(),
         name='highschool_cohorts_registrations'
     ),
+    path('preferences', views.user_preferences, name='user_preferences'),
 ]

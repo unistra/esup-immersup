@@ -983,7 +983,7 @@ class OffOfferEventForm(forms.ModelForm):
                         username=speaker['email'],
                         last_name=speaker['lastname'],
                         first_name=speaker['firstname'],
-                        email=speaker['email'],
+                            email=speaker['email'],
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['email']))
@@ -1029,3 +1029,13 @@ class OffOfferEventForm(forms.ModelForm):
     class Meta:
         model = OffOfferEvent
         fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool')
+
+
+class UserPreferencesForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, setting in ImmersionUser.PREFERENCES.items():
+            if setting['type'] == 'boolean':
+                self.fields[name] = forms.BooleanField(label=setting['description'], required=False)
+                # self.fields[name].widget.attrs.update({'class': 'form-check-input'})

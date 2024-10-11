@@ -36,7 +36,7 @@ from .admin_forms import (
 from .forms import (
     ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
     MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
-    SlotMassUpdateForm, StructureForm, TrainingFormHighSchool
+    SlotMassUpdateForm, StructureForm, TrainingFormHighSchool, UserPreferencesForm
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
@@ -2395,6 +2395,37 @@ def charter(request):
     }
 
     return render(request, 'core/charter.html', context)
+
+
+@groups_required('REF-LYC')
+def user_preferences(request):
+    """
+    High school managers (for now) preferences
+    """
+    user = request.user
+
+    if not request.POST:
+        initials = { k:user.get_preference(k, v['value']) for k,v in ImmersionUser.PREFERENCES.items() }
+        form = UserPreferencesForm(initial=initials)
+    else:
+        form = UserPreferencesForm(request.POST)
+
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+
+            print(f"cleaned data : {cleaned_data}")
+
+            for setting_name, value in cleaned_data.items():
+                user.preferences[setting_name] = value
+
+            user.save()
+            messages.success(request, gettext("Settings successfully saved."))
+
+    context = {
+        'form': form
+    }
+
+    return render(request, 'core/user_preferences.html', context)
 
 
 @groups_required('REF-STR')
