@@ -964,35 +964,6 @@ class ImmersionUser(AbstractUser):
         verbose_name = _('User')
         ordering = ['last_name', 'first_name', ]
 
-"""
-class ImmersionUserPreference(models.Model):
-    #User settings
-    #Reuse general_settings.json schema as the format is the same
-    setting = models.CharField(_("Setting name"), max_length=128, unique=True)
-    parameters = models.JSONField(
-        _("Setting configuration"),
-        blank=False,
-        default=dict,
-        validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
-    )
-
-    @classmethod
-    def get_user_setting(cls, name:str):
-        try:
-            return cls.objects.get(setting__iexact=name).parameters["value"]
-        except (cls.DoesNotExist, KeyError) as e:
-            raise Exception(
-                _("User setting '%s' is missing or incorrect. Please check your settings.") % name
-            ) from e
-
-    def __str__(self) -> str:
-        return str(self.setting)
-
-    class Meta:
-        verbose_name = _('User preference setting')
-        verbose_name_plural = _('User preferences settings')
-        ordering = ['setting', ]
-"""
 
 class ImmersionUserGroup(models.Model):
     """

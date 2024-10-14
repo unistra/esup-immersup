@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Send a reminder to structures referents for upcoming slots in N weeks
-This command is meant to be run on sunday
+This command is made to be run once a week (any day)
 """
 import datetime
 import logging
