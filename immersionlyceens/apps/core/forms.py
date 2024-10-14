@@ -388,7 +388,8 @@ class SlotForm(forms.ModelForm):
                 )
 
             # Can't set n_places lower than actual immersions
-            if allow_individual_registrations and n_places and n_places < self.instance.immersions.count():
+            if (allow_individual_registrations and n_places
+                    and n_places < self.instance.immersions.filter(cancellation_type__isnull=True).count()):
                 self.add_error(
                     'n_places',
                     _("You can't set places value lower than actual individual immersions")
