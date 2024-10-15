@@ -61,13 +61,6 @@ class Command(BaseCommand, Schedulable):
                     if msg:
                         returns.append(msg)
 
-                highschool = slot.get_highschool()
-
-                if highschool:
-                    for manager in highschool.users.filter(groups__name='REF-LYC'):
-                        if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
-                            manager.send_message(None, "IMMERSION_RAPPEL_INT", slot=slot)
-
                 # Structures managers
                 slot_structure = slot.get_structure()
 
