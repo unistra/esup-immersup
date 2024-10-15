@@ -392,6 +392,15 @@ class ImmersionUser(AbstractUser):
     Main user class
     """
 
+    # User preferences with descriptions and default values
+    PREFERENCES = {
+        'RECEIVE_REGISTERED_STUDENTS_LIST': {
+            'description': gettext('Receive a list of students registered to my slots'),
+            'type': 'boolean',
+            'value': False
+        },
+    }
+
     _user_filters = [
         lambda has_group, su: has_group or su,
         lambda has_group, su: has_group and not su,
@@ -454,9 +463,36 @@ class ImmersionUser(AbstractUser):
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
     creation_email_sent = models.BooleanField(_("Creation email sent"), blank=True, null=True, default=False)
+    preferences = models.JSONField(
+        _("User preferences"),
+       blank=True,
+       null=True,
+       default=dict,
+       validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
+    )
 
     def __str__(self):
         return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
+
+    def get_preference(self, name, default):
+        """
+        :param name: name of the preference setting
+        :param default: value tu return if setting does not exist
+        :return: the stored value or default value
+        """
+        try:
+            return self.preferences[name]
+        except KeyError:
+            return default
+
+    def set_preference(self, name, value):
+        """
+        :param name: name of the preference setting
+        :param default: value tu return if setting does not exist
+        :return: the stored value or default value
+        """
+        self.preferences[name] = value
+        return
 
     def has_groups(self, *groups, negated=False):
         """
@@ -3073,6 +3109,7 @@ class ImmersionGroupRecord(models.Model):
     class Meta:
         verbose_name = _('Group immersion')
         verbose_name_plural = _('Group immersions')
+
 
 class GeneralSettings(models.Model):
     """

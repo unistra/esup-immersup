@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Send a reminder to structures referents for upcoming slots in N weeks
-This command is meant to be run on sunday
+This command is made to be run once a week (any day)
 """
 import datetime
 import logging
@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Structure, Immersion, Slot, Vacation
+from ...models import HighSchool, Immersion, Slot, Structure, Vacation
 from . import Schedulable
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,38 @@ class Command(BaseCommand, Schedulable):
                         msg = _("Cannot send components slot reminder to %s : %s") % (referent.email, msg)
                         returns.append(msg)
 
+        # Do the same for High school managers
+        highschools = HighSchool.objects.filter(active=True, postbac_immersion=True)
+
+        for highschool in highschools:
+            slot_list = [
+                s for s in Slot.objects.prefetch_related("course__highschool", "event__highschool")
+                .filter(
+                    Q(course__highschool=highschool) | Q(event__highschool=highschool),
+                    date__gte=slot_min_date,
+                    date__lte=slot_max_date,
+                    published=True
+                ).order_by('date', 'start_time')
+            ]
+
+            logger.debug(f"======= High school : {highschool}")
+
+            for s in slot_list:
+                logger.debug(s.__dict__)
+
+            if slot_list:
+                # Get high school managers
+                # Check the message preferences (False by default)
+                # Send the same message template
+                for manager in highschool.users.filter(groups__name='REF-LYC'):
+                    if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                        msg = manager.send_message(None, "RAPPEL_STRUCTURE", slot_list=slot_list)
+
+                        if msg:
+                            msg = _("Cannot send high school manager slot reminder to %s : %s") % (manager.email, msg)
+                            returns.append(msg)
+
+        # Format and return the errors to the cron master
         if returns:
             for line in returns:
                 logger.error(line)
