@@ -804,9 +804,7 @@ class MyHighSchoolForm(HighSchoolForm):
             'head_teacher_name',
             'postbac_immersion',
             'mailing_list',
-            'uses_agent_federation',
-            'uses_student_federation',
-            'uai_codes'
+
         ]
 
 

@@ -1498,7 +1498,7 @@ class HighSchoolForm(forms.ModelForm):
                     })
 
         # Student identity federation (educonnect) : test only when setting is in use
-        if educonnect_federation_setting:
+        if educonnect_federation_setting and 'uses_student_federation' in cleaned_data:
             if (self.instance.pk and self.instance.student_records.exists()
                 and uses_student_federation != self.instance.uses_student_federation):
                 raise forms.ValidationError({
