@@ -1500,7 +1500,7 @@ def course_slot_mass_update(request):
 
                 # Check field updates and store new values (not m2m) if "update" has been selected
                 for field in fields + m2ms:
-                    if request.POST.get(f"mass_{field}", "keep") == "update":
+                    if mass_update_form.cleaned_data.get(f"mass_{field}", "keep") == "update":
                         has_updates = True
 
                         if field not in m2ms:
@@ -1510,11 +1510,14 @@ def course_slot_mass_update(request):
                 # Published flag
                 # if True, check that all required fields are set for each selected slot
                 published = mass_update_form.cleaned_data.get("published")
-                mass_update_published = request.POST.get(f"mass_published", "keep") == "update"
-                update_establishments_restrictions = request.POST.get(f"mass_establishments_restrictions", "keep") == "update"
-                update_levels_restrictions = request.POST.get(f"mass_levels_restrictions", "keep") == "update"
-                update_bachelors_restrictions = request.POST.get(f"mass_bachelors_restrictions", "keep") == "update"
-                update_speakers = request.POST.get(f"mass_speakers", "keep") == "update"
+                mass_update_published = mass_update_form.cleaned_data.get("mass_published", "keep") == "update"
+                update_establishments_restrictions = mass_update_form.cleaned_data.get(
+                    "mass_establishments_restrictions", "keep") == "update"
+                update_levels_restrictions = mass_update_form.cleaned_data.get(
+                    "mass_levels_restrictions", "keep") == "update"
+                update_bachelors_restrictions = mass_update_form.cleaned_data.get(
+                    "mass_bachelors_restrictions", "keep") == "update"
+                update_speakers = mass_update_form.cleaned_data.get(f"mass_speakers", "keep") == "update"
 
                 if published and mass_update_published:
                     mandatory_fields = ['start_time', 'end_time', 'course_type', 'room']
@@ -1549,24 +1552,29 @@ def course_slot_mass_update(request):
                             if slot_id not in errors_slots_set:
                                 # Check group and individual registrations related fields
                                 allow_individual_registrations = mass_update_form.cleaned_data.get("allow_individual_registrations")
-                                update_allow_individual_registrations = request.POST.get(
+                                update_allow_individual_registrations = mass_update_form.cleaned_data.get(
                                     "mass_allow_individual_registrations", "keep"
                                 ) == "update"
 
                                 allow_group_registrations = mass_update_form.cleaned_data.get("allow_group_registrations")
-                                update_allow_group_registrations = request.POST.get(
+                                update_allow_group_registrations = mass_update_form.cleaned_data.get(
                                     "mass_allow_group_registrations", "keep"
                                 ) == "update"
 
                                 group_mode = mass_update_form.cleaned_data.get("group_mode")
-                                update_group_mode = request.POST.get("mass_group_mode", "keep") == "update"
+                                update_group_mode = mass_update_form.cleaned_data.get(
+                                    "mass_group_mode", "keep") == "update"
 
                                 n_places = mass_update_form.cleaned_data.get("n_places")
-                                update_n_places = request.POST.get("mass_n_places", "keep") == "update"
+                                update_n_places = mass_update_form.cleaned_data.get(
+                                    "mass_n_places", "keep") == "update"
                                 n_group_places = mass_update_form.cleaned_data.get("n_group_places")
-                                update_n_group_places = request.POST.get("mass_n_group_places", "keep") == "update"
+                                update_n_group_places = mass_update_form.cleaned_data.get(
+                                    "mass_n_group_places", "keep") == "update"
 
-                                establishments_restrictions = mass_update_form.cleaned_data.get("establishments_restrictions")
+                                establishments_restrictions = mass_update_form.cleaned_data.get(
+                                    "establishments_restrictions"
+                                )
                                 levels_restrictions = mass_update_form.cleaned_data.get("levels_restrictions")
                                 bachelors_restrictions = mass_update_form.cleaned_data.get("bachelors_restrictions")
 

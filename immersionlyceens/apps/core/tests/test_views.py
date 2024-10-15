@@ -1519,6 +1519,8 @@ class CoreViewsTestCase(TestCase):
             published=True
         )
 
+        published_slot.speakers.add(self.speaker1)
+
         unpublished_slot = Slot.objects.create(
             course=self.course,
             course_type=self.course_type,
@@ -1528,6 +1530,8 @@ class CoreViewsTestCase(TestCase):
             n_places=20,
             published=False
         )
+
+        unpublished_slot.speakers.add(self.speaker1)
 
         self.assertTrue(published_slot.published)
         self.assertFalse(unpublished_slot.published)
@@ -1572,19 +1576,14 @@ class CoreViewsTestCase(TestCase):
             'additional_information': '',
             'published': 'on',
             'mass_published': 'update',
+            "speakers": [self.speaker1.id],
         }
 
-        print(f"start : {published_slot.start_time}")
-        print(f"end {published_slot.end_time}")
-        print(f"course_type {published_slot.course_type}")
-        print(f"room {published_slot.room}")
-
         response = self.client.post("/core/slot_mass_update", data, follow=True)
-        # print(response.content.decode('utf-8'))
 
         published_slot.refresh_from_db()
         unpublished_slot.refresh_from_db()
 
         self.assertEqual(published_slot.room, 'New room')
-        self.assertEqual(unpublished_slot.room, 'room 1')
-        self.assertFalse(unpublished_slot.published, 'room 1')
+        self.assertEqual(unpublished_slot.room, 'room 2')
+        self.assertFalse(unpublished_slot.published)
