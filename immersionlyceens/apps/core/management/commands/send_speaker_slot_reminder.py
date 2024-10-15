@@ -82,6 +82,23 @@ class Command(BaseCommand, Schedulable):
                             if msg:
                                 returns.append(msg)
 
+                # High school managers if it's a high school slot (course or event)
+                highschool = slot.get_highschool()
+
+                if highschool:
+                    # Get this high school managers
+                    # Check the message preferences (False by default)
+                    # Send the same message template
+                    for manager in highschool.users.filter(groups__name='REF-LYC'):
+                        if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                            msg = manager.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
+
+                            if msg:
+                                msg = _("Cannot send high school manager slot reminder to %s : %s") % (
+                                manager.email, msg)
+                                returns.append(msg)
+
+        # Format and return the errors to the cron master
         if returns:
             for line in returns:
                 logger.error(line)

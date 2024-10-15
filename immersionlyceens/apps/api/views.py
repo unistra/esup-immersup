@@ -699,6 +699,19 @@ def ajax_cancel_registration(request):
                 if slot_structure:
                     for notify in RefStructuresNotificationsSettings.objects.filter(structures=slot_structure):
                         ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
+                        # FIXME : do something if send_message fails
+
+                # High school managers
+                highschool = immersion.slot.get_highschool()
+
+                if highschool:
+                    # Get this high school managers
+                    # Check the message preferences (False by default)
+                    # Send the same message template
+                    for manager in highschool.users.filter(groups__name='REF-LYC'):
+                        if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                            ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                            # FIXME : do something if send_message fails
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
         except Immersion.DoesNotExist:
@@ -2216,6 +2229,19 @@ def ajax_batch_cancel_registration(request):
                     if ret:
                         mail_returns.add(ret)
 
+            # High school managers
+            highschool = slot.get_highschool()
+
+            if highschool:
+                # Get this high school managers
+                # Check the message preferences (False by default)
+                # Send the same message template
+                for manager in highschool.users.filter(groups__name='REF-LYC'):
+                    if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                        ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                        if ret:
+                            mail_returns.add(ret)
+
         # Return warnings and errors
         if cancelled_immersions:
             msg = _("%s immersion(s) cancelled") % cancelled_immersions
@@ -2371,6 +2397,19 @@ def ajax_groups_batch_cancel_registration(request):
                     ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
                     if ret:
                         mail_returns.add(ret)
+
+            # High school managers
+            highschool = slot.get_highschool()
+
+            if highschool:
+                # Get this high school managers
+                # Check the message preferences (False by default)
+                # Send the same message template
+                for manager in highschool.users.filter(groups__name='REF-LYC'):
+                    if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                        ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                        if ret:
+                            mail_returns.add(ret)
 
         # Return warnings and errors
         if cancelled_immersions:
