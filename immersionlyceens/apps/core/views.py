@@ -496,6 +496,8 @@ def my_high_school(request, high_school_id=None):
         if high_school_form.is_valid():
             high_school_form.save()
             context['modified'] = True
+        else:
+            messages.error(request, high_school_form.errors)
     else:
         high_school_form = MyHighSchoolForm(instance=hs, request=request)
 
