@@ -2936,6 +2936,13 @@ class Immersion(models.Model):
     class Meta:
         verbose_name = _('Immersion')
         verbose_name_plural = _('Immersions')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'slot'],
+                name='unique_student_slot',
+                deferrable=models.Deferrable.IMMEDIATE
+            )
+        ]
 
 
 class ImmersionGroupRecord(models.Model):

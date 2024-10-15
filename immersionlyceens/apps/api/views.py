@@ -23,6 +23,7 @@ from django.contrib.auth.models import Group
 from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
+from django.db import transaction
 from django.db.models import (
     BooleanField,
     Case,
@@ -1235,6 +1236,7 @@ def ajax_slot_registration(request):
     training_quota_active = False
     training_quota_count = 0
     available_training_registrations = None
+    send_mail = True
 
     request.session.pop("last_registration_slot", None)
 
@@ -1461,27 +1463,39 @@ def ajax_slot_registration(request):
                 return JsonResponse(response, safe=False)
 
         if can_register:
-            # Cancelled immersion exists : re-register
-            if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
-                student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
-                    cancellation_type=None, attendance_status=0, cancellation_date=None
-                )
-            else:
-                # New registration
-                Immersion.objects.create(
-                    student=student,
-                    slot=slot,
-                    cancellation_type=None,
-                    attendance_status=0,
-                )
-
             error = False
-            ret = student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
-            if not ret:
-                msg = _("Registration successfully added, confirmation email sent")
-            else:
-                msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
-                error = True
+
+            # Transaction should prevent multiple registrations to the same slot within a few milliseconds
+            with transaction.atomic():
+                # Cancelled immersion exists : re-register
+                if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
+                    student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
+                        cancellation_type=None,
+                        attendance_status=0,
+                        cancellation_date=None
+                    )
+                elif not student.immersions.filter(slot=slot).exists():
+                    try:
+                        # New registration
+                        Immersion.objects.create(
+                            student=student,
+                            slot=slot,
+                            cancellation_type=None,
+                            attendance_status=0,
+                        )
+                    except IntegrityError:
+                        # Immersion already exists, should not happen
+                        send_mail = False
+                        error = True
+                        msg = _("Registration to this slot already exists")
+
+            if send_mail:
+                ret = student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
+                if not ret:
+                    msg = _("Registration successfully added, confirmation email sent")
+                else:
+                    msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
+                    error = True
 
             response = {'error': error, 'msg': msg}
 
