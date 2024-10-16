@@ -2862,6 +2862,17 @@ class Slot(models.Model):
     def is_cancellation_limit_date_due(self):
         return self.cancellation_limit_date < timezone.now()
 
+    def get_badge_color(self):
+        establishment_or_highschool = self.get_establishment() or self.get_highschool()
+
+        if establishment_or_highschool:
+            return establishment_or_highschool.badge_html_color
+
+        return "2c2c2c"
+
+    def get_establishment_or_highschool(self):
+        return self.get_establishment() or self.get_highschool()
+
     def save(self, *args, **kwargs):
         """
         Parse registration and cancellation dates based on :
