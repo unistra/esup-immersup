@@ -990,7 +990,7 @@ class CoreViewsTestCase(TestCase):
             'phone_number': '0388888888',
             'email': 'lycee@domain.fr',
             'head_teacher_name': 'Headmaster',
-            'postbac_immersion': True
+            'postbac_immersion': False
         }
 
         response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
@@ -1013,7 +1013,7 @@ class CoreViewsTestCase(TestCase):
         self.high_school.refresh_from_db()
         self.assertTrue(self.high_school.with_convention)
         self.assertEqual(self.high_school.convention_start_date, self.today - datetime.timedelta(days=10))
-        self.assertTrue(self.high_school.convention_end_date, self.today + datetime.timedelta(days=10))
+        self.assertEqual(self.high_school.convention_end_date, self.today + datetime.timedelta(days=10))
 
     def test_my_high_school_speakers(self):
         self.client.login(username='lycref', password='pass')
