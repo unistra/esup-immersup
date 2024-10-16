@@ -12,6 +12,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import QueryDict
 from django.test import Client, RequestFactory, TestCase
+from django.utils import timezone
 
 from ...immersion.models import HighSchoolStudentRecord
 from ..admin_forms import (
@@ -32,7 +33,7 @@ from ..models import (
     EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     Holiday, Immersion, ImmersionGroupRecord, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Training, TrainingDomain, TrainingSubdomain, UAI, UniversityYear, Vacation,
     HigherEducationInstitution
 )
 
@@ -48,7 +49,7 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', ]
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher', 'tests_uai']
 
     @classmethod
     def setUpTestData(cls):
@@ -91,16 +92,27 @@ class FormTestCase(TestCase):
         cls.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
+            address2='empty',
+            address3='empty',
             department=67,
             city='STRASBOURG',
             zip_code=67000,
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=datetime.datetime.today() - datetime.timedelta(days=2),
-            convention_end_date=datetime.datetime.today() + datetime.timedelta(days=2),
+            with_convention=True,
+            convention_start_date=timezone.localdate() - datetime.timedelta(days=2),
+            convention_end_date=timezone.localdate() + datetime.timedelta(days=2),
             signed_charter=True,
+            mailing_list="my-top@mailing-list.fr",
+            uses_agent_federation=True,
+            uses_student_federation=True,
+            active=True,
+            allow_individual_immersions=True,
+            postbac_immersion=False
         )
+
+        cls.high_school.uai_codes.add(UAI.objects.get(pk='0670003P'))
 
         cls.highschool_user = get_user_model().objects.create_user(
             username='hs',
@@ -1015,4 +1027,62 @@ class FormTestCase(TestCase):
         self.assertIn("At least one profile is required", form.errors["__all__"])
 
         self.assertFalse(form.is_valid())
+
+    def test_my_highschool_form_update(self):
+        """
+        Test high school update as a high school manager
+        Some fields should not change
+        """
+        request.user = self.lyc_ref
+        highschool = self.high_school
+
+        data = {
+            'country': 'DE',
+            'address': 'elsewhere',
+            'address2': 'addr2',
+            'address3': 'addr3',
+            'department': '72',
+            'city': 'LE MANS',
+            'zip_code': '72000',
+            'phone_number': '987654321',
+            'fax': '147258369',
+            'email': 'referent@lemans.fr',
+            'head_teacher_name': 'M. Jean Jacques',
+        }
+
+        form = MyHighSchoolForm(data=data, instance=highschool, request=request)
+        # Need to populate choices fields (ajax populated IRL)
+        form.fields['city'].choices = [('LE MANS', 'LE MANS')]
+        form.fields['zip_code'].choices = [('72000', '72100')]
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        highschool.refresh_from_db()
+
+        # Fields that must have changed
+        self.assertEqual(highschool.country, 'DE')
+        self.assertEqual(highschool.address, 'elsewhere')
+        self.assertEqual(highschool.address2, 'addr2')
+        self.assertEqual(highschool.address3, 'addr3')
+        self.assertEqual(highschool.department, '72')
+        self.assertEqual(highschool.city, 'LE MANS')
+        self.assertEqual(highschool.zip_code, '72000')
+        self.assertEqual(highschool.phone_number, '987654321')
+        self.assertEqual(highschool.fax, '147258369')
+        self.assertEqual(highschool.email, 'referent@lemans.fr')
+        self.assertEqual(highschool.head_teacher_name, 'M. Jean Jacques')
+        self.assertEqual(highschool.mailing_list, 'my-top@mailing-list.fr')
+
+        # Fields that must not
+        self.assertEqual(highschool.label, 'HS1')
+        self.assertEqual(highschool.convention_start_date, timezone.localdate() - datetime.timedelta(days=2))
+        self.assertEqual(highschool.convention_end_date, timezone.localdate() + datetime.timedelta(days=2))
+        self.assertEqual(highschool.with_convention, True)
+        self.assertEqual(highschool.uses_agent_federation, True)
+        self.assertEqual(highschool.uses_student_federation, True)
+        self.assertEqual(highschool.active, True)
+        self.assertEqual(highschool.allow_individual_immersions, True)
+        self.assertEqual(highschool.postbac_immersion, False)
+        self.assertEqual(highschool.uai_codes.count(), 1)
+        self.assertEqual(highschool.uai_codes.first(), UAI.objects.get(pk='0670003P'))
 

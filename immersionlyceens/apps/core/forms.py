@@ -795,7 +795,6 @@ class MyHighSchoolForm(HighSchoolForm):
         super().__init__(*args, **kwargs)
 
         for elem in [
-            'label',
             'address',
             'address2',
             'address3',
@@ -806,16 +805,15 @@ class MyHighSchoolForm(HighSchoolForm):
             'email',
             'phone_number',
             'head_teacher_name',
-            'postbac_immersion',
-            'mailing_list'
-
         ]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+    def clean(self):
+        return super(forms.ModelForm, self).clean()
 
     class Meta:
         model = HighSchool
         fields = [
-            'label',
             'country',
             'address',
             'address2',
@@ -827,9 +825,6 @@ class MyHighSchoolForm(HighSchoolForm):
             'email',
             'phone_number',
             'head_teacher_name',
-            'postbac_immersion',
-            'mailing_list',
-
         ]
 
 
