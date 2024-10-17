@@ -710,7 +710,7 @@ def ajax_cancel_registration(request):
                     # Send the same message template
                     for manager in highschool.users.filter(groups__name='REF-LYC'):
                         if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
-                            ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                            ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
                             # FIXME : do something if send_message fails
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
