@@ -1547,8 +1547,8 @@ class CoreViewsTestCase(TestCase):
             'mass_campus': 'keep',
             'building': '',
             'mass_building': 'keep',
-            'room': 'New room',
-            'mass_room': 'update',
+            'room': 'New room', # <== update
+            'mass_room': 'update', # <== 'update all' checked
             'start_time': '',
             'mass_start_time': 'keep',
             'end_time': '',
@@ -1558,14 +1558,14 @@ class CoreViewsTestCase(TestCase):
             'cancellation_limit_delay': '',
             'mass_cancellation_limit_delay': 'keep',
             'mass_speakers': 'keep',
-            'allow_group_registrations': 'on',
+            'allow_group_registrations': True,
             'mass_allow_group_registrations': 'keep',
             'group_mode': '0',
             'mass_group_mode': 'keep',
             'n_group_places': '',
             'mass_n_group_places': 'keep',
             'mass_public_group': 'keep',
-            'allow_individual_registrations': 'on',
+            'allow_individual_registrations': True,
             'mass_allow_individual_registrations': 'keep',
             'n_places': '',
             'mass_n_places': 'keep',
@@ -1574,8 +1574,8 @@ class CoreViewsTestCase(TestCase):
             'mass_bachelors_restrictions': 'keep',
             'mass_additional_information': 'keep',
             'additional_information': '',
-            'published': 'on',
-            'mass_published': 'update',
+            'published': True, # <== enable
+            'mass_published': 'update', # <== 'update all' checked
             "speakers": [self.speaker1.id],
         }
 
@@ -1584,6 +1584,132 @@ class CoreViewsTestCase(TestCase):
         published_slot.refresh_from_db()
         unpublished_slot.refresh_from_db()
 
+        # Published slot : room updated
         self.assertEqual(published_slot.room, 'New room')
+
+        # Unpublished slot : room not updated
         self.assertEqual(unpublished_slot.room, 'room 2')
         self.assertFalse(unpublished_slot.published)
+
+
+    def test_mass_slot_invalid_ops(self):
+        """
+        Test mass slot updates with invalid operations
+        """
+        self.client.login(username='ref_master_etab', password='pass')
+
+        published_slot1 = Slot.objects.create(
+            period=self.period1,
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 1',
+            date=self.today + datetime.timedelta(days=5),
+            start_time=datetime.time(12, 0),
+            end_time=datetime.time(14, 0),
+            n_places=20,
+            n_group_places=20,
+            published=True,
+            allow_individual_registrations=True,
+            allow_group_registrations=True,
+        )
+
+        published_slot2 = Slot.objects.create(
+            period=self.period1,
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 1',
+            date=self.today + datetime.timedelta(days=6),
+            start_time=datetime.time(8, 0),
+            end_time=datetime.time(12, 0),
+            n_places=20,
+            published=True,
+            allow_individual_registrations=True,
+            allow_group_registrations=False,
+        )
+
+        # Try to disable individual registrations on both slots
+        # Also update another field (room) to check that it is updated
+        data = {
+            'place': '0',
+            'mass_slots_list': '{"values":["%s","%s"]}' % (published_slot1.pk, published_slot2.pk),
+            'course_type': '',
+            'mass_course_type': 'keep',
+            'campus': '',
+            'mass_campus': 'keep',
+            'building': '',
+            'mass_building': 'keep',
+            'room': 'New room', # <== update
+            'mass_room': 'update', # 'update all' checked
+            'start_time': '',
+            'mass_start_time': 'keep',
+            'end_time': '',
+            'mass_end_time': 'keep',
+            'registration_limit_delay': '',
+            'mass_registration_limit_delay': 'keep',
+            'cancellation_limit_delay': '',
+            'mass_cancellation_limit_delay': 'keep',
+            'allow_group_registrations': True,
+            'mass_allow_group_registrations': 'keep',
+            'group_mode': '0',
+            'mass_group_mode': 'keep',
+            'n_group_places': '',
+            'mass_n_group_places': 'keep',
+            'public_group': True,
+            'mass_public_group': 'keep',
+            'allow_individual_registrations': False, # <== disable
+            'mass_allow_individual_registrations': 'update', # <== 'update all' checked
+            'n_places': '',
+            'mass_n_places': 'keep',
+            'mass_establishments_restrictions': 'keep',
+            'mass_levels_restrictions': 'keep',
+            'mass_bachelors_restrictions': 'keep',
+            'mass_additional_information': 'keep',
+            'additional_information': '',
+            'published': True,
+            'mass_published': 'keep',
+            'mass_speakers': 'update',
+            "speakers": [self.speaker1.id],
+        }
+
+        response = self.client.post("/core/slot_mass_update", data, follow=True)
+
+        published_slot1.refresh_from_db()
+        published_slot2.refresh_from_db()
+
+        # published_slot1 : success because group registrations are still on
+        self.assertFalse(published_slot1.allow_individual_registrations)
+        self.assertTrue(published_slot1.allow_group_registrations)
+        self.assertEqual(published_slot1.room, 'New room')
+        self.assertEqual(published_slot1.speakers.count(), 1)
+
+        # published_slot2 : fail, one of individual/group registrations must be enabled
+        self.assertTrue(published_slot2.allow_individual_registrations)
+        self.assertFalse(published_slot2.allow_group_registrations)
+        # Check that other fields have been updated
+        self.assertEqual(published_slot2.room, 'New room')
+        self.assertEqual(published_slot2.speakers.count(), 1)
+
+        # Try to disable group registrations (do not try to re-update other items)
+        data.update({
+            'mass_allow_individual_registrations': 'keep',
+            'mass_speakers': 'keep',
+            'mass_room': 'keep',
+            'allow_group_registrations': False,
+            'mass_allow_group_registrations': 'update',
+        })
+
+        response = self.client.post("/core/slot_mass_update", data, follow=True)
+        published_slot1.refresh_from_db()
+        published_slot2.refresh_from_db()
+
+        # published_slot1 : fail (=no change) because individual registrations have been disabled above
+        self.assertFalse(published_slot1.allow_individual_registrations)
+        self.assertTrue(published_slot1.allow_group_registrations)
+
+        # published_slot2 : no change
+        self.assertTrue(published_slot2.allow_individual_registrations)
+        self.assertFalse(published_slot2.allow_group_registrations)
