@@ -1676,6 +1676,7 @@ class CoreViewsTestCase(TestCase):
         }
 
         response = self.client.post("/core/slot_mass_update", data, follow=True)
+        content = response.content.decode('utf-8')
 
         published_slot1.refresh_from_db()
         published_slot2.refresh_from_db()
@@ -1693,6 +1694,9 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(published_slot2.room, 'New room')
         self.assertEqual(published_slot2.speakers.count(), 1)
 
+        self.assertIn("""Some slots have not been updated because at least one of individual """
+                      """/ cohort registrations must be enabled.""", content)
+
         # Try to disable group registrations (do not try to re-update other items)
         data.update({
             'mass_allow_individual_registrations': 'keep',
@@ -1703,6 +1707,8 @@ class CoreViewsTestCase(TestCase):
         })
 
         response = self.client.post("/core/slot_mass_update", data, follow=True)
+        content = response.content.decode('utf-8')
+
         published_slot1.refresh_from_db()
         published_slot2.refresh_from_db()
 
@@ -1713,3 +1719,37 @@ class CoreViewsTestCase(TestCase):
         # published_slot2 : no change
         self.assertTrue(published_slot2.allow_individual_registrations)
         self.assertFalse(published_slot2.allow_group_registrations)
+
+        # Check messages
+        self.assertIn("""Some slots have not been updated because at least one of individual """
+                      """/ cohort registrations must be enabled.""", content)
+
+        # Add immersions to slots and try to lower available places
+        published_slot1.allow_individual_registrations = True
+        published_slot1.save()
+
+        Immersion.objects.create(student=self.student_user, slot=published_slot1)
+        Immersion.objects.create(student=self.highschool_user, slot=published_slot1)
+
+        data.update({
+            'n_places': '1',
+            'mass_n_places': 'update',
+            'allow_individual_registrations': True,
+            'mass_allow_individual_registrations': 'keep',
+        })
+
+        response = self.client.post("/core/slot_mass_update", data, follow=True)
+        content = response.content.decode('utf-8')
+
+        published_slot1.refresh_from_db()
+        published_slot2.refresh_from_db()
+
+        # published_slot1 : fail (=no change) : too many existing immersions
+        self.assertEqual(published_slot1.n_places, 20)
+
+        # published_slot2 : success
+        self.assertEqual(published_slot2.n_places, 1)
+
+        # Check messages
+        self.assertIn("""Some slots individual places have not been updated because they """
+                      """already have more registered people""", content)

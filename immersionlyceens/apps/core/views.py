@@ -1553,7 +1553,9 @@ def course_slot_mass_update(request):
 
                             if slot_id not in errors_slots_set:
                                 # Check group and individual registrations related fields
-                                allow_individual_registrations = mass_update_form.cleaned_data.get("allow_individual_registrations")
+                                allow_individual_registrations = mass_update_form.cleaned_data.get(
+                                    "allow_individual_registrations"
+                                )
                                 update_allow_individual_registrations = mass_update_form.cleaned_data.get(
                                     "mass_allow_individual_registrations", "keep"
                                 ) == "update"
@@ -1610,8 +1612,9 @@ def course_slot_mass_update(request):
                                         )
                                     )
 
+                                registered_count = slot.immersions.filter(cancellation_type__isnull=True).count()
+
                                 if update_allow_individual_registrations:
-                                    registered_count = slot.immersions.filter(cancellation_type__isnull=True).count()
                                     if not allow_individual_registrations and registered_count:
                                         exception_fields.append("allow_individual_registrations")
                                         errors.append(
@@ -1621,18 +1624,20 @@ def course_slot_mass_update(request):
                                             )
                                         )
 
-                                    elif allow_individual_registrations:
-                                        if update_n_places and n_places < registered_count:
-                                            exception_fields.append("n_places")
-                                        errors.append(
-                                            gettext(
-                                                """Some slots individual places have not been updated because they """
-                                                """already have more registered people"""
-                                            )
-                                        )
+                                if allow_individual_registrations:
+                                  if update_n_places and n_places < registered_count:
+                                      exception_fields.append("n_places")
+                                      errors.append(
+                                          gettext(
+                                              """Some slots individual places have not been updated because they """
+                                              """already have more registered people"""
+                                          )
+                                      )
+
+                                registered_groups = slot.group_immersions.filter(cancellation_type__isnull=True).count()
+                                registered = slot.registered_groups_people_count()
 
                                 if update_allow_group_registrations:
-                                    registered_groups = slot.group_immersions.filter(cancellation_type__isnull=True).count()
                                     if not allow_group_registrations and registered_groups:
                                         exception_fields.append("allow_group_registrations")
                                         errors.append(
@@ -1642,27 +1647,25 @@ def course_slot_mass_update(request):
                                             )
                                         )
 
-                                    elif allow_group_registrations:
-                                        registered = slot.registered_groups_people_count()
+                                if allow_group_registrations:
+                                    if update_group_mode and group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
+                                        exception_fields.append("group_mode")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots group mode have not been updated because they """
+                                                """have already more than one registered groups"""
+                                            )
+                                        )
 
-                                        if update_group_mode and group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
-                                            exception_fields.append("group_mode")
+                                    if update_n_group_places:
+                                        if n_group_places < (registered['students'] + registered['guides']):
+                                            exception_fields.append("n_group_places")
                                             errors.append(
                                                 gettext(
-                                                    """Some slots group mode have not been updated because they """
-                                                    """have already more than one registered groups"""
+                                                    """Some slots group places have not been updated because they """
+                                                    """already have more registered people"""
                                                 )
                                             )
-
-                                        if update_n_group_places:
-                                            if n_group_places < (registered['students'] + registered['guides']):
-                                                exception_fields.append("n_group_places")
-                                                errors.append(
-                                                    gettext(
-                                                        """Some slots group places have not been updated because they """
-                                                        """already have more registered people"""
-                                                    )
-                                                )
 
                                 # M2M updates
 
