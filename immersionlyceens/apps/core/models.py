@@ -474,6 +474,18 @@ class ImmersionUser(AbstractUser):
     def __str__(self):
         return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 
+    def get_preferences_list(self):
+        """
+        :return: the list of settings the user has access to, depending on its profile
+        """
+        settings_list = []
+
+        if self.is_high_school_manager():
+            if self.highschool and self.highschool.postbac_immersion:
+                settings_list.append('RECEIVE_REGISTERED_STUDENTS_LIST')
+
+        return settings_list
+
     def get_preference(self, name, default):
         """
         :param name: name of the preference setting
