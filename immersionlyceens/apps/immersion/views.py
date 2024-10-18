@@ -380,6 +380,7 @@ def shibbolethLogin(request, profile=None):
                 mefstat = MefStat.objects.get(code__iexact=etu_stage, level__active=True)
                 level = mefstat.level
             except MefStat.DoesNotExist:
+                logger.error(f"MefStat not found or inactive high school level : etu_stage {etu_stage}")
                 messages.error(
                     request,
                     _("Sorry, your high school level does not allow you to register or connect to this platform.")
