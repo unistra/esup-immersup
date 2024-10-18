@@ -246,7 +246,9 @@ def loginChoice(request, profile=None):
     context = {
         'federation_name': federation_name,
         'profile': profile,
-        'intro_connection': intro_connection
+        'intro_connection': intro_connection,
+        'has_highschool_without_student_federation': HighSchool.agreed.filter(uses_student_federation=False).exists(),
+        'has_highschool_without_agent_federation': HighSchool.agreed.filter(uses_agent_federation=False).exists()
     }
 
     template = "immersion/login_choice.html" if federation_name else "immersion/login.html"
