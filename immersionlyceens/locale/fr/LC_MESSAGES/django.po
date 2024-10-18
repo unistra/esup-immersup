@@ -3613,7 +3613,7 @@ msgstr "Niveaux étudiants"
 
 #: immersionlyceens/apps/core/models.py:398
 msgid "Receive a list of students registered to my slots"
-msgstr "Recevoir la liste des inscrits à mes créneaux (hebdomadaire)"
+msgstr "Recevoir la liste des inscrits à mes créneaux"
 
 #: immersionlyceens/apps/core/models.py:451
 msgid ""
