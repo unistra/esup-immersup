@@ -94,8 +94,9 @@ class Command(BaseCommand, Schedulable):
                             msg = manager.send_message(None, "IMMERSION_RAPPEL_STR", slot=slot)
 
                             if msg:
-                                msg = _("Cannot send high school manager slot reminder to %s : %s") % (
-                                manager.email, msg)
+                                msg = (_("Cannot send high school manager slot reminder to %(email)s : %(msg)s")
+                                       % {'email': manager.email, 'msg': msg}
+                                )
                                 returns.append(msg)
 
         # Format and return the errors to the cron master
