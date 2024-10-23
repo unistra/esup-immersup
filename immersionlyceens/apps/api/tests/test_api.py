@@ -1873,8 +1873,9 @@ class APITestCase(TestCase):
                 'highschool': '',
                 'highschool_address': '',
                 'highschool_city': '',
+                'highschool_zip_code': '',
                 'structure': 'test structure',
-                'meeting_place': 'Le portique<br>room 1',
+                'meeting_place': 'room 1',
                 'campus': 'Esplanade',
                 'campus_city': 'Strasbourg',
                 'building': 'Le portique',
@@ -1900,7 +1901,9 @@ class APITestCase(TestCase):
                 'slot_id': self.immersion.slot.id,
                 'free_seats': 18,
                 'can_register': False,
-                "place": Slot.FACE_TO_FACE,
+                'can_show_url': True,
+                'place': Slot.FACE_TO_FACE,
+                'url': None,
                 'time_type': 'future',
                 'registration_date': json.dumps(
                     self.immersion.registration_date.astimezone(datetime_timezone.utc), cls=DjangoJSONEncoder

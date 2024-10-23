@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Send a reminder to structures referents for upcoming slots in N weeks
-This command is meant to be run on sunday
+This command is made to be run once a week (any day)
 """
 import datetime
 import logging
@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Structure, Immersion, Slot, Vacation
+from ...models import HighSchool, Immersion, Slot, Structure, Vacation
 from . import Schedulable
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,7 @@ class Command(BaseCommand, Schedulable):
                         msg = _("Cannot send components slot reminder to %s : %s") % (referent.email, msg)
                         returns.append(msg)
 
+        # Format and return the errors to the cron master
         if returns:
             for line in returns:
                 logger.error(line)

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block title %}
+{% trans "User preferences" %}
+{% endblock %}
+{% block head-javascript %}
+·<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+          <h1>{% trans 'User preferences' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "User preferences" %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<div id="feedback" class="container"></div>
+<div class="container">
+  <div class="card mt-4">
+    <div class="card-header text-white bg-secondary">
+        {% trans 'Settings' %}
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="form-group row">
+            <label for="{{ field.id_for_label }}" class="col-sm-5 col-form-label">
+              {{ field.label }}
+            </label>
+            <div class="col-sm-6">{{ field }}</div>
+          </div>
+        {% endfor %}
+
+        <div class="form-group">
+          <button type="button" name="cancel" class="btn btn-danger back_btn mb-1">{% trans 'Cancel' %}</button>
+          <input name="submit" class="btn btn-secondary mb-1" value="{% trans 'Save' %}" type="submit">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

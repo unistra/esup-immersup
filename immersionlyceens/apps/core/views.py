@@ -36,7 +36,7 @@ from .admin_forms import (
 from .forms import (
     ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
     MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
-    SlotMassUpdateForm, StructureForm, TrainingFormHighSchool
+    SlotMassUpdateForm, StructureForm, TrainingFormHighSchool, UserPreferencesForm
 )
 from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
@@ -1502,7 +1502,7 @@ def course_slot_mass_update(request):
 
                 # Check field updates and store new values (not m2m) if "update" has been selected
                 for field in fields + m2ms:
-                    if request.POST.get(f"mass_{field}", "keep") == "update":
+                    if mass_update_form.cleaned_data.get(f"mass_{field}", "keep") == "update":
                         has_updates = True
 
                         if field not in m2ms:
@@ -1512,11 +1512,14 @@ def course_slot_mass_update(request):
                 # Published flag
                 # if True, check that all required fields are set for each selected slot
                 published = mass_update_form.cleaned_data.get("published")
-                mass_update_published = request.POST.get(f"mass_published", "keep") == "update"
-                update_establishments_restrictions = request.POST.get(f"mass_establishments_restrictions", "keep") == "update"
-                update_levels_restrictions = request.POST.get(f"mass_levels_restrictions", "keep") == "update"
-                update_bachelors_restrictions = request.POST.get(f"mass_bachelors_restrictions", "keep") == "update"
-                update_speakers = request.POST.get(f"mass_speakers", "keep") == "update"
+                mass_update_published = mass_update_form.cleaned_data.get("mass_published", "keep") == "update"
+                update_establishments_restrictions = mass_update_form.cleaned_data.get(
+                    "mass_establishments_restrictions", "keep") == "update"
+                update_levels_restrictions = mass_update_form.cleaned_data.get(
+                    "mass_levels_restrictions", "keep") == "update"
+                update_bachelors_restrictions = mass_update_form.cleaned_data.get(
+                    "mass_bachelors_restrictions", "keep") == "update"
+                update_speakers = mass_update_form.cleaned_data.get(f"mass_speakers", "keep") == "update"
 
                 if published and mass_update_published:
                     mandatory_fields = ['start_time', 'end_time', 'course_type', 'room']
@@ -1550,25 +1553,32 @@ def course_slot_mass_update(request):
 
                             if slot_id not in errors_slots_set:
                                 # Check group and individual registrations related fields
-                                allow_individual_registrations = mass_update_form.cleaned_data.get("allow_individual_registrations")
-                                update_allow_individual_registrations = request.POST.get(
+                                allow_individual_registrations = mass_update_form.cleaned_data.get(
+                                    "allow_individual_registrations"
+                                )
+                                update_allow_individual_registrations = mass_update_form.cleaned_data.get(
                                     "mass_allow_individual_registrations", "keep"
                                 ) == "update"
 
                                 allow_group_registrations = mass_update_form.cleaned_data.get("allow_group_registrations")
-                                update_allow_group_registrations = request.POST.get(
+                                update_allow_group_registrations = mass_update_form.cleaned_data.get(
                                     "mass_allow_group_registrations", "keep"
                                 ) == "update"
 
                                 group_mode = mass_update_form.cleaned_data.get("group_mode")
-                                update_group_mode = request.POST.get("mass_group_mode", "keep") == "update"
+                                update_group_mode = mass_update_form.cleaned_data.get(
+                                    "mass_group_mode", "keep") == "update"
 
                                 n_places = mass_update_form.cleaned_data.get("n_places")
-                                update_n_places = request.POST.get("mass_n_places", "keep") == "update"
+                                update_n_places = mass_update_form.cleaned_data.get(
+                                    "mass_n_places", "keep") == "update"
                                 n_group_places = mass_update_form.cleaned_data.get("n_group_places")
-                                update_n_group_places = request.POST.get("mass_n_group_places", "keep") == "update"
+                                update_n_group_places = mass_update_form.cleaned_data.get(
+                                    "mass_n_group_places", "keep") == "update"
 
-                                establishments_restrictions = mass_update_form.cleaned_data.get("establishments_restrictions")
+                                establishments_restrictions = mass_update_form.cleaned_data.get(
+                                    "establishments_restrictions"
+                                )
                                 levels_restrictions = mass_update_form.cleaned_data.get("levels_restrictions")
                                 bachelors_restrictions = mass_update_form.cleaned_data.get("bachelors_restrictions")
 
@@ -1602,8 +1612,9 @@ def course_slot_mass_update(request):
                                         )
                                     )
 
+                                registered_count = slot.immersions.filter(cancellation_type__isnull=True).count()
+
                                 if update_allow_individual_registrations:
-                                    registered_count = slot.immersions.filter(cancellation_type__isnull=True).count()
                                     if not allow_individual_registrations and registered_count:
                                         exception_fields.append("allow_individual_registrations")
                                         errors.append(
@@ -1613,18 +1624,20 @@ def course_slot_mass_update(request):
                                             )
                                         )
 
-                                    elif allow_individual_registrations:
-                                        if update_n_places and n_places < registered_count:
-                                            exception_fields.append("n_places")
-                                        errors.append(
-                                            gettext(
-                                                """Some slots individual places have not been updated because they """
-                                                """already have more registered people"""
-                                            )
-                                        )
+                                if allow_individual_registrations:
+                                  if update_n_places and n_places < registered_count:
+                                      exception_fields.append("n_places")
+                                      errors.append(
+                                          gettext(
+                                              """Some slots individual places have not been updated because they """
+                                              """already have more registered people"""
+                                          )
+                                      )
+
+                                registered_groups = slot.group_immersions.filter(cancellation_type__isnull=True).count()
+                                registered = slot.registered_groups_people_count()
 
                                 if update_allow_group_registrations:
-                                    registered_groups = slot.group_immersions.filter(cancellation_type__isnull=True).count()
                                     if not allow_group_registrations and registered_groups:
                                         exception_fields.append("allow_group_registrations")
                                         errors.append(
@@ -1634,27 +1647,25 @@ def course_slot_mass_update(request):
                                             )
                                         )
 
-                                    elif allow_group_registrations:
-                                        registered = slot.registered_groups_people_count()
+                                if allow_group_registrations:
+                                    if update_group_mode and group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
+                                        exception_fields.append("group_mode")
+                                        errors.append(
+                                            gettext(
+                                                """Some slots group mode have not been updated because they """
+                                                """have already more than one registered groups"""
+                                            )
+                                        )
 
-                                        if update_group_mode and group_mode == Slot.ONE_GROUP and slot.registered_groups() > 1:
-                                            exception_fields.append("group_mode")
+                                    if update_n_group_places:
+                                        if n_group_places < (registered['students'] + registered['guides']):
+                                            exception_fields.append("n_group_places")
                                             errors.append(
                                                 gettext(
-                                                    """Some slots group mode have not been updated because they """
-                                                    """have already more than one registered groups"""
+                                                    """Some slots group places have not been updated because they """
+                                                    """already have more registered people"""
                                                 )
                                             )
-
-                                        if update_n_group_places:
-                                            if n_group_places < (registered['students'] + registered['guides']):
-                                                exception_fields.append("n_group_places")
-                                                errors.append(
-                                                    gettext(
-                                                        """Some slots group places have not been updated because they """
-                                                        """already have more registered people"""
-                                                    )
-                                                )
 
                                 # M2M updates
 
@@ -2397,6 +2408,37 @@ def charter(request):
     }
 
     return render(request, 'core/charter.html', context)
+
+
+@groups_required('REF-LYC')
+def user_preferences(request):
+    """
+    High school managers (for now) preferences
+    """
+    user = request.user
+
+    if not request.POST:
+        initials = { k:user.get_preference(k, v['value']) for k,v in ImmersionUser.PREFERENCES.items() }
+        form = UserPreferencesForm(initial=initials)
+    else:
+        form = UserPreferencesForm(request.POST)
+
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+
+            print(f"cleaned data : {cleaned_data}")
+
+            for setting_name, value in cleaned_data.items():
+                user.preferences[setting_name] = value
+
+            user.save()
+            messages.success(request, gettext("Settings successfully saved."))
+
+    context = {
+        'form': form
+    }
+
+    return render(request, 'core/user_preferences.html', context)
 
 
 @groups_required('REF-STR')

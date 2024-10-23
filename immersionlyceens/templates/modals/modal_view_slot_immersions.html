@@ -736,7 +736,8 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
 
 
 $(document).ready(function(){
-  $('#checkall').change(function() {
+  // Jquery $(name=) events doesn't fire up with checkboxes in datatable, so use this instead:
+  $(document).on("change", "#checkall", function() {
     let isChecked = $(this).prop('checked');
     isChecked ? dtr.rows().select() : dtr.rows().deselect();
     let d = $('#students_list').DataTable().rows().data();
@@ -753,7 +754,7 @@ $(document).ready(function(){
     $('#students_list td input[type="checkbox"]').change();
   });
 
-  $('#groups_checkall').change(function() {
+  $(document).on("change", "#groups_checkall", function() {
     let isChecked = $(this).prop('checked');
     isChecked ? groups_dtr.rows().select() : groups_dtr.rows().deselect();
     let d = $('#groups_list').DataTable().rows().data();
@@ -766,10 +767,10 @@ $(document).ready(function(){
       }
       item.isChecked = isChecked;
     });
-    $("#groups_list .checkcell input").not(":disabled").prop("checked", isChecked);
-    $('#groups_list td input[type="checkbox"]').not(":disabled").change();
+    $("#groups_list .checkcell input").prop("checked", isChecked);
+    $('#groups_list td input[type="checkbox"]').change();
   });
-
+  
   $('#students_list').on('change', 'td input[type="checkbox"]', function() {
       if (this.checked) {
         counterChecked++;

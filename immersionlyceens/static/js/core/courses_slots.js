@@ -535,19 +535,6 @@ function init_datatable() {
   });
 
   // Jquery $(name=) events doesn't fire up with checkboxes in datatable, so use this instead:
-    /*
-  $(document).on("change", ".mass", function() {
-    if(!$(this).is(':checked')) {
-      // let filtered_array = selected_slots.filter(function(e) { return e !== $(this).val()})
-      selected_slots = selected_slots.filter(e => e !== $(this).val())
-    }
-    else {
-      selected_slots.push($(this).val())
-    }
-
-    $("[name='mass_slots_list']").val(selected_slots)
-  });
-  */
   $(document).on("change", ".mass", function() {
     if(!$(this).is(':checked')) {
       selected_slots["values"] = selected_slots["values"].filter(e => e !== $(this).val())

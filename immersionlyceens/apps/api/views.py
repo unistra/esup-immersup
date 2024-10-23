@@ -23,6 +23,7 @@ from django.contrib.auth.models import Group
 from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
+from django.db import transaction
 from django.db.models import (
     BooleanField,
     Case,
@@ -698,6 +699,19 @@ def ajax_cancel_registration(request):
                 if slot_structure:
                     for notify in RefStructuresNotificationsSettings.objects.filter(structures=slot_structure):
                         ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
+                        # FIXME : do something if send_message fails
+
+                # High school managers
+                highschool = immersion.slot.get_highschool()
+
+                if highschool:
+                    # Get this high school managers
+                    # Check the message preferences (False by default)
+                    # Send the same message template
+                    for manager in highschool.users.filter(groups__name='REF-LYC'):
+                        if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                            ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
+                            # FIXME : do something if send_message fails
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
         except Immersion.DoesNotExist:
@@ -1235,6 +1249,7 @@ def ajax_slot_registration(request):
     training_quota_active = False
     training_quota_count = 0
     available_training_registrations = None
+    send_mail = True
 
     request.session.pop("last_registration_slot", None)
 
@@ -1461,27 +1476,39 @@ def ajax_slot_registration(request):
                 return JsonResponse(response, safe=False)
 
         if can_register:
-            # Cancelled immersion exists : re-register
-            if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
-                student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
-                    cancellation_type=None, attendance_status=0, cancellation_date=None
-                )
-            else:
-                # New registration
-                Immersion.objects.create(
-                    student=student,
-                    slot=slot,
-                    cancellation_type=None,
-                    attendance_status=0,
-                )
-
             error = False
-            ret = student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
-            if not ret:
-                msg = _("Registration successfully added, confirmation email sent")
-            else:
-                msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
-                error = True
+
+            # Transaction should prevent multiple registrations to the same slot within a few milliseconds
+            with transaction.atomic():
+                # Cancelled immersion exists : re-register
+                if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
+                    student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
+                        cancellation_type=None,
+                        attendance_status=0,
+                        cancellation_date=None
+                    )
+                elif not student.immersions.filter(slot=slot).exists():
+                    try:
+                        # New registration
+                        Immersion.objects.create(
+                            student=student,
+                            slot=slot,
+                            cancellation_type=None,
+                            attendance_status=0,
+                        )
+                    except IntegrityError:
+                        # Immersion already exists, should not happen
+                        send_mail = False
+                        error = True
+                        msg = _("Registration to this slot already exists")
+
+            if send_mail:
+                ret = student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
+                if not ret:
+                    msg = _("Registration successfully added, confirmation email sent")
+                else:
+                    msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
+                    error = True
 
             response = {'error': error, 'msg': msg}
 
@@ -2202,6 +2229,19 @@ def ajax_batch_cancel_registration(request):
                     if ret:
                         mail_returns.add(ret)
 
+            # High school managers
+            highschool = slot.get_highschool()
+
+            if highschool:
+                # Get this high school managers
+                # Check the message preferences (False by default)
+                # Send the same message template
+                for manager in highschool.users.filter(groups__name='REF-LYC'):
+                    if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                        ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                        if ret:
+                            mail_returns.add(ret)
+
         # Return warnings and errors
         if cancelled_immersions:
             msg = _("%s immersion(s) cancelled") % cancelled_immersions
@@ -2357,6 +2397,19 @@ def ajax_groups_batch_cancel_registration(request):
                     ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
                     if ret:
                         mail_returns.add(ret)
+
+            # High school managers
+            highschool = slot.get_highschool()
+
+            if highschool:
+                # Get this high school managers
+                # Check the message preferences (False by default)
+                # Send the same message template
+                for manager in highschool.users.filter(groups__name='REF-LYC'):
+                    if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
+                        ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=slot)
+                        if ret:
+                            mail_returns.add(ret)
 
         # Return warnings and errors
         if cancelled_immersions:

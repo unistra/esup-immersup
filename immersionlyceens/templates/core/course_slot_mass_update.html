@@ -54,10 +54,18 @@
               {{ form.course_type }}
             </div>
             <div class="col-sm-6">
+              <input class="chk" type="radio" id="id_mass_course_type_0" name="mass_course_type" value="keep" checked>
+              <label for="id_mass_course_type_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_course_type_1" name="mass_course_type" value="update">
+              <label for="id_mass_course_type_1" class="col-form-label">{% trans 'Update all' %}</label>
+
+              <!-- {{ form.mass_course_type }} -->
+              <!--
               <input class="chk" type="radio" id="id_mass_course_type_keep" name="mass_course_type" value="keep" checked>
               <label for="id_mass_course_type_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
               <input class="chk ml-2" type="radio" id="id_mass_course_type_update" name="mass_course_type" value="update">
               <label for="id_mass_course_type_update" class="col-form-label">{% trans 'Update all' %}</label>
+              -->
             </div>
           </div>
           {% if slot_form.course_type.errors %}
@@ -77,10 +85,10 @@
               {{ form.campus }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_campus_keep" name="mass_campus" value="keep" checked>
-              <label for="id_mass_campus_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_campus_update" name="mass_campus" value="update">
-              <label for="id_mass_campus_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_campus_0" name="mass_campus" value="keep" checked>
+              <label for="id_mass_campus_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_campus_1" name="mass_campus" value="update">
+              <label for="id_mass_campus_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 
@@ -101,10 +109,10 @@
               {{ form.building }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_building_keep" name="mass_building" value="keep" checked>
-              <label for="id_mass_building_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_building_update" name="mass_building" value="update">
-              <label for="id_mass_building_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_building_0" name="mass_building" value="keep" checked>
+              <label for="id_mass_building_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_building_1" name="mass_building" value="update">
+              <label for="id_mass_building_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 
@@ -125,10 +133,10 @@
               {{ form.room }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_room_keep" name="mass_room" value="keep" checked>
-              <label for="id_mass_room_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_room_update" name="mass_room" value="update">
-              <label for="id_mass_room_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_room_0" name="mass_room" value="keep" checked>
+              <label for="id_mass_room_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_room_1" name="mass_room" value="update">
+              <label for="id_mass_room_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 
@@ -149,10 +157,10 @@
               {{ form.start_time }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_start_time_keep" name="mass_start_time" value="keep" checked>
-              <label for="id_mass_start_time_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_start_time_update" name="mass_start_time" value="update">
-              <label for="id_mass_start_time_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_start_time_0" name="mass_start_time" value="keep" checked>
+              <label for="id_mass_start_time_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_start_time_1" name="mass_start_time" value="update">
+              <label for="id_mass_start_time_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
           {% if form.start_time.errors %}
@@ -172,10 +180,10 @@
               {{ form.end_time }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_end_time_keep" name="mass_end_time" value="keep" checked>
-              <label for="id_mass_end_time_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_end_time_update" name="mass_end_time" value="update">
-              <label for="id_mass_end_time_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_end_time_0" name="mass_end_time" value="keep" checked>
+              <label for="id_mass_end_time_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_end_time_1" name="mass_end_time" value="update">
+              <label for="id_mass_end_time_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
           {% if form.end_time.errors %}
@@ -194,10 +202,10 @@
               {{ form.registration_limit_delay }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_registration_limit_delay_keep" name="mass_registration_limit_delay" value="keep" checked>
-              <label for="id_mass_registration_limit_delay_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_registration_limit_delay_update" name="mass_registration_limit_delay" value="update">
-              <label for="id_mass_registration_limit_delay_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_registration_limit_delay_0" name="mass_registration_limit_delay" value="keep" checked>
+              <label for="id_mass_registration_limit_delay_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_registration_limit_delay_1" name="mass_registration_limit_delay" value="update">
+              <label for="id_mass_registration_limit_delay_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
           {% if form.registration_limit_delay.errors %}
@@ -216,10 +224,10 @@
               {{ form.cancellation_limit_delay }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_cancellation_limit_delay_keep" name="mass_cancellation_limit_delay" value="keep" checked>
-              <label for="id_mass_cancellation_limit_delay_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_cancellation_limit_delay_update" name="mass_cancellation_limit_delay" value="update">
-              <label for="id_mass_cancellation_limit_delay_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_cancellation_limit_delay_0" name="mass_cancellation_limit_delay" value="keep" checked>
+              <label for="id_mass_cancellation_limit_delay_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_cancellation_limit_delay_1" name="mass_cancellation_limit_delay" value="update">
+              <label for="id_mass_cancellation_limit_delay_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
           {% if form.cancellation_limit_delay.errors %}
@@ -244,11 +252,11 @@
               {% endif %}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_speakers_keep" name="mass_speakers" value="keep" checked>
-              <label for="id_mass_speakers_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk" type="radio" id="id_mass_speakers_0" name="mass_speakers" value="keep" checked>
+              <label for="id_mass_speakers_0" class="col-form-label">{% trans 'Keep each value' %}</label>
               {% if form.speakers.field.queryset %}
-              <input class="chk ml-2" type="radio" id="id_mass_speakers_update" name="mass_speakers" value="update">
-              <label for="id_mass_speakers_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_speakers_1" name="mass_speakers" value="update">
+              <label for="id_mass_speakers_1" class="col-form-label">{% trans 'Update all' %}</label>
               {% endif %}
             </div>
           </div>
@@ -273,10 +281,10 @@
                 {{ form.allow_group_registrations.help_text }}
               </div>
               <div class="col-sm-6">
-                <input class="chk" type="radio" id="id_mass_allow_group_registrations_keep" name="mass_allow_group_registrations" value="keep" checked>
-                <label for="id_mass_allow_group_registrations_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-                <input class="chk ml-2" type="radio" id="id_mass_allow_group_registrations_update" name="mass_allow_group_registrations" value="update">
-                <label for="id_mass_allow_group_registrations_update" class="col-form-label">{% trans 'Update all' %}</label>
+                <input class="chk" type="radio" id="id_mass_allow_group_registrations_0" name="mass_allow_group_registrations" value="keep" checked>
+                <label for="id_mass_allow_group_registrations_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_allow_group_registrations_1" name="mass_allow_group_registrations" value="update">
+                <label for="id_mass_allow_group_registrations_1" class="col-form-label">{% trans 'Update all' %}</label>
               </div>
             </div>
             {% if form.allow_group_registrations.errors %}
@@ -296,10 +304,10 @@
                 {{ form.group_mode }}
               </div>
               <div class="col-sm-6">
-                <input class="chk" type="radio" id="id_mass_group_mode_keep" name="mass_group_mode" value="keep" checked>
-                <label for="id_mass_group_mode_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-                <input class="chk ml-2" type="radio" id="id_mass_group_mode_update" name="mass_group_mode" value="update">
-                <label for="id_mass_group_mode_update" class="col-form-label">{% trans 'Update all' %}</label>
+                <input class="chk" type="radio" id="id_mass_group_mode_0" name="mass_group_mode" value="keep" checked>
+                <label for="id_mass_group_mode_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_group_mode_1" name="mass_group_mode" value="update">
+                <label for="id_mass_group_mode_1" class="col-form-label">{% trans 'Update all' %}</label>
               </div>
             </div>
             {% if form.group_mode.errors %}
@@ -319,10 +327,10 @@
                 {{ form.n_group_places }}
               </div>
               <div class="col-sm-6">
-                <input class="chk" type="radio" id="id_mass_n_group_places_keep" name="mass_n_group_places" value="keep" checked>
-                <label for="id_mass_n_group_places_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-                <input class="chk ml-2" type="radio" id="id_mass_n_group_places_update" name="mass_n_group_places" value="update">
-                <label for="id_mass_n_group_places_update" class="col-form-label">{% trans 'Update all' %}</label>
+                <input class="chk" type="radio" id="id_mass_n_group_places_0" name="mass_n_group_places" value="keep" checked>
+                <label for="id_mass_n_group_places_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_n_group_places_1" name="mass_n_group_places" value="update">
+                <label for="id_mass_n_group_places_1" class="col-form-label">{% trans 'Update all' %}</label>
               </div>
             </div>
             {% if form.n_group_places.errors %}
@@ -342,10 +350,10 @@
                 {{ form.public_group }}
               </div>
               <div class="col-sm-6">
-                <input class="chk" type="radio" id="id_mass_public_group_keep" name="mass_public_group" value="keep" checked>
-                <label for="id_mass_public_group_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-                <input class="chk ml-2" type="radio" id="id_mass_public_group_update" name="mass_public_group" value="update">
-                <label for="id_mass_public_group_update" class="col-form-label">{% trans 'Update all' %}</label>
+                <input class="chk" type="radio" id="id_mass_public_group_0" name="mass_public_group" value="keep" checked>
+                <label for="id_mass_public_group_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_public_group_1" name="mass_public_group" value="update">
+                <label for="id_mass_public_group_1" class="col-form-label">{% trans 'Update all' %}</label>
               </div>
             </div>
             {% if form.public_group.errors %}
@@ -368,10 +376,10 @@
                 {{ form.allow_individual_registrations.help_text }}
               </div>
               <div class="col-sm-6">
-                <input class="chk" type="radio" id="id_mass_allow_individual_registrations_keep" name="mass_allow_individual_registrations" value="keep" checked>
-                <label for="id_mass_allow_individual_registrations_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-                <input class="chk ml-2" type="radio" id="id_mass_allow_individual_registrations_update" name="mass_allow_individual_registrations" value="update">
-                <label for="id_mass_allow_individual_registrations_update" class="col-form-label">{% trans 'Update all' %}</label>
+                <input class="chk" type="radio" id="id_mass_allow_individual_registrations_0" name="mass_allow_individual_registrations" value="keep" checked>
+                <label for="id_mass_allow_individual_registrations_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+                <input class="chk ml-2" type="radio" id="id_mass_allow_individual_registrations_1" name="mass_allow_individual_registrations" value="update">
+                <label for="id_mass_allow_individual_registrations_1" class="col-form-label">{% trans 'Update all' %}</label>
               </div>
             </div>
             {% if form.allow_individual_registrations.errors %}
@@ -392,10 +400,10 @@
               {{ form.n_places }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_n_places_keep" name="mass_n_places" value="keep" checked>
-              <label for="id_mass_n_places_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_n_places_update" name="mass_n_places" value="update">
-              <label for="id_mass_n_places_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_n_places_0" name="mass_n_places" value="keep" checked>
+              <label for="id_mass_n_places_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_n_places_1" name="mass_n_places" value="update">
+              <label for="id_mass_n_places_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
           {% if form.n_places.errors %}
@@ -417,10 +425,10 @@
               </span>
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_establishments_restrictions_keep" name="mass_establishments_restrictions" value="keep" checked>
-              <label for="id_mass_establishments_restrictions_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_establishments_restrictions_update" name="mass_establishments_restrictions" value="update">
-              <label for="id_mass_establishments_restrictions_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_establishments_restrictions_0" name="mass_establishments_restrictions" value="keep" checked>
+              <label for="id_mass_establishments_restrictions_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_establishments_restrictions_1" name="mass_establishments_restrictions" value="update">
+              <label for="id_mass_establishments_restrictions_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
           {% if form.establishments_restrictions.errors %}
@@ -469,10 +477,10 @@
               </span>
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_levels_restrictions_keep" name="mass_levels_restrictions" value="keep" checked>
-              <label for="id_mass_levels_restrictions_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_levels_restrictions_update" name="mass_levels_restrictions" value="update">
-              <label for="id_mass_levels_restrictions_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_levels_restrictions_0" name="mass_levels_restrictions" value="keep" checked>
+              <label for="id_mass_levels_restrictions_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_levels_restrictions_1" name="mass_levels_restrictions" value="update">
+              <label for="id_mass_levels_restrictions_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 
@@ -519,10 +527,10 @@
               </span>
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_bachelors_restrictions_keep" name="mass_bachelors_restrictions" value="keep" checked>
-              <label for="id_mass_bachelors_restrictions_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_bachelors_restrictions_update" name="mass_bachelors_restrictions" value="update">
-              <label for="id_mass_bachelors_restrictions_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_bachelors_restrictions_0" name="mass_bachelors_restrictions" value="keep" checked>
+              <label for="id_mass_bachelors_restrictions_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_bachelors_restrictions_1" name="mass_bachelors_restrictions" value="update">
+              <label for="id_mass_bachelors_restrictions_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 
@@ -564,10 +572,10 @@
               {% trans 'Additional information' %}
             </label>
             <div class="offset-sm-3 col-sm-6">
-              <input class="chk" type="radio" id="id_mass_additional_information_keep" name="mass_additional_information" value="keep" checked>
-              <label for="id_mass_additional_information_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_additional_information_update" name="mass_additional_information" value="update">
-              <label for="id_mass_additional_information_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_additional_information_0" name="mass_additional_information" value="keep" checked>
+              <label for="id_mass_additional_information_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_additional_information_1" name="mass_additional_information" value="update">
+              <label for="id_mass_additional_information_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 
@@ -590,10 +598,10 @@
               {{ form.published }}
             </div>
             <div class="col-sm-6">
-              <input class="chk" type="radio" id="id_mass_published_keep" name="mass_published" value="keep" checked>
-              <label for="id_mass_published_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_published_update" name="mass_published" value="update">
-              <label for="id_mass_published_update" class="col-form-label">{% trans 'Update all' %}</label>
+              <input class="chk" type="radio" id="id_mass_published_0" name="mass_published" value="keep" checked>
+              <label for="id_mass_published_0" class="col-form-label">{% trans 'Keep each value' %}</label>
+              <input class="chk ml-2" type="radio" id="id_mass_published_1" name="mass_published" value="update">
+              <label for="id_mass_published_1" class="col-form-label">{% trans 'Update all' %}</label>
             </div>
           </div>
 

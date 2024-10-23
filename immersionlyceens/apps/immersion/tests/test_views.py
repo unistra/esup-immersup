@@ -310,7 +310,8 @@ class ImmersionViewsTestCase(TestCase):
 
         response = self.client.post('/immersion/login', {'login': 'hs', 'password': 'pass'})
         self.assertEqual(response.status_code, 302)
-        # The record doesn't exist : the user is redirected to the record creation page
+
+        # The user is always redirected to the record page
         self.assertEqual(response.url, "/immersion/hs_record")
 
 
@@ -433,8 +434,17 @@ class ImmersionViewsTestCase(TestCase):
             'registration_type': 'hs',
         }
 
+        # Will fail (no profile in url)
+        response = self.client.get('/immersion/register', follow=True)
+        self.assertIn("Please select your profile in the login menu", response.content.decode('utf-8'))
+
+        # Same fail reason : test redirection url
+        response = self.client.get('/immersion/register')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/")
+
         # Will fail (passwords don't match, missing email2)
-        response = self.client.post('/immersion/register', data)
+        response = self.client.post('/immersion/register/lyc', data)
 
         self.assertIn("The two password fields didn’t match.", response.content.decode('utf-8'))
         self.assertIn("This field is required.", response.content.decode('utf-8'))
@@ -443,7 +453,7 @@ class ImmersionViewsTestCase(TestCase):
         # Will fail (password too short)
         data['email2'] = "mon_email@mondomaine.fr"
         data['password2'] = "passw"
-        response = self.client.post('/immersion/register', data)
+        response = self.client.post('/immersion/register/lyc', data)
 
         self.assertIn("This password is too short. It must contain at least 8 characters.",
             response.content.decode('utf-8'))
@@ -452,7 +462,16 @@ class ImmersionViewsTestCase(TestCase):
         data['password1'] = "Is this password long enough ?"
         data['password2'] = "Is this password long enough ?"
 
-        response = self.client.post('/immersion/register', data, follow=True)
+        # Fail : record high school is missing
+        response = self.client.post('/immersion/register/lyc', data, follow=True)
+        self.assertIn("This field is required.", response.content.decode('utf-8'))
+
+        # Should succeed and redirect
+        data.update({
+            'record_highschool': self.high_school.id
+        })
+
+        response = self.client.post('/immersion/register/lyc', data, follow=True)
         self.assertIn("Account created. Please check your emails for the activation procedure.",
             response.content.decode('utf-8'))
 
@@ -470,7 +489,7 @@ class ImmersionViewsTestCase(TestCase):
         data["email"] = 'MoN_EmaiL@monDomaine.FR'
         data["email2"] = 'MoN_EmaiL@monDomaine.FR'
 
-        response = self.client.post('/immersion/register', data)
+        response = self.client.post('/immersion/register/lyc', data)
         self.assertIn("An account already exists with this email address", response.content.decode('utf-8'))
 
         # Fail with an invalid year
@@ -478,8 +497,10 @@ class ImmersionViewsTestCase(TestCase):
         self.university_year.registration_end_date = self.today + datetime.timedelta(days=20)
         self.university_year.save()
 
-        response = self.client.get('/immersion/register', follow=True)
+        response = self.client.get('/immersion/register/lyc', follow=True)
         self.assertIn("Sorry, you can't register right now.", response.content.decode('utf-8'))
+
+
 
     def test_recovery(self):
         # Fail : not a highschool user
@@ -565,10 +586,15 @@ class ImmersionViewsTestCase(TestCase):
         # Fail with incorrect hash
         response = self.client.get('/immersion/activate/wrong_string', follow=True)
         self.assertIn("Invalid activation data", response.content.decode('utf-8'))
+        self.assertNotIn("High school student record", response.content.decode('utf-8'))
 
         # Success
         response = self.client.get('/immersion/activate/activate_this', follow=True)
         self.assertIn("Your account is now enabled. Thanks !", response.content.decode('utf-8'))
+
+        # User should have been redirected to his record
+        self.assertIn("High school student record", response.content.decode('utf-8'))
+
 
     def test_resend_activation(self):
         # Fail with account not found but the response should not expose the fact that the mail is not found !

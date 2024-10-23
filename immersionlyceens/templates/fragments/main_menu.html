@@ -256,6 +256,11 @@
           <a class="nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
         </div>
         {% endif %}
+        {% if user.get_preferences_list %}
+        <div class="nav-item">
+          <a class="nav-link" href="{% url 'user_preferences' %}">{% trans 'Preferences' %}</a>
+        </div>
+        {% endif %}
         {# admin #}
         {% if user.is_staff %}
         <div class="nav-item">

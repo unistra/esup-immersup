@@ -193,12 +193,17 @@ class CustomLoginView(FormView):
 
         if self.user.is_high_school_student():
             record = self.user.get_high_school_student_record()
+            return reverse("immersion:hs_record")
 
+            """
             if not record or record.validation in [HighSchoolStudentRecord.INIT, HighSchoolStudentRecord.TO_COMPLETE]:
                 return "/immersion/hs_record"
             return reverse('home')
+            """
         elif self.user.is_visitor():
-            return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
+            return reverse("immersion:visitor_record")
+
+            # return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
         elif any(go_home):
             return reverse('home')
         else:
@@ -246,7 +251,9 @@ def loginChoice(request, profile=None):
     context = {
         'federation_name': federation_name,
         'profile': profile,
-        'intro_connection': intro_connection
+        'intro_connection': intro_connection,
+        'has_highschool_without_student_federation': HighSchool.agreed.filter(uses_student_federation=False).exists(),
+        'has_highschool_without_agent_federation': HighSchool.agreed.filter(uses_agent_federation=False).exists()
     }
 
     template = "immersion/login_choice.html" if federation_name else "immersion/login.html"
@@ -282,7 +289,7 @@ def shibbolethLogin(request, profile=None):
     })
     # --------------- </shib dev> ----------------------
     """
-    
+
     if error:
         logger.error(f"Shibboleth error : {error}")
         messages.error(request, _("Incomplete data for account creation"))
@@ -378,6 +385,7 @@ def shibbolethLogin(request, profile=None):
                 mefstat = MefStat.objects.get(code__iexact=etu_stage, level__active=True)
                 level = mefstat.level
             except MefStat.DoesNotExist:
+                logger.error(f"MefStat not found or inactive high school level : etu_stage {etu_stage}")
                 messages.error(
                     request,
                     _("Sorry, your high school level does not allow you to register or connect to this platform.")
@@ -573,10 +581,14 @@ def shibbolethLogin(request, profile=None):
 
             elif is_student and request.user.is_student():
                 # If student has filled his record
+
+                """
                 if request.user.get_student_record():
                     return HttpResponseRedirect("/")
                 else:
-                    return HttpResponseRedirect("/immersion/student_record")
+                """
+
+                return HttpResponseRedirect("/immersion/student_record")
 
             elif is_high_school_student and request.user.is_high_school_student():
                 return HttpResponseRedirect("/immersion/hs_record")
@@ -652,6 +664,10 @@ def register(request, profile=None):
             'reg_date': year.registration_start_date if year else None,
         }
         return render(request, 'immersion/nologin.html', context)
+
+    if not profile:
+        messages.warning(request, _("Please select your profile in the login menu"))
+        return HttpResponseRedirect(reverse('home'))
 
     if request.method == 'POST':
         form = RegistrationForm(request.POST, required_highschool=(profile == 'lyc'))
@@ -860,9 +876,13 @@ def change_password(request):
 
 
 class ActivateView(View):
-    redirect_url: str = "/"
+    """
+    Activate account with the link sent by email after registration
+    """
 
     def get(self, request, *args, **kwargs):
+        redirect_url = reverse("home")
+
         hash = kwargs.get("hash", None)
         if hash:
             try:
@@ -870,8 +890,34 @@ class ActivateView(View):
                 user.validate_account()
                 messages.success(request, _("Your account is now enabled. Thanks !"))
 
+                backend = ('shibboleth.backends.ShibbolethRemoteUserBackend'
+                           if user.uses_federation()
+                           else 'django.contrib.auth.backends.ModelBackend')
+
+                try:
+                    login(request, user, backend=backend)
+                except Exception as e:
+                    logger.error(f"Login failed after activation - {user.pk} - {user} : {e}")
+                    return HttpResponseRedirect(redirect_url)
+
+                request.user = user
+
+                if request.user.is_authenticated:
+                    if request.user.is_high_school_student():
+                        redirect_url = "/immersion/hs_record"
+                    elif request.user.is_student():
+                        redirect_url = "/immersion/student_record"
+                    elif request.user.is_visitor():
+                        redirect_url = "/immersion/visitor_record"
+                else:
+                    messages.success(request, _("Please use the login button to authenticate"))
+
+                return HttpResponseRedirect(redirect_url)
+
+                """
                 if user.is_student():
                     return HttpResponseRedirect("/shib")
+                """
 
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid activation data"))
@@ -879,7 +925,7 @@ class ActivateView(View):
                 logger.exception("Activation error : %s", e)
                 messages.error(request, _("Something went wrong"))
 
-        return HttpResponseRedirect(self.redirect_url)
+        return HttpResponseRedirect(redirect_url)
 
 
 class ResendActivationView(TemplateView):

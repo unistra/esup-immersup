@@ -583,25 +583,49 @@ class SlotForm(forms.ModelForm):
 
 
 class SlotMassUpdateForm(forms.Form):
+    mass_choices = (
+        ('keep', _('Keep each value')),
+        ('update', _('Update all')),
+    )
+
     course_type = forms.ModelChoiceField(queryset=CourseType.objects.filter(active=True), required=False)
+    mass_course_type = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     campus = forms.ModelChoiceField(queryset=Campus.objects.filter(active=True), required=False)
+    mass_campus = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     building = forms.ModelChoiceField(queryset=Building.objects.filter(active=True), required=False)
+    mass_building = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     room = forms.CharField(max_length=128, required=False) # also known as 'meeting place'
+    mass_room = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     start_time = forms.TimeField(required=False)
+    mass_start_time = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     end_time = forms.TimeField(required=False)
+    mass_end_time = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     registration_limit_delay = forms.IntegerField(required=False)
+    mass_registration_limit_delay = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     cancellation_limit_delay = forms.IntegerField(required=False)
+    mass_cancellation_limit_delay = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     speakers = forms.ModelMultipleChoiceField(queryset=ImmersionUser.objects.none(), required=False)
+    mass_speakers = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     allow_individual_registrations = forms.BooleanField(required=False)
+    mass_allow_individual_registrations = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     allow_group_registrations = forms.BooleanField(required=False)
+    mass_allow_group_registrations = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     group_mode = forms.ChoiceField(choices=Slot.GROUP_MODES)
+    mass_group_mode = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     n_places = forms.IntegerField(required=False)
+    mass_n_places = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     n_group_places = forms.IntegerField(required=False)
+    mass_n_group_places = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     public_group = forms.BooleanField(required=False)
+    mass_public_group = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     additional_information = forms.CharField(required=False)
+    mass_additional_information = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     establishments_restrictions = forms.BooleanField(required=False)
+    mass_establishments_restrictions = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     levels_restrictions = forms.BooleanField(required=False)
+    mass_levels_restrictions = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     bachelors_restrictions = forms.BooleanField(required=False)
+    mass_bachelors_restrictions = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
     allowed_establishments = forms.ModelMultipleChoiceField(queryset=Establishment.objects.filter(active=True), required=False)
     allowed_highschools = forms.ModelMultipleChoiceField(queryset=HighSchool.objects.filter(active=True), required=False)
     allowed_highschool_levels = forms.ModelMultipleChoiceField(queryset=HighSchoolLevel.objects.filter(active=True), required=False)
@@ -611,6 +635,7 @@ class SlotMassUpdateForm(forms.Form):
     allowed_bachelor_mentions = forms.ModelMultipleChoiceField(queryset=BachelorMention.objects.filter(active=True), required=False)
     allowed_bachelor_teachings = forms.ModelMultipleChoiceField(queryset=GeneralBachelorTeaching.objects.filter(active=True), required=False)
     published = forms.BooleanField(required=False)
+    mass_published = forms.CharField(widget=forms.RadioSelect(choices=mass_choices))
 
     def __init__(self, *args, **kwargs):
         establishment = kwargs.pop("establishment", None)
@@ -978,7 +1003,7 @@ class OffOfferEventForm(forms.ModelForm):
                         username=speaker['email'],
                         last_name=speaker['lastname'],
                         first_name=speaker['firstname'],
-                        email=speaker['email'],
+                            email=speaker['email'],
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['email']))
@@ -1024,3 +1049,13 @@ class OffOfferEventForm(forms.ModelForm):
     class Meta:
         model = OffOfferEvent
         fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool')
+
+
+class UserPreferencesForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, setting in ImmersionUser.PREFERENCES.items():
+            if setting['type'] == 'boolean':
+                self.fields[name] = forms.BooleanField(label=setting['description'], required=False)
+                # self.fields[name].widget.attrs.update({'class': 'form-check-input'})
