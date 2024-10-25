@@ -299,22 +299,9 @@ class UAISerializer(serializers.ModelSerializer):
         model = UAI
         fields = "__all__"
 
+
 class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
     uai_codes = AsymetricRelatedField.from_serializer(UAISerializer)(required=False, many=True)
-
-    def create(self, validated_data):
-        """
-        Create the high school then add UAIs (m2m)
-        """
-        try:
-            highschool = super().create(validated_data)
-
-            for uai in self._validated_data.get("uai_codes", []):
-                highschool.uai_codes.add(uai)
-        except Exception as e:
-            raise
-
-        return highschool
 
     def validate(self, attrs):
         # Advanced test
