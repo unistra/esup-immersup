@@ -14,11 +14,12 @@ from bordeaux import preprod_bordeaux, prod_bordeaux
 from caen import preprod_caen, prod_caen
 from lemans import preprod_lemans, prod_lemans
 from lorraine import preprod_lorraine, prod_lorraine
+from montaigne import preprod_montaigne, prod_montaigne
 from pau import preprod_pau, prod_pau
 from reims import preprod_reims, prod_reims
-from stetienne import preprod_stetienne, prod_stetienne
 from rouen import preprod_rouen, prod_rouen
 from savoie import preprod_savoie, prod_savoie
+from stetienne import preprod_stetienne, prod_stetienne
 
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
