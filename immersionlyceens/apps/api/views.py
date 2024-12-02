@@ -4273,6 +4273,11 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
             many = isinstance(data, list)
+
+            # eliminate duplicates
+            if many:
+                data = [dict(t) for t in {tuple(d.items()) for d in data}]
+
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
             return super().get_serializer(instance=instance, many=many, partial=partial)
