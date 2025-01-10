@@ -58,7 +58,7 @@
         </div>
       </div>
       {% endif %}
-      {% if twitter_url %}
+      {% if social_network_url %}
       <div class="col-md-3">
         <div class="info">
           <div class="info-icon">
@@ -66,8 +66,8 @@
           </div>
           <aside class="info-description">
             <h4>{% trans 'Social' %}</h4>
-            <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
-            {% trans 'Twitter feed' %}
+            <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ social_network_url }}" data-lang="fr" data-chrome="nofooter">
+            {% trans 'Feed' %}
             </a>
             <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
           </aside>

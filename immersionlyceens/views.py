@@ -73,16 +73,16 @@ def home(request):
         accomp_intro_txt = ''
 
     try:
-        twitter_url = get_general_setting("TWITTER_ACCOUNT_URL")
+        social_network_url = get_general_setting("SOCIAL_NETWORK_URL")
     except (ValueError, NameError):
-        twitter_url = ''
+        social_network_url = ''
 
     context = {
         'welcome_txt': welcome_txt,
         'procedure_txt': procedure_txt,
         'offer_txt': offer_txt,
         'accomp_txt': accomp_txt,
-        'twitter_url': twitter_url,
+        'social_network_url': social_network_url,
         'offer_intro_txt': offer_intro_txt,
         'procedure_intro_txt': procedure_intro_txt,
         'accomp_intro_txt': accomp_intro_txt,
