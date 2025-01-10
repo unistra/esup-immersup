@@ -13,6 +13,9 @@ def rename_twitter_setting(apps, schema_editor):
         parameters = twitter_setting.parameters
         parameters['description'] = "Adresse du fil d'actualités"
 
+        twitter_setting.parameters = parameters
+        twitter_setting.save()
+
     except GeneralSettings.DoesNotExist:
         pass
 

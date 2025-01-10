@@ -1517,8 +1517,8 @@ class HighSchoolForm(forms.ModelForm):
                 if HighSchool.objects.filter(uai_codes=uai_code).exclude(pk=self.instance.pk).exists():
                     raise forms.ValidationError({
                         'uai_codes': _(
-                            "The uai code %s - %s is already associated with another high school"
-                        ) % (uai_code.code, uai_code.label)
+                            "The uai code %(code)s - %(label)s is already associated with another high school"
+                        ) % {'code': uai_code.code, 'label': uai_code.label}
                     })
 
         return cleaned_data
