@@ -2,11 +2,11 @@
   "model": "core.generalsettings",
   "pk": 1,
   "fields": {
-    "setting": "TWITTER_ACCOUNT_URL",
+    "setting": "SOCIAL_NETWORK_URL",
     "parameters" : {
-      "description": "Compte twitter \u00e0 utiliser dans le fil d'actualit\u00e9s",
+      "description": "Adresse du fil d'actualit\u00e9s",
       "type": "text",
-      "value": "https://twitter.com/unistra?ref_src=twsrc%5Etfw"
+      "value": ""
     }
   }
 },
