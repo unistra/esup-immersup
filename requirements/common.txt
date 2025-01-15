@@ -8,7 +8,8 @@ django-filter==24.2
 ldap3
 requests==2.32.2
 WeasyPrint==62.3
-sentry-sdk[django]==1.44.1
+# sentry-sdk[django]==1.44.1
+sentry-sdk[django]==2.8.0
 django-json-widget==2.0.1
 jsonschema==4.17.3
 django-admin-list-filter-dropdown==1.0.3
