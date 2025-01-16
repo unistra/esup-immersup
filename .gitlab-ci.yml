@@ -16,7 +16,7 @@ sonarqube-check:
     name: sonarsource/sonar-scanner-cli:11
     entrypoint: [""]
   tags:
-    - python3.12
+    - cluster
 
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
@@ -75,7 +75,7 @@ bandit:
 pytype:
   stage: test
   tags:
-    - python3.12
+    - python3.11
   script:
     - pip3 install -r requirements/dev.txt
     - pytype --config=pytype.cfg
