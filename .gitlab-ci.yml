@@ -2,6 +2,8 @@ stages:
   - test
   - sonarqube-check
 
+image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/python:3.12-slim
+
 services:
   - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres
     alias: postgres
@@ -78,7 +80,7 @@ bandit:
 pytype:
   stage: test
   tags:
-    - python3.11
+    - python3.12
   script:
     - pip3 install -r requirements/dev.txt
     - pytype --config=pytype.cfg
