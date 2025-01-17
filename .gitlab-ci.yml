@@ -10,7 +10,9 @@ variables:
   POSTGRES_DB: immersionlyceens
   POSTGRES_USER: immersionlyceens
   POSTGRES_PASSWORD: immersionlyceens
-
+  PYTHON_VERSION: "3.12"
+  SAFETY_ARGS: "-i 51457 -i 51499 -i 67599 -i 70612"
+  
 sonarqube-check:
   stage: sonarqube-check
   image: 
@@ -36,32 +38,32 @@ sonarqube-check:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 
-unittest:
-  stage: test
-  tags:
-    - python3.12
-  before_script:
-  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev libmagic1 tk  
-  script:
-    - pip3 install tox
-    - tox
-  artifacts:
-    paths:
-      - coverage.xml  
+#unittest:
+#  stage: test
+#  tags:
+#    - python3.12
+#  before_script:
+#  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev libmagic1 tk  
+#  script:
+#    - pip3 install tox
+#    - tox
+#  artifacts:
+#    paths:
+#      - coverage.xml  
 
-safety:
-  stage: test
-  tags:
-    - python3.12
-  script:
-    - pip3 install safety
-    - pip3 install -r requirements/prod.txt
-    - pip3 install -U setuptools
-    - pip3 install -U pip
-    - safety check -i 51457 -i 51499 -i 67599 -i 70612
-  only:
-    - develop
-    - master
+#safety:
+#  stage: test
+#  tags:
+#    - python3.12
+#  script:
+#    - pip3 install safety
+#    - pip3 install -r requirements/prod.txt
+#    - pip3 install -U setuptools
+#    - pip3 install -U pip
+#    - safety check -i 51457 -i 51499 -i 67599 -i 70612
+#  only:
+#    - develop
+#    - master
 
 bandit:
   stage: test
@@ -80,3 +82,10 @@ pytype:
   script:
     - pip3 install -r requirements/dev.txt
     - pytype --config=pytype.cfg
+
+include:
+  - project: "docker/template"
+    file: "python-unittest.gitlab-ci.yml"
+  - project: "docker/template"
+    file: "python-safety.gitlab-ci.yml"
+    
