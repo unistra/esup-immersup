@@ -44,10 +44,10 @@ unittest:
   stage: test
   tags:
     - python3.12
-  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/python:3.11-slim
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.11-slim
   services:
-    - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres
-      alias: postgres  
+    - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/postgres
+      alias: postgres
   before_script:
   - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev libmagic1 tk  
   script:
