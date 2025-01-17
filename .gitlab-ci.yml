@@ -2,11 +2,11 @@ stages:
   - test
   - sonarqube-check
 
-image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/python:3.11-slim
+#image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/python:3.11-slim
 
-services:
-  - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres
-    alias: postgres
+#services:
+#  - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres
+#    alias: postgres
 
 variables:
   POSTGRES_DB: immersionlyceens
@@ -40,18 +40,22 @@ sonarqube-check:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 
-#unittest:
-#  stage: test
-#  tags:
-#    - python3.12
-#  before_script:
-#  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev libmagic1 tk  
-#  script:
-#    - pip3 install tox
-#    - tox
-#  artifacts:
-#    paths:
-#      - coverage.xml  
+unittest:
+  stage: test
+  tags:
+    - python3.12
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/python:3.11-slim
+  services:
+    - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres
+      alias: postgres  
+  before_script:
+  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev libmagic1 tk  
+  script:
+    - pip3 install tox
+    - tox
+  artifacts:
+    paths:
+      - coverage.xml  
 
 #safety:
 #  stage: test
@@ -86,8 +90,6 @@ pytype:
     - pytype --config=pytype.cfg
 
 include:
-  - project: "docker/template"
-    file: "python-unittest.gitlab-ci.yml"
   - project: "docker/template"
     file: "python-safety.gitlab-ci.yml"
     
