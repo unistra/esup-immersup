@@ -71,7 +71,7 @@ def prod_montaigne():
     # env.user = 'root'  # user for ssh
     env.application_name = 'immersup_montaigne'
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion.u-bordeaux-montaigne.fr'
+    env.server_name = 'bordeaux-montaigne.immersion-sup.fr'
     env.short_server_name = 'immersion'
     env.static_folder = '/site_media/'
     env.server_ip = '77.72.44.196'
