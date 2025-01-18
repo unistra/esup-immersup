@@ -23,7 +23,8 @@ from django.contrib.auth.models import Group
 from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
-from django.db import transaction
+from django.db import transaction, IntegrityError
+
 from django.db.models import (
     BooleanField,
     Case,
