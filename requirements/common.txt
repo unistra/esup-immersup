@@ -25,7 +25,8 @@ django-countries==7.6.1
 faker
 cairosvg==2.7.0
 py==1.11.0
-boto3>=1.4.4
+boto3==1.35.72
+botocore==1.35.72
 python-magic==0.4.27
 django-ckeditor==6.7.1
 dictdiffer

@@ -1,189 +1,255 @@
 [
-  {
+{
     "model": "core.informationtext",
     "pk": 1,
     "fields": {
-      "label": "Texte de pr\u00e9sentation",
-      "code": "ACCUEIL",
-      "content": "<p>L'universit\u00e9 propose aux lyc\u00e9ens et aux enseignants qui les accompagnent de <b>participer \u00e0 un cours magistral ou une s\u00e9ance de TD</b>. Cette d\u00e9marche permet aussi de d\u00e9couvrir l'universit\u00e9 <span class=\"italic\">in situ</span> (amphith\u00e9\u00e2tres, salles de TD...) et de visiter les structures (facult\u00e9, institut...)</p><p><br><a href=\"./dl/pubdoc/2\" target=\"_blank\">comment venir nous voir</a></p><p><br><br></p>",
-      "description": "Ce texte se trouve sur la page d'accueil",
-      "active": true
+        "label": "Texte de présentation",
+        "code": "ACCUEIL",
+        "content": "<p style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 1rem; font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">L'Université de Strasbourg propose aux lycéennes et aux lycéens de&nbsp;<b style=\"box-sizing: border-box; font-weight: bolder;\">découvrir la vie étudiante<span>&nbsp;</span></b>en\r\n assistant à un cours magistral en amphithéâtre, une séance de travaux \r\ndirigés ou de travaux pratiques en salle. Les immersions sont aussi \r\nl'occasion de découvrir l'université&nbsp;<i style=\"box-sizing: border-box;\"><span class=\"italic\" style=\"box-sizing: border-box;\">in situ</span><span>&nbsp;</span></i>en visitant nos différents campus (facultés, instituts, bibliothèques, restaurants, etc.).<br style=\"box-sizing: border-box;\"></p><p style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 1rem; font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">Dans\r\n le respect des mesures sanitaires, l'Université de Strasbourg et ses \r\ncomposantes se mobilisent pour vous proposer un maximum de cours et de \r\ncréneaux pour que vous puissiez&nbsp;<b style=\"box-sizing: border-box; font-weight: bolder;\">affuter vos choix<span>&nbsp;</span></b>! N'hésitez pas à vous inscrire sur la plateforme, à choisir un cours et à réserver un créneau !</p>",
+        "description": "Ce texte se trouve sur la page d'accueil",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 2,
     "fields": {
-      "label": "Texte d'info-bulle de la proc\u00e9dure",
-      "code": "INFO_BULLE_PROCEDURE",
-      "content": "<p>Proc\u00e9dure pour les lyc\u00e9es !!<br></p>",
-      "description": "Ce texte est celui de l'info bulle sur l'image de la proc\u00e9dure sur la page d'accueil",
-      "active": true
+        "label": "Texte d'info-bulle de la procédure",
+        "code": "INFO_BULLE_PROCEDURE",
+        "content": "<p>Procédure pour les lycées !!<br></p>",
+        "description": "Ce texte est celui de l'info bulle sur l'image de la procédure sur la page d'accueil",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 3,
     "fields": {
-      "label": "Texte d'info-bulle de l'offre d'immersion",
-      "code": "INFO_BULLE_OFFRE",
-      "content": "<p>D\u00e9couvrir notre offre d'immersion !!<br></p>",
-      "description": "Ce texte est celui de l'info bulle sur l'image de l'offre d'immersion sur la page d'accueil",
-      "active": true
+        "label": "Texte d'info-bulle de l'offre d'immersion",
+        "code": "INFO_BULLE_OFFRE",
+        "content": "<p>Découvrir notre offre d'immersion !!<br></p>",
+        "description": "Ce texte est celui de l'info bulle sur l'image de l'offre d'immersion sur la page d'accueil",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 4,
     "fields": {
-      "label": "Texte d'info-bulle de l'accompagnement",
-      "code": "INFO_BULLE_ACCOMPAGNEMENT",
-      "content": "<p>Aide \u00e0 la r\u00e9ussite des <b>immersions !!</b><br></p>",
-      "description": "Ce texte est celui de l'info bulle sur l'image de l'accompagnement sur la page d'accueil",
-      "active": true
+        "label": "Texte d'info-bulle de l'accompagnement",
+        "code": "INFO_BULLE_ACCOMPAGNEMENT",
+        "content": "<p>Aide à la réussite des <b>immersions !!</b><br></p>",
+        "description": "Ce texte est celui de l'info bulle sur l'image de l'accompagnement sur la page d'accueil",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 5,
     "fields": {
-      "label": "Texte d'explication sur la proc\u00e9dure lyc\u00e9e (colonne gauche)",
-      "code": "PROCEDURE_LYCEEA",
-      "content": "<p></p><h2><span>Proc\u00e9dure \u00e0 destination des lyc\u00e9es pour immersion individuelle ....<br></span></h2><h3><span>Public concern\u00e9</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Seuls les \u00e9l\u00e8ves de premi\u00e8re et de terminale de l'acad\u00e9mie de \r\nStrasbourg pourront \u00eatre accueillis dans le cadre de cette action, sous \r\nr\u00e9serve que leur lyc\u00e9e ait sign\u00e9 la convention lyc\u00e9e-Unistra.</p>\r\n\t\t\r\n\t\t\t\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c79423\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Calendrier</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Pour l\u2019ann\u00e9e universitaire 2019-2020, les immersions pourront \r\ns\u2019\u00e9taler d'octobre 2019 \u00e0 avril 2020, en fonction des possibilit\u00e9s des \r\nlyc\u00e9es et des structures de l\u2019universit\u00e9. <br>Inscriptions \r\nindividuelles : 1er semestre &gt; d\u00e9marrage des immersions le 21 octobre\r\n 2019, deuxi\u00e8me semestre &gt; d\u00e9marrage des immersions le 20 janvier \r\n2020.\r\n</p>\r\n<p>Afin de permettre le bon d\u00e9roulement du dispositif, les lyc\u00e9es \r\nsouhaitant participer et n'ayant pas encore sign\u00e9 la convention \r\ndisponible sur cette page son pri\u00e9s de bien vouloir le faire en tout \r\nd\u00e9but d'ann\u00e9e scolaire et avant l'ouverture de la plateforme pour le 1er\r\n semestre.<br><br><span style=\"text-decoration: underline;\">Attention</span> : la convention est <strong>valable jusqu'en 2021 pour les lyc\u00e9es d\u00e9j\u00e0 partenaires</strong> et cit\u00e9s dans la liste ci-dessous. Pour ces derniers, aucune d\u00e9marche administrative n'est \u00e0 entreprendre cette ann\u00e9e.</p>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c59336\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Convention</span></h3>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c59335\" class=\"csc-default\"><div class=\"alert alert-info\"><p>Les lyc\u00e9ens ne peuvent \u00eatre accueillis en immersion qu'\u00e0 condition que leur lyc\u00e9e ait<strong> pr\u00e9alablement sign\u00e9 la convention \"Immersion\" Universit\u00e9 de Strasbourg - lyc\u00e9e</strong>.</p></div></div><h4><span style=\"font-size: 18px;\"><a href=\"./dl/pubdoc/1\">Convention Lyc\u00e9e</a></span></h4><h3><span style=\"text-decoration: underline;\">Proc\u00e9dure \u00e0 suivre par le chef d'\u00e9tablissement (si la convention n'a pas \u00e9t\u00e9 sign\u00e9e une ann\u00e9e pr\u00e9c\u00e9dente)<br></span></h3>\r\n<h4>\u00c9tape 1</h4>\r\n<p><em class=\"fa fa-arrow-right\"></em> Envoyer par mail \u00e0 <a href=\"mailto:espace-avenir-lyceens-immersions@unistra.fr\">espace-avenir-lyceens-immersions@unistra.fr</a> une convention sign\u00e9e par le chef d'\u00e9tablissement et num\u00e9ris\u00e9e (afin de rendre la proc\u00e9dure la plus rapide possible)<em></em>\r\n</p>\r\n<h4>\u00c9tape 2</h4>\r\n<p><em class=\"fa fa-arrow-right\"></em> Envoyer <strong>3 exemplaires papier sign\u00e9s de sa main</strong> \u00e0 :\r\n</p>\r\n<p style=\"padding-left: 30px;\"><strong>Universit\u00e9 de Strasbourg<em></em></strong><strong><em><br></em></strong>Espace Avenir - P\u00f4le lyc\u00e9ens<br>Nouveau Patio<br>20a rue Ren\u00e9 Descartes - CS 90032<br>67081 Strasbourg cedex</p>\r\n<p><em class=\"fa fa-arrow-right\"></em> Les trois exemplaires de la \r\nconvention seront alors sign\u00e9s par le pr\u00e9sident de chacune des deux \r\nuniversit\u00e9s puis un exemplaire sera renvoy\u00e9 au lyc\u00e9e.</p><p></p><br><br>",
-      "description": "Ce texte est celui affich\u00e9 sur la page de proc\u00e9dure dans le premier bloc",
-      "active": true
+        "label": "Texte d'explication sur la procédure lycée (colonne gauche)",
+        "code": "PROCEDURE_LYCEEA",
+        "content": "<h2><span style=\"color:#ce0000\"><strong>Je suis &eacute;l&egrave;ve dans un lyc&eacute;e</strong></span></h2>\r\n\r\n<h3><span style=\"color:#003163\"><strong>&Eacute;tape 1 : Cr&eacute;ation de mon compte</strong></span></h3>\r\n\r\n<ul>\r\n\t<li style=\"list-style-type:disc\">\r\n\t<h2 style=\"margin-left:48px\"><span style=\"color:#085294\"><strong>Via le bouton &quot;Connexion&quot; (en haut &agrave; droite de la page d&#39;accueil), vous avez la possibilit&eacute; de choisir &quot;Lyc&eacute;en&quot;. Si votre compte est d&eacute;j&agrave; cr&eacute;&eacute;, vous pouvez indiquer votre identifiant et votre mot de passe ; sinon, </strong></span><span style=\"color:#085294\"><strong>cliquez sur &quot;Pas</strong></span><span style=\"color:#085294\"><strong> encore inscrit?&quot;</strong></span></h2>\r\n\t</li>\r\n\t<li style=\"list-style-type:disc\">\r\n\t<h2 style=\"margin-left:48px\"><span style=\"color:#085294\"><strong>Apr&egrave;s avoir rempli les diff&eacute;rentes informations (nom, pr&eacute;nom, courriel et mot de passe), vous recevrez un mail d&#39;activation pour confirmer le courriel saisi.</strong></span><br />\r\n\t<span style=\"color:#085294\"><strong>&nbsp;</strong></span></h2>\r\n\t</li>\r\n</ul>\r\n\r\n<p><span style=\"color:#085294\"><em>Cette &eacute;tape est n&eacute;cessaire pour v&eacute;rifier que vous pourrez recevoir les confirmations d&#39;inscription, les notifications de modification ou annulation, etc.</em></span></p>\r\n\r\n<ul>\r\n\t<li style=\"list-style-type:disc\">\r\n\t<h2 style=\"margin-left:48px\"><span style=\"color:#085294\"><strong>Une fois que votre courriel est valid&eacute;, vous allez pouvoir compl&eacute;ter votre profil lyc&eacute;en (&eacute;l&egrave;ve ou &eacute;tudiant) en indiquant notamment votre lyc&eacute;e d&#39;appartenance.</strong></span><br />\r\n\t<span style=\"color:#085294\"><strong>&nbsp;</strong></span></h2>\r\n\t</li>\r\n</ul>\r\n\r\n<p><span style=\"color:#085294\"><em>Si votre lyc&eacute;e n&#39;apparait pas dans le menu d&eacute;</em></span><span style=\"color:#085294\"><em>roulant, c&#39;est qu&#39;il n&#39;est pas conventionn&eacute; avec les universit&eacute;s. Vous pouvez faire une requ&ecirc;te aupr&egrave;s de la direction de votre lyc&eacute;e et les inviter &agrave; suivre la proc&eacute;dure indiqu&eacute;e sur la colonne gauche de cette page (&quot;Je suis professionnel dans un lyc&eacute;e&quot;).</em></span></p>\r\n\r\n<h3><span style=\"color:#003163\"><strong>&Eacute;tape 2 : Validation de mon compte</strong></span></h3>\r\n\r\n<ul>\r\n\t<li style=\"list-style-type:disc\">\r\n\t<h2 style=\"margin-left:48px\"><span style=\"color:#085294\"><strong>Chaque profil lyc&eacute;en cr&eacute;&eacute; doit &ecirc;tre valid&eacute; par le r&eacute;f&eacute;rent&nbsp;</strong></span><span style=\"color:#085294\"><em><strong>immersion&nbsp;</strong></em></span><span style=\"color:#085294\"><strong>de son lyc&eacute;e. Aucune inscription en immersion n&#39;est donc possible tant que votre profil n&#39;a pas &eacute;t&eacute; valid&eacute;.</strong></span></h2>\r\n\t</li>\r\n</ul>\r\n\r\n<h3><span style=\"color:#003163\"><strong>&Eacute;tape 3 : Inscription en immersion</strong></span></h3>\r\n\r\n<ul>\r\n\t<li style=\"list-style-type:disc\">\r\n\t<h2 style=\"margin-left:48px\"><span style=\"color:#085294\"><strong>Maintenant que votre profil est valid&eacute; et que vous &ecirc;tes connect&eacute; &agrave; la plateforme, vous pouvez consulter toute l&#39;offre d&#39;immersion disponible.</strong></span></h2>\r\n\t</li>\r\n\t<li style=\"list-style-type:disc\">\r\n\t<h2 style=\"margin-left:48px\"><span style=\"color:#085294\"><strong>Pour chaque cr&eacute;neau propos&eacute;, &agrave; c&ocirc;t&eacute; du nombre de places restantes, vous trouverez un bouton &quot;S&#39;inscrire&quot;. Vous recevrez alors un mail de confirmation d&#39;inscription, et un mail de rappel quelques jours avant l&#39;immersion !</strong></span></h2>\r\n\t</li>\r\n</ul>\r\n\r\n<p><span style=\"color:#085294\">Si vous rencontrez une difficult&eacute;, vous pouvez contacter l&#39;&eacute;quipe de gestion en faisant un mail &agrave;&nbsp;</span><span style=\"background-color:#ffffff\"><span style=\"color:#000000\"><strong><a class=\"moz-txt-link-abbreviated\" href=\"mailto:ambition_sup@univ-lemans.fr\">ambition_sup@univ-lemans.fr</a></strong></span></span></p>\r\n\r\n<p>&nbsp;</p>",
+        "description": "Ce texte est celui affiché sur la page de procédure dans le premier bloc",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 6,
     "fields": {
-      "label": "Texte d'explication sur la proc\u00e9dure lyc\u00e9e (colonne droite)",
-      "code": "PROCEDURE_LYCEEB",
-      "content": "<h2><span>Proc\u00e9dure \u00e0 destination des lyc\u00e9es pour les immersions de groupe ...<br></span></h2><h3><span>Constitution du groupe d'\u00e9l\u00e8ves</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>L'objectif \u00e9tant de renseigner des \u00e9l\u00e8ves r\u00e9ellement int\u00e9ress\u00e9s \r\npar la fili\u00e8re, il serait contre-productif de faire venir \u00e0 l'universit\u00e9\r\n une classe enti\u00e8re d'une m\u00eame fili\u00e8re de bac. <br>Il est de la \r\nresponsabilit\u00e9 du lyc\u00e9e de sonder les besoins des \u00e9l\u00e8ves et de \r\nconstituer des groupes d'\u00e9l\u00e8ves motiv\u00e9s, ind\u00e9pendamment de leur fili\u00e8re \r\nd'origine.</p>\r\n\t\t\r\n\t\t\t\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c58940\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Suivi p\u00e9dagogique des \u00e9l\u00e8ves</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Afin que les \u00e9l\u00e8ves retirent un maximum de b\u00e9n\u00e9fices de \r\nl'immersion et qu'elle soit efficace, une pr\u00e9paration en amont et un \r\nsuivi en aval sont tr\u00e8s fortement recommand\u00e9s.\r\n</p>\r\n<p>Avant leur visite, il faudrait que les lyc\u00e9ens se soient renseign\u00e9s \r\nsur la fili\u00e8re et qu'ils aient \u00e9ventuellement des questions \u00e0 poser, \r\nquestions dont la r\u00e9ponse ne figure pas dans le guide p\u00e9dagogique. De <a href=\"http://www.unistra.fr/index.php?id=17161\">nombreux outils</a> sont \u00e0 leur disposition pour s'informer sur les fili\u00e8res.\r\n</p>\r\n<p>De m\u00eame, une immersion peut engendrer des r\u00e9actions fortes de la part\r\n des \u00e9l\u00e8ves. Il est donc b\u00e9n\u00e9fique de prendre un temps pour en discuter \r\navec eux par la suite.\r\n</p>\r\n<p>Le <strong>service Lyc\u00e9ens</strong> d'<em>Espace Avenir</em> est \u00e0 votre disposition si vous avez des questions : <a href=\"mailto:espace-avenir-lyceens-immersions@unistra.fr\">espace-avenir-lyceens-immersions@unistra.fr</a>.</p>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c58941\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Encadrement des \u00e9l\u00e8ves sur place</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Aucune immersion de groupe d'\u00e9l\u00e8ve ne pourra se faire sans la pr\u00e9sence d'un accompagnateur du lyc\u00e9e.</p><br></div><br>",
-      "description": "Ce texte est celui affich\u00e9 sur la page de proc\u00e9dure dans le second bloc",
-      "active": true
+        "label": "Texte d'explication sur la procédure lycée (colonne droite)",
+        "code": "PROCEDURE_LYCEEB",
+        "content": "<h2><span style=\"color:#ce0000\"><strong>Je suis professionnel dans un lyc&eacute;e</strong></span></h2>\r\n\r\n<h2><span style=\"color:#003163\"><strong>R&ocirc;le du r&eacute;f&eacute;rent lyc&eacute;e</strong></span></h2>\r\n\r\n<h2><br />\r\n<span style=\"color:#003163\"><strong>&nbsp;</strong></span><span style=\"color:#085294\"><strong>Dans chaque lyc&eacute;e, une personne (parfois plusieurs) est r&eacute;f&eacute;rente et a la charge de :</strong></span></h2>\r\n\r\n<p><span style=\"color:#085294\"><strong>- valider&nbsp;</strong></span><span style=\"color:#085294\">les comptes cr&eacute;&eacute;s par les &eacute;l&egrave;ves appartenant &agrave; son lyc&eacute;e</span><br />\r\n&nbsp;</p>\r\n\r\n<p><span style=\"color:#085294\">Pour cela, il se connecte &agrave; la plateforme avec l&#39;identifiant et le mot de passe d&eacute;finis lors de la cr&eacute;ation de son compte et se rend dans la rubrique Lyc&eacute;ens/Etudiants &gt; Valider les profils lyc&eacute;ens.</span><br />\r\n&nbsp;</p>\r\n\r\n<p><span style=\"color:#085294\"><em>ATTENTION : un &eacute;l&egrave;ve ne pourra s&#39;inscrire &agrave; une immersion que si son compte a &eacute;t&eacute; valid&eacute;.</em></span><br />\r\n<span style=\"color:#085294\"><em>&nbsp;En d&eacute;but d&#39;ann&eacute;e, une attention particuli&egrave;re est demand&eacute;e pour ne pas que les &eacute;l&egrave;ves soient bloqu&eacute;s dans leurs d&eacute;marches.</em></span><br />\r\n<span style=\"color:#085294\"><em>&nbsp;</em></span><br />\r\n<span style=\"color:#085294\"><em>&nbsp;</em></span><span style=\"color:#085294\"><strong>- suivre&nbsp;</strong></span><span style=\"color:#085294\">les immersions demand&eacute;es, r&eacute;alis&eacute;es, annul&eacute;es</span></p>\r\n\r\n<h3><span style=\"color:#003163\">Conventionnement (par le proviseur ou le principal)</span><br />\r\n<span style=\"color:#000000\"><strong>&nbsp;</strong></span></h3>\r\n\r\n<p><span style=\"background-color:#e3fafd\"><span style=\"color:#3b797f\">Les &eacute;l&egrave;ves ne peuvent &ecirc;tre accueillis en immersion qu&#39;</span><span style=\"color:#3b797f\"><strong>&agrave; condition que</strong></span><span style=\"color:#3b797f\">&nbsp;leur lyc&eacute;e / coll&egrave;ge ait</span><span style=\"color:#3b797f\"><strong>&nbsp;</strong></span><span style=\"color:#3b797f\">pr&eacute;alablement sign&eacute; </span><span style=\"color:#3b797f\">la</span>&nbsp;<a href=\"https://gofast.univ-lemans.fr/node/179090\" title=\"https://gofast.univ-lemans.fr/node/179090\"><span style=\"color:#007bff\"><u>convention Ambition Sup Lyc&eacute;e</u></span></a><span style=\"color:#3b797f\">&nbsp;ou Ambition Sup Coll&egrave;ge.</span></span></p>\r\n\r\n<p><span style=\"background-color:#e3fafd\"><span style=\"color:#085294\">Pour toute question, vous pouvez &eacute;crire &agrave; l&#39;adresse</span>&nbsp;<span style=\"color:#ce0000\"><a class=\"moz-txt-link-abbreviated\" href=\"mailto:convention-suio@univ-lemans.fr\">convention-suio@univ-lemans.fr</a></span></span></p>\r\n\r\n<h4><span style=\"color:#ff9c00\"><em><strong>&Eacute;tape 1</strong></em></span></h4>\r\n\r\n<p>&nbsp;<span style=\"color:#085294\">T&eacute;l&eacute;charger la convention (ci-dessus), compl&eacute;ter le formulaire PDF, imprimer et signer le document.</span></p>\r\n\r\n<p><span style=\"color:#ff9c00\">&Eacute;tape 2</span></p>\r\n\r\n<p><span style=\"color:#085294\">Envoyer la convention compl&eacute;t&eacute;e et sign&eacute;e par le chef d&#39;&eacute;tablissement</span><span style=\"color:#085294\"><strong>&nbsp;par mail&nbsp;</strong></span><span style=\"color:#085294\">&agrave; :</span><span style=\"color:#085294\"><strong>&nbsp;<a class=\"moz-txt-link-abbreviated\" href=\"mailto:convention-suio@univ-lemans.fr\">convention-suio@univ-lemans.fr</a></strong></span></p>\r\n\r\n<p><span style=\"color:#ff9c00\">&Eacute;tape 3</span></p>\r\n\r\n<p><span style=\"color:#085294\">&nbsp;Une fois que la convention est sign&eacute;e par le&nbsp;pr&eacute;sident de l&#39;universit&eacute;, un exemplaire vous sera retourn&eacute;. Cette conventio</span><span style=\"color:#085294\">n est valable jusqu&#39;en ao&ucirc;t 2027</span></p>\r\n\r\n<p><a href=\"https://immersup-test.app.unistra.fr/dl/pubdoc/4\">Convention</a></p>",
+        "description": "Ce texte est celui affiché sur la page de procédure dans le second bloc",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 7,
     "fields": {
-      "label": "Texte d'explication sur l'accompagnement",
-      "code": "ACCOMPAGNEMENT",
-      "content": "<p>Vous trouverez ici tous les documents d'accompagnement qui vous aideront \u00e0 faire de ce dispositif une r\u00e9ussite. </p>",
-      "description": "Ce texte est celui affich\u00e9 sur la page d'accompagnement dans le premier bloc",
-      "active": true
+        "label": "Texte d'explication sur l'accompagnement",
+        "code": "ACCOMPAGNEMENT",
+        "content": "<p>Vous trouverez ici tous les documents d&#39;accompagnement qui vous aideront &agrave; faire de ce dispositif une r&eacute;ussite.</p>",
+        "description": "Ce texte est celui affiché sur la page d'accompagnement dans le premier bloc",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 8,
     "fields": {
-      "label": "Texte d'introduction sur l'accompagnement",
-      "code": "INTRO_ACCOMPAGNEMENT",
-      "content": "<p>Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
-      "description": "Texte d'introduction sur l'accompagnement (page d'accueil)",
-      "active": true
+        "label": "Texte d'introduction sur l'accompagnement",
+        "code": "INTRO_ACCOMPAGNEMENT",
+        "content": "<p><b>Tous les documents d'accompagnement</b> pour vous aider à organiser votre immersion sur les campus d'enseignement supérieur.</p>",
+        "description": "Texte d'introduction sur l'accompagnement (page d'accueil)",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 9,
     "fields": {
-      "label": "Texte d'introduction sur l'offre",
-      "code": "INTRO_OFFER",
-      "content": "<p>Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
-      "description": "Texte d'intro sur l'offre (page accueil)",
-      "active": true
+        "label": "Texte d'introduction sur l'offre",
+        "code": "INTRO_OFFER",
+        "content": "<p><b style=\"box-sizing: border-box; font-weight: bolder;\">Tous</b><span>&nbsp;</span><b style=\"box-sizing: border-box; font-weight: bolder;\">les cours</b><span>&nbsp;</span>et<span>&nbsp;</span><b style=\"box-sizing: border-box; font-weight: bolder;\">leurs créneaux</b><span>&nbsp;</span>proposés en immersion sont disponibles sur cette page, classés par domaines de formations.</p>",
+        "description": "Texte d'intro sur l'offre (page accueil)",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 10,
     "fields": {
-      "label": "Texte d'introduction sur la proc\u00e9dure",
-      "code": "INTRO_PROCEDURE",
-      "content": "<p>Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
-      "description": "Texte d'introduction sur la proc\u00e9dure (page d'accueil)",
-      "active": true
+        "label": "Texte d'introduction sur la procédure",
+        "code": "INTRO_PROCEDURE",
+        "content": "<p><b style=\"box-sizing: border-box; font-weight: bolder;\">Toute la procédure d'immersio</b><span style=\"box-sizing: border-box; font-weight: bolder;\">n </span><span style=\"box-sizing: border-box;\">pour ouvrir les inscriptions (proviseur &amp; élève)</span></p>",
+        "description": "Texte d'introduction sur la procédure (page d'accueil)",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 11,
     "fields": {
-      "label": "Mentions l\u00e9gales",
-      "code": "MENTIONS_LEGALES",
-      "content": "<p data-sourcepos=\"3:1-6:84\" dir=\"auto\">Les informations recueillies sont indispensables pour assurer la gestion des inscriptions et du suivi de l\u2019activit\u00e9 d\u2019immersion au sein de l\u2019universit\u00e9 par l\u2019Espace avenir de l\u2019Universit\u00e9 de Strasbourg, et les lyc\u00e9es dont sont issus les participants. La base l\u00e9gale de ce traitement est l'ex\u00e9cution d'une mission de service public (Article 6 (1) e. du RGPD) Les donn\u00e9es seront trait\u00e9es par les personnels en charge de l\u2019immersion au sein de l\u2019Universit\u00e9 de Strasbourg. Elles seront conserv\u00e9es jusqu\u2019\u00e0 la fin de l\u2019ann\u00e9e universitaire en cours. L\u2019Universit\u00e9 de Strasbourg met en \u0153uvre des mesures de s\u00e9curit\u00e9 appropri\u00e9es.</p><p></p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">Vous disposez de droits d'acc\u00e8s, rectification et suppression de vos donn\u00e9es.</p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">Pour les exercer vous pouvez contacter ................... \u00e0 .........@...........fr</p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">L\u2019Universit\u00e9 de Strasbourg a d\u00e9sign\u00e9 une d\u00e9l\u00e9gu\u00e9e \u00e0 la protection des donn\u00e9es que vous pouvez contacter \u00e0 l\u2019adresse suivante :&nbsp;<a href=\"mailto:dpo@unistra.fr\">dpo@unistra.fr</a>&nbsp;Si apr\u00e8s nous avoir contact\u00e9, vous estimez que vos droits n\u2019ont pas \u00e9t\u00e9 respect\u00e9s vous pouvez introduire une r\u00e9clamation aupr\u00e8s de la CNIL.</p>",
-      "description": "Texte affich\u00e9 dans la rubrique \"Confidentialit\u00e9 & modalit\u00e9s\"",
-      "active": true
+        "label": "Mentions légales",
+        "code": "MENTIONS_LEGALES",
+        "content": "<p><b>Informations générales</b><br>Les informations recueillies sont indispensables pour assurer la gestion des inscriptions et du suivi de l’activité d’immersion au sein des différents partenaires participants (organisateur et établissements d’origine). Elle autorise également la participation de publics externes (personne en réorientation, lycéen agissant en dehors de toute convention entre l’UNISTRA et un établissement partenaire).<br>La base légale de ce traitement est l'exécution d'une mission de service public (Article 6 (1) e. du RGPD) définie à l’article L. 331-7 du code de l’éducation et l’arrêté du 1er juillet 2015 relatif au parcours Avenir.<br>L’Université de Strasbourg et l’ensemble des <a href=\"https://immersup-test.app.unistra.fr/procedure\" target=\"_blank\">partenaires </a>de la plateforme ImmerSup sont responsables conjoints de l’action « immersion ».<br>Les données seront traitées par les administrateurs et référents des établissements partenaires ainsi que par les administrateurs techniques de l’UNISTRA opérant la plateforme « ImmerSup ».<br>L’Université de Strasbourg met en œuvre des mesures de sécurité appropriées.<br><br><b>Les catégories de données traitées sont les suivantes :</b><br>Par l’UNISTRA en tant qu’opérateur de plateforme :<br>•&nbsp;&nbsp;&nbsp; Identité (nom, prénom)<br>•&nbsp;&nbsp;&nbsp; Coordonnées institutionnelles (adresses e-mail) ou personnelles (adresses e-mail personnelle, numéro de téléphone). L’Unistra privilégie les coordonnées institutionnelles<br>•&nbsp;&nbsp;&nbsp; Établissement d’affectation <br>•&nbsp;&nbsp;&nbsp; Identifiant<br>•&nbsp;&nbsp;&nbsp; Mot de passe<br>•&nbsp;&nbsp;&nbsp; Date et heure de dernière connexion <br><br>Par les établissements partenaires organisant ou procédant à l’inscription des leurs apprenants :<br>•&nbsp;&nbsp;&nbsp; Identité (nom, prénom)<br>•&nbsp;&nbsp;&nbsp; Coordonnées institutionnelles (adresses e-mail) ou personnelles (adresses e-mail personnelle, numéro de téléphone) les établissement partenaires privilégient les coordonnées institutionnelles<br>•&nbsp;&nbsp;&nbsp; Établissement de rattachement <br>•&nbsp;&nbsp;&nbsp; Filière pré-universitaire<br>•&nbsp;&nbsp;&nbsp; Données liées à l’inscription, à la nature et à la participation (y compris attestation de présence) à l’événement<br>•&nbsp;&nbsp;&nbsp; Pièces justificatives (consentement parental, justificatif d’identité et attestation de responsabilité civile) pour les publics externes<br><br><b>Pourquoi sont-elles collectées ?</b><br>Le traitement de données vous concernant permet votre inscription, votre participation, votre suivi d’assiduité aux évènements et activités proposés, ainsi que la production de statistiques par l’UNISTRA et les établissements auxquels vous appartenez (pilotage et indicateurs).<br>La communication par vos soins et le traitement des données sont indispensables. A défaut, la participation aux évènements est compromise.<br>Ce traitement de données à caractère personnel a fait l’objet d’une inscription au registre des traitements des établissements partenaires.</p><p><br><b>Origine des données </b><br>Votre établissement d'enseignement supérieur ou secondaire nous fournit les données à caractère personnel strictement nécessaires :<br>- à la validation de votre compte,<br>- à des inscriptions aux évènements proposés sur la plateforme ImmerSup.<br><br><b>Les finalités sont les suivantes :</b><br>•&nbsp;&nbsp;&nbsp; Gestion de la communication des évènements auprès des personnes inscrites sur la plateforme ImmerSup. Cette communication uniquement en lien avec les activités de la plateforme est considérée au titre de la communication interne<br>•&nbsp;&nbsp;&nbsp; Gestion de la création, de la validation et de la suppression des comptes de la plateforme <a href=\"https://immersup.unistra.fr\" target=\"_blank\">https://immersup.unistra.fr</a> <br>•&nbsp;&nbsp;&nbsp; Gestion de l'identification par authentification (fédération d'identité ou compte local)<br>•&nbsp;&nbsp;&nbsp; Gestion des habilitations des administrateurs, référents et utilisateurs<br>•&nbsp;&nbsp;&nbsp; Gestion des risques par supervision des évènements (personnes devant savoir qui se trouve physiquement dans l’établissement)<br>•&nbsp;&nbsp;&nbsp; Gestion des offres de participation à des cours, évènements ou activités pédagogiques dans les établissements partenaires du secondaire ou de l’enseignement supérieur<br>•&nbsp;&nbsp;&nbsp; Gestion des ressources (créneaux, locaux, intervenants)<br>•&nbsp;&nbsp;&nbsp; Gestion de l'inscription, de la désinscription, réinscription aux cours et événements proposés<br>•&nbsp;&nbsp;&nbsp; Suivi des inscriptions par les administrateurs, référents, les enseignants et les inscrits<br>•&nbsp;&nbsp;&nbsp; Gestion de l’assiduité<br>•&nbsp;&nbsp;&nbsp; Délivrance d'attestations de présence<br>•&nbsp;&nbsp;&nbsp; Élaboration d'analyses statistiques<br><br><b>Sont destinataires des données vous concernant :</b><br>Les gestionnaires (administrateurs, référents) et autres services sur habilitation (administrateurs techniques de l’UNISTRA), les utilisateurs inscrits pour les données les concernant (profil et activités sélectionnées).<br><br><b>Durée de conservation des données personnelles</b><br>Vos données seront conservées jusqu’à la fin de l’année universitaire en cours.<br><br><b>Quels sont vos droits et comment pouvez-vous les appliquer ?</b><br>Vous disposez des droits suivants :<br>•&nbsp;&nbsp;&nbsp; droit d’être informé<br>•&nbsp;&nbsp;&nbsp; droit d’accès (via le profil utilisateur, vous accédez à la plupart de vos données)<br>•&nbsp;&nbsp;&nbsp; droit de rectification<br>•&nbsp;&nbsp;&nbsp; droit de restreindre le traitement<br>•&nbsp;&nbsp;&nbsp; droit à la portabilité des données<br>•&nbsp;&nbsp;&nbsp; droit d’opposition <br>•&nbsp;&nbsp;&nbsp; droit à la suppression<br>Nous étudierons votre demande de droit dans les délais légaux. *<br>Pour exercer vos droits, vous pouvez contacter :<br>•&nbsp;&nbsp;&nbsp; <a href=\"mailto:espace-avenir-lyceens-immersions@unistra.fr\" target=\"_blank\">espace-avenir-lyceens-immersions@unistra.fr</a><br>L’espace avenir de l’UNISTRA transmettra votre demande à votre établissement dans les meilleurs délais.<br>ou<br>•&nbsp;&nbsp;&nbsp; le délégué à la protection des données de votre établissement.<br>L’Université de Strasbourg a désigné une déléguée à la protection des données que vous pouvez contacter à l’adresse suivante : <a href=\"mailto:dpo@unistra.fr\" target=\"_blank\">dpo@unistra.fr </a>&nbsp;<br>Si après nous avoir contacté, vous estimez que vos droits n’ont pas été respectés vous pouvez introduire une réclamation auprès de la CNIL.<br>Nous ne prenons aucune décision entièrement automatisée à votre égard.<br><br></p>",
+        "description": "Texte affiché dans la rubrique \"Confidentialité & modalités\"",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 12,
     "fields": {
-      "label": "Mentions l\u00e9gales inscription",
-      "code": "MENTIONS_INSCRIPTION",
-      "content": "<p data-sourcepos=\"3:1-6:84\" dir=\"auto\">Les informations recueillies sont indispensables pour assurer la gestion des inscriptions et du suivi de l\u2019activit\u00e9 d\u2019immersion au sein de l\u2019universit\u00e9 par l\u2019Espace avenir de l\u2019Universit\u00e9 de Strasbourg, et les lyc\u00e9es dont sont issus les participants. La base l\u00e9gale de ce traitement est l'ex\u00e9cution d'une mission de service public (Article 6 (1) e. du RGPD) Les donn\u00e9es seront trait\u00e9es par les personnels en charge de l\u2019immersion au sein de l\u2019Universit\u00e9 de Strasbourg. Elles seront conserv\u00e9es jusqu\u2019\u00e0 la fin de l\u2019ann\u00e9e universitaire en cours. L\u2019Universit\u00e9 de Strasbourg met en \u0153uvre des mesures de s\u00e9curit\u00e9 appropri\u00e9es.</p><p></p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">Vous disposez de droits d'acc\u00e8s, rectification et suppression de vos donn\u00e9es.</p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">Pour les exercer vous pouvez contacter ................... \u00e0 .........@...........fr</p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">L\u2019Universit\u00e9 de Strasbourg a d\u00e9sign\u00e9 une d\u00e9l\u00e9gu\u00e9e \u00e0 la protection des donn\u00e9es que vous pouvez contacter \u00e0 l\u2019adresse suivante :&nbsp;<a href=\"mailto:dpo@unistra.fr\">dpo@unistra.fr</a>&nbsp;Si apr\u00e8s nous avoir contact\u00e9, vous estimez que vos droits n\u2019ont pas \u00e9t\u00e9 respect\u00e9s vous pouvez introduire une r\u00e9clamation aupr\u00e8s de la CNIL.</p>",
-      "description": "Mentions l\u00e9gales affich\u00e9es \u00e0 l'inscription",
-      "active": true
+        "label": "Mentions légales inscription",
+        "code": "MENTIONS_INSCRIPTION",
+        "content": "Les informations recueillies sont indispensables pour assurer la gestion des inscriptions et du suivi de l’activité d’immersion au sein des différents partenaires participants (organisateur et établissements d’origine). Elle autorise également la participation de publics externes (personne en réorientation, lycéen agissant en dehors de toute convention entre l’UNISTRA et un établissement partenaire).<br><br>La base légale de ce traitement est l'exécution d'une mission de service public (Article 6 (1) e. du RGPD) définie à l’article L. 331-7 du code de l’éducation et l’arrêté du 1er juillet 2015 relatif au parcours Avenir.<br><br>L’Université de Strasbourg et l’ensemble des partenaires de la plateforme ImmerSup sont responsables conjoints de l’action « immersion ».<br><br>Les données seront traitées par les administrateurs et référents des établissements partenaires ainsi que par les administrateurs techniques de l’UNISTRA opérant la plateforme « ImmerSup ».<br><br>Vos données seront conservées jusqu’à la fin de l’année universitaire en cours.<br><br>L’Université de Strasbourg met en œuvre des mesures de sécurité appropriées.<br><br>Vous disposez de droits d'accès, rectification et suppression de vos données. Vous pouvez également demander la limitation du traitement.<br><br>Pour les exercer vous pouvez contacter <a href=\"mailto:espace-avenir-lyceens-immersions@unistra.fr\" target=\"_blank\">espace-avenir-lyceens-immersions@unistra.fr</a> <br><br>Pour plus de détails sur le traitement de vos données veuillez cliquer <a href=\"#\" data-toggle=\"modal\" data-target=\"#modalLegal\">ici</a> <br><br>Si après nous avoir contacté, vous estimez que vos droits n’ont pas été respectés vous pouvez introduire une réclamation auprès de la <a href=\"https://www.cnil.fr/fr/plaintes\" target=\"_blank\">CNIL</a>.<br><br>Nous ne prenons aucune décision entièrement automatisée à votre égard. <br>",
+        "description": "Mentions légales affichées à l'inscription",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 14,
     "fields": {
-      "label": "Évènements hors offre de formation",
-      "code": "INTRO_EVENEMENTHO",
-      "content": "<p>TODO: Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
-      "description": "Texte d'introduction de la page d'offre des évènements hors offre de formation",
-      "active": true
+        "label": "Évènements hors offre de formation",
+        "code": "INTRO_EVENEMENTHO",
+        "content": "<p>En-dehors des immersions proposées par les établissements d'accueil partenaires au projet Noria, des <b>événements </b>peuvent être ouverts à toutes et tous pour inviter à préparer sa vie étudiante tout autant que son inscription en formation.</p>",
+        "description": "Texte d'introduction de la page d'offre des évènements hors offre de formation",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 15,
     "fields": {
-      "label": "Charte à signer pour les établissements d'accueil",
-      "code": "CHARTE_ETABLISSEMENT_ACCUEIL",
-      "content": "<p>TODO: Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
-      "description": "Texte à valider lors de la connexion d'un nouvel établissement d'accueil",
-      "active": true
+        "label": "Charte à signer pour les établissements d'accueil",
+        "code": "CHARTE_ETABLISSEMENT_ACCUEIL",
+        "content": "<p>En tant qu'établissement d’accueil, vous devez respecter la charte des établissements d'accueil. </p><p><br></p><p>....... à compléter .... <br></p>",
+        "description": "Texte à valider lors de la connexion d'un nouvel établissement d'accueil",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 16,
     "fields": {
-      "label": "Texte d'introduction pour le formulaire de contact",
-      "code": "INTRO_CONTACT",
-      "content": "<p>Vous pouvez nous contacter via ce formulaire, nous vous r\u00e9pondrons dans les plus brefs d\u00e9lais.</p>",
-      "description": "Texte d'introduction en haut du formulaire de contact",
-      "active": false
+        "label": "Texte d'introduction pour le formulaire de contact",
+        "code": "INTRO_CONTACT",
+        "content": "<p>Avez-vous consulté notre FAQ ? </p><p>Vous y trouverez pleins d'informations<br></p><p>Vous pouvez nous contacter via ce formulaire, nous vous répondrons dans les plus brefs délais.</p>",
+        "description": "Texte d'introduction en haut du formulaire de contact",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 17,
     "fields": {
-      "label": "Texte d'introduction sur l'offre de cours",
-      "code": "INTRO_OFFER_COURSE",
-      "content": "<p>Vous pouvez retrouver ici l'ensemble des cours ouverts à l'immersion, cela vous permettra de participer à cours avec des \u00e9tudiants.</p>",
-      "description": "Texte d'intro sur l'offre de cours (page offre de cours)",
-      "active": false
+        "label": "Texte d'introduction sur l'offre de cours",
+        "code": "INTRO_OFFER_COURSE",
+        "content": "<p>Vous pouvez retrouver ici l&#39;ensemble des cours ouverts &agrave; l&#39;immersion, cela vous permettra de participer &agrave; des cours avec des &eacute;tudiants...</p>",
+        "description": "Texte d'intro sur l'offre de cours (page offre de cours)",
+        "active": true
     }
-  },
-  {
+},
+{
     "model": "core.informationtext",
     "pk": 18,
     "fields": {
-      "label": "Texte d'introduction sur la page de la FAQ",
-      "code": "INTRO_FAQ",
-      "content": "<p>Nous avons rassembl\u00e9 les questions les plus fr\u00e9quemment pos\u00e9es pour vous donnez plus d'informations.</p>",
-      "description": "Texte d'intro sur la foire aux questions (page FAQ)",
-      "active": false
+        "label": "Texte d'intro de la page FAQ",
+        "code": "INTRO_FAQ",
+        "content": "<p>Nous avons rassemblé les questions les plus fréquemment posées pour vous donnez plus d'informations.</p>",
+        "description": "Texte d'intro sur la foire aux questions (page FAQ)",
+        "active": false
     }
-  }     
+},
+{
+    "model": "core.informationtext",
+    "pk": 19,
+    "fields": {
+        "label": "Texte d'introduction sur les lycées conventionnés",
+        "code": "INTRO_LYCEES_CONVENTIONNES",
+        "content": "<p>Si votre lyc&eacute;e fait partie de cette liste, les immersions vous sont ouvertes.</p>",
+        "description": "Texte d'introduction sur les lycées conventionnés sur la partie publique / procédure / Liste des lycées",
+        "active": true
+    }
+},
+{
+    "model": "core.informationtext",
+    "pk": 20,
+    "fields": {
+        "label": "Texte d'introduction sur les lycées non conventionnés",
+        "code": "INTRO_LYCEES_NON_CONVENTIONNES",
+        "content": "Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Flammekueche knèkes rossbolla schneck choucroute un schwanz geburtstàg, Gal!",
+        "description": "Texte d'introduction sur les lycées non conventionnés sur la partie publique / procédure / Liste des lycées",
+        "active": false
+    }
+},
+{
+    "model": "core.informationtext",
+    "pk": 21,
+    "fields": {
+        "label": "Texte d'introduction pour le moteur de recherche de créneaux",
+        "code": "INTRO_OFFER_SEARCH",
+        "content": "<p>Vous pouvez rechercher ici l'ensemble des cours, évènements ouverts à l'immersion, pour plus de critères vous pouvez cliquer sur recherche avancée.<p>",
+        "description": "Texte d'introduction en haut de la page du formulaire de recherche de créneaux",
+        "active": false
+    }
+},
+{
+    "model": "core.informationtext",
+    "pk": 22,
+    "fields": {
+        "label": "Texte d'introduction pour la page publique des immersions en cohorte",
+        "code": "INTRO_OFFER_COHORT",
+        "content": "<p>Vous pouvez rechercher ici l&#39;ensemble des cours, &eacute;v&egrave;nements ouverts &agrave; l&#39;immersion en cohorte pour l&#39;ensemble des &eacute;tablissements</p>",
+        "description": "Texte d'introduction pour la page publique des immersions en cohorte",
+        "active": true
+    }
+},
+{
+    "model": "core.informationtext",
+    "pk": 23,
+    "fields": {
+        "label": "Texte d'information pour la connexion des lycéens",
+        "code": "INTRO_HIGHSCHOOL_CONNECTION",
+        "content": "<p>Pour savoir si votre lyc&eacute;e utilise la f&eacute;d&eacute;ration educonnect ou non, merci de vous r&eacute;f&eacute;rer &agrave; la page</p>",
+        "description": "Texte d'information pour la connexion des lycéens (choix EduConnect ou non)",
+        "active": true
+    }
+},
+{
+    "model": "core.informationtext",
+    "pk": 24,
+    "fields": {
+        "label": "Texte d'information pour la connexion des agents lycée",
+        "code": "INTRO_AGENT_CONNECTION",
+        "content": "<p>Si votre lyc&eacute;e utilise la f&eacute;d&eacute;ration d&#39;identit&eacute; des agents du secondaire, vous devez choisir connexion avec la f&eacute;d&eacute;ration agent.</p>",
+        "description": "Texte d'information pour la connexion des agents lycée (référents et intervenants)",
+        "active": true
+    }
+}
 ]

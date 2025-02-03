@@ -21,7 +21,7 @@ sonarqube-check:
     name: sonarsource/sonar-scanner-cli:11
     entrypoint: [""]
   tags:
-    - cluster, python3.12
+    - cluster
 
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
@@ -43,8 +43,8 @@ sonarqube-check:
 unittest:
   stage: test
   tags:
-    - cluster, python3.12
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.11-slim
+    - cluster
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12
   services:
     - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/postgres
       alias: postgres

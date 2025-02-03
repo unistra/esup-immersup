@@ -14,6 +14,7 @@ from bordeaux import preprod_bordeaux, prod_bordeaux
 from caen import preprod_caen, prod_caen
 from lemans import preprod_lemans, prod_lemans
 from lorraine import preprod_lorraine, prod_lorraine
+from lyon import preprod_lyon, prod_lyon
 from montaigne import preprod_montaigne, prod_montaigne
 from pau import preprod_pau, prod_pau
 from reims import preprod_reims, prod_reims
