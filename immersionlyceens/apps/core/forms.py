@@ -568,9 +568,15 @@ class SlotForm(forms.ModelForm):
             'cancellation_limit_delay', 'period', 'n_group_places', 'allow_individual_registrations',
             'allow_group_registrations', 'group_mode', 'public_group', 'place'
         )
+
+        try:
+            max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
+        except (ValueError, NameError) as e:
+            max_slot_places = 200
+
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
-            'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200}),
+            'n_places': forms.NumberInput(attrs={'min': 1, 'max': max_slot_places}),
             'room': forms.TextInput(attrs={'placeholder': _('Enter the room name')}),
             'date': forms.DateInput(
                 format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
@@ -655,11 +661,16 @@ class SlotMassUpdateForm(forms.Form):
             self.fields["building"].disabled = True
 
         # Widgets
+        try:
+            max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
+        except (ValueError, NameError):
+            max_slot_places = 200
+
         self.fields['start_time'].widget = TimeInput(format='%H:%M')
         self.fields['end_time'].widget = TimeInput(format='%H:%M')
 
         self.fields['room'].widget = forms.TextInput(attrs={'placeholder': _('Enter the room name')})
-        self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': 200})
+        self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': max_slot_places})
         self.fields['additional_information'].widget = forms.Textarea(attrs={'placeholder': _('Enter additional information'),})
 
         for elem in ['course_type', 'campus', 'building', 'room', 'start_time', 'end_time', 'n_group_places',
