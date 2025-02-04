@@ -341,6 +341,11 @@ class SlotForm(forms.ModelForm):
         n_group_places = cleaned_data.get('n_group_places', 0)
         published = cleaned_data.get('published', None)
 
+        try:
+            max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
+        except (ValueError, NameError) as e:
+            max_slot_places = 200
+
         # Groups settings
         try:
             enabled_groups = get_general_setting("ACTIVATE_COHORT")
@@ -363,6 +368,12 @@ class SlotForm(forms.ModelForm):
                 self.add_error(
                     'n_places',
                     _("Please enter a valid number for 'n_places' field")
+                )
+
+            if (not enabled_groups or allow_individual_registrations) and n_places > max_slot_places:
+                self.add_error(
+                    'n_places',
+                    _("The 'n_places' field must not exceed %s" % max_slot_places)
                 )
 
             if (enabled_groups and allow_group_registrations and (not n_group_places or n_group_places <= 0)):

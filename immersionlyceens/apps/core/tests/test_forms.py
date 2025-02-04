@@ -515,7 +515,7 @@ class FormTestCase(TestCase):
             form.errors["__all__"]
         )
 
-        # Fail : time errors
+        # Fail : n_places above limit
 
         period_now = Period.objects.create(
             label='Now',
@@ -524,9 +524,16 @@ class FormTestCase(TestCase):
             immersion_end_date=self.today + datetime.timedelta(days=1),
             allowed_immersions=4
         )
-
-        invalid_data["date"] = self.today
         invalid_data["period"] = period_now
+        invalid_data["n_places"] = 201 # default is 200
+
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("The 'n_places' field must not exceed 200", form.errors["n_places"])
+
+        # Fail : time errors
+        invalid_data["n_places"] = 10
+        invalid_data["date"] = self.today
         invalid_data["start_time"] = datetime.time(hour=0)
         invalid_data["end_time"] = datetime.time(hour=1)
         form = SlotForm(data=invalid_data, request=request)
