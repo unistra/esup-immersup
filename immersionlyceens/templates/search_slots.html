@@ -512,6 +512,7 @@
       let url = null;
       let buildingFull = null;
       let courseLabelFull = null;
+      let labelFull = null;
       let slotType = rowData[0].slot_type[0].toLowerCase();
       let etab = [];
       var restrictions = "";
@@ -592,6 +593,9 @@
       if (rowData[0].course_training_url !== null && rowData[0].course_training_url !== '') {
         courseLabelFull = rowData[0].course_training_label + "&nbsp;<a href=\""+rowData[0].course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
+      if (rowData[0].label !== null && rowData[0].course_url !== '') {
+        labelFull = rowData[0].label + "&nbsp;<a href=\""+rowData[0].course_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
+      }
       if (rowData[0].campus_label === '' || rowData[0].campus_label === null) {
         filteredRows.push('row_campus');
       }
@@ -627,7 +631,7 @@
       })
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData[0].course_training_label);
-      $('#modal_search_slots_details #modal_label').html(rowData[0].label);
+      $('#modal_search_slots_details #modal_label').html(labelFull ?? rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));

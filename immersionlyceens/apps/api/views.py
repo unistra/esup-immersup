@@ -5427,6 +5427,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "slot_type",
         "published",
         "label",
+        "course_url",
         "course_type_full_label",
         "establishment_short_label",
         "establishment_label",
@@ -5467,6 +5468,10 @@ def ajax_search_slots_list(request, slot_id=None):
     slots = (
         slots.annotate(
             label=Coalesce(F("course__label"), F("event__label")),
+            course_url=Coalesce(
+                F("course__url"),
+                Value(''),
+            ),
             slot_type=Case(
                 When(course__isnull=False, then=Value(gettext("Course"))),
                 When(event__isnull=False, then=Value(gettext("Event"))),
