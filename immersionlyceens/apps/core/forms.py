@@ -163,6 +163,14 @@ class SlotForm(forms.ModelForm):
             'speakers']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
+        # n_places widget
+        try:
+            max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
+        except (ValueError, NameError) as e:
+            max_slot_places = 200
+
+        self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': max_slot_places})
+
         # Disable autocomplete for date fields
         self.fields['date'].widget.attrs.update({'autocomplete': 'off'})
 
@@ -580,14 +588,8 @@ class SlotForm(forms.ModelForm):
             'allow_group_registrations', 'group_mode', 'public_group', 'place'
         )
 
-        try:
-            max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
-        except (ValueError, NameError) as e:
-            max_slot_places = 200
-
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
-            'n_places': forms.NumberInput(attrs={'min': 1, 'max': max_slot_places}),
             'room': forms.TextInput(attrs={'placeholder': _('Enter the room name')}),
             'date': forms.DateInput(
                 format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}

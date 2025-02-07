@@ -494,6 +494,8 @@ class CommandsTestCase(TestCase):
             5
         )
 
+        devnull.close()
+
 
     def test_send_speakers_and_structures_managers_slot_reminder(self):
         """ Tests send_speaker_slot_reminder & send_slot_reminder_on_closed_registrations"""    
