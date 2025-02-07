@@ -1134,7 +1134,11 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         # Custom quotas objects for already started periods (check registration date)
         # The record must exist
-        for period in periods.filter(registration_start_date__lte=timezone.localdate()):
+        # Create quotas only for periods with allowed individual registrations
+        for period in periods.filter(
+                registration_start_date__lte=timezone.localdate(),
+                slots__allow_individual_registrations=True
+        ):
             if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
                 HighSchoolStudentRecordQuota.objects.create(
                     record=record, period=period, allowed_immersions=period.allowed_immersions
@@ -1467,7 +1471,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
         ).count()
 
     # Periods to display
-    period_filter = { 'registration_start_date__gt': today } if record.id else {'immersion_end_date__gte': today}
+    period_filter = {'slots__allow_individual_registrations': True}
+
+    if record.id:
+        period_filter['registration_start_date__gt'] = today
+    else:
+        period_filter['immersion_end_date__gte'] = today
 
     # Document archives
     archives = defaultdict(list)
@@ -1477,10 +1486,16 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     .order_by("-validity_date"):
             archives[archive.attestation.id].append(archive)
 
+    if record and record.quota.exists():
+        user_quotas = record.quota.filter(period__slots__allow_individual_registrations=True).distinct()
+    else:
+        user_quotas = None
+
     context = {
         'student_form': studentform,
         'record_form': recordform,
         'quota_forms': quota_forms,
+        'user_quotas': user_quotas,
         'document_forms': document_forms,
         'student': student,
         'record': record,
@@ -1502,7 +1517,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         ),
         'immersions_count': immersions_count,
         'request_student_consent': GeneralSettings.get_setting('REQUEST_FOR_STUDENT_AGREEMENT'),
-        'future_periods': Period.objects.filter(**period_filter).order_by('immersion_start_date'),
+        'future_periods': Period.objects.filter(**period_filter).distinct().order_by('immersion_start_date'),
         'archives': archives
     }
 
