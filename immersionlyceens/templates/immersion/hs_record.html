@@ -263,7 +263,7 @@
         </div>
       {% endif %}
 
-      {% if future_periods or quota_forms|length and not request.user.is_high_school_student or record.quota.count %}
+      {% if future_periods or quota_forms|length and not request.user.is_high_school_student or user_quotas.count %}
           <div class="card-header text-white bg-secondary">
             {% trans "Immersions periods and quotas" %}
           </div>
@@ -289,7 +289,7 @@
                 </div>
               {% endfor %}
             {% else %}
-              {% for quota in record.quota.all|dictsort:"period.immersion_start_date" %}
+              {% for quota in user_quotas|dictsort:"period.immersion_start_date" %}
                 <div class="form-group row align-items-center">
                   <div class="col-sm-5">
                     <label class="col-form-label">
@@ -308,6 +308,7 @@
 
             {% comment %}
               Display future periods as readonly (no form to update the student custom quota)
+              - display only periods with slots open to individual registrations
             {% endcomment %}
 
             {% for period in future_periods|dictsort:"immersion_start_date" %}
