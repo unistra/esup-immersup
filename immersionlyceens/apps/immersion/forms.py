@@ -578,14 +578,15 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                 for field in ["highschool", "birth_date", "level", "class_name"]:
                     self.fields[field].disabled = True
 
+        student_federation_enabled = get_general_setting('ACTIVATE_EDUCONNECT')
+
         # Lock fields if high school uses student federation
-        if self.instance and self.instance.highschool:
+        if student_federation_enabled and self.instance and self.instance.highschool:
+            self.fields["highschool"].disabled = True
+
             if self.instance.highschool.uses_student_federation:
-                for field in ["highschool", "level", "birth_date"]:
+                for field in ["level", "birth_date"]:
                     self.fields[field].disabled = True
-            else:
-                # Keep and lock the high school the user has chosen at registration
-                self.fields["highschool"].disabled = True
 
 
     def clean(self):
