@@ -940,6 +940,40 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(Slot.objects.filter(date=new_date, course=self.course.pk).exists())
 
+    def test_slot_detail(self):
+        """
+        Test get slot
+        :return:
+        """
+        url = reverse("slot_detail", args=[self.slot.id, ])
+        add_permission = Permission.objects.get(codename='view_slot')
+        delete_permission = Permission.objects.get(codename='delete_slot')
+
+        # No permission
+        self.api_user.user_permissions.remove(add_permission)
+        self.api_user.user_permissions.remove(delete_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        response = self.api_client_token.delete(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Get
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.get(url)
+        slot = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(slot["additional_information"], "Hello there!")
+
+        # Delete
+        self.api_user.user_permissions.add(delete_permission)
+        response = self.api_client_token.delete(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result["error"], "This slot has registered immersions: delete not allowed")
+
+
     def test_API_get_student_records(self):
         self.client.login(username='ref_etab', password='pass')
         url = "/api/get_student_records/"
