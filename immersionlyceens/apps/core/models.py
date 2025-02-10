@@ -19,7 +19,7 @@ from os.path import dirname, join
 from typing import Any, Optional
 
 from hijack.signals import hijack_started, hijack_ended
-from ipware import IpWare
+from ipware import get_client_ip
 
 from django.apps import apps
 from django.conf import settings
@@ -3511,15 +3511,15 @@ def user_logged_in_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
 
     try:
-        ipware = IpWare()
-        meta = request.META
-        real_ip, trusted_route = ipware.get_client_ip(meta)
-    except:
-        real_ip = None
+        client_ip, is_routable = get_client_ip(request)
+    except Exception as e:
+        logger.error("User login - ipware : {e}")
+        client_ip = None
+        is_routable = False
 
     History.objects.create(
         action=_("User logged in"),
-        ip=str(real_ip) if real_ip else ip,
+        ip=str(client_ip) if client_ip and is_routable else ip,
         username=user.username if user else None,
         user=f"{user.last_name} {user.first_name}" if user else None,
     )
@@ -3529,15 +3529,15 @@ def user_logged_out_callback(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR')
 
     try:
-        ipware = IpWare()
-        meta = request.META
-        real_ip, trusted_route = ipware.get_client_ip(meta)
-    except:
-        real_ip = None
+        client_ip, is_routable = get_client_ip(request)
+    except Exception as e:
+        logger.error("User login - ipware : {e}")
+        client_ip = None
+        is_routable = False
 
     History.objects.create(
         action=_("User logged out"),
-        ip=str(real_ip) if real_ip else ip,
+        ip=str(client_ip) if client_ip and is_routable else ip,
         username=user.username if user else None,
         user=f"{user.last_name} {user.first_name}" if user else None,
     )
@@ -3550,16 +3550,16 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
     user = None
 
     try:
+        client_ip, is_routable = get_client_ip(request)
+    except Exception as e:
+        logger.error("User login - ipware : {e}")
+        client_ip = None
+        is_routable = False
+
+    try:
         ip = request.META.get('REMOTE_ADDR')
     except AttributeError:
         pass
-
-    try:
-        ipware = IpWare()
-        meta = request.META
-        real_ip, trusted_route = ipware.get_client_ip(meta)
-    except:
-        real_ip = None
 
     if username:
         try:
@@ -3569,7 +3569,7 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
 
     History.objects.create(
         action=_("User login failed"),
-        ip=str(real_ip) if real_ip else ip,
+        ip=str(client_ip) if client_ip and is_routable else ip,
         username=username,
         user=f"{user.last_name} {user.first_name}" if user else None,
     )
@@ -3578,20 +3578,20 @@ def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
     ip = None
 
     try:
+        client_ip, is_routable = get_client_ip(request)
+    except Exception as e:
+        logger.error("User login - ipware : {e}")
+        client_ip = None
+        is_routable = False
+
+    try:
         ip = request.META.get('REMOTE_ADDR')
     except AttributeError:
         pass
 
-    try:
-        ipware = IpWare()
-        meta = request.META
-        real_ip, trusted_route = ipware.get_client_ip(meta)
-    except:
-        real_ip = None
-
     History.objects.create(
         action=_("Hijack start"),
-        ip=str(real_ip) if real_ip else ip,
+        ip=str(client_ip) if client_ip and is_routable else ip,
         username=hijacker.username if hijacker else None,
         user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
         hijacked=hijacked
@@ -3601,20 +3601,20 @@ def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
     ip = None
 
     try:
+        client_ip, is_routable = get_client_ip(request)
+    except Exception as e:
+        logger.error("User login - ipware : {e}")
+        client_ip = None
+        is_routable = False
+
+    try:
         ip = request.META.get('REMOTE_ADDR')
     except AttributeError:
         pass
 
-    try:
-        ipware = IpWare()
-        meta = request.META
-        real_ip, trusted_route = ipware.get_client_ip(meta)
-    except:
-        real_ip = None
-
     History.objects.create(
         action=_("Hijack end"),
-        ip=str(real_ip) if real_ip else ip,
+        ip=str(client_ip) if client_ip and is_routable else ip,
         username=hijacker.username if hijacker else None,
         user=f"{hijacker.last_name} {hijacker.first_name}" if hijacker else None,
         hijacked=hijacked

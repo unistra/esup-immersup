@@ -37,3 +37,4 @@ Jinja2==3.1.5
 Sqlparse==0.5.0
 urllib3==2.2.3
 python-ipware==3.0.0
+django-ipware==7.0.1
