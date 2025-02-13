@@ -362,7 +362,7 @@ def shibbolethLogin(request, profile=None):
         # Common field for students and high school students
         uai_code = shib_attrs.get("uai_code", "")
 
-        if shib_attrs.get('birth_date'):
+        if "educonnect.education.gouv.fr" in shib_attrs.get('username', ""):
             # High school student using EduConnect : email becomes optional
             # TODO : identify EduConnect users with another meta HTTP var
             is_high_school_student = True
