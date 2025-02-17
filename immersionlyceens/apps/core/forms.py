@@ -166,7 +166,7 @@ class SlotForm(forms.ModelForm):
         # n_places widget
         try:
             max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
-        except (ValueError, NameError) as e:
+        except (ValueError, NameError):
             max_slot_places = 200
 
         self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': max_slot_places})
@@ -351,7 +351,7 @@ class SlotForm(forms.ModelForm):
 
         try:
             max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
-        except (ValueError, NameError) as e:
+        except (ValueError, NameError):
             max_slot_places = 200
 
         # Groups settings
