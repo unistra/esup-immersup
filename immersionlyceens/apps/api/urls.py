@@ -77,7 +77,8 @@ urlpatterns = [
     path("course_type/<int:pk>", views.CourseTypeDetail.as_view(), name="course_type_detail"),
 
     # The following path may change to 'slots/' in a near future : please always use the 'name'
-    path('slots', views.SlotList.as_view(), name='slot_list',),
+    path('slots', views.SlotList.as_view(), name='slot_list'),
+    path('slot/<int:pk>', views.SlotDetail.as_view(), name='slot_detail'),
 
     # Speakers
     path('speakers', views.SpeakerList.as_view(), name='speaker_list'),

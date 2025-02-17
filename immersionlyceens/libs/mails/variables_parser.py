@@ -495,7 +495,7 @@ class Parser:
                     # TODO: maybe instead of lycee use a home_institution tpl var ???
                     context.update({
                         "lycee": institution_label,
-                        "inscrit_datedenaissance": date_format(record.birth_date, 'd/m/Y')
+                        "inscrit_datedenaissance": date_format(record.birth_date, 'd/m/Y') if record.birth_date else ""
                     })
             elif user.is_visitor():
                 record = user.get_visitor_record()

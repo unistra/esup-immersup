@@ -4686,6 +4686,28 @@ class SlotList(generics.ListCreateAPIView):
             return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
+class SlotDetail(generics.RetrieveDestroyAPIView):
+    serializer_class = SlotSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+
+    def delete(self, request, *args, **kwargs):
+        if Immersion.objects.filter(slot_id=kwargs.get("pk")).exists():
+            return JsonResponse(data={"error": _("This slot has registered immersions: delete not allowed")})
+
+        super().delete(request, *args, **kwargs)
+        return JsonResponse(
+            data={
+                "msg": _("Slot #%s deleted") % kwargs["pk"],
+            }
+        )
+
+    def get_queryset(self):
+        return Slot.objects.all()
+
+
 class BuildingList(generics.ListCreateAPIView):
     """
     Buildings list

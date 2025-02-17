@@ -22,8 +22,8 @@ def preprod_lyon():
     # env.user = 'root'  # user for ssh
     env.application_name = 'immersup_lyon'
     env.backends = env.roledefs['web']
-    env.server_name = 'lyon.pprd.immersion-sup.fr'
-    env.short_server_name = 'immersion-dev'
+    env.server_name = 'lyon.pprd.immersup.fr'
+    env.short_server_name = 'immersup-dev'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.212'
     env.no_shared_sessions = False
@@ -71,8 +71,8 @@ def prod_lyon():
     # env.user = 'root'  # user for ssh
     env.application_name = 'immersup_lyon'
     env.backends = env.roledefs['web']
-    env.server_name = 'lyon.immersion-sup.fr'
-    env.short_server_name = 'immersion'
+    env.server_name = 'lyon.immersup.fr'
+    env.short_server_name = 'immersup'
     env.static_folder = '/site_media/'
     env.server_ip = '77.72.44.196'
     env.no_shared_sessions = False

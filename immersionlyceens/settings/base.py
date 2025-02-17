@@ -454,6 +454,11 @@ CREATE_UNKNOWN_USER = False
 EDUCONNECT_LOGOUT_URL = ""
 AGENT_FEDERATION_LOGOUT_URL = ""
 
+EDUCONNECT_URLS = [
+    "educonnect.education.gouv.fr",
+    "pr4.educonnect.phm.education.gouv.fr"
+]
+
 #######################
 # Email configuration #
 #######################
