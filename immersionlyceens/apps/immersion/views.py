@@ -271,6 +271,7 @@ def shibbolethLogin(request, profile=None):
     group_name = None
     record_highschool = None
     level = None
+    educonnect_urls = settings.EDUCONNECT_URLS
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
@@ -362,7 +363,7 @@ def shibbolethLogin(request, profile=None):
         # Common field for students and high school students
         uai_code = shib_attrs.get("uai_code", "")
 
-        if "educonnect.education.gouv.fr" in shib_attrs.get('username', ""):
+        if any(substring in shib_attrs.get('username', "") for substring in educonnect_urls):
             # High school student using EduConnect : email becomes optional
             # TODO : identify EduConnect users with another meta HTTP var
             is_high_school_student = True
@@ -413,7 +414,7 @@ def shibbolethLogin(request, profile=None):
     if not is_high_school_student:
         # Attributes cleaning
         try:
-            shib_attrs['username'] = shib_attrs['username'].strip().lower()
+            shib_attrs['username'] = shib_attrs.get('username', "").split(",")[0].strip().lower()
             shib_attrs['email'] = shib_attrs['email'].strip().lower()
         except:
             # KeyError ? nothing to do

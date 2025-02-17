@@ -3513,7 +3513,6 @@ def user_logged_in_callback(sender, request, user, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
-        logger.error("User login - ipware : {e}")
         client_ip = None
         is_routable = False
 
@@ -3531,7 +3530,6 @@ def user_logged_out_callback(sender, request, user, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
-        logger.error("User login - ipware : {e}")
         client_ip = None
         is_routable = False
 
@@ -3552,7 +3550,6 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
-        logger.error("User login - ipware : {e}")
         client_ip = None
         is_routable = False
 
@@ -3580,7 +3577,6 @@ def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
-        logger.error("User login - ipware : {e}")
         client_ip = None
         is_routable = False
 
@@ -3603,7 +3599,6 @@ def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
-        logger.error("User login - ipware : {e}")
         client_ip = None
         is_routable = False
 
