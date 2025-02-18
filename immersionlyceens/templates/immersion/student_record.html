@@ -168,6 +168,62 @@
           </div>
         {% endfor %}
       </div>
+
+      {% if record.creation_date %}
+      <div class="card-header text-white bg-secondary">
+        {% trans "Status" %}
+      </div>
+      <div class="card-body">
+        {% if record.creation_date %}
+        <div class="form-group row align-items-center">
+          <label class="col-sm-4 col-form-label">
+            {% trans 'Record creation date' %} :
+          </label>
+          <div class="col-sm-4">
+            {{ record.creation_date }}
+          </div>
+        </div>
+        {% endif %}
+        <div class="form-group row align-items-center">
+          <label class="col-sm-4 col-form-label">{% trans "File status" %} :</label>
+          <div class="col-sm-4">
+
+            {% if record.validation == 0 or record.validation == 5 %}
+            <span class="badge badge-pill badge-warning" id="record_status">
+                {% trans "To complete" %}
+
+              {% elif record.validation == 1 %}
+                <span class="badge badge-pill badge-warning" id="record_status">
+                {% trans "Waiting validation" %}
+
+              {% elif record.validation == 2 %}
+                <span class="badge badge-pill badge-success" id="record_status">
+                {% trans "Validated record" %}
+
+              {% elif record.validation == 3 %}
+                <span class="badge badge-pill badge-danger" id="record_status">
+                {% trans "Rejected" %}
+
+              {% elif record.validation == 4 %}
+                <span class="badge badge-pill badge-warning" id="recordStatus">
+                {% trans "Waiting revalidation" %}
+
+              {% endif %}
+              </span>
+          </div>
+        </div>
+        {% if record.validation_date %}
+        <div class="form-group row align-items-center">
+          <label class="col-sm-4 col-form-label">
+            {% trans 'Record validation date' %} :
+          </label>
+          <div class="col-sm-8">
+            {{ record.validation_date }}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
     <div class="row mt-4">
       <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">

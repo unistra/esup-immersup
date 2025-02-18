@@ -46,7 +46,7 @@ from shibboleth.app_settings import LOGOUT_URL, LOGOUT_REDIRECT_URL
 
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorType, CancelType, CertificateLogo,
-    CertificateSignature, GeneralSettings, HigherEducationInstitution,
+    CertificateSignature, Establishment, GeneralSettings, HigherEducationInstitution,
     HighSchool, HighSchoolLevel, Immersion, ImmersionUser, InformationText,
     MailTemplate, MefStat, PendingUserGroup, Period, Slot, UniversityYear,
     UserCourseAlert,
@@ -275,9 +275,10 @@ def shibbolethLogin(request, profile=None):
 
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
-    """
+
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
+    """
     hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
@@ -287,6 +288,16 @@ def shibbolethLogin(request, profile=None):
         "etu_stage": "{SIREN:110043015:MEFSTAT4}2212",
         "birth_date": "2005-05-07",
         "unscoped_affiliation": "student"
+    })
+    
+    shib_attrs.update({
+        "username": "sylvain.bidon@etu.unistra.fr",
+        "first_name": "Sylvain",
+        "last_name": "Bidon",
+        "email": "sylvain.bidon@etu.unistra.fr",
+        "uai_code": "{UAI}0673021V",
+        "unscoped_affiliation": "student;member",
+        "affiliation": "student@unistra.fr;member@unistra.fr",
     })
     # --------------- </shib dev> ----------------------
     """
@@ -1575,7 +1586,12 @@ def student_record(request, student_id=None, record_id=None):
             uai_code = institution.uai_code
 
         if not record:
-            record = StudentRecord(student=request.user, uai_code=uai_code, institution=institution)
+            record = StudentRecord(
+                student=request.user,
+                uai_code=uai_code,
+                institution=institution,
+                validation=StudentRecord.TO_COMPLETE
+            )
         elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
             record.institution = institution
@@ -1640,6 +1656,8 @@ def student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             record = recordform.save()
+            record.set_status("VALIDATED")
+            record.save()
             messages.success(request, _("Record successfully saved."))
 
             # Quota creation for newly created records
@@ -1675,6 +1693,9 @@ def student_record(request, student_id=None, record_id=None):
             else:
                 no_quota_form = True
         else:
+            record.set_status("TO_COMPLETE")
+            record.save()
+
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):

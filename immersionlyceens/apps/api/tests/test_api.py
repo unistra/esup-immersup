@@ -645,6 +645,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=BachelorType.objects.get(label__iexact='général'),
+            validation=StudentRecord.TO_COMPLETE
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
@@ -652,7 +653,8 @@ class APITestCase(TestCase):
             institution=HigherEducationInstitution.objects.get(uai_code__iexact='0597065J'),
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général'),
+            validation=StudentRecord.TO_COMPLETE
         )
         self.visitor_record = VisitorRecord.objects.create(
             visitor=self.visitor,
@@ -2936,10 +2938,49 @@ class APITestCase(TestCase):
 
         # reset immersions
         client.login(username=self.highschool_user.username, password='pass')
-
         Immersion.objects.filter(student=self.highschool_user).delete()
 
+        # Fail with high school record validation
+        self.highschool_user.high_school_student_record.set_status('TO_COMPLETE')
+        self.highschool_user.high_school_student_record.save()
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.highschool_user.id
+        }
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to Highschool student record state", content['msg'])
+
+        # Revalidate the record
+        self.highschool_user.high_school_student_record.set_status('VALIDATED')
+        self.highschool_user.high_school_student_record.save()
+
+        # Test with a not-yet-valid student record
+        self.student_record.set_status('TO_COMPLETE')
+        self.student_record.save()
+
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.student.id
+        }
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to student record state", content['msg'])
+
+        # Test with a not-yet-valid visitor record
+        self.visitor_record.set_status('TO_COMPLETE')
+        self.visitor_record.save()
+
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.visitor.id
+        }
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to visitor record state", content['msg'])
+
         # Fail with past slot registration
+        data['student_id'] = self.highschool_user.id
         data['slot_id'] = self.past_slot.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))

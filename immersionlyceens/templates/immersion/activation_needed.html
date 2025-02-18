@@ -23,7 +23,11 @@
           <a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a>
         </p>
         <p class="text-center">
-          {% trans 'Important : please do not forget to log out of EduConnect by clicking on the button below.' %}
+          {% if request.user.is_high_school_student %}
+            {% trans 'Important : please do not forget to log out of EduConnect by clicking on the button below.' %}
+          {% elif request.user.is_student %}
+            {% trans 'Important : please do not forget to log out of your establishment by clicking on the button below.' %}
+          {% endif %}
         </p>
       </div>
     </div>
@@ -31,7 +35,11 @@
       <div class="col">
         <p class="text-center">
           <a href="{% url 'immersion:logout' %}" class="btn btn-secondary">
-            {% trans 'Logout from EduConnect' %}
+            {% if request.user.is_high_school_student %}
+              {% trans 'Log out of EduConnect' %}
+            {% elif request.user.is_student %}
+              {% trans 'Log out of my establishment' %}
+            {% endif %}
           </a>
         </p>
       </div>
