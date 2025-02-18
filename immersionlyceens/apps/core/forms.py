@@ -1079,7 +1079,6 @@ class UserPreferencesForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for name, setting in ImmersionUser.PREFERENCES.items():
+        for name, setting in ImmersionUser.USER_PREFERENCES.items():
             if setting['type'] == 'boolean':
                 self.fields[name] = forms.BooleanField(label=setting['description'], required=False)
-                # self.fields[name].widget.attrs.update({'class': 'form-check-input'})
