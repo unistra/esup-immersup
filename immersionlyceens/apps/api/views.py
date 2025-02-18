@@ -1325,6 +1325,17 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student record state")}
             return JsonResponse(response, safe=False)
 
+    # Only valid student records
+    if student.is_student():
+        if not student.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to student account state")}
+            return JsonResponse(response, safe=False)
+
+        record = student.get_student_record()
+        if not record or not record.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to student record state")}
+            return JsonResponse(response, safe=False)
+
     # Only valid Visitors records
     if student.is_visitor():
         if not student.is_valid():
