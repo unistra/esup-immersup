@@ -80,21 +80,23 @@ class CustomShibbolethLogoutView(TemplateView):
     redirect_field_name = "target"
 
     def get(self, request, *args, **kwargs):
+        user = self.request.user
         # Default shibboleth logout URL
         logout_url = LOGOUT_URL
         logout = None
         target = ""
 
-        if self.request.user and not self.request.user.is_anonymous:
-            if self.request.user.is_high_school_student() and self.request.user.uses_federation():
+        if user and not user.is_anonymous:
+            if user.is_high_school_student() and user.uses_federation():
                 # high school student
                 logout = settings.EDUCONNECT_LOGOUT_URL
                 # logger.error(f"EDUCONNECT_LOGOUT_URL : logout url : {logout}")
-            elif self.request.user.uses_federation():
+            elif (user.is_speaker() or user.is_high_school_manager()) and user.uses_federation():
                 # speakers and high school referents
                 logout = settings.AGENT_FEDERATION_LOGOUT_URL
                 # logger.error(f"AGENT_FEDERATION_URL : logout url : {logout}")
             else:
+                # Students go there
                 # Get target url in order of preference.
                 target = LOGOUT_REDIRECT_URL or \
                          quote(self.request.GET.get(self.redirect_field_name, '')) or \
