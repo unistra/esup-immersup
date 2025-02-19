@@ -10780,6 +10780,8 @@ msgstr ""
 "cliquant sur le bouton ci-dessous."
 
 #: immersionlyceens/templates/immersion/activation_needed.html:39
+#: immersionlyceens/templates/immersion/complete.html:31
+#: immersionlyceens/templates/immersion/missing_hs.html:24
 msgid "Log out of EduConnect"
 msgstr "Me déconnecter d'EduConnect"
 
@@ -10811,13 +10813,6 @@ msgstr "Mot de passe (confirmation)"
 #: immersionlyceens/templates/immersion/complete.html:10
 msgid "Registration complete"
 msgstr "Enregistrement terminé"
-
-#: immersionlyceens/templates/immersion/complete.html:31
-#: immersionlyceens/templates/immersion/missing_hs.html:24
-#, fuzzy
-#| msgid "Log out of EduConnect"
-msgid "Logout from EduConnect"
-msgstr "Me déconnecter d'EduConnect"
 
 #: immersionlyceens/templates/immersion/confirm_creation.html:13
 msgid "Immersion Lycéens - Account creation confirmation"
