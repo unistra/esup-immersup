@@ -92,7 +92,7 @@ Display a string with a limit and a tooltip with the full string
 */
 function displayLongString(string, limit = 50, html = false) {
   // remove html tags from string
-  cleanedString = string.replace(/<[^>]*>/g, ' ')
+  let cleanedString = string.replace(/<[^>]*>/g, ' ')
   if (html && cleanedString.length > limit) {
     if (findBootstrapEnvironment() === 'xs' || findBootstrapEnvironment() === 'sm') {
       return string

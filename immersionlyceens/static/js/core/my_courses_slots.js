@@ -1,4 +1,6 @@
 function init_datatable() {
+  var columns_idx = [3, 6]
+
   dt = $('#slots_list').DataTable({
     'processing': false,
     'order': [
@@ -171,8 +173,6 @@ function init_datatable() {
     initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [3, 6]
-
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
           var column_header_id = column.header().id;
@@ -219,8 +219,6 @@ function init_datatable() {
     yadcf.exResetAllFilters(dt);
 
     // Clear search inputs
-    let columns_idx = [3, 6]
-
     columns_idx.forEach(function(col_idx) {
       let column = dt.column(col_idx)
       let column_header_id = column.header().id
