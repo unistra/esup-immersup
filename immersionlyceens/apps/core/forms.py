@@ -166,7 +166,7 @@ class SlotForm(forms.ModelForm):
         # n_places widget
         try:
             max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
-        except (ValueError, NameError) as e:
+        except (ValueError, NameError):
             max_slot_places = 200
 
         self.fields['n_places'].widget = forms.NumberInput(attrs={'min': 1, 'max': max_slot_places})
@@ -351,7 +351,7 @@ class SlotForm(forms.ModelForm):
 
         try:
             max_slot_places = int(get_general_setting('MAX_SLOT_PLACES'))
-        except (ValueError, NameError) as e:
+        except (ValueError, NameError):
             max_slot_places = 200
 
         # Groups settings
@@ -1079,7 +1079,6 @@ class UserPreferencesForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for name, setting in ImmersionUser.PREFERENCES.items():
+        for name, setting in ImmersionUser.USER_PREFERENCES.items():
             if setting['type'] == 'boolean':
                 self.fields[name] = forms.BooleanField(label=setting['description'], required=False)
-                # self.fields[name].widget.attrs.update({'class': 'form-check-input'})

@@ -1,8 +1,10 @@
+from typing import Final
 from django.utils.translation import (
-    activate, gettext_lazy as _,
+    activate, gettext, gettext_lazy as _,
 )
 from rest_framework.permissions import BasePermission, DjangoModelPermissions
 
+FORBIDDEN_MESSAGE: Final[str] = gettext("You're not allowed to access this ressource")
 
 class CustomDjangoModelPermissions(DjangoModelPermissions):
     perms_map = {
@@ -17,7 +19,7 @@ class CustomDjangoModelPermissions(DjangoModelPermissions):
 
 
 class IsRefLycPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -27,7 +29,7 @@ class IsRefLycPermissions(BasePermission):
 
 
 class IsTecPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -37,7 +39,7 @@ class IsTecPermissions(BasePermission):
 
 
 class IsEstablishmentManagerPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -47,7 +49,7 @@ class IsEstablishmentManagerPermissions(BasePermission):
 
 
 class IsMasterEstablishmentManagerPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -57,7 +59,7 @@ class IsMasterEstablishmentManagerPermissions(BasePermission):
 
 
 class IsStructureManagerPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -67,7 +69,7 @@ class IsStructureManagerPermissions(BasePermission):
 
 
 class IsSpeakerPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -77,7 +79,7 @@ class IsSpeakerPermissions(BasePermission):
 
 
 class IsStudentPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -87,7 +89,7 @@ class IsStudentPermissions(BasePermission):
 
 
 class IsHighSchoolStudentPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -97,7 +99,7 @@ class IsHighSchoolStudentPermissions(BasePermission):
 
 
 class IsVisitorPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:
@@ -134,7 +136,7 @@ class SpeakersReadOnlyPermissions(BasePermission):
 
 
 class IsStructureConsultantPermissions(BasePermission):
-    message = _("You're not allowed to access this ressource")
+    message = FORBIDDEN_MESSAGE
 
     def has_permission(self, request, view):
         try:

@@ -11,14 +11,18 @@ function slot_mass_update() {
 }
 
 function init_datatable() {
-  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
-  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
-  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
-  cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
-  current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
-  var dt_columns = ""
+  let _show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
+  let _show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
+  let _show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
+  let _cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+  let _current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
+  let dt_columns = ""
+  let yadcf_filters = ""
+  var initial_values = {}
+  var columns_idx = []
+  var order = []
 
-  if (cohorts_only) {
+  if (_cohorts_only) {
     let register_date_options = { dateStyle: 'long', timeStyle: 'short' };
 
     // Columns for cohorts slots pages
@@ -193,10 +197,9 @@ function init_datatable() {
       },
     ]
 
-    var columns_idx = [3, 5, 6]
-    var initial_values = { 3: course_label_filter }
-    var columns_idx = [3, 5, 6]
-    var order = [[4, "asc"]]
+    initial_values = { 3: course_label_filter }
+    columns_idx = [3, 5, 6]
+    order = [[4, "asc"]]
 
   } else {
 
@@ -208,23 +211,23 @@ function init_datatable() {
           let element = ""
           let edit_mode = 0;
 
-          if((row.is_past === false || !is_set(row.date)) && show_modify_btn && enabled_mass_update === true) {
+          if((row.is_past === false || !is_set(row.date)) && _show_modify_btn && enabled_mass_update === true) {
             element += `<input class="mass chk mr-1" type="checkbox" name="select_for_mass_update_${data}" value="${data}">`
           }
 
           if (row.structure_code && row.structure_managed_by_me || row.highschool_label && row.highschool_managed_by_me) {
-            if (show_duplicate_btn) {
+            if (_show_duplicate_btn) {
               element += `<a href="/core/slot/${data}/1" class="btn btn-light btn-sm mr-1" ` +
                 `title="${duplicate_text}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>`;
             }
 
             // Future slot : edit button
-            if (row.is_past === false && show_modify_btn) {
+            if (row.is_past === false && _show_modify_btn) {
               element += `<a href="/core/slot/${data}" class="btn btn-light btn-sm mr-1" title="${modify_text}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n`;
             }
 
             // Future slot and no registration : delete button
-            if (row.n_register === 0 && row.n_group_register === 0 && row.is_past === false && show_delete_btn) {
+            if (row.n_register === 0 && row.n_group_register === 0 && row.is_past === false && _show_delete_btn) {
               element += `<button type="button" class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data('slot_id', ${data}).dialog('open')" title="${delete_text}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n`;
             }
 
@@ -404,10 +407,9 @@ function init_datatable() {
       },
     ]
 
-    var columns_idx = [4, 6, 7]
-    var initial_values = { 4: course_label_filter };
-    var columns_idx = [4, 6, 7]
-    var order = [[5, "asc"]]
+    initial_values = { 4: course_label_filter };
+    columns_idx = [4, 6, 7]
+    order = [[5, "asc"]]
   }
 
 
@@ -433,12 +435,12 @@ function init_datatable() {
             d.highschool_id = current_highschool_id || $('#id_highschool').val();
           }
 
-          if (cohorts_only) {
-            d.cohorts_only = cohorts_only;
+          if (_cohorts_only) {
+            d.cohorts_only = _cohorts_only;
           }
 
-          if (current_slots_only) {
-            d.current_slots_only = current_slots_only;
+          if (_current_slots_only) {
+            d.current_slots_only = _current_slots_only;
           }
 
           d.past = $('#filter_past_slots').is(':checked')

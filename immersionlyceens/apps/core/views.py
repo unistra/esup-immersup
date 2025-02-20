@@ -2418,7 +2418,7 @@ def user_preferences(request):
     user = request.user
 
     if not request.POST:
-        initials = { k:user.get_preference(k, v['value']) for k,v in ImmersionUser.PREFERENCES.items() }
+        initials = { k:user.get_preference(k, v['value']) for k,v in ImmersionUser.USER_PREFERENCES.items() }
         form = UserPreferencesForm(initial=initials)
     else:
         form = UserPreferencesForm(request.POST)

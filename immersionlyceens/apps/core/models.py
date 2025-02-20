@@ -394,7 +394,7 @@ class ImmersionUser(AbstractUser):
     """
 
     # User preferences with descriptions and default values
-    PREFERENCES = {
+    USER_PREFERENCES = {
         'RECEIVE_REGISTERED_STUDENTS_LIST': {
             'description': gettext('Receive a list of students registered to my slots'),
             'type': 'boolean',
@@ -955,6 +955,9 @@ class ImmersionUser(AbstractUser):
         a federation to authenticate
         :return: boolean
         """
+        # A student always uses Shibboleth
+        if self.is_student():
+            return True
 
         if not any([self.is_high_school_manager(), self.is_speaker(), self.is_high_school_student()]):
             return False
@@ -3513,6 +3516,7 @@ def user_logged_in_callback(sender, request, user, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
+        logger.info(f"ipware get_client_ip error : {e}")
         client_ip = None
         is_routable = False
 
@@ -3530,6 +3534,7 @@ def user_logged_out_callback(sender, request, user, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
+        logger.info(f"ipware get_client_ip error : {e}")
         client_ip = None
         is_routable = False
 
@@ -3550,6 +3555,7 @@ def user_login_failed_callback(sender, credentials, request, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
+        logger.info(f"ipware get_client_ip error : {e}")
         client_ip = None
         is_routable = False
 
@@ -3577,6 +3583,7 @@ def user_hijack_start(sender, hijacker, hijacked, request, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
+        logger.info(f"ipware get_client_ip error : {e}")
         client_ip = None
         is_routable = False
 
@@ -3599,6 +3606,7 @@ def user_hijack_end(sender, hijacker, hijacked, request, **kwargs):
     try:
         client_ip, is_routable = get_client_ip(request)
     except Exception as e:
+        logger.info(f"ipware get_client_ip error : {e}")
         client_ip = None
         is_routable = False
 

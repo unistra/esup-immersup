@@ -1,15 +1,16 @@
 function init_datatable() {
+  let _cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+  let _current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
+  let dt_columns = ""
+  let yadcf_filters = ""
+  var initial_values = {}
+  var columns_idx = []
+  var order = []
 
-  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
-  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
-  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
-  cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
-  current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
-
-  if (cohorts_only) {
+  if (_cohorts_only) {
     let register_date_options = { dateStyle: 'long', timeStyle: 'short' };
 
-    dt_columns = [
+  dt_columns = [
       {
         data: 'id',
         render: function (data, type, row) {
@@ -161,12 +162,11 @@ function init_datatable() {
       }
     ]
 
-    var columns_idx = [3, 5, 6]
-    var initial_values = { 3: event_label_filter };
-    var columns_idx = [3, 5, 6]
-    var order = [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]]
+    initial_values = { 3: event_label_filter };
+    columns_idx = [3, 5, 6]
+    order = [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]]
 
-    var yadcf_filters = [
+    yadcf_filters = [
       {
         column_number: 1,
         filter_default_label: "",
@@ -237,13 +237,13 @@ function init_datatable() {
           }
 
           // We can update registrations when group slot is public or when we manage the high school
-          if ((row.can_update_registrations || row.public_group) && cohorts_only === true) {
+          if ((row.can_update_registrations || row.public_group) && _cohorts_only === true) {
             element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
               `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
               `</button>`;
           }
 
-          if (cohorts_only === true) {
+          if (_cohorts_only === true) {
             element += `<span data-toggle="tooltip" data-html="true" data-contrainer="body" title="${registration_date_limit_txt} : <br>${formatDate(row.registration_limit_date)}">` +
               `<i class="fa fas fa-calendar pr-2"></i>` +
               `</span>`;
@@ -377,12 +377,11 @@ function init_datatable() {
         }
       }
     ]
-    var columns_idx = [4, 6, 7]
-    var initial_values = { 4: event_label_filter };
-    var columns_idx = [4, 6, 7]
-    var order = [[5, "asc"], [2, "asc"], [3, "asc"], [4, "asc"]]
+    initial_values = { 4: event_label_filter };
+    columns_idx = [4, 6, 7]
+    order = [[5, "asc"], [2, "asc"], [3, "asc"], [4, "asc"]]
 
-    var yadcf_filters = [
+    yadcf_filters = [
       {
         column_number: 1,
         filter_default_label: "",
@@ -452,12 +451,12 @@ function init_datatable() {
           d.highschool_id = current_highschool_id || $('#id_highschool').val();
         }
 
-        if(is_set(cohorts_only)) {
-          d.cohorts_only = cohorts_only;
+        if(is_set(_cohorts_only)) {
+          d.cohorts_only = _cohorts_only;
         }
 
-        if(is_set(current_slots_only)) {
-          d.current_slots_only = current_slots_only;
+        if(is_set(_current_slots_only)) {
+          d.current_slots_only = _current_slots_only;
         }
 
         d.past = $('#filter_past_slots').is(':checked');
@@ -582,13 +581,13 @@ function init_datatable() {
   if(managed_by_filter || event_type_filter) {
     let filter_array = Array()
 
-    if(managed_by_filter && cohorts_only) {
+    if(managed_by_filter && _cohorts_only) {
       filter_array.push([1, [managed_by_filter]])
     } else if(managed_by_filter) {
       filter_array.push([2, [managed_by_filter]])
     }
 
-    if(event_type_filter && cohorts_only) {
+    if(event_type_filter && _cohorts_only) {
       filter_array.push([2, [event_type_filter]])
     } else if (event_type_filter) {
       filter_array.push([3, [event_type_filter]])

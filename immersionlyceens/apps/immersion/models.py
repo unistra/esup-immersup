@@ -292,6 +292,22 @@ class StudentRecord(models.Model):
     """
     Student record class, linked to ImmersionUsers accounts
     """
+    TO_COMPLETE = 0
+    VALIDATED = 2
+    INIT = 5
+
+    STATUSES = {
+        "TO_COMPLETE": TO_COMPLETE,
+        "VALIDATED": VALIDATED,
+        "INITIALIZATION": INIT,
+    }
+
+    # Display values
+    VALIDATION_STATUS = [
+        (TO_COMPLETE, _('To complete')),
+        (VALIDATED, _('Validated')),
+        (INIT, _('Initialization (to complete)'))
+    ]
 
     student = models.OneToOneField(
         core_models.ImmersionUser,
@@ -340,6 +356,7 @@ class StudentRecord(models.Model):
 
     creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
+    validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
 
     def __str__(self):
         if hasattr(self, "student"):
@@ -348,7 +365,17 @@ class StudentRecord(models.Model):
             return gettext(f"Record for student id {self.student_id}")
 
     def is_valid(self):
-        return True
+        return self.validation == self.STATUSES["VALIDATED"]
+
+    def set_status(self, status: str):
+        """
+        Update validation attribute
+        """
+        if isinstance(status, str) and status.upper() in self.STATUSES:
+            self.validation = self.STATUSES[status.upper()]
+            return True
+
+        return False
 
     def home_institution(self):
         """

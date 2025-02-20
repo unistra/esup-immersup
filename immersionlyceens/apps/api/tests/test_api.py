@@ -645,6 +645,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=BachelorType.objects.get(label__iexact='général'),
+            validation=StudentRecord.TO_COMPLETE
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
@@ -652,7 +653,8 @@ class APITestCase(TestCase):
             institution=HigherEducationInstitution.objects.get(uai_code__iexact='0597065J'),
             birth_date=datetime.today(),
             level=StudentLevel.objects.get(pk=1),
-            origin_bachelor_type=BachelorType.objects.get(label__iexact='général')
+            origin_bachelor_type=BachelorType.objects.get(label__iexact='général'),
+            validation=StudentRecord.TO_COMPLETE
         )
         self.visitor_record = VisitorRecord.objects.create(
             visitor=self.visitor,
@@ -1208,27 +1210,29 @@ class APITestCase(TestCase):
                 self.assertEqual(self.training.label, row[4])
                 self.assertEqual(self.course.label, row[5])
                 self.assertEqual(self.course_type.label, row[6])
-                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[7])
-                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[8])
-                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[9])
-                self.assertEqual(self.campus.label, row[10])
-                self.assertEqual(self.building.label, row[11])
-                self.assertEqual(self.slot.room, row[12])
-                self.assertEqual(str(self.speaker1), row[13])
-                self.assertEqual(str(self.slot.registered_students()), row[14])
-                self.assertEqual(str(self.slot.n_places), row[15])
-                self.assertEqual(self.slot.additional_information, row[16])
+                self.assertEqual(self.slot.period.label, row[7])
+                self.assertEqual(_date(self.slot.date, 'd/m/Y'), row[8])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[10])
+                self.assertEqual(self.campus.label, row[11])
+                self.assertEqual(self.building.label, row[12])
+                self.assertEqual(self.slot.room, row[13])
+                self.assertEqual(str(self.speaker1), row[14])
+                self.assertEqual(str(self.slot.registered_students()), row[15])
+                self.assertEqual(str(self.slot.n_places), row[16])
+                self.assertEqual(self.slot.additional_information, row[17])
             elif n == 1:  # high school slot
                 self.assertEqual(f"{self.high_school.label} - {self.high_school.city}", row[0])
                 self.assertEqual(self.highschool_training.label, row[4])
                 self.assertEqual(self.highschool_course.label, row[5])
-                self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[8])
-                self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[9])
-                self.assertEqual("", row[10])
+                self.assertEqual(self.highschool_slot.period.label, row[7])
+                self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[10])
                 self.assertEqual("", row[11])
-                self.assertEqual(self.highschool_slot.room, row[12])
-                self.assertEqual(str(self.highschool_slot.registered_students()), row[14])
-                self.assertEqual(self.highschool_slot.additional_information, row[16])
+                self.assertEqual("", row[12])
+                self.assertEqual(self.highschool_slot.room, row[13])
+                self.assertEqual(str(self.highschool_slot.registered_students()), row[15])
+                self.assertEqual(self.highschool_slot.additional_information, row[17])
 
             n += 1
 
@@ -1243,6 +1247,7 @@ class APITestCase(TestCase):
             _('training'),
             _('course'),
             _('course_type'),
+            _('period'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1269,25 +1274,27 @@ class APITestCase(TestCase):
                 self.assertEqual(self.training.label, row[3])
                 self.assertEqual(self.course.label, row[4])
                 self.assertEqual(self.course_type.label, row[5])
-                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[6])
-                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[7])
-                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[8])
-                self.assertEqual(self.campus.label, row[9])
-                self.assertEqual(self.building.label, row[10])
-                self.assertEqual(self.slot.room, row[11])
-                self.assertEqual(str(self.speaker1), row[12])
-                self.assertEqual(str(self.slot.registered_students()), row[13])
-                self.assertEqual(str(self.slot.n_places), row[14])
-                self.assertEqual(self.slot.additional_information, row[15])
+                self.assertEqual(self.slot.period.label, row[6])
+                self.assertEqual(_date(self.slot.date, 'd/m/Y'), row[7])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[9])
+                self.assertEqual(self.campus.label, row[10])
+                self.assertEqual(self.building.label, row[11])
+                self.assertEqual(self.slot.room, row[12])
+                self.assertEqual(str(self.speaker1), row[13])
+                self.assertEqual(str(self.slot.registered_students()), row[14])
+                self.assertEqual(str(self.slot.n_places), row[15])
+                self.assertEqual(self.slot.additional_information, row[16])
             elif n == 2:  # high school slot
                 self.assertEqual(self.structure.label, row[0])
                 self.assertEqual(self.training.label, row[3])
                 self.assertEqual(self.highschool_course.label, row[4])
-                self.assertIn(self.slot2.start_time.strftime("%H:%M"), row[7])
-                self.assertIn(self.slot2.end_time.strftime("%H:%M"), row[8])
-                self.assertEqual(self.slot2.room, row[11])
-                self.assertEqual(str(self.highschool_slot.registered_students()), row[13])
-                self.assertEqual(self.slot2.additional_information, row[15])
+                self.assertEqual(self.slot2.period.label, row[6])
+                self.assertIn(self.slot2.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.slot2.end_time.strftime("%H:%M"), row[9])
+                self.assertEqual(self.slot2.room, row[12])
+                self.assertEqual(str(self.highschool_slot.registered_students()), row[14])
+                self.assertEqual(self.slot2.additional_information, row[16])
 
             n += 1
 
@@ -1310,6 +1317,7 @@ class APITestCase(TestCase):
             _('training subdomain'),
             _('training'),
             _('course/event label'),
+            _('period'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1347,8 +1355,9 @@ class APITestCase(TestCase):
                 self.assertEqual('', row[17])
                 self.assertEqual('', row[18])
                 self.assertEqual('', row[19])
-                self.assertEqual('No', row[20])
-                self.assertEqual('Yes', row[21])
+                self.assertEqual('', row[20])
+                self.assertEqual('No', row[21])
+                self.assertEqual('Yes', row[22])
 
             elif n == 2:
                 self.assertEqual(self.hs_record2.student.last_name, row[0])
@@ -1371,8 +1380,9 @@ class APITestCase(TestCase):
                 self.assertEqual('', row[17])
                 self.assertEqual('', row[18])
                 self.assertEqual('', row[19])
-                self.assertEqual('No', row[20])
-                self.assertEqual('Yes', row[21])
+                self.assertEqual('', row[20])
+                self.assertEqual('No', row[21])
+                self.assertEqual('Yes', row[22])
 
             n += 1
 
@@ -1403,16 +1413,17 @@ class APITestCase(TestCase):
                 self.assertIn(self.t_sub_domain.label, row[9].split('|'))
                 self.assertIn(self.training.label, row[10])
                 self.assertIn(self.course.label, row[11])
-                self.assertEqual(_date(self.past_slot.date, 'd/m/Y'), row[12])
-                self.assertEqual(self.past_slot.start_time.strftime("%H:%M:%S"), row[13])
-                self.assertEqual(self.past_slot.end_time.strftime("%H:%M:%S"), row[14])
-                self.assertEqual(self.past_slot.campus.label, row[15])
-                self.assertEqual(self.past_slot.building.label, row[16])
-                self.assertEqual(self.past_slot.room, row[17])
-                self.assertEqual(self.immersion3.get_attendance_status_display(), row[18])
-                self.assertEqual(self.past_slot.additional_information, row[19])
-                self.assertEqual('Yes', row[20])
+                self.assertEqual(self.past_slot.period.label, row[12])
+                self.assertEqual(_date(self.past_slot.date, 'd/m/Y'), row[13])
+                self.assertEqual(self.past_slot.start_time.strftime("%H:%M:%S"), row[14])
+                self.assertEqual(self.past_slot.end_time.strftime("%H:%M:%S"), row[15])
+                self.assertEqual(self.past_slot.campus.label, row[16])
+                self.assertEqual(self.past_slot.building.label, row[17])
+                self.assertEqual(self.past_slot.room, row[18])
+                self.assertEqual(self.immersion3.get_attendance_status_display(), row[19])
+                self.assertEqual(self.past_slot.additional_information, row[20])
                 self.assertEqual('Yes', row[21])
+                self.assertEqual('Yes', row[22])
 
             elif n == 2:
                 self.assertEqual(self.hs_record.student.last_name, row[0])
@@ -1427,16 +1438,17 @@ class APITestCase(TestCase):
                 self.assertIn(self.t_sub_domain.label, row[9].split('|'))
                 self.assertIn(self.training.label, row[10])
                 self.assertEqual(self.course.label, row[11])
-                self.assertIn(_date(self.slot.date, 'd/m/Y'), row[12])
-                self.assertIn(self.slot.start_time.strftime("%H:%M:%S"), row[13])
-                self.assertIn(self.slot.end_time.strftime("%H:%M:%S"), row[14])
-                self.assertEqual(self.slot.campus.label, row[15])
-                self.assertEqual(self.slot.building.label, row[16])
-                self.assertEqual(self.slot.room, row[17])
-                self.assertEqual(self.immersion.get_attendance_status_display(), row[18])
-                self.assertEqual(self.slot.additional_information, row[19])
-                self.assertEqual('Yes', row[20])
+                self.assertEqual(self.slot.period.label, row[12])
+                self.assertIn(_date(self.slot.date, 'd/m/Y'), row[13])
+                self.assertIn(self.slot.start_time.strftime("%H:%M:%S"), row[14])
+                self.assertIn(self.slot.end_time.strftime("%H:%M:%S"), row[15])
+                self.assertEqual(self.slot.campus.label, row[16])
+                self.assertEqual(self.slot.building.label, row[17])
+                self.assertEqual(self.slot.room, row[18])
+                self.assertEqual(self.immersion.get_attendance_status_display(), row[19])
+                self.assertEqual(self.slot.additional_information, row[20])
                 self.assertEqual('Yes', row[21])
+                self.assertEqual('Yes', row[22])
 
             elif n == 3:
                 self.assertEqual(self.hs_record2.student.last_name, row[0])
@@ -1459,8 +1471,9 @@ class APITestCase(TestCase):
                 self.assertEqual('', row[17])
                 self.assertEqual('', row[18])
                 self.assertEqual('', row[19])
-                self.assertEqual('Yes', row[20])
+                self.assertEqual('', row[20])
                 self.assertEqual('Yes', row[21])
+                self.assertEqual('Yes', row[22])
 
             n += 1
 
@@ -1488,6 +1501,7 @@ class APITestCase(TestCase):
             _('training'),
             _('course'),
             _('course_type'),
+            _('period'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1513,19 +1527,20 @@ class APITestCase(TestCase):
                 self.assertIn(self.training.label, row[3])
                 self.assertIn(self.course.label, row[4])
                 self.assertIn(self.course_type.label, row[5])
-                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[6])
-                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
-                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
-                self.assertIn(self.past_slot.campus.label, row[9])
-                self.assertIn(self.past_slot.building.label, row[10])
-                self.assertEqual(self.past_slot.room, row[11])
+                self.assertIn(self.past_slot.period.label, row[6])
+                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[7])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.past_slot.campus.label, row[10])
+                self.assertIn(self.past_slot.building.label, row[11])
+                self.assertEqual(self.past_slot.room, row[12])
                 self.assertIn(
                     f'{self.speaker1.last_name} {self.speaker1.first_name}',
-                    row[12].split('|')
+                    row[13].split('|')
                 ),
-                self.assertEqual(str(self.past_slot.registered_students()), row[13])
-                self.assertEqual(str(self.past_slot.n_places), row[14])
-                self.assertEqual(self.past_slot.additional_information, row[15])
+                self.assertEqual(str(self.past_slot.registered_students()), row[14])
+                self.assertEqual(str(self.past_slot.n_places), row[15])
+                self.assertEqual(self.past_slot.additional_information, row[16])
 
             n += 1
 
@@ -1539,6 +1554,7 @@ class APITestCase(TestCase):
             _('training'),
             _('course'),
             _('course_type'),
+            _('period'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1564,19 +1580,20 @@ class APITestCase(TestCase):
                 self.assertIn(self.training.label, row[3])
                 self.assertIn(self.course.label, row[4])
                 self.assertIn(self.course_type.label, row[5])
-                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[6])
-                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
-                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
-                self.assertIn(self.past_slot.campus.label, row[9])
-                self.assertIn(self.past_slot.building.label, row[10])
-                self.assertEqual(self.past_slot.room, row[11])
+                self.assertIn(self.past_slot.period.label, row[6])
+                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[7])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.past_slot.campus.label, row[10])
+                self.assertIn(self.past_slot.building.label, row[11])
+                self.assertEqual(self.past_slot.room, row[12])
                 self.assertIn(
                     f'{self.speaker1.last_name} {self.speaker1.first_name}',
-                    row[12].split('|')
+                    row[13].split('|')
                 ),
-                self.assertEqual(str(self.past_slot.registered_students()), row[13])
-                self.assertEqual(str(self.past_slot.n_places), row[14])
-                self.assertEqual(self.past_slot.additional_information, row[15])
+                self.assertEqual(str(self.past_slot.registered_students()), row[14])
+                self.assertEqual(str(self.past_slot.n_places), row[15])
+                self.assertEqual(self.past_slot.additional_information, row[16])
 
             n += 1
 
@@ -1591,6 +1608,7 @@ class APITestCase(TestCase):
             _('training'),
             _('course'),
             _('course_type'),
+            _('period'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -1617,19 +1635,20 @@ class APITestCase(TestCase):
                 self.assertIn(self.training.label, row[4])
                 self.assertIn(self.course.label, row[5])
                 self.assertIn(self.course_type.label, row[6])
-                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[7])
-                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[8])
-                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[9])
-                self.assertIn(self.past_slot.campus.label, row[10])
-                self.assertIn(self.past_slot.building.label, row[11])
-                self.assertEqual(self.past_slot.room, row[12])
+                self.assertIn(self.past_slot.period.label, row[7])
+                self.assertIn(_date(self.past_slot.date, 'd/m/Y'), row[8])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[10])
+                self.assertIn(self.past_slot.campus.label, row[11])
+                self.assertIn(self.past_slot.building.label, row[12])
+                self.assertEqual(self.past_slot.room, row[13])
                 self.assertIn(
                     f'{self.speaker1.last_name} {self.speaker1.first_name}',
-                    row[13].split('|')
+                    row[14].split('|')
                 ),
-                self.assertEqual(str(self.past_slot.registered_students()), row[14])
-                self.assertEqual(str(self.past_slot.n_places), row[15])
-                self.assertEqual(self.past_slot.additional_information, row[16])
+                self.assertEqual(str(self.past_slot.registered_students()), row[15])
+                self.assertEqual(str(self.past_slot.n_places), row[16])
+                self.assertEqual(self.past_slot.additional_information, row[17])
 
             n += 1
 
@@ -2936,10 +2955,49 @@ class APITestCase(TestCase):
 
         # reset immersions
         client.login(username=self.highschool_user.username, password='pass')
-
         Immersion.objects.filter(student=self.highschool_user).delete()
 
+        # Fail with high school record validation
+        self.highschool_user.high_school_student_record.set_status('TO_COMPLETE')
+        self.highschool_user.high_school_student_record.save()
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.highschool_user.id
+        }
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to Highschool student record state", content['msg'])
+
+        # Revalidate the record
+        self.highschool_user.high_school_student_record.set_status('VALIDATED')
+        self.highschool_user.high_school_student_record.save()
+
+        # Test with a not-yet-valid student record
+        self.student_record.set_status('TO_COMPLETE')
+        self.student_record.save()
+
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.student.id
+        }
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to student record state", content['msg'])
+
+        # Test with a not-yet-valid visitor record
+        self.visitor_record.set_status('TO_COMPLETE')
+        self.visitor_record.save()
+
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.visitor.id
+        }
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to visitor record state", content['msg'])
+
         # Fail with past slot registration
+        data['student_id'] = self.highschool_user.id
         data['slot_id'] = self.past_slot.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))

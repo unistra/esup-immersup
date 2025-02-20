@@ -372,6 +372,11 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.get('/shib/', request, **header, follow=True)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
+        # Check initial record validation status
+        user = ImmersionUser.objects.get(pk=new_user.id)
+        record = StudentRecord.objects.get(student=user)
+        self.assertEqual(record.validation, StudentRecord.TO_COMPLETE)
+
         # Student record data
         record_data = {
             "student": new_user.id,
@@ -401,21 +406,25 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/student_record', record_data, follow=True)
         self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
 
+        # Check record new validation status
+        record.refresh_from_db()
+        self.assertEqual(record.validation, StudentRecord.VALIDATED)
+
         # Post with an another email
         record_data["email"] = "another@email.com"
         response = self.client.post('/immersion/student_record', record_data, follow=True)
 
-        user = ImmersionUser.objects.get(pk=new_user.id)
+        user.refresh_from_db()
         self.assertNotEqual(user.validation_string, None)
 
         # Test uai code update
-        record = StudentRecord.objects.get(student=user)
+        record.refresh_from_db()
         record.uai_code = "XXXXX"
         record.save()
         response = self.client.get('/immersion/student_record', follow=True)
-        record = StudentRecord.objects.get(student=user)
-        self.assertEqual(record.uai_code, "0673021V")
 
+        record.refresh_from_db()
+        self.assertEqual(record.uai_code, "0673021V")
 
         # Test get route as ref-etab user
         record = StudentRecord.objects.get(student=user)
@@ -819,8 +828,6 @@ class ImmersionViewsTestCase(TestCase):
         self.client.login(username='hs', password='pass')
 
         # remove attestations to simplify the record statuses
-
-
         hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,

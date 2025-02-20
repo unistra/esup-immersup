@@ -26,25 +26,6 @@ function init_yadcf_filter() {
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
-    /*
-    {
-      column_number: 2,
-      filter_default_label: "",
-      filter_match_mode: "exact",
-      style_class: "form-control form-control-sm",
-      filter_container_id: "event_filter",
-      filter_reset_button_text: false,
-    },
-    {
-
-      column_number: 5,
-      filter_type: "text",
-      filter_default_label: "",
-      style_class: "form-control form-control-sm",
-      filter_container_id: "speaker_filter",
-      filter_reset_button_text: false,
-    },
-    */
     {
       column_number: 7,
       filter_default_label: "",
@@ -66,6 +47,8 @@ function init_yadcf_filter() {
 }
 
 function init_datatable() {
+  var columns_idx = [2, 4, 5]
+
   dt = $('#slots_list').DataTable({
     'processing': false,
     'order': [
@@ -239,8 +222,6 @@ function init_datatable() {
     initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [2, 4, 5]
-
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
           var column_header_id = column.header().id;
@@ -287,8 +268,6 @@ function init_datatable() {
     yadcf.exResetAllFilters(dt);
 
     // Clear search inputs
-    let columns_idx = [2, 4, 5]
-
     columns_idx.forEach(function(col_idx) {
       let column = dt.column(col_idx)
       let column_header_id = column.header().id

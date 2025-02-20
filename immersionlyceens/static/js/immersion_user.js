@@ -137,7 +137,7 @@ $(document).ready(function() {
           },
 
           error : function(e) {
-            obj = JSON.stringify(e)
+            let obj = JSON.stringify(e)
             console.log('Error : '+obj)
           }
         })

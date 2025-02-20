@@ -1,13 +1,10 @@
 // var selected_slots = Array()
 
 function init_datatable() {
-  show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;
-  show_delete_btn = typeof show_delete_btn === 'boolean' && !show_delete_btn ? show_delete_btn : true;
-  show_modify_btn = typeof show_modify_btn === 'boolean' && !show_modify_btn ? show_modify_btn : true;
-  cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
-  current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
-  var dt_columns = ""
-
+  let dt_columns = ""
+  let yadcf_filters = ""
+  var initial_values = {}
+  var columns_idx = []
   let register_date_options = { dateStyle: 'long', timeStyle: 'short' };
 
   // Columns for cohorts slots pages
@@ -194,9 +191,8 @@ function init_datatable() {
     },
   ]
 
-  var columns_idx = [3, 5, 6]
-  var initial_values = { 3: course_label_filter }
-  var columns_idx = [3, 5, 6]
+  initial_values = { 3: course_label_filter }
+  columns_idx = [3, 5, 6]
 
   dt = $('#slots_list').DataTable({
     ajax: {

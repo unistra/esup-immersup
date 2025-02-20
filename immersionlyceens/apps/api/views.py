@@ -1325,6 +1325,17 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student record state")}
             return JsonResponse(response, safe=False)
 
+    # Only valid student records
+    if student.is_student():
+        if not student.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to student account state")}
+            return JsonResponse(response, safe=False)
+
+        record = student.get_student_record()
+        if not record or not record.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to student record state")}
+            return JsonResponse(response, safe=False)
+
     # Only valid Visitors records
     if student.is_visitor():
         if not student.is_valid():
@@ -2474,6 +2485,7 @@ def get_csv_structures(request):
                 _('training'),
                 _('course'),
                 _('course_type'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2494,6 +2506,7 @@ def get_csv_structures(request):
                 'training_label',
                 'course_label',
                 'slot_course_type',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2515,6 +2528,7 @@ def get_csv_structures(request):
                 _('training'),
                 _('course'),
                 _('course_type'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2536,6 +2550,7 @@ def get_csv_structures(request):
                 'training_label',
                 'course_label',
                 'slot_course_type',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2556,6 +2571,7 @@ def get_csv_structures(request):
                 _('training'),
                 _('course'),
                 _('course_type'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2573,6 +2589,7 @@ def get_csv_structures(request):
                 'training_label',
                 'course_label',
                 'slot_course_type',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2591,6 +2608,7 @@ def get_csv_structures(request):
                 _('training'),
                 _('course'),
                 _('course_type'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2611,6 +2629,7 @@ def get_csv_structures(request):
                 'training_label',
                 'course_label',
                 'slot_course_type',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2627,6 +2646,7 @@ def get_csv_structures(request):
             Slot.objects.prefetch_related(
                 'immersions',
                 'speakers',
+                'period',
                 'course',
                 'course__establishment',
                 'course__structure',
@@ -2665,6 +2685,7 @@ def get_csv_structures(request):
             training_label=F('course__training__label'),
             course_label=F('course__label'),
             slot_course_type=F('course_type__label'),
+            slot_period_label=F('period__label'),
             slot_date=ExpressionWrapper(
                 Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
@@ -2705,6 +2726,7 @@ def get_csv_structures(request):
                 _('campus'),
                 _('building'),
                 _('meeting place'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2723,6 +2745,7 @@ def get_csv_structures(request):
                 'slot_campus',
                 'slot_building',
                 'slot_room',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2742,6 +2765,7 @@ def get_csv_structures(request):
                 _('campus'),
                 _('building'),
                 _('meeting place'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2763,6 +2787,7 @@ def get_csv_structures(request):
                 'slot_campus',
                 'slot_building',
                 'slot_room',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2782,6 +2807,7 @@ def get_csv_structures(request):
                 _('campus'),
                 _('building'),
                 _('meeting place'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2801,6 +2827,7 @@ def get_csv_structures(request):
                 'slot_campus',
                 'slot_building',
                 'slot_room',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2817,6 +2844,7 @@ def get_csv_structures(request):
                 _('label'),
                 _('description'),
                 _('meeting place'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -2833,6 +2861,7 @@ def get_csv_structures(request):
                 'label',
                 'desc',
                 'slot_room',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -2844,7 +2873,13 @@ def get_csv_structures(request):
 
         slots = (
             Slot.objects.prefetch_related(
-                'immersions', 'speakers', 'event', 'event__establishment', 'event__structure', 'event__highschool'
+                'immersions',
+                'speakers',
+                'period',
+                'event',
+                'event__establishment',
+                'event__structure',
+                'event__highschool'
             )
             .filter(Q_filters, **filters, published=True, event__isnull=False)
             .order_by('date', 'start_time')
@@ -2868,6 +2903,7 @@ def get_csv_structures(request):
                 When(place=Slot.OUTSIDE, then=F('room')),
                 When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
+            slot_period_label=F('period__label'),
             slot_date=ExpressionWrapper(
                 Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
@@ -2919,6 +2955,7 @@ def get_csv_highschool(request):
         _('training subdomain'),
         _('training'),
         _('course/event label'),
+        _('period'),
         _('date'),
         _('start_time'),
         _('end_time'),
@@ -2939,7 +2976,7 @@ def get_csv_highschool(request):
             'high_school_student_record__highschool',
             'high_school_student_record__bachelor_type',
             'immersions',
-            'immersions__slot',
+            'immersions__slot__period',
         )
         .filter(
             Q_filters,
@@ -2994,6 +3031,7 @@ def get_csv_highschool(request):
                     F('immersions__slot__course__label'),
                     F('immersions__slot__event__label'),
                 ),
+                slot_period_label=F('immersions__slot__period__label'),
                 slot_date=ExpressionWrapper(
                     Func(F('immersions__slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
                 ),
@@ -3030,6 +3068,7 @@ def get_csv_highschool(request):
                 'subdomains',
                 'training_label',
                 'slot_label',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -3058,6 +3097,7 @@ def get_csv_highschool(request):
                 subdomains=Value(''),
                 training_label=Value(''),
                 slot_label=Value(''),
+                slot_period_label=Value(''),
                 slot_date=Value(''),
                 slot_start_time=Value(''),
                 slot_end_time=Value(''),
@@ -3088,6 +3128,7 @@ def get_csv_highschool(request):
                 'subdomains',
                 'training_label',
                 'slot_label',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -3104,7 +3145,6 @@ def get_csv_highschool(request):
         content = chain(agreed_students, not_agreed_students.distinct())
 
     else:
-
         content = students.annotate(
             student_last_name=F('last_name'),
             student_first_name=F('first_name'),
@@ -3137,6 +3177,7 @@ def get_csv_highschool(request):
                 distinct=True,
             ),
             training_label=F('immersions__slot__course__training__label'),
+            slot_period_label=F('immersions__slot__period__label'),
             slot_label=Coalesce(
                 F('immersions__slot__course__label'),
                 F('immersions__slot__event__label'),
@@ -3176,6 +3217,7 @@ def get_csv_highschool(request):
             'subdomains',
             'training_label',
             'slot_label',
+            'slot_period_label',
             'slot_date',
             'slot_start_time',
             'slot_end_time',
@@ -3236,6 +3278,7 @@ def get_csv_anonymous(request):
                 _('training'),
                 _('course'),
                 _('course_type'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -3256,6 +3299,7 @@ def get_csv_anonymous(request):
                 'training_label',
                 'course_label',
                 'slot_course_type',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -3277,6 +3321,7 @@ def get_csv_anonymous(request):
                 _('training'),
                 _('course'),
                 _('course_type'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -3296,6 +3341,7 @@ def get_csv_anonymous(request):
                 'training_label',
                 'course_label',
                 'slot_course_type',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -3315,6 +3361,7 @@ def get_csv_anonymous(request):
         slots = Slot.objects.prefetch_related(
             'immersions',
             'speakers',
+            'period',
             'course',
             'course__establishment',
             'course__structure',
@@ -3353,6 +3400,7 @@ def get_csv_anonymous(request):
             training_label=F('course__training__label'),
             course_label=F('course__label'),
             slot_course_type=F('course_type__label'),
+            slot_period_label=F('period__label'),
             slot_date=ExpressionWrapper(
                 Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
@@ -3393,6 +3441,7 @@ def get_csv_anonymous(request):
                 _('campus'),
                 _('building'),
                 _('meeting place'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -3411,6 +3460,7 @@ def get_csv_anonymous(request):
                 'slot_campus',
                 'slot_building',
                 'slot_room',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -3430,6 +3480,7 @@ def get_csv_anonymous(request):
                 _('campus'),
                 _('building'),
                 _('meeting place'),
+                _('period'),
                 _('date'),
                 _('start_time'),
                 _('end_time'),
@@ -3448,6 +3499,7 @@ def get_csv_anonymous(request):
                 'slot_campus',
                 'slot_building',
                 'slot_room',
+                'slot_period_label',
                 'slot_date',
                 'slot_start_time',
                 'slot_end_time',
@@ -3462,6 +3514,7 @@ def get_csv_anonymous(request):
         slots = Slot.objects.prefetch_related(
             'immersions',
             'speakers',
+            'period',
             'event',
             'event__establishment',
             'event__structure',
@@ -3489,6 +3542,7 @@ def get_csv_anonymous(request):
                 When(place=Slot.OUTSIDE, then=F('room')),
                 When(place=Slot.REMOTE, then=Value(gettext('Remote'))),
             ),
+            slot_period_label=F('period__label'),
             slot_date=ExpressionWrapper(
                 Func(F('date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
@@ -3508,7 +3562,6 @@ def get_csv_anonymous(request):
 
     # Export registrations
     if t == 'registration':
-
         label = _('anonymous_registrations')
 
         header = [
@@ -3524,6 +3577,7 @@ def get_csv_anonymous(request):
             _('training'),
             _('label'),
             _('type'),
+            _('period'),
             _('date'),
             _('start_time'),
             _('end_time'),
@@ -3535,7 +3589,6 @@ def get_csv_anonymous(request):
         ]
 
         if request.user.is_establishment_manager():
-
             filters['slot__course__structure__in'] = request.user.establishment.structures.all()
 
         content = []
@@ -3543,6 +3596,7 @@ def get_csv_anonymous(request):
         immersions = Immersion.objects.prefetch_related(
             'slot',
             'student',
+            'slot__period',
             'slot__event__establishment',
             'slot__event__structure',
             'slot__event__highschool',
@@ -3621,6 +3675,7 @@ def get_csv_anonymous(request):
                 F('slot__course_type__label'),
                 F('slot__event__event_type__label'),
             ),
+            slot_period_label=F('slot__period__label'),
             slot_date=ExpressionWrapper(
                 Func(F('slot__date'), Value('DD/MM/YYYY'), function='to_char'), output_field=CharField()
             ),
@@ -3648,6 +3703,7 @@ def get_csv_anonymous(request):
             'training_label',
             'slot_label',
             'slot_course_type',
+            'slot_period_label',
             'slot_date',
             'slot_start_time',
             'slot_end_time',
