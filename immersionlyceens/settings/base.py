@@ -412,11 +412,13 @@ HIJACK_PERMISSION_CHECK = "immersionlyceens.permissions.hijack_permissions"
 # enter your plugin name here :)
 
 ACCOUNTS_PLUGINS = {
-    'LDAP': 'immersionlyceens.libs.api.accounts.ldap'
+    'LDAP': 'immersionlyceens.libs.api.accounts.ldap',
+    'REST': 'immersionlyceens.libs.api.accounts.rest'
 }
 
 AVAILABLE_ACCOUNTS_PLUGINS = (
     ('LDAP', 'LDAP'),
+    ('REST', 'REST'),
 )
 
 #######################
