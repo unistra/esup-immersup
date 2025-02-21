@@ -62,6 +62,8 @@ class AccountAPI(BaseAccountsAPI):
         return value.decode("utf8") if isinstance(value, bytes) else value
 
     def search_user(self, search_value: str, search_attr: Optional[str] = None) -> Union[bool, List[Dict[str, Any]]]:
+        response = None
+
         if search_attr is None:
             search_attr = self.SEARCH_ATTR
 
