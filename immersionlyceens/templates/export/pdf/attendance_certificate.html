@@ -12,7 +12,7 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
     <style>
     @page {
         size: A4 portrait;
-        margin: 27mm 10mm 27mm 10mm;
+        margin: 15mm 10mm 15mm 10mm;
         margin-bottom: 5%;
     }
 
@@ -33,7 +33,7 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
     .right-pane {
       float: left;
       width: 70%;
-      margin-top: 200px;
+      margin-top: 120px;
     }
     </style>
 </head>
@@ -51,15 +51,17 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
         <article style="margin-left: 30px">
           <h5>A {{ tpl_vars.city }} le {% now "j F Y " %}</h5>
           {{ tpl_vars.certificate_body | safe }}
-        </article><br>
-        <article>
-        {{ tpl_vars.certificate_footer | safe }}
-          {% if tpl_vars.certificate_sig.signature %}
-          <div style="text-align:right;">
-            <img src="{{ tpl_vars.certificate_sig.signature.url }}" alt="{% trans 'Signature' %}" style="width:100%;max-width:200px;">
-          </div>
-          {% endif %}
         </article>
+
+        <article>
+          {{ tpl_vars.certificate_footer | safe }}
+        </article>
+
+        {% if tpl_vars.certificate_sig.signature %}
+          <div style="text-align:right;">
+              <img src="{{ tpl_vars.certificate_sig.signature.url }}" alt="{% trans 'Signature' %}" style="width:100%;max-width:200px;">
+          </div>
+        {% endif %}
       </div>
     </section>
   </body>

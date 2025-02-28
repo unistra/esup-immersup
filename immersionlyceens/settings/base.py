@@ -412,11 +412,13 @@ HIJACK_PERMISSION_CHECK = "immersionlyceens.permissions.hijack_permissions"
 # enter your plugin name here :)
 
 ACCOUNTS_PLUGINS = {
-    'LDAP': 'immersionlyceens.libs.api.accounts.ldap'
+    'LDAP': 'immersionlyceens.libs.api.accounts.ldap',
+    'REST': 'immersionlyceens.libs.api.accounts.rest'
 }
 
 AVAILABLE_ACCOUNTS_PLUGINS = (
     ('LDAP', 'LDAP'),
+    ('REST', 'REST'),
 )
 
 #######################
@@ -598,6 +600,7 @@ CUSTOM_TOOLBAR = [
         "items": [
             "Styles",
             "Format",
+            "Font",
             "Bold",
             "Italic",
             "Underline",
@@ -639,6 +642,7 @@ CUSTOM_TOOLBAR = [
     },
 ]
 
+"""
 CKEDITOR_CONFIGS = {
     "default": {
         "skin": "moono-lisa",
@@ -701,6 +705,61 @@ CKEDITOR_CONFIGS = {
         ],
     },
 }
+"""
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'skin': 'moono',
+        # 'skin': 'office2013',
+        'toolbar_Basic': [
+            ['Source', '-', 'Bold', 'Italic']
+        ],
+        'toolbar_YourCustomToolbarConfig': [
+            {'name': 'clipboard', 'items': ['Undo', 'Redo']},
+            {'name': 'basicstyles',
+             'items': ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
+            {'name': 'paragraph',
+             'items': ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-',
+                       'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl']},
+            {'name': 'links', 'items': ['Link', 'Unlink']},
+            '/',
+            {'name': 'insert',
+             'items': ['Table', 'HorizontalRule', 'SpecialChar', 'PageBreak']},
+            {'name': 'styles', 'items': ['Styles', 'Format', 'Font', 'FontSize']},
+            {'name': 'colors', 'items': ['TextColor', 'BGColor']},
+            {'name': 'tools', 'items': ['Preview', 'Maximize', 'ShowBlocks']},
+            {'name': 'about', 'items': ['About']},
+        ],
+        'toolbar': 'YourCustomToolbarConfig',  # put selected toolbar config here
+        # 'toolbarGroups': [{ 'name': 'document', 'groups': [ 'mode', 'document', 'doctools' ] }],
+        # 'height': 291,
+        # 'width': '100%',
+        'height': 'full',
+        'width': 'full',
+        # 'filebrowserWindowHeight': 725,
+        # 'filebrowserWindowWidth': 940,
+        # 'toolbarCanCollapse': True,
+        # 'mathJaxLib': '//cdn.mathjax.org/mathjax/2.2-latest/MathJax.js?config=TeX-AMS_HTML',
+        'tabSpaces': 4,
+        'extraPlugins': ','.join([
+            'uploadimage', # the upload image feature
+            # your extra plugins here
+            'div',
+            'autolink',
+            'autoembed',
+            'embedsemantic',
+            'autogrow',
+            # 'devtools',
+            'widget',
+            'lineutils',
+            'clipboard',
+            'dialog',
+            'dialogui',
+            'elementspath'
+        ]),
+    }
+}
+
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 

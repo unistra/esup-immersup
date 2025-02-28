@@ -8,6 +8,7 @@ stages:
 #  - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres
 #    alias: postgres
 
+
 variables:
   POSTGRES_DB: immersionlyceens
   POSTGRES_USER: immersionlyceens
