@@ -110,7 +110,7 @@ class UAI(models.Model):
 
     def __str__(self):
         academy = f"ac. {self.academy}" if self.academy else ""
-        return " - ".join([self.city, academy, self.code, self.label])
+        return " - ".join(filter(lambda x:x, [self.city, academy, self.code, self.label]))
 
     class Meta:
         verbose_name = _('Establishment with UAI')

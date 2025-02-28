@@ -39,6 +39,7 @@ from immersionlyceens.apps.immersion.models import (
     VisitorRecordDocument, VisitorRecordQuota,
 )
 from immersionlyceens.libs.utils import get_general_setting
+from immersionlyceens.libs.api.accounts.rest import AccountAPI
 
 from .mocks import mocked_ldap_connection, mocked_search_user, mocked_ldap_bind
 
@@ -5041,3 +5042,36 @@ class APITestCase(TestCase):
         # response = self.client.post(url, { 'ids': self.establishment.pk}, **self.header)
         # content = json.loads(response.content.decode("utf-8"))
         # self.assertEqual(content["msg"], "Settings updated")
+
+    @patch('immersionlyceens.libs.api.accounts.rest.AccountAPI.search_user', side_effect=mocked_search_user)
+    def test_rest_plugin(self, mocked_search_user):
+        data_source_settings = {
+            'HOST': 'https://localhost',
+            'PATH': '/api/search',
+            'PORT': '443',
+            'HEADERS': {'Authorization': 'Token dummy'},
+            'EMAIL_ATTR': 'email',
+            'SEARCH_ATTR': 'last_name',
+            'DISPLAY_ATTR': 'displayName',
+            'LASTNAME_ATTR': 'last_name',
+            'FIRSTNAME_ATTR': 'first_name'
+        }
+
+        establishment4 = Establishment.objects.create(
+            code='ETA4',
+            label='Etablissement 4',
+            short_label='Eta 4',
+            active=True,
+            master=False,
+            email='test4@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.get(pk='0660437S'),
+            data_source_plugin="REST",
+            data_source_settings=data_source_settings
+        )
+
+        # Only test class instantiation (should not raise exception)
+        AccountAPI(establishment=establishment4)
+
+        # TODO : test check_settings with missing or incorrect values
+
