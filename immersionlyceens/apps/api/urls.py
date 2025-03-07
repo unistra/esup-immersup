@@ -130,4 +130,7 @@ urlpatterns = [
 
     # Slot restrictions
     path('get_slot_restrictions/<int:slot_id>', views.ajax_get_slot_restrictions, name='get_slot_restrictions'),
+
+    # Users
+    path('users', views.UserList.as_view(), name='get_user_list'),
 ]

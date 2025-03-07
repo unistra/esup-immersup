@@ -98,6 +98,7 @@ from immersionlyceens.apps.core.serializers import (
     EstablishmentSerializer,
     HighSchoolLevelSerializer,
     HighSchoolSerializer,
+    ImmersionUserSerializer,
     OffOfferEventSerializer,
     PeriodSerializer,
     SlotSerializer,
@@ -124,6 +125,8 @@ from immersionlyceens.decorators import (
 from immersionlyceens.libs.api.accounts import AccountAPI
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
+
+from . import filters
 
 from .permissions import (
     CustomDjangoModelPermissions,
@@ -4396,6 +4399,29 @@ class SpeakerList(generics.ListCreateAPIView):
         if user:
             user.send_message(self.request, 'CPT_CREATE')
             # TODO : check send message return
+
+
+class UserList(generics.ListAPIView):
+    """
+    Users list
+    """
+
+    model = ImmersionUser
+    queryset = ImmersionUser.objects.all()
+    serializer_class = ImmersionUserSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    filterset_class = filters.ImmersionUserFilter
+
+    """
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = [
+        'groups__name',
+    ]
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        super().__init__(*args, **kwargs)
 
 
 class HighSchoolList(generics.ListCreateAPIView):
