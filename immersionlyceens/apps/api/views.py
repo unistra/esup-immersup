@@ -4412,13 +4412,6 @@ class UserList(generics.ListAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     filterset_class = filters.ImmersionUserFilter
 
-    """
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = [
-        'groups__name',
-    ]
-    """
-
     def __init__(self, *args, **kwargs):
         self.user = None
         super().__init__(*args, **kwargs)
