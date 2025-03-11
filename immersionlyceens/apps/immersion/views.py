@@ -245,7 +245,12 @@ def loginChoice(request, profile=None):
         except InformationText.DoesNotExist:
             intro_connection = ""
 
+    # Build direct federation URL to prevent high school students from choosing the bad one
+    root_url = request.build_absolute_uri("/").rstrip("/")
+    educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerID={root_url}&target={root_url}/shib"
+
     context = {
+        "educonnect_url": educonnect_url,
         'federation_name': federation_name,
         'profile': profile,
         'intro_connection': intro_connection,
