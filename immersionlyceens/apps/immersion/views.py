@@ -35,6 +35,7 @@ from django.views import View
 from django.views.generic import FormView, TemplateView
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
+from urllib.parse import quote_plus
 
 try:
     from django.utils.six.moves.urllib.parse import quote
@@ -247,7 +248,8 @@ def loginChoice(request, profile=None):
 
     # Build direct federation URL to prevent high school students from choosing the bad one
     root_url = request.build_absolute_uri("/").rstrip("/")
-    educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerID={root_url}&target={root_url}/shib"
+    shib_url = f"{root_url}/shib"
+    educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
 
     context = {
         "educonnect_url": educonnect_url,
