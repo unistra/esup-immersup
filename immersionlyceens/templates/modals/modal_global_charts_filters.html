@@ -106,7 +106,7 @@ dtr = $('#filters_table').DataTable({
     { "data": "structure" },
     { "data": "city",
       render: function(data, type, row) {
-        return is_set(city) ? city : "-"
+        return is_set(data) ? data : "-"
       }
     },
     { "data": "department" },
