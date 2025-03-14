@@ -311,6 +311,9 @@ def shibbolethLogin(request, profile=None):
         messages.error(request, _("Incomplete data for account creation"))
         return HttpResponseRedirect("/")
 
+    # username cleaning (split and strip only, no lower())
+    shib_attrs['username'] = shib_attrs.get('username', "").split(",")[0].strip()
+
     # Defaults
     mandatory_attributes = [
         "username",
