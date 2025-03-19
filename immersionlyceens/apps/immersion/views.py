@@ -250,8 +250,10 @@ def loginChoice(request, profile=None):
     root_url = request.build_absolute_uri("/").rstrip("/")
     shib_url = f"{root_url}/shib"
     educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+    agents_url = f"{settings.AGENT_FEDERATION_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
 
     context = {
+        "agents_federation_url": agents_url,
         "educonnect_url": educonnect_url,
         'federation_name': federation_name,
         'profile': profile,
