@@ -53,7 +53,10 @@ def process_request_filters(request, my_trainings=False):
             hs = {h.pk:h for h in HighSchool.objects.filter(**hs_filter)}
             higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
             ests = {e.id:e for e in Establishment.objects.all()}
-            strs = {s.id:s for s in request.user.get_authorized_structures()}
+
+            # Clean cities when value is None
+            for k,v in hs.items():
+                v.city = v.city or ""
 
             highschools = sorted(
                  f"{hs[inst[1]].city.title()} - {hs[inst[1]].label}" for inst in insts if inst[0] == 0 
@@ -68,15 +71,11 @@ def process_request_filters(request, my_trainings=False):
                      f"{higher[inst[1]].city.title()} - {higher[inst[1]].label}" for inst in insts if inst[0] == 1
                 )
 
-            structures = sorted(
-                f"{strs[inst[2]].establishment.city.title()} - {strs[inst[2]].label}" for inst in insts if inst[0] == 2
-            )
-
-            highschools_ids = [ inst[1] for inst in insts if inst[0]==0 ]
-            higher_institutions_ids = [ inst[1] for inst in insts if inst[0]==1 ]
-            structure_ids = [ inst[2] for inst in insts if inst[0]==2 ]
+            highschools_ids = [inst[1] for inst in insts if inst[0] == 0]
+            higher_institutions_ids = [inst[1] for inst in insts if inst[0] == 1]
+            structure_ids = [inst[2] for inst in insts if inst[0] == 2]
 
         except Exception as e:
-            logger.exception("Filter form values error")
+            logger.exception(f"Filter form values error : {e}")
 
     return level_value, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids
