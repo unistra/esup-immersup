@@ -1749,7 +1749,5 @@ def get_slots_charts(request):
         'series': series
     }
 
-    print(f"response : {response}")
-
     return JsonResponse(response, safe=False)
 
