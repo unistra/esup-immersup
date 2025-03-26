@@ -18,12 +18,12 @@ from ..models import (
     GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, Period, PublicDocument, PublicType,
     RefStructuresNotificationsSettings, Slot, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Training, TrainingDomain, TrainingSubdomain, UAI, UniversityYear, Vacation,
 )
 
 
 class CampusTestCase(TestCase):
-    fixtures = ['higher']
+    fixtures = ['higher', 'tests_uai']
 
     def test_campus_model(self):
         establishment = Establishment.objects.create(
@@ -203,6 +203,7 @@ class TestVacationCase(TestCase):
 
         self.assertTrue(Vacation.date_is_inside_a_vacation(now + timedelta(days=2)))
         self.assertFalse(Vacation.date_is_inside_a_vacation(now + timedelta(days=999)))
+
 
 class TestPublicDocumentCase(TestCase):
     def test_public_document_str(self):
@@ -581,7 +582,7 @@ class ImmersionUserTestCase(TestCase):
         institution = HigherEducationInstitution.objects.last() # same as 'self.establishment.uai_reference'
 
         Group.objects.get(name='ETU').user_set.add(user)
-        student_record = StudentRecord.objects.create(
+        StudentRecord.objects.create(
             student=user,
             uai_code=institution.uai_code,
             birth_date=timezone.now(),
@@ -929,3 +930,25 @@ class PeriodTestCase(TestCase):
 
         self.assertEqual(slot.registration_limit_date, period.registration_end_date)
         self.assertEqual(slot2.registration_limit_date, period.registration_end_date)
+
+
+class UAITestCase(TestCase):
+    fixtures = ['tests_uai', ]
+
+    def test_uai_model(self):
+        """
+        Test UAI model
+        """
+
+        uai_with_academy = UAI.objects.get(pk="0650623Z")
+        uai_without_academy = UAI.objects.get(pk="0650668Y")
+
+        self.assertEqual(
+            str(uai_with_academy),
+            "Tarbes - ac. Toulouse - 0650623Z - Ecole autonome de perfectionnement Jules Ferry"
+        )
+
+        self.assertEqual(
+            str(uai_without_academy),
+            "0650668Y - Ecole de formation technique Normale Atelier Construction"
+        )

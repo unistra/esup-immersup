@@ -119,7 +119,7 @@
       <br />
 
       <div class="table-responsive">
-        <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
+        <table id="statistics_table" class="table table-sm table-striped table-bordered compact dt-head-nowrap" style="border-spacing:0;border-collapse:collapse;max-width: none !important;">
           <thead>
             <tr></tr>
           </thead>
@@ -182,8 +182,6 @@
 
           cnt_columns = data.cnt_columns
           registrations_columns = data.registrations_columns
-
-          console.log(data)
 
           dt = $('#statistics_table').DataTable({
             'processing': false,

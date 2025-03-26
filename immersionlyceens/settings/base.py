@@ -452,8 +452,10 @@ SHIBBOLETH_UNQUOTE_ATTRIBUTES = True
 
 CREATE_UNKNOWN_USER = False
 
-# Logout URLs
+# Federations URLs
+EDUCONNECT_LOGIN_URL = ""
 EDUCONNECT_LOGOUT_URL = ""
+AGENT_FEDERATION_LOGIN_URL = ""
 AGENT_FEDERATION_LOGOUT_URL = ""
 
 EDUCONNECT_URLS = [
@@ -742,7 +744,7 @@ CKEDITOR_CONFIGS = {
         # 'mathJaxLib': '//cdn.mathjax.org/mathjax/2.2-latest/MathJax.js?config=TeX-AMS_HTML',
         'tabSpaces': 4,
         'extraPlugins': ','.join([
-            'uploadimage', # the upload image feature
+            # 'uploadimage', # the upload image feature
             # your extra plugins here
             'div',
             'autolink',
@@ -755,8 +757,9 @@ CKEDITOR_CONFIGS = {
             'clipboard',
             'dialog',
             'dialogui',
-            'elementspath'
+            # 'elementspath'
         ]),
+        "removePlugins": ",".join(['resize', 'image', 'uploadimage', 'uploadwidget', 'elementspath']),
     }
 }
 

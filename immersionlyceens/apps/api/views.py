@@ -98,6 +98,7 @@ from immersionlyceens.apps.core.serializers import (
     EstablishmentSerializer,
     HighSchoolLevelSerializer,
     HighSchoolSerializer,
+    ImmersionUserSerializer,
     OffOfferEventSerializer,
     PeriodSerializer,
     SlotSerializer,
@@ -124,6 +125,8 @@ from immersionlyceens.decorators import (
 from immersionlyceens.libs.api.accounts import AccountAPI
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
+
+from . import filters
 
 from .permissions import (
     CustomDjangoModelPermissions,
@@ -3258,11 +3261,6 @@ def get_csv_anonymous(request):
         .values('count')
     )
 
-    attendance_status_choices = dict(Immersion._meta.get_field('attendance_status').flatchoices)
-    attendance_status_whens = [
-        When(immersions__attendance_status=k, then=Value(str(v))) for k, v in attendance_status_choices.items()
-    ]
-
     # Export courses
     if t == 'course':
 
@@ -3569,6 +3567,7 @@ def get_csv_anonymous(request):
             _('registrant profile'),
             _('level'),
             _('origin institution'),
+            _('city'),
             _("bachelor type"),
             _('establishment'),
             _('slot type'),
@@ -3591,8 +3590,6 @@ def get_csv_anonymous(request):
         if request.user.is_establishment_manager():
             filters['slot__course__structure__in'] = request.user.establishment.structures.all()
 
-        content = []
-
         immersions = Immersion.objects.prefetch_related(
             'slot',
             'student',
@@ -3604,7 +3601,8 @@ def get_csv_anonymous(request):
             'slot__course__structure',
             'slot__course__highschool',
             'student__visitor_record',
-            'student__student_record__origin_bachelor_type' 'student__student_record__institution',
+            'student__student_record__origin_bachelor_type',
+            'student__student_record__institution',
             'student__high_school_student_record__origin_bachelor_type',
             'student__high_school_student_record__level',
             'student__high_school_student_record__highschool',
@@ -3636,8 +3634,14 @@ def get_csv_anonymous(request):
             ),
             institution=Coalesce(
                 F('student__high_school_student_record__highschool__label'),
-                F('student__student_record__institution__label'),
+                F('student__student_record__institution__city'),
                 F('student__student_record__uai_code'),
+                Value('')
+            ),
+            city=Coalesce(
+                F('student__high_school_student_record__highschool__city'),
+                F('slot__course__structure__establishment__city'),
+                F('slot__event__establishment__city'),
             ),
             origin_bachelor_type=Coalesce(
                 F('student__high_school_student_record__bachelor_type__label'),
@@ -3695,6 +3699,7 @@ def get_csv_anonymous(request):
             'type',
             'level',
             'institution',
+            'city',
             'origin_bachelor_type',
             'establishment',
             'slot_type',
@@ -4396,6 +4401,22 @@ class SpeakerList(generics.ListCreateAPIView):
         if user:
             user.send_message(self.request, 'CPT_CREATE')
             # TODO : check send message return
+
+
+class UserList(generics.ListAPIView):
+    """
+    Users list
+    """
+
+    model = ImmersionUser
+    queryset = ImmersionUser.objects.all()
+    serializer_class = ImmersionUserSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    filterset_class = filters.ImmersionUserFilter
+
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        super().__init__(*args, **kwargs)
 
 
 class HighSchoolList(generics.ListCreateAPIView):

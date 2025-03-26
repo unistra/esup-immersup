@@ -94,7 +94,7 @@
       chart.svgContainer.htmlElement.style.height = targetHeight + "px";
     }
 
-    $.ajax({
+    let response = $.ajax({
       'url': url,
       'data': get_data
     }).done(function () {

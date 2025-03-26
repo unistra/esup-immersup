@@ -71,3 +71,14 @@ lefthook.yml
 .pylintrc
 
 assets/
+
+# other scripts
+*deploy*.sh
+*prod.sh
+
+# temp files
+*~
+*.bak
+*.save
+*.old
+restart_*sh

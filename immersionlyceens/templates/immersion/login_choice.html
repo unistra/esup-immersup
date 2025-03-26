@@ -30,7 +30,13 @@
       <div class="form-group row justify-content-center">
         {% if profile == 'lyc' and has_highschool_without_student_federation or profile != 'lyc' and has_highschool_without_agent_federation %}
         <div class="col-sm-6 col-md-6">
-          <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
+          {% if profile == 'lyc' %}
+            <a href="{{ educonnect_url }}" class="btn btn-primary float-right"
+          {% elif profile == 'ref-lyc' or profile == 'speaker' %}
+            <a href="{{ agents_federation_url }}" class="btn btn-primary float-right"
+          {% else %}
+            <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
+          {% endif %}
         {% else %}
         <div class="col-sm-12 col-md-12 text-center">
           <a href="{% url 'shibboleth_login' %}" class="btn btn-primary"
@@ -42,17 +48,6 @@
              {% endif %}>
             {% trans 'My high school uses' %} {{ federation_name }}
           </a>
-          {% if profile == 'lyc' and has_highschool_without_student_federation or profile != 'lyc' and has_highschool_without_agent_federation %}
-          <p class="float-right mt-4">
-          {% else %}
-          <p class="mt-4">
-          {% endif %}
-            {% if profile == 'lyc' %}
-              {% trans 'On the next page, select "Educonnect" in the establishments list' %}
-            {% else %}
-              {% trans 'On the next page, select "Education Nationale - accès académies et administration centrale" in the establishments list' %}
-            {% endif %}
-          </p>
         </div>
         {% if profile == 'lyc' and has_highschool_without_student_federation or profile != 'lyc' and has_highschool_without_agent_federation %}
         <div class="col-sm-6 col-md-6">

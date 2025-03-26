@@ -71,7 +71,9 @@ CAS_FORCE_SSL_SERVICE_URL = True
 ####################
 #    SHIBBOLETH    #
 ####################
+EDUCONNECT_LOGIN_URL = "https://pr4.educonnect.phm.education.gouv.fr/idp/profile/SAML2/Unsolicited/SSO"
 EDUCONNECT_LOGOUT_URL = "https://pr4.educonnect.phm.education.gouv.fr/logout"
+AGENT_FEDERATION_LOGIN_URL = "https://hub-pr2.phm.education.gouv.fr/idp/profile/SAML2/Unsolicited/SSO"
 AGENT_FEDERATION_LOGOUT_URL = "https://hub-pr2.phm.education.gouv.fr/logout"
 
 
