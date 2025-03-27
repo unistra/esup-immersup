@@ -251,12 +251,14 @@ def loginChoice(request, profile=None):
     shib_url = f"{root_url}/shib"
 
     try:
-        educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+        if settings.EDUCONNECT_LOGIN_URL:
+            educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
     except:
         educonnect_url = ""
 
     try:
-        agents_url = f"{settings.AGENT_FEDERATION_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+        if settings.AGENT_FEDERATION_LOGIN_URL:
+            agents_url = f"{settings.AGENT_FEDERATION_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
     except:
         agents_url = ""
 
