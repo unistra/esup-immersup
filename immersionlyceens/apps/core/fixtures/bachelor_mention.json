@@ -1,0 +1,66 @@
+[
+{
+    "model": "core.bachelormention",
+    "pk": 1,
+    "fields": {
+        "label": "STMG - Sciences et technologies du management et de la gestion",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 2,
+    "fields": {
+        "label": "STD2A - Sciences et technologies du design et des arts appliqués",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 3,
+    "fields": {
+        "label": "STI2D - Sciences et technologies de l'industrie et du développement durable",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 4,
+    "fields": {
+        "label": "STL - Sciences et technologies de laboratoire",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 5,
+    "fields": {
+        "label": "ST2S - Sciences et technologies de la santé et du social",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 6,
+    "fields": {
+        "label": "STAV - Sciences et technologies de l'agronomie et du vivant",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 7,
+    "fields": {
+        "label": "S2TMD - Sciences et techniques du théâtre, de la musique et de la danse",
+        "active": true
+    }
+},
+{
+    "model": "core.bachelormention",
+    "pk": 8,
+    "fields": {
+        "label": "STHR - Sciences et technologies de l'hôtellerie et de la restauration",
+        "active": true
+    }
+}
+]

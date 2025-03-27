@@ -123,8 +123,9 @@ def test():
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersup-test.app.unistra.fr'
-    env.short_server_name = 'immersup-test'
+    env.application_name = 'immersupv3'
+    env.server_name = 'immersupv3-test.app.unistra.fr'
+    env.short_server_name = 'immersupv3-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
     env.no_shared_sessions = False
@@ -172,6 +173,7 @@ def preprod():
 
     # env.user = 'root'  # user for ssh
 
+    env.application_name = 'immersupv3'
     env.backends = env.roledefs['web']
     env.server_name = 'immersup-pprd.app.unistra.fr'
     env.short_server_name = 'immersup-pprd'

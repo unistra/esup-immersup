@@ -4676,6 +4676,7 @@ class APITestCase(TestCase):
         self.assertEqual(c['structure']['code'], self.course.structure.code)
         self.assertEqual(c['structure']['id'], self.course.structure.id)
 
+
     @patch('ldap3.Connection.__init__', side_effect=mocked_ldap_connection)
     @patch('ldap3.Connection.bind', side_effect=mocked_ldap_bind)
     @patch('immersionlyceens.libs.api.accounts.ldap.AccountAPI.search_user', side_effect=mocked_search_user)
