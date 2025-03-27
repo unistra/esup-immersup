@@ -249,8 +249,16 @@ def loginChoice(request, profile=None):
     # Build direct federation URL to prevent high school students from choosing the bad one
     root_url = request.build_absolute_uri("/").rstrip("/").replace("http://", "https://")
     shib_url = f"{root_url}/shib"
-    educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
-    agents_url = f"{settings.AGENT_FEDERATION_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+
+    try:
+        educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+    except:
+        educonnect_url = ""
+
+    try:
+        agents_url = f"{settings.AGENT_FEDERATION_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+    except:
+        agents_url = ""
 
     context = {
         "agents_federation_url": agents_url,

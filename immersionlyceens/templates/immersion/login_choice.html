@@ -30,10 +30,14 @@
       <div class="form-group row justify-content-center">
         {% if profile == 'lyc' and has_highschool_without_student_federation or profile != 'lyc' and has_highschool_without_agent_federation %}
         <div class="col-sm-6 col-md-6">
-          {% if profile == 'lyc' %}
-            <a href="{{ educonnect_url }}" class="btn btn-primary float-right"
+          {% if profile == 'lyc' and educonnect_url %}
+              <a href="{{ educonnect_url }}" class="btn btn-primary float-right"
           {% elif profile == 'ref-lyc' or profile == 'speaker' %}
-            <a href="{{ agents_federation_url }}" class="btn btn-primary float-right"
+            {% if agents_federation_url %}
+              <a href="{{ agents_federation_url }}" class="btn btn-primary float-right"
+            {% else %}
+              <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
+            {% endif %}
           {% else %}
             <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"
           {% endif %}
