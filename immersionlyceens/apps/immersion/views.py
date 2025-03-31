@@ -247,21 +247,23 @@ def loginChoice(request, profile=None):
             intro_connection = ""
 
     # Build direct federation URL to prevent high school students from choosing the bad one
-    root_url = request.build_absolute_uri("/").rstrip("/").replace("http://", "https://")
-    shib_url = f"{root_url}/shib"
+    # Root URL of Immersup instance
+    root_url = request.build_absolute_uri("/").rstrip("/").replace("http://", "https://") + "/Shibboleth.sso/Login"
+
+    target = quote_plus(f"{root_url}/shib")
     educonnect_url = ""
     agents_url = ""
 
     try:
         if settings.EDUCONNECT_LOGIN_URL:
-            educonnect_url = f"{settings.EDUCONNECT_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+            educonnect_url = f"{root_url}?entityID={quote_plus(settings.EDUCONNECT_LOGIN_URL)}&target={target}"
     except:
         # EDUCONNECT_LOGIN_URL not set
         pass
 
     try:
         if settings.AGENT_FEDERATION_LOGIN_URL:
-            agents_url = f"{settings.AGENT_FEDERATION_LOGIN_URL}?providerId={quote_plus(root_url)}&target={quote_plus(shib_url)}"
+            agents_url = f"{root_url}?entityID={quote_plus(settings.AGENT_FEDERATION_LOGIN_URL)}&target={target}"
     except:
         # AGENT_FEDERATION_LOGIN_URL not set
         pass
