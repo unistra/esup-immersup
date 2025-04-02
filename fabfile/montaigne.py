@@ -22,7 +22,7 @@ def preprod_montaigne():
     # env.user = 'root'  # user for ssh
     env.application_name = 'immersup_montaigne'
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion-dev.u-bordeaux-montaigne.fr'
+    env.server_name = 'bordeaux-montaigne.pprd.immersup.fr'
     env.short_server_name = 'immersion-dev'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.212'
