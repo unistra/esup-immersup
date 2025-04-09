@@ -4180,6 +4180,11 @@ class CampusList(generics.ListCreateAPIView):
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
             many = isinstance(data, list)
+
+            # eliminate duplicates
+            if many:
+                data = [dict(t) for t in {tuple(d.items()) for d in data}]
+
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
             return super().get_serializer(instance=instance, many=many, partial=partial)
@@ -4466,17 +4471,49 @@ class HighSchoolList(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
-class HighSchoolDetail(generics.RetrieveAPIView):
+class HighSchoolDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     High school detail
     """
 
     serializer_class = HighSchoolSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    permission_classes = [IsAuthenticated]  # not enough ?
+    permission_classes = [CustomDjangoModelPermissions]
     lookup_fields = ['id']
     queryset = HighSchool.objects.all()
 
+    def delete(self, request, *args, **kwargs):
+        highschool_id = kwargs.get("pk")
+
+        try:
+            highschool = HighSchool.objects.get(pk=highschool_id)
+        except HighSchool.DoesNotExist:
+            return JsonResponse({"error": _("A valid high school must be selected")}, status=status.HTTP_404_NOT_FOUND)
+
+        # Test all related objects before deletion
+        tests = {
+            "Courses": highschool.courses.exists(),
+            "Events": highschool.events.exists(),
+            "Group immersions": highschool.group_immersions.exists(),
+            "Student records": highschool.student_records.exists(),
+            "Trainings": highschool.trainings.exists(),
+            "Users": highschool.users.exists()
+        }
+
+        errors = [
+            _("%s are linked to this high school, it can't be deleted") % x
+            for x,y in tests.items() if y
+        ]
+
+        if errors:
+            return JsonResponse(
+                {"error": errors},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse({"msg": _("High school successfully deleted")}, status=status.HTTP_200_OK)
 
 class CourseTypeList(generics.ListCreateAPIView):
     """
