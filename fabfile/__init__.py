@@ -10,6 +10,7 @@ from fabric.api import abort, env, execute, local, roles, task, warn_only
 from fabric.context_managers import lcd
 from pydiploy.decorators import do_verbose
 
+from angers import preprod_angers, prod_angers
 from bordeaux import preprod_bordeaux, prod_bordeaux
 from caen import preprod_caen, prod_caen
 from lemans import preprod_lemans, prod_lemans

@@ -62,7 +62,7 @@ def preprod_lyon():
 
 @task
 def prod_lyon():
-    """Define preprod stage for Bordeaux Montaigne instance"""
+    """Define preprod stage for Lyon instance"""
     env.roledefs = {
         'web': ['saas-lyon-prod-1.srv.unistra.fr', 'saas-lyon-prod-2.srv.unistra.fr'],
         'lb': ['saas-lyon-prod-1.srv.unistra.fr', 'saas-lyon-prod-2.srv.unistra.fr'],
