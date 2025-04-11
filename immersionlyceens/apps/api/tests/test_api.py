@@ -3672,6 +3672,117 @@ class APITestCase(TestCase):
         self.assertEqual(result.get('email'), "ahs@domain.tld")
         self.assertTrue(HighSchool.objects.filter(label='Another High School').exists())
 
+    def test_high_school_update(self):
+        view_permission = Permission.objects.get(codename='view_highschool')
+        change_permission = Permission.objects.get(codename='change_highschool')
+
+        # Add perms
+        self.api_user.user_permissions.add(view_permission)
+
+        # Create a high school
+        high_school = HighSchool.objects.create(
+            label='My Cool Label',
+            address='x',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='mchs@domain.tld',
+            mailing_list='list-mchs@domain.tld',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
+            postbac_immersion=True,
+            signed_charter=True,
+        )
+
+        url = reverse("highschool_detail", kwargs={"pk": high_school.pk})
+
+        # Define new data for patch
+        data = {
+            "label": 'My New Cool Label',
+        }
+
+        # Unauthenticated PATCH
+        self.client.logout()
+        response = self.client.patch(url, data=json.dumps(data), content_type="application/json")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'Authentication credentials were not provided.')
+
+        # Without rights
+        response = self.api_client_token.patch(url, data=json.dumps(data), content_type="application/json")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Add change permission
+        self.api_user.user_permissions.add(change_permission)
+        response = self.api_client_token.patch(url, data=json.dumps(data), content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        high_school.refresh_from_db()
+        self.assertEqual(high_school.label, "My New Cool Label")
+
+    def test_high_school_delete(self):
+        delete_permission = Permission.objects.get(codename='delete_highschool')
+
+        # Create a high school
+        high_school = HighSchool.objects.create(
+            label='My Cool Label',
+            address='x',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='mchs@domain.tld',
+            mailing_list='list-mchs@domain.tld',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
+            postbac_immersion=True,
+            signed_charter=True,
+        )
+
+        # Link high school to related objects
+        hs_user = get_user_model().objects.create_user(
+            username='temp_hs_user',
+            password='pass',
+            email='hs@domain.tld',
+            first_name='high',
+            last_name='SCHOOL',
+            highschool=high_school
+        )
+
+        url = reverse("highschool_detail", kwargs={"pk": high_school.pk})
+
+        # Unauthenticated DELETE
+        self.client.logout()
+        response = self.client.delete(url, content_type="application/json")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'Authentication credentials were not provided.')
+
+        # Without rights
+        response = self.api_client_token.delete(url, content_type="application/json")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Add delete permission
+        # Still not good : there are related objects
+        self.api_user.user_permissions.add(delete_permission)
+        response = self.api_client_token.delete(url, content_type="application/json")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], ["Users are linked to this high school, it can't be deleted"])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Retry
+        hs_user.delete()
+        response = self.api_client_token.delete(url, content_type="application/json")
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['msg'], "High school successfully deleted")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(HighSchool.objects.filter(label="My Cool Label").exists())
+
     def test_high_school_speakers(self):
         client = Client()
 

@@ -452,7 +452,7 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
             return response
         else:
             request = self.context.get("request")
-            user_events = self.context.get("user_events", False)
+            user_events = self.context.get("user_filter", False)
             speaker_filter = {}
 
             if request and instance:
@@ -605,7 +605,7 @@ class CourseSerializer(serializers.ModelSerializer):
             return response
         else:
             request = self.context.get("request")
-            user_courses = self.context.get("user_courses", False)
+            user_courses = self.context.get("user_filter", False)
             speaker_filter = {}
 
             if request and instance:

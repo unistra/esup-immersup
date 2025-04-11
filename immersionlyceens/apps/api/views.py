@@ -127,6 +127,7 @@ from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from . import filters
+from .mixins import ManyMixin, SpeakersManyMixin
 
 from .permissions import (
     CustomDjangoModelPermissions,
@@ -4156,7 +4157,7 @@ def remove_link(request):
     return JsonResponse(response, safe=False)
 
 
-class CampusList(generics.ListCreateAPIView):
+class CampusList(ManyMixin, generics.ListCreateAPIView):
     """
     Campus list
     """
@@ -4176,18 +4177,6 @@ class CampusList(generics.ListCreateAPIView):
             queryset = queryset.filter(establishment=user.establishment)
 
         return queryset
-
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-
-            # eliminate duplicates
-            if many:
-                data = [dict(t) for t in {tuple(d.items()) for d in data}]
-
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
 class EstablishmentList(generics.ListAPIView):
@@ -4211,7 +4200,7 @@ class EstablishmentList(generics.ListAPIView):
         return queryset
 
 
-class StructureList(generics.ListCreateAPIView):
+class StructureList(ManyMixin, generics.ListCreateAPIView):
     """
     Structures list
     """
@@ -4241,15 +4230,8 @@ class StructureList(generics.ListCreateAPIView):
 
         return queryset
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
 
-
-class TrainingList(generics.ListCreateAPIView):
+class TrainingList(ManyMixin, generics.ListCreateAPIView):
     """
     Training list / creation
     Returns only active trainings
@@ -4292,19 +4274,12 @@ class TrainingList(generics.ListCreateAPIView):
 
         return trainings_queryset
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
-
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
 
 
-class TrainingDomainList(generics.ListCreateAPIView):
+class TrainingDomainList(ManyMixin, generics.ListCreateAPIView):
     """
     Training domain list / creation
     """
@@ -4314,19 +4289,12 @@ class TrainingDomainList(generics.ListCreateAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
-
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
 
 
-class TrainingSubdomainList(generics.ListCreateAPIView):
+class TrainingSubdomainList(ManyMixin, generics.ListCreateAPIView):
     """
     Training subdomain list / creation
     """
@@ -4337,24 +4305,12 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-
-            # eliminate duplicates
-            if many:
-                data = [dict(t) for t in {tuple(d.items()) for d in data}]
-
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
-
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
 
 
-class SpeakerList(generics.ListCreateAPIView):
+class SpeakerList(ManyMixin, generics.ListCreateAPIView):
     """
     Speakers (only) list / creation
     """
@@ -4389,13 +4345,6 @@ class SpeakerList(generics.ListCreateAPIView):
 
         return ImmersionUser.objects.prefetch_related("groups").filter(**filters)
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
-
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
@@ -4424,7 +4373,7 @@ class UserList(generics.ListAPIView):
         super().__init__(*args, **kwargs)
 
 
-class HighSchoolList(generics.ListCreateAPIView):
+class HighSchoolList(ManyMixin, generics.ListCreateAPIView):
     """
     High schools list / creation
     Unauthenticated GET is granted only when requesting high schools with valid agreements
@@ -4458,13 +4407,6 @@ class HighSchoolList(generics.ListCreateAPIView):
             return HighSchool.agreed.all()
 
         return HighSchool.objects.all()
-
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
 
     def post(self, request, *args, **kwargs):
         self.user = request.user
@@ -4501,7 +4443,7 @@ class HighSchoolDetail(generics.RetrieveUpdateDestroyAPIView):
         }
 
         errors = [
-            _("%s are linked to this high school, it can't be deleted") % x
+            _("Objects '%s' are linked to this high school, it can't be deleted") % x
             for x,y in tests.items() if y
         ]
 
@@ -4515,7 +4457,7 @@ class HighSchoolDetail(generics.RetrieveUpdateDestroyAPIView):
 
         return JsonResponse({"msg": _("High school successfully deleted")}, status=status.HTTP_200_OK)
 
-class CourseTypeList(generics.ListCreateAPIView):
+class CourseTypeList(ManyMixin, generics.ListCreateAPIView):
     """
     Course types list
     """
@@ -4531,13 +4473,6 @@ class CourseTypeList(generics.ListCreateAPIView):
         queryset = CourseType.objects.all()
         return queryset
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
-
 
 class CourseTypeDetail(generics.RetrieveAPIView):
     """
@@ -4551,7 +4486,7 @@ class CourseTypeDetail(generics.RetrieveAPIView):
     queryset = CourseType.objects.all()
 
 
-class CourseList(generics.ListCreateAPIView):
+class CourseList(SpeakersManyMixin, generics.ListCreateAPIView):
     """
     Courses list
     """
@@ -4631,34 +4566,6 @@ class CourseList(generics.ListCreateAPIView):
                 return Course.objects.filter(structure__in=self.user.establishment.structures.all()).order_by('label')
 
         return queryset
-
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        """
-        Look for speaker emails and try to create/add them to serializer data
-        """
-        if data is not None:
-            many = isinstance(data, list)
-
-            if many:
-                for course_data in data:
-                    try:
-                        course_data = get_or_create_user(self.request, course_data)
-                    except Exception as e:
-                        raise
-            else:
-                try:
-                    data = get_or_create_user(self.request, data)
-                except Exception as e:
-                    raise
-
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(
-                instance=instance,
-                many=many,
-                partial=partial,
-                context={'user_courses': self.user_filter, 'request': self.request},
-            )
 
 
 class CourseDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -4763,7 +4670,7 @@ class CourseDetail(generics.RetrieveUpdateDestroyAPIView):
         return JsonResponse({"msg": _("Course successfully deleted")}, status=status.HTTP_200_OK)
 
 
-class SlotList(generics.ListCreateAPIView):
+class SlotList(ManyMixin, generics.ListCreateAPIView):
     """
     Courses list
     """
@@ -4792,13 +4699,6 @@ class SlotList(generics.ListCreateAPIView):
         queryset = Slot.objects.all()
         return queryset
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
-
 
 class SlotDetail(generics.RetrieveDestroyAPIView):
     serializer_class = SlotSerializer
@@ -4822,7 +4722,7 @@ class SlotDetail(generics.RetrieveDestroyAPIView):
         return Slot.objects.all()
 
 
-class BuildingList(generics.ListCreateAPIView):
+class BuildingList(ManyMixin, generics.ListCreateAPIView):
     """
     Buildings list
     """
@@ -4846,13 +4746,6 @@ class BuildingList(generics.ListCreateAPIView):
                 return queryset.filter(campus__establishment=user.establishment)
 
         return queryset
-
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
 class GetEstablishment(generics.RetrieveAPIView):
@@ -4889,7 +4782,7 @@ class TrainingDetail(generics.RetrieveDestroyAPIView):
         return Training.objects.filter(highschool=self.request.user.highschool)
 
 
-class OffOfferEventList(generics.ListAPIView):
+class OffOfferEventList(SpeakersManyMixin, generics.ListAPIView):
     """
     Off offer events list
     """
@@ -4966,33 +4859,6 @@ class OffOfferEventList(generics.ListAPIView):
 
         return queryset.filter(**filters)
 
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        """
-        Look for speaker emails and try to create/add them to serializer data
-        """
-        if data is not None:
-            many = isinstance(data, list)
-
-            if many:
-                for event_data in data:
-                    try:
-                        event_data = get_or_create_user(self.request, event_data)
-                    except Exception as e:
-                        raise
-            else:
-                try:
-                    data = get_or_create_user(self.request, data)
-                except Exception as e:
-                    raise
-
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(
-                instance=instance,
-                many=many,
-                partial=partial,
-                context={'user_events': self.user_filter, 'request': self.request},
-            )
 
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventDetail(generics.DestroyAPIView):
@@ -5825,7 +5691,7 @@ def ajax_get_slot_restrictions(request, slot_id=None):
     return JsonResponse(response, safe=False)
 
 
-class TrainingAllList(generics.ListCreateAPIView):
+class TrainingAllList(ManyMixin, generics.ListCreateAPIView):
     """
     Training list without restrictions for REF-LYC
     """
@@ -5853,13 +5719,6 @@ class TrainingAllList(generics.ListCreateAPIView):
         )
 
         return trainings_queryset
-
-    def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        if data is not None:
-            many = isinstance(data, list)
-            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
-        else:
-            return super().get_serializer(instance=instance, many=many, partial=partial)
 
     def post(self, request, *args, **kwargs):
         self.user = request.user
