@@ -3772,7 +3772,7 @@ class APITestCase(TestCase):
         self.api_user.user_permissions.add(delete_permission)
         response = self.api_client_token.delete(url, content_type="application/json")
         result = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(result['error'], ["Users are linked to this high school, it can't be deleted"])
+        self.assertEqual(result['error'], ["Objects 'Users' are linked to this high school, it can't be deleted"])
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Retry
