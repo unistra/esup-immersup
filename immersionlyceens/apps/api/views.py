@@ -221,12 +221,12 @@ def ajax_get_person(request):
             filters = {'groups__name': 'INTER', 'last_name__istartswith': search_str}
 
             if structure_id is not None:
-                Q_filter = Q(establishment=establishment) | Q(structures=structure_id)
+                users_filter = Q(establishment=establishment) | Q(structures=structure_id)
             else:
-                Q_filter = Q(establishment=establishment)
+                users_filter = Q(establishment=establishment)
                 filters["establishment"] = establishment
 
-            users_queryset = ImmersionUser.objects.filter(Q_filter, **filters)
+            users_queryset = ImmersionUser.objects.filter(users_filter, **filters)
 
     elif highschool:
         users_queryset = ImmersionUser.objects.filter(
@@ -310,53 +310,49 @@ def validate_slot_date(request):
     :param request: the request.
     :return: a dict with data about the date
     """
-    period = None
     response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
     period = request.GET.get('period')
 
-    if _date:
-        # two format date
-        error = False
-        try:
-            formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
-        except ValueError:
-            error = True
-
-        if error:
-            try:
-                formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
-            except ValueError:
-                response['msg'] = gettext('Error: bad date format')
-                return JsonResponse(response, safe=False)
-
-        details = []
-        is_vacation = Vacation.date_is_inside_a_vacation(formated_date.date())
-        is_holiday = Holiday.date_is_a_holiday(formated_date.date())
-        is_sunday = formated_date.date().weekday() == 6  # sunday
-
-        if is_vacation:
-            details.append(pgettext("vacations", "Holidays"))
-        if is_holiday:
-            details.append(_("Holiday"))
-        if is_sunday:
-            details.append(_("Sunday"))
-
-        # Period
-        try:
-            period = Period.from_date(pk=period, date=formated_date)
-        except Period.DoesNotExist as e:
-            details.append(_("Outside valid period"))
-
-        response['data'] = {
-            'date': _date,
-            'is_between': is_vacation or is_holiday or is_sunday,
-            'details': details,
-            'valid_period': period is not None,
-        }
-    else:
+    if not _date:
         response['msg'] = gettext('Error: A date is required')
+        return JsonResponse(response, safe=False)
+        
+    # two format date
+    try:
+        formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
+    except ValueError:
+        try:
+            formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+        except ValueError:
+            response['msg'] = gettext('Error: bad date format')
+            return JsonResponse(response, safe=False)
+
+    details = []
+    is_vacation = Vacation.date_is_inside_a_vacation(formated_date.date())
+    is_holiday = Holiday.date_is_a_holiday(formated_date.date())
+    is_sunday = formated_date.date().weekday() == 6  # sunday
+
+    if is_vacation:
+        details.append(pgettext("vacations", "Holidays"))
+    if is_holiday:
+        details.append(_("Holiday"))
+    if is_sunday:
+        details.append(_("Sunday"))
+
+    # Period
+    try:
+        period = Period.from_date(pk=period, date=formated_date)
+    except Period.DoesNotExist:
+        details.append(_("Outside valid period"))
+
+    response['data'] = {
+        'date': _date,
+        'is_between': is_vacation or is_holiday or is_sunday,
+        'details': details,
+        'valid_period': period is not None,
+    }
 
     return JsonResponse(response, safe=False)
 
@@ -386,16 +382,18 @@ def ajax_get_student_records(request):
         'TO_REVALIDATE': 4,
     }
 
-    if not action in actions.keys():
+    if action not in actions.keys():
         response['msg'] = gettext("Error: No action selected for AJAX request")
         return JsonResponse(response, safe=False)
 
-    filter = {"validation": actions[action]}
+    record_filter = {
+        "validation": actions[action]
+    }
 
     # Highschool : accept an int or 'all'
     try:
         hs_id = int(hs_id)
-        filter['highschool_id'] = hs_id
+        record_filter['highschool_id'] = hs_id
     except (ValueError, TypeError):
         if hs_id != 'all':
             response['msg'] = gettext("Error: No high school selected")
@@ -403,7 +401,7 @@ def ajax_get_student_records(request):
 
     # Conventions
     if with_convention in [0, 1, "0", "1"]:
-        filter['highschool__with_convention'] = with_convention in (1, "1")
+        record_filter['highschool__with_convention'] = with_convention in (1, "1")
 
     if not hs_id:
         response['msg'] = gettext("Error: No high school selected")
@@ -428,7 +426,7 @@ def ajax_get_student_records(request):
 
     records = (
         HighSchoolStudentRecord.objects.prefetch_related('highschool')
-        .filter(**filter)
+        .filter(**record_filter)
         .annotate(
             user_first_name=F("student__first_name"),
             user_last_name=F("student__last_name"),
@@ -464,70 +462,73 @@ def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
     """
+    student_record_id = request.POST.get('student_record_id')
+
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
+    highschool_filter = {}
 
-    student_record_id = request.POST.get('student_record_id')
-    if student_record_id:
-        filter = {}
-
-        all_highschools_conditions = [
-            request.user.is_establishment_manager(),
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator(),
-        ]
-
-        if not any(all_highschools_conditions):
-            filter['id'] = request.user.highschool.id
-
-        hs = HighSchool.objects.filter(**filter)
-
-        if hs:
-            try:
-                record = HighSchoolStudentRecord.objects.prefetch_related('attestation').get(
-                    id=student_record_id, highschool__in=hs
-                )
-
-                # Check documents
-                attestations = record.attestation.filter(
-                    Q(validity_date__lt=today) | Q(validity_date__isnull=True),
-                    archive=False,
-                    requires_validity_date=True,
-                ).exclude(Q(validity_date__isnull=True, document='') | Q(validity_date__isnull=False), mandatory=False)
-
-                if validate and attestations.exists():
-                    response['msg'] = _("Error: record has missing or invalid attestation dates")
-                    return JsonResponse(response, safe=False)
-
-                # 2 => VALIDATED
-                # 3 => REJECTED
-                record.set_status("VALIDATED" if validate else "REJECTED")
-                record.validation_date = timezone.localtime() if validate else None
-                record.rejected_date = None if validate else timezone.localtime()
-                record.save()
-
-                # Delete attestations ?
-                if validate:
-                    delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
-                    if delete_attachments:
-                        # Delete only attestations that does not require a validity date
-                        for attestation in record.attestation.filter(requires_validity_date=False):
-                            attestation.delete()
-
-                template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
-                ret = record.student.send_message(request, template)
-
-                if ret:
-                    response['msg'] = _("Record updated but notification not sent : %s") % ret
-                else:
-                    response['data'] = {'ok': True}
-
-            except HighSchoolStudentRecord.DoesNotExist:
-                response['msg'] = "Error: No student record"
-        else:
-            response['msg'] = "Error: No high school"
-    else:
+    if not student_record_id:
         response['msg'] = "Error: No student selected"
+        return JsonResponse(response, safe=False)
+
+    all_highschools_conditions = [
+        request.user.is_establishment_manager(),
+        request.user.is_master_establishment_manager(),
+        request.user.is_operator(),
+    ]
+
+    if not any(all_highschools_conditions):
+        highschool_filter['id'] = request.user.highschool.id
+
+    hs = HighSchool.objects.filter(**highschool_filter)
+
+    if not hs.exists():
+        response['msg'] = "Error: No high school"
+        return JsonResponse(response, safe=False)
+
+    try:
+        record = HighSchoolStudentRecord.objects.prefetch_related('attestation').get(
+            id=student_record_id,
+            highschool__in=hs
+        )
+
+        # Check documents
+        attestations = record.attestation.filter(
+            Q(validity_date__lt=today) | Q(validity_date__isnull=True),
+            archive=False,
+            requires_validity_date=True,
+        ).exclude(Q(validity_date__isnull=True, document='') | Q(validity_date__isnull=False), mandatory=False)
+
+        if validate and attestations.exists():
+            response['msg'] = _("Error: record has missing or invalid attestation dates")
+            return JsonResponse(response, safe=False)
+
+        # 2 => VALIDATED
+        # 3 => REJECTED
+        record.set_status("VALIDATED" if validate else "REJECTED")
+        record.validation_date = timezone.localtime() if validate else None
+        record.rejected_date = None if validate else timezone.localtime()
+        record.save()
+
+        # Delete attestations ?
+        if validate:
+            delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
+            if delete_attachments:
+                # Delete only attestations that does not require a validity date
+                for attestation in record.attestation.filter(requires_validity_date=False):
+                    attestation.delete()
+
+        template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
+        ret = record.student.send_message(request, template)
+
+        if ret:
+            response['msg'] = _("Record updated but notification not sent : %s") % ret
+        else:
+            response['data'] = {'ok': True}
+
+    except HighSchoolStudentRecord.DoesNotExist:
+        response['msg'] = "Error: No student record"
 
     return JsonResponse(response, safe=False)
 
@@ -574,7 +575,10 @@ def ajax_delete_account(request):
     if not request.user.is_superuser:
         if account.is_speaker():
             if account.slots.exists():
-                response = {'error': True, 'msg': gettext("You can't delete this account (this user has slots)")}
+                response = {
+                    'error': True,
+                    'msg': gettext("You can't delete this account (this user has slots)")
+                }
                 return JsonResponse(response, safe=False)
 
             if request.user.is_high_school_manager():
@@ -1853,7 +1857,10 @@ def ajax_get_available_students(request, slot_id):
             When(visitor_record__isnull=False, then=Value("visitor")),
             default=Value(gettext("Unknown")),
         ),
-        level_id=Coalesce(F('high_school_student_record__level__id'), F('student_record__level__id')),
+        level_id=Coalesce(
+            F('high_school_student_record__level__id'),
+            F('student_record__level__id')
+        ),
         level=Coalesce(
             Case(
                 When(
@@ -1990,7 +1997,10 @@ def ajax_get_highschool_students(request):
             When(visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
             default=Value(gettext("Unknown")),
         ),
-        level=Coalesce(F('high_school_student_record__level__label'), F('student_record__level__label')),
+        level=Coalesce(
+            F('high_school_student_record__level__label'),
+            F('student_record__level__label')
+        ),
         birth_date=Coalesce(
             F('student_record__birth_date'),
             F('high_school_student_record__birth_date'),
@@ -2455,7 +2465,7 @@ def ajax_groups_batch_cancel_registration(request):
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
 def get_csv_structures(request):
     filters = {}
-    Q_filters = Q()
+    slots_filters = Q()
     content = []
     today = _date(datetime.datetime.today(), 'Ymd')
 
@@ -2779,7 +2789,7 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
-            Q_filters = Q(event__establishment=request.user.establishment) | Q(
+            slots_filters = Q(event__establishment=request.user.establishment) | Q(
                 event__structure__in=request.user.establishment.structures.all()
             )
 
@@ -2885,7 +2895,7 @@ def get_csv_structures(request):
                 'event__structure',
                 'event__highschool'
             )
-            .filter(Q_filters, **filters, published=True, event__isnull=False)
+            .filter(slots_filters, **filters, published=True, event__isnull=False)
             .order_by('date', 'start_time')
         )
 
@@ -2972,7 +2982,7 @@ def get_csv_highschool(request):
         _('registrations visibility agreement'),
     ]
 
-    Q_filters = Q(immersions__cancellation_type__isnull=True)
+    users_filters = Q(immersions__cancellation_type__isnull=True)
 
     students = (
         ImmersionUser.objects.prefetch_related(
@@ -2983,7 +2993,7 @@ def get_csv_highschool(request):
             'immersions__slot__period',
         )
         .filter(
-            Q_filters,
+            users_filters,
             groups__name='LYC',
             high_school_student_record__highschool__id=hs.id,
         )
@@ -3251,7 +3261,6 @@ def get_csv_anonymous(request):
     infield_separator = '|'
     t = request.GET.get('type')
     filters = {}
-    Q_filters = Q()
     if not t:
         raise Http404
 
@@ -3635,14 +3644,14 @@ def get_csv_anonymous(request):
             ),
             institution=Coalesce(
                 F('student__high_school_student_record__highschool__label'),
-                F('student__student_record__institution__city'),
+                F('student__student_record__institution__label'),
                 F('student__student_record__uai_code'),
                 Value('')
             ),
             city=Coalesce(
                 F('student__high_school_student_record__highschool__city'),
-                F('slot__course__structure__establishment__city'),
-                F('slot__event__establishment__city'),
+                F('student__student_record__institution__city'),
+                Value('')
             ),
             origin_bachelor_type=Coalesce(
                 F('student__high_school_student_record__bachelor_type__label'),
@@ -3808,7 +3817,7 @@ def ajax_get_student_presence(request):
         place = 0
 
     filters = {'slot__place': place}
-    Q_filters = Q()
+    immersions_filters = Q()
 
     if from_date and from_date != "None":
         filters["slot__date__gte"] = from_date
@@ -3817,7 +3826,7 @@ def ajax_get_student_presence(request):
         filters["slot__date__lte"] = until_date
 
     if request.user.is_superuser or request.user.is_operator() or request.user.is_master_establishment_manager():
-        Q_filters = (
+        immersions_filters = (
             Q(slot__event__isnull=False, slot__place=Slot.FACE_TO_FACE)
             | Q(slot__event__isnull=False, slot__place=Slot.OUTSIDE)
             | Q(slot__course__isnull=False)
@@ -3826,7 +3835,7 @@ def ajax_get_student_presence(request):
     elif request.user.is_establishment_manager() or request.user.is_legal_department_staff():
         structures = request.user.establishment.structures.all()
 
-        Q_filters = (
+        immersions_filters = (
             Q(slot__course__structure__in=structures)
             | Q(slot__event__structure__in=structures, slot__place=Slot.FACE_TO_FACE)
             | Q(slot__event__structure__in=structures, slot__place=Slot.OUTSIDE)
@@ -3844,7 +3853,7 @@ def ajax_get_student_presence(request):
             'student__student_record__institution',
             'student__visitor_record',
         )
-        .filter(Q_filters, **filters, cancellation_type__isnull=True)
+        .filter(immersions_filters, **filters, cancellation_type__isnull=True)
         .annotate(
             datatype=Value('student'),
             date=F('slot__date'),
@@ -3907,7 +3916,7 @@ def ajax_get_student_presence(request):
             'slot__event__structure'
             'highschool'
         )
-        .filter(Q_filters, **filters, cancellation_type__isnull=True)
+        .filter(immersions_filters, **filters, cancellation_type__isnull=True)
         .annotate(
             datatype=Value('group'),
             date=F('slot__date'),
@@ -4642,7 +4651,7 @@ class CourseDetail(generics.RetrieveUpdateDestroyAPIView):
                 data = get_or_create_user(self.request, data)
                 if data:
                     serializer_kwargs["data"] = data
-            except Exception as e:
+            except Exception:
                 raise
 
         return super().get_serializer(**serializer_kwargs)
