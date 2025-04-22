@@ -3,9 +3,15 @@ Mocks for unit tests
 """
 
 def mocked_ldap_connection(*args, **kwargs):
+    """
+    Fake LDAP connection (do nothing)
+    """
     pass
 
 def mocked_ldap_bind(*args, **kwargs):
+    """
+    Fake LDAP bind (do nothing)
+    """
     pass
 
 def mocked_search_user(search_value, search_attr):

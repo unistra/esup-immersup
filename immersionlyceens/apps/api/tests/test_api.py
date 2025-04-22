@@ -3700,7 +3700,7 @@ class APITestCase(TestCase):
 
         # Define new data for patch
         data = {
-            "label": 'My New Cool Label',
+            "email": 'mchs2@domain.tld',
         }
 
         # Unauthenticated PATCH
@@ -3721,7 +3721,8 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         high_school.refresh_from_db()
-        self.assertEqual(high_school.label, "My New Cool Label")
+        # self.assertEqual(high_school.label, "My New Cool Label")
+        self.assertEqual(high_school.email, "mchs2@domain.tld")
 
     def test_high_school_delete(self):
         delete_permission = Permission.objects.get(codename='delete_highschool')

@@ -29,15 +29,9 @@ class SpeakersManyMixin:
 
             if many:
                 for single_data in data:
-                    try:
-                        single_data = get_or_create_user(self.request, single_data)
-                    except Exception:
-                        raise
+                    single_data = get_or_create_user(self.request, single_data)
             else:
-                try:
-                    data = get_or_create_user(self.request, data)
-                except Exception:
-                    raise
+                data = get_or_create_user(self.request, data)
 
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:

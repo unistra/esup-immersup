@@ -18,35 +18,35 @@
     </div>
     <div class="card-body">
       {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
-      </div>
-      {% if events_off_offer %}
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_anonymous_events" >{% trans 'Anonymous events data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
-      </div>
-      {% endif %}
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_registrations" >{% trans 'Anonymous registrations' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_registrations">{% trans 'Extract data' %}</button>
-      </div>
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
+        <div class="row">
+          <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
+        </div>
         {% if events_off_offer %}
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        <div class="row">
+          <label class="col-form-label col-sm-3" for="extract_anonymous_events" >{% trans 'Anonymous events data' %}</label>
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
+        </div>
         {% endif %}
-      </div>
+        <div class="row">
+          <label class="col-form-label col-sm-3" for="extract_anonymous_registrations" >{% trans 'Anonymous registrations' %}</label>
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_registrations">{% trans 'Extract data' %}</button>
+        </div>
+        <div class="row">
+          <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
+          {% if events_off_offer %}
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+          {% endif %}
+        </div>
       {% elif request.user.is_high_school_manager %}
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_highschool">{% trans 'High schools data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_highschool">{% trans 'Extract data' %}</button>
-      </div>
+        <div class="row">
+          <label class="col-form-label col-sm-3" for="extract_highschool">{% trans 'High schools data' %}</label>
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_highschool">{% trans 'Extract data' %}</button>
+        </div>
         {% if request.user.highschool.postbac_immersion %}
           <div class="row">
-            <label class="col-form-label col-sm-3" for="structure">{% trans 'High school immersions data' %}</label>
+            <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'High school immersions data' %}</label>
             <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
             {% if events_off_offer %}
             <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
@@ -54,15 +54,15 @@
           </div>
         {% endif %}
       {% elif request.user.is_structure_manager %}
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
-        {% if events_off_offer %}
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
-        {% endif %}
-      </div>
+        <div class="row">
+          <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
+          {% if events_off_offer %}
+          <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+          {% endif %}
+        </div>
       {% else %}
-      <div class="alert-info">{% trans "No data extractions available for your user right." %}</div>
+        <div class="alert-info">{% trans "No data extractions available for your user right." %}</div>
       {% endif %}
     </div>
   </div>

@@ -1,7 +1,7 @@
 # first builder stage
 
 # pull official base image
-FROM python:3.8-slim-bullseye as builder
+FROM python:3.8-slim-bullseye AS builder
 
 # set work directory
 WORKDIR /usr/src/app
@@ -12,14 +12,15 @@ ENV PYTHONUNBUFFERED 1
 
 # install dependencies
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends gcc libc-dev python3-dev libpcre3 libpcre3-dev git tk; \
+  && apt-get install -y --no-install-recommends gcc git libc-dev libpcre3 libpcre3-dev python3-dev tk; \
   pip install --upgrade pip
-# TODO: We can lint source code before building container
+
+# We could lint source code before building container
 #&& pip install flake8==3.9.2
 
 COPY . .
 # lint
-# TODO: Linting if needed
+# Lint if needed
 # RUN flake8 --ignore=E501,F401 .
 
 # install dependencies
@@ -38,28 +39,30 @@ ENV HOME=/home/immersup
 ENV APP_HOME=/home/immersup/web
 
 # create directory for the immersup user & create user
-RUN mkdir -p $APP_HOME/staticfiles; \
-  mkdir -p $APP_HOME/mediafiles; \
+RUN mkdir -p "$APP_HOME"/staticfiles; \
+  mkdir -p "$APP_HOME"/mediafiles; \
   addgroup immersup && adduser immersup --ingroup immersup;
 
-WORKDIR $APP_HOME
+WORKDIR "$APP_HOME"
 
 # copy needed files
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --chown=immersup:immersup ./deploy/docker/app/entrypoint-demo.sh .
 COPY --chown=immersup:immersup ./deploy/docker/app/uwsgi.ini /etc/uwsgi/uwsgi.ini
-COPY --chown=immersup:immersup . $APP_HOME
+COPY --chown=immersup:immersup . "$APP_HOME"
 
 # prepare files & install requirements & set permissions
-RUN sed -i 's/\r$//g'  $APP_HOME/entrypoint-demo.sh; \
-  chmod +x  $APP_HOME/entrypoint-demo.sh; \
-  pip install --no-cache /wheels/* ; \
-  sed -i 's/{{ goal }}/docker-demo/g' $APP_HOME/manage.py; \
-  sed -i 's/{{ goal }}/docker-demo/g' $APP_HOME/immersionlyceens/wsgi.py; \
-  chown -R immersup:immersup $APP_HOME; \
-  apt-get update \
-  && apt-get install -y --no-install-recommends libxml2-dev libxslt-dev libffi-dev libcairo2-dev libpango1.0-dev gettext libpcre3 libpcre3-dev locales tk;
-
+RUN <<EOF
+sed -i 's/\r$//g'  "$APP_HOME"/entrypoint-demo.sh \
+chmod +x  "$APP_HOME"/entrypoint-demo.sh \
+pip install --no-cache /wheels/* \
+sed -i 's/{{ goal }}/docker-demo/g' "$APP_HOME"/manage.py \
+sed -i 's/{{ goal }}/docker-demo/g' "$APP_HOME"/immersionlyceens/wsgi.py \
+chown -R immersup:immersup "$APP_HOME" \
+apt-get update \
+apt-get install -y --no-install-recommends gettext libcairo2-dev libffi-dev libpango1.0-dev libpcre3 libpcre3-dev libxml2-dev libxslt-dev locales tk \
+apt-get clean
+EOF
 
 COPY ./deploy/docker/app/uwsgi.ini /etc/uwsgi/uwsgi.ini
 

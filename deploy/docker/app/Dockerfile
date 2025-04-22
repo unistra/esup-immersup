@@ -24,7 +24,7 @@ RUN export BUILD_DEPS=" \
   locales \
   tk \
   git" \
-  && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS; \
+  && apt-get update && apt-get install -y --no-install-recommends "$BUILD_DEPS"; \
   sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.txt; \
   pip install --no-cache-dir -r requirements/dev.txt; \
   apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
