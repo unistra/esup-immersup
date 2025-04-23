@@ -1,3 +1,5 @@
+import logging
+
 from typing import Any, Dict, List, Optional, Tuple, Union
 from rest_framework import generics, serializers, status
 from django.utils.translation import gettext, gettext_lazy as _
@@ -5,6 +7,8 @@ from django.contrib.auth.models import Group
 
 from immersionlyceens.apps.core.models import Structure, ImmersionUser
 from immersionlyceens.libs.api.accounts import AccountAPI
+
+logger = logging.getLogger(__name__)
 
 def get_or_create_user(request, data):
     """
