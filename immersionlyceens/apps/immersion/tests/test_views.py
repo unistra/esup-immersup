@@ -14,7 +14,7 @@ from rest_framework import status
 
 from immersionlyceens.apps.core.models import (
     AttestationDocument, BachelorMention, BachelorType, Building, Campus,
-    Course, CourseType, Establishment, GeneralBachelorTeaching,
+    CertificateLogo, Course, CourseType, Establishment, GeneralBachelorTeaching,
     HigherEducationInstitution, HighSchool, HighSchoolLevel,
     Immersion, ImmersionUser, ImmersionUserGroup, PendingUserGroup,
     Period, PostBachelorLevel, Profile, Slot, Structure,
@@ -949,6 +949,11 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/pdf')
 
+        # Without certificate logo
+        CertificateLogo.objects.all().delete()
+        response = self.client.get('/immersion/dl/attendance_list/%s' % self.immersion.slot.id, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['content-type'], 'application/pdf')
 
     def test_record_duplicates(self):
         record = HighSchoolStudentRecord.objects.create(

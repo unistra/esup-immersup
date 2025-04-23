@@ -1879,9 +1879,9 @@ def immersion_attendance_students_list_download(request, slot_id):
     """
     Attendance students list pdf download
     """
-    try:
+    logo = ""
 
-        immersions = ""
+    try:
         slot = Slot.objects.get(pk=slot_id)
 
         if slot:
@@ -1890,16 +1890,19 @@ def immersion_attendance_students_list_download(request, slot_id):
                 .filter(slot=slot, cancellation_type__isnull=True)\
                 .order_by("student__last_name", "student__first_name")
 
-            slot_entity = slot.get_establishment() \
-                if slot.get_establishment() else slot.get_highschool()
+            slot_entity = slot.get_establishment() or slot.get_highschool()
 
-            logo = slot_entity.logo if slot_entity and slot_entity.logo \
-                else CertificateLogo.objects.get(pk=1).logo
+            cert_logo_exists = CertificateLogo.objects.exists()
+
+            if slot_entity and slot_entity.logo:
+                logo = slot_entity.logo
+            elif cert_logo_exists:
+                logo = CertificateLogo.objects.first().logo
 
             context = {
-                'students' : [i.student for i in immersions],
-                'logo' : logo if logo else '',
-                'slot_desc' : slot,
+                'students': [i.student for i in immersions],
+                'logo': logo,
+                'slot_desc': slot,
             }
 
             filename = f'{date_format(slot.date,"dmY")}.pdf'
