@@ -3724,6 +3724,20 @@ class APITestCase(TestCase):
         # self.assertEqual(high_school.label, "My New Cool Label")
         self.assertEqual(high_school.email, "mchs2@domain.tld")
 
+        # Don't allow an existing (city, label)
+        data = {
+            "label": self.high_school.label,
+            "city": self.high_school.city
+        }
+        response = self.api_client_token.patch(url, data=json.dumps(data), content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ['A high school object with the same label and city already exists']}
+        )
+
     def test_high_school_delete(self):
         delete_permission = Permission.objects.get(codename='delete_highschool')
 

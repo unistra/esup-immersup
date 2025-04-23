@@ -306,21 +306,54 @@ class HighSchoolSerializer(CountryFieldMixin, serializers.ModelSerializer):
     uai_codes = AsymetricRelatedField.from_serializer(UAISerializer)(required=False, many=True)
 
     def validate(self, attrs):
-        # Advanced test
+        """
+        Check (label, city) unicity
+        """
+        method = self.context['request'].method
         excludes = {}
+        filters = {}
+
+        unaccent = settings.POSTGRESQL_HAS_UNACCENT_EXTENSION
+
+        # Advanced test
+        if method in ('PATCH', 'PUT'):
+            excludes = {'id': self.instance.id}
+
+            label = attrs.get('label') if attrs.get('label') is not None else self.instance.label
+            city = attrs.get('city') if attrs.get('city') is not None else self.instance.city
+
+            filters[f"label{'__unaccent' if unaccent else ''}__iexact"] = label
+            filters[f"city{'__unaccent' if unaccent else ''}__iexact"] = city
+        elif method == 'POST':
+            label = attrs.get('label')
+            city = attrs.get('city')
+
+            if label:
+                filters[f"label{'__unaccent' if unaccent else ''}__iexact"] = label
+
+            if city:
+                filters[f"city{'__unaccent' if unaccent else ''}__iexact"] = city
+
+        """
         filters = {
             'label__iexact': attrs.get('label'),
             'city__iexact': attrs.get('city')
         }
-
+        
         if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
             filters = {
                 'label__unaccent__iexact': attrs.get('label'),
                 'city__unaccent__iexact': attrs.get('city'),
             }
-
-        if attrs.get('id'):
-            excludes = {'id': attrs.get('id')}
+        
+        # id
+        try:
+            pk = self.instance.pk
+            excludes = {'id': pk}
+        except AttributeError:
+            # Nothing to exclude
+            pass
+        """
 
         if HighSchool.objects.filter(**filters).exclude(**excludes).exists():
             raise serializers.ValidationError(

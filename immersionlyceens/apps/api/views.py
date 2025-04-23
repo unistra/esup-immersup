@@ -3640,7 +3640,8 @@ def get_csv_anonymous(request):
                 default=Value(gettext("Unknown")),
             ),
             level=Coalesce(
-                F('student__high_school_student_record__level__label'), F('student__student_record__level__label')
+                F('student__high_school_student_record__level__label'),
+                F('student__student_record__level__label')
             ),
             institution=Coalesce(
                 F('student__high_school_student_record__highschool__label'),
@@ -4432,6 +4433,11 @@ class HighSchoolDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     lookup_fields = ['id']
     queryset = HighSchool.objects.all()
+
+    def get_serializer(self, *args, **kwargs):
+        context = kwargs.get('context', {})
+        context['request'] = self.request
+        return super().get_serializer(*args, **kwargs, context=context)
 
     def delete(self, request, *args, **kwargs):
         highschool_id = kwargs.get("pk")
