@@ -248,9 +248,23 @@
         var showRemoteFaceToFace = faceToFaceSlots === 0 && place === remote
                                    || faceToFaceSlots === 1 && place === face_to_face
                                    || remoteSlots === 1 && faceToFaceSlots === 1
-
-        var showAvailable = onlyAvailable === 0 || parseInt(searchData[9]) > 0 ? true : false;
-
+        
+        var showAvailable = true
+        
+        if (onlyAvailable === 1) {
+          const places_array = searchData[9].split(";")
+        
+          let individual_places = 0
+          let group_places = 0
+        
+          places_array.forEach(x => {
+            if(x.split(":")[0] == "i") { individual_places = parseInt(x.split(":")[1]) }
+            if(x.split(":")[0] == "g") { group_places = parseInt(x.split(":")[1]) }
+          })
+          
+          // add test on group free places ?
+          showAvailable = individual_places > 0
+        }        
 
         if (start_date == null && end_date == null) { showDate = true; }
         if (start_date == null && startDate <= end_date) { showDate = true; }
