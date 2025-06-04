@@ -218,9 +218,13 @@
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
         // "place" values
-        var face_to_face = 0
-        var remote = 1
-        var outside = 2
+        const face_to_face = 0
+        const remote = 1
+        const outside = 2
+
+        // group modes
+        const one_group = 0
+        const by_places = 1
 
         var showDate = false;
         var onlyAvailable = $('input:checkbox[name="slotsAvailable"]').prop("checked") ? 1 : 0;
@@ -241,6 +245,7 @@
         {% else %}
         var showIndividualGroup = true;
         {% endif %}
+
         var start_date = $('#start_date').val() || null;
         var end_date = $('#end_date').val() || null;
         var startDate = rowData['date']
@@ -256,14 +261,22 @@
         
           let individual_places = 0
           let group_places = 0
-        
+          let group_mode = rowData["group_mode"]
+          let public_group = rowData["public_group"]
+          let group_registered_persons = rowData["group_registered_persons"]
+
           places_array.forEach(x => {
             if(x.split(":")[0] == "i") { individual_places = parseInt(x.split(":")[1]) }
             if(x.split(":")[0] == "g") { group_places = parseInt(x.split(":")[1]) }
           })
-          
+
+          let group_has_room = public_group && (
+                  (group_mode === by_places && group_registered_persons < group_places)
+               || (group_mode === one_group && group_registered_persons === 0)
+          )
+
           // add test on group free places ?
-          showAvailable = individual_places > 0
+          showAvailable = individual_places > 0 || group_has_room
         }        
 
         if (start_date == null && end_date == null) { showDate = true; }
