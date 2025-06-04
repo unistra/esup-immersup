@@ -505,8 +505,6 @@ function init_datatable() {
     initComplete: function () {
       var api = this.api();
 
-
-
       columns_idx.forEach(function(col_idx) {
         var column = api.column(col_idx);
         var column_header_id = column.header().id;
@@ -550,6 +548,9 @@ function init_datatable() {
                 .setSelectionRange(cursorPosition, cursorPosition);
         });
       })
+
+      // yadcf.init(dt, yadcf_filters)
+      // set_filter()
     }
   });
 
@@ -577,20 +578,25 @@ function init_datatable() {
   });
 
   yadcf.init(dt, yadcf_filters)
+  set_filter()
+}
 
-  if(managed_by_filter || event_type_filter) {
+function set_filter() {
+  let _cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+
+  if (managed_by_filter || event_type_filter) {
     let filter_array = Array()
+    let managed_column = _cohorts_only ? 1 : 2
+    let event_type_column = _cohorts_only ? 2 : 3
 
-    if(managed_by_filter && _cohorts_only) {
-      filter_array.push([1, [managed_by_filter]])
-    } else if(managed_by_filter) {
-      filter_array.push([2, [managed_by_filter]])
+    if (managed_by_filter) {
+      let clean_managed_by_filter = managed_by_filter.replace("(", "\\(").replace(")", "\\)")
+      filter_array.push([managed_column, [clean_managed_by_filter]])
     }
 
-    if(event_type_filter && _cohorts_only) {
-      filter_array.push([2, [event_type_filter]])
-    } else if (event_type_filter) {
-      filter_array.push([3, [event_type_filter]])
+    if (event_type_filter) {
+      let clean_event_type_filter = event_type_filter.replace("(", "\\(").replace(")", "\\)")
+      filter_array.push([event_type_column, [clean_event_type_filter]])
     }
 
     yadcf.exFilterColumn(dt, filter_array);
