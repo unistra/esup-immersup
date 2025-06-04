@@ -1,5 +1,6 @@
 // var selected_slots = Array()
 var selected_slots = {"values": Array()}
+var columns_idx = []
 
 function slot_mass_update() {
     let slots_array = $("input:checkbox[name=select_for_mass_update]:checked")
@@ -19,7 +20,6 @@ function init_datatable() {
   let dt_columns = ""
   let yadcf_filters = ""
   var initial_values = {}
-  var columns_idx = []
   var order = []
 
   if (_cohorts_only) {
@@ -551,6 +551,10 @@ function init_datatable() {
 
   // All filters reset action
   $('#filters_reset_all').click(function () {
+    reset_filters()
+  })
+  /*
+  $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
 
     // Clear search inputs
@@ -564,6 +568,7 @@ function init_datatable() {
 
     dt.columns().search("").draw();
   });
+  */
 
   $('#filter_past_slots').click(function () {
     dt.ajax.reload();
@@ -574,4 +579,45 @@ function init_datatable() {
   });
 
   yadcf.init(dt, yadcf_filters)
+  set_filter()
+}
+
+function reset_filters() {
+  // Duplicated in events_slots.js
+  // Move this in common_slots_list (careful with columns_idx) ?
+
+  yadcf.exResetAllFilters(dt);
+
+  // Clear search inputs
+  columns_idx.forEach(function(col_idx) {
+    let column = dt.column(col_idx)
+    let column_header_id = column.header().id
+    let filter_id = `${column_header_id}_input`
+
+    $(`#${filter_id}`).val('')
+  })
+
+  dt.columns().search("").draw();
+}
+
+function set_filter() {
+  let _cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
+
+  if (managed_by_filter || training_filter) {
+    let filter_array = Array()
+    let managed_column = _cohorts_only ? 1 : 2
+    let training_column = _cohorts_only ? 2 : 3
+
+    if (managed_by_filter) {
+      let clean_managed_by_filter = managed_by_filter.replace("(", "\\(").replace(")", "\\)")
+      filter_array.push([managed_column, [clean_managed_by_filter]])
+    }
+
+    if (training_filter) {
+      let clean_training_filter = training_filter.replace("(", "\\(").replace(")", "\\)")
+      filter_array.push([training_column, [clean_training_filter]])
+    }
+
+    yadcf.exFilterColumn(dt, filter_array);
+  }
 }

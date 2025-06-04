@@ -978,6 +978,13 @@ class CourseSlotList(generic.TemplateView):
         try:
             course = Course.objects.get(pk=int(context["course_id"]))
             context["course_label_filter"] = course.label
+            context["training_filter"] = course.training.label
+
+            if course.highschool:
+                context["managed_by_filter"] = f"{course.highschool.city} - {course.highschool.label}"
+            elif course.structure:
+                context["managed_by_filter"] = f"{course.structure.establishment.short_label} - {course.structure.code}"
+
         except (ValueError, TypeError, Course.DoesNotExist):
             context["course_id"] = None
 

@@ -1,10 +1,11 @@
+var columns_idx = []
+
 function init_datatable() {
   let _cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;
   let _current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
   let dt_columns = ""
   let yadcf_filters = ""
   var initial_values = {}
-  var columns_idx = []
   var order = []
 
   if (_cohorts_only) {
@@ -556,6 +557,10 @@ function init_datatable() {
 
   // All filters reset action
   $('#filters_reset_all').click(function () {
+    reset_filters()
+  })
+  /*
+  $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
     // Clear search inputs
     columns_idx.forEach(function(col_idx) {
@@ -568,6 +573,7 @@ function init_datatable() {
 
     dt.columns().search("").draw();
   });
+  */
 
   $('#filter_past_slots').click(function () {
     dt.ajax.reload();
@@ -579,6 +585,23 @@ function init_datatable() {
 
   yadcf.init(dt, yadcf_filters)
   set_filter()
+}
+
+function reset_filters() {
+  // Duplicated in courses_slots.js
+  // Move this in common_slots_list (careful with columns_idx) ?
+
+  yadcf.exResetAllFilters(dt);
+  // Clear search inputs
+  columns_idx.forEach(function(col_idx) {
+    let column = dt.column(col_idx)
+    let column_header_id = column.header().id
+    let filter_id = `${column_header_id}_input`
+
+    $(`#${filter_id}`).val('')
+  })
+
+  dt.columns().search("").draw();
 }
 
 function set_filter() {
