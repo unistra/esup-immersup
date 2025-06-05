@@ -5430,7 +5430,6 @@ def ajax_search_slots_list(request, slot_id=None):
         Slot.objects.filter(published=True)
         .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
         .exclude(Q(allow_group_registrations=True) & Q(public_group=False) & Q(allow_individual_registrations=False))
-        .exclude(Q(allow_individual_registrations=False) & Q(allow_group_registrations=True))
     )
 
     group_registered_persons_query = (
