@@ -178,9 +178,19 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+  var is_connected = {{ request.user.is_authenticated }}
+  var hide_fields_public_area = {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' %}
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
+  }
+
+  function not_shown(parameter) {
+    //Il faut changer le if pcq evidemment avec "parameter" ça ne fonctionne pas mais l'idée est là
+    if (not request.user.is_authenticated and hide_fields_public_area.value.parameter.hide_public_area or request.user.is_authenticated and hide_fields_public_area.parameter.hide_after_registration)
+      return false
+    else
+      return true
   }
 
   function register(slot_id) {
@@ -463,11 +473,13 @@
               return data;
             }
           },
+
+
           {
             data: "meeting_place",
             render: function (data, type, full, meta)
             {
-              if (data === '' || data === null) {
+              if (data === '' || data === null) || not_shown("meeting_place") { //Mise en place d'une fct bool not_shown(string param)
                 return ''
               }
               if(type === "display") {
@@ -480,6 +492,8 @@
 
             }
           },
+
+
           {
             render: function (data, type, full, meta) {
               label = type === "display"  ? '<label>{% trans "Available places" %} :</label><ul class="list-inline">' : "";
@@ -560,9 +574,15 @@
       }
       availablesSeatslabel += '</ul>';
 
+
+      //Besoin d'un else ?
       $.each(rowData[0].speakers_list, function(i, item) {
-        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
+        if not_shown("speakers") {
+          speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
+        }
       });
+
+
       // display all row_* elements
       $(displayedRows).show();
       $('#modal_register_btn').html('');
@@ -580,9 +600,13 @@
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
           }
+
+
           if (rowData[0].structure_label !== null) {
             etab.push(rowData[0].structure_label)
           }
+
+
           filteredRows.push('row_course_label', 'row_course_type', 'row_building');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
@@ -601,9 +625,13 @@
           if (rowData[0].highschool_label !== null) {
             etab.push(rowData[0].highschool_label)
           }
+
+
           if (rowData[0].structure_label !== null) {
             etab.push(rowData[0].structure_label)
           }
+
+
           filteredRows.push('row_course_label', 'row_course_type');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
@@ -614,9 +642,13 @@
             filteredRows.push('row_highschool');
           }
       }
+
+
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
+
+
       if (rowData[0].course_training_url !== null && rowData[0].course_training_url !== '') {
         courseLabelFull = rowData[0].course_training_label + "&nbsp;<a href=\""+rowData[0].course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
@@ -629,15 +661,23 @@
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
       }
+
+
       if (rowData[0].building_label === '' || rowData[0].building_label === null) {
         filteredRows.push('row_building');
       }
+
+
       if (rowData[0].additional_information === '' || rowData[0].additional_information === null) {
         filteredRows.push('row_additional_information');
       }
+
+
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
+
+
       if (rowData[0].place === remote) {
           if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
@@ -662,7 +702,11 @@
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
+
+
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
+
+
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )

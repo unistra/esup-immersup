@@ -110,6 +110,8 @@
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
   var modal_open = false;
+  var is_connected = {{ request.user.is_authenticated }}
+  var hide_fields_public_area = {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' %}
 
   // Slot places
   var face_to_face = 0
@@ -122,6 +124,14 @@
     hour: "numeric",
     minute: "numeric",
   };
+
+    function not_shown(parameter) {
+    //Il faut changer le if pcq evidemment avec "parameter" ça ne fonctionne pas mais l'idée est là
+    if (not request.user.is_authenticated and hide_fields_public_area.value.parameter.hide_public_area or request.user.is_authenticated and hide_fields_public_area.parameter.hide_after_registration)
+      return false
+    else
+      return true
+  }
 
   function open_students_modal(immersion_id,modal_mode=false) {
     current_immersion_id = immersion_id;
@@ -352,9 +362,14 @@
             else {
               data = row.meeting_place
             }
-            if(type === "display") {
+
+
+            //Besoin d'un else ?
+            if (type === "display") && !not_shown("meeting_place") {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             }
+
+
 
             return data
           },
@@ -422,9 +437,15 @@
       }
       availablesSeatslabel += '</ul>';
 
+
+      //Besoin d'un else ?
       $.each(rowData[0].speakers, function(i, item) {
-        speakers_array += "<li>" + item + "</li>";
+        if not_shown("speakers") {
+          speakers_array += "<li>" + item + "</li>";
+        }
       });
+
+
       $(displayedRows).show();
 
       if (is_set(rowData[0].establishment)) {
@@ -433,9 +454,13 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
+
+
       if (is_set(rowData[0].structure)) {
         etab.push(rowData[0].structure)
       }
+
+
 
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.training);
@@ -524,7 +549,11 @@
       $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
       $('#modal_myimmersions_slot_details #modal_event_type').html(rowData[0].event.type);
       $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
+
+
       $('#modal_myimmersions_slot_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
+
+
       $('#modal_myimmersions_slot_details #modal_url').html(url);
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
@@ -780,9 +809,13 @@
             "<i class='fa fas fa-download fa-15'></i>" +
             "</a>";
       }
+
+      //Cette partie est déjà faite au dessus. Qu'est ce qui justifie le doublon ?
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
+
+
       // display all row_* elements
       $(displayedRows).show();
 
@@ -792,9 +825,13 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
+
+
       if (is_set(rowData[0].structure)) {
         etab.push(rowData[0].structure);
       }
+
+
 
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course_training_label);
@@ -815,9 +852,13 @@
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
       }
+
+
       if (rowData[0].building === '' || rowData[0].building === null) {
         filteredRows.push('row_building');
       }
+
+
       if (rowData[0].info === '' || rowData[0].info === null) {
         filteredRows.push('row_additional_information');
       }
@@ -1107,9 +1148,12 @@
       }
       availablesSeatslabel += '</ul>';
 
+      //Cette partie est déjà faite au dessus. Qu'est ce qui justifie le doublon ?
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
+
+
       // display all row_* elements
       $(displayedRows).show();
       $('#modal_register_btn').html('');
@@ -1120,9 +1164,13 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
+
+
       if (is_set(rowData[0].structure)) {
         etab.push(rowData[0].structure);
       }
+
+
 
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.label);
@@ -1131,9 +1179,13 @@
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
       }
 
+
+
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
+
+
       if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== '') {
         courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
