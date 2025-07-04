@@ -186,8 +186,7 @@
   }
 
   function not_shown(parameter) {
-    //Il faut changer le if pcq evidemment avec "parameter" ça ne fonctionne pas mais l'idée est là
-    if (not request.user.is_authenticated and hide_fields_public_area.value.parameter.hide_public_area or request.user.is_authenticated and hide_fields_public_area.parameter.hide_after_registration)
+    if (not is_connected and hide_fields_public_area.value[parameter]?.hide_public_area or is_connected and hide_fields_public_area.value[arameter]?.hide_after_registration)
       return false
     else
       return true
@@ -479,7 +478,7 @@
             data: "meeting_place",
             render: function (data, type, full, meta)
             {
-              if (data === '' || data === null) || not_shown("meeting_place") { //Mise en place d'une fct bool not_shown(string param)
+              if (data === '' || data === null) || not_shown("meeting_place") {
                 return ''
               }
               if(type === "display") {
