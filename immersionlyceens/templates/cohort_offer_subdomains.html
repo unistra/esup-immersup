@@ -124,24 +124,18 @@
                             <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                             {% trans 'Speaker(s)' %} :
                             <ul>
-
-
-                          <pre>{{ hide_fields_public_area.speakers.hide_public_area | default:"NOT SET" }}</pre>
-
-                          <!--If there is speakers to be shown AND :-->
-                          <!--  The user is not connected and the speakers are hidden OR-->
-                          <!--  The user is connected and the speakers are hidden to connected users anyway-->
-                          {% if slot.speakers.all %}
-                            {% if not request.user.is_authenticated and not hide_fields_public_area.value.speakers.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.speakers.hide_after_registration %}
-                              {% for speaker in slot.speakers.all %}
-                                <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
-                              {% endfor %}
-                            {% endif %}
-                          {% else %}
-                            <li>{% trans 'Data not available' %}</li>
-                          {% endif %}
-
-
+                              <!--If there is speakers to be shown AND :-->
+                              <!--  The user is not connected and the speakers are hidden OR-->
+                              <!--  The user is connected and the speakers are hidden to connected users anyway-->
+                              {% if slot.speakers.all %}
+                                {% if not request.user.is_authenticated and not hide_fields_public_area.value.speakers.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.speakers.hide_after_registration %}
+                                  {% for speaker in slot.speakers.all %}
+                                    <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
+                                  {% endfor %}
+                                {% endif %}
+                              {% else %}
+                                <li>{% trans 'Data not available' %}</li>
+                              {% endif %}
                             </ul>
                           </td>
                           <td style="width: 15%" rowspan="2">
@@ -307,8 +301,6 @@
                               {{ slot.campus }}
                               </p>
                             {% endif %}
-
-
                             <!--If there is structure to be shown AND :-->
                             <!--  The user is not connected and the structure are hidden OR-->
                             <!--  The user is connected and the structure are hidden to connected users anyway-->
@@ -320,12 +312,8 @@
                                 </p>
                               {% endif %}
                             {% endif %}
-
-
                           </td>
                           <td>
-
-
                             <!--If there is building to be shown AND :-->
                             <!--  The user is not connected and the building are hidden OR-->
                             <!--  The user is connected and the building are hidden to connected users anyway-->
@@ -337,12 +325,8 @@
                             {% if slot.building.url %}
                               <a href="{{ slot.building.url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
                             {% endif %}
-
-
                           </td>
                           <td>
-
-
                             <!--If there is meeting_place to be shown AND :-->
                             <!--  The user is not connected and the meeting_place are hidden OR-->
                             <!--  The user is connected and the meeting_place are hidden to connected users anyway-->
@@ -352,8 +336,6 @@
                                 {{ slot.room }}
                               {% endif %}
                             {% endif %}
-
-
                           </td>
                           <td>
                             {% if slot.additional_information %}

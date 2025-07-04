@@ -106,8 +106,6 @@
                                           {{ s.event.event_type }}
                                         </td>
                                         <td rowspan="2" style="width: 20%">
-
-
                                           <!--If there is meeting_place to be shown AND :-->
                                           <!--  The user is not connected and the meeting_place are hidden OR-->
                                           <!--  The user is connected and the meeting_place are hidden to connected users anyway-->
@@ -123,16 +121,12 @@
                                             title="{% trans 'Remote event' %}"></i>
                                           {% trans 'Remote event' %}
                                           {% endif %}
-
-
                                         </td>
                                         <td rowspan="2" style="width: 15%">
                                           <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
                                             title="{% trans 'Speaker(s)' %}"></i>
                                           {% trans 'Speaker(s)' %} :
                                           <ul>
-
-
                                             <!--If there is speakers to be shown AND :-->
                                             <!--  The user is not connected and the speakers are hidden OR-->
                                             <!--  The user is connected and the speakers are hidden to connected users anyway-->
@@ -145,8 +139,6 @@
                                             {% else %}
                                               <li>{% trans 'Data not available' %}</li>
                                             {% endif %}
-
-
                                           </ul>
                                         </td>
                                         <td rowspan="2" style="width: 15%">
@@ -258,8 +250,6 @@
                                       </tr>
                                       <tr>
                                         <td style="width: 10%">
-
-
                                           <!--If there is structure to be shown AND :-->
                                           <!--  The user is not connected and the structure are hidden OR-->
                                           <!--  The user is connected and the structure are hidden to connected users anyway-->
@@ -270,8 +260,6 @@
                                               {{ s.event.structure.label }} ({{ s.event.structure.establishment.label }})
                                             {% endif %}
                                           {% endif %}
-
-
                                         </td>
                                         <td style="width: 10%">
                                           {% if s.campus %}
@@ -283,8 +271,6 @@
                                           {% endif %}
                                         </td>
                                         <td style="width: 10%">
-
-
                                           <!--If there is building to be shown AND :-->
                                           <!--  The user is not connected and the building are hidden OR-->
                                           <!--  The user is connected and the building are hidden to connected users anyway-->
@@ -298,8 +284,6 @@
                                           <a href="{{ s.building.url }}" target="_blank" title="{% trans 'Show map url' %}"><i
                                               class="fa fas fa-map-marker subdomains-icons"></i></a>
                                           {% endif %}
-
-
                                         </td>
                                         <td>{% if s.additional_information %} <p><i
                                               class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
