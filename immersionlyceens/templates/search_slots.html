@@ -18,6 +18,9 @@
 {% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
 {% authorized_groups request.user %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+{{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
+
   {% include './modals/modal_search_slots_details.html' %}
   <div class="main-title inside text-center">
     <div></div>
@@ -178,15 +181,17 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
-  var is_connected = {{ request.user.is_authenticated }}
-  var hide_fields_public_area = {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' %}
+  var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
+  const hide_fields_public_area = JSON.parse(
+    document.getElementById("hide-fields-public-area-data").textContent
+  );
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
   }
 
   function not_shown(parameter) {
-    if (not is_connected and hide_fields_public_area.value[parameter]?.hide_public_area or is_connected and hide_fields_public_area.value[arameter]?.hide_after_registration)
+    if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
       return false
     else
       return true
@@ -478,7 +483,7 @@
             data: "meeting_place",
             render: function (data, type, full, meta)
             {
-              if (data === '' || data === null) || not_shown("meeting_place") {
+              if (data === '' || data === null) {
                 return ''
               }
               if(type === "display") {
@@ -574,11 +579,8 @@
       availablesSeatslabel += '</ul>';
 
 
-      //Besoin d'un else ?
       $.each(rowData[0].speakers_list, function(i, item) {
-        if not_shown("speakers") {
-          speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
-        }
+        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
       });
 
 

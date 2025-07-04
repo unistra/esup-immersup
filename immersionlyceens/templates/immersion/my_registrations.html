@@ -22,6 +22,10 @@
 {% include "../modals/modal_cancel_immersion.html" %}
 {% include '../modals/modal_myimmersions_slot_details.html' %}
 {% include '../modals/modal_alerts.html' %}
+
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+{{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
+
 <div class="main-title inside text-center">
   <div></div>
   <div class="container">
@@ -110,8 +114,10 @@
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
   var modal_open = false;
-  var is_connected = {{ request.user.is_authenticated }}
-  var hide_fields_public_area = {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' %}
+  var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
+  const hide_fields_public_area = JSON.parse(
+    document.getElementById("hide-fields-public-area-data").textContent
+  );
 
   // Slot places
   var face_to_face = 0
@@ -125,9 +131,8 @@
     minute: "numeric",
   };
 
-    function not_shown(parameter) {
-    //Il faut changer le if pcq evidemment avec "parameter" ça ne fonctionne pas mais l'idée est là
-    if (not request.user.is_authenticated and hide_fields_public_area.value.parameter.hide_public_area or request.user.is_authenticated and hide_fields_public_area.parameter.hide_after_registration)
+  function not_shown(parameter) {
+    if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
       return false
     else
       return true
@@ -362,15 +367,9 @@
             else {
               data = row.meeting_place
             }
-
-
-            //Besoin d'un else ?
-            if (type === "display") && !not_shown("meeting_place") {
+            if (type === "display") {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             }
-
-
-
             return data
           },
         },
@@ -437,14 +436,11 @@
       }
       availablesSeatslabel += '</ul>';
 
-
-      //Besoin d'un else ?
       $.each(rowData[0].speakers, function(i, item) {
-        if not_shown("speakers") {
+        if (not_shown("speakers")) {
           speakers_array += "<li>" + item + "</li>";
         }
       });
-
 
       $(displayedRows).show();
 
@@ -454,14 +450,9 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-
-
-      if (is_set(rowData[0].structure)) {
+      if (is_set(rowData[0].structure) && not_shown("structure")) {
         etab.push(rowData[0].structure)
       }
-
-
-
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.training);
         filteredRows.push('row_event_type', 'row_highschool');
@@ -549,17 +540,17 @@
       $('#modal_myimmersions_slot_details #modal_course_type').html(rowData[0].course.type_full);
       $('#modal_myimmersions_slot_details #modal_event_type').html(rowData[0].event.type);
       $('#modal_myimmersions_slot_details #modal_date').html(rowData[0].date + "<br>" + rowData[0].start_time + " - " + rowData[0].end_time);
-
-
       $('#modal_myimmersions_slot_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
-
-
       $('#modal_myimmersions_slot_details #modal_url').html(url);
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city)
-      $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building )
+      if (not_shown("building")) {
+        $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building)
+      }
+      if (not_shown("meeting_place")) {
       $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      }
       $('#modal_myimmersions_slot_details #modal_speakers').html(
         '<ul class="list-group">' + speakers_array + '</ul>'
       )
@@ -825,14 +816,9 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-
-
       if (is_set(rowData[0].structure)) {
         etab.push(rowData[0].structure);
       }
-
-
-
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course_training_label);
         $('#modal_myimmersions_slot_details #row_event_type').hide();
@@ -1164,14 +1150,9 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-
-
       if (is_set(rowData[0].structure)) {
         etab.push(rowData[0].structure);
       }
-
-
-
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.label);
         filteredRows.push('row_highschool');
