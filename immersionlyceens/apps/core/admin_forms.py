@@ -420,6 +420,11 @@ class EstablishmentForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        try:
+            enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+        except:
+            enabled_disability = False
+
         if self.fields:
             if self.fields.get("active"):
                 self.fields["active"].initial = True
@@ -437,6 +442,11 @@ class EstablishmentForm(forms.ModelForm):
             if self.instance:
                 self.fields["master"].disabled = True
                 self.fields["master"].help_text = _("This attribute cannot be updated")
+
+            if not enabled_disability:
+                self.fields["disability_notify_on_record_validation"].disabled = True
+                self.fields["disability_notify_on_slot_registration"].disabled = True
+                self.fields["disability_referent_email"].disabled = True
 
         # Plugins
         # self.fields["data_source_plugins"] = forms.ChoiceField(choices=settings.AVAILABLE_ACCOUNTS_PLUGINS)
@@ -490,6 +500,27 @@ class EstablishmentForm(forms.ModelForm):
 
         if Establishment.objects.filter(short_label__iexact=short_label).exclude(**exclude_filter).exists():
             raise forms.ValidationError(_("This short label already exists"))
+
+        # Disability related fields
+        enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")
+
+        if enabled_disability:
+            disability_notify_on_record_validation = cleaned_data.get('disability_notify_on_record_validation')
+            disability_notify_on_slot_registration = cleaned_data.get('disability_notify_on_slot_registration')
+            disability_referent_email = cleaned_data.get('disability_referent_email')
+
+            if disability_notify_on_record_validation not in [True, False]:
+                raise forms.ValidationError(_("Disability notification on record validation cannot be empty"))
+
+            if disability_notify_on_slot_registration is None or disability_notify_on_slot_registration == "":
+                raise forms.ValidationError(_("Disability notification on slot registration cannot be empty"))
+
+            if disability_notify_on_slot_registration == Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+                cleaned_data["disability_referent_email"] = None
+            if (disability_notify_on_slot_registration != Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+                and disability_referent_email is None):
+                raise forms.ValidationError(_("Disability referent email is mandatory if slot notification is enabled"))
+
 
         # TODO : run selected plugin settings selftests when available
 

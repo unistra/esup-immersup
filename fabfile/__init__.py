@@ -49,6 +49,10 @@ env.dipstrap_version = 'latest'
 env.verbose_output = False  # True for verbose output
 env.no_circus_web = True
 
+# Circus / uwsgi
+env.enable_circus = True # Default: True
+env.enable_uwsgi = False # Default: False
+
 # optional parameters
 
 # env.dest_path = '' # if not set using env_local_tmp_dir
@@ -122,6 +126,15 @@ def test():
         'lb': ['django-test2.di.unistra.fr'],
         'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
+    # uwsgi settings
+    env.remote_uwsgi_emperor_path = "/etc/uwsgi"
+    env.remote_uwsgi_emperor_owner = "root"
+    env.remote_uwsgi_emperor_group = "root"
+
+    env.remote_uwsgi_vassal_owner = "django"
+    env.remote_uwsgi_vassal_group = "di"
+    env.remote_uwsgi_vassal_plugins = "python3,logfile"
+
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
     env.server_name = 'immersup-test.app.unistra.fr'

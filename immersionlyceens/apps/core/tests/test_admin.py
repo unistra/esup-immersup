@@ -1729,7 +1729,10 @@ class AdminFormsTestCase(TestCase):
             'city': 'city',
             'zip_code': 'zip_code',
             'phone_number': '+33666',
-            'uai_reference': HigherEducationInstitution.objects.first()
+            'uai_reference': HigherEducationInstitution.objects.first(),
+            'disability_notify_on_record_validation': False,
+            'disability_notify_on_slot_registration': Establishment.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED,
+            'disability_referent_email': "user@domain.tld"
         }
 
         request.user = self.ref_etab_user
@@ -1835,6 +1838,64 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=eta2))
 
         # TODO : create an establishment and try to delete the related HigherEducationInstitution object
+
+
+    def test_establishment_disability_form(self):
+        """
+        Test establishment form disability fields rules
+        """
+        self.establishment.delete()
+        self.master_establishment.delete()
+
+        self.assertFalse(Establishment.objects.filter(code='ETA1').exists())
+
+        disability_setting = GeneralSettings.objects.get(setting="ACTIVATE_DISABILITY")
+        disability_setting.parameters["value"]["activate"] = False
+        disability_setting.save()
+
+        data = {
+            'code': 'ETA1',
+            'label': 'Etablissement 1',
+            'short_label': 'Eta 1',
+            'badge_html_color': '#112233',
+            'email': 'test@test.com',
+            'active': True,
+            'address': 'address',
+            'department': 'departmeent',
+            'city': 'city',
+            'zip_code': 'zip_code',
+            'phone_number': '+33666',
+            'uai_reference': HigherEducationInstitution.objects.first(),
+            'disability_notify_on_record_validation': False,
+            'disability_notify_on_slot_registration': Establishment.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED,
+            'disability_referent_email': ""
+        }
+
+        # setting disabled : creation should succeed, event though disability_referent_email is empty
+        request.user = self.superuser
+        form = EstablishmentForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        establishment = Establishment.objects.get(code='ETA1')
+
+        # Activate disability setting
+        disability_setting.parameters["value"]["activate"] = True
+        disability_setting.save()
+
+        form = EstablishmentForm(instance=establishment, data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Disability referent email is mandatory if slot notification is enabled",
+            form.errors['__all__']
+        )
+
+        # Update the slot registration choice, email can be empty
+        data.update({
+            "disability_notify_on_slot_registration": Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+        })
+        form = EstablishmentForm(instance=establishment, data=data, request=request)
+        self.assertTrue(form.is_valid())
 
 
     def test_information_text_creation(self):

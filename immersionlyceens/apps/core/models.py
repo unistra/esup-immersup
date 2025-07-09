@@ -121,6 +121,17 @@ class Establishment(models.Model):
     """
     Establishment class : highest structure level
     """
+    # On slot registration, notify the disability referent :
+    DISABILITY_SLOT_NOTIFICATION_NEVER = 0 # Never
+    DISABILITY_SLOT_NOTIFICATION_IF_CHECKED = 1 # Always, if the registrant checked the disability flag
+    DISABILITY_SLOT_NOTIFICATION_IF_ASKED = 2 # When the registrant ask for this slot
+
+    DISABILITY_NOTIFICATION_CHOICES = (
+        (DISABILITY_SLOT_NOTIFICATION_NEVER, _("Never")),
+        (DISABILITY_SLOT_NOTIFICATION_IF_CHECKED, _("Always, if the registrant checked the disability flag")),
+        (DISABILITY_SLOT_NOTIFICATION_IF_ASKED, _("At the request of the registrant for the slot")),
+    )
+
     code = models.CharField(_("Code"), max_length=16, unique=True)
 
     uai_reference = models.OneToOneField(
@@ -170,6 +181,27 @@ class Establishment(models.Model):
     )
     certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+
+    # Disability related fields
+    disability_notify_on_record_validation = models.BooleanField(
+        _("Disability referent record notification"),
+        blank=False,
+        null=False,
+        default=True,
+        help_text=_("Notify disability referent on record validation"),
+    )
+
+    disability_notify_on_slot_registration = models.SmallIntegerField(
+        _("Disability slot notification"),
+        blank=False,
+        null=False,
+        default=DISABILITY_SLOT_NOTIFICATION_NEVER,
+        choices=DISABILITY_NOTIFICATION_CHOICES,
+        help_text=_("Notify disability referent on slot registration"),
+    )
+
+    disability_referent_email = models.EmailField(_('Disability referent email'), blank=True, null=True)
+
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
