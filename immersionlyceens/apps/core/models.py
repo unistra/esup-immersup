@@ -117,14 +117,15 @@ class UAI(models.Model):
         verbose_name_plural = _('Establishments with UAI')
         ordering = ['city', 'label', ]
 
-class Establishment(models.Model):
+
+class BaseEstablishment(models.Model):
     """
-    Establishment class : highest structure level
+    Base class for Establishment and High schools
     """
     # On slot registration, notify the disability referent :
-    DISABILITY_SLOT_NOTIFICATION_NEVER = 0 # Never
-    DISABILITY_SLOT_NOTIFICATION_IF_CHECKED = 1 # Always, if the registrant checked the disability flag
-    DISABILITY_SLOT_NOTIFICATION_IF_ASKED = 2 # When the registrant ask for this slot
+    DISABILITY_SLOT_NOTIFICATION_NEVER = 0  # Never
+    DISABILITY_SLOT_NOTIFICATION_IF_CHECKED = 1  # Always, if the registrant checked the disability flag
+    DISABILITY_SLOT_NOTIFICATION_IF_ASKED = 2  # When the registrant ask for this slot
 
     DISABILITY_NOTIFICATION_CHOICES = (
         (DISABILITY_SLOT_NOTIFICATION_NEVER, _("Never")),
@@ -132,20 +133,8 @@ class Establishment(models.Model):
         (DISABILITY_SLOT_NOTIFICATION_IF_ASKED, _("At the request of the registrant for the slot")),
     )
 
-    code = models.CharField(_("Code"), max_length=16, unique=True)
+    label = models.CharField(_("Label"), max_length=256, blank=False, null=False)
 
-    uai_reference = models.OneToOneField(
-        HigherEducationInstitution,
-        verbose_name=_('UAI reference'),
-        null=True,
-        blank=True,
-        on_delete=models.PROTECT,
-        related_name="establishment",
-        unique=True,
-    )
-
-    label = models.CharField(_("Label"), max_length=256, unique=True)
-    short_label = models.CharField(_("Short label"), max_length=64, unique=True)
     address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
     address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
     address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
@@ -154,31 +143,9 @@ class Establishment(models.Model):
     zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
     phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
-    badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
-    email = models.EmailField(_('Email'))
-    mailing_list = models.EmailField(_('Mailing list'), blank=True, null=True)
+
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
-    master = models.BooleanField(_("Master"), default=True)
-    is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
     signed_charter = models.BooleanField(_("Signed charter"), default=False)
-    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
-        choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
-    )
-    data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
-    logo = models.ImageField(
-        _("Logo"),
-        upload_to=get_file_path,
-        blank=True,
-        null=True,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
-    )
-    signature = models.ImageField(
-        _("Signature"),
-        upload_to=get_file_path,
-        blank=True,
-        null=True,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
-    )
     certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
 
@@ -202,6 +169,54 @@ class Establishment(models.Model):
 
     disability_referent_email = models.EmailField(_('Disability referent email'), blank=True, null=True)
 
+    class Meta:
+        abstract = True
+
+
+class Establishment(BaseEstablishment):
+    """
+    Establishment class : highest structure level
+    """
+    code = models.CharField(_("Code"), max_length=16, unique=True)
+
+    uai_reference = models.OneToOneField(
+        HigherEducationInstitution,
+        verbose_name=_('UAI reference'),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="establishment",
+        unique=True,
+    )
+
+    short_label = models.CharField(_("Short label"), max_length=64, unique=True)
+
+    badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
+    email = models.EmailField(_('Email'))
+    mailing_list = models.EmailField(_('Mailing list'), blank=True, null=True)
+
+    master = models.BooleanField(_("Master"), default=True)
+    is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
+
+    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
+        choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
+    )
+    data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
+    logo = models.ImageField(
+        _("Logo"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+    signature = models.ImageField(
+        _("Signature"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
@@ -215,6 +230,13 @@ class Establishment(models.Model):
         verbose_name = _('Higher education establishment')
         verbose_name_plural = _('Higher education establishments')
         ordering = ['label', ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', ],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_establishment_label'
+            ),
+        ]
 
 
 class Structure(models.Model):
@@ -254,24 +276,17 @@ class Structure(models.Model):
         ordering = ['label', ]
 
 
-class HighSchool(models.Model):
+class HighSchool(BaseEstablishment):
     """
     HighSchool class
     Can also be used to enter secondary (middle) schools
     """
-
-    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-
-    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
     address = models.CharField(_("Address"), max_length=255, blank=True, null=True)
-    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
-    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
-    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
     zip_code = models.CharField(_("Zip code"), max_length=128, blank=True, null=True)
+    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
+    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
     phone_number = models.CharField(_("Phone number"), max_length=20, null=True, blank=True)
-    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
-
     email = models.EmailField(_('Email'), null=True, blank=True)
 
     head_teacher_name = models.CharField(
@@ -301,10 +316,7 @@ class HighSchool(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
-    signed_charter = models.BooleanField(_("Signed charter"), default=False)
-    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
-    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
-    active = models.BooleanField(_("Active"), default=True)
+
     with_convention = models.BooleanField(_("Has a convention"), default=True)
     uses_student_federation = models.BooleanField(_("Uses EduConnect student federation"), default=False)
     uses_agent_federation = models.BooleanField(_("Uses agent identity federation"), default=False)

@@ -126,6 +126,9 @@ def test():
         'lb': ['django-test2.di.unistra.fr'],
         'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
+    env.enable_circus = False
+    env.enable_uwsgi = True
+    
     # uwsgi settings
     env.remote_uwsgi_emperor_path = "/etc/uwsgi"
     env.remote_uwsgi_emperor_owner = "root"

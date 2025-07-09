@@ -1038,7 +1038,10 @@ class AdminFormsTestCase(TestCase):
             'convention_end_date': '',
             'postbac_immersion': True,
             'mailing_list': 'test@mailing-list.fr',
-            'badge_html_color': '#112233'
+            'badge_html_color': '#112233',
+            'disability_notify_on_record_validation': False,
+            'disability_notify_on_slot_registration': Establishment.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED,
+            'disability_referent_email': "user@domain.tld"
         }
 
         form = HighSchoolForm(data=data, request=request)
@@ -1158,7 +1161,10 @@ class AdminFormsTestCase(TestCase):
             'postbac_immersion': self.high_school.postbac_immersion,
             'mailing_list': self.high_school.mailing_list,
             'badge_html_color': '#112233',
-            "uses_student_federation": True
+            "uses_student_federation": True,
+            'disability_notify_on_record_validation': False,
+            'disability_notify_on_slot_registration': Establishment.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED,
+            'disability_referent_email': "user@domain.tld"
         }
 
         form = HighSchoolForm(
@@ -1713,7 +1719,6 @@ class AdminFormsTestCase(TestCase):
         """
         self.establishment.delete()
         self.master_establishment.delete()
-
 
         self.assertFalse(Establishment.objects.filter(code='ETA1').exists())
 

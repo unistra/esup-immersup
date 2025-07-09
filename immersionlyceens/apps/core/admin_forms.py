@@ -421,9 +421,9 @@ class EstablishmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         try:
-            enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+            self.enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
         except:
-            enabled_disability = False
+            self.enabled_disability = False
 
         if self.fields:
             if self.fields.get("active"):
@@ -443,7 +443,8 @@ class EstablishmentForm(forms.ModelForm):
                 self.fields["master"].disabled = True
                 self.fields["master"].help_text = _("This attribute cannot be updated")
 
-            if not enabled_disability:
+            # Disability related fields
+            if not self.enabled_disability:
                 self.fields["disability_notify_on_record_validation"].disabled = True
                 self.fields["disability_notify_on_slot_registration"].disabled = True
                 self.fields["disability_referent_email"].disabled = True
@@ -502,9 +503,7 @@ class EstablishmentForm(forms.ModelForm):
             raise forms.ValidationError(_("This short label already exists"))
 
         # Disability related fields
-        enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")
-
-        if enabled_disability:
+        if self.enabled_disability:
             disability_notify_on_record_validation = cleaned_data.get('disability_notify_on_record_validation')
             disability_notify_on_slot_registration = cleaned_data.get('disability_notify_on_slot_registration')
             disability_referent_email = cleaned_data.get('disability_referent_email')
@@ -1351,6 +1350,11 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        try:
+            self.enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+        except:
+            self.enabled_disability = False
+
         if self.fields and self.fields.get('uai_codes'):
             self.fields['uai_codes'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
 
@@ -1465,6 +1469,11 @@ class HighSchoolForm(forms.ModelForm):
                     "must match the agent federation ones."
                 )
 
+        # Disability related fields
+        if not self.enabled_disability:
+            self.fields["disability_notify_on_record_validation"].disabled = True
+            self.fields["disability_notify_on_slot_registration"].disabled = True
+            self.fields["disability_referent_email"].disabled = True
 
     def clean(self):
         valid_user = False
@@ -1552,16 +1561,37 @@ class HighSchoolForm(forms.ModelForm):
                         ) % {'code': uai_code.code, 'label': uai_code.label}
                     })
 
+        # Disability related fields
+        if self.enabled_disability:
+            disability_notify_on_record_validation = cleaned_data.get('disability_notify_on_record_validation')
+            disability_notify_on_slot_registration = cleaned_data.get('disability_notify_on_slot_registration')
+            disability_referent_email = cleaned_data.get('disability_referent_email')
+
+            if disability_notify_on_record_validation not in [True, False]:
+                raise forms.ValidationError(_("Disability notification on record validation cannot be empty"))
+
+            if disability_notify_on_slot_registration is None or disability_notify_on_slot_registration == "":
+                raise forms.ValidationError(_("Disability notification on slot registration cannot be empty"))
+
+            if disability_notify_on_slot_registration == Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+                cleaned_data["disability_referent_email"] = None
+            if (disability_notify_on_slot_registration != Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+                    and disability_referent_email is None):
+                raise forms.ValidationError(
+                    _("Disability referent email is mandatory if slot notification is enabled"))
+
         return cleaned_data
 
     class Meta:
         model = HighSchool
+        #FIXME : use an exclude list instead
         fields = ('active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
                   'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
                   'certificate_footer', 'uses_agent_federation', 'uses_student_federation',
-                  'allow_individual_immersions', 'uai_codes')
+                  'allow_individual_immersions', 'uai_codes', 'disability_notify_on_record_validation',
+                  'disability_notify_on_slot_registration', 'disability_referent_email')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
             'certificate_header': CKEditorWidget(),
