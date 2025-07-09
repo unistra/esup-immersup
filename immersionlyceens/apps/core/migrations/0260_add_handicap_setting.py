@@ -5,6 +5,7 @@ def add_mass_update_settings(apps, schema_editor):
     GeneralSettings = apps.get_model('core', "GeneralSettings")
 
     code = 'ACTIVATE_HANDICAP'
+    setting_type = 1 # FUNCTIONAL - can't access 'GeneralSettings.FUNCTIONAL' here
 
     if not GeneralSettings.objects.filter(setting=code).exists():
         GeneralSettings.objects.create(
@@ -16,7 +17,8 @@ def add_mass_update_settings(apps, schema_editor):
                     "form_sentence": "Je déclare être atteint(e) d'un handicap nécessitant un accompagnement lors des immersions"
                 },
                 "description": "Activation de la gestion du handicap pour les inscrits"
-            }
+            },
+            setting_type=setting_type
         )
 
 class Migration(migrations.Migration):
