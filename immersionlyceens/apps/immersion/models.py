@@ -153,6 +153,7 @@ class HighSchoolStudentRecord(models.Model):
     validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
 
+    disability = models.BooleanField(_("Disabled person"), default=False)
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
@@ -358,6 +359,8 @@ class StudentRecord(models.Model):
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
     validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
 
+    disability = models.BooleanField(_("Disabled person"), default=False)
+
     def __str__(self):
         if hasattr(self, "student"):
             return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
@@ -447,6 +450,8 @@ class VisitorRecord(models.Model):
     updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
     validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
+
+    disability = models.BooleanField(_("Disabled person"), default=False)
 
     def is_valid(self):
         return self.validation == self.STATUSES["VALIDATED"]
