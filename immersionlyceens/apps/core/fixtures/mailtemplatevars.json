@@ -233,22 +233,6 @@
 },
 {
     "model": "core.mailtemplatevars",
-    "pk": 36,
-    "fields": {
-        "code": "{{ visite.libelle }}",
-        "description": "Libellé (objet) de la visite"
-    }
-},
-{
-    "model": "core.mailtemplatevars",
-    "pk": 37,
-    "fields": {
-        "code": "{{ visite.nbplaceslibre }}",
-        "description": "Places disponibles pour la visite"
-    }
-},
-{
-    "model": "core.mailtemplatevars",
     "pk": 38,
     "fields": {
         "code": "{{ evenement.libelle }}",
@@ -277,14 +261,6 @@
     "fields": {
         "code": "{{ creneau.evenement.libelle }}",
         "description": "Créneau : libellé de l'évènement hors offre"
-    }
-},
-{
-    "model": "core.mailtemplatevars",
-    "pk": 42,
-    "fields": {
-        "code": "{{ creneau.visite.libelle }}",
-        "description": "Créneau : libellé (objet) de la visite"
     }
 },
 {
@@ -340,7 +316,7 @@
     "pk": 50,
     "fields": {
         "code": "{{ creneau.libelle }}",
-        "description": "Créneau : libellé du cours, de la visite ou de l'évènement"
+        "description": "Créneau : libellé du cours ou de l'évènement"
     }
 },
 {
@@ -417,14 +393,6 @@
 },
 {
     "model": "core.mailtemplatevars",
-    "pk": 61,
-    "fields": {
-        "code": "{{ creneau.estunevisite }}",
-        "description": "Indique si le créneau est une visite"
-    }
-},
-{
-    "model": "core.mailtemplatevars",
     "pk": 62,
     "fields": {
         "code": "{{ creneau.estunevenement }}",
@@ -483,8 +451,104 @@
     "model": "core.mailtemplatevars",
     "pk": 69,
     "fields": {
+        "code": "{{ creneau.limite_annulation_depassee }}",
+        "description": "Date limite d'annulation dépassée"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 70,
+    "fields": {
+        "code": "{{ creneau.limite_inscription_depassee }}",
+        "description": "Date limite d'inscription dépassée"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 71,
+    "fields": {
         "code": "{{ creneau.campus.ville }}",
         "description": "Créneau : campus : ville"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 72,
+    "fields": {
+        "code": "{{ destinataire.estCohorte }}",
+        "description": "Indique si le destinataire est un groupe"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 73,
+    "fields": {
+        "code": "{{ destinataire.estIndividu }}",
+        "description": "Indique si le destinataire est un individu"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 74,
+    "fields": {
+        "code": "{{ creneau.listeCohortes }}",
+        "description": "Liste des groupes inscrits au créneau"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 75,
+    "fields": {
+        "code": "{{ cohorte.etablissementInscrit }}",
+        "description": "Groupe : nom de l'établissement scolaire"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 76,
+    "fields": {
+        "code": "{{ cohorte.nbEleves }}",
+        "description": "Groupe : nombre d'élèves inscrits"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 77,
+    "fields": {
+        "code": "{{ cohorte.nbAccompagnateurs }}",
+        "description": "Groupe : nombre d'accompagnateurs inscrits"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 78,
+    "fields": {
+        "code": "{{ cohorte.nbPlaces }}",
+        "description": "Groupe : nombre total de places prises par le groupe"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 79,
+    "fields": {
+        "code": "{{ cohorte.fichierJoint }}",
+        "description": "Groupe : lien vers un éventuel fichier joint"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 80,
+    "fields": {
+        "code": "{{ cohorte.commentaires }}",
+        "description": "Groupe : commentaires éventuels"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 81,
+    "fields": {
+        "code": "{{ educonnect }}",
+        "description": "Indique si le lycée renseigné dans la fiche utilise la fédération ÉduConnect"
     }
 }
 ]
