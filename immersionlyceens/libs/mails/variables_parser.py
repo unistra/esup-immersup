@@ -20,7 +20,7 @@ from django.utils.html import format_html
 logger = logging.getLogger(__name__)
 
 
-def parser(message_body, available_vars=None, user=None, group=None, recipient=None, request=None, **kwargs):
+def parser(message_body, available_vars=None, user=None, group=None, recipient=None, request=None, context=None, **kwargs):
     """
     :param message_body: the message body
     :param available_vars: variables that can be used in this template
@@ -38,11 +38,12 @@ def parser(message_body, available_vars=None, user=None, group=None, recipient=N
         group=group,
         recipient=recipient,
         request=request,
+        context=context,
         **kwargs
     )
 
 
-def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, request=None, **kwargs):
+def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, request=None, context=None, **kwargs):
     return ParserFaker.parser(
         message_body=message_body,
         context_params=context_params,
@@ -50,6 +51,7 @@ def parser_faker(message_body, context_params, available_vars=None, user=None, g
         user=user,
         group=group,
         request=request,
+        context=context,
         **kwargs
     )
 
@@ -58,7 +60,7 @@ class ParserFaker:
     @classmethod
     def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]], context_params: Dict[str, Any],
                user: Optional[ImmersionUser] = None, group: Optional[ImmersionGroupRecord] = None,
-               request: Optional[Request] = None, **kwargs) -> str:
+               request: Optional[Request] = None, context: Optional[Dict] = None, **kwargs) -> str:
 
         context: Dict[str, Any] = cls.get_context(request, **context_params)
         return render_text(template_data=message_body, data=context)
@@ -117,6 +119,14 @@ class ParserFaker:
             "educonnect": educonnect,
         })
         context[user_is] = True
+
+        # a registered high school student / student / visitor
+        context.update({
+            "prenomInscrit": cls.add_tooltip("prenomInscrit", "Jeanne"),
+            "nomInscrit": cls.add_tooltip("nomInscrit", "Jacques"),
+            "mailInscrit": cls.add_tooltip("mailInscrit", "jj@domain.tld"),
+            "aDeclareHandicap": True,
+        })
 
         # course
         context.update({
