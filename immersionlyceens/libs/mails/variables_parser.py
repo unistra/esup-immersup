@@ -20,7 +20,7 @@ from django.utils.html import format_html
 logger = logging.getLogger(__name__)
 
 
-def parser(message_body, available_vars=None, user=None, group=None, recipient=None, request=None, context=None, **kwargs):
+def parser(message_body, available_vars=None, user=None, group=None, recipient=None, request=None, **kwargs):
     """
     :param message_body: the message body
     :param available_vars: variables that can be used in this template
@@ -38,12 +38,11 @@ def parser(message_body, available_vars=None, user=None, group=None, recipient=N
         group=group,
         recipient=recipient,
         request=request,
-        context=context,
         **kwargs
     )
 
 
-def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, request=None, context=None, **kwargs):
+def parser_faker(message_body, context_params, available_vars=None, user=None, group=None, request=None, **kwargs):
     return ParserFaker.parser(
         message_body=message_body,
         context_params=context_params,
@@ -51,7 +50,6 @@ def parser_faker(message_body, context_params, available_vars=None, user=None, g
         user=user,
         group=group,
         request=request,
-        context=context,
         **kwargs
     )
 
@@ -122,10 +120,12 @@ class ParserFaker:
 
         # a registered high school student / student / visitor
         context.update({
-            "prenomInscrit": cls.add_tooltip("prenomInscrit", "Jeanne"),
-            "nomInscrit": cls.add_tooltip("nomInscrit", "Jacques"),
-            "mailInscrit": cls.add_tooltip("mailInscrit", "jj@domain.tld"),
-            "aDeclareHandicap": True,
+            "inscrit": {
+                "prenom": cls.add_tooltip("inscrit.prenom", "Jeanne"),
+                "nom": cls.add_tooltip("inscrit.nom", "Jacques"),
+                "email": cls.add_tooltip("inscrit.email", "jj@domain.tld"),
+                "aDeclareHandicap": True,
+            }
         })
 
         # course
@@ -347,6 +347,9 @@ class Parser:
             registered_students: List[str] = []
 
             for registration in slot.immersions.filter(cancellation_type__isnull=True):
+                has_disability = ""
+                record = None
+
                 if registration.student.is_high_school_student():
                     record = registration.student.get_high_school_student_record()
                     if record and record.highschool:
@@ -355,10 +358,19 @@ class Parser:
                     record = registration.student.get_student_record()
                     if record:
                         institution_label = record.institution.label if record.institution else record.uai_code
+                elif registration.student.is_visitor():
+                    record = registration.student.get_visitor_record()
 
-                registered_students.append(
-                    f"""{registration.student.last_name} {registration.student.first_name} - """
-                    f"""{registration.student.email} - {institution_label}"""
+                if record and record.disability:
+                    has_disability = _("disabled person")
+
+                registered_students.append(" - ".join(
+                    list(filter(lambda x:x, [
+                        registration.student.last_name,
+                        " ".join([registration.student.first_name, has_disability]),
+                        registration.student.email,
+                        institution_label
+                    ])))
                 )
 
             return registered_students
@@ -532,6 +544,23 @@ class Parser:
         return {}
 
     @staticmethod
+    def get_registrant_context(registrant: ImmersionUser):
+        record = (
+            registrant.get_high_school_student_record()
+            or registrant.get_student_record()
+            or registrant.get_visitor_record()
+        )
+
+        return {
+            "inscrit": {
+                "prenom": registrant.first_name,
+                "nom": registrant.last_name,
+                "email": registrant.email,
+                "aDeclareHandicap": record.disability if record else False,
+            }
+        }
+
+    @staticmethod
     def get_recipient_context(recipient):
         return {
             "destinataire": {
@@ -689,6 +718,7 @@ class Parser:
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
         link_source_user: Optional[str] = kwargs.get('link_source_user', '')
         recipient: Union[List[str], str] = kwargs.get('recipient', 'user')
+        registrant: Optional[ImmersionUser] = kwargs.get('registrant')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
@@ -708,6 +738,9 @@ class Parser:
         context.update(cls.get_slot_context(slot))
 
         context.update(cls.get_recipient_context(recipient))
+
+        if registrant:
+            context.update(cls.get_registrant_context(registrant))
 
         context.update(cls.get_cancellation_type_context(immersion, group))
 
