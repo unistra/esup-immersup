@@ -127,9 +127,10 @@ def test():
         'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
     env.enable_circus = False
-    env.enable_uwsgi = True
+    env.enable_uwsgi = False
     
     # uwsgi settings
+    env.remote_uwsgi_emperor_service_name = "emperor.uwsgi.python3.12.service"
     env.remote_uwsgi_emperor_path = "/etc/uwsgi"
     env.remote_uwsgi_emperor_owner = "root"
     env.remote_uwsgi_emperor_group = "root"
