@@ -113,6 +113,11 @@ function init_datatable() {
       render: function (data, type, row) {
         let campus_label = data
         let building_label = row.building_label
+        let face_to_face = 0
+        let remote = 1
+        let outside = 2
+
+        /*
         let room = row.room
 
         let txt = is_set(campus_label) ? campus_label : ''
@@ -126,6 +131,42 @@ function init_datatable() {
         }
 
         return txt
+        */
+        if (type === 'filter') {
+          if (row.place === face_to_face) {
+            txt = `${campus_label} ${building_label} ${row.room}`
+          }
+          else if (row.place === remote) {
+            txt = remote_event_text
+          }
+          else if (row.place === outside) {
+            txt = row.room
+          }
+
+          return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
+        if (row.place === face_to_face) {
+          txt = "<span>"
+          txt += is_set(campus_label) ? `${campus_label} </span><br><span>` : ''
+          txt += is_set(building_label) ? `${building_label} </span><br><span>` : ''
+
+          return `${txt} ${row.room}</span>`
+        }
+        else if (row.place === remote) {
+          // display link only if the group registration is public or the user has already registered a group
+          let with_link = `<a href="${row.url}" target="_blank">${remote_event_text}</a>`
+          let without_link = `${remote_event_text}`
+
+          if(is_highschool_manager && row.user_has_group_immersions) {
+            return with_link
+          }
+
+          return without_link
+        }
+        else {
+          return `<span>${row.room}</span>`
+        }
       }
     },
     {
