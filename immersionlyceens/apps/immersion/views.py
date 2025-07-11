@@ -57,6 +57,8 @@ from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
+from immersionlyceens.libs.mails.mail import Mail
+
 from .forms import (
     EmailForm, HighSchoolStudentForm, HighSchoolStudentRecordDocumentForm,
     HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm, LoginForm,
@@ -1243,11 +1245,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
+            set_status_params = {}
+
             if recordform.has_changed():
                 # for student federation users, validation is not needed unless some attestations have to be uploaded
                 record = recordform.save()
                 record.save()
                 messages.success(request, _("Record successfully saved."))
+
+                if "disability" in recordform.changed_data and record.disability:
+                    set_status_params = {
+                        "request": request,
+                        "notify_disability": True
+                    }
 
                 if (not user.uses_federation()
                     and record.validation not in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]
@@ -1396,6 +1406,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             # Evaluate new record status
             if completion_needed:
                 record.set_status("TO_COMPLETE")
+
             elif validation_needed:
                 match record.validation:
                     case HighSchoolStudentRecord.VALIDATED:
@@ -1404,11 +1415,17 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         pass
                     case _:
                         record.set_status("TO_VALIDATE")
+
             elif record.validation in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]:
                 if not user.uses_federation():
                     record.set_status("TO_VALIDATE")
                 else:
-                    record.set_status("VALIDATED")
+                    # Note: will send notification to disability referents if necessary
+                    record.set_status("VALIDATED", **set_status_params)
+
+            elif record.validation == HighSchoolStudentRecord.VALIDATED and set_status_params != {}:
+                # Special case if the status was already 'validated', but the disability flag has changed
+                record.set_status("VALIDATED", **set_status_params)
 
             record.save()
         else:
@@ -1681,9 +1698,19 @@ def student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
+            set_status_params = {} # default
             record = recordform.save()
-            record.set_status("VALIDATED")
+
+            if recordform.has_changed():
+                if "disability" in recordform.changed_data and record.disability:
+                    set_status_params = {
+                        "request": request,
+                        "notify_disability": True
+                    }
+
+            record.set_status("VALIDATED", **set_status_params)
             record.save()
+
             messages.success(request, _("Record successfully saved."))
 
             # Quota creation for newly created records
@@ -2148,12 +2175,23 @@ class VisitorRecordView(FormView):
 
             # any change : validation need
             if form.has_changed():
-                validation_needed = True
+                # Validation needed except when the 'disability' flag is the only change
+                validation_needed = len(list(filter(lambda x:x != "disability", form.changed_data))) > 0
                 record.save()
-                messages.info(
-                    request,
-                    _("You have updated your record, it needs to be re-examined for validation.")
-                )
+
+                if validation_needed:
+                    messages.info(
+                        request,
+                        _("You have updated your record, it needs to be re-examined for validation.")
+                    )
+
+                # Already validated record, but the disability is now enabled
+                if record.validation == "VALIDATED" and "disability" in form.changed_data and record.disability:
+                    set_status_params = {
+                        "request": request,
+                        "notify_disability": True
+                    }
+                    record.set_status("VALIDATED", **set_status_params)
 
                 # Documents update needed
                 create_documents = True

@@ -112,6 +112,7 @@ from immersionlyceens.apps.core.serializers import (
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord,
     HighSchoolStudentRecordDocument,
+    BaseRecord,
     StudentRecord,
     VisitorRecord,
     VisitorRecordDocument,
@@ -504,9 +505,19 @@ def ajax_validate_reject_student(request, validate):
             response['msg'] = _("Error: record has missing or invalid attestation dates")
             return JsonResponse(response, safe=False)
 
+        # Disability notifications
+        set_status_params = {}
+
+        # Already valid record or 'to revalidate' : do not send the notification again
+        if record.validation not in (BaseRecord.TO_REVALIDATE, BaseRecord.VALIDATED):
+            set_status_params = {
+                "request": request,
+                "notify_disability": True
+            }
+
         # 2 => VALIDATED
         # 3 => REJECTED
-        record.set_status("VALIDATED" if validate else "REJECTED")
+        record.set_status("VALIDATED" if validate else "REJECTED", **set_status_params)
         record.validation_date = timezone.localtime() if validate else None
         record.rejected_date = None if validate else timezone.localtime()
         record.save()

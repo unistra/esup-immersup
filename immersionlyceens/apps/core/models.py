@@ -16,7 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from hijack.signals import hijack_started, hijack_ended
 from ipware import get_client_ip
@@ -168,6 +168,32 @@ class BaseEstablishment(models.Model):
     )
 
     disability_referent_email = models.EmailField(_('Disability referent email'), blank=True, null=True)
+
+    @classmethod
+    def get_disability_referents(cls, on_record_validation: bool = False, on_slot_registration: bool = False) -> List:
+        """
+        Get all high schools disability referents
+          - depending on validation mode (on record validation or on slot registration ("if checked")
+          - the high school propose some postbac immersions
+          - email is not null
+        :return: List of _unique_ emails
+        """
+
+        filters = {
+            "disability_notify_on_record_validation": on_record_validation,
+            "disability_referent_email__isnull": False
+        }
+
+        if on_slot_registration:
+            filters["disability_notify_on_slot_registration"] = cls.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED
+
+        # Specific filter for high schools
+        if cls.__name__ == "HighSchool":
+            filters["postbac_immersion"] = True
+
+        return list(
+            set(cls.objects.filter(**filters).values_list('disability_referent_email', flat=True))
+        )
 
     class Meta:
         abstract = True
@@ -332,6 +358,7 @@ class HighSchool(BaseEstablishment):
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
     immersions_proposal = PostBacImmersionManager()
+
 
     def __str__(self):
         city = self.city or "(" + gettext("No city") + ")"

@@ -679,7 +679,7 @@ class StudentRecordForm(forms.ModelForm):
 
 
         # CSS
-        excludes = ['birth_date']
+        excludes = ['birth_date', 'disability']
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
@@ -737,7 +737,7 @@ class VisitorRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        fields: List[str] = ["phone", "motivation", 'disability']
+        fields: List[str] = ["phone", "motivation", ]
 
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
@@ -755,7 +755,7 @@ class VisitorRecordForm(forms.ModelForm):
 
     class Meta:
         model = VisitorRecord
-        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation']
+        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation', 'disability']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

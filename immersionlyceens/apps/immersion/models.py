@@ -3,22 +3,27 @@ import logging
 from typing import Any, List, Tuple
 
 from django.conf import settings
+from django.contrib import messages
 from django.db import models
 from django.db.models import Q
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext, gettext_lazy as _
 
+from immersionlyceens.libs.mails.mail import Mail
+
 from immersionlyceens.apps.core import models as core_models
 from immersionlyceens.apps.core.models import Period, get_file_path
+from immersionlyceens.apps.user.models import HighSchoolStudent
 
 logger = logging.getLogger(__name__)
 
 
-class HighSchoolStudentRecord(models.Model):
+class BaseRecord(models.Model):
     """
-    High school student class, linked to ImmersionUsers accounts
+    Base class for High school pupils, Student and Visitor Records
     """
 
+    # Statuses
     TO_COMPLETE = 0
     TO_VALIDATE = 1
     VALIDATED = 2
@@ -26,23 +31,100 @@ class HighSchoolStudentRecord(models.Model):
     TO_REVALIDATE = 4
     INIT = 5
 
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
+    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
+
+    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
+    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
+    validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
+
+    disability = models.BooleanField(_("Disabled person"), default=False)
+
+    def is_valid(self):
+        return self.validation == self.STATUSES["VALIDATED"]
+
+    def get_person(self):
+        return self.visitor if isinstance(self, VisitorRecord) else self.student
+
+    def set_status(self, status: str, notify_disability=False, **kwargs):
+        """
+        Update validation attribute
+        """
+        if isinstance(status, str) and status.upper() in self.STATUSES:
+            self.validation = self.STATUSES[status.upper()]
+
+            # Send disability notification when the record is valid (among other conditions)
+            if notify_disability:
+                activate_disability = core_models.GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+                if all([
+                    activate_disability,
+                    hasattr(self, "validation") and self.validation == self.VALIDATED,
+                    request := kwargs.get("request", None)
+                ]):
+                    # Use base class method to get disability referents from both high schools and establishments
+                    referents_list = set(
+                        core_models.HighSchool.get_disability_referents(on_record_validation=True)
+                        + core_models.Establishment.get_disability_referents(on_record_validation=True)
+                    )
+
+                    # Build and send an email to each address
+                    # Log all error individually but return only a single list to the front
+                    email_errors = []
+
+                    for email in referents_list:
+                        try:
+                            mail = Mail(
+                                request,
+                                recipient_type=email,
+                                template_code="HANDICAP_NOTIF_FICHE_VALIDE",
+                                registrant=self.get_person()
+                            )
+
+                            mail.send()
+                        except Exception as e:
+                            msg = _("Couldn't send notification to disability referent %s : %s") % (email, e)
+                            logger.error(msg)
+                            email_errors.append(email)
+
+                    if email_errors:
+                        msg = _("Couldn't send notification(s) to some disability referent(s)")
+                        messages.error(request, msg)
+                    else:
+                        msg = _("Notifications sent to disability referents")
+                        messages.success(request, msg)
+
+            return True
+
+        return False
+
+
+    class Meta:
+        abstract = True
+
+
+class HighSchoolStudentRecord(BaseRecord):
+    """
+    High school student class, linked to ImmersionUsers accounts
+    """
+
     STATUSES = {
-        "TO_COMPLETE": TO_COMPLETE,
-        "TO_VALIDATE": TO_VALIDATE,
-        "VALIDATED": VALIDATED,
-        "REJECTED": REJECTED,
-        "TO_REVALIDATE": TO_REVALIDATE,
-        "INITIALIZATION": INIT,
+        "TO_COMPLETE": BaseRecord.TO_COMPLETE,
+        "TO_VALIDATE": BaseRecord.TO_VALIDATE,
+        "VALIDATED": BaseRecord.VALIDATED,
+        "REJECTED": BaseRecord.REJECTED,
+        "TO_REVALIDATE": BaseRecord.TO_REVALIDATE,
+        "INITIALIZATION":BaseRecord. INIT,
     }
 
     # Display values
     VALIDATION_STATUS = [
-        (TO_COMPLETE, _('To complete')),
-        (TO_VALIDATE, _('To validate')),
-        (VALIDATED, _('Validated')),
-        (REJECTED, _('Rejected')),
-        (TO_REVALIDATE, _('To revalidate')),
-        (INIT, _('Initialization (to complete)'))
+        (BaseRecord.TO_COMPLETE, _('To complete')),
+        (BaseRecord.TO_VALIDATE, _('To validate')),
+        (BaseRecord.VALIDATED, _('Validated')),
+        (BaseRecord.REJECTED, _('Rejected')),
+        (BaseRecord.TO_REVALIDATE, _('To revalidate')),
+        (BaseRecord.INIT, _('Initialization (to complete)'))
     ]
 
     student = models.OneToOneField(
@@ -62,9 +144,6 @@ class HighSchoolStudentRecord(models.Model):
         on_delete=models.CASCADE,
         related_name="student_records"
     )
-
-    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
-    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
 
     level = models.ForeignKey(
         core_models.HighSchoolLevel,
@@ -148,12 +227,7 @@ class HighSchoolStudentRecord(models.Model):
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
     solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
 
-    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
-    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
-    validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
-
-    disability = models.BooleanField(_("Disabled person"), default=False)
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
@@ -237,18 +311,6 @@ class HighSchoolStudentRecord(models.Model):
         self.save()
 
 
-    def is_valid(self):
-        return self.validation == self.STATUSES["VALIDATED"]
-
-    def set_status(self, status: str):
-        """
-        Update validation attribute
-        """
-        if isinstance(status, str) and status.upper() in self.STATUSES:
-            self.validation = self.STATUSES[status.upper()]
-            return True
-
-        return False
 
     @classmethod
     def get_duplicate_tuples(cls):
@@ -289,25 +351,21 @@ class HighSchoolStudentRecord(models.Model):
         verbose_name_plural = _('High school student records')
 
 
-class StudentRecord(models.Model):
+class StudentRecord(BaseRecord):
     """
     Student record class, linked to ImmersionUsers accounts
     """
-    TO_COMPLETE = 0
-    VALIDATED = 2
-    INIT = 5
-
     STATUSES = {
-        "TO_COMPLETE": TO_COMPLETE,
-        "VALIDATED": VALIDATED,
-        "INITIALIZATION": INIT,
+        "TO_COMPLETE": BaseRecord.TO_COMPLETE,
+        "VALIDATED": BaseRecord.VALIDATED,
+        "INITIALIZATION": BaseRecord.INIT,
     }
 
     # Display values
     VALIDATION_STATUS = [
-        (TO_COMPLETE, _('To complete')),
-        (VALIDATED, _('Validated')),
-        (INIT, _('Initialization (to complete)'))
+        (BaseRecord.TO_COMPLETE, _('To complete')),
+        (BaseRecord.VALIDATED, _('Validated')),
+        (BaseRecord.INIT, _('Initialization (to complete)'))
     ]
 
     student = models.OneToOneField(
@@ -320,8 +378,6 @@ class StudentRecord(models.Model):
     )
 
     uai_code = models.CharField(_("Home institution code"), blank=False, null=False, max_length=256)
-    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
-    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
 
     level = models.ForeignKey(
         core_models.StudentLevel,
@@ -355,30 +411,13 @@ class StudentRecord(models.Model):
 
     allowed_immersions = models.ManyToManyField(Period, through='StudentRecordQuota')
 
-    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
-    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
     validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
-
-    disability = models.BooleanField(_("Disabled person"), default=False)
 
     def __str__(self):
         if hasattr(self, "student"):
             return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
         else:
             return gettext(f"Record for student id {self.student_id}")
-
-    def is_valid(self):
-        return self.validation == self.STATUSES["VALIDATED"]
-
-    def set_status(self, status: str):
-        """
-        Update validation attribute
-        """
-        if isinstance(status, str) and status.upper() in self.STATUSES:
-            self.validation = self.STATUSES[status.upper()]
-            return True
-
-        return False
 
     def home_institution(self):
         """
@@ -398,30 +437,24 @@ class StudentRecord(models.Model):
         verbose_name_plural = _('Student records')
 
 
-class VisitorRecord(models.Model):
+class VisitorRecord(BaseRecord):
     """
     Visitor record class, linked to ImmersionUsers accounts
     """
-    TO_COMPLETE = 0
-    TO_VALIDATE = 1
-    VALIDATED = 2
-    REJECTED = 3
-    TO_REVALIDATE = 4
-
     STATUSES = {
-        "TO_COMPLETE": TO_COMPLETE,
-        "TO_VALIDATE": TO_VALIDATE,
-        "VALIDATED": VALIDATED,
-        "REJECTED": REJECTED,
-        "TO_REVALIDATE": TO_REVALIDATE,
+        "TO_COMPLETE": BaseRecord.TO_COMPLETE,
+        "TO_VALIDATE": BaseRecord.TO_VALIDATE,
+        "VALIDATED": BaseRecord.VALIDATED,
+        "REJECTED": BaseRecord.REJECTED,
+        "TO_REVALIDATE": BaseRecord.TO_REVALIDATE,
     }
 
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
-        (TO_COMPLETE, _('To complete')),
-        (TO_VALIDATE, _('To validate')),
-        (VALIDATED, _('Validated')),
-        (REJECTED, _('Rejected')),
-        (TO_REVALIDATE, _('To revalidate'))
+        (BaseRecord.TO_COMPLETE, _('To complete')),
+        (BaseRecord.TO_VALIDATE, _('To validate')),
+        (BaseRecord.VALIDATED, _('Validated')),
+        (BaseRecord.REJECTED, _('Rejected')),
+        (BaseRecord.TO_REVALIDATE, _('To revalidate'))
     ]
 
     AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png"]
@@ -434,8 +467,7 @@ class VisitorRecord(models.Model):
         on_delete=models.CASCADE,
         related_name="visitor_record"
     )
-    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
-    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
+
     motivation = models.TextField(_("Motivation"), null=True, blank=False)
 
     attestation_documents = models.ManyToManyField(
@@ -446,25 +478,7 @@ class VisitorRecord(models.Model):
     validation = models.SmallIntegerField(_("Validation"), default=0, choices=VALIDATION_STATUS)
     allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
 
-    creation_date = models.DateTimeField(_("Creation date"), auto_now_add=True)
-    updated_date = models.DateTimeField(_("Modification date"),auto_now=True)
-    validation_date = models.DateTimeField(_("Validation date"), null=True, blank=True)
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
-
-    disability = models.BooleanField(_("Disabled person"), default=False)
-
-    def is_valid(self):
-        return self.validation == self.STATUSES["VALIDATED"]
-
-    def set_status(self, status: str):
-        """
-        Update validation attribute
-        """
-        if isinstance(status, str) and status.upper() in self.STATUSES:
-            self.validation = self.STATUSES[status.upper()]
-            return True
-
-        return False
 
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")
