@@ -575,11 +575,18 @@ def slots(request):
                 ),
                 Value([]),
             ),
-            user_has_group_immersions=Q(
-                group_immersions__isnull=False,
-                group_immersions__cancellation_type__isnull=True,
-                group_immersions__highschool=user_highschool,
+            group_immersions_count=Count(
+                'group_immersions',
+                filter=Q(
+                    group_immersions__highschool=user_highschool,
+                    group_immersions__cancellation_type__isnull=True
+                ),
+                distinct=True
             ),
+            user_has_group_immersions=Case(
+                When(Q(group_immersions_count__gte=1), then=True),
+                default=False
+            )
         )
         .order_by('date', 'start_time')
         .values(
