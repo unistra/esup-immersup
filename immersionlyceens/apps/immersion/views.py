@@ -1253,16 +1253,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
+                # Validation needed except when the 'disability' flag is the only change
+                validation_needed = len(list(filter(lambda x: x != "disability", recordform.changed_data))) > 0
+
                 if "disability" in recordform.changed_data and record.disability:
                     set_status_params = {
                         "request": request,
                         "notify_disability": True
                     }
 
-                if (not user.uses_federation()
+                if (validation_needed
+                    and not user.uses_federation()
                     and record.validation not in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]
                 ):
-                    validation_needed = True
                     messages.info(
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
