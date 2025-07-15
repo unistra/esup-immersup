@@ -174,7 +174,7 @@ class BaseEstablishment(models.Model):
         """
         Get all high schools disability referents
           - depending on validation mode (on record validation or on slot registration ("if checked")
-          - the high school propose some postbac immersions
+          - the high school or the establishment propose some immersions
           - email is not null
         :return: List of _unique_ emails
         """
@@ -187,9 +187,11 @@ class BaseEstablishment(models.Model):
         if on_slot_registration:
             filters["disability_notify_on_slot_registration"] = cls.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED
 
-        # Specific filter for high schools
+        # Specific filter for high schools / establishments
         if cls.__name__ == "HighSchool":
             filters["postbac_immersion"] = True
+        elif cls.__name__ == "Establishment":
+            filters["is_host_establishment"] = True
 
         return list(
             set(cls.objects.filter(**filters).values_list('disability_referent_email', flat=True))
