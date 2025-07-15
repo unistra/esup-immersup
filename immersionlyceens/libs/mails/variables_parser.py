@@ -362,7 +362,7 @@ class Parser:
                     record = registration.student.get_visitor_record()
 
                 if record and record.disability:
-                    has_disability = _("disabled person")
+                    has_disability = "(%s)" % _("disabled person")
 
                 registered_students.append(" - ".join(
                     list(filter(lambda x:x, [
