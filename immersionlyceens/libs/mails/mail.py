@@ -1,4 +1,5 @@
 import logging
+from email_validator import validate_email, EmailNotValidError
 from typing import Any, Dict, Optional, List, Union
 
 from django.utils.translation import pgettext, gettext
@@ -37,8 +38,14 @@ class Mail(object):
 
         try:
             self.set_template()
-            self.set_recipient()
         except Exception as e:
+            logger.error(f"Cannot set template {self.template_code}: {e}")
+            raise
+
+        try:
+            self.recipient = self.set_recipient()
+        except Exception as e:
+            logger.error(f"Cannot parse recipient type {self.recipient_type}: {e}")
             raise
 
         # Multiple recipients ?
@@ -47,6 +54,7 @@ class Mail(object):
         try:
             self.parse_template(**kwargs)
         except Exception as e:
+            logger.error(f"Cannot parse template {self.template_code}: {e}")
             raise
 
     def set_template(self):
@@ -68,19 +76,23 @@ class Mail(object):
             )
         except Exception as e:
             msg = gettext("Couldn't parse template vars : %s" % e)
-            print(msg)
-            logger.exception(msg)
+            logger.error(msg)
             raise Exception(msg)
 
     def set_recipient(self):
         if self.recipient_type == 'user':
-            self.recipient = self.recipient_user.email
+            return self.recipient_user.email
+
+        # No direct recipient : depends on the group
         if self.recipient_type == 'group':
-            pass
+            return
 
-        # Assume it's an email address
-        self.recipient = self.recipient_type
-
+        # Eventually assume it's an email address
+        try:
+            validate_email(self.recipient_type)
+            return self.recipient_type
+        except EmailNotValidError as e:
+            raise
 
     def send(self):
         try:
