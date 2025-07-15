@@ -2186,7 +2186,7 @@ class VisitorRecordView(FormView):
                     )
 
                 # Already validated record, but the disability is now enabled
-                if record.validation == "VALIDATED" and "disability" in form.changed_data and record.disability:
+                if record.validation == record.VALIDATED and "disability" in form.changed_data and record.disability:
                     set_status_params = {
                         "request": request,
                         "notify_disability": True
