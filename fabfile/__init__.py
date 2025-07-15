@@ -53,6 +53,15 @@ env.no_circus_web = True
 env.enable_circus = True # Default: True
 env.enable_uwsgi = False # Default: False
 
+# Defaults - override in tasks when needed
+env.remote_uwsgi_emperor_service_name = "uwsgi-emperor"
+env.remote_uwsgi_emperor_path = "/etc/uwsgi-emperor"
+env.remote_uwsgi_vassal_plugins = "python3,logfile"
+env.remote_uwsgi_emperor_owner = "root"
+env.remote_uwsgi_emperor_group = "root"
+env.remote_uwsgi_vassal_owner = "www-data"
+env.remote_uwsgi_vassal_group = "di"
+
 # optional parameters
 
 # env.dest_path = '' # if not set using env_local_tmp_dir
@@ -127,17 +136,17 @@ def test():
         'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
     env.enable_circus = False
-    env.enable_uwsgi = False
+    env.enable_uwsgi = True
     
     # uwsgi settings
-    env.remote_uwsgi_emperor_service_name = "emperor.uwsgi.python3.12.service"
+    env.remote_uwsgi_emperor_service_name = "emperor.uwsgi.python3.12"
     env.remote_uwsgi_emperor_path = "/etc/uwsgi"
     env.remote_uwsgi_emperor_owner = "root"
     env.remote_uwsgi_emperor_group = "root"
 
     env.remote_uwsgi_vassal_owner = "django"
     env.remote_uwsgi_vassal_group = "di"
-    env.remote_uwsgi_vassal_plugins = "python3,logfile"
+
 
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
