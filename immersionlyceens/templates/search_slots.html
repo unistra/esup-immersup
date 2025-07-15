@@ -639,7 +639,10 @@
         filteredRows.push('row_meeting_place');
       }
       if (rowData[0].place === remote) {
-          if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
+          if (Object.keys(rowData[0]).indexOf('url')
+              && rowData[0].url != null
+              && rowData[0].url != ''
+              && rowData[0].user_has_group_immersions) {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }

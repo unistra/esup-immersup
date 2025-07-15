@@ -5436,6 +5436,7 @@ def ajax_search_slots_list(request, slot_id=None):
     today = timezone.now()
     response = {'msg': '', 'data': []}
     user = request.user
+    user_highschool = user.highschool
 
     slots = (
         Slot.objects.filter(published=True)
@@ -5490,6 +5491,7 @@ def ajax_search_slots_list(request, slot_id=None):
         "passed_registration_limit_date",
         "allow_individual_registrations",
         "allow_group_registrations",
+        "user_has_group_immersions"
     ]
 
     if user.is_authenticated:
@@ -5605,6 +5607,18 @@ def ajax_search_slots_list(request, slot_id=None):
             passed_registration_limit_date=ExpressionWrapper(
                 Q(registration_limit_date__lt=timezone.now()), output_field=CharField()
             ),
+            group_immersions_count=Count(
+                'group_immersions',
+                filter=Q(
+                    group_immersions__highschool=user_highschool,
+                    group_immersions__cancellation_type__isnull=True
+                ),
+                distinct=True
+            ),
+            user_has_group_immersions=Case(
+                When(Q(group_immersions_count__gte=1), then=True),
+                default=False
+            )
         )
         .annotate(
             group_registered_persons=Subquery(group_registered_persons_query),
