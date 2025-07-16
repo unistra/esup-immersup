@@ -5480,7 +5480,8 @@ def ajax_search_slots_list(request, slot_id=None):
         "passed_registration_limit_date",
         "allow_individual_registrations",
         "allow_group_registrations",
-        "user_has_group_immersions"
+        "user_has_group_immersions",
+        "user_is_registered"
     ]
 
     if user.is_authenticated:
@@ -5607,6 +5608,10 @@ def ajax_search_slots_list(request, slot_id=None):
             user_has_group_immersions=Case(
                 When(Q(group_immersions_count__gte=1), then=True),
                 default=False
+            ),
+            user_is_registered=Q(
+                immersions__student=user,
+                immersions__cancellation_type__isnull=True
             )
         )
         .annotate(
