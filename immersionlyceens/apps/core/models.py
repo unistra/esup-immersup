@@ -3492,7 +3492,17 @@ class RefStructuresNotificationsSettings(models.Model):
     )
 
     structures = models.ManyToManyField(
-        Structure, verbose_name=_("Structures"), related_name='source_structures', blank=True
+        Structure,
+        verbose_name=_("Selected structures for registrants list"),
+        related_name='source_structures',
+        blank=True
+    )
+
+    disability_structures = models.ManyToManyField(
+        Structure,
+        verbose_name=_("Selected structures for disabled registrants notifications"),
+        related_name='structures_disabled_notifications',
+        blank=True
     )
 
     def __str__(self):

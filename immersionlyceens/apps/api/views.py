@@ -5296,16 +5296,29 @@ class AnnualPurgeAPI(View):
 def ajax_update_structures_notifications(request):
 
     settings = response = {}
-    ids = request.POST.get('ids')
-    ids = json.loads(ids) if ids else ''
+    ids = request.POST.get('ids') # for registrants list
+    dis_ids = request.POST.get('dis_ids') # for disabled people notifications
+
+    try:
+        ids = json.loads(ids)
+    except:
+        ids = []
+
+    try:
+        dis_ids = json.loads(dis_ids)
+    except:
+        dis_ids = []
 
     structures = request.user.get_authorized_structures().filter(id__in=ids).values_list('id', flat=True)
+    dis_structures = request.user.get_authorized_structures().filter(id__in=dis_ids).values_list('id', flat=True)
 
     settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
-    if structures:
-        settings.structures.set(ids, clear=True)
-    else:
+
+    if not structures and not dis_structures:
         settings.delete()
+    else:
+        settings.structures.set(structures, clear=True)
+        settings.disability_structures.set(dis_structures, clear=True)
 
     if settings:
         response["msg"] = gettext("Settings updated")
