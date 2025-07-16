@@ -642,7 +642,7 @@
           if (Object.keys(rowData[0]).indexOf('url')
               && rowData[0].url != null
               && rowData[0].url != ''
-              && rowData[0].user_has_group_immersions) {
+              && (rowData[0].user_has_group_immersions || rowData[0].user_is_registered)) {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }
