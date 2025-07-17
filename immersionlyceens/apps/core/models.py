@@ -2829,6 +2829,20 @@ class Slot(models.Model):
             'guides': group_queryset.get('guides', 0) or 0
         }
 
+    def get_disability_notification_setting(self):
+        """
+        Return Establishment or High school "notify disability on slot registration" setting value
+        """
+        activate_disability = GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+        # Never notify if GeneralSetting is disabled
+        if not activate_disability:
+            return BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+
+        establishment_or_highschool = self.get_establishment_or_highschool()
+        return establishment_or_highschool.disability_notify_on_slot_registration
+
+
     def clean(self):
         if [self.course, self.event].count(None) != 1:
             raise ValidationError("You must select one of : Course or Event")
@@ -3065,6 +3079,84 @@ class Immersion(models.Model):
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
+
+    def notify_disability_referent(self):
+        """
+        For the current student and slot, depending on platform disability settings,
+        send a notification to the disability referent of the slot establishment/high school
+        Return a dict {"sent":boolean, "error":boolean, "msg":str}:
+            - sent = True if mail has been sent else False
+            - error = True if an error occured else False
+            - msg = success or error message
+        """
+        from immersionlyceens.libs.mails.mail import Mail
+
+        return_dict = {"sent": False, "error": False, "msg": ""}
+
+        # Nothing to send if this setting is not enabled
+        activate_disability = GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+        record = (
+            self.student.get_high_school_student_record()
+            or self.student.get_student_record()
+            or self.student.get_visitor_record()
+        )
+
+        if not record or not record.disability or not activate_disability:
+            # Nothing to do or display
+            return return_dict
+
+        # Get slot establishment or highschool and check settings
+        establishment = self.slot.get_establishment_or_highschool()
+        recipients = [establishment.disability_referent_email]
+        notification_settings = self.slot.get_disability_notification_setting()
+
+        # No notification or no email : nothing to do
+        if notification_settings == BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER or not recipients:
+            return return_dict
+
+        # Also get the structure referents
+        structure = self.slot.get_structure()
+
+        if structure:
+            for s in list(RefStructuresNotificationsSettings.objects.filter(disability_structures=structure)):
+                recipients.append(s.immersion_user.email)
+
+        error = False
+        success = False
+
+        for recipient in recipients:
+            try:
+                mail = Mail(
+                    request=None,
+                    recipient_type=recipient,
+                    template_code="HANDICAP_NOTIF_IMMERSION",
+                    registrant=self.student,
+                    slot=self.slot
+                )
+
+                mail.send()
+            except Exception as e:
+                msg = gettext("Couldn't send the disability notification to this referent : %s" % e)
+                logger.error(msg)
+                error = True
+            else:
+                success = True
+
+        if success:
+            if not error:
+                msg = gettext("Notification sent to disability referent")
+                return {"send": True, "error": False, "msg": msg}
+
+            # Some errors
+            msg = gettext("Some notifications have been sent to disability referents, but some errors occured")
+            return {"send": True, "error": True, "msg": msg}
+
+        elif error:
+            msg = gettext("Couldn't send the disability notifications to the referents")
+            return_dict = {"sent": False, "error": True, "msg": msg}
+
+        return return_dict
 
     def __str__(self):
         return f"{self.student} - {self.slot}"

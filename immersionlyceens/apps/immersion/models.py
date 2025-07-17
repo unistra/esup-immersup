@@ -13,7 +13,6 @@ from immersionlyceens.libs.mails.mail import Mail
 
 from immersionlyceens.apps.core import models as core_models
 from immersionlyceens.apps.core.models import Period, get_file_path
-from immersionlyceens.apps.user.models import HighSchoolStudent
 
 logger = logging.getLogger(__name__)
 

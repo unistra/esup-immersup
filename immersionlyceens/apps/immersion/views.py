@@ -57,8 +57,6 @@ from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
-from immersionlyceens.libs.mails.mail import Mail
-
 from .forms import (
     EmailForm, HighSchoolStudentForm, HighSchoolStudentRecordDocumentForm,
     HighSchoolStudentRecordForm, HighSchoolStudentRecordQuotaForm, LoginForm,

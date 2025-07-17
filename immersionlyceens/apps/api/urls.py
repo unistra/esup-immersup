@@ -48,6 +48,7 @@ urlpatterns = [
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
     path('remove_link', views.remove_link, name='remove_link'),
+    path('notify_disability_referent', views.notify_disability_referent, name='notify_disability_referent'),
 
     # DRF
     path('campuses', views.CampusList.as_view(), name='campus_list'),

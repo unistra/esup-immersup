@@ -60,6 +60,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from immersionlyceens.apps.core.models import (
+    BaseEstablishment,
     Building,
     Campus,
     CancelType,
@@ -124,6 +125,7 @@ from immersionlyceens.decorators import (
     timer,
 )
 from immersionlyceens.libs.api.accounts import AccountAPI
+from immersionlyceens.libs.mails.mail import Mail
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
@@ -1304,6 +1306,12 @@ def ajax_slot_registration(request):
     slot_structure = slot.get_structure()
     slot_highschool = slot.get_highschool()
 
+    requesting_user_is_student = any([
+        user.is_high_school_student(),
+        user.is_student(),
+        user.is_visitor(),
+    ])
+
     # Fixme : add slot restrictions here
     unpublished_slot_update_conditions = [
         user.is_master_establishment_manager(),
@@ -1315,9 +1323,7 @@ def ajax_slot_registration(request):
         any(unpublished_slot_update_conditions),
         user.is_structure_manager() and slot_structure in allowed_structures,
         slot.course and user.is_high_school_manager() and slot_highschool and slot_highschool == user_highschool,
-        user.is_high_school_student(),
-        user.is_student(),
-        user.is_visitor(),
+        requesting_user_is_student,
         user.is_high_school_manager()
         and (slot.course or slot.event)
         and slot_highschool
@@ -1507,7 +1513,9 @@ def ajax_slot_registration(request):
                 return JsonResponse(response, safe=False)
 
         if can_register:
+            msgs = []
             error = False
+            immersion = None
 
             # Transaction should prevent multiple registrations to the same slot within a few milliseconds
             with transaction.atomic():
@@ -1518,10 +1526,11 @@ def ajax_slot_registration(request):
                         attendance_status=0,
                         cancellation_date=None
                     )
+                    immersion = student.immersions.filter(slot=slot, cancellation_type__isnull=True).first()
                 elif not student.immersions.filter(slot=slot).exists():
                     try:
                         # New registration
-                        Immersion.objects.create(
+                        immersion = Immersion.objects.create(
                             student=student,
                             slot=slot,
                             cancellation_type=None,
@@ -1531,25 +1540,55 @@ def ajax_slot_registration(request):
                         # Immersion already exists, should not happen
                         send_mail = False
                         error = True
-                        msg = _("Registration to this slot already exists")
+                        msgs.append(_("Registration to this slot already exists"))
 
+            # Disability options
+            notify_disability = "never"  # "never" / "auto" / "on_demand"
+            establishment = slot.get_establishment_or_highschool()
+            recipient = establishment.disability_referent_email
+            notification_settings = slot.get_disability_notification_setting() # will also check general setting
+
+            if recipient and record and record.disability:
+                # if requesting user is not a student, bypass this case and automatically notify
+                if notification_settings == BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_IF_ASKED:
+                    if requesting_user_is_student:
+                        notify_disability = "on_demand"
+                    else:
+                        # Force the setting to "auto"
+                        notification_settings = BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED
+
+                if notification_settings == BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED:
+                    # Send the email here
+                    notify_disability = "auto"
+
+                    if immersion:
+                        ret = immersion.notify_disability_referent()
+                        error = ret.get("error", False)
+                        if ret.get("msg"):
+                            msgs.append(ret["msg"])
+
+            # Send the confirmation email
             if send_mail:
                 ret = student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
                 if not ret:
-                    msg = _("Registration successfully added, confirmation email sent")
+                    msgs.append(gettext("Registration successfully added, confirmation email sent"))
                 else:
-                    msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
+                    msgs.append(gettext("Registration successfully added, confirmation email NOT sent : %s") % ret)
                     error = True
 
-            response = {'error': error, 'msg': msg}
+            response = {
+                'error': error,
+                'msg': "<br>".join(msgs),
+                'notify_disability': notify_disability
+            }
 
             # TODO: use django messages for errors as well ?
             # this is a js boolean !!!!
             if feedback == True:
                 if error:
-                    messages.warning(request, msg)
+                    messages.warning(request, "<br>".join(msgs))
                 else:
-                    messages.success(request, msg)
+                    messages.success(request, "<br>".join(msgs))
 
             request.session["last_registration_slot_id"] = slot.id
         else:
@@ -4177,6 +4216,35 @@ def remove_link(request):
 
     return JsonResponse(response, safe=False)
 
+@login_required
+@is_post_request
+def notify_disability_referent(request):
+    """
+    On slot registration, notify establishment disability referent
+    """
+    response = {'data': [], 'msg': '', 'error': False}
+
+    user = request.user
+    slot_id = request.POST.get('slot_id')
+
+    try:
+        slot = Slot.objects.get(pk=slot_id)
+    except Slot.DoesNotExist:
+        # Slot does not exist : nothing to do
+        response = {"error": True, "msg": _("Slot not found")}
+        return JsonResponse(response, safe=False)
+
+    immersion = Immersion.objects.filter(student=user, slot=slot, cancellation_type__isnull=True).first()
+
+    if immersion:
+        res = immersion.notify_disability_referent()
+        response.update({
+            "msg": res.get("msg"),
+            "error": res.get("error", False)
+        })
+
+    return JsonResponse(response, safe=False)
+
 
 class CampusList(ManyMixin, generics.ListCreateAPIView):
     """
@@ -5633,10 +5701,18 @@ def ajax_search_slots_list(request, slot_id=None):
                 When(Q(group_immersions_count__gte=1), then=True),
                 default=False
             ),
-            user_is_registered=Q(
-                immersions__student=user,
-                immersions__cancellation_type__isnull=True
-            )
+            immersions_count=Count(
+                "immersions",
+                filter=Q(
+                    immersions__student=user,
+                    immersions__cancellation_type__isnull=True
+                ),
+                distinct=True
+            ),
+            user_is_registered=Case(
+                When(Q(immersions_count__gte=1), then=True),
+                default=False
+            ),
         )
         .annotate(
             group_registered_persons=Subquery(group_registered_persons_query),
