@@ -3119,8 +3119,8 @@ class Immersion(models.Model):
         structure = self.slot.get_structure()
 
         if structure:
-            for s in list(RefStructuresNotificationsSettings.objects.filter(disability_structures=structure)):
-                recipients.append(s.immersion_user.email)
+            for s in RefStructuresNotificationsSettings.objects.filter(disability_structures=structure):
+                recipients.append(s.user.email)
 
         error = False
         success = False
