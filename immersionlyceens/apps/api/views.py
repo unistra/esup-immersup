@@ -1013,6 +1013,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 record = immersion.student.get_high_school_student_record()
 
                 if record:
+                    immersion_data['disabled'] = record.disability
                     immersion_data['school'] = record.highschool.label
                     immersion_data['city'] = record.highschool.city
                     immersion_data['level'] = record.level.label
@@ -1022,10 +1023,12 @@ def ajax_get_slot_registrations(request, slot_id):
                 record = immersion.student.get_student_record()
 
                 if record:
+                    immersion_data['disabled'] = record.disability
                     immersion_data['school'] = record.institution.label if record.institution else record.uai_code
                     immersion_data['level'] = record.level.label
 
             elif immersion.student.is_visitor():
+                immersion_data['disabled'] = record.disability
                 immersion_data['profile'] = pgettext("person type", "Visitor")
 
             response['data'].append(immersion_data.copy())
