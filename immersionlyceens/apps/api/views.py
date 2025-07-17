@@ -3864,7 +3864,6 @@ def ajax_get_student_presence(request):
     List of registrations to every slot
     GET params: from_date, until_date, place (0:face to face or 2:outside of the establishment)
     """
-
     response = {'data': [], 'msg': ''}
 
     from_date = request.GET.get('from_date')
@@ -3927,6 +3926,11 @@ def ajax_get_student_presence(request):
                 When(student__visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
                 default=Value(gettext("Unknown")),
             ),
+            disabled=Coalesce(
+                F('student__high_school_student_record__disability'),
+                F('student__student_record__disability'),
+                F('student__visitor_record__disability'),
+            ),
             institution=Coalesce(
                 F('student__high_school_student_record__highschool__label'),
                 F('student__student_record__institution__label'),
@@ -3964,7 +3968,6 @@ def ajax_get_student_presence(request):
     )
 
     # Build a second queryset with group immersions
-
     group_immersions = (
         ImmersionGroupRecord.objects.prefetch_related(
             'slot__campus',
@@ -3990,6 +3993,7 @@ def ajax_get_student_presence(request):
                 When(slot__place=Slot.OUTSIDE, then=F('slot__room')),
                 default=Value(gettext('Remote')),
             ),
+            disabled=Value(''),
             establishment=Coalesce(
                 F('slot__course__structure__establishment__label'),
                 F('slot__event__establishment__label'),
