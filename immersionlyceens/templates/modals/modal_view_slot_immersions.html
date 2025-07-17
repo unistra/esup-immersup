@@ -216,6 +216,7 @@ let outside = 2
 
 var cohorts_only = cohorts_only || false
 const activated_disability = "{{ activate_disability.activate }}" === "True"
+const disabled_person_txt = "{% trans 'Disabled person' %}"
 
 function set_attendance(immersion_id, value) {
   $.ajax({
@@ -229,7 +230,7 @@ function set_attendance(immersion_id, value) {
     success: function (json) {
       if(json['error']) {
         $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
-        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
       dtr.ajax.reload();
 
@@ -464,7 +465,7 @@ if(activated_disability) {
       "name": "disabled",
       "render": function(data, type, row) {
         // return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
-        return data ? "<i class='fa fas fa-check'></i>" : ""
+        return data ? `<i class='fa fas fa-check' title="${disabled_person_txt}"></i>` : ""
       }
     },
     ...tmp_columns.slice(col_idx),
