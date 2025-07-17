@@ -2047,6 +2047,11 @@ def ajax_get_highschool_students(request):
             When(visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
             default=Value(gettext("Unknown")),
         ),
+        disabled=Coalesce(
+            F('student_record__disability'),
+            F('high_school_student_record__disability'),
+            F('visitor_record__disability'),
+        ),
         level=Coalesce(
             F('high_school_student_record__level__label'),
             F('student_record__level__label')

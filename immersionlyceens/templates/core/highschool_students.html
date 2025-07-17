@@ -27,6 +27,7 @@
 
 {% block content %}
 {% include '../modals/modal_student_details.html' %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -52,6 +53,9 @@
           <thead>
             <tr>
               <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
+              {% if activate_disability.activate %}
+                <th id="disability_filter" class="align-top">{% trans 'Disabled person' context 'header' %}</th>
+              {% endif %}
               <th id="name_filter" class="align-top">{% trans 'Name' %}</th>
               <th class="align-top">{% trans 'Birth date' %}</th>
               <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
@@ -66,6 +70,9 @@
           <tbody>
             <tr>
               <td></td>
+              {% if activate_disability.activate %}
+                <td></td>
+              {% endif %}
               <td></td>
               <td></td>
               <td></td>
@@ -93,6 +100,7 @@
   const high_school_id = "{{ request.user.highschool.id }}";
   const date_format = { year: 'numeric', month: 'long', day: 'numeric' };
   let order = [[0, "asc"], [1, "asc"], ];
+  const activated_disability = "{{ activate_disability.activate }}" === "True"
 
   function open_modal(student_id) {
     current_student_id = student_id;
@@ -101,6 +109,141 @@
 
   if(is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc) {
     order = [[3, "asc"], [1, "asc"], ];
+  }
+
+  // will contain the final columns definition
+  let columns = []
+
+  let tmp_columns = [
+    { "data": "user_type",
+      "name": "user_type"
+    },
+    { "data": "last_name",
+      "name": "last_name",
+      "render": function(data, type, row) {
+        let name = `${row.last_name.toUpperCase()} ${row.first_name}`
+
+        if(type === "sort") {
+          return name.toLowerCase()
+        }
+
+        if(type === "display" && (
+            is_ref_etab || is_ref_etab_maitre || is_ref_tec || (is_ref_lyc && parseInt(high_school_id) === row.high_school_id))
+        ) {
+          if (row.high_school_record_id) {
+            return `<a href='/immersion/hs_record/${row.high_school_record_id}'>${name}</a>`;
+          } else if (row.student_record_id) {
+            return `<a href='/immersion/student_record/${row.student_record_id}'>${name}</a>`;
+          } else if (row.visitor_record_id) {
+            return `<a href='/immersion/visitor_record/${row.visitor_record_id}'>${name}</a>`;
+          }
+        }
+        return name;
+      }
+    },
+    { "data": "birth_date",
+      "name": "birth_date",
+      "render": function(data, type, row) {
+        if (data && type === "display") {
+          let date = new Date(data.replace(/(\d{4})-(\d{2})-(\d{2})/, "$2/$3/$1"))
+          return date.toLocaleDateString(undefined, date_format)
+        }
+
+        return data
+      }
+    },
+    { "data": "institution",
+      "name": "institution",
+      "render": function(data, type, row) {
+        if (row.student_record_id && data === null) {
+          return row.uai_code
+        }
+        return data
+      }
+    },
+    { "data": "level",
+      "name": "level"
+    },
+    { "data": "class_name",
+      "name": "class_name"
+    },
+    { "data": "bachelor",
+      "name": "bachelor",
+      "render": function(data, type, row) {
+        if(row.student_record_id) {
+          return row.student_origin_bachelor
+        }
+
+        if(row.is_post_bachelor && row.high_school_record_id) {
+          return row.hs_origin_bachelor
+        }
+
+        return data
+      }
+    },
+    { "data": "post_bachelor_level",
+      "name": "post_bachelor_level",
+      "render": function(data, type, row) {
+        if (row.high_school_record_id && row.is_post_bachelor) {
+          let txt = row.level
+
+          if (data) {
+            txt += ` - ${data}`
+          }
+
+          return txt
+        }
+        return data
+      }
+    },
+    { "data": "record_status_display",
+      "name": "record_status_display",
+      "render": function(data, type, row) {
+        return data
+      }
+    },
+    { "data": "registered",
+      "name": "registered",
+      "render": function(data, type, row) {
+        if(data) {
+          let txt = "{% trans 'Yes' %} "
+
+          if(row.allow_high_school_consultation) {
+            txt += "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
+                   "<i class='fa fas fa-eye fa-2x'></i>" +
+                   "</button>";
+          }
+          else {
+            txt += "<button class=\"btn btn-warning btn-sm ml-4\" title=\"{% trans 'Not allowed by the student' %}\">" +
+                   "<i class='fa fas fa-eye-slash fa-2x'></i>" +
+                   "</button>";
+          }
+
+          return txt
+        }
+        else {
+          return "{% trans 'No' %}";
+        }
+      },
+    },
+  ]
+
+  // if disability is activated, insert a new column at index 1 (2nd position)
+  if(activated_disability) {
+    const col_idx = 1
+    columns = [
+      ...tmp_columns.slice(0, col_idx),
+      { "data": "disabled",
+        "name": "disabled",
+        "render": function(data, type, row) {
+          return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+        }
+      },
+      ...tmp_columns.slice(col_idx),
+    ]
+  }
+  else {
+    columns = tmp_columns
   }
 
   $(document).ready(function () {
@@ -126,119 +269,7 @@
       url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
     },
     {% endif %}
-    'columns': [
-      { "data": "user_type",
-        "name": "user_type"
-      },
-      { "data": "last_name",
-        "name": "last_name",
-        "render": function(data, type, row) {
-          let name = `${row.last_name.toUpperCase()} ${row.first_name}`
-
-          if(type === "sort") {
-            return name.toLowerCase()
-          }
-
-          if(type === "display" && (
-              is_ref_etab || is_ref_etab_maitre || is_ref_tec || (is_ref_lyc && parseInt(high_school_id) === row.high_school_id))
-          ) {
-            if (row.high_school_record_id) {
-              return `<a href='/immersion/hs_record/${row.high_school_record_id}'>${name}</a>`;
-            } else if (row.student_record_id) {
-              return `<a href='/immersion/student_record/${row.student_record_id}'>${name}</a>`;
-            } else if (row.visitor_record_id) {
-              return `<a href='/immersion/visitor_record/${row.visitor_record_id}'>${name}</a>`;
-            }
-          }
-          return name;
-        }
-      },
-      { "data": "birth_date",
-        "name": "birth_date",
-        "render": function(data, type, row) {
-          if (data && type === "display") {
-            let date = new Date(data.replace(/(\d{4})-(\d{2})-(\d{2})/, "$2/$3/$1"))
-            return date.toLocaleDateString(undefined, date_format)
-          }
-
-          return data
-        }
-      },
-      { "data": "institution",
-        "name": "institution",
-        "render": function(data, type, row) {
-          if (row.student_record_id && data === null) {
-            return row.uai_code
-          }
-          return data
-        }
-      },
-      { "data": "level",
-        "name": "level"
-      },
-      { "data": "class_name",
-        "name": "class_name"
-      },
-      { "data": "bachelor",
-        "name": "bachelor",
-        "render": function(data, type, row) {
-          if(row.student_record_id) {
-            return row.student_origin_bachelor
-          }
-
-          if(row.is_post_bachelor && row.high_school_record_id) {
-            return row.hs_origin_bachelor
-          }
-
-          return data
-        }
-      },
-      { "data": "post_bachelor_level",
-        "name": "post_bachelor_level",
-        "render": function(data, type, row) {
-          if (row.high_school_record_id && row.is_post_bachelor) {
-            let txt = row.level
-
-            if (data) {
-              txt += ` - ${data}`
-            }
-
-            return txt
-          }
-          return data
-        }
-      },
-      { "data": "record_status_display",
-        "name": "record_status_display",
-        "render": function(data, type, row) {
-          return data
-        }
-      },
-      { "data": "registered",
-        "name": "registered",
-        "render": function(data, type, row) {
-          if(data) {
-            let txt = "{% trans 'Yes' %} "
-
-            if(row.allow_high_school_consultation) {
-              txt += "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
-                     "<i class='fa fas fa-eye fa-2x'></i>" +
-                     "</button>";
-            }
-            else {
-              txt += "<button class=\"btn btn-warning btn-sm ml-4\" title=\"{% trans 'Not allowed by the student' %}\">" +
-                     "<i class='fa fas fa-eye-slash fa-2x'></i>" +
-                     "</button>";
-            }
-
-            return txt
-          }
-          else {
-            return "{% trans 'No' %}";
-          }
-        },
-      },
-    ],
+    'columns': columns,
     "columnDefs": [
       {
         "defaultContent": "",
@@ -265,17 +296,16 @@
     yadcf.exResetAllFilters(dt);
   });
 
-  // Filters init
-  yadcf.init(dt, [
+  let filters = [
     {
-      column_number: 0,
+      column_selector: "user_type:name",
       filter_default_label: "",
       filter_container_id: "type_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 1,
+      column_selector: "last_name:name",
       filter_type: "text",
       filter_default_label: "",
       filter_container_id: "name_filter",
@@ -283,21 +313,21 @@
       filter_reset_button_text: false,
     },
     {
-      column_number: 3,
+      column_selector: "institution:name",
       filter_default_label: "",
       filter_container_id: "etab_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 4,
+      column_selector: "level:name",
       filter_default_label: "",
       filter_container_id: "level_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 5,
+      column_selector: "class_name:name",
       filter_type: "text",
       filter_default_label: "",
       filter_container_id: "class_filter",
@@ -305,27 +335,39 @@
       filter_reset_button_text: false,
     },
     {
-      column_number: 6,
+      column_selector: "bachelor:name",
       filter_default_label: "",
       filter_container_id: "bachelor_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 8,
+      column_selector: "record_status_display:name",
       filter_default_label: "",
       filter_container_id: "record_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 9,
+      column_selector: "registered:name",
       filter_default_label: "",
       filter_container_id: "registered_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }
-  ]);
+  ]
+
+  if(activated_disability) {
+    filters.push({
+      column_selector: "disabled:name",
+      filter_default_label: "",
+      filter_container_id: "disability_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    })
+  }
+  // Filters init
+  yadcf.init(dt, filters);
 
   dt.on( 'draw', function () {
     $('[data-toggle="tooltip"]').tooltip();
