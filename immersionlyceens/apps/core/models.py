@@ -3091,6 +3091,7 @@ class Immersion(models.Model):
         """
         from immersionlyceens.libs.mails.mail import Mail
 
+        recipients = []
         return_dict = {"sent": False, "error": False, "msg": ""}
 
         # Nothing to send if this setting is not enabled
@@ -3106,14 +3107,13 @@ class Immersion(models.Model):
             # Nothing to do or display
             return return_dict
 
-        # Get slot establishment or highschool and check settings
+        # Get slot establishment or high school and check settings
         establishment = self.slot.get_establishment_or_highschool()
-        recipients = [establishment.disability_referent_email]
         notification_settings = self.slot.get_disability_notification_setting()
 
-        # No notification or no email : nothing to do
-        if notification_settings == BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER or not recipients:
-            return return_dict
+        # Disabled notifications for establishment or high school : don't add the email to recipients
+        if notification_settings != BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+            recipients = [establishment.disability_referent_email]
 
         # Also get the structure referents
         structure = self.slot.get_structure()
@@ -3121,6 +3121,10 @@ class Immersion(models.Model):
         if structure:
             for s in RefStructuresNotificationsSettings.objects.filter(disability_structures=structure):
                 recipients.append(s.user.email)
+
+        # Nothing more to do if we have no recipient at this point
+        if not recipients:
+            return return_dict
 
         error = False
         success = False

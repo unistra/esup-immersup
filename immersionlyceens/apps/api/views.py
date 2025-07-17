@@ -1544,11 +1544,9 @@ def ajax_slot_registration(request):
 
             # Disability options
             notify_disability = "never"  # "never" / "auto" / "on_demand"
-            establishment = slot.get_establishment_or_highschool()
-            recipient = establishment.disability_referent_email
             notification_settings = slot.get_disability_notification_setting() # will also check general setting
 
-            if recipient and record and record.disability:
+            if record and record.disability:
                 # if requesting user is not a student, bypass this case and automatically notify
                 if notification_settings == BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_IF_ASKED:
                     if requesting_user_is_student:
@@ -1561,6 +1559,8 @@ def ajax_slot_registration(request):
                     # Send the email here
                     notify_disability = "auto"
 
+                    # Should notify establishment/high school referent (if email is set)
+                    # and the structure referents
                     if immersion:
                         ret = immersion.notify_disability_referent()
                         error = ret.get("error", False)
@@ -4226,6 +4226,7 @@ def remove_link(request):
 def notify_disability_referent(request):
     """
     On slot registration, notify establishment disability referent
+    This is called when 'on demand' has been set
     """
     response = {'data': [], 'msg': '', 'error': False}
 
