@@ -3858,7 +3858,7 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_get_student_presence(request):
     """
     List of registrations to every slot
@@ -3897,6 +3897,15 @@ def ajax_get_student_presence(request):
             Q(slot__course__structure__in=structures)
             | Q(slot__event__structure__in=structures, slot__place=Slot.FACE_TO_FACE)
             | Q(slot__event__structure__in=structures, slot__place=Slot.OUTSIDE)
+        )
+    elif request.user.is_high_school_manager():
+        if not request.user.highschool.postbac_immersion:
+            # Not allowed to view registrants
+            return JsonResponse(response, safe=False)
+
+        immersions_filters = (
+                Q(slot__course__highschool=request.user.highschool)
+                | Q(slot__event__highschool=request.user.highschool)
         )
 
     immersions = (
