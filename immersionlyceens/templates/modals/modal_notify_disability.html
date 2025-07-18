@@ -1,0 +1,52 @@
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+<div class="modal fade" id="modal_notify_disability" tabindex="-1" role="dialog" aria-labelledby="modal_notify_disability_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_notify_disability_title">{% trans 'Prepare my immersion' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="card-header">
+          {% trans "Would you like to be contacted by the Disability Referent to prepare for your immersion ?" %}
+        </div>
+        <div class="card-body">
+          <button type="button" class="btn btn-primary" id='notify_disability_yes' onclick="notify_referents()">{% trans "Yes" %}</button>
+          <button type="button" class="btn btn-secondary" id='notify_disability_no' data-dismiss="modal">{% trans "No" %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  function notify_referents() {
+    $.ajax({
+      url: "{% url 'notify_disability_referent' %}",
+      type: 'POST',
+      data: {
+        'slot_id': current_slot_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error) {
+          feedback.trigger("showFeedback", [[msg, "danger"]]);
+        }
+        else if(msg !== '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        $('#modal_notify_disability').modal('toggle');
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    });
+  }
+
+</script>
