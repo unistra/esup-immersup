@@ -14,20 +14,21 @@
           {% trans "Would you like to be contacted by the Disability Referent to prepare for your immersion ?" %}
         </div>
         <div class="card-body">
-          <button type="button" class="btn btn-primary" id='notify_disability_yes' onclick="notify_referents()">{% trans "Yes" %}</button>
-          <button type="button" class="btn btn-secondary" id='notify_disability_no' data-dismiss="modal">{% trans "No" %}</button>
+          <button type="button" class="btn btn-primary" id='notify_disability_yes' onclick="notify_referents(str_ref_only=false)">{% trans "Yes" %}</button>
+          <button type="button" class="btn btn-secondary" id='notify_disability_no' onclick="notify_referents(str_ref_only=true)">{% trans "No" %}</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 <script>
-  function notify_referents() {
+  function notify_referents(str_ref_only) {
     $.ajax({
       url: "{% url 'notify_disability_referent' %}",
       type: 'POST',
       data: {
         'slot_id': current_slot_id,
+        'str_ref_only': str_ref_only,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {

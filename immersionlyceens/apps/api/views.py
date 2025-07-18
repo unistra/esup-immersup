@@ -4248,6 +4248,7 @@ def notify_disability_referent(request):
 
     user = request.user
     slot_id = request.POST.get('slot_id')
+    str_ref_only = request.POST.get('str_ref_only') == "true"
 
     try:
         slot = Slot.objects.get(pk=slot_id)
@@ -4259,7 +4260,7 @@ def notify_disability_referent(request):
     immersion = Immersion.objects.filter(student=user, slot=slot, cancellation_type__isnull=True).first()
 
     if immersion:
-        res = immersion.notify_disability_referent()
+        res = immersion.notify_disability_referent(str_ref_only=str_ref_only)
         response.update({
             "msg": res.get("msg"),
             "error": res.get("error", False)

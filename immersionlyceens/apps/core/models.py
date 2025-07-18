@@ -3080,10 +3080,11 @@ class Immersion(models.Model):
         except KeyError:
             return ''
 
-    def notify_disability_referent(self):
+    def notify_disability_referent(self, str_ref_only=False):
         """
         For the current student and slot, depending on platform disability settings,
         send a notification to the disability referent of the slot establishment/high school
+        if str_ref_only is True, do not send notification to slot establishment/high school
         Return a dict {"sent":boolean, "error":boolean, "msg":str}:
             - sent = True if mail has been sent else False
             - error = True if an error occured else False
@@ -3111,8 +3112,8 @@ class Immersion(models.Model):
         establishment = self.slot.get_establishment_or_highschool()
         notification_settings = self.slot.get_disability_notification_setting()
 
-        # Disabled notifications for establishment or high school : don't add the email to recipients
-        if notification_settings != BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+        # str_ref_only or disabled notifications for establishment or high school : don't add the email to recipients
+        if not str_ref_only and notification_settings != BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
             recipients = [establishment.disability_referent_email]
 
         # Also get the structure referents
