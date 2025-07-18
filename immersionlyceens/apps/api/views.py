@@ -5106,16 +5106,17 @@ class VisitorRecordRejectValidate(View):
         # can't be none. No routes allowed for that
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
-        validation_value: int = 1
+        validation_value: str = "TO_VALIDATE"
         validation_email_template: str = ""
         delete_attachments: bool = False
+        set_status_params = {}
 
         if operation == "validate":
-            validation_value = VisitorRecord.STATUSES["VALIDATED"]
+            validation_value = "VALIDATED"
             validation_email_template = "CPT_MIN_VALIDE"
             delete_attachments = get_general_setting("DELETE_RECORD_ATTACHMENTS_AT_VALIDATION")
         elif operation == "reject":
-            validation_value = VisitorRecord.STATUSES["REJECTED"]
+            validation_value = "REJECTED"
             validation_email_template = "CPT_MIN_REJET"
         else:
             data["msg"] = _("Error - Bad operation selected. Allowed: validate, reject")
@@ -5131,7 +5132,7 @@ class VisitorRecordRejectValidate(View):
                 requires_validity_date=True,
             )
 
-            if validation_value == VisitorRecord.STATUSES["VALIDATED"] and attestations.exists():
+            if validation_value == "VALIDATED" and attestations.exists():
                 data['msg'] = _("Error: record has missing or invalid attestation dates")
                 return JsonResponse(data, safe=False)
 
@@ -5144,9 +5145,15 @@ class VisitorRecordRejectValidate(View):
             data["msg"] = _("Error - record not found: %s") % record_id
             return JsonResponse(data)
 
-        record.validation = validation_value
-        record.validation_date = timezone.localtime() if validation_value == 2 else None
-        record.rejected_date = timezone.localtime() if validation_value == 3 else None
+        if all([validation_value == "VALIDATED", record.validation != "TO_REVALIDATE", record.disability]):
+            set_status_params = {
+                "request": request,
+                "notify_disability": True
+            }
+
+        record.set_status(validation_value, **set_status_params)
+        record.validation_date = timezone.localtime() if validation_value == "VALIDATED" else None
+        record.rejected_date = timezone.localtime() if validation_value == "REJECTED" else None
         record.save()
         record.visitor.send_message(self.request, validation_email_template)
         data["data"] = {"record_id": record.id}
