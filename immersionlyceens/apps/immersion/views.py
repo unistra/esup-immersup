@@ -302,7 +302,14 @@ def shibbolethLogin(request, profile=None):
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
     """
-    hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
+    # hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
+    hs = HighSchool.objects.filter(
+        label="Lycée Jean-Jacques Henner",
+        uses_student_federation=True,
+        active=True,
+        uai_codes__isnull=False
+    ).first()
+
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
         "first_name": "Jean-Jacques",
@@ -312,7 +319,6 @@ def shibbolethLogin(request, profile=None):
         "birth_date": "2005-05-07",
         "unscoped_affiliation": "student"
     })
-    
     shib_attrs.update({
         "username": "sylvain.bidon@etu.unistra.fr",
         "first_name": "Sylvain",
@@ -1174,8 +1180,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         # The record must exist
         # Create quotas only for periods with allowed individual registrations
         for period in periods.filter(
-                registration_start_date__lte=timezone.localdate(),
-                slots__allow_individual_registrations=True
+            registration_start_date__lte=timezone.localdate(),
+            slots__allow_individual_registrations=True
         ):
             if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
                 HighSchoolStudentRecordQuota.objects.create(
@@ -1251,8 +1257,16 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
-                # Validation needed except when the 'disability' flag is the only change
-                validation_needed = len(list(filter(lambda x: x != "disability", recordform.changed_data))) > 0
+                # Validation needed except when these flags are the only ones to change
+                if not user.uses_federation():
+                    exception_fields = ["disability", "phone", "visible_immersion_registrations", "visible_email"]
+                    validation_needed = len(
+                        list(
+                            filter(lambda x: x not in exception_fields, recordform.changed_data)
+                        )
+                    ) > 0
+                else:
+                    validation_needed = False
 
                 if "disability" in recordform.changed_data and record.disability:
                     set_status_params = {

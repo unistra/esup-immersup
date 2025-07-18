@@ -2792,14 +2792,35 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.room, i['meeting_place'])
         self.assertEqual(student_profile, i['student_profile'])
 
-        # ref_lyc: forbidden
+        # ref_lyc: allowed only if high school has postbac immersions
         request.user = self.ref_lyc
         self.client.login(username='ref_lyc', password='pass')
         url = "/api/get_students_presence"
 
-        # No data
+        Immersion.objects.create(
+            slot=self.highschool_slot,
+            student=self.highschool_user
+        )
+
+        # remove the postbac immersions : won't return anything
+        self.high_school.postbac_immersion = False
+        self.high_school.save()
+
         response = self.client.get(url, data, **self.header)
-        self.assertEqual(response.content.decode('utf-8'), "")
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {"data": [], "msg": ""})
+
+        # postbac immersions back, should see the only registered student
+        self.high_school.postbac_immersion = True
+        self.high_school.save()
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content["data"]), 1)
+
+        self.assertEqual(content["data"][0]["student_id"], self.highschool_user.pk)
+        self.assertEqual(content["data"][0]["slot_id"], self.highschool_slot.pk)
+
+
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
@@ -3145,7 +3166,15 @@ class APITestCase(TestCase):
             follow=True
         )
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content, {'error': False, 'msg': 'Registration successfully added, confirmation email sent'})
+
+        self.assertEqual(
+            content,
+            {
+                'error': False,
+                'msg': 'Registration successfully added, confirmation email sent',
+                'notify_disability': 'never'
+            }
+        )
 
         # Remove first immersion cancellation and latest immersion, raise single training quota and register again
         immersion.cancellation_type = None
@@ -3162,7 +3191,14 @@ class APITestCase(TestCase):
             follow=True
         )
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content, {'error': False, 'msg': 'Registration successfully added, confirmation email sent'})
+        self.assertEqual(
+            content,
+            {
+                'error': False,
+                'msg': 'Registration successfully added, confirmation email sent',
+                'notify_disability': 'never'
+            }
+        )
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
