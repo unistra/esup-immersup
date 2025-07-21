@@ -2408,7 +2408,7 @@ msgstr "<id EduConnect>"
 #: build/lib/immersionlyceens/apps/core/admin.py:418
 #: immersionlyceens/apps/core/admin.py:418
 msgid "Activated account"
-msgstr "Compte lyc/etu activé"
+msgstr "Compte activé"
 
 #: build/lib/immersionlyceens/apps/core/admin.py:419
 #: immersionlyceens/apps/core/admin.py:419

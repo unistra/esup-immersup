@@ -4092,7 +4092,7 @@ class APITestCase(TestCase):
 
         response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
-        self.assertEqual(content["msg"], "")
+        self.assertEqual(content["msg"], "Record updated, notification sent")
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
         # value changed
@@ -4118,7 +4118,7 @@ class APITestCase(TestCase):
         self.assertIn("msg", content)
         self.assertIn("data", content)
         self.assertIsInstance(content["data"], dict)
-        self.assertEqual(content["msg"], "")
+        self.assertEqual(content["msg"], "Record updated, notification sent")
 
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 

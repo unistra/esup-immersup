@@ -324,11 +324,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     )
 
     def get_activated_account(self, obj):
-        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student()):
-            if obj.is_valid():
-                return _('Yes')
-            else:
-                return _('No')
+        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
+            return _('Yes') if obj.is_valid() else _('No')
         else:
             return ''
 
@@ -355,7 +352,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 record = obj.get_student_record()
             elif obj.is_visitor():
                 record = obj.get_visitor_record()
-            return _('Yes') if record else _('No')
+                
+            if record:
+                if record.validation in [record.TO_COMPLETE, record.INIT]:
+                    return _('No')
+                
+                # Validated, To validate, To revalidate, Rejected
+                return _('Yes')
+                
+            return _('No')
         else:
             return ''
 
