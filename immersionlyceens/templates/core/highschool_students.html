@@ -163,10 +163,10 @@
       "name": "level",
       "render": function(data, type, row) {
         if (row.high_school_record_id && row.is_post_bachelor) {
-          let txt = row.level
+          let txt = data
 
-          if (data) {
-            txt += ` - ${data}`
+          if (row.post_bachelor_level) {
+            txt += ` - ${row.post_bachelor_level}`
           }
 
           return txt
