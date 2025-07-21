@@ -48,7 +48,10 @@ class BaseRecord(models.Model):
     def set_status(self, status: str, notify_disability=False, **kwargs):
         """
         Update validation attribute
+        return a dict with error/success messages
         """
+        response = {"success": True, "error": False, "msg": ""}
+
         if isinstance(status, str) and status.upper() in self.STATUSES:
             self.validation = self.STATUSES[status.upper()]
 
@@ -88,14 +91,16 @@ class BaseRecord(models.Model):
 
                     if email_errors:
                         msg = _("Couldn't send notification(s) to some disability referent(s)")
-                        messages.error(request, msg)
+                        response.update({"success": False, "error": True, msg: msg})
                     else:
                         msg = _("Notifications sent to disability referents")
-                        messages.success(request, msg)
+                        response.update({"msg": msg})
 
-            return True
+            return response
 
-        return False
+        response.update({"success": False, "error":True, "msg": _("Status '%s' not found") % status})
+
+        return response
 
 
     class Meta:

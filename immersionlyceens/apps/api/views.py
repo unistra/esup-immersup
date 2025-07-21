@@ -470,6 +470,7 @@ def ajax_validate_reject_student(request, validate):
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
     highschool_filter = {}
+    msgs = []
 
     if not student_record_id:
         response['msg'] = "Error: No student selected"
@@ -519,7 +520,11 @@ def ajax_validate_reject_student(request, validate):
 
         # 2 => VALIDATED
         # 3 => REJECTED
-        record.set_status("VALIDATED" if validate else "REJECTED", **set_status_params)
+        res = record.set_status("VALIDATED" if validate else "REJECTED", **set_status_params)
+
+        if res.get("msg"):
+            msgs.append(res.get("msg"))
+
         record.validation_date = timezone.localtime() if validate else None
         record.rejected_date = None if validate else timezone.localtime()
         record.save()
@@ -536,9 +541,14 @@ def ajax_validate_reject_student(request, validate):
         ret = record.student.send_message(request, template)
 
         if ret:
-            response['msg'] = _("Record updated but notification not sent : %s") % ret
+            msgs.append(_("Record updated but notification not sent : %s") % ret)
+            response['msg'] = "<br>".join(msgs)
         else:
-            response['data'] = {'ok': True}
+            msgs.append(_("Record updated, notification sent"))
+            response.update({
+                'msg': "<br>".join(msgs),
+                'data': {'ok': True}
+            })
 
     except HighSchoolStudentRecord.DoesNotExist:
         response['msg'] = "Error: No student record"
@@ -5102,6 +5112,7 @@ class VisitorRecordValidation(View):
 class VisitorRecordRejectValidate(View):
     def post(self, request, *args, **kwargs):
         today = timezone.localdate()
+        msgs = []
         data: Dict[str, Any] = {"msg": "", "data": None}
 
         # can't be none. No routes allowed for that
@@ -5152,12 +5163,23 @@ class VisitorRecordRejectValidate(View):
                 "notify_disability": True
             }
 
-        record.set_status(validation_value, **set_status_params)
+        res = record.set_status(validation_value, **set_status_params)
         record.validation_date = timezone.localtime() if validation_value == "VALIDATED" else None
         record.rejected_date = timezone.localtime() if validation_value == "REJECTED" else None
         record.save()
-        record.visitor.send_message(self.request, validation_email_template)
+        ret = record.visitor.send_message(self.request, validation_email_template)
         data["data"] = {"record_id": record.id}
+
+        if res.get("msg"):
+            msgs.append(res.get("msg"))
+
+        if ret:
+            msgs.append(_("Record updated but notification not sent : %s") % ret)
+        else:
+            msgs.append(_("Record updated, notification sent"))
+
+        data['msg'] = "<br>".join(map(str, msgs))
+
         return JsonResponse(data)
 
 

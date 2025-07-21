@@ -1259,7 +1259,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
                 # Validation needed except when these flags are the only ones to change
                 if not user.uses_federation():
-                    exception_fields = ["disability", "phone", "visible_immersion_registrations", "visible_email"]
+                    exception_fields = [
+                        "disability", "phone", "visible_immersion_registrations", "visible_email", "bachelor_type",
+                        "professional_bachelor_mention", "technological_bachelor_mention", "general_bachelor_teachings"
+                    ]
                     validation_needed = len(
                         list(
                             filter(lambda x: x not in exception_fields, recordform.changed_data)
@@ -1436,11 +1439,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     record.set_status("TO_VALIDATE")
                 else:
                     # Note: will send notification to disability referents if necessary
-                    record.set_status("VALIDATED", **set_status_params)
+                    res = record.set_status("VALIDATED", **set_status_params)
+
+                    if res.get("msg"):
+                        func = messages.success if not res.get("error") else messages.warning
+                        func(request, str(res.get("msg")))
 
             elif record.validation == HighSchoolStudentRecord.VALIDATED and set_status_params != {}:
                 # Special case if the status was already 'validated', but the disability flag has changed
-                record.set_status("VALIDATED", **set_status_params)
+                res = record.set_status("VALIDATED", **set_status_params)
+
+                if res.get("msg"):
+                    func = messages.success if not res.get("error") else messages.warning
+                    func(request, str(res.get("msg")))
 
             record.save()
         else:
@@ -1723,7 +1734,11 @@ def student_record(request, student_id=None, record_id=None):
                         "notify_disability": True
                     }
 
-            record.set_status("VALIDATED", **set_status_params)
+            res = record.set_status("VALIDATED", **set_status_params)
+            if res.get("msg"):
+                func = messages.success if not res.get("error") else messages.warning
+                func(request, str(res.get("msg")))
+
             record.save()
 
             messages.success(request, _("Record successfully saved."))
@@ -2153,6 +2168,7 @@ class VisitorRecordView(FormView):
         record_id: Optional[int] = self.kwargs.get("record_id")
         current_email: Optional[str] = None
         user: Optional[ImmersionUser] = None
+        creation = False
         create_documents = False
         completion_needed = False
         validation_needed = False
@@ -2175,6 +2191,7 @@ class VisitorRecordView(FormView):
             current_email = user.email
 
         if not self.record:
+            creation = True
             create_documents = True
 
         if form.is_valid() and form_user.is_valid():
@@ -2190,11 +2207,12 @@ class VisitorRecordView(FormView):
 
             # any change : validation need
             if form.has_changed():
-                # Validation needed except when the 'disability' flag is the only change
-                validation_needed = len(list(filter(lambda x:x != "disability", form.changed_data))) > 0
-                record.save()
+                # Validation needed  ?
+                # fields that trigger the (re)validation :
+                fields = ["birth_date"]
+                validation_needed = len(list(filter(lambda x:x in fields, form.changed_data))) > 0
 
-                if validation_needed:
+                if not creation and validation_needed:
                     messages.info(
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
@@ -2206,10 +2224,15 @@ class VisitorRecordView(FormView):
                         "request": request,
                         "notify_disability": True
                     }
-                    record.set_status("VALIDATED", **set_status_params)
+                    # This will send the notification
+                    res = record.set_status("VALIDATED", **set_status_params)
+                    if res.get("msg"):
+                        func = messages.success if not res.get("error") else messages.warning
+                        func(request, str(res.get("msg")))
 
                 # Documents update needed
-                create_documents = True
+                if validation_needed:
+                    create_documents = True
 
             # Quota for non-visitor user
             if not request.user.is_visitor():
