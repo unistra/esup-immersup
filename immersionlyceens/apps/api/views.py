@@ -5157,7 +5157,7 @@ class VisitorRecordRejectValidate(View):
             data["msg"] = _("Error - record not found: %s") % record_id
             return JsonResponse(data)
 
-        if all([validation_value == "VALIDATED", record.validation != "TO_REVALIDATE", record.disability]):
+        if all([validation_value == "VALIDATED", record.validation != record.TO_REVALIDATE, record.disability]):
             set_status_params = {
                 "request": request,
                 "notify_disability": True
