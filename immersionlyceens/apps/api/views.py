@@ -542,16 +542,16 @@ def ajax_validate_reject_student(request, validate):
 
         if ret:
             msgs.append(_("Record updated but notification not sent : %s") % ret)
-            response['msg'] = "<br>".join(msgs)
+            response['msg'] = "<br>".join(map(str, msgs))
         else:
             msgs.append(_("Record updated, notification sent"))
             response.update({
-                'msg': "<br>".join(msgs),
+                'msg': "<br>".join(map(str, msgs)),
                 'data': {'ok': True}
             })
 
     except HighSchoolStudentRecord.DoesNotExist:
-        response['msg'] = "Error: No student record"
+        response['msg'] = gettext("Error: No student record")
 
     return JsonResponse(response, safe=False)
 

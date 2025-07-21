@@ -328,8 +328,9 @@ def shibbolethLogin(request, profile=None):
         "unscoped_affiliation": "student;member",
         "affiliation": "student@unistra.fr;member@unistra.fr",
     })
-    # --------------- </shib dev> ----------------------
     """
+    # --------------- </shib dev> ----------------------
+
 
     if error:
         logger.error(f"Shibboleth error : {error}")
@@ -1442,8 +1443,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     res = record.set_status("VALIDATED", **set_status_params)
 
                     if res.get("msg"):
+                        # Warning or success depending on set_status return
                         func = messages.success if not res.get("error") else messages.warning
                         func(request, str(res.get("msg")))
+
+                    # Federation in use : send account validation template
+                    if ret := record.student.send_message(request, "CPT_MIN_VALIDE"):
+                        messages.warning(_("Record updated but notification not sent : %s") % ret)
 
             elif record.validation == HighSchoolStudentRecord.VALIDATED and set_status_params != {}:
                 # Special case if the status was already 'validated', but the disability flag has changed
@@ -1734,6 +1740,11 @@ def student_record(request, student_id=None, record_id=None):
                         "notify_disability": True
                     }
 
+            if record.validation != record.VALIDATED:
+                if ret := record.student.send_message(request, "CPT_MIN_VALIDE"):
+                    messages.warning(_("Record updated but notification not sent : %s") % ret)
+
+            # This will send the notification to the disability referent
             res = record.set_status("VALIDATED", **set_status_params)
             if res.get("msg"):
                 func = messages.success if not res.get("error") else messages.warning
