@@ -42,8 +42,8 @@
       <form class="form-inline">
         <div class="form-group">
           <div class="form-group form-check mx-sm-3 mb-2">
-            <input type="checkbox" id="filter_no_record" class="form-check-input">
-            <label for="filter_no_record" class="form-check-label ml-md-2"> {% trans 'Display only students with no record' %}</label>
+            <input type="checkbox" id="filter_no_account_activation" class="form-check-input">
+            <label for="filter_no_account_activation" class="form-check-label ml-md-2"> {% trans 'View registrants without account activation' %}</label>
           </div>
         </div>
       </form>
@@ -62,7 +62,6 @@
               <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
               <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
               <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-              <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
               <th id="record_filter" class="align-top">{% trans 'Record status' %}</th>
               <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
             </tr>
@@ -73,7 +72,6 @@
               {% if activate_disability.activate %}
                 <td></td>
               {% endif %}
-              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -162,7 +160,19 @@
       }
     },
     { "data": "level",
-      "name": "level"
+      "name": "level",
+      "render": function(data, type, row) {
+        if (row.high_school_record_id && row.is_post_bachelor) {
+          let txt = row.level
+
+          if (data) {
+            txt += ` - ${data}`
+          }
+
+          return txt
+        }
+        return data
+      }
     },
     { "data": "class_name",
       "name": "class_name"
@@ -178,21 +188,6 @@
           return row.hs_origin_bachelor
         }
 
-        return data
-      }
-    },
-    { "data": "post_bachelor_level",
-      "name": "post_bachelor_level",
-      "render": function(data, type, row) {
-        if (row.high_school_record_id && row.is_post_bachelor) {
-          let txt = row.level
-
-          if (data) {
-            txt += ` - ${data}`
-          }
-
-          return txt
-        }
         return data
       }
     },
@@ -285,7 +280,6 @@
         api.columns([
           "user_type:name",
           "institution:name",
-          "post_bachelor_level:name"
         ]).visible(false)
       }
     }
@@ -373,11 +367,11 @@
     $('[data-toggle="tooltip"]').tooltip();
   });
 
-  $('#filter_no_record').click(function () {
+  $('#filter_no_account_activation').click(function () {
     let u = ""
 
-    if ($('#filter_no_record').is(':checked')){
-      u = "/api/get_highschool_students/no_record";
+    if ($('#filter_no_account_activation').is(':checked')) {
+      u = "/api/get_highschool_students/no_account_activation";
     }
     else {
       u = "/api/get_highschool_students";

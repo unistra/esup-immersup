@@ -9845,8 +9845,8 @@ msgid "Student profiles"
 msgstr "Profils lycéens"
 
 #: immersionlyceens/templates/core/highschool_students.html:46
-msgid "Display only students with no record"
-msgstr "Voir uniquement les étudiants/lycéens sans fiche"
+msgid "View registrants without account activation"
+msgstr "Voir les inscrits sans activation de compte"
 
 #: immersionlyceens/templates/core/highschool_students.html:55
 msgid "Profile type"

@@ -2007,7 +2007,7 @@ def ajax_get_highschool_students(request):
         request_agreement = False
 
     if any(admin_groups):
-        no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
+        no_account_activation = resolve(request.path_info).url_name == 'get_students_without_account_activation'
 
     if (
         request.user.is_high_school_manager()
@@ -2039,16 +2039,10 @@ def ajax_get_highschool_students(request):
             'groups',
         ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
 
-    if no_record_filter:
-        students = students.filter(
-            high_school_student_record__isnull=True, student_record__isnull=True, visitor_record__isnull=True
-        )
+    if no_account_activation:
+        students = students.filter(validation_string__isnull=False)
     else:
-        students = students.filter(
-            Q(high_school_student_record__isnull=False)
-            | Q(student_record__isnull=False)
-            | Q(visitor_record__isnull=False)
-        )
+        students = students.filter(validation_string__isnull=True)
 
     students = students.annotate(
         high_school_record_id=F('high_school_student_record__id'),
@@ -2101,6 +2095,7 @@ def ajax_get_highschool_students(request):
         ),
         record_status=Coalesce(
             F('high_school_student_record__validation'),
+            F('student_record__validation'),
             F('visitor_record__validation'),
         ),
         record_status_display=Case(

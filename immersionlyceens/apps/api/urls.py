@@ -63,7 +63,7 @@ urlpatterns = [
     path('highschools', views.HighSchoolList.as_view(), name='highschool_list'),
     path('highschool/<int:pk>', views.HighSchoolDetail.as_view(), name='highschool_detail'),
     path('get_highschool_students', views.ajax_get_highschool_students, name='get_highschool_students'),
-    path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
+    path('get_highschool_students/no_account_activation', views.ajax_get_highschool_students, name='get_students_without_account_activation'),
 
     # Trainings
     path('trainings', views.TrainingList.as_view(), name='training_list'),
