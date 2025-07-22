@@ -986,7 +986,7 @@ class APITestCase(TestCase):
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['data'], [])
-        self.assertEqual("Error: No action selected for AJAX request", content['msg'])
+        self.assertEqual("Error: No action selected for request", content['msg'])
 
         # To validate - No student high school id
         data = {

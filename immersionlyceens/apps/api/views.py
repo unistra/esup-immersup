@@ -377,31 +377,33 @@ def ajax_get_student_records(request):
     hs_id = request.POST.get('high_school_id')
     with_convention = request.POST.get('with_convention')
 
-    # TODO : get these values from HighSchoolStudentRecord class
+    # get these values from BaseRecord class
     actions = {
-        'TO_VALIDATE': 1,
-        'VALIDATED': 2,
-        'REJECTED': 3,
-        'TO_REVALIDATE': 4,
+        'TO_VALIDATE': BaseRecord.TO_VALIDATE,
+        'VALIDATED': BaseRecord.VALIDATED,
+        'REJECTED': BaseRecord.REJECTED,
+        'TO_REVALIDATE': BaseRecord.TO_REVALIDATE,
     }
 
-    if action not in actions.keys():
-        response['msg'] = gettext("Error: No action selected for AJAX request")
+    try:
+        record_filter = {
+            "validation": actions[action]
+        }
+    except KeyError:
+        response['msg'] = gettext("Error: No action selected for request")
         return JsonResponse(response, safe=False)
-
-    record_filter = {
-        "validation": actions[action]
-    }
 
     # Highschool : accept an int or 'all'
     try:
         hs_id = int(hs_id)
         record_filter['highschool_id'] = hs_id
     except (ValueError, TypeError):
+        hs_id = 'all'
+        """
         if hs_id != 'all':
             response['msg'] = gettext("Error: No high school selected")
             return JsonResponse(response, safe=False)
-
+        """
     # Conventions
     if with_convention in [0, 1, "0", "1"]:
         record_filter['highschool__with_convention'] = with_convention in (1, "1")
