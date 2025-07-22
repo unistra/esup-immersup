@@ -1991,6 +1991,7 @@ def ajax_get_highschool_students(request):
     """
     highschool_id = None
     no_record_filter: bool = False
+    no_account_activation: bool = False
     response: Dict[str, Any] = {'data': [], 'msg': ''}
 
     admin_groups: List[bool] = [
@@ -2006,6 +2007,7 @@ def ajax_get_highschool_students(request):
     except:
         request_agreement = False
 
+    # Display only accounts that are not activated yet (validation string is not empty)
     if any(admin_groups):
         no_account_activation = resolve(request.path_info).url_name == 'get_students_without_account_activation'
 
@@ -2024,7 +2026,9 @@ def ajax_get_highschool_students(request):
             'high_school_student_record__origin_bachelor_type',
             'immersions',
             'groups',
-        ).filter(validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id)
+        ).filter(
+            high_school_student_record__highschool__id=highschool_id
+        )
     else:
         students = ImmersionUser.objects.prefetch_related(
             'high_school_student_record__level',
@@ -2037,7 +2041,9 @@ def ajax_get_highschool_students(request):
             'visitor_record',
             'immersions',
             'groups',
-        ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
+        ).filter(
+            groups__name__in=['ETU', 'LYC', 'VIS']
+        )
 
     if no_account_activation:
         students = students.filter(validation_string__isnull=False)
@@ -2109,7 +2115,7 @@ def ajax_get_highschool_students(request):
         )
     ).values()
 
-    response['data'] = [l for l in students]
+    response['data'] = list(students)
 
     return JsonResponse(response, safe=False)
 

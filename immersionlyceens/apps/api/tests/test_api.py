@@ -2231,8 +2231,12 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
+        # Add a validation_string to highschool_user3
+        self.highschool_user3.validation_string = "123"
+        self.highschool_user3.save()
+
         # No records
-        url = "/api/get_highschool_students/no_record"
+        url = "/api/get_highschool_students/no_account_activation"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
