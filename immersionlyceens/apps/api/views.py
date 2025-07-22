@@ -2055,9 +2055,9 @@ def ajax_get_highschool_students(request):
         student_record_id=F('student_record__id'),
         visitor_record_id=F('visitor_record__id'),
         user_type=Case(
-            When(high_school_student_record__isnull=False, then=Value(pgettext("person type", "High school student"))),
-            When(student_record__isnull=False, then=Value(pgettext("person type", "Student"))),
-            When(visitor_record__isnull=False, then=Value(pgettext("person type", "Visitor"))),
+            When(groups__name="LYC", then=Value(pgettext("person type", "High school student"))),
+            When(groups__name="ETU", then=Value(pgettext("person type", "Student"))),
+            When(groups__name="VIS", then=Value(pgettext("person type", "Visitor"))),
             default=Value(gettext("Unknown")),
         ),
         disabled=Coalesce(
