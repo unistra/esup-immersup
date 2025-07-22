@@ -194,7 +194,13 @@
     { "data": "record_status_display",
       "name": "record_status_display",
       "render": function(data, type, row) {
-        return data
+        if(is_set(row.record_status)) {
+          return data
+        }
+        else {
+          // No record: record_status == null
+          return "{% trans 'No record' %}"
+        }
       }
     },
     { "data": "registered",
