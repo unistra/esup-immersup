@@ -52,21 +52,33 @@ class Command(BaseCommand, Schedulable):
         # Delete slot
         deleted = Slot.objects.all().delete()
         if deleted[0]:
-            returns.append(_('{} slot(s) deleted').format(deleted[0]))
+            try:
+                slots_deleted = deleted[1]["core.Slot"]
+                returns.append(_('{} slot(s) deleted').format(slots_deleted))
+            except (IndexError, KeyError):
+                returns.append(_('Slot(s) deleted'))
         else:
             returns.append(_("No slot to delete"))
 
         # Delete ENS, LYC, ETU ImmersionUser
         deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'VIS']).delete()
         if deleted[0]:
-            returns.append(_('{} account(s) deleted').format(deleted[0]))
+            try:
+                accounts_deleted = deleted[1]["core.ImmersionUser"]
+                returns.append(_('{} account(s) deleted').format(accounts_deleted))
+            except (IndexError, KeyError):
+                returns.append(_('Account(s) deleted'))
         else:
             returns.append(_("No account to delete"))
 
         # Delete periods, vacations and holidays
         deleted = Period.objects.all().delete()
         if deleted[0]:
-            returns.append(_('{} period(s) deleted').format(deleted[0]))
+            try:
+                periods_deleted = deleted[1]["core.Period"]
+                returns.append(_('{} period(s) deleted').format(periods_deleted))
+            except (IndexError, KeyError):
+                returns.append(_('Period(s) deleted'))
         else:
             returns.append(_("No period to delete"))
 
@@ -131,8 +143,8 @@ class Command(BaseCommand, Schedulable):
 
         try:
             call_command('delete_account_not_in_ldap')
-        except CommandError:
-            returns.append("Could not finish 'delete_account_not_in_ldap' command")
+        except Exception as e:
+            returns.append(_("Could not finish 'delete_account_not_in_ldap' command : %s") % e)
 
         # Clean History
         History.objects.all().delete()

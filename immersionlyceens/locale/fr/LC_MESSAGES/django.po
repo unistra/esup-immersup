@@ -7890,7 +7890,7 @@ msgstr "Aucune période à supprimer"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:75
 msgid "{} holiday record(s) deleted"
-msgstr "{} période(s) de vacances supprimée(s)"
+msgstr "{} jour(s) ferié(s) supprimée(s)"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:77
 msgid "No holiday record to delete"
@@ -7931,24 +7931,24 @@ msgstr "{} évènement(s) mise(s) à jour"
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:115
 msgid "{} user(s) with group INTER and with LDAP establishment deleted"
 msgstr ""
-"{} utilisateur(s) du groupe INTER et un établissement lié au SI supprimé(s)"
+"{} utilisateur(s) du groupe INTER d'un établissement lié au SI supprimé(s)"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:117
 msgid "no user with group INTER and with LDAP establishment to delete"
 msgstr ""
-"aucun utilisateur du groupe INTER et un établissement lié au SI à supprimer"
+"aucun utilisateur du groupe INTER d'un établissement lié au SI à supprimer"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:128
 msgid ""
 "{} user(s) with group INTER and with establishment without SI deactivated"
 msgstr ""
-"{} utilisateur(s) avec le groupe INTER et un établissement non lié au SI "
+"{} utilisateur(s) avec le groupe INTER d'un établissement non lié au SI "
 "désactivé(s)"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:130
 msgid "no user with group INTER and with LDAP establishment to deactivate"
 msgstr ""
-"aucun utilisateur du groupe INTER et un établissement lié au SI à désactiver"
+"aucun utilisateur du groupe INTER d'un établissement lié au SI à désactiver"
 
 #: immersionlyceens/apps/core/management/commands/annual_statistics.py:24
 #: immersionlyceens/apps/core/management/commands/auto_immersion_cancellation.py:28
