@@ -1033,7 +1033,11 @@ def ajax_get_slot_registrations(request, slot_id):
                     immersion_data['level'] = record.level.label
 
             elif immersion.student.is_visitor():
-                immersion_data['disabled'] = record.disability
+                record = immersion.student.get_visitor_record()
+
+                if record:
+                    immersion_data['disabled'] = record.disability
+
                 immersion_data['profile'] = pgettext("person type", "Visitor")
 
             response['data'].append(immersion_data.copy())

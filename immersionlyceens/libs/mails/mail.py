@@ -19,7 +19,7 @@ class Mail(object):
             recipient_type: Optional[str],
             template_code: str,
             recipient_user: Union[ImmersionUser, None] = None,
-            copies: Optional[List] = (),
+            copies: Optional[List] = [],
             **kwargs):
         """
         :param request: request objet
