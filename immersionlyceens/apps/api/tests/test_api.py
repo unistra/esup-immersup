@@ -988,15 +988,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], [])
         self.assertEqual("Error: No action selected for request", content['msg'])
 
-        # To validate - No student high school id
-        data = {
-            'action': 'TO_VALIDATE'
-        }
-        response = self.client.post(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-        self.assertEqual(content['msg'], "Error: No high school selected")
-
         # To validate - With high school id
         # Add some attestations to the record, to check invalid_dates
         HighSchoolStudentRecordDocument.objects.create(

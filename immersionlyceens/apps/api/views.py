@@ -398,19 +398,12 @@ def ajax_get_student_records(request):
         hs_id = int(hs_id)
         record_filter['highschool_id'] = hs_id
     except (ValueError, TypeError):
+        # Default
         hs_id = 'all'
-        """
-        if hs_id != 'all':
-            response['msg'] = gettext("Error: No high school selected")
-            return JsonResponse(response, safe=False)
-        """
+
     # Conventions
     if with_convention in [0, 1, "0", "1"]:
         record_filter['highschool__with_convention'] = with_convention in (1, "1")
-
-    if not hs_id:
-        response['msg'] = gettext("Error: No high school selected")
-        return JsonResponse(response, safe=False)
 
     # Store filters in session
     request.session["highschool_filter"] = hs_id

@@ -61,7 +61,11 @@ class Command(BaseCommand, Schedulable):
             returns.append(_("No slot to delete"))
 
         # Delete ENS, LYC, ETU ImmersionUser
-        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'VIS']).delete()
+        deleted = ImmersionUser.objects.filter(
+            groups__name__in=['ETU', 'LYC', 'VIS'],
+            auth_token__isnull=False
+        ).delete()
+
         if deleted[0]:
             try:
                 accounts_deleted = deleted[1]["core.ImmersionUser"]
@@ -118,6 +122,7 @@ class Command(BaseCommand, Schedulable):
 
         # delete immersion users with group INTER and in an establishment with plugin set
         deleted = ImmersionUser.objects.annotate(cnt=Count('groups__name')).filter(
+            auth_token__isnull=False,
             cnt=1,
             groups__name='INTER',
             establishment__data_source_plugin__isnull = False
@@ -131,6 +136,7 @@ class Command(BaseCommand, Schedulable):
 
         # Deactivate immersion user with group INTER and in an establishment without SI
         updated = ImmersionUser.objects.annotate(cnt=Count('groups__name')).filter(
+            auth_token__isnull=False,
             cnt=1,
             groups__name__in=("INTER",),
             establishment__data_source_plugin__isnull=True
