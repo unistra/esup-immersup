@@ -26,6 +26,9 @@
 {% authorized_groups request.user %}
 {% include 'modals/modal_course_alert.html' %}
 {% include "modals/modal_notify_disability.html" %}
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+
+
 {% trans 'No city' as no_city %}
 
 <div class="main-title inside text-center domain-{{ subdomain.training_domain.pk }}">
@@ -121,10 +124,15 @@
                             <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                             {% trans 'Speaker(s)' %} :
                             <ul>
-                          {% if slot.speakers.all%}
-                              {% for speaker in slot.speakers.all  %}
-                              <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
-                              {% endfor %}
+                          <!--If there is speakers to be shown AND :-->
+                          <!--  The user is not connected and the speakers are hidden OR-->
+                          <!--  The user is connected and the speakers are hidden to connected users anyway-->
+                          {% if slot.speakers.all %}
+                              {% if not request.user.is_authenticated and not hide_fields_public_area.value.speakers.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.speakers.hide_after_registration %}
+                                {% for speaker in slot.speakers.all  %}
+                                <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
+                                {% endfor %}
+                              {% endif %}
                           {% else %}
                               <li>{% trans 'Data not available' %}</li>
                           {% endif %}
@@ -240,32 +248,60 @@
                               {{ slot.campus }}
                               </p>
                             {% endif %}
+                            <!--If there is structure to be shown AND :-->
+                            <!--  The user is not connected and the structure are hidden OR-->
+                            <!--  The user is connected and the structure are hidden to connected users anyway-->
                             {% if slot.course.structure.label %}
-                              <p>
-                              <i class="fa fas fa-address-card text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
-                              {{ slot.course.structure.label }} ({{ slot.course.structure.establishment.label }})
-                              </p>
+                              {% if not request.user.is_authenticated and not hide_fields_public_area.structure.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.structure.hide_after_registration %}
+                                <p>
+                                <i class="fa fas fa-address-card text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
+                                {{ slot.course.structure.label }} ({{ slot.course.structure.establishment.label }})
+                                </p>
+                              {% endif %}
                             {% endif %}
                           </td>
                           <td>
+                            <!--If there is building to be shown AND :-->
+                            <!--  The user is not connected and the building are hidden OR-->
+                            <!--  The user is connected and the building are hidden to connected users anyway-->
                             {% if slot.building %}
-                              <i class="fa fas fa-building text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
+                              {% if not request.user.is_authenticated and not hide_fields_public_area.building.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.building.hide_after_registration %}
+                                <i class="fa fas fa-building text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
+                              {% endif %}
                             {% endif %}
                             {% if slot.building.url %}
                               <a href="{{ slot.building.url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
                             {% endif %}
                           </td>
                           <td>
+                            <!--If there is meeting_place to be shown AND :-->
+                            <!--  The user is not connected and the meeting_place are hidden OR-->
+                            <!--  The user is connected and the meeting_place are hidden to connected users anyway-->
                             {% if slot.room %}
-                              <i class="fa fas fa-map-marker text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
-                              {{ slot.room }}
+                              {% if not request.user.is_authenticated and not hide_fields_public_area.meeting_place.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.meeting_place.hide_after_registration %}
+                                <i class="fa fas fa-map-marker text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
+                                {{ slot.room }}
+                              {% endif %}
                             {% endif %}
                           </td>
                           <td>
                             {% if slot.additional_information %}
-                              {% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>
+                              {% trans 'Additional information' %} :
+                              <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">{{ slot.additional_information }}</div>
+                              <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
                             {% endif %}
                           </td>
+                          <div class="modal fade" id="fullTextModal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title">{% trans 'Additional information' %}</h5>
+                                  <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                                </div>
+                                <div class="modal-body" id="full_text_content"></div>
+                              </div>
+                            </div>
+                          </div>
                         </tr>
                       </tbody>
                     </table>

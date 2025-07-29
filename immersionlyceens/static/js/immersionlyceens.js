@@ -127,7 +127,9 @@ function findBootstrapEnvironment() {
   return curEnv;
 }
 
-// Display and manage exit of the disabled referent notification modal
+/*
+Display and manage exit of the disabled referent notification modal
+*/
 function open_notify_disability_modal(slot_id, modal_mode=false) {
   current_slot_id = slot_id
   modal_open = modal_mode;
@@ -135,8 +137,31 @@ function open_notify_disability_modal(slot_id, modal_mode=false) {
 
   // Wait for the modal to close (whatever the choice of the student)
   return new Promise(resolve =>
-    $("#modal_notify_disability").on('hidden.bs.modal', () => {
-      resolve();
-    })
+      $("#modal_notify_disability").on('hidden.bs.modal', () => {
+        resolve();
+      })
   );
+}
+
+/*
+Open the additional information into a new modal if the text is too long
+*/
+function openFullInfoModal() {
+  $('#full_text_content').html($('#modal_additional_information').html());
+  $('#fullTextModal').modal('show');
+}
+
+function openFullInfoModalHtml(content) {
+  document.getElementById('full_text_content').innerText = content;
+  $('#fullTextModal').modal('show');
+}
+
+/*
+Hide the sensible infos of the activities with a general parameter
+*/
+function hideParameter(parameter, is_connected, hide_fields_public_area) {
+  if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
+    return true;
+  else
+    return false;
 }
