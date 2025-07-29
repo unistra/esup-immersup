@@ -126,3 +126,26 @@ function findBootstrapEnvironment() {
   document.body.removeChild(el);
   return curEnv;
 }
+
+/*
+Open the additional information into a new modal if the text is too long
+*/
+function openFullInfoModal() {
+  $('#full_text_content').html($('#modal_additional_information').html());
+  $('#fullTextModal').modal('show');
+}
+
+function openFullInfoModalHtml(content) {
+  document.getElementById('full_text_content').innerText = content;
+  $('#fullTextModal').modal('show');
+}
+
+/*
+Hide the sensible infos of the activities with a general parameter
+*/
+function hideParameter(parameter, is_connected, hide_fields_public_area) {
+  if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
+    return true;
+  else
+    return false;
+}

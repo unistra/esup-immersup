@@ -341,7 +341,7 @@
                             {% if slot.additional_information %}
                               {% trans 'Additional information' %} :
                               <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">{{ slot.additional_information }}</div>
-                              <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModal(`{{ slot.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
+                              <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
                             {% endif %}
                           </td>
                           <div class="modal fade" id="fullTextModal" tabindex="-1">
@@ -384,11 +384,6 @@ var current_course_id = "";
 var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
 let register_group_txt = "{% trans 'Register this group' %}"
 var current_slot_id;
-
-function openFullInfoModal(content) {
-  document.getElementById('full_text_content').innerText = content;
-  $('#fullTextModal').modal('show');
-}
 
 function register(slot_id) {
   $.ajax({
