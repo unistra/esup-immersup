@@ -233,7 +233,19 @@ var convention_filter = "{{ request.session.convention_filter }}"
 var highschool_filter = "{{ request.session.highschool_filter }}"
 var referent_high_school = "{{ high_school.id }}"
 
+var current_highschool
+var current_convention
+
 $(document).ready(function () {
+    // Session filters : set the current values
+    if(highschool_filter) {
+      current_highschool = highschool_filter
+    }
+
+    if(convention_filter) {
+      current_convention = convention_filter
+    }
+
     $.ajaxSetup({
       beforeSend: function(xhr, settings) {
         if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
@@ -242,7 +254,7 @@ $(document).ready(function () {
       }
     });
 
-    function set_high_school(convention) {
+    function set_high_school(convention, refresh=true) {
       let data = {
         csrfmiddlewaretoken: '{{ csrf_token }}'
       }
@@ -260,12 +272,7 @@ $(document).ready(function () {
           let selected_value;
           let city;
 
-          if([false, "0"].includes(convention) || w_convention === false) {
-            options = "<option value='all'>{% trans 'All' %}</option>"
-          }
-          else {
-            options = '<option value="">---------</option>'
-          }
+          options = "<option value='all'>{% trans 'All' %}</option>"
 
           for (let i = 0; i < json.length; i++) {
             city = json[i]['city'] ? json[i]['city'] : "{% trans 'No city' %}"
@@ -273,7 +280,10 @@ $(document).ready(function () {
           }
           $('select#id_high_school').html(options)
 
-          if(is_set(highschool_filter) && $(`#id_high_school option[value='${highschool_filter}']`).length !== 0) {
+          if(is_set(current_highschool) && $(`#id_high_school option[value='${current_highschool}']`).length !== 0) {
+            selected_value = current_highschool
+          }
+          else if(is_set(highschool_filter) && $(`#id_high_school option[value='${highschool_filter}']`).length !== 0) {
             selected_value = highschool_filter
           }
           else if (is_set(hs_id) && $(`#id_high_school option[value='${hs_id}']`).length !== 0) {
@@ -283,15 +293,12 @@ $(document).ready(function () {
             selected_value = $("#id_high_school option:first").val()
           }
 
+          // store current highschool choice
+          current_highschool = selected_value
+
           $("#id_high_school").val(selected_value);
 
-          if (selected_value === "") {
-            clear_to_revalidate();
-            clear_to_validate();
-            clear_validated();
-            clear_rejected();
-          }
-          else {
+          if(refresh) {
             reload_to_revalidate();
             reload_to_validate();
             reload_validated();
@@ -303,11 +310,19 @@ $(document).ready(function () {
 
     $('#id_convention').change(function(event){
       convention = $(event.target).val(); // 'all', '0' or '1'
+      current_convention = convention
+
+      // As soon as the convention filter changes, clear the value from the session
+      convention_filter = ""
       set_high_school(convention);
     });
 
     $('#id_high_school').change(function(event){
         let value = $(event.target).val();
+        current_highschool = value
+
+        // As soon as the high school filter changes, clear the value from the session
+        highschool_filter = ""
 
         if (is_set(value)) {
           reload_to_revalidate();
@@ -330,13 +345,13 @@ $(document).ready(function () {
     if(!is_set(referent_high_school)) {
       if(is_set(convention_filter)) {
         $('#id_convention').val(convention_filter)
-        set_high_school(convention_filter)
+        set_high_school(convention_filter, refresh=false)
       }
       else if(w_convention ^ wo_convention) {
-        set_high_school(w_convention)
+        set_high_school(w_convention, refresh=false)
       }
       else if(w_convention && wo_convention) {
-        set_high_school('all')
+        set_high_school('all', refresh=false)
       }
     }
 
@@ -410,8 +425,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'TO_REVALIDATE';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -510,8 +525,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'TO_VALIDATE';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -609,8 +624,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'VALIDATED';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -695,8 +710,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'REJECTED';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {

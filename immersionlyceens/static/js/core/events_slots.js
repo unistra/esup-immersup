@@ -130,7 +130,15 @@ function init_datatable() {
             return `${txt} ${row.room}</span>`
           }
           else if (row.place === remote) {
-            return `<a href="${row.url}" target="_blank">${remote_event_text}</a>`
+            // display link only if the group registration is public or the user has already registered a group
+            let with_link = `<a href="${row.url}" target="_blank">${remote_event_text}</a>`
+            let without_link = `${remote_event_text}`
+
+            if(is_highschool_manager && row.user_has_group_immersions) {
+              return with_link
+            }
+
+            return without_link
           }
           else {
             return `<span>${row.room}</span>`

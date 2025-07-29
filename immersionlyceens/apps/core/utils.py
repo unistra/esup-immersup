@@ -575,6 +575,22 @@ def slots(request):
                 ),
                 Value([]),
             ),
+            group_immersions_count=Count(
+                'group_immersions',
+                filter=Q(
+                    group_immersions__highschool=user_highschool,
+                    group_immersions__cancellation_type__isnull=True
+                ),
+                distinct=True
+            ),
+            user_has_group_immersions=Case(
+                When(Q(group_immersions_count__gte=1), then=True),
+                default=False
+            ),
+            user_is_registered=Q(
+                immersions__student=user,
+                immersions__cancellation_type__isnull=True
+            )
         )
         .order_by('date', 'start_time')
         .values(
@@ -644,6 +660,8 @@ def slots(request):
             'cancellation_limit_date',
             'registration_start_date',
             'valid_registration_start_date',
+            'user_has_group_immersions',
+            'user_is_registered'
         )
     )
 

@@ -2455,19 +2455,27 @@ def structures_notifications(request, structure_code=None):
     """
 
     data = []
-    settings = None
+    settings, created = RefStructuresNotificationsSettings.objects.get_or_create(
+        user=request.user,
+        defaults={"user": request.user}
+    )
+
     try:
-        settings = RefStructuresNotificationsSettings.objects.get(user=request.user)
-    except RefStructuresNotificationsSettings.DoesNotExist:
-        pass
+        enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+    except:
+        enabled_disability = False
 
     structures = Structure.objects.filter(referents=request.user).order_by('label')
 
-    for structure in structures:
-        data.append({'structure':structure, 'checked':(structure in settings.structures.all()) if settings else False})
+    data = [{
+        'structure': structure,
+        'registrants_checked': structure in settings.structures.all(),
+        'disability_checked': structure in settings.disability_structures.all(),
+    } for structure in structures]
 
     context = {
-        'structures': data
+        'structures': data,
+        'enabled_disability': enabled_disability
     }
 
     return render(request, 'core/structures_notifications.html', context)

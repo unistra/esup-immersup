@@ -22,6 +22,7 @@
 {{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
 
   {% include './modals/modal_search_slots_details.html' %}
+  {% include "./modals/modal_notify_disability.html" %}
   <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -201,18 +202,27 @@
       success: function (json) {
         let msg = json['msg'];
         let error = json['error'];
-        $('#modal_search_slots_details').modal("hide");
+        notify_disability = json['notify_disability'];
 
+        $('#modal_search_slots_details').modal("hide");
 
         if (error) {
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
-          dt.ajax.reload(null, false);
+          if(notify_disability === "on_demand") {
+            open_notify_disability_modal(slot_id).then(() => {
+              feedback.trigger("showFeedback", [[msg, "success"]]);
+              dt.ajax.reload(null, false);
+            })
+          }
+          else {
+            feedback.trigger("showFeedback", [[msg, "success"]]);
+            dt.ajax.reload(null, false);
+          }
         }
         $(document.body).scrollTop($('#message').offset().top);
-        setTimeout(function() { $("#feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        setTimeout(function() { $("#feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       },
       error: function (json) {
         console.log(json);
@@ -242,16 +252,17 @@
         var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
         var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
         var place = rowData['place'];
+
         {% if activated_cohort %}
-        var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
-        var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
-        var individual = rowData['allow_individual_registrations'];
-        var group = rowData['allow_group_registrations'];
-        var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
-                                   || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
-                                   ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
+          var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
+          var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
+          var individual = rowData['allow_individual_registrations'];
+          var group = rowData['allow_group_registrations'];
+          var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
+                                     || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
+                                     ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
         {% else %}
-        var showIndividualGroup = true;
+          var showIndividualGroup = true;
         {% endif %}
 
         var start_date = $('#start_date').val() || null;
@@ -676,7 +687,10 @@
 
 
       if (rowData[0].place === remote) {
-          if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
+          if (Object.keys(rowData[0]).indexOf('url')
+              && rowData[0].url != null
+              && rowData[0].url != ''
+              && (rowData[0].user_has_group_immersions || rowData[0].user_is_registered)) {
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }

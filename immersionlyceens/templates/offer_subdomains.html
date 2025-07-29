@@ -327,9 +327,12 @@ var feedback;
 var open_course_id = "{{ open_course_id }}";
 var open_training_id = "{{ open_training_id }}";
 var current_course_id = "";
+var current_slot_id = "";
 var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
 
 function register(slot_id) {
+  var notify_disability = ""
+
   $.ajax({
       url: "{% url 'SlotRegistration' %}",
       type: 'POST',
@@ -340,19 +343,28 @@ function register(slot_id) {
       success: function (json) {
         let msg = json['msg'];
         let error = json['error'];
+        notify_disability = json['notify_disability'];
 
         if(error) {
           feedback = $("#feedback_"+slot_id);
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
-          window.location = "{% url 'offer_subdomain' subdomain_id=subdomain.id %}";
+          if(notify_disability === "on_demand") {
+            open_notify_disability_modal(slot_id).then(() => {
+              window.location = "{% url 'offer_subdomain' subdomain_id=subdomain.id %}";
+            })
+          }
+          else {
+            window.location = "{% url 'offer_subdomain' subdomain_id=subdomain.id %}";
+          }
         }
       },
       error: function(json) {
+        console.log("error");
         console.log(json);
       }
-    })
+  })
 }
 
 function open_alert_modal(course_id) {

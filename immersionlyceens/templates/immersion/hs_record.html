@@ -30,6 +30,7 @@
 
 {% block content %}
 {% authorized_groups request.user %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
 
@@ -79,6 +80,16 @@
           <div class="col-sm-6 col-md-6">{{ record_form.phone }}</div>
           <div class="col-sm-3 col-md-2">{{ record_form.phone.errors }}</div>
         </div>
+        {% if activate_disability.activate %}
+        <div class="form-group row">
+          <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">
+          {{ activate_disability.form_sentence }} :</label>
+          <div class="col-sm-6 col-md-6">
+            {{ record_form.disability }}
+          </div>
+          <div class="col-sm-3 col-md-2">{{ record_form.disability.errors }}</div>
+        </div>
+        {% endif %}
       </div>
       <div class="card-header text-white bg-secondary">
         {% trans "Level of studies" %}
