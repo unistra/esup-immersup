@@ -131,6 +131,11 @@
     minute: "numeric",
   };
 
+  function openFullInfoModal() {
+    $('#full_text_content').html($('#modal_additional_information').html());
+    $('#fullTextModal').modal('show');
+  }
+
   function not_shown(parameter) {
     if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
       return false
@@ -367,13 +372,16 @@
             else {
               data = row.meeting_place
             }
-            if (type === "display") {
+            if (type === "display" && not_shown("meeting_place")) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else {
+              return "<label>{% trans 'Meeting place'%} :</label>";
             }
             return data
           },
         },
-        { "data": "registration_date",
+        {
+          "data": "registration_date",
           "render": function(data, type, row) {
             if (type==='display') {
               return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
@@ -437,9 +445,7 @@
       availablesSeatslabel += '</ul>';
 
       $.each(rowData[0].speakers, function(i, item) {
-        if (not_shown("speakers")) {
-          speakers_array += "<li>" + item + "</li>";
-        }
+        speakers_array += "<li>" + item + "</li>";
       });
 
       $(displayedRows).show();
@@ -533,7 +539,7 @@
         }
       })
 
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ') ?? '');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -549,12 +555,21 @@
         $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building)
       }
       if (not_shown("meeting_place")) {
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+        $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
       }
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if (not_shown("speakers")) {
+        $('#modal_myimmersions_slot_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
+
+      if (rowData[0].info && rowData[0].info.length > 300) {
+        $('#show_more_info').show();
+      } else {
+        $('#show_more_info').hide();
+      }
+
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
@@ -703,7 +718,7 @@
           },
         },
         {
-          render: function (data, type, row) {
+          "render": function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
                 label = "<label>{% trans 'Address' %} : </label>";
@@ -730,8 +745,10 @@
         {
           "render": function (data, type, row) {
             data = row.meeting_place
-            if(type === "display") {
+            if(type === "display" && not_shown("meeting_place")){
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else {
+              return "<label>{% trans 'Meeting place'%} :</label>";
             }
             return data
           },
@@ -801,11 +818,9 @@
             "</a>";
       }
 
-      //Cette partie est déjà faite au dessus. Qu'est ce qui justifie le doublon ?
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
-
 
       // display all row_* elements
       $(displayedRows).show();
@@ -816,7 +831,7 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure)) {
+      if (is_set(rowData[0].structure) && not_shown("structure")) {
         etab.push(rowData[0].structure);
       }
       if (slotType === 'c') {
@@ -872,7 +887,7 @@
             }
         }
       })
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ') ?? '');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -882,11 +897,17 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if(not_shown("building")) {
+        $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
+      }
+      if(not_shown("meeting_place")) {
+        $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      }
+      if (not_shown("speakers")) {
+        $('#modal_myimmersions_slot_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
@@ -1035,7 +1056,7 @@
           },
         },
         {
-          render: function (data, type, row) {
+          "render": function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
                 label = "<label>{% trans 'Address' %} : </label>";
@@ -1061,8 +1082,10 @@
         {
           "render": function (data, type, row) {
             data = row.meeting_place
-            if(type === "display") {
+            if(type === "display" && not_shown("meeting_place")) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else {
+              return "<label>{% trans 'Meeting place'%} :</label>";
             }
             return data;
           },
@@ -1150,7 +1173,7 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure)) {
+      if (is_set(rowData[0].structure) && not_shown("structure")) {
         etab.push(rowData[0].structure);
       }
       if (slotType === 'c') {
@@ -1214,7 +1237,7 @@
         }
       })
 
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ') ?? '');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -1224,11 +1247,17 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if(not_shown("building")) {
+        $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
+      }
+      if(not_shown("meeting_place")) {
+        $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      }
+      if(not_shown("speakers")) {
+        $('#modal_myimmersions_slot_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));

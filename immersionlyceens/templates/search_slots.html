@@ -190,6 +190,11 @@
     return $("<textarea/>").html(text).text();
   }
 
+  function openFullInfoModal() {
+    $('#full_text_content').html($('#modal_additional_information').html());
+    $('#fullTextModal').modal('show');
+  }
+
   function not_shown(parameter) {
     if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
       return false
@@ -362,7 +367,7 @@
                 }
               }
               if(type === "display") {
-                return '<label>'+ '{% trans 'Establishment' %}' + ' :</label><span>' + data + '</span>';
+                return '<label>' + '{% trans 'Establishment' %}' + ' :</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -486,8 +491,10 @@
               if (data === '' || data === null) {
                 return ''
               }
-              if(type === "display") {
+              if(type === "display" && not_shown("meeting_place")) {
                 return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
+              } else {
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>'
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -603,7 +610,7 @@
           }
 
 
-          if (rowData[0].structure_label !== null) {
+          if (rowData[0].structure_label !== null && not_shown("structure")) {
             etab.push(rowData[0].structure_label)
           }
 
@@ -628,7 +635,7 @@
           }
 
 
-          if (rowData[0].structure_label !== null) {
+          if (rowData[0].structure_label !== null && not_shown("structure")) {
             etab.push(rowData[0].structure_label)
           }
 
@@ -697,25 +704,36 @@
             }
         }
       })
+
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
+
       $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(labelFull ?? rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
       $('#modal_search_slots_details #modal_course_type').html(rowData[0].course_type_full_label);
       $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData[0].date, 'display', rowData[0], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
-
-
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
-
-
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
-      $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
-      $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
-      $('#modal_search_slots_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if (not_shown("building")) {
+        $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label)
+      }
+      if (not_shown("meeting_place")) {
+        $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
+      }
+      if (not_shown("meeting_place")) {
+        $('#modal_search_slots_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
+
+      if (rowData[0].additional_information && rowData[0].additional_information.length > 300) {
+        $('#show_more_info').show();
+      } else {
+        $('#show_more_info').hide();
+      }
+
       $('#modal_search_slots_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")

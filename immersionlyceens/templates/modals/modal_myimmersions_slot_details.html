@@ -105,7 +105,21 @@
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Additional information' %} :
                 </div>
-                <div id="modal_additional_information" class="col-4 col-sm-6"></div>
+                <div class="col-4 col-sm-6">
+                  <div id="modal_additional_information" class="text-truncate" style="max-height: 4.5em; overflow: hidden;"></div>
+                  <button id="show_more_info" class="btn btn-link p-0 mt-1" onclick="openFullInfoModal()">{% trans 'See more' %}</button>
+                </div>
+              </div>
+              <div class="modal fade" id="fullTextModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">{% trans 'Additional information' %}</h5>
+                      <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                    </div>
+                    <div class="modal-body" id="full_text_content"></div>
+                  </div>
+                </div>
               </div>
               <div id="row_restrictions" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
