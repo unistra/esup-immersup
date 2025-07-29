@@ -19,6 +19,7 @@ class Command(BaseCommand, Schedulable):
 
         t: float = time.time()
         users: QuerySet = ImmersionUser.objects.filter(
+            auth_token__isnull=False,
             establishment__data_source_plugin="LDAP",
             is_superuser=False,
         )

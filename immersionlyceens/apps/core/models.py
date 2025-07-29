@@ -16,7 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from hijack.signals import hijack_started, hijack_ended
 from ipware import get_client_ip
@@ -117,7 +117,91 @@ class UAI(models.Model):
         verbose_name_plural = _('Establishments with UAI')
         ordering = ['city', 'label', ]
 
-class Establishment(models.Model):
+
+class BaseEstablishment(models.Model):
+    """
+    Base class for Establishment and High schools
+    """
+    # On slot registration, notify the disability referent :
+    DISABILITY_SLOT_NOTIFICATION_NEVER = 0  # Never
+    DISABILITY_SLOT_NOTIFICATION_IF_CHECKED = 1  # Always, if the registrant checked the disability flag
+    DISABILITY_SLOT_NOTIFICATION_IF_ASKED = 2  # When the registrant ask for this slot
+
+    DISABILITY_NOTIFICATION_CHOICES = (
+        (DISABILITY_SLOT_NOTIFICATION_NEVER, _("Never")),
+        (DISABILITY_SLOT_NOTIFICATION_IF_CHECKED, _("Always, if the registrant checked the disability flag")),
+        (DISABILITY_SLOT_NOTIFICATION_IF_ASKED, _("At the request of the registrant for the slot")),
+    )
+
+    label = models.CharField(_("Label"), max_length=256, blank=False, null=False)
+
+    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
+    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
+
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+    signed_charter = models.BooleanField(_("Signed charter"), default=False)
+    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
+    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+
+    # Disability related fields
+    disability_notify_on_record_validation = models.BooleanField(
+        _("Disability referent record notification"),
+        blank=False,
+        null=False,
+        default=True,
+        help_text=_("Notify disability referent on record validation"),
+    )
+
+    disability_notify_on_slot_registration = models.SmallIntegerField(
+        _("Disability slot notification"),
+        blank=False,
+        null=False,
+        default=DISABILITY_SLOT_NOTIFICATION_NEVER,
+        choices=DISABILITY_NOTIFICATION_CHOICES,
+        help_text=_("Notify disability referent on slot registration"),
+    )
+
+    disability_referent_email = models.EmailField(_('Disability referent email'), blank=True, null=True)
+
+    @classmethod
+    def get_disability_referents(cls, on_record_validation: bool = False, on_slot_registration: bool = False) -> List:
+        """
+        Get all high schools disability referents
+          - depending on validation mode (on record validation or on slot registration ("if checked")
+          - the high school or the establishment propose some immersions
+          - email is not null
+        :return: List of _unique_ emails
+        """
+
+        filters = {
+            "disability_notify_on_record_validation": on_record_validation,
+            "disability_referent_email__isnull": False
+        }
+
+        if on_slot_registration:
+            filters["disability_notify_on_slot_registration"] = cls.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED
+
+        # Specific filter for high schools / establishments
+        if cls.__name__ == "HighSchool":
+            filters["postbac_immersion"] = True
+        elif cls.__name__ == "Establishment":
+            filters["is_host_establishment"] = True
+
+        return list(
+            set(cls.objects.filter(**filters).values_list('disability_referent_email', flat=True))
+        )
+
+    class Meta:
+        abstract = True
+
+
+class Establishment(BaseEstablishment):
     """
     Establishment class : highest structure level
     """
@@ -133,23 +217,15 @@ class Establishment(models.Model):
         unique=True,
     )
 
-    label = models.CharField(_("Label"), max_length=256, unique=True)
     short_label = models.CharField(_("Short label"), max_length=64, unique=True)
-    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
-    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
-    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
-    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
-    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
-    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
-    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
+
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     email = models.EmailField(_('Email'))
     mailing_list = models.EmailField(_('Mailing list'), blank=True, null=True)
-    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+
     master = models.BooleanField(_("Master"), default=True)
     is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
-    signed_charter = models.BooleanField(_("Signed charter"), default=False)
+
     data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
         choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
     )
@@ -168,8 +244,7 @@ class Establishment(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
-    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
-    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
@@ -183,6 +258,13 @@ class Establishment(models.Model):
         verbose_name = _('Higher education establishment')
         verbose_name_plural = _('Higher education establishments')
         ordering = ['label', ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', ],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_establishment_label'
+            ),
+        ]
 
 
 class Structure(models.Model):
@@ -222,24 +304,17 @@ class Structure(models.Model):
         ordering = ['label', ]
 
 
-class HighSchool(models.Model):
+class HighSchool(BaseEstablishment):
     """
     HighSchool class
     Can also be used to enter secondary (middle) schools
     """
-
-    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-
-    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
     address = models.CharField(_("Address"), max_length=255, blank=True, null=True)
-    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
-    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
-    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
     zip_code = models.CharField(_("Zip code"), max_length=128, blank=True, null=True)
+    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
+    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
     phone_number = models.CharField(_("Phone number"), max_length=20, null=True, blank=True)
-    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
-
     email = models.EmailField(_('Email'), null=True, blank=True)
 
     head_teacher_name = models.CharField(
@@ -269,10 +344,7 @@ class HighSchool(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
-    signed_charter = models.BooleanField(_("Signed charter"), default=False)
-    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
-    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
-    active = models.BooleanField(_("Active"), default=True)
+
     with_convention = models.BooleanField(_("Has a convention"), default=True)
     uses_student_federation = models.BooleanField(_("Uses EduConnect student federation"), default=False)
     uses_agent_federation = models.BooleanField(_("Uses agent identity federation"), default=False)
@@ -288,6 +360,7 @@ class HighSchool(models.Model):
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
     immersions_proposal = PostBacImmersionManager()
+
 
     def __str__(self):
         city = self.city or "(" + gettext("No city") + ")"
@@ -2756,6 +2829,20 @@ class Slot(models.Model):
             'guides': group_queryset.get('guides', 0) or 0
         }
 
+    def get_disability_notification_setting(self):
+        """
+        Return Establishment or High school "notify disability on slot registration" setting value
+        """
+        activate_disability = GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+        # Never notify if GeneralSetting is disabled
+        if not activate_disability:
+            return BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+
+        establishment_or_highschool = self.get_establishment_or_highschool()
+        return establishment_or_highschool.disability_notify_on_slot_registration
+
+
     def clean(self):
         if [self.course, self.event].count(None) != 1:
             raise ValidationError("You must select one of : Course or Event")
@@ -2992,6 +3079,89 @@ class Immersion(models.Model):
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
+
+    def notify_disability_referent(self, str_ref_only=False):
+        """
+        For the current student and slot, depending on platform disability settings,
+        send a notification to the disability referent of the slot establishment/high school
+        if str_ref_only is True, do not send notification to slot establishment/high school
+        Return a dict {"sent":boolean, "error":boolean, "msg":str}:
+            - sent = True if mail has been sent else False
+            - error = True if an error occured else False
+            - msg = success or error message
+        """
+        from immersionlyceens.libs.mails.mail import Mail
+
+        recipients = []
+        return_dict = {"sent": False, "error": False, "msg": ""}
+
+        # Nothing to send if this setting is not enabled
+        activate_disability = GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+        record = (
+            self.student.get_high_school_student_record()
+            or self.student.get_student_record()
+            or self.student.get_visitor_record()
+        )
+
+        if not record or not record.disability or not activate_disability:
+            # Nothing to do or display
+            return return_dict
+
+        # Get slot establishment or high school and check settings
+        establishment = self.slot.get_establishment_or_highschool()
+        notification_settings = self.slot.get_disability_notification_setting()
+
+        # str_ref_only or disabled notifications for establishment or high school : don't add the email to recipients
+        if not str_ref_only and notification_settings != BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+            recipients = [establishment.disability_referent_email]
+
+        # Also get the structure referents
+        structure = self.slot.get_structure()
+
+        if structure:
+            for s in RefStructuresNotificationsSettings.objects.filter(disability_structures=structure):
+                recipients.append(s.user.email)
+
+        # Nothing more to do if we have no recipient at this point
+        if not recipients:
+            return return_dict
+
+        error = False
+        success = False
+
+        for recipient in recipients:
+            try:
+                mail = Mail(
+                    request=None,
+                    recipient_type=recipient,
+                    template_code="HANDICAP_NOTIF_IMMERSION",
+                    registrant=self.student,
+                    slot=self.slot
+                )
+
+                mail.send()
+            except Exception as e:
+                msg = gettext("Couldn't send the disability notification to this referent : %s" % e)
+                logger.error(msg)
+                error = True
+            else:
+                success = True
+
+        if success:
+            if not error:
+                msg = gettext("Notification sent to disability referent")
+                return {"send": True, "error": False, "msg": msg}
+
+            # Some errors
+            msg = gettext("Some notifications have been sent to disability referents, but some errors occured")
+            return {"send": True, "error": True, "msg": msg}
+
+        elif error:
+            msg = gettext("Couldn't send the disability notifications to the referents")
+            return_dict = {"sent": False, "error": True, "msg": msg}
+
+        return return_dict
 
     def __str__(self):
         return f"{self.student} - {self.slot}"
@@ -3419,7 +3589,17 @@ class RefStructuresNotificationsSettings(models.Model):
     )
 
     structures = models.ManyToManyField(
-        Structure, verbose_name=_("Structures"), related_name='source_structures', blank=True
+        Structure,
+        verbose_name=_("Selected structures for registrants list"),
+        related_name='source_structures',
+        blank=True
+    )
+
+    disability_structures = models.ManyToManyField(
+        Structure,
+        verbose_name=_("Selected structures for disabled registrants notifications"),
+        related_name='structures_disabled_notifications',
+        blank=True
     )
 
     def __str__(self):

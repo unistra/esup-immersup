@@ -154,12 +154,14 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         ]
         return any(valid_groups)
 
+
 class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
         'first_name',
         'last_name',
+        'get_activated_account',
         'destruction_date',
         'get_edited_record',
         'get_validated_record',

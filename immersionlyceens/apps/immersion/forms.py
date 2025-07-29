@@ -554,8 +554,13 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['post_bachelor_level'].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
 
         # CSS
-        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings', 'birth_date',
-            'allow_high_school_consultation'
+        excludes = [
+            'visible_immersion_registrations',
+            'visible_email',
+            'general_bachelor_teachings',
+            'birth_date',
+            'allow_high_school_consultation',
+            'disability'
         ]
         for field in self.fields:
             if field not in excludes:
@@ -649,7 +654,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
-                  'allow_high_school_consultation']
+                  'allow_high_school_consultation', 'disability']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
@@ -674,7 +679,7 @@ class StudentRecordForm(forms.ModelForm):
 
 
         # CSS
-        excludes = ['birth_date']
+        excludes = ['birth_date', 'disability']
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
@@ -688,7 +693,7 @@ class StudentRecordForm(forms.ModelForm):
     class Meta:
         model = StudentRecord
         fields = ['birth_date', 'phone', 'uai_code', 'level', 'origin_bachelor_type', 'current_diploma',
-                  'student']
+                  'student', 'disability']
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
         }
@@ -732,7 +737,7 @@ class VisitorRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        fields: List[str] = ["phone", "motivation"]
+        fields: List[str] = ["phone", "motivation", ]
 
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
@@ -750,7 +755,7 @@ class VisitorRecordForm(forms.ModelForm):
 
     class Meta:
         model = VisitorRecord
-        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation']
+        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation', 'disability']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

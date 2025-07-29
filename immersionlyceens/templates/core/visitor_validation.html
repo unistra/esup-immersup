@@ -604,17 +604,24 @@ function validate_student( student_record_id ) {
             reload_validated();
             reload_rejected();
 
+            if(data["msg"]) {
+              $('#validate_message').append(`<br> ${data["msg"]}`)
+            }
+
             $('#validate_message').show();
+
             if (t1) { clearTimeout(t1); }
-            t1 = setTimeout(function(){
-                    $('#validate_message').fadeOut(1000, function(){
-                        $('#validate_message').hide();
-                    });
-                },
-                {%  settings_get 'MESSAGES_TIMEOUT' %}
-            );
+
+            t1 = setTimeout(function() {
+              $('#validate_message').fadeOut(1000, function(){
+                $('#validate_message').hide();
+              });
+              },
+              {% settings_get 'MESSAGES_TIMEOUT' %}
+            )
         } else {
             $('#fail_message').show();
+
             setTimeout(function(){
                 $('#fail_message').fadeOut(
                     1000,
@@ -622,7 +629,7 @@ function validate_student( student_record_id ) {
                         $('#fail_message').hide();
                     }
                 )
-            }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+            }, {% settings_get 'MESSAGES_TIMEOUT' %});
         }
     },
     error: function() {
@@ -634,7 +641,7 @@ function validate_student( student_record_id ) {
                     $('#fail_message').hide();
                 }
             )
-        }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        }, {% settings_get 'MESSAGES_TIMEOUT' %});
     }
   });
 }
@@ -650,6 +657,10 @@ function reject_student( student_record_id ) {
               reload_validated();
               reload_rejected();
 
+              if(data["msg"]) {
+                $('#reject_message').append(`<br> ${data["msg"]}`)
+              }
+
               $('#reject_message').show();
               if (t2) { clearTimeout(t2); }
               t2 = setTimeout(function(){
@@ -657,7 +668,7 @@ function reject_student( student_record_id ) {
                           $('#reject_message').hide();
                       });
                   },
-                  {%  settings_get 'MESSAGES_TIMEOUT' %}
+                  {% settings_get 'MESSAGES_TIMEOUT' %}
               );
 
               let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
@@ -678,7 +689,7 @@ function reject_student( student_record_id ) {
                           $('#fail_message').hide();
                       }
                   )
-              }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+              }, {% settings_get 'MESSAGES_TIMEOUT' %});
           }
       },
       error: function() {
@@ -690,7 +701,7 @@ function reject_student( student_record_id ) {
                       $('#fail_message').hide();
                   }
               )
-          }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          }, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
   });
 }

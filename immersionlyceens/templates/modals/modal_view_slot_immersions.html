@@ -1,6 +1,7 @@
 {% load immersionlyceens_tags i18n static %}
 {% authorized_groups request.user %}
 {% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 <!-- Modal -->
 <div class="modal fade" id="modal_view_slot_immersions" tabindex="-1" role="dialog" aria-labelledby="modal_view_slot_immersions_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
@@ -24,6 +25,9 @@
                 <thead>
                   <tr>
                     <th></th>
+                    {% if activate_disability.activate %}
+                      <th scope="col">{% trans 'Disabled person' context 'header' %}</th>
+                    {% endif %}
                     <th scope="col">{% trans 'Lastname' %}</th>
                     <th scope="col">{% trans 'Firstname' %}</th>
                     <th scope="col">{% trans 'Profile' %}</th>
@@ -34,7 +38,11 @@
                     <th scope="col">{% trans 'Date of registration' %}</th>
                   </tr>
                   <tr id="id_attendances">
-                    <th colspan='7'></th>
+                    {% if activate_disability.activate %}
+                      <th colspan='8'></th>
+                    {% else %}
+                      <th colspan='7'></th>
+                    {% endif %}
                     <th>
                       <div id="id_update_attendances" style="display:none">
                         <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
@@ -51,6 +59,9 @@
                 <tbody>
                   <tr>
                     <td></td>
+                    {% if activate_disability.activate %}
+                      <td></td>
+                    {% endif %}
                     <td></td>
                     <td></td>
                     <td></td>
@@ -204,6 +215,8 @@ let face_to_face = 0
 let outside = 2
 
 var cohorts_only = cohorts_only || false
+const activated_disability = "{{ activate_disability.activate }}" === "True"
+const disabled_person_txt = "{% trans 'Disabled person' %}"
 
 function set_attendance(immersion_id, value) {
   $.ajax({
@@ -217,7 +230,7 @@ function set_attendance(immersion_id, value) {
     success: function (json) {
       if(json['error']) {
         $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
-        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
       dtr.ajax.reload();
 
@@ -341,6 +354,127 @@ function open_group_modal(id, highschool_id, students_count, guides_count, file_
 
 $.fn.dataTableExt.errMode = 'console';
 
+let columns = []
+let tmp_columns = [
+  {"data": "isChecked",
+   "class": "checkcell",
+   "orderable": false,
+   "title": '<input id="checkall" type="checkbox" style="text-align: center">',
+   "render": function (dataItem) {
+      if (dataItem)
+          return '<input class="chk" checked type="checkbox">';
+      else
+          return '<input class="chk" type="checkbox">';
+    }
+  },
+  {"data": "lastname",
+   "render": function(data, type, row) {
+     if(type === "display") {
+       if(row.attendance_status === 1) {
+         return "<span class='text-primary'>"+data+"</span>";
+       }
+       else if (row.attendance_status === 2) {
+         return "<span class='text-danger'>"+data+"</span>";
+       }
+     }
+
+     return data;
+   }
+  },
+  {"data": "firstname",
+   "render": function(data, type, row) {
+     if(type === "display") {
+       if(row.attendance_status === 1) {
+         return "<span class='text-primary'>"+data+"</span>";
+       }
+       else if (row.attendance_status === 2) {
+         return "<span class='text-danger'>"+data+"</span>";
+       }
+     }
+
+     return data;
+   }
+  },
+  {"data": "profile"},
+  { "data": "school",
+    "render": function (data, type, row) {
+      if(type === 'sort') {
+        return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      }
+
+      return data
+    }
+  },
+  {"data": "city",
+    "render": function (data, type, row) {
+      if(!is_set(data)) {
+        return "-"
+      }
+
+      if(type === 'sort') {
+        return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      }
+
+      return data
+    }
+  },
+  {"data": "level"},
+  {"data": "attendance",
+   "render": function(data, type, row) {
+      var present_color="";
+      var absent_color="";
+
+      if(row.attendance_status === 1) {
+        present_color="style='color:green';";
+      }
+      else if (row.attendance_status === 2) {
+        absent_color="style='color:red';";
+      }
+
+      if(can_update_attendances === true && (slot_location === 0 || slot_location === 2)) {
+        return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
+               "<i class='fa fas fa-check' "+present_color+"></i>" +
+               "</button>" +
+               "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
+               "<i class='fa fas fa-times' "+absent_color+"></i>" +
+               "</button>" +
+               "<span "+present_color+" "+absent_color+">"+data+"</span>";
+      }
+      else {
+       return data;
+      }
+   },
+  },
+  {"data": "registration_date",
+   render: function(data, type, row) {
+     if (type !== 'sort') {
+       return data ? formatDate(data) : "";
+     }
+
+     return data
+   }
+  }
+]
+
+// if disability is activated, insert a new column at index 1 (2nd position)
+if(activated_disability) {
+  const col_idx = 1
+  columns = [
+    ...tmp_columns.slice(0, col_idx),
+    { "data": "disabled",
+      "name": "disabled",
+      "render": function(data, type, row) {
+        // return data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+        return data ? `<i class='fa fas fa-check' title="${disabled_person_txt}"></i>` : ""
+      }
+    },
+    ...tmp_columns.slice(col_idx),
+  ]
+}
+else {
+  columns = tmp_columns
+}
+
 dtr = $('#students_list').DataTable({
   'processing': false,
   'order': [
@@ -374,106 +508,7 @@ dtr = $('#students_list').DataTable({
     url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
   },
   {% endif %}
-  'columns': [
-    {"data": "isChecked",
-     "class": "checkcell",
-     "orderable": false,
-     "title": '<input id="checkall" type="checkbox" style="text-align: center">',
-     "render": function (dataItem) {
-        if (dataItem)
-            return '<input class="chk" checked type="checkbox">';
-        else
-            return '<input class="chk" type="checkbox">';
-      }
-    },
-    {"data": "lastname",
-     "render": function(data, type, row) {
-       if(type === "display") {
-         if(row.attendance_status === 1) {
-           return "<span class='text-primary'>"+data+"</span>";
-         }
-         else if (row.attendance_status === 2) {
-           return "<span class='text-danger'>"+data+"</span>";
-         }
-       }
-
-       return data;
-     }
-    },
-    {"data": "firstname",
-     "render": function(data, type, row) {
-       if(type === "display") {
-         if(row.attendance_status === 1) {
-           return "<span class='text-primary'>"+data+"</span>";
-         }
-         else if (row.attendance_status === 2) {
-           return "<span class='text-danger'>"+data+"</span>";
-         }
-       }
-
-       return data;
-     }
-    },
-    {"data": "profile"},
-    { "data": "school",
-      "render": function (data, type, row) {
-        if(type === 'sort') {
-          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-        }
-
-        return data
-      }
-    },
-    {"data": "city",
-      "render": function (data, type, row) {
-        if(!is_set(data)) {
-          return "-"
-        }
-
-        if(type === 'sort') {
-          return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-        }
-
-        return data
-      }
-    },
-    {"data": "level"},
-    {"data": "attendance",
-     "render": function(data, type, row) {
-        var present_color="";
-        var absent_color="";
-
-        if(row.attendance_status === 1) {
-          present_color="style='color:green';";
-        }
-        else if (row.attendance_status === 2) {
-          absent_color="style='color:red';";
-        }
-
-        if(can_update_attendances === true && (slot_location === 0 || slot_location === 2)) {
-          return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
-                 "<i class='fa fas fa-check' "+present_color+"></i>" +
-                 "</button>" +
-                 "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
-                 "<i class='fa fas fa-times' "+absent_color+"></i>" +
-                 "</button>" +
-                 "<span "+present_color+" "+absent_color+">"+data+"</span>";
-        }
-        else {
-         return data;
-        }
-     },
-    },
-    {"data": "registration_date",
-     render: function(data, type, row) {
-       if (type !== 'sort') {
-         return data ? formatDate(data) : "";
-       }
-
-       return data
-     }
-    }
-  ],
+  'columns': columns,
   "columnDefs": [
     {
       "defaultContent": "",

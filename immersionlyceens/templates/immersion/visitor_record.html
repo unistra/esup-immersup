@@ -22,6 +22,7 @@
 
 {% block content %}
 {% authorized_groups request.user %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
@@ -71,6 +72,16 @@
           <div class="col-sm-6 col-md-6">{{ form.phone }}</div>
           <div class="col-sm-3 col-md-2">{{ form.phone.errors }}</div>
         </div>
+        {% if activate_disability.activate %}
+        <div class="form-group row">
+          <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">
+          {{ activate_disability.form_sentence }} :</label>
+          <div class="col-sm-6 col-md-6">
+            {{ form.disability }}
+          </div>
+          <div class="col-sm-3 col-md-2">{{ form.disability.errors }}</div>
+        </div>
+        {% endif %}
       </div>
       <div class="card-header text-white bg-secondary">
         {% trans "Motivations" %}

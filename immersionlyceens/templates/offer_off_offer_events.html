@@ -16,6 +16,8 @@
 
 {% trans 'No city' as no_city %}
 
+{% include "./modals/modal_notify_disability.html" %}
+
 <div class="main-title inside text-center">
   <div></div>
   <div class="container">
@@ -345,13 +347,21 @@ function register(slot_id) {
       success: function (json) {
         let msg = json['msg'];
         let error = json['error'];
+        notify_disability = json['notify_disability'];
 
         if(error) {
           feedback = $("#feedback_"+slot_id);
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
-          window.location = "{% url 'offer_off_offer_events' %}";
+          if(notify_disability === "on_demand") {
+            open_notify_disability_modal(slot_id).then(() => {
+              window.location = "{% url 'offer_off_offer_events' %}";
+            })
+          }
+          else {
+            window.location = "{% url 'offer_off_offer_events' %}";
+          }
         }
       },
       error: function(json) {
