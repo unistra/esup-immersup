@@ -115,7 +115,7 @@
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
   var modal_open = false;
   var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
-  var hide_fields_public_area = JSON.parse(
+  const hide_fields_public_area = JSON.parse(
     document.getElementById("hide-fields-public-area-data").textContent
   );
 

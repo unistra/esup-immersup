@@ -128,6 +128,22 @@ function findBootstrapEnvironment() {
 }
 
 /*
+Display and manage exit of the disabled referent notification modal
+*/
+function open_notify_disability_modal(slot_id, modal_mode=false) {
+  current_slot_id = slot_id
+  modal_open = modal_mode;
+  $('#modal_notify_disability').modal('show');
+
+  // Wait for the modal to close (whatever the choice of the student)
+  return new Promise(resolve =>
+      $("#modal_notify_disability").on('hidden.bs.modal', () => {
+        resolve();
+      })
+  );
+}
+
+/*
 Open the additional information into a new modal if the text is too long
 */
 function openFullInfoModal() {
