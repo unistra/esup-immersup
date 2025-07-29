@@ -25,6 +25,7 @@
 {% block content %}
 {% authorized_groups request.user %}
 {% include 'modals/modal_course_alert.html' %}
+{% include "modals/modal_notify_disability.html" %}
 {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
 
 
