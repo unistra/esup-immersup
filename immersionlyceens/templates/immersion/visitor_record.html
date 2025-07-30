@@ -111,6 +111,11 @@
                 {{ document_form.attestation_label }} {% if document_form.instance.mandatory %}*{% endif %} :
               </label>
               <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
+              {% if document_form.uploaded %}
+                <div class="col-sm-3 col-md-4">
+                  {% trans 'Your file has been uploaded. Please remember to confirm at the bottom of the page.' %}
+                </div>
+              {% endif %}
               <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
             {% if document_form.instance.requires_validity_date %}
