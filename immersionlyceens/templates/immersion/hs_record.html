@@ -414,6 +414,24 @@
     let bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
   {% endautoescape %}
 
+  var upload_message = "Votre pièce a bien été versée, n'oubliez pas de valider votre fiche en bas de page"
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Select all the elements where id = <id_document_*-document>
+    const inputs = document.querySelectorAll('[id^="id_document_"][id$="-document"]');
+
+    inputs.forEach(function(input) {
+      input.addEventListener('change', function(event) {
+        const message = document.createElement('div');
+        message.classList.add('document-message', 'text-info', 'mt-2');
+        message.textContent = upload_message;
+
+        // Print the message just after the element
+        input.parentElement.appendChild(message);
+      });
+    });
+  });
+
   function open_modal() {
     $('#modal_nuke_account').modal('show');
   }
