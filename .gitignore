@@ -82,3 +82,9 @@ assets/
 *.save
 *.old
 restart_*sh
+
+# DB
+*.dump
+
+# Archives
+*.tar.gz
