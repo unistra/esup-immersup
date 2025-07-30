@@ -47,7 +47,7 @@ def remove_general_settings(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0259_max_slot_place'),
+        ('core', '0268_refstructuresnotificationssettings_disability_structures_and_more'),
     ]
 
     operations = [
