@@ -160,7 +160,7 @@ function openFullInfoModalHtml(content) {
 Hide the sensible infos of the activities with a general parameter
 */
 function hideParameter(parameter, is_connected, hide_fields_public_area) {
-  if (!is_connected && hide_fields_public_area[parameter]?.hide_public_area || is_connected && hide_fields_public_area[parameter]?.hide_after_registration)
+  if ((!is_connected && hide_fields_public_area[parameter]?.hide_public_area) || (is_connected && hide_fields_public_area[parameter]?.hide_after_registration))
     return true;
   else
     return false;
