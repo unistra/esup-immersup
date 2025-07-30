@@ -1412,9 +1412,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 document.validity_date = None
                                 document.save()
                                 validation_needed = True
-                                document_form.uploaded = True
-                            else:
-                                document_form.uploaded = False
                         else:
                             document_form_valid = False
                             if document.attestation.mandatory:
@@ -2349,9 +2346,6 @@ class VisitorRecordView(FormView):
                                 document.validity_date = None
                                 document.save()
                                 validation_needed = True
-                                document_form.uploaded = True
-                            else:
-                                document_form.uploaded = False
                         else:
                             document_form_valid = False
                             if document.attestation.mandatory:

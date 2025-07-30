@@ -217,11 +217,6 @@
                 {{ document_form.attestation_label }} {% if document_form.instance.mandatory %}*{% endif %} :
               </label>
               <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
-              {% if document_form.uploaded %}
-                <div class="col-sm-3 col-md-4">
-                  {% trans 'Your file has been uploaded. Please remember to confirm at the bottom of the page.' %}
-                </div>
-              {% endif %}
               <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
             {% if document_form.instance.deposit_date %}
@@ -418,6 +413,24 @@
     let high_school_levels = is_set('{{ high_school_levels }}') ? JSON.parse('{{ high_school_levels }}') : Array()
     let bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
   {% endautoescape %}
+
+  var upload_message = "Votre pièce a bien été versée, n'oubliez pas de valider votre fiche en bas de page"
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Select all the elements where id = <id_document_*-document>
+    const inputs = document.querySelectorAll('[id^="id_document_"][id$="-document"]');
+
+    inputs.forEach(function(input) {
+      input.addEventListener('change', function(event) {
+        const message = document.createElement('div');
+        message.classList.add('document-message', 'text-info', 'mt-2');
+        message.textContent = upload_message;
+
+        // Print the message just after the element
+        input.parentElement.appendChild(message);
+      });
+    });
+  });
 
   function open_modal() {
     $('#modal_nuke_account').modal('show');

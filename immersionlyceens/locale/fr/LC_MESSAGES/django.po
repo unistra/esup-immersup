@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-30 14:12+0200\n"
+"POT-Creation-Date: 2025-07-30 15:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1436,7 +1436,7 @@ msgstr "Inconnu"
 #: immersionlyceens/apps/immersion/models.py:370
 #: immersionlyceens/apps/immersion/models.py:457
 #: immersionlyceens/templates/core/duplicated_accounts.html:191
-#: immersionlyceens/templates/immersion/hs_record.html:368
+#: immersionlyceens/templates/immersion/hs_record.html:363
 #: immersionlyceens/templates/immersion/student_record.html:204
 msgid "To complete"
 msgstr "À compléter"
@@ -2498,7 +2498,7 @@ msgstr "Fiche renseignée"
 #: build/lib/immersionlyceens/apps/user/admin.py:27
 #: immersionlyceens/apps/core/admin.py:425
 #: immersionlyceens/apps/user/admin.py:27
-#: immersionlyceens/templates/immersion/hs_record.html:376
+#: immersionlyceens/templates/immersion/hs_record.html:371
 #: immersionlyceens/templates/immersion/student_record.html:212
 msgid "Validated record"
 msgstr "Fiche validée"
@@ -5469,8 +5469,8 @@ msgstr "Nécessite une date de validité"
 
 #: build/lib/immersionlyceens/apps/core/models.py:2488
 #: immersionlyceens/apps/core/models.py:2490
-#: immersionlyceens/templates/immersion/hs_record.html:253
-#: immersionlyceens/templates/immersion/visitor_record.html:140
+#: immersionlyceens/templates/immersion/hs_record.html:248
+#: immersionlyceens/templates/immersion/visitor_record.html:135
 msgid "Template"
 msgstr "Modèle"
 
@@ -7145,7 +7145,7 @@ msgstr "Statut '%s' inconnu"
 #: immersionlyceens/apps/immersion/models.py:459
 #: immersionlyceens/templates/core/duplicated_accounts.html:193
 #: immersionlyceens/templates/core/hs_record_manager.html:73
-#: immersionlyceens/templates/immersion/visitor_record.html:258
+#: immersionlyceens/templates/immersion/visitor_record.html:253
 msgid "Validated"
 msgstr "Validé"
 
@@ -7155,9 +7155,9 @@ msgstr "Validé"
 #: immersionlyceens/apps/immersion/models.py:460
 #: immersionlyceens/templates/core/duplicated_accounts.html:194
 #: immersionlyceens/templates/core/hs_record_manager.html:76
-#: immersionlyceens/templates/immersion/hs_record.html:380
+#: immersionlyceens/templates/immersion/hs_record.html:375
 #: immersionlyceens/templates/immersion/student_record.html:216
-#: immersionlyceens/templates/immersion/visitor_record.html:261
+#: immersionlyceens/templates/immersion/visitor_record.html:256
 msgid "Rejected"
 msgstr "Rejeté"
 
@@ -7230,7 +7230,7 @@ msgstr ""
 #: immersionlyceens/apps/immersion/models.py:482
 #: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:5
 #: immersionlyceens/templates/core/hs_record_manager.html:66
-#: immersionlyceens/templates/immersion/visitor_record.html:249
+#: immersionlyceens/templates/immersion/visitor_record.html:244
 msgid "Validation"
 msgstr "Validation"
 
@@ -7316,7 +7316,7 @@ msgstr "Fiche de {self.visitor.first_name} {self.visitor.last_name}"
 #: immersionlyceens/apps/immersion/models.py:491
 #: immersionlyceens/templates/immersion/visitor_record.html:16
 #: immersionlyceens/templates/immersion/visitor_record.html:20
-#: immersionlyceens/templates/immersion/visitor_record.html:249
+#: immersionlyceens/templates/immersion/visitor_record.html:244
 msgid "Visitor record"
 msgstr "Fiche visiteur"
 
@@ -7366,7 +7366,7 @@ msgstr "Quotas d'immersions par période"
 
 #: build/lib/immersionlyceens/apps/immersion/models.py:598
 #: immersionlyceens/apps/immersion/models.py:598
-#: immersionlyceens/templates/immersion/hs_record.html:230
+#: immersionlyceens/templates/immersion/hs_record.html:225
 msgid "Deposit date"
 msgstr "Date de dépôt"
 
@@ -10053,16 +10053,16 @@ msgid "Last name"
 msgstr "Nom"
 
 #: immersionlyceens/templates/core/hs_record_manager.html:59
-#: immersionlyceens/templates/immersion/hs_record.html:355
+#: immersionlyceens/templates/immersion/hs_record.html:350
 #: immersionlyceens/templates/immersion/student_record.html:191
-#: immersionlyceens/templates/immersion/visitor_record.html:240
+#: immersionlyceens/templates/immersion/visitor_record.html:235
 msgid "Record creation date"
 msgstr "Date de création"
 
 #: immersionlyceens/templates/core/hs_record_manager.html:70
-#: immersionlyceens/templates/immersion/hs_record.html:372
+#: immersionlyceens/templates/immersion/hs_record.html:367
 #: immersionlyceens/templates/immersion/student_record.html:208
-#: immersionlyceens/templates/immersion/visitor_record.html:255
+#: immersionlyceens/templates/immersion/visitor_record.html:250
 msgid "Waiting validation"
 msgstr "En attente de validation"
 
@@ -10070,7 +10070,7 @@ msgstr "En attente de validation"
 #: immersionlyceens/templates/core/speaker.html:76
 #: immersionlyceens/templates/immersion/confirm_creation.html:49
 #: immersionlyceens/templates/immersion/email_form.html:60
-#: immersionlyceens/templates/immersion/hs_record.html:409
+#: immersionlyceens/templates/immersion/hs_record.html:404
 #: immersionlyceens/templates/immersion/login.html:38
 #: immersionlyceens/templates/immersion/nologin.html:35
 #: immersionlyceens/templates/immersion/recovery.html:31
@@ -10078,7 +10078,7 @@ msgstr "En attente de validation"
 #: immersionlyceens/templates/immersion/resend_activation.html:31
 #: immersionlyceens/templates/immersion/resend_activation.html:33
 #: immersionlyceens/templates/immersion/student_record.html:241
-#: immersionlyceens/templates/immersion/visitor_record.html:287
+#: immersionlyceens/templates/immersion/visitor_record.html:282
 msgid "Back"
 msgstr "Retour"
 
@@ -10304,11 +10304,11 @@ msgstr "Données de l'intervenant"
 #: immersionlyceens/templates/immersion/change_password.html:41
 #: immersionlyceens/templates/immersion/confirm_creation.html:48
 #: immersionlyceens/templates/immersion/email_form.html:59
-#: immersionlyceens/templates/immersion/hs_record.html:407
+#: immersionlyceens/templates/immersion/hs_record.html:402
 #: immersionlyceens/templates/immersion/registration.html:174
 #: immersionlyceens/templates/immersion/reset_password.html:36
 #: immersionlyceens/templates/immersion/student_record.html:240
-#: immersionlyceens/templates/immersion/visitor_record.html:286
+#: immersionlyceens/templates/immersion/visitor_record.html:281
 msgid "Submit"
 msgstr "Valider"
 
@@ -11240,76 +11240,67 @@ msgstr ""
 msgid "Attestations"
 msgstr "Justificatifs"
 
-#: immersionlyceens/templates/immersion/hs_record.html:223
-#: immersionlyceens/templates/immersion/visitor_record.html:116
-msgid ""
-"Your file has been uploaded. Please remember to confirm at the bottom of the "
-"page."
-msgstr ""
-"Votre pièce a bien été versée, n'oubliez pas de valider votre fiche en bas de "
-"page"
-
-#: immersionlyceens/templates/immersion/hs_record.html:237
-#: immersionlyceens/templates/immersion/visitor_record.html:124
+#: immersionlyceens/templates/immersion/hs_record.html:232
+#: immersionlyceens/templates/immersion/visitor_record.html:119
 msgid "Validity date"
 msgstr "Date de validité"
 
-#: immersionlyceens/templates/immersion/hs_record.html:255
-#: immersionlyceens/templates/immersion/visitor_record.html:142
+#: immersionlyceens/templates/immersion/hs_record.html:250
+#: immersionlyceens/templates/immersion/visitor_record.html:137
 msgid "Get document template"
 msgstr "Télécharger le modèle"
 
-#: immersionlyceens/templates/immersion/hs_record.html:261
-#: immersionlyceens/templates/immersion/visitor_record.html:148
+#: immersionlyceens/templates/immersion/hs_record.html:256
+#: immersionlyceens/templates/immersion/visitor_record.html:143
 msgid "Archives"
 msgstr "Archives"
 
-#: immersionlyceens/templates/immersion/hs_record.html:285
+#: immersionlyceens/templates/immersion/hs_record.html:280
 msgid "Immersions periods and quotas"
 msgstr "Périodes d'immersions et quotas"
 
-#: immersionlyceens/templates/immersion/hs_record.html:301
-#: immersionlyceens/templates/immersion/hs_record.html:317
-#: immersionlyceens/templates/immersion/hs_record.html:340
+#: immersionlyceens/templates/immersion/hs_record.html:296
+#: immersionlyceens/templates/immersion/hs_record.html:312
+#: immersionlyceens/templates/immersion/hs_record.html:335
 #: immersionlyceens/templates/immersion/student_record.html:138
 #: immersionlyceens/templates/immersion/student_record.html:154
 #: immersionlyceens/templates/immersion/student_record.html:176
-#: immersionlyceens/templates/immersion/visitor_record.html:188
-#: immersionlyceens/templates/immersion/visitor_record.html:204
-#: immersionlyceens/templates/immersion/visitor_record.html:226
+#: immersionlyceens/templates/immersion/visitor_record.html:183
+#: immersionlyceens/templates/immersion/visitor_record.html:199
+#: immersionlyceens/templates/immersion/visitor_record.html:221
 msgid "allowed immersions"
 msgstr "immersions autorisées"
 
-#: immersionlyceens/templates/immersion/hs_record.html:349
+#: immersionlyceens/templates/immersion/hs_record.html:344
 #: immersionlyceens/templates/immersion/student_record.html:185
-#: immersionlyceens/templates/immersion/visitor_record.html:234
+#: immersionlyceens/templates/immersion/visitor_record.html:229
 msgid "Status"
 msgstr "Statuts"
 
-#: immersionlyceens/templates/immersion/hs_record.html:363
+#: immersionlyceens/templates/immersion/hs_record.html:358
 #: immersionlyceens/templates/immersion/student_record.html:199
 msgid "File status"
 msgstr "Statut de la fiche"
 
-#: immersionlyceens/templates/immersion/hs_record.html:384
+#: immersionlyceens/templates/immersion/hs_record.html:379
 #: immersionlyceens/templates/immersion/student_record.html:220
-#: immersionlyceens/templates/immersion/visitor_record.html:264
+#: immersionlyceens/templates/immersion/visitor_record.html:259
 msgid "Waiting revalidation"
 msgstr "Revalidation en attente"
 
-#: immersionlyceens/templates/immersion/hs_record.html:393
+#: immersionlyceens/templates/immersion/hs_record.html:388
 #: immersionlyceens/templates/immersion/student_record.html:229
-#: immersionlyceens/templates/immersion/visitor_record.html:276
+#: immersionlyceens/templates/immersion/visitor_record.html:271
 msgid "Record validation date"
 msgstr "Date de validation de la fiche"
 
-#: immersionlyceens/templates/immersion/hs_record.html:407
+#: immersionlyceens/templates/immersion/hs_record.html:402
 msgid "Next"
 msgstr "Suivant"
 
-#: immersionlyceens/templates/immersion/hs_record.html:412
+#: immersionlyceens/templates/immersion/hs_record.html:407
 #: immersionlyceens/templates/immersion/student_record.html:243
-#: immersionlyceens/templates/immersion/visitor_record.html:289
+#: immersionlyceens/templates/immersion/visitor_record.html:284
 msgid "Delete this account"
 msgstr "Supprimer ce compte"
 
@@ -11501,7 +11492,7 @@ msgid "No match"
 msgstr "Pas de correspondance"
 
 #: immersionlyceens/templates/immersion/student_record.html:123
-#: immersionlyceens/templates/immersion/visitor_record.html:172
+#: immersionlyceens/templates/immersion/visitor_record.html:167
 msgid "Immersions periods"
 msgstr "Périodes d'immersions"
 
@@ -11509,7 +11500,7 @@ msgstr "Périodes d'immersions"
 msgid "Motivations"
 msgstr "Motivations"
 
-#: immersionlyceens/templates/immersion/visitor_record.html:267
+#: immersionlyceens/templates/immersion/visitor_record.html:262
 msgid "In the process of being created"
 msgstr "En cours de création"
 
@@ -12016,6 +12007,11 @@ msgid ""
 msgstr ""
 "Une immersion en cohorte est réservée aux établissements scolaires qui "
 "souhaitent inscrire un groupe d'élève en immersion"
+
+#, fuzzy
+#~| msgid "Your accounts have been linked"
+#~ msgid "Your document has been uploaded, don"
+#~ msgstr "Vos comptes ont été liés"
 
 #~ msgid "Error: No high school selected"
 #~ msgstr "Erreur : Aucun lycée sélectionné"
