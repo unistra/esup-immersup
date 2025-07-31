@@ -1867,6 +1867,7 @@ class AttestationDocumentForm(forms.ModelForm):
                     )
             else:
                 raise forms.ValidationError(_('File type is not allowed'))
+
         return template
 
     def clean(self):
@@ -1884,6 +1885,12 @@ class AttestationDocumentForm(forms.ModelForm):
 
         if not cleaned_data.get("profiles", None):
             raise forms.ValidationError(_("At least one profile is required"))
+
+        profiles = cleaned_data['profiles']
+        visitor_types = cleaned_data['visitor_types']
+
+        if visitor_types and not profiles.filter(code='VIS').exists():
+            raise forms.ValidationError(_("Visitor profile is mandatory when adding visitor types"))
 
         return cleaned_data
 

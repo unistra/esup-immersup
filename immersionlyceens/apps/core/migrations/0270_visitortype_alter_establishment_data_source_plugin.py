@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0259_max_slot_place'),
+        ('core', '0269_hide_fields_public_parameter'),
     ]
 
     operations = [

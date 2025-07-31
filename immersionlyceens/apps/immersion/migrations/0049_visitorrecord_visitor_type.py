@@ -7,8 +7,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0260_visitortype_alter_establishment_data_source_plugin'),
-        ('immersion', '0046_studentrecord_validation'),
+        ('core', '0270_visitortype_alter_establishment_data_source_plugin'),
+        ('immersion', '0048_studentrecord_validation_date'),
     ]
 
     operations = [
