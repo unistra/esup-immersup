@@ -19,7 +19,7 @@ from immersionlyceens.apps.core.models import (
     Immersion, ImmersionUser, ImmersionUserGroup, PendingUserGroup,
     Period, PostBachelorLevel, Profile, Slot, Structure,
     StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear,
+    UniversityYear, VisitorType
 )
 
 from immersionlyceens.apps.immersion.models import (
@@ -118,6 +118,12 @@ class ImmersionViewsTestCase(TestCase):
 
         cls.student_user.set_password('pass')
         cls.student_user.save()
+
+        cls.visitor_type = VisitorType.objects.create(
+            code="VTCODE",
+            label="VTLABEL",
+            active=True
+        )
 
         # Visitor
         cls.visitor_user = get_user_model().objects.create_user(
@@ -1089,6 +1095,7 @@ class ImmersionViewsTestCase(TestCase):
             "birth_date": "",
             "phone": "0388010101",
             "motivation": "I'm very motivated.",
+            "visitor_type": self.visitor_type.pk,
             "submit": 1,
         }
 

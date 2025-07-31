@@ -2277,14 +2277,17 @@ class VisitorRecordView(FormView):
                               - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
 
                 attestation_filters = {
-                    'profiles__code': "VIS"
+                    'profiles__code': "VIS",
                 }
 
                 if visitor_age >= 18:
                     attestation_filters['for_minors'] = False
 
                 current_documents = VisitorRecordDocument.objects.filter(record=record)
-                attestations = AttestationDocument.activated.filter(**attestation_filters)
+                attestations = AttestationDocument.activated.filter(
+                    Q(visitor_types__isnull=True)|Q(visitor_types=record.visitor_type),
+                    **attestation_filters
+                )
 
                 # Clean documents if school has changed, including archives
                 for vrd in current_documents:
