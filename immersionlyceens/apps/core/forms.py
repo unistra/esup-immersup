@@ -525,6 +525,10 @@ class SlotForm(forms.ModelForm):
             instance.course.save()
             messages.success(self.request, _("Course published"))
 
+        if instance.published :
+            if (instance.course.start_date and instance.date < instance.course.start_date) or (instance.course.end_date and instance.date > instance.course.end_date) :
+                messages.warning(_("The slot will be saved, but the course publication dates do not match the slot date. Remember to change them."))
+
         if self.data.get("repeat"):
             # Careful with date formats, especially with unit tests
             try:
