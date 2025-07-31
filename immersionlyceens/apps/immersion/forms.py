@@ -718,7 +718,7 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
 class VisitorRecordForm(forms.ModelForm):
 
     validation_disabled_fields: Tuple[str, ...] = (
-        "birth_date", "motivation",
+        "birth_date", "motivation", "visitor_type"
     )
 
     def has_change_permission(self):
@@ -750,7 +750,7 @@ class VisitorRecordForm(forms.ModelForm):
 
     class Meta:
         model = VisitorRecord
-        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation']
+        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation', 'visitor_type']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

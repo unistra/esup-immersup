@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import TokenProxy
 
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
-    VisitorRecordDocument,
+    VisitorRecord, VisitorRecordDocument,
 )
 
 from immersionlyceens.fields import UpperCharField
@@ -2126,7 +2126,7 @@ class HistoryAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
 
-class VisitorTypeAdmin(admin.ModelAdmin):
+class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     """
     Admin for Visitor types
     Group permissions NOT taken into account
@@ -2135,6 +2135,15 @@ class VisitorTypeAdmin(admin.ModelAdmin):
     list_display = ('code', 'label', 'active')
     list_filter = ('active', )
     ordering = ('label',)
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
 
     def has_add_permission(self, request, obj=None):
         allowed_users = [
@@ -2160,7 +2169,10 @@ class VisitorTypeAdmin(admin.ModelAdmin):
             request.user.is_operator(),
             request.user.is_superuser,
         ]
-        return any(allowed_users)
+
+        exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+        return any(allowed_users) and not exists
 
 
 """
