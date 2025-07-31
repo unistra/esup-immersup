@@ -491,7 +491,7 @@
               if (data === '' || data === null) {
                 return ''
               }
-              if(type === "display" && !hide_fields_public_area["meeting_place"].hide_fields_public_area) {
+              if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
                 return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
               } else {
                 return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>'
@@ -610,7 +610,7 @@
           }
 
 
-          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_fields_public_area) {
+          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
             etab.push(rowData[0].structure_label)
           }
 
@@ -635,7 +635,7 @@
           }
 
 
-          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_fields_public_area) {
+          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
             etab.push(rowData[0].structure_label)
           }
 
@@ -718,13 +718,13 @@
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
-      if (!hide_fields_public_area["building"].hide_fields_public_area) {
+      if (!hide_fields_public_area["building"].hide_public_area) {
         $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label)
       }
-      if (!hide_fields_public_area["meeting_place"].hide_fields_public_area) {
+      if (!hide_fields_public_area["meeting_place"].hide_public_area) {
         $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
       }
-      if (!hide_fields_public_area["speakers"].hide_fields_public_area) {
+      if (!hide_fields_public_area["speakers"].hide_public_area) {
         $('#modal_search_slots_details #modal_speakers').html(
                 '<ul class="list-group">' + speakers_array + '</ul>'
         )
