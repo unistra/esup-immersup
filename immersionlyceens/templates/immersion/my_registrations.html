@@ -362,7 +362,7 @@
             else {
               data = row.meeting_place
             }
-            if (type === "display" && !hideParameter("meeting_place", is_connected, hide_fields_public_area)) {
+            if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return "<label>{% trans 'Meeting place'%} :</label>";
@@ -446,7 +446,7 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure) && !hideParameter("structure", is_connected, hide_fields_public_area)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration)) {
         etab.push(rowData[0].structure)
       }
       if (slotType === 'c') {
@@ -541,13 +541,13 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city)
-      if (!hideParameter("building", is_connected, hide_fields_public_area)) {
+      if (!hide_fields_public_area["building"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building)
       }
-      if (!hideParameter("meeting_place", is_connected, hide_fields_public_area)) {
+      if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
       }
-      if (!hideParameter("speakers", is_connected, hide_fields_public_area)) {
+      if (!hide_fields_public_area["speakers"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_speakers').html(
                 '<ul class="list-group">' + speakers_array + '</ul>'
         )
@@ -737,7 +737,7 @@
         {
           "render": function (data, type, row) {
             data = row.meeting_place
-            if(type === "display" && !hideParameter("meeting_place", is_connected, hide_fields_public_area)){
+            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration){
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return "<label>{% trans 'Meeting place'%} :</label>";
@@ -823,7 +823,7 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure) && !hideParameter("structure", is_connected, hide_fields_public_area)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration) {
         etab.push(rowData[0].structure);
       }
       if (slotType === 'c') {
@@ -889,13 +889,13 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      if(!hideParameter("building", is_connected, hide_fields_public_area)) {
+      if(!hide_fields_public_area["building"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
       }
-      if(!hideParameter("meeting_place", is_connected, hide_fields_public_area)) {
+      if(!hide_fields_public_area["meeting_place"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
       }
-      if (!hideParameter("speakers", is_connected, hide_fields_public_area)) {
+      if (!hide_fields_public_area["speakers"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_speakers').html(
                 '<ul class="list-group">' + speakers_array + '</ul>'
         )
@@ -1082,7 +1082,7 @@
         {
           "render": function (data, type, row) {
             data = row.meeting_place
-            if(type === "display" && !hideParameter("meeting_place", is_connected, hide_fields_public_area)) {
+            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return "<label>{% trans 'Meeting place'%} :</label>";
@@ -1173,7 +1173,7 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure) && !hideParameter("structure", is_connected, hide_fields_public_area)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration) {
         etab.push(rowData[0].structure);
       }
       if (slotType === 'c') {
@@ -1247,13 +1247,13 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      if(!hideParameter("building", is_connected, hide_fields_public_area)) {
+      if(!hide_fields_public_area["building"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
       }
-      if(!hideParameter("meeting_place", is_connected, hide_fields_public_area)) {
+      if(!hide_fields_public_area["meeting_place"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
       }
-      if(!hideParameter("speakers", is_connected, hide_fields_public_area)) {
+      if(!hide_fields_public_area["speakers"].hide_after_registration) {
         $('#modal_myimmersions_slot_details #modal_speakers').html(
                 '<ul class="list-group">' + speakers_array + '</ul>'
         )
