@@ -72,6 +72,11 @@
           <div class="col-sm-6 col-md-6">{{ form.phone }}</div>
           <div class="col-sm-3 col-md-2">{{ form.phone.errors }}</div>
         </div>
+        <div class="form-group row">
+          <label for="id_visitor_type" class="col-sm-3 col-md-4 col-form-label">{% trans 'Your situation' %} :</label>
+          <div class="col-sm-6 col-md-6">{{ form.visitor_type }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.visitor_type.errors }}</div>
+        </div>
         {% if activate_disability.activate %}
         <div class="form-group row">
           <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">

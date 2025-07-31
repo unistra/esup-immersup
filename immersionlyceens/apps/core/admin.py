@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import TokenProxy
 
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
-    VisitorRecordDocument,
+    VisitorRecord, VisitorRecordDocument,
 )
 
 from immersionlyceens.fields import UpperCharField
@@ -38,6 +38,7 @@ from .admin_forms import (
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
     ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    VisitorTypeForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
@@ -48,7 +49,7 @@ from .models import (
     InformationText, MailTemplate, MefStat, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, VisitorType
 )
 
 logger = logging.getLogger(__name__)
@@ -2130,6 +2131,56 @@ class HistoryAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
+
+class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    """
+    Admin for Visitor types
+    Group permissions NOT taken into account
+    """
+    form = VisitorTypeForm
+    list_display = ('code', 'label', 'active')
+    list_filter = ('active', )
+    ordering = ('label',)
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_add_permission(self, request, obj=None):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_change_permission(self, request, obj=None):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_delete_permission(self, request, obj=None):
+        #FIXME add test to forbid deletion when a type is in use
+
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+
+        exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+        return any(allowed_users) and not exists
+
+
 """
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
@@ -2173,6 +2224,7 @@ admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(MefStat, MefStatAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
+admin.site.register(VisitorType, VisitorTypeAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
 admin.site.register(ScheduledTask, ScheduledTaskAdmin)

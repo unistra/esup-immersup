@@ -472,6 +472,17 @@ class VisitorRecord(BaseRecord):
         related_name="visitor_record"
     )
 
+    visitor_type = models.ForeignKey(
+        core_models.VisitorType,
+        verbose_name=_("Visitor type"),
+        null=True,
+        blank=False,
+        on_delete=models.PROTECT,
+        related_name="visitors"
+    )
+
+    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
     motivation = models.TextField(_("Motivation"), null=True, blank=False)
 
     attestation_documents = models.ManyToManyField(

@@ -3690,6 +3690,28 @@ class MefStat(models.Model):
         verbose_name_plural = _('MefStat - High school levels')
 
 
+class VisitorType(models.Model):
+    """
+    Visitor type
+    """
+    code = models.CharField(_("Code"), primary_key=True, null=False, blank=False)
+    label = models.CharField(_("Label"), max_length=256, null=False, unique=True)
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.label}"
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A visitor type with this label already exists'))
+
+    class Meta:
+        verbose_name = _('Visitor type')
+        verbose_name_plural = _('Visitor types')
+
+
 ####### SIGNALS #########
 @receiver(user_logged_in)
 def user_logged_in_callback(sender, request, user, **kwargs):

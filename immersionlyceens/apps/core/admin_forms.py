@@ -35,7 +35,7 @@ from .models import (
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UAI, UniversityYear, Vacation,
+    UAI, UniversityYear, Vacation, VisitorType
 )
 
 
@@ -2347,4 +2347,13 @@ class ScheduledTaskForm(forms.ModelForm):
 
     class Meta:
         model = ScheduledTask
+        fields = '__all__'
+
+
+class VisitorTypeForm(TypeFormMixin):
+    """
+    visitor type form class
+    """
+    class Meta:
+        model = VisitorType
         fields = '__all__'
