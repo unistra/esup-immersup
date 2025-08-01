@@ -59,6 +59,22 @@ class AgreementHighSchoolFilter(admin.SimpleListFilter):
 
         return queryset
 
+class AgreementHighSchoolFilter(admin.SimpleListFilter):
+    title = _('High school agreement')
+    parameter_name = 'agreement'
+
+    def lookups(self, request, model_admin):
+        return [('True', _('Yes')), ('False', _('No'))]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value in ('True', 'False'):
+            return queryset\
+                .prefetch_related("high_school_student_record__highschool")\
+                .filter(high_school_student_record__highschool__with_convention=(value == 'True'))
+
+        return queryset
+
 
 class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -161,6 +177,7 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'email',
         'first_name',
         'last_name',
+        'visitor_type',
         'get_activated_account',
         'destruction_date',
         'get_edited_record',
@@ -168,10 +185,21 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'last_login',
     ]
 
-    list_filter = (ValidRecordFilter, )
+    list_filter = (
+        ('visitor_record__visitor_type', RelatedDropdownFilter),
+        ValidRecordFilter, 
+    )
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
+
+    def visitor_type(self, obj):
+        if not obj.visitor_record:
+            return ""
+            
+        return obj.visitor_record.visitor_type
+        
+    visitor_type.short_description = _('Visitor type')
 
     def has_add_permission(self, request):
         return False
