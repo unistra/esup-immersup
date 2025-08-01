@@ -2167,9 +2167,6 @@ class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         return any(allowed_users)
 
     def has_add_permission(self, request):
-
-        print(f"request.user.is_master_establishment_manager() ? {request.user.is_master_establishment_manager()}")
-
         allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
