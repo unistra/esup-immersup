@@ -2532,7 +2532,9 @@ class AttestationDocument(models.Model):
         VisitorType,
         verbose_name=_("Visitor types"),
         related_name='attestations',
-        blank=True
+        blank=True,
+        limit_choices_to={"active": True},
+        help_text=_("Optional: when visitor profile is selected, you may select one or more visitor types")
     )
 
     objects = models.Manager() # default manager

@@ -2169,18 +2169,31 @@ class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
             request.user.is_operator(),
             request.user.is_superuser,
         ]
+
+        if obj:
+            exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+            if exists:
+                messages.warning(request, _("Warning : this visitor type is in use"))
+
         return any(allowed_users)
 
     def has_delete_permission(self, request, obj=None):
         #FIXME add test to forbid deletion when a type is in use
-
         allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
             request.user.is_superuser,
         ]
 
-        exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+        exists = False
+
+        if obj:
+            exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+            if exists:
+                messages.warning(request, _("This visitor type can't be deleted because it is in use"))
+                return False
 
         return any(allowed_users) and not exists
 
