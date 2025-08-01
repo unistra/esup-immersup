@@ -34,7 +34,7 @@ from ..models import (
     Holiday, Immersion, ImmersionGroupRecord, OffOfferEvent, OffOfferEventType, Period, PostBachelorLevel,
     Profile, PublicDocument, PublicType, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UAI, UniversityYear, Vacation,
-    HigherEducationInstitution
+    HigherEducationInstitution, VisitorType
 )
 
 request_factory = RequestFactory()
@@ -181,6 +181,12 @@ class FormTestCase(TestCase):
             first_name='ref_str',
             last_name='ref_str',
             establishment=cls.establishment
+        )
+
+        cls.visitor_type = VisitorType.objects.create(
+            code='VTYPE',
+            label='test',
+            active=True
         )
 
         Group.objects.get(name='INTER').user_set.add(cls.speaker1)
@@ -996,13 +1002,15 @@ class FormTestCase(TestCase):
         document = AttestationDocument.objects.create(label="Test", active=True)
         lyc_w_conv_profile = Profile.objects.get(code="LYC_W_CONV")
         lyc_wo_conv_profile = Profile.objects.get(code="LYC_WO_CONV")
+        visitor_profile = Profile.objects.get(code="VIS")
 
         data = {
             "id": document.id,
             "order": document.order,
             "label": "New label",
             "active": True,
-            "profiles": [lyc_w_conv_profile.pk, ]
+            "profiles": [lyc_w_conv_profile.pk, ],
+            "visitor_types": [],
         }
 
         form = AttestationDocumentForm(data=data, instance=document, request=request)
@@ -1015,7 +1023,9 @@ class FormTestCase(TestCase):
         document.refresh_from_db()
 
         # Should fail because ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT is disabled
-        data["profiles"] = [lyc_w_conv_profile.pk, lyc_wo_conv_profile.pk]
+        data.update({
+            "profiles": [lyc_w_conv_profile.pk, lyc_wo_conv_profile.pk]
+        })
         form = AttestationDocumentForm(data=data, instance=document, request=request)
         form.is_valid()
 
@@ -1026,14 +1036,35 @@ class FormTestCase(TestCase):
 
         self.assertFalse(form.is_valid())
 
-        # No profile
-        data["profiles"] = []
+        document.refresh_from_db()
+
+        # visitor type without VIS profile
+        data.update({
+            "profiles": [lyc_w_conv_profile.pk, ],
+            "visitor_types": [self.visitor_type.pk, ]
+        })
+
         form = AttestationDocumentForm(data=data, instance=document, request=request)
         form.is_valid()
-
-        self.assertIn("At least one profile is required", form.errors["__all__"])
-
+        self.assertIn("Visitor profile is mandatory when adding visitor types", form.errors["__all__"])
         self.assertFalse(form.is_valid())
+
+        # No profile
+        data.update({
+            "profiles": [],
+            "visitor_types": [],
+        })
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        form.is_valid()
+        self.assertIn("At least one profile is required", form.errors["__all__"])
+        self.assertFalse(form.is_valid())
+
+        # VIS profile + visitor type => success
+        data["profiles"] = [visitor_profile, ]
+        data["visitor_types"] = [self.visitor_type, ]
+        form = AttestationDocumentForm(data=data, instance=document, request=request)
+        self.assertTrue(form.is_valid())
+
 
     def test_my_highschool_form_update(self):
         """

@@ -731,6 +731,10 @@ class VisitorRecordForm(forms.ModelForm):
             self.request.user.is_operator()
         ])
 
+    @staticmethod
+    def visitor_type_label_from_instance(obj):
+        return obj.label
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
@@ -742,7 +746,8 @@ class VisitorRecordForm(forms.ModelForm):
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
 
-        self.fields['visitor_type'].queryset = VisitorType.objects.filter(active=True).order_by('code')
+        self.fields['visitor_type'].queryset = VisitorType.objects.filter(active=True).order_by('label')
+        self.fields['visitor_type'].label_from_instance = self.visitor_type_label_from_instance
 
         for field in ["birth_date", "visitor_type"]:
             if self.instance and getattr(self.instance, field, None):

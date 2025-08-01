@@ -139,6 +139,13 @@ class AdminWithRequest:
 
         return AdminFormWithRequest
 
+    def in_messages(self, messages, message):
+        for m in messages:
+            if m.message == message:
+                return True
+
+        return False
+
 
 class ActivationFilter(admin.SimpleListFilter):
     title = _('Activated accounts')
@@ -1093,9 +1100,13 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
             # In use
             if Immersion.objects.filter(cancellation_type=obj).exists():
-                messages.warning(
-                    request, _("This cancellation type can't be updated because it is used by some registrations"),
+                warning_message = gettext(
+                    "This cancellation type can't be updated because it is used by some registrations"
                 )
+
+                if not self.in_messages(messages.get_messages(request), warning_message):
+                    messages.warning(request, warning_message)
+
                 return False
 
             # Protected
@@ -2155,7 +2166,10 @@ class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         ]
         return any(allowed_users)
 
-    def has_add_permission(self, request, obj=None):
+    def has_add_permission(self, request):
+
+        print(f"request.user.is_master_establishment_manager() ? {request.user.is_master_establishment_manager()}")
+
         allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
@@ -2164,6 +2178,8 @@ class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         return any(allowed_users)
 
     def has_change_permission(self, request, obj=None):
+        warning_message = gettext("Warning : this visitor type is in use")
+
         allowed_users = [
             request.user.is_master_establishment_manager(),
             request.user.is_operator(),
@@ -2173,8 +2189,8 @@ class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
             exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
 
-            if exists:
-                messages.warning(request, _("Warning : this visitor type is in use"))
+            if exists and not self.in_messages(messages.get_messages(request), warning_message):
+                messages.warning(request, warning_message)
 
         return any(allowed_users)
 

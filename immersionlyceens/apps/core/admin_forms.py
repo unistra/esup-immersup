@@ -1873,6 +1873,8 @@ class AttestationDocumentForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
+        profiles = cleaned_data.get('profiles', None)
+        visitor_types = cleaned_data.get('visitor_types', None)
 
         try:
             user = self.request.user
@@ -1883,11 +1885,8 @@ class AttestationDocumentForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        if not cleaned_data.get("profiles", None):
+        if not profiles:
             raise forms.ValidationError(_("At least one profile is required"))
-
-        profiles = cleaned_data['profiles']
-        visitor_types = cleaned_data['visitor_types']
 
         if visitor_types and not profiles.filter(code='VIS').exists():
             raise forms.ValidationError(_("Visitor profile is mandatory when adding visitor types"))

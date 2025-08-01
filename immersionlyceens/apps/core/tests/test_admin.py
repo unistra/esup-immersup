@@ -19,7 +19,7 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from ..admin import (
     AttestationDocumentAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
-    EstablishmentAdmin, PeriodAdmin, StructureAdmin, TrainingAdmin,
+    EstablishmentAdmin, PeriodAdmin, StructureAdmin, TrainingAdmin, VisitorTypeAdmin
 )
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CampusForm,
@@ -29,7 +29,7 @@ from ..admin_forms import (
     ImmersionUserCreationForm, InformationTextForm,
     MailTemplateForm, PeriodForm, PublicDocumentForm, PublicTypeForm,
     StructureForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    UniversityYearForm, VacationForm, VisitorTypeForm
 )
 from ..models import (
     AccompanyingDocument, AttestationDocument, BachelorMention, BachelorType,
@@ -38,8 +38,9 @@ from ..models import (
     HigherEducationInstitution, HighSchool, HighSchoolLevel, Holiday, ImmersionUser,
     InformationText, MailTemplate, MailTemplateVars, Period,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    TrainingSubdomain, UniversityYear, Vacation, VisitorType
 )
+from ...user.admin import VisitorAdmin
 
 
 class MockRequest:
@@ -2649,3 +2650,27 @@ class AdminFormsTestCase(TestCase):
             self.assertFalse(attestation_admin.has_add_permission(request=request))
             self.assertFalse(attestation_admin.has_delete_permission(request=request, obj=document))
             self.assertFalse(attestation_admin.has_change_permission(request=request, obj=document))
+
+    def test_visitor_type_admin(self):
+        adminsite = CustomAdminSite(name='Repositories')
+        visitor_type_admin = VisitorTypeAdmin(admin_site=adminsite, model=VisitorType)
+
+        visitor_type = VisitorType.objects.create(code='C', label="Test", active=True)
+
+        # --------------------------------------
+        # As superuser, master establishment manager or operator
+        # --------------------------------------
+        for user in [self.superuser, self.ref_master_etab_user, self.operator_user]:
+            request.user = user
+            # All should be True
+            self.assertTrue(visitor_type_admin.has_add_permission(request=request))
+            self.assertTrue(visitor_type_admin.has_delete_permission(request=request, obj=visitor_type))
+            self.assertTrue(visitor_type_admin.has_change_permission(request=request, obj=visitor_type))
+
+        # Other users:
+        for user in [self.ref_etab_user, self.ref_lyc_user, self.ref_str_user]:
+            request.user = user
+            # All should be False
+            self.assertFalse(visitor_type_admin.has_add_permission(request=request))
+            self.assertFalse(visitor_type_admin.has_delete_permission(request=request, obj=visitor_type))
+            self.assertFalse(visitor_type_admin.has_change_permission(request=request, obj=visitor_type))

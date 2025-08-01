@@ -2220,8 +2220,8 @@ class VisitorRecordView(FormView):
             if form.has_changed():
                 # Validation needed  ?
                 # fields that trigger the (re)validation :
-                fields = ["birth_date"]
-                validation_needed = len(list(filter(lambda x:x in fields, form.changed_data))) > 0
+                fields = ["birth_date", "visitor_type"]
+                validation_needed = list(filter(lambda x:x in fields, form.changed_data)) != []
 
                 if not creation and validation_needed:
                     messages.info(
@@ -2289,7 +2289,7 @@ class VisitorRecordView(FormView):
                     **attestation_filters
                 )
 
-                # Clean documents if school has changed, including archives
+                # Clean documents if something has changed, including archives
                 for vrd in current_documents:
                     if vrd.attestation not in attestations:
                         vrd.delete()
@@ -2341,6 +2341,8 @@ class VisitorRecordView(FormView):
                             request=request,
                             prefix=f"document_{document.attestation.id}"
                         )
+
+                        document_form.is_valid()
 
                         if document_form.is_valid():
                             document = document_form.save()

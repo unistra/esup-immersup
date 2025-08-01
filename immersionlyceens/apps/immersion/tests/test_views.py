@@ -125,6 +125,12 @@ class ImmersionViewsTestCase(TestCase):
             active=True
         )
 
+        cls.visitor_type2 = VisitorType.objects.create(
+            code="VTCODE_2",
+            label="VTLABEL_2",
+            active=True
+        )
+
         # Visitor
         cls.visitor_user = get_user_model().objects.create_user(
             username='visitor',
@@ -278,6 +284,30 @@ class ImmersionViewsTestCase(TestCase):
         )
 
         cls.attestation_2.profiles.add(Profile.objects.get(code='VIS'))
+
+        # Attestation with visitor profile and visitor type
+        cls.attestation_3 = AttestationDocument.objects.create(
+            label='Test label 3',
+            mandatory=True,
+            active=True,
+            for_minors=False,
+            requires_validity_date=True
+        )
+
+        cls.attestation_3.profiles.add(Profile.objects.get(code='VIS'))
+        cls.attestation_3.visitor_types.add(cls.visitor_type)
+
+        # Attestation with visitor profile and another visitor type
+        cls.attestation_4 = AttestationDocument.objects.create(
+            label='Test label 4',
+            mandatory=True,
+            active=True,
+            for_minors=False,
+            requires_validity_date=True
+        )
+
+        cls.attestation_4.profiles.add(Profile.objects.get(code='VIS'))
+        cls.attestation_4.visitor_types.add(cls.visitor_type2)
 
 
     def setUp(self):
@@ -1117,12 +1147,20 @@ class ImmersionViewsTestCase(TestCase):
 
         record = self.visitor_user.get_visitor_record()
 
-        # Check attestations objects (only 1 -> attestation_2)
+        # Check attestations objects, only 2
+        # - attestation_2 : visitor profile
+        # - attestation_3 : visitor profile + same visitor type
         documents = VisitorRecordDocument.objects.filter(record=record)
 
-        self.assertEqual(documents.count(), 1)
-        self.assertEqual(documents.first().attestation, self.attestation_2)
-        document = documents.first()
+        self.assertEqual(documents.count(), 2)
+        attestations = [d.attestation for d in documents]
+        # self.assertEqual(documents.first().attestation, self.attestation_2)
+        self.assertFalse(self.attestation_1 in attestations)  # bad profile
+        self.assertTrue(self.attestation_2 in attestations)
+        self.assertTrue(self.attestation_3 in attestations)
+        self.assertFalse(self.attestation_4 in attestations)  # bad visitor type
+        document = documents.filter(attestation=self.attestation_2).first()
+        document2 = documents.filter(attestation=self.attestation_3).first()
 
         # repost without attestations
         response = self.client.post('/immersion/visitor_record', record_data, follow=True)
@@ -1133,12 +1171,17 @@ class ImmersionViewsTestCase(TestCase):
 
         # Add missing file, fields, and repost
         fd = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
+        fd2 = open(join(dirname(abspath(__file__)), 'test_file.pdf'), 'rb')
         prefix = f"document_{self.attestation_2.pk}"
+        prefix2 = f"document_{self.attestation_3.pk}"
 
         record_data.update({
             f"{prefix}-record": document.record.pk,
             f"{prefix}-attestation": document.attestation.pk,
             f"{prefix}-document": [SimpleUploadedFile('test_file.pdf', fd.read(), content_type='application/pdf')],
+            f"{prefix2}-record": document2.record.pk,
+            f"{prefix2}-attestation": document2.attestation.pk,
+            f"{prefix2}-document": [SimpleUploadedFile('test_file.pdf', fd2.read(), content_type='application/pdf')],
         })
 
         fd.close()
@@ -1153,7 +1196,12 @@ class ImmersionViewsTestCase(TestCase):
         self.assertNotEqual(document.document, None)
         self.assertIsNone(document.validity_date)
 
+        document2.refresh_from_db()
+        self.assertNotEqual(document2.document, None)
+        self.assertIsNone(document2.validity_date)
+
         del (record_data[f"{prefix}-document"]) # no more needed
+        del (record_data[f"{prefix2}-document"]) # no more needed
 
         # Test get route as ref_etab user
         self.client.login(username='ref_etab', password='pass')
@@ -1166,8 +1214,9 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("You have errors in Attestations section", response.content.decode('utf-8'))
         self.assertEqual(record.validation, VisitorRecord.TO_COMPLETE)
 
-        # Success
+        # Success : add validity dates
         record_data[f"{prefix}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+        record_data[f"{prefix2}-validity_date"] = (self.today + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
         response = self.client.post('/immersion/visitor_record/%s' % record.id, record_data, follow=True)
         record.refresh_from_db()
 
