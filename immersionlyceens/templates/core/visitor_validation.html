@@ -65,6 +65,7 @@
                     <th id="name_filter_to_revalidate">{% trans "Name" %}</th>
                     <th id="birthdate_filter_to_revalidate">{% trans "Birth date" %}</th>
                     <th id="date_filter_to_revalidate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_revalidate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -94,6 +95,7 @@
                     <th id="name_filter_to_validate">{% trans "Name" %}</th>
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_validate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -295,6 +297,17 @@ $(document).ready(function () {
                   return data
                 }
               },
+              { data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
+                }
+              },
               { data: 'id',
                 render: function(data, type, row) {
                   let element = '';
@@ -374,6 +387,17 @@ $(document).ready(function () {
                   }
 
                   return data
+                }
+              },
+              { data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
                 }
               },
               { data: 'id',

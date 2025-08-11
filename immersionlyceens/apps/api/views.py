@@ -448,6 +448,32 @@ def ajax_get_student_records(request):
         )
     )
 
+    # List of the ids of the extracted records
+    record_ids = [r['id'] for r in records]
+
+    # Getting the attestations linked to the records
+    docs_qs = HighSchoolStudentRecordDocument.objects.filter(
+        record_id__in=record_ids,
+        archive=False,
+        document__isnull=False
+    ).select_related('attestation')
+
+    # List of attestations
+    attestations_by_record = {}
+    for doc in docs_qs:
+        att = doc.attestation
+        if att:
+            attestations_by_record.setdefault(doc.record_id, []).append({
+                'label': att.label,
+                'url': doc.document.url if doc.document else '',
+                #'validity_date': att.validity_date.isoformat() if att.validity_date else None,
+                #'requires_validity_date': att.attestation__requires_validity_date,
+                #'id': att.attestation_id,
+            })
+
+    for rec in records:
+        rec['attestations'] = attestations_by_record.get(rec['id'], [])
+
     response['data'] = list(records)
 
     return JsonResponse(response, safe=False)
