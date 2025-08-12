@@ -728,9 +728,9 @@ $(document).ready(function () {
                   row.attestations.forEach(att => {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
-                    if (att.requires_validity_date) {
+                    //if (att.requires_validity_date) {
                       html += ` <input type="date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
-                    }
+                    //}
                     html += '</li>';
                   });
                   html += '</ul>';
