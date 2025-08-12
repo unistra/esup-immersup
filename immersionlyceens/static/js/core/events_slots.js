@@ -258,6 +258,11 @@ function init_datatable() {
               `</span>`;
           }
 
+          //if (row.n_register === 0 && row.n_group_register === 0 && row.is_past === true) {
+            element += `<button type="button" class="btn btn-light btn-sm mr-1" name="inscription_list" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${inscription_list_text}">` +
+                `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
+                `</button>`;
+          //}
 
           return element;
         }
