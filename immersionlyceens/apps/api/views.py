@@ -1415,10 +1415,14 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Cannot register slot due to out of date attestations")}
         return JsonResponse(response, safe=False)
 
-    # Check if slot date is not passed
-    if slot.date < today or (slot.date == today and today_time > slot.start_time):
-        response = {'error': True, 'msg': _("Register to past slot is not possible")}
-        return JsonResponse(response, safe=False)
+    # Check if slot date is not passed. The admins can register people even if the date is passed
+    if not (user.is_master_establishment_manager or
+            user.is_establishment_manager and establishment == user_establishment or
+            user.is_structure_manager and structure == allowed_structures or
+            user.is_high_school_manager and user.highschool == user_highschool):
+        if slot.date < today or (slot.date == today and today_time > slot.start_time):
+            response = {'error': True, 'msg': _("Register to past slot is not possible")}
+            return JsonResponse(response, safe=False)
 
     # Slot restrictions validation
     can_register_slot, reasons = student.can_register_slot(slot)
@@ -2429,7 +2433,7 @@ def ajax_groups_batch_cancel_registration(request):
         slot_establishment = slot.get_establishment()
         slot_structure = slot.get_structure()
         slot_highschool = slot.get_highschool()
-        # Check if highschool manager can cancelled his groups registrations from his highschool
+        # Check if highschool manager can cancel his groups registrations from his highschool
         other_hs_count = (
             ImmersionGroupRecord.objects.filter(pk__in=json_data, slot=slot).exclude(highschool=user.highschool).count()
         )

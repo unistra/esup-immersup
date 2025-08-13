@@ -745,7 +745,7 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   slot_is_past = $('#modal_view_slot_immersions').data('ispast')
 
   // show or hide register & cancel btn when slot != past or authenticated user can't update registrations
-  if (slot_is_past || can_update_registrations === false && cohorts_only === false) {
+  if (can_update_registrations === false && cohorts_only === false) {
     $('#btn_cancel_registrations').hide();
     $('#btn_register_student').hide();
     $('#lbl_select_cancel_type').hide();
