@@ -375,7 +375,10 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            validate_student($("#vdialog-form").data('param'));
+            let student_record_id = $("#vdialog-form").data('param');
+            let validity_date = $("#validity_date").val(); //Ici c'est une liste de dates associées à des fichiers que je dois récupérer
+
+            validate_student(student_record_id, validity_date);
             vdialog.dialog("close");
           },
         },
@@ -736,7 +739,7 @@ $(document).ready(function () {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     //if (att.requires_validity_date) {
-                      html += ` <input type="date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
                     //}
                     html += '</li>';
                   });
@@ -941,11 +944,12 @@ function reload_rejected() {
     $('#rejected').DataTable().ajax.reload();
 }
 
-function validate_student( student_record_id ) {
+function validate_student(student_record_id, validity_date) {
   $.post({
     url: "{% url 'validateStudent' %}",
     data: {
         student_record_id: student_record_id,
+        validity_date: validity_date,
     },
     success: function(obj) {
       if (is_set(obj.data)) {

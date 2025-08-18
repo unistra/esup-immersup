@@ -488,6 +488,7 @@ def ajax_validate_reject_student(request, validate):
     """
     student_record_id = request.POST.get('student_record_id')
     rejection_reason = request.POST.get('rejection_reason', '')
+    validity_date = request.POST.get('validity_date', '')
 
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
@@ -547,7 +548,7 @@ def ajax_validate_reject_student(request, validate):
         if res.get("msg"):
             msgs.append(res.get("msg"))
 
-        record.validation_date = timezone.localtime() if validate else None
+        record.validation_date = timezone.localtime() if validate else None # Seulement si aucune date n'a été specifiée ?
         record.rejected_date = None if validate else timezone.localtime()
         record.save()
 
@@ -5149,6 +5150,7 @@ class VisitorRecordRejectValidate(View):
         # can't be none. No routes allowed for that
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
+        rejection_reason: str = self.kwargs.get("rejection_reason", "")
         validation_value: str = "TO_VALIDATE"
         validation_email_template: str = ""
         delete_attachments: bool = False
@@ -5198,7 +5200,7 @@ class VisitorRecordRejectValidate(View):
         record.validation_date = timezone.localtime() if validation_value == "VALIDATED" else None
         record.rejected_date = timezone.localtime() if validation_value == "REJECTED" else None
         record.save()
-        ret = record.visitor.send_message(self.request, validation_email_template)
+        ret = record.visitor.send_message(self.request, validation_email_template, rejection_reason)
         data["data"] = {"record_id": record.id}
 
         if res.get("msg"):
