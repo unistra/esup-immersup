@@ -487,6 +487,7 @@ def ajax_validate_reject_student(request, validate):
     Validate or reject student
     """
     student_record_id = request.POST.get('student_record_id')
+    rejection_reason = request.POST.get('rejection_reason', '')
 
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
@@ -559,7 +560,7 @@ def ajax_validate_reject_student(request, validate):
                     attestation.delete()
 
         template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
-        ret = record.student.send_message(request, template)
+        ret = record.student.send_message(request, template, rejection_reason)
 
         if ret:
             msgs.append(_("Record updated but notification not sent : %s") % ret)

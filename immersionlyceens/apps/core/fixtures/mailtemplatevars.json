@@ -550,5 +550,13 @@
         "code": "{{ educonnect }}",
         "description": "Indique si le lycée renseigné dans la fiche utilise la fédération ÉduConnect"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 82,
+    "fields": {
+        "code": "{{ rejection_reason }}",
+        "description": "Motif de rejet d'un compte"
+    }
 }
 ]

@@ -654,7 +654,7 @@ class ImmersionUser(AbstractUser):
     def send_message(self, request, template_code, copies=None, recipient='user', **kwargs):
         """
         Get a MailTemplate by its code, replace variables and send
-        :param message_code: Code of message to send
+        :param template_code: Code of message to send
         :return: True if message sent else False
         """
         try:
