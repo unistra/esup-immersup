@@ -586,13 +586,18 @@ def cohort_offer(request):
 
     today = datetime.datetime.today()
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = (
+    slots = (
         Slot.objects
-        .filter(published=True, event__isnull=True, allow_group_registrations=True, public_group=True)
+        .filter(published=True, event__isnull=True, allow_group_registrations=True)
         .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
         .distinct()
-        .count()
     )
+
+    if not request.user.is_high_school_manager():
+        slots = slots.filter(public_group=True)
+
+    slots_count = slots.count()
+
     now = timezone.now()
     today = timezone.now().date()
     # Published event only & no course
@@ -607,8 +612,10 @@ def cohort_offer(request):
     filters["course__isnull"] = True
     filters["event__published"] = True
     filters["allow_group_registrations"] = True
-    filters["public_group"] = True
     filters["date__gte"] = today
+    if not request.user.is_high_school_manager():
+        filters["public_group"] = True
+
     events = (
         Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions'
