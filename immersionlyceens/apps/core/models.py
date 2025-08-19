@@ -1206,6 +1206,23 @@ class TrainingSubdomain(models.Model):
 
         return slots_count
 
+    def count_group_public_and_private_subdomain_slots(self):
+        today = datetime.datetime.today()
+        slots_count = (
+            Slot.objects.filter(
+                course__training__training_subdomains=self,
+                published=True,
+                event__isnull=True,
+                allow_group_registrations=True,
+            )
+            .prefetch_related('course__training__training_subdomains__training_domain')
+            .filter(
+                Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
+            .count()
+        )
+
+        return slots_count
+
     class Meta:
         verbose_name = _('Training sub domain')
         verbose_name_plural = _('Training sub domains')

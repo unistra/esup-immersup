@@ -72,18 +72,33 @@
                     </header>
                     <div class="card-body">
                       <ul class="list-arrows">
-                        {% for d in subdomain.list %}
-                          {% with slots_number=d.count_group_public_subdomain_slots %}
-                            <li>
-                              {% if slots_number > 0 %}
-                                <a href="{% url 'cohort_offer_subdomain' d.id %}">{{ d.label }}</a>
-                                <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_number }} {% trans 'slot(s) available' %}">{{ slots_number }}</span></span>
-                              {% else %}
-                                <span data-toggle="tooltip" title="{% trans 'No slots available' %}">{{ d.label }}</span>
-                              {% endif %}
-                            </li>
-                          {% endwith %}
-                        {% endfor %}
+                        {% if request.user.is_high_school_manager %}
+                          {% for d in subdomain.list %}
+                            {% with slots_number=d.count_group_public_and_private_subdomain_slots %}
+                              <li>
+                                {% if slots_number > 0 %}
+                                  <a href="{% url 'cohort_offer_subdomain' d.id %}">{{ d.label }}</a>
+                                  <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_number }} {% trans 'slot(s) available' %}">{{ slots_number }}</span></span>
+                                {% else %}
+                                  <span data-toggle="tooltip" title="{% trans 'No slots available' %}">{{ d.label }}</span>
+                                {% endif %}
+                              </li>
+                            {% endwith %}
+                          {% endfor %}
+                        {% else %}
+                          {% for d in subdomain.list %}
+                            {% with slots_number=d.count_group_public_subdomain_slots %}
+                              <li>
+                                {% if slots_number > 0 %}
+                                  <a href="{% url 'cohort_offer_subdomain' d.id %}">{{ d.label }}</a>
+                                  <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ slots_number }} {% trans 'slot(s) available' %}">{{ slots_number }}</span></span>
+                                {% else %}
+                                  <span data-toggle="tooltip" title="{% trans 'No slots available' %}">{{ d.label }}</span>
+                                {% endif %}
+                              </li>
+                            {% endwith %}
+                          {% endfor %}
+                        {% endif %}
                       </ul>
                     </div>
                   </div>
