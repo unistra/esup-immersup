@@ -1,5 +1,7 @@
 {% load immersionlyceens_tags i18n static %}
 {% authorized_groups request.user %}
+
+{% include './modal_search_slots_details.html' %}
 <!-- Modal -->
 <div class="modal fade" id="modal_student_details" tabindex="-1" role="dialog" aria-labelledby="modal_student_details_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
@@ -17,6 +19,7 @@
               <table id="immersions_table" class="table table-sm table-bordered nowrap dt-body-nowrap" style="width:100%;">
               <thead>
                 <tr>
+                  <th>{% trans 'Details' %}</th>
                   <th>{% trans 'Type' %}</th>
                   <th>{% trans 'Managed by' %}</th>
                   <th>{% trans 'Details' %}</th>
@@ -33,6 +36,7 @@
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -88,6 +92,17 @@ dtr = $('#immersions_table').DataTable({
   },
   {% endif %}
   'columns': [
+    { "data": "details",
+      "render": function(data, type, row) {
+        return `
+          <button class="btn badge badge-pill badge-primary pull-right btn-more-details"
+                data-toggle="modal"
+                data-target="#modal_search_slots_details"
+                data-id="${data}">
+            {% trans 'More details' %}
+          </button>`
+      }
+    },
     { "data": "translated_type" },
     { "data": "",
       "render": function(data, type, row) {
@@ -185,6 +200,15 @@ dtr = $('#immersions_table').DataTable({
 
 $('#modal_student_details').on('show.bs.modal', function (e) {
   reload_table();
+});
+
+$('#modal_search_slots_details').on('show.bs.modal', function (event) {
+  let button = $(event.relatedTarget);
+  let slotId = button.data('id');
+
+  $.get(`/api/slot_details/${slotId}/`, function(data) {
+    $('#modal_search_slots_details .modal-body').html(data.html);
+  });
 });
 
 </script>
