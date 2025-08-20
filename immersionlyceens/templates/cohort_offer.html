@@ -6,9 +6,12 @@
 {% block head-javascript %}
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
+
 {% block content %}
   {% settings_get 'UNISTRA' as unistra %}
   {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+  {% include 'modals/modal_register_group.html' %}
+
   <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -420,5 +423,4 @@
     });
   });
 </script>
-{% include 'modals/modal_register_group.html' %}
 {% endblock %}

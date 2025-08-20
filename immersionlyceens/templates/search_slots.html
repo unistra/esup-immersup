@@ -21,8 +21,10 @@
 {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
 {{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
 
-  {% include './modals/modal_search_slots_details.html' %}
+  {% include "./modals/modal_search_slots_details.html" %}
   {% include "./modals/modal_notify_disability.html" %}
+  {% include "./modals/modal_register_group.html" %}
+
   <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -183,6 +185,7 @@
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
   var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
+  let register_group_txt = "{% trans 'Register a group' %}";
   const hide_fields_public_area = JSON.parse(
     document.getElementById("hide-fields-public-area-data").textContent
   );
@@ -746,6 +749,47 @@
         }
       })
       {% endif %}
+
+      {% if authorized_groups|in_groups:"REF-LYC" %}
+      if ( rowData[0].allow_group_registrations === true ) {
+
+        $.ajax({
+          url: "/api/can_register_slot/" + rowData[0].id,
+          type: 'GET',
+          success: function (data) {
+            if (data['data'] !== undefined && data['data'][0] !== undefined) {
+              if (data['data'][0]['can_register'] === true) {
+                $('#modal_register_btn').html(
+                        "<button class='btn badge badge-pill badge-primary pull-right' " +
+                        "id='btn_register_group_" + rowData[0].id + "' " +
+                        "data-toggle='modal' " +
+                        "data-slot-id='" + rowData[0].id + "' " +
+                        "data-target='#modal_register_group'>{% trans 'Register a group' %}" +
+                        "</button>"
+                )
+                ;
+              } else if (data['data'][0]['already_registered'] === true) {
+                $('#modal_register_btn').html(
+                        "<span class=\"badge badge-pill badge-success\">{% trans 'Already registered' %}</span>"
+                );
+              }
+            }
+          }
+        })
+
+        $('#modal_register_group').on('show.bs.modal', function (event) {
+          let button = $(event.relatedTarget)
+          let slotId = button.data('slot-id')
+
+          current_slot_id = slotId;
+
+          $(this).find('input[name="slot_id"]').val(slotId);
+        })
+
+      }
+
+      {% endif %}
+
       $('[data-toggle="tooltip"]').tooltip({placement:"left",});
       // rows to hide
       selectedRows = filteredRows.map(id => `#${id}`).join(',')
