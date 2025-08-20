@@ -184,8 +184,8 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
-  var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
   let register_group_txt = "{% trans 'Register a group' %}";
+  var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
   const hide_fields_public_area = JSON.parse(
     document.getElementById("hide-fields-public-area-data").textContent
   );
