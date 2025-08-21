@@ -242,71 +242,67 @@ $('#modal_search_slots_details').on('show.bs.modal', function (event) {
   let remote = 1
 
   if (rowData.allow_individual_registrations === true) {
-    availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData.n_places)-parseInt(rowData.n_register)) + ' / ' + rowData.n_places + '</li>'
+    availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData.n_places)-parseInt(rowData.n_registered)) + ' / ' + rowData.n_places + '</li>'
   }
   if (rowData.allow_group_registrations === true) {
     availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData.n_group_places)-parseInt(rowData.group_registered_persons)) + ' / ' + rowData.n_group_places + '</li>'
   }
   availablesSeatslabel += '</ul>';
 
-  $.each(rowData.speakers_list, function(i, item) {
-    speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
-  });
+  speakers_array = rowData.speakers.map(s => "<li>" + s + "</li>").join('');
 
   // display all row_* elements
   $(displayedRows).show();
 
   if (slotType === 'c') {
-      if (rowData.establishment_label !==null) {
-        etab.push(rowData.establishment_label)
+      if (rowData.establishment !==null) {
+        etab.push(rowData.establishment)
       }
 
-      if (rowData.highschool_label !== null) {
-        etab.push(rowData.highschool_label)
+      if (rowData.highschool !== null) {
+        etab.push(rowData.highschool)
       }
       $('#modal_search_slots_details #modal_course_label').html(rowData.course_training_label);
       filteredRows.push('row_highschool');
   } else if (slotType === 'v') {
-      if (rowData.establishment_label !==null ) {
-        etab.push(rowData.establishment_label)
+      if (rowData.establishment !==null ) {
+        etab.push(rowData.establishment)
       }
 
 
-      if (rowData.structure_label !== null) {
-        etab.push(rowData.structure_label)
+      if (rowData.structure !== null) {
+        etab.push(rowData.structure)
       }
 
 
       filteredRows.push('row_course_label', 'row_course_type', 'row_building');
-      if (rowData.highschool_label !== null && rowData.highschool_city !== null) {
-        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label + ' (' + rowData.highschool_city + ')' );
-      } else if (rowData.highschool_label !== null) {
-        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label);
+      if (rowData.highschool !== null && rowData.highschool_city !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool + ' (' + rowData.highschool_city + ')' );
+      } else if (rowData.highschool !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool);
       } else {
         $('#modal_search_slots_details #modal_highschool').html();
-        $('#modal_search_slots_details #modal_city').html(rowData.city);
+        $('#modal_search_slots_details #modal_city').html(rowData.highschool_city);
         filteredRows.push('row_highschool');
 
       }
   } else {
-      if (rowData.establishment_label !==null) {
-        etab.push(rowData.establishment_label)
+      if (rowData.establishment !==null) {
+        etab.push(rowData.establishment)
       }
-      if (rowData.highschool_label !== null) {
-        etab.push(rowData.highschool_label)
+      if (rowData.highschool !== null) {
+        etab.push(rowData.highschool)
       }
-
-
-      if (rowData.structure_label !== null) {
-        etab.push(rowData.structure_label)
+      if (rowData.structure !== null) {
+        etab.push(rowData.structure)
       }
 
 
       filteredRows.push('row_course_label', 'row_course_type');
-      if (rowData.highschool_label !== null && rowData.highschool_city !== null) {
-        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label + ' (' + rowData.highschool_city + ')' );
-      } else if (rowData.highschool_label !== null) {
-        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label);
+      if (rowData.highschool !== null && rowData.highschool_city !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool + ' (' + rowData.highschool_city + ')' );
+      } else if (rowData.highschool !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool);
       } else {
         $('#modal_search_slots_details #modal_highschool').html();
         filteredRows.push('row_highschool');
@@ -314,7 +310,7 @@ $('#modal_search_slots_details').on('show.bs.modal', function (event) {
   }
 
   if (rowData.building_url !== null && rowData.building_url !== '') {
-    buildingFull = rowData.building_label + "&nbsp;<a href=\""+rowData.building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+    buildingFull = rowData.building + "&nbsp;<a href=\""+rowData.building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
   }
 
 
@@ -324,7 +320,7 @@ $('#modal_search_slots_details').on('show.bs.modal', function (event) {
   if (rowData.label !== null && rowData.course_url !== '') {
     labelFull = rowData.label + "&nbsp;<a href=\""+rowData.course_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
   }
-  if (rowData.campus_label === '' || rowData.campus_label === null) {
+  if (rowData.campus === '' || rowData.campus === null) {
     filteredRows.push('row_campus');
   }
   if (rowData.highschool_address === '' || rowData.highschool_address === null) {
@@ -332,7 +328,7 @@ $('#modal_search_slots_details').on('show.bs.modal', function (event) {
   }
 
 
-  if (rowData.building_label === '' || rowData.building_label === null) {
+  if (rowData.building === '' || rowData.building === null) {
     filteredRows.push('row_building');
   }
 
@@ -356,17 +352,17 @@ $('#modal_search_slots_details').on('show.bs.modal', function (event) {
       }
   }
 
-  $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
+  $('#modal_search_slots_details #modal_establishment').html(etab.length ? etab.join(' - ') : '—');
 
   $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData.course_training_label);
   $('#modal_search_slots_details #modal_label').html(labelFull ?? rowData.label);
-  $('#modal_search_slots_details #modal_type').html(rowData.slot_type);
+  $('#modal_search_slots_details #modal_type').html(rowData.type);
   $('#modal_search_slots_details #modal_course_type').html(rowData.course_type_full_label);
   $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData.date, 'display', rowData, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
-  $('#modal_search_slots_details #modal_location').html(rowData.location + ' ' + rowData.building_label + ' ' + rowData.room);
-  $('#modal_search_slots_details #modal_campus').html(rowData.campus_label + ' (' + rowData.city + ')')
-  $('#modal_search_slots_details #modal_highschool_address').html(rowData.highschool_address + ' (' + rowData.city + ')')
-  $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData.building_label)
+  $('#modal_search_slots_details #modal_location').html(rowData.location + ' ' + rowData.building + ' ' + rowData.room);
+  $('#modal_search_slots_details #modal_campus').html(rowData.campus + ' (' + rowData.campus_city + ')')
+  $('#modal_search_slots_details #modal_highschool_address').html(rowData.highschool_address + ' (' + rowData.highschool_city + ')')
+  $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData.building)
   $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData.meeting_place);
   $('#modal_search_slots_details #modal_speakers').html(
           '<ul class="list-group">' + speakers_array + '</ul>'
