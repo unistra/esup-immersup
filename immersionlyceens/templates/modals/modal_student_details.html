@@ -2,6 +2,11 @@
 {% authorized_groups request.user %}
 
 {% include './modal_search_slots_details.html' %}
+
+{% block head-javascript %}
+<script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
+{% endblock %}
+
 <!-- Modal -->
 <div class="modal fade" id="modal_student_details" tabindex="-1" role="dialog" aria-labelledby="modal_student_details_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
@@ -98,9 +103,9 @@ dtr = $('#immersions_table').DataTable({
           <button class="btn badge badge-pill badge-primary pull-right btn-more-details"
                 data-toggle="modal"
                 data-target="#modal_search_slots_details"
-                data-id="${data}">
+                data-slot="${JSON.stringify(row).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}">
             {% trans 'More details' %}
-          </button>`
+          </button>`;
       }
     },
     { "data": "translated_type" },
@@ -198,17 +203,191 @@ dtr = $('#immersions_table').DataTable({
   }
 });
 
+//Stack the modals on top of another
+$(document).on('show.bs.modal', '.modal', function () {
+  let zIndex = 1040 + (10 * $('.modal:visible').length);
+  $(this).css('z-index', zIndex);
+  setTimeout(() => {
+    $('.modal-backdrop').not('.modal-stack')
+      .css('z-index', zIndex - 1)
+      .addClass('modal-stack');
+  }, 0);
+});
+
 $('#modal_student_details').on('show.bs.modal', function (e) {
   reload_table();
 });
 
 $('#modal_search_slots_details').on('show.bs.modal', function (event) {
   let button = $(event.relatedTarget);
-  let slotId = button.data('id');
 
-  $.get(`/api/slot_details/${slotId}/`, function(data) {
-    $('#modal_search_slots_details .modal-body').html(data.html);
+  let rowData = button.data('slot');
+  console.log(rowData);
+
+  if (!rowData) { return; } //The modal can be open even if there is a problem with rowData
+
+  let speakers_array = "";
+  let url = null;
+  let buildingFull = null;
+  let courseLabelFull = null;
+  let labelFull = null;
+  let slotType = rowData.slot_type;
+  let etab = [];
+  var restrictions = "";
+  let displayedRows = $("[id^=row_]");
+  let selectedRows = [];
+  var filteredRows = [];
+  let availablesSeatslabel = '<ul class="list-inline">';
+
+  let remote = 1
+
+  if (rowData.allow_individual_registrations === true) {
+    availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData.n_places)-parseInt(rowData.n_register)) + ' / ' + rowData.n_places + '</li>'
+  }
+  if (rowData.allow_group_registrations === true) {
+    availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData.n_group_places)-parseInt(rowData.group_registered_persons)) + ' / ' + rowData.n_group_places + '</li>'
+  }
+  availablesSeatslabel += '</ul>';
+
+  $.each(rowData.speakers_list, function(i, item) {
+    speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
   });
+
+  // display all row_* elements
+  $(displayedRows).show();
+
+  if (slotType === 'c') {
+      if (rowData.establishment_label !==null) {
+        etab.push(rowData.establishment_label)
+      }
+
+      if (rowData.highschool_label !== null) {
+        etab.push(rowData.highschool_label)
+      }
+      $('#modal_search_slots_details #modal_course_label').html(rowData.course_training_label);
+      filteredRows.push('row_highschool');
+  } else if (slotType === 'v') {
+      if (rowData.establishment_label !==null ) {
+        etab.push(rowData.establishment_label)
+      }
+
+
+      if (rowData.structure_label !== null) {
+        etab.push(rowData.structure_label)
+      }
+
+
+      filteredRows.push('row_course_label', 'row_course_type', 'row_building');
+      if (rowData.highschool_label !== null && rowData.highschool_city !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label + ' (' + rowData.highschool_city + ')' );
+      } else if (rowData.highschool_label !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label);
+      } else {
+        $('#modal_search_slots_details #modal_highschool').html();
+        $('#modal_search_slots_details #modal_city').html(rowData.city);
+        filteredRows.push('row_highschool');
+
+      }
+  } else {
+      if (rowData.establishment_label !==null) {
+        etab.push(rowData.establishment_label)
+      }
+      if (rowData.highschool_label !== null) {
+        etab.push(rowData.highschool_label)
+      }
+
+
+      if (rowData.structure_label !== null) {
+        etab.push(rowData.structure_label)
+      }
+
+
+      filteredRows.push('row_course_label', 'row_course_type');
+      if (rowData.highschool_label !== null && rowData.highschool_city !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label + ' (' + rowData.highschool_city + ')' );
+      } else if (rowData.highschool_label !== null) {
+        $('#modal_search_slots_details #modal_highschool').html(rowData.highschool_label);
+      } else {
+        $('#modal_search_slots_details #modal_highschool').html();
+        filteredRows.push('row_highschool');
+      }
+  }
+
+  if (rowData.building_url !== null && rowData.building_url !== '') {
+    buildingFull = rowData.building_label + "&nbsp;<a href=\""+rowData.building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+  }
+
+
+  if (rowData.course_training_url !== null && rowData.course_training_url !== '') {
+    courseLabelFull = rowData.course_training_label + "&nbsp;<a href=\""+rowData.course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
+  }
+  if (rowData.label !== null && rowData.course_url !== '') {
+    labelFull = rowData.label + "&nbsp;<a href=\""+rowData.course_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
+  }
+  if (rowData.campus_label === '' || rowData.campus_label === null) {
+    filteredRows.push('row_campus');
+  }
+  if (rowData.highschool_address === '' || rowData.highschool_address === null) {
+    filteredRows.push('row_highschool_address');
+  }
+
+
+  if (rowData.building_label === '' || rowData.building_label === null) {
+    filteredRows.push('row_building');
+  }
+
+
+  if (rowData.additional_information === '' || rowData.additional_information === null) {
+    filteredRows.push('row_additional_information');
+  }
+
+
+  if (rowData.meeting_place === '' || rowData.meeting_place === null) {
+    filteredRows.push('row_meeting_place');
+  }
+
+
+  if (rowData.place === remote) {
+      if (Object.keys(rowData).indexOf('url')
+          && rowData.url != null
+          && rowData.url != ''
+          && (rowData.user_has_group_immersions || rowData.user_is_registered)) {
+        url = ' <a href="' + rowData.url + '">{% trans "Remote" %}</a>';
+      }
+  }
+
+  $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
+
+  $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData.course_training_label);
+  $('#modal_search_slots_details #modal_label').html(labelFull ?? rowData.label);
+  $('#modal_search_slots_details #modal_type').html(rowData.slot_type);
+  $('#modal_search_slots_details #modal_course_type').html(rowData.course_type_full_label);
+  $('#modal_search_slots_details #modal_date').html(display_slot_date(rowData.date, 'display', rowData, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}));
+  $('#modal_search_slots_details #modal_location').html(rowData.location + ' ' + rowData.building_label + ' ' + rowData.room);
+  $('#modal_search_slots_details #modal_campus').html(rowData.campus_label + ' (' + rowData.city + ')')
+  $('#modal_search_slots_details #modal_highschool_address').html(rowData.highschool_address + ' (' + rowData.city + ')')
+  $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData.building_label)
+  $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData.meeting_place);
+  $('#modal_search_slots_details #modal_speakers').html(
+          '<ul class="list-group">' + speakers_array + '</ul>'
+  )
+  $('#modal_search_slots_details #modal_additional_information').html(rowData.additional_information);
+
+  if (rowData.additional_information && rowData.additional_information.length > 300) {
+    $('#show_more_info').show();
+  } else {
+    $('#show_more_info').hide();
+  }
+
+  $('#modal_search_slots_details #modal_available_seats').html(availablesSeatslabel);
+  $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData.registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
+  $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
+
+  $('[data-toggle="tooltip"]').tooltip({placement:"left",});
+
+  // rows to hide
+  selectedRows = filteredRows.map(id => `#${id}`).join(',')
+  $(selectedRows).hide();
 });
 
 </script>
