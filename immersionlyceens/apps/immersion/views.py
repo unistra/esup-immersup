@@ -1238,7 +1238,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 """You have updated your email address."""
                                 """<br>A new activation email has been sent."""
                             )
-
+                        student.email_change_date = timezone.now()
                         messages.warning(request, msg)
 
                 except Exception as e:
@@ -1719,6 +1719,7 @@ def student_record(request, student_id=None, record_id=None):
                             request,
                             _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
                         )
+                        student.email_change_date = timezone.now()
                 except Exception as e:
                     logger.exception("Error while sending email update notification : %s", e)
                     messages.error(request, _("Cannot send email. The administrators have been notified."))
@@ -2168,6 +2169,7 @@ class VisitorRecordView(FormView):
                         """<br>A new activation email has been sent."""
                     ),
                 )
+                user.email_change_date = timezone.now()
         except Exception as exc:
             messages.error(self.request, _("Cannot send email. The administrators have been notified."))
             logger.exception("Error while sending email update notification : %s", exc)

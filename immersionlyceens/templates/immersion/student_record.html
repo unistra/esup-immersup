@@ -216,6 +216,7 @@
 
               {% elif record.validation == 4 %}
                 <span class="badge badge-pill badge-warning" id="recordStatus">
+                <!--id="record_status" ?-->
                 {% trans "Waiting revalidation" %}
 
               {% endif %}
@@ -231,6 +232,25 @@
             {{ record.validation_date }}
           </div>
         </div>
+        {% endif %}
+        {% if student.get_email_validation_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Email validation date' %} :
+            </label>
+            <div class="col-sm-8">
+              {{ student.email_validation_date }}
+            </div>
+          </div>
+        {% elif student.get_email_change_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Email change date' %} :
+            </label>
+            <div class="col-sm-8">
+              {{ student.email_change_date }}
+            </div>
+          </div>
         {% endif %}
       </div>
       {% endif %}

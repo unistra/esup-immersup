@@ -537,6 +537,8 @@ class ImmersionUser(AbstractUser):
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
     creation_email_sent = models.BooleanField(_("Creation email sent"), blank=True, null=True, default=False)
+    email_change_date = models.DateTimeField(_("Email change date"), blank=True, null=True)
+    email_validation_date = models.DateTimeField(_("Email activation date"), blank=True, null=True)
     preferences = models.JSONField(
         _("User preferences"),
        blank=True,
@@ -547,6 +549,12 @@ class ImmersionUser(AbstractUser):
 
     def __str__(self):
         return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
+
+    def get_email_change_date(self):
+        return self.email_change_date
+
+    def get_email_validation_date(self):
+        return self.email_validation_date
 
     def get_preferences_list(self):
         """
@@ -683,6 +691,7 @@ class ImmersionUser(AbstractUser):
     def validate_account(self):
         self.validation_string = None
         self.destruction_date = None
+        self.email_validation_date = timezone.now()
         self.save()
 
     def get_localized_destruction_date(self):
@@ -725,6 +734,12 @@ class ImmersionUser(AbstractUser):
         except ObjectDoesNotExist:
             return None
 
+    def get_visitor_record(self) -> Optional[Any]:
+        try:
+            return self.visitor_record
+        except ObjectDoesNotExist:
+            return None
+
     def get_student_establishment(self):
         """
         Match student record establishment with core Establishment class
@@ -753,12 +768,6 @@ class ImmersionUser(AbstractUser):
             return _('Visitor')
         else:
             return self.get_high_school() or self.get_student_establishment()
-
-    def get_visitor_record(self) -> Optional[Any]:
-        try:
-            return self.visitor_record
-        except ObjectDoesNotExist:
-            return None
 
     def get_authorized_structures(self):
         if self.is_superuser or self.is_master_establishment_manager() or self.is_operator():
