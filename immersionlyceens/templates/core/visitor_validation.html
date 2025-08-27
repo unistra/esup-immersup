@@ -34,6 +34,10 @@
     <span>
       {% trans 'Did you really want to reject this visitor?' %}
     </span>
+    <div style="margin-top: 10px;">
+      <label for="rejection_reason">{% trans 'Reason (optional)' %}</label><br>
+      <textarea id="rejection_reason" name="rejection_reason" rows="3" style="width: 100%;"></textarea>
+    </div>
   </div>
 
   <div class="card">
@@ -65,6 +69,7 @@
                     <th id="name_filter_to_revalidate">{% trans "Name" %}</th>
                     <th id="birthdate_filter_to_revalidate">{% trans "Birth date" %}</th>
                     <th id="date_filter_to_revalidate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_revalidate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -94,6 +99,7 @@
                     <th id="name_filter_to_validate">{% trans "Name" %}</th>
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_validate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -227,7 +233,10 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            reject_student($("#rdialog-form").data('param'));
+            let visitor_record_id = $("#rdialog-form").data('param');
+            let reason = $("#rejection_reason").val();
+
+            reject_student(visitor_record_id, reason);
             rdialog.dialog("close");
           },
         },
@@ -293,6 +302,17 @@ $(document).ready(function () {
                   }
 
                   return data
+                }
+              },
+              { data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
                 }
               },
               { data: 'id',
@@ -374,6 +394,17 @@ $(document).ready(function () {
                   }
 
                   return data
+                }
+              },
+              { data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
                 }
               },
               { data: 'id',
@@ -646,9 +677,12 @@ function validate_student( student_record_id ) {
   });
 }
 
-function reject_student( student_record_id ) {
+function reject_student(student_record_id, reason) {
   $.post({
       url: "/api/visitor/record/" + student_record_id + "/reject",
+      data: {
+        rejection_reason: reason,
+      },
       success: function(data) {
           if (data !== undefined) {
 
