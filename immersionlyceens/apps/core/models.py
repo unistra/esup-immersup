@@ -550,12 +550,6 @@ class ImmersionUser(AbstractUser):
     def __str__(self):
         return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 
-    def get_email_change_date(self):
-        return self.email_change_date
-
-    def get_email_validation_date(self):
-        return self.email_validation_date
-
     def get_preferences_list(self):
         """
         :return: the list of settings the user has access to, depending on its profile
@@ -691,7 +685,6 @@ class ImmersionUser(AbstractUser):
     def validate_account(self):
         self.validation_string = None
         self.destruction_date = None
-        self.email_validation_date = timezone.now()
         self.save()
 
     def get_localized_destruction_date(self):

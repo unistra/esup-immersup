@@ -391,7 +391,7 @@
             </div>
           </div>
         {% endif %}
-        {% if student.get_email_validation_date %}
+        {% if student.email_validation_date %}
           <div class="form-group row align-items-center">
             <label class="col-sm-4 col-form-label">
               {% trans 'Email validation date' %} :
@@ -400,7 +400,7 @@
               {{ student.email_validation_date }}
             </div>
           </div>
-        {% elif student.get_email_change_date %}
+        {% elif student.email_change_date %}
           <div class="form-group row align-items-center">
             <label class="col-sm-4 col-form-label">
               {% trans 'Email change date' %} :

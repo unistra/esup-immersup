@@ -662,6 +662,7 @@ def setEmail(request):
             user = form.save(commit=False)
             user.set_validation_string()
             user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            user.email_validation_date = timezone.now()
             user.save()
 
             user.refresh_from_db()
@@ -1239,6 +1240,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 """<br>A new activation email has been sent."""
                             )
                         student.email_change_date = timezone.now()
+                        student.save(update_fields=['email_change_date'])
                         messages.warning(request, msg)
 
                 except Exception as e:
@@ -1286,7 +1288,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
                     )
-
+                    student.email_change_date = timezone.now()
+                    student.save(update_fields=['email_change_date'])
                 # These particular field changes will trigger attestations updates
                 if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
                     create_documents = True
@@ -1720,6 +1723,7 @@ def student_record(request, student_id=None, record_id=None):
                             _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
                         )
                         student.email_change_date = timezone.now()
+                        student.save(update_fields=['email_change_date'])
                 except Exception as e:
                     logger.exception("Error while sending email update notification : %s", e)
                     messages.error(request, _("Cannot send email. The administrators have been notified."))
@@ -2170,6 +2174,7 @@ class VisitorRecordView(FormView):
                     ),
                 )
                 user.email_change_date = timezone.now()
+                user.save(update_fields=['email_change_date'])
         except Exception as exc:
             messages.error(self.request, _("Cannot send email. The administrators have been notified."))
             logger.exception("Error while sending email update notification : %s", exc)
@@ -2230,7 +2235,8 @@ class VisitorRecordView(FormView):
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
                     )
-
+                    user.email_change_date = timezone.now()
+                    user.save(update_fields=['email_change_date'])
                 # Already validated record, but the disability is now enabled
                 if record.validation == record.VALIDATED and "disability" in form.changed_data and record.disability:
                     set_status_params = {
