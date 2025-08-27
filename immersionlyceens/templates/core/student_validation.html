@@ -376,9 +376,18 @@ $(document).ready(function () {
           "class": 'dialog-button',
           click: function () {
             let student_record_id = $("#vdialog-form").data('param');
-            let validity_date = $("#validity_date").val(); //Ici c'est une liste de dates associées à des fichiers que je dois récupérer
 
-            validate_student(student_record_id, validity_date);
+            let documents_validity_dates = [];
+            row.find(".validity-date").each(function () {
+                let docId = $(this).data("document-id");
+                let dateValue = $(this).val();
+                documents_validity_dates.push({
+                    id: docId,
+                    validity_date: dateValue
+                });
+            });
+
+            validate_student(student_record_id, documents_validity_dates);
             vdialog.dialog("close");
           },
         },
@@ -495,15 +504,36 @@ $(document).ready(function () {
                   return data
                 }
               },
-              { data: 'attestations',
+              {
+                data: 'attestations',
                 render: function(data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
+
                   return '<ul class="mb-0">' + data.map(att =>
                     `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
                   ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestation.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',
@@ -605,15 +635,36 @@ $(document).ready(function () {
                   return data
                 }
               },
-              { data: 'attestations',
+{
+                data: 'attestations',
                 render: function(data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
+
                   return '<ul class="mb-0">' + data.map(att =>
                     `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
                   ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestation.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',
@@ -713,38 +764,6 @@ $(document).ready(function () {
                   }
 
                   return data
-                }
-              },
-              {
-                data: 'attestations',
-                render: function(data, type, row) {
-
-                  if (!Array.isArray(data) || data.length === 0) {
-                    return '{% trans "No attestation" %}';
-                  }
-
-                  return '<ul class="mb-0">' + data.map(att =>
-                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
-                  ).join('') + '</ul>';
-                },
-
-                render: function (data, type, row) {
-
-                  if (!Array.isArray(data) || data.length === 0) {
-                    return '{% trans "No attestation" %}';
-                  }
-
-                  let html = '<ul>';
-                  row.attestations.forEach(att => {
-                    html += `<li>
-                          <a href="${att.url}" target="_blank">${att.label}</a>`;
-                    //if (att.requires_validity_date) {
-                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
-                    //}
-                    html += '</li>';
-                  });
-                  html += '</ul>';
-                  return html;
                 }
               },
               { data: 'id',
@@ -944,12 +963,12 @@ function reload_rejected() {
     $('#rejected').DataTable().ajax.reload();
 }
 
-function validate_student(student_record_id, validity_date) {
+function validate_student(student_record_id, documents_validity_date) {
   $.post({
     url: "{% url 'validateStudent' %}",
     data: {
         student_record_id: student_record_id,
-        validity_date: validity_date,
+        validity_dates: JSON.stringify(documents_validity_date),
     },
     success: function(obj) {
       if (is_set(obj.data)) {

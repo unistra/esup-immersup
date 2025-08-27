@@ -304,15 +304,36 @@ $(document).ready(function () {
                   return data
                 }
               },
-              { data: 'attestations',
+              {
+                data: 'attestations',
                 render: function(data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
+
                   return '<ul class="mb-0">' + data.map(att =>
                     `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
                   ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestation.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',
@@ -396,15 +417,36 @@ $(document).ready(function () {
                   return data
                 }
               },
-              { data: 'attestations',
+              {
+                data: 'attestations',
                 render: function(data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
+
                   return '<ul class="mb-0">' + data.map(att =>
                     `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
                   ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestation.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',

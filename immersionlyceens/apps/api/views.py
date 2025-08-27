@@ -24,6 +24,8 @@ from django.contrib.postgres.aggregates import ArrayAgg, StringAgg
 from django.core.exceptions import FieldError, ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import transaction, IntegrityError
+from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_date
 
 from django.db.models import (
     BooleanField,
@@ -488,7 +490,31 @@ def ajax_validate_reject_student(request, validate):
     """
     student_record_id = request.POST.get('student_record_id')
     rejection_reason = request.POST.get('rejection_reason', '')
-    validity_date = request.POST.get('validity_date', '')
+
+    try:
+        data = json.loads(request.POST.get("validity_dates", "[]"))
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    if (request.user.is_visitor):
+        for doc_data in data:
+            doc_id = doc_data.get("id")
+            doc_validity_date = doc_data.get("documents_validity_date", "")
+
+            document = get_object_or_404(VisitorRecordDocument, pk=doc_id)
+            if doc_validity_date:
+                document.validity_date = parse_date(doc_validity_date)
+            document.save()
+
+    if (request.user.is_high_school_student):
+        for doc_data in data:
+            doc_id = doc_data.get("id")
+            doc_validity_date = doc_data.get("documents_validity_date", "")
+
+            document = get_object_or_404(HighSchoolStudentRecordDocument, pk=doc_id)
+            if doc_validity_date:
+                document.validity_date = parse_date(doc_validity_date)
+            document.save()
 
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
@@ -548,7 +574,6 @@ def ajax_validate_reject_student(request, validate):
         if res.get("msg"):
             msgs.append(res.get("msg"))
 
-        record.validation_date = timezone.localtime() if validate else None # Seulement si aucune date n'a été specifiée ?
         record.rejected_date = None if validate else timezone.localtime()
         record.save()
 
