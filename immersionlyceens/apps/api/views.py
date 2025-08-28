@@ -468,7 +468,7 @@ def ajax_get_student_records(request):
             attestations_by_record.setdefault(doc.record_id, []).append({
                 'label': att.label,
                 'url': doc.document.url if doc.document else '',
-                #'validity_date': att.validity_date.isoformat() if att.validity_date else None,
+                'validity_date': doc.validity_date.strftime("%Y-%m-%d") if doc.validity_date else None,
                 'requires_validity_date': doc.requires_validity_date,
             })
 
