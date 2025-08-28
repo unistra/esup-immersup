@@ -324,7 +324,7 @@ $(document).ready(function () {
                   }
 
                   let html = '<ul>';
-                  row.attestation.forEach(att => {
+                  row.attestations.forEach(att => {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {
@@ -437,7 +437,7 @@ $(document).ready(function () {
                   }
 
                   let html = '<ul>';
-                  row.attestation.forEach(att => {
+                  row.attestations.forEach(att => {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {

@@ -469,8 +469,7 @@ def ajax_get_student_records(request):
                 'label': att.label,
                 'url': doc.document.url if doc.document else '',
                 #'validity_date': att.validity_date.isoformat() if att.validity_date else None,
-                #'requires_validity_date': att.attestation__requires_validity_date,
-                #'id': att.attestation_id,
+                'requires_validity_date': doc.requires_validity_date,
             })
 
     for rec in records:
