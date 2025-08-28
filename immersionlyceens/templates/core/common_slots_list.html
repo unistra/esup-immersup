@@ -101,7 +101,7 @@
               <div class="col-md-5">
                 <div id="prd_filter" style="padding-bottom:10px; padding-top:20px;">
                   <label for="id_period">{% trans "Select a period" %} :</label>
-                  <select name="period" id="id_period" class="form-control">
+                  <select id="id_period" class="form-control">
                     <option value="">-------------</option>
                     {% for period in periods %}
                       <option value="{{ period.id }}" {% if period.id == period_id %}selected="selected"{% endif %}>
@@ -323,7 +323,6 @@
     dt.clear().draw()
 
     empty_structures()
-    empty_periods();
 
     if (current_establishment_id !== "") {
       set_structures(current_establishment_id);
@@ -342,7 +341,6 @@
       "current_establishment_id": current_establishment_id,
       "current_structure_id": current_structure_id,
       "current_training_id": current_training_id,
-      "current_period_id": current_period_id,
     })
   });
 
@@ -361,8 +359,6 @@
       set_trainings('highschool', current_highschool_id);
     }
 
-    empty_periods();
-
     if (current_highschool_id !== "") {
       reload_data();
     }
@@ -372,7 +368,6 @@
       "current_establishment_id": current_establishment_id,
       "current_structure_id": current_structure_id,
       "current_training_id": current_training_id,
-      "current_period_id": current_period_id,
     })
   });
 
@@ -388,27 +383,31 @@
       set_trainings('structures', current_structure_id);
     }
 
-    current_period_id = ''
-    $('#id_period').val('')
-    set_periods();
-
     reload_data();
 
     set_session_values(slot_mode, {
       "current_structure_id": current_structure_id,
       "current_training_id": current_training_id,
+    })
+  });
+
+  // Reload the table when period changes in selectbox
+  $('#id_period').change( function() {
+    current_period_id = $('#id_period option:selected').val()
+
+    dt.clear().draw()
+
+    if(current_period_id !== "") {
+      reload_data();
+    }
+
+    set_session_values(slot_mode, {
       "current_period_id": current_period_id,
     })
   });
 
   $('#id_training').on('change', function(event) {
     current_training_id = $("#id_training").val()
-
-    reload_data();
-  });
-
-  $('#id_period').on('change', function(event) {
-    current_period_id = $("#id_period").val()
 
     reload_data();
   });
@@ -424,12 +423,6 @@
     let options = '<option value="">---------</option>'
     $('select#id_training').html(options)
     current_training_id = ''
-  }
-
-  function empty_periods() {
-    let options = '<option value="">---------</option>'
-    $('select#id_period').html(options)
-    current_period_id = ''
   }
 
   function set_structures(establishment_id) {
@@ -505,7 +498,7 @@
       url: "{% url 'period_list' %}",
       type: 'GET',
       data: {
-        csrfmiddlewaretoken: '{{ csrf_token }}'
+        csrfmiddlewaretoken: '{{ csrf_token }}',
       },
       success: function (json) {
         let options = '<option value="">---------</option>'
@@ -571,7 +564,10 @@
       $("#id_training").val(current_training_id);
     }
 
-    $("#id_period").val(current_period_id);
+    if(is_set(current_period_id)) {
+      $("#id_period").val(current_period_id)
+    }
+
     set_periods();
 
     init_datatable();
