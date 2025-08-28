@@ -70,6 +70,7 @@ def slots(request):
     structure_id = request.GET.get('structure_id')
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
+    period_id = request.GET.get('period_id')
     courses = request.GET.get('courses', False) == "true"
     events = request.GET.get('events', False) == "true"
     past_slots_with_attendances = request.GET.get('past', False) == "true"
@@ -107,6 +108,11 @@ def slots(request):
         int(training_id)
     except (TypeError, ValueError):
         training_id = None
+
+    try:
+        int(period_id)
+    except (TypeError, ValueError):
+        period_id = None
 
     force_user_filter = [
         user_slots,
@@ -166,6 +172,15 @@ def slots(request):
         elif highschool_id:
             filters['event__highschool__id'] = highschool_id
 
+        if period_id:
+            kw_courses_filters = {'period__id': period_id}
+            kw_events_filters = {'period__id': period_id}
+
+            args_filters.append(
+                Q(**kw_courses_filters)
+                | Q(**kw_events_filters)
+            )
+
         user_filter_key = ['course__training__structures__in', 'event__structure__in']
 
     elif events:
@@ -177,6 +192,13 @@ def slots(request):
                 filters['event__structure__id'] = structure_id
         elif highschool_id:
             filters['event__highschool__id'] = highschool_id
+
+        if period_id:
+            kw_events_filters = {'period__id': period_id}
+
+            args_filters.append(
+                Q(**kw_events_filters)
+            )
 
         user_filter_key = "event__structure__in"
 
@@ -191,6 +213,13 @@ def slots(request):
 
         if training_id is not None:
             filters['course__training__id'] = training_id
+
+        if period_id:
+            kw_courses_filters = {'period__id': period_id}
+
+            args_filters.append(
+                Q(**kw_courses_filters)
+            )
 
         user_filter_key = "course__training__structures__in"
 

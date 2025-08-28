@@ -439,7 +439,6 @@ function init_datatable() {
       },
     ]
   }
-
   dt = $('#slots_list').DataTable({
     ajax: {
       url: "/core/utils/slots",
@@ -457,6 +456,10 @@ function init_datatable() {
 
         if(is_set(current_highschool_id) || $('#id_highschool').val()) {
           d.highschool_id = current_highschool_id || $('#id_highschool').val();
+        }
+
+        if(is_set(current_period_id) || $('#id_period').val()) {
+          d.period_id = current_period_id || $('#id_period').val();
         }
 
         if(is_set(_cohorts_only)) {
