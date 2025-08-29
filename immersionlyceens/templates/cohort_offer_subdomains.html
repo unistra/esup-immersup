@@ -128,7 +128,7 @@
                               <!--  The user is not connected and the speakers are hidden OR-->
                               <!--  The user is connected and the speakers are hidden to connected users anyway-->
                               {% if slot.speakers.all %}
-                                {% if not request.user.is_authenticated and not hide_fields_public_area.value.speakers.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.speakers.hide_after_registration %}
+                                {% if not request.user.is_authenticated and not hide_fields_public_area.speakers.hide_public_area or request.user.is_authenticated and not hide_fields_public_area.speakers.hide_after_registration %}
                                   {% for speaker in slot.speakers.all %}
                                     <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
                                   {% endfor %}

@@ -4,6 +4,7 @@
 {% trans "Homepage" %}
 {% endblock %}
 {% block content %}
+{% general_settings_get 'SOCIAL_ACCOUNT_URL' as social_account_url %}
 {% active_accompanying_docs as show_accompanying_docs %}
 <div class="main-title">
     <div></div>
@@ -58,22 +59,36 @@
         </div>
       </div>
       {% endif %}
-      {% if social_network_url %}
-      <div class="col-md-3">
-        <div class="info">
-          <div class="info-icon">
-            <i class="nv nv-twitter nv-fw nv-2x text-third"></i>
-          </div>
-          <aside class="info-description">
-            <h4>{% trans 'Social' %}</h4>
-            <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ social_network_url }}" data-lang="fr" data-chrome="nofooter">
-            {% trans 'Feed' %}
-            </a>
-            <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-          </aside>
-        </div>
-      </div>
+
+      {% if social_account_url %}
+        <pre>{{ social_account_url }}</pre>
+      {% else %}
+        <p>Aucun paramètre trouvé</p>
       {% endif %}
+
+      {% for social in social_account_url.value.url %}
+        <h2>{{ social }}</h2>
+        <h2>---</h2>
+      {% endfor %}
+
+      {% for social_account in social_account_url %}
+        {% if social_account.activate %}
+          <div class="col-md-3">
+            <div class="info">
+              <div class="info-icon">
+                <i class="nv nv-twitter nv-fw nv-2x text-third"></i>
+              </div>
+              <aside class="info-description">
+                <h4>{{ social_account }}</h4>
+                <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ social_account.url }}" data-lang="fr" data-chrome="nofooter">
+                {% trans 'Feed' %}
+                </a>
+                <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+              </aside>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
     </div>
   </div>
 </section>
