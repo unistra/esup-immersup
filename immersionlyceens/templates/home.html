@@ -65,13 +65,7 @@
             {% if social_account.activate %}
               <div class="info d-flex align-items-center flex-wrap mb-2">
                 <a href="{{ social_account.url }}" target="_blank" class="me-2 mb-1 mb-md-0">
-                  {% with socials="Instagram,Facebook,Twitter,Youtube,Linkedin" %}
-                  {% if key|capfirst in socials %}
-                      <i class="fa-brands fa-{{ key|lower }}"></i>
-                  {% else %}
-                      <img src="{% static 'img/'|add:social_account.logo %}" alt="{{ key }}" style="width:32px; height:auto; margin-right:8px;">
-                  {% endif %}
-                  {% endwith %}
+                  <img src="{% static 'img/'|add:social_account.logo %}" alt="{{ key }}" style="width:32px; height:auto; margin-right:8px;">
                 </a>
                 <h5 class="mb-0">{{ social_account.name|default:key|capfirst }}</h5>
               </div>
