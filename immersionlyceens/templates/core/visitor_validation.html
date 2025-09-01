@@ -250,6 +250,47 @@ $(document).ready(function () {
       ],
     });
 
+    //If a validity date is missing on a document, the user can put it manually
+    //This function check if the date put manually is valid
+    function enable_validate_button(){
+      const val = $(this).val();
+      let invalid = false;
+
+      if (!val) {
+        invalid = true;
+      } else {
+        const entered = new Date(val);
+        const today = new Date();
+        if (entered < today) {
+          invalid = true;
+        }
+      }
+
+      if (invalid) {
+        const row = $(this).closest('tr');
+        row.find('.btn_validate').prop('disabled', true);
+        row.find('td:last').append("<br>{% trans 'Some attestation dates are invalid' %}");
+      }
+    }
+
+    $('#to_validate').on('draw.dt', function() {
+      $('#to_validate tbody').find('input.validity-date').each(function() {
+        enable_validate_button();
+      });
+    });
+
+    $('#to_revalidate').on('draw.dt', function() {
+      $('#to_revalidate tbody').find('input.validity-date').each(function () {
+        enable_validate_button();
+      });
+    });
+
+    //Comme maintenant chaque document a un ID particulier (id etu + att.id) il faut que je le passe dans la boucle qui est plus bas ?
+    $('#validity_date').on('change', function() {
+      console.log("CHANGE CHANGE CHANGE")
+      enable_validate_button();
+    });
+
     function load_to_revalidate() {
         dts['to_revalidate'] = $('#to_revalidate').DataTable({
             processing: false,
@@ -328,7 +369,7 @@ $(document).ready(function () {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {
-                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
                     }
                     html += '</li>';
                   });
@@ -342,10 +383,10 @@ $(document).ready(function () {
                   let disabled = '';
                   let txt = '';
 
-                  if(row.invalid_dates > 0) {
-                    disabled = "disabled"
-                    txt = "<br>{% trans 'Some attestation dates are invalid' %}"
-                  }
+                  //if(row.invalid_dates > 0) {
+                  //  disabled = "disabled"
+                  //  txt = "<br>{% trans 'Some attestation dates are invalid' %}"
+                  //}
 
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
                        onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Renew validation" %}</button>`;
@@ -441,7 +482,7 @@ $(document).ready(function () {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {
-                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
                     }
                     html += '</li>';
                   });
@@ -455,10 +496,10 @@ $(document).ready(function () {
                   let disabled = '';
                   let txt = '';
 
-                  if(row.invalid_dates > 0) {
-                    disabled = "disabled"
-                    txt = "<br>{% trans 'Some attestation dates are invalid' %}"
-                  }
+                  //if(row.invalid_dates > 0) {
+                  //  disabled = "disabled"
+                  //  txt = "<br>{% trans 'Some attestation dates are invalid' %}"
+                  //}
 
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
                        onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Validate" %}</button>`;
