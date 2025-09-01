@@ -69,11 +69,11 @@ class Command(BaseCommand, Schedulable):
         if deleted[0]:
             try:
                 accounts_deleted = deleted[1]["core.ImmersionUser"]
-                returns.append(_('{} account(s) deleted').format(accounts_deleted))
+                returns.append(_('{} student / high school / visitor account(s) deleted').format(accounts_deleted))
             except (IndexError, KeyError):
-                returns.append(_('Account(s) deleted'))
+                returns.append(_('Student / high school / visitor account(s) deleted'))
         else:
-            returns.append(_("No account to delete"))
+            returns.append(_("No student / high school / visitor account to delete"))
 
         # Delete periods, vacations and holidays
         deleted = Period.objects.all().delete()
