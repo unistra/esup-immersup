@@ -535,10 +535,11 @@ def ajax_validate_reject_student(request, validate):
         set_status_params = {}
 
         # Already valid record or 'to revalidate' : do not send the notification again
+        # For the others, it also depends on the 'disability' flag of the record
         if record.validation not in (BaseRecord.TO_REVALIDATE, BaseRecord.VALIDATED):
             set_status_params = {
                 "request": request,
-                "notify_disability": True
+                "notify_disability": record.disability
             }
 
         # 2 => VALIDATED
