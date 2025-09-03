@@ -166,7 +166,6 @@
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
                     <th id="date_filter_validated">{% trans "Validation date" %}</th>
                     <th id="attestations_validated">{% trans "Attestations" %}</th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -368,6 +367,7 @@ $(document).ready(function () {
       }
     }
 
+    /*
     $('#to_validate').on('draw.dt', function() {
       $('#to_validate tbody').find('input.validity-date').each(function() {
         enable_validate_button();
@@ -381,10 +381,16 @@ $(document).ready(function () {
     });
 
     //Comme maintenant chaque document a un ID particulier (id etu + att.id) il faut que je le passe dans la boucle qui est plus bas ?
-    $('#validity_date').on('change', function() {
+    $('.validity-date').on('change', function() {
       console.log("CHANGE CHANGE CHANGE")
       enable_validate_button();
     });
+    */
+
+    $(document).on("change", ".validity-date", function() {
+      console.log("CHANGE CHANGE CHANGE")
+      enable_validate_button()
+    })
 
     // Init :
     // if high_school is not set :
