@@ -88,7 +88,6 @@ class CourseForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-
         start = cleaned_data.get('start_date')
         end = cleaned_data.get('end_date')
 
@@ -125,8 +124,6 @@ class CourseForm(forms.ModelForm):
                     allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
                     if not allowed_highschools.filter(pk=highschool.id).exists():
                         raise forms.ValidationError(_("You don't have enough privileges to update this course"))
-
-
 
         return cleaned_data
 
@@ -520,12 +517,13 @@ class SlotForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
+
         if instance.course and not instance.course.published and instance.published:
             instance.course.published = True
             instance.course.save()
             messages.success(self.request, _("Course published"))
 
-        if instance.published :
+        if instance.course and instance.published :
             if (instance.course.start_date and instance.date < instance.course.start_date) or (instance.course.end_date and instance.date > instance.course.end_date) :
                 messages.warning(_("The slot will be saved, but the course publication dates do not match the slot date. Remember to change them."))
 
@@ -808,6 +806,9 @@ class OffOfferEventSlotForm(SlotForm):
             event.save()
             messages.success(self.request, _("Event published"))
 
+            if (event.start_date and _date < event.start_date) or (event.end_date and _date > event.end_date) :
+                messages.warning(_("The slot will be saved, but the event publication dates do not match the slot date. Remember to change them."))
+
         return cleaned_data
 
 
@@ -988,6 +989,11 @@ class OffOfferEventForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        start = cleaned_data.get('start_date')
+        end = cleaned_data.get('end_date')
+
+        if start and end and end < start:
+            raise forms.ValidationError(_("The end date must be after the start date."))
 
         # Uniqueness
         filters = {
@@ -1088,7 +1094,11 @@ class OffOfferEventForm(forms.ModelForm):
 
     class Meta:
         model = OffOfferEvent
-        fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool')
+        fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool', 'start_date', 'end_date')
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
 
 
 class UserPreferencesForm(forms.Form):

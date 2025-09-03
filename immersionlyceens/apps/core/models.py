@@ -2093,6 +2093,8 @@ class OffOfferEvent(models.Model):
     )
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
+    start_date = models.DateField(_("Immersions start date"), null=True, blank=True)
+    end_date = models.DateField(_("Immersions end date"), null=True, blank=True)
 
     def __str__(self):
         if self.establishment:

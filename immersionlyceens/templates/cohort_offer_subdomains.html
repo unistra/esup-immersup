@@ -121,22 +121,19 @@
                           <td style="width: 20%"><i class="fa fas fa-clock-o text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
                           <td style="width: 20%"><i class="fa fa-book fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type }}</td>
                           <td style="width: 10%" rowspan="2">
-                            <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
-                            {% trans 'Speaker(s)' %} :
-                            <ul>
-                              <!--If there is speakers to be shown AND :-->
-                              <!--  The user is not connected and the speakers are hidden OR-->
-                              <!--  The user is connected and the speakers are hidden to connected users anyway-->
-                              {% if slot.speakers.all %}
-                                {% if not hide_fields_public_area.speakers.hide_public_area %}
+                            {% if not hide_fields_public_area.speakers.hide_public_area %}
+                              <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
+                              {% trans 'Speaker(s)' %} :
+                              <ul>
+                                {% if slot.speakers.all %}
                                   {% for speaker in slot.speakers.all %}
                                     <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
                                   {% endfor %}
+                                {% else %}
+                                  <li>{% trans 'Data not available' %}</li>
                                 {% endif %}
-                              {% else %}
-                                <li>{% trans 'Data not available' %}</li>
-                              {% endif %}
-                            </ul>
+                              </ul>
+                            {% endif %}
                           </td>
                           <td style="width: 15%" rowspan="2">
                           {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
