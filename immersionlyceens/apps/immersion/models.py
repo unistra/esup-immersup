@@ -232,6 +232,7 @@ class HighSchoolStudentRecord(BaseRecord):
     solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
 
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
+    rejection_reason = models.TextField(_("Rejection reason"), null=True, blank=True)
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")

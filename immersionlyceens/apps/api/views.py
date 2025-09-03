@@ -441,6 +441,7 @@ def ajax_get_student_records(request):
             "creation_date",
             "validation_date",
             "rejected_date",
+            "rejection_reason",
             "invalid_dates",
             "highschool__city",
             "highschool__label",
@@ -5134,6 +5135,7 @@ class VisitorRecordValidation(View):
                 "validation_date",
                 "rejected_date",
                 "invalid_dates",
+                "rejection_reason",
             )
         )
 
