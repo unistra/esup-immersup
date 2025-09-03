@@ -102,7 +102,7 @@
     formData.append('file', upload_file);
     formData.append('emails', $("#emails").val());
     formData.append('feedback', true);
-    formData.append('middlewaretoken', '{{ csrf_token }}');
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
     $.ajax({
       url: "{% url 'GroupSlotRegistration' %}",
       type: 'POST',

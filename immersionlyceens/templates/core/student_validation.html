@@ -34,6 +34,10 @@
     <span>
       {% trans 'Do you really want to reject this high school student?' %}
     </span>
+    <div style="margin-top: 10px;">
+      <label for="rejection_reason">{% trans 'Reason (optional)' %}</label><br>
+      <textarea id="rejection_reason" name="rejection_reason" rows="3" style="width: 100%;"></textarea>
+    </div>
   </div>
 
   <div class="card">
@@ -85,6 +89,7 @@
                     <th id="level_filter_to_revalidate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_revalidate">{% trans "Class name" %}</th>
                     <th id="date_filter_to_revalidate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_revalidate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -122,6 +127,7 @@
                     <th id="level_filter_to_validate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
                     <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_validate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -159,6 +165,7 @@
                     <th id="level_filter_validated">{% trans "Level" %}</th>
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
                     <th id="date_filter_validated">{% trans "Validation date" %}</th>
+                    <th id="attestations_validated">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -368,7 +375,10 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            validate_student($("#vdialog-form").data('param'));
+            let student_record_id = $("#vdialog-form").data('param');
+            let validity_date = $("#validity_date").val(); //Ici c'est une liste de dates associées à des fichiers que je dois récupérer
+
+            validate_student(student_record_id, validity_date);
             vdialog.dialog("close");
           },
         },
@@ -395,7 +405,10 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            reject_student($("#rdialog-form").data('param'));
+            let student_record_id = $("#rdialog-form").data('param');
+            let reason = $("#rejection_reason").val();
+
+            reject_student(student_record_id, reason);
             rdialog.dialog("close");
           },
         },
@@ -480,6 +493,17 @@ $(document).ready(function () {
                   }
 
                   return data
+                }
+              },
+              { data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
                 }
               },
               { data: 'id',
@@ -581,6 +605,17 @@ $(document).ready(function () {
                   return data
                 }
               },
+              { data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
+                }
+              },
               { data: 'id',
                 render: function(data, type, row) {
                   let element = '';
@@ -678,6 +713,38 @@ $(document).ready(function () {
                   }
 
                   return data
+                }
+              },
+              {
+                data: 'attestations',
+                render: function(data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  return '<ul class="mb-0">' + data.map(att =>
+                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
+                  ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    //if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    //}
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',
@@ -877,11 +944,12 @@ function reload_rejected() {
     $('#rejected').DataTable().ajax.reload();
 }
 
-function validate_student( student_record_id ) {
+function validate_student(student_record_id, validity_date) {
   $.post({
     url: "{% url 'validateStudent' %}",
     data: {
         student_record_id: student_record_id,
+        validity_date: validity_date,
     },
     success: function(obj) {
       if (is_set(obj.data)) {
@@ -942,11 +1010,12 @@ function validate_student( student_record_id ) {
   });
 }
 
-function reject_student( student_record_id ) {
+function reject_student(student_record_id, reason) {
   $.post({
       url: "{% url 'rejectStudent' %}",
       data: {
           student_record_id: student_record_id,
+          rejection_reason: reason,
       },
       success: function(obj) {
         if (is_set(obj.data)) {

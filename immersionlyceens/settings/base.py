@@ -541,6 +541,7 @@ ADMIN_MODELS_ORDER = {
         'MefStat',
         'PostBachelorLevel',
         'StudentLevel',
+        'VisitorType',
     ],
     'docs': [
         'MailTemplate',

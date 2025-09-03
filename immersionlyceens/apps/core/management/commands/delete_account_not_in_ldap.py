@@ -19,7 +19,7 @@ class Command(BaseCommand, Schedulable):
 
         t: float = time.time()
         users: QuerySet = ImmersionUser.objects.filter(
-            auth_token__isnull=False,
+            auth_token__isnull=True,
             establishment__data_source_plugin="LDAP",
             is_superuser=False,
         )
@@ -34,9 +34,8 @@ class Command(BaseCommand, Schedulable):
                 username_list.append(user.username)
 
         n = ImmersionUser.objects.filter(username__in=username_list).delete()
-        t = time.time() - t
 
-        msg = gettext("%s users deleted in %s seconds" % (n[0], round(t, 3)))
+        msg = gettext("{} users who are no longer in establishments sources have been deleted").format(n)
 
         logger.info(msg)
         return msg

@@ -97,6 +97,21 @@
                 </div>
               {% endif %}
             </div>
+            <div class="row">
+              <div class="col-md-5">
+                <div id="prd_filter" style="padding-bottom:10px; padding-top:20px;">
+                  <label for="id_period">{% trans "Select a period" %} :</label>
+                  <select id="id_period" class="form-control">
+                    <option value="">-------------</option>
+                    {% for period in periods %}
+                      <option value="{{ period.id }}" {% if period.id == period_id %}selected="selected"{% endif %}>
+                        {{ period.label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
             {% block trainings_filter %}{% endblock %}
             <br>
           {% endif %}
@@ -126,6 +141,7 @@
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
   var current_training_id = "{{ training_id }}";
+  var current_period_id = "{{ period_id }}";
   var slot_places = 0;
   var slot_groups_places = 0;
   var slot_allow_group_registrations = false;
@@ -147,6 +163,7 @@
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
   let training_filter = "{{ training_filter }}"
+  let period_filter = "{{ period_filter }}"
   let course_label_filter = "{{ course_label_filter }}"
   let highschool_filter = "{{ highschool_filter }}"
   let managed_by_filter = "{{ managed_by_filter }}"
@@ -164,6 +181,7 @@
   event_label_filter = decodeHTMLEntities(event_label_filter)
   course_label_filter = decodeHTMLEntities(course_label_filter)
   training_filter = decodeHTMLEntities(training_filter)
+  period_filter = decodeHTMLEntities(period_filter)
   highschool_filter = decodeHTMLEntities(highschool_filter)
   managed_by_filter = decodeHTMLEntities(managed_by_filter)
 
@@ -373,14 +391,25 @@
     })
   });
 
+  // Reload the table when period changes in selectbox
+  $('#id_period').change( function() {
+    current_period_id = $('#id_period option:selected').val()
+
+    dt.clear().draw()
+
+    if(current_period_id !== "") {
+      reload_data();
+    }
+
+    set_session_values(slot_mode, {
+      "current_period_id": current_period_id,
+    })
+  });
+
   $('#id_training').on('change', function(event) {
     current_training_id = $("#id_training").val()
 
     reload_data();
-
-    set_session_values(slot_mode, {
-      "current_training_id": current_training_id,
-    })
   });
 
   function empty_structures() {
@@ -464,6 +493,33 @@
     });
   }
 
+  function set_periods() {
+    $.ajax({
+      url: "{% url 'period_list' %}",
+      type: 'GET',
+      data: {
+        csrfmiddlewaretoken: '{{ csrf_token }}',
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['label']}</option>`
+        }
+        $('select#id_period').html(options)
+
+        if(current_period_id) {
+          $("#id_period").val(current_period_id);
+        }
+        else {
+          $("#id_period").val($("#id_period option:first").val());
+        }
+
+        $("#id_div_period").show()
+      }
+    })
+  }
+
   $(document).ready(function(){
     // reset feedback
     setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
@@ -507,6 +563,12 @@
     if(slot_mode === "courses" && is_set(current_training_id)) {
       $("#id_training").val(current_training_id);
     }
+
+    if(is_set(current_period_id)) {
+      $("#id_period").val(current_period_id)
+    }
+
+    set_periods();
 
     init_datatable();
   });

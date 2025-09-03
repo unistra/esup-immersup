@@ -246,7 +246,7 @@ function init_datatable() {
           }
 
           // We can update registrations when group slot is public or when we manage the high school
-          if ((row.can_update_registrations || row.public_group) && _cohorts_only === true) {
+          if (((row.can_update_registrations || row.public_group) && _cohorts_only === true) || (row.is_past === true && row.n_register === 0 && row.n_group_register === 0)) {
             element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
               `<i class='fa fas fa-eye fa-2x centered-icon'></i>` +
               `</button>`;
@@ -257,7 +257,6 @@ function init_datatable() {
               `<i class="fa fas fa-calendar pr-2"></i>` +
               `</span>`;
           }
-
 
           return element;
         }
@@ -440,7 +439,6 @@ function init_datatable() {
       },
     ]
   }
-
   dt = $('#slots_list').DataTable({
     ajax: {
       url: "/core/utils/slots",
@@ -458,6 +456,10 @@ function init_datatable() {
 
         if(is_set(current_highschool_id) || $('#id_highschool').val()) {
           d.highschool_id = current_highschool_id || $('#id_highschool').val();
+        }
+
+        if(is_set(current_period_id) || $('#id_period').val()) {
+          d.period_id = current_period_id || $('#id_period').val();
         }
 
         if(is_set(_cohorts_only)) {

@@ -448,6 +448,32 @@ def ajax_get_student_records(request):
         )
     )
 
+    # List of the ids of the extracted records
+    record_ids = [r['id'] for r in records]
+
+    # Getting the attestations linked to the records
+    docs_qs = HighSchoolStudentRecordDocument.objects.filter(
+        record_id__in=record_ids,
+        archive=False,
+        document__isnull=False
+    ).select_related('attestation')
+
+    # List of attestations
+    attestations_by_record = {}
+    for doc in docs_qs:
+        att = doc.attestation
+        if att:
+            attestations_by_record.setdefault(doc.record_id, []).append({
+                'label': att.label,
+                'url': doc.document.url if doc.document else '',
+                #'validity_date': att.validity_date.isoformat() if att.validity_date else None,
+                #'requires_validity_date': att.attestation__requires_validity_date,
+                #'id': att.attestation_id,
+            })
+
+    for rec in records:
+        rec['attestations'] = attestations_by_record.get(rec['id'], [])
+
     response['data'] = list(records)
 
     return JsonResponse(response, safe=False)
@@ -461,6 +487,8 @@ def ajax_validate_reject_student(request, validate):
     Validate or reject student
     """
     student_record_id = request.POST.get('student_record_id')
+    rejection_reason = request.POST.get('rejection_reason', '')
+    validity_date = request.POST.get('validity_date', '')
 
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
@@ -520,7 +548,7 @@ def ajax_validate_reject_student(request, validate):
         if res.get("msg"):
             msgs.append(res.get("msg"))
 
-        record.validation_date = timezone.localtime() if validate else None
+        record.validation_date = timezone.localtime() if validate else None # Seulement si aucune date n'a été specifiée ?
         record.rejected_date = None if validate else timezone.localtime()
         record.save()
 
@@ -533,7 +561,7 @@ def ajax_validate_reject_student(request, validate):
                     attestation.delete()
 
         template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
-        ret = record.student.send_message(request, template)
+        ret = record.student.send_message(request, template, rejection_reason)
 
         if ret:
             msgs.append(_("Record updated but notification not sent : %s") % ret)
@@ -1389,10 +1417,14 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Cannot register slot due to out of date attestations")}
         return JsonResponse(response, safe=False)
 
-    # Check if slot date is not passed
-    if slot.date < today or (slot.date == today and today_time > slot.start_time):
-        response = {'error': True, 'msg': _("Register to past slot is not possible")}
-        return JsonResponse(response, safe=False)
+    # Check if slot date is not passed. The admins can register people even if the date is passed
+    if not (user.is_master_establishment_manager or
+            user.is_establishment_manager and establishment == user_establishment or
+            user.is_structure_manager and structure == allowed_structures or
+            user.is_high_school_manager and user.highschool == user_highschool):
+        if slot.date < today or (slot.date == today and today_time > slot.start_time):
+            response = {'error': True, 'msg': _("Register to past slot is not possible")}
+            return JsonResponse(response, safe=False)
 
     # Slot restrictions validation
     can_register_slot, reasons = student.can_register_slot(slot)
@@ -2403,7 +2435,7 @@ def ajax_groups_batch_cancel_registration(request):
         slot_establishment = slot.get_establishment()
         slot_structure = slot.get_structure()
         slot_highschool = slot.get_highschool()
-        # Check if highschool manager can cancelled his groups registrations from his highschool
+        # Check if highschool manager can cancel his groups registrations from his highschool
         other_hs_count = (
             ImmersionGroupRecord.objects.filter(pk__in=json_data, slot=slot).exclude(highschool=user.highschool).count()
         )
@@ -5118,6 +5150,7 @@ class VisitorRecordRejectValidate(View):
         # can't be none. No routes allowed for that
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
+        rejection_reason: str = self.kwargs.get("rejection_reason", "")
         validation_value: str = "TO_VALIDATE"
         validation_email_template: str = ""
         delete_attachments: bool = False
@@ -5167,7 +5200,7 @@ class VisitorRecordRejectValidate(View):
         record.validation_date = timezone.localtime() if validation_value == "VALIDATED" else None
         record.rejected_date = timezone.localtime() if validation_value == "REJECTED" else None
         record.save()
-        ret = record.visitor.send_message(self.request, validation_email_template)
+        ret = record.visitor.send_message(self.request, validation_email_template, rejection_reason)
         data["data"] = {"record_id": record.id}
 
         if res.get("msg"):
@@ -5574,8 +5607,10 @@ def ajax_search_slots_list(request, slot_id=None):
     slots = (
         Slot.objects.filter(published=True)
         .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
-        .exclude(Q(allow_group_registrations=True) & Q(public_group=False) & Q(allow_individual_registrations=False))
     )
+
+    if not request.user.is_high_school_manager():
+        slots = slots.exclude().exclude(Q(allow_group_registrations=True) & Q(allow_individual_registrations=False) & Q(public_group=False))
 
     group_registered_persons_query = (
         ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)

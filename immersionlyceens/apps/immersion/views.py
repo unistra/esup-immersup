@@ -662,6 +662,7 @@ def setEmail(request):
             user = form.save(commit=False)
             user.set_validation_string()
             user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            user.email_validation_date = timezone.now()
             user.save()
 
             user.refresh_from_db()
@@ -1238,7 +1239,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 """You have updated your email address."""
                                 """<br>A new activation email has been sent."""
                             )
-
+                        student.email_change_date = timezone.now()
+                        student.save(update_fields=['email_change_date'])
                         messages.warning(request, msg)
 
                 except Exception as e:
@@ -1286,7 +1288,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
                     )
-
+                    student.email_change_date = timezone.now()
+                    student.save(update_fields=['email_change_date'])
                 # These particular field changes will trigger attestations updates
                 if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
                     create_documents = True
@@ -1719,6 +1722,8 @@ def student_record(request, student_id=None, record_id=None):
                             request,
                             _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
                         )
+                        student.email_change_date = timezone.now()
+                        student.save(update_fields=['email_change_date'])
                 except Exception as e:
                     logger.exception("Error while sending email update notification : %s", e)
                     messages.error(request, _("Cannot send email. The administrators have been notified."))
@@ -2168,6 +2173,8 @@ class VisitorRecordView(FormView):
                         """<br>A new activation email has been sent."""
                     ),
                 )
+                user.email_change_date = timezone.now()
+                user.save(update_fields=['email_change_date'])
         except Exception as exc:
             messages.error(self.request, _("Cannot send email. The administrators have been notified."))
             logger.exception("Error while sending email update notification : %s", exc)
@@ -2220,15 +2227,16 @@ class VisitorRecordView(FormView):
             if form.has_changed():
                 # Validation needed  ?
                 # fields that trigger the (re)validation :
-                fields = ["birth_date"]
-                validation_needed = len(list(filter(lambda x:x in fields, form.changed_data))) > 0
+                fields = ["birth_date", "visitor_type"]
+                validation_needed = list(filter(lambda x:x in fields, form.changed_data)) != []
 
                 if not creation and validation_needed:
                     messages.info(
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
                     )
-
+                    user.email_change_date = timezone.now()
+                    user.save(update_fields=['email_change_date'])
                 # Already validated record, but the disability is now enabled
                 if record.validation == record.VALIDATED and "disability" in form.changed_data and record.disability:
                     set_status_params = {
@@ -2277,16 +2285,19 @@ class VisitorRecordView(FormView):
                               - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
 
                 attestation_filters = {
-                    'profiles__code': "VIS"
+                    'profiles__code': "VIS",
                 }
 
                 if visitor_age >= 18:
                     attestation_filters['for_minors'] = False
 
                 current_documents = VisitorRecordDocument.objects.filter(record=record)
-                attestations = AttestationDocument.activated.filter(**attestation_filters)
+                attestations = AttestationDocument.activated.filter(
+                    Q(visitor_types__isnull=True)|Q(visitor_types=record.visitor_type),
+                    **attestation_filters
+                )
 
-                # Clean documents if school has changed, including archives
+                # Clean documents if something has changed, including archives
                 for vrd in current_documents:
                     if vrd.attestation not in attestations:
                         vrd.delete()
@@ -2338,6 +2349,8 @@ class VisitorRecordView(FormView):
                             request=request,
                             prefix=f"document_{document.attestation.id}"
                         )
+
+                        document_form.is_valid()
 
                         if document_form.is_valid():
                             document = document_form.save()

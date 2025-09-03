@@ -63,17 +63,17 @@ class Command(BaseCommand, Schedulable):
         # Delete ENS, LYC, ETU ImmersionUser
         deleted = ImmersionUser.objects.filter(
             groups__name__in=['ETU', 'LYC', 'VIS'],
-            auth_token__isnull=False
+            auth_token__isnull=True
         ).delete()
 
         if deleted[0]:
             try:
                 accounts_deleted = deleted[1]["core.ImmersionUser"]
-                returns.append(_('{} account(s) deleted').format(accounts_deleted))
+                returns.append(_('{} student / high school / visitor account(s) deleted').format(accounts_deleted))
             except (IndexError, KeyError):
-                returns.append(_('Account(s) deleted'))
+                returns.append(_('Student / high school / visitor account(s) deleted'))
         else:
-            returns.append(_("No account to delete"))
+            returns.append(_("No student / high school / visitor account to delete"))
 
         # Delete periods, vacations and holidays
         deleted = Period.objects.all().delete()
@@ -122,10 +122,10 @@ class Command(BaseCommand, Schedulable):
 
         # delete immersion users with group INTER and in an establishment with plugin set
         deleted = ImmersionUser.objects.annotate(cnt=Count('groups__name')).filter(
-            auth_token__isnull=False,
+            auth_token__isnull=True,
             cnt=1,
             groups__name='INTER',
-            establishment__data_source_plugin__isnull = False
+            establishment__data_source_plugin__isnull=False
         ).delete()
 
         if deleted[0]:
@@ -136,7 +136,7 @@ class Command(BaseCommand, Schedulable):
 
         # Deactivate immersion user with group INTER and in an establishment without SI
         updated = ImmersionUser.objects.annotate(cnt=Count('groups__name')).filter(
-            auth_token__isnull=False,
+            auth_token__isnull=True,
             cnt=1,
             groups__name__in=("INTER",),
             establishment__data_source_plugin__isnull=True

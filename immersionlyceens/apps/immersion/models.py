@@ -472,6 +472,17 @@ class VisitorRecord(BaseRecord):
         related_name="visitor_record"
     )
 
+    visitor_type = models.ForeignKey(
+        core_models.VisitorType,
+        verbose_name=_("Visitor type"),
+        null=True,
+        blank=False,
+        on_delete=models.PROTECT,
+        related_name="visitors"
+    )
+
+    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
+    birth_date = models.DateField(_("Birth date"), null=True, blank=False)
     motivation = models.TextField(_("Motivation"), null=True, blank=False)
 
     attestation_documents = models.ManyToManyField(
@@ -627,6 +638,7 @@ class HighSchoolStudentRecordDocument(RecordDocument):
     M2M 'through' relation between high school student records and attestation documents
     """
     record = models.ForeignKey(HighSchoolStudentRecord, related_name="attestation", on_delete=models.CASCADE)
+    validity_date = models.DateField(_("Validity date"), null=True, blank=True)
 
     class Meta:
         verbose_name = _('High school student record / Attestation document')

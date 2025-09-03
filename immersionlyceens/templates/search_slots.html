@@ -21,8 +21,10 @@
 {% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
 {{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
 
-  {% include './modals/modal_search_slots_details.html' %}
+  {% include "./modals/modal_search_slots_details.html" %}
   {% include "./modals/modal_notify_disability.html" %}
+  {% include "./modals/modal_register_group.html" %}
+
   <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -182,6 +184,7 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+  let register_group_txt = "{% trans 'Register a group' %}";
   var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
   const hide_fields_public_area = JSON.parse(
     document.getElementById("hide-fields-public-area-data").textContent
@@ -482,8 +485,6 @@
               return data;
             }
           },
-
-
           {
             data: "meeting_place",
             render: function (data, type, full, meta)
@@ -503,8 +504,6 @@
 
             }
           },
-
-
           {
             render: function (data, type, full, meta) {
               label = type === "display"  ? '<label>{% trans "Available places" %} :</label><ul class="list-inline">' : "";
@@ -584,12 +583,9 @@
         availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
-
-
       $.each(rowData[0].speakers_list, function(i, item) {
         speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
       });
-
 
       // display all row_* elements
       $(displayedRows).show();
@@ -608,14 +604,12 @@
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
           }
-
-
           if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
             etab.push(rowData[0].structure_label)
           }
 
-
           filteredRows.push('row_course_label', 'row_course_type', 'row_building');
+
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
           } else if (rowData[0].highschool_label !== null) {
@@ -633,13 +627,9 @@
           if (rowData[0].highschool_label !== null) {
             etab.push(rowData[0].highschool_label)
           }
-
-
           if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
             etab.push(rowData[0].structure_label)
           }
-
-
           filteredRows.push('row_course_label', 'row_course_type');
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
@@ -656,7 +646,6 @@
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
 
-
       if (rowData[0].course_training_url !== null && rowData[0].course_training_url !== '') {
         courseLabelFull = rowData[0].course_training_label + "&nbsp;<a href=\""+rowData[0].course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
@@ -670,21 +659,17 @@
         filteredRows.push('row_highschool_address');
       }
 
-
       if (rowData[0].building_label === '' || rowData[0].building_label === null) {
         filteredRows.push('row_building');
       }
-
 
       if (rowData[0].additional_information === '' || rowData[0].additional_information === null) {
         filteredRows.push('row_additional_information');
       }
 
-
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
-
 
       if (rowData[0].place === remote) {
           if (Object.keys(rowData[0]).indexOf('url')
@@ -694,6 +679,7 @@
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }
+
       $.ajax({
         url: "/api/get_slot_restrictions/" + rowData[0].id,
         type: 'GET',
@@ -709,7 +695,6 @@
       })
 
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
-
       $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(labelFull ?? rowData[0].label);
       $('#modal_search_slots_details #modal_type').html(rowData[0].slot_type);
@@ -759,6 +744,47 @@
         }
       })
       {% endif %}
+
+      {% if authorized_groups|in_groups:"REF-LYC" %}
+      if ( rowData[0].allow_group_registrations === true ) {
+
+        $.ajax({
+          url: "/api/can_register_slot/" + rowData[0].id,
+          type: 'GET',
+          success: function (data) {
+            if (data['data'] !== undefined && data['data'][0] !== undefined) {
+              if (data['data'][0]['can_register'] === true) {
+                $('#modal_register_btn').html(
+                        "<button class='btn badge badge-pill badge-primary pull-right' " +
+                        "id='btn_register_group_" + rowData[0].id + "' " +
+                        "data-toggle='modal' " +
+                        "data-slot-id='" + rowData[0].id + "' " +
+                        "data-target='#modal_register_group'>{% trans 'Register a group' %}" +
+                        "</button>"
+                )
+                ;
+              } else if (data['data'][0]['already_registered'] === true) {
+                $('#modal_register_btn').html(
+                        "<span class=\"badge badge-pill badge-success\">{% trans 'Already registered' %}</span>"
+                );
+              }
+            }
+          }
+        })
+
+        $('#modal_register_group').on('show.bs.modal', function (event) {
+          let button = $(event.relatedTarget)
+          let slotId = button.data('slot-id')
+
+          current_slot_id = slotId;
+
+          $(this).find('input[name="slot_id"]').val(slotId);
+        })
+
+      }
+
+      {% endif %}
+
       $('[data-toggle="tooltip"]').tooltip({placement:"left",});
       // rows to hide
       selectedRows = filteredRows.map(id => `#${id}`).join(',')

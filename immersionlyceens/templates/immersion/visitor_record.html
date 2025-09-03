@@ -72,6 +72,11 @@
           <div class="col-sm-6 col-md-6">{{ form.phone }}</div>
           <div class="col-sm-3 col-md-2">{{ form.phone.errors }}</div>
         </div>
+        <div class="form-group row">
+          <label for="id_visitor_type" class="col-sm-3 col-md-4 col-form-label">{% trans 'Your situation' %} :</label>
+          <div class="col-sm-6 col-md-6">{{ form.visitor_type }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.visitor_type.errors }}</div>
+        </div>
         {% if activate_disability.activate %}
         <div class="form-group row">
           <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">
@@ -255,6 +260,7 @@
                 {% trans "Rejected" %}
               {% elif record.validation == 4 %}
                 <span class="badge badge-pill badge-warning" id="recordStatus">
+                <!--id="record_status" ?-->
                 {% trans "Waiting revalidation" %}
               {% else %}
                 <span class="badge badge-pill badge-light" id="record_status">
@@ -273,7 +279,26 @@
             {{ record.validation_date }}
           </div>
         </div>
-       {% endif %}
+        {% endif %}
+        {% if student.email_validation_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Email validation date' %} :
+            </label>
+            <div class="col-sm-8">
+              {{ student.email_validation_date }}
+            </div>
+          </div>
+        {% elif student.email_change_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Email change date' %} :
+            </label>
+            <div class="col-sm-8">
+              {{ student.email_change_date }}
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
     <div class="row mt-4">

@@ -239,13 +239,15 @@ function init_datatable() {
                          `  <i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                          `</button>`;
             }
-            // no attendance to enter : can view registered users or groups
-            else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0) {
+            // View registered users or groups
+            else if ((row.is_past === true && row.n_register === 0 && row.n_group_register === 0) ||
+                (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0)) {
               element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                          `  <i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                          `</button>`;
             }
           }
+
           return element;
         }
       },

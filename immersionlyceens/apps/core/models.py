@@ -537,6 +537,8 @@ class ImmersionUser(AbstractUser):
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
     creation_email_sent = models.BooleanField(_("Creation email sent"), blank=True, null=True, default=False)
+    email_change_date = models.DateTimeField(_("Email change date"), blank=True, null=True)
+    email_validation_date = models.DateTimeField(_("Email activation date"), blank=True, null=True)
     preferences = models.JSONField(
         _("User preferences"),
        blank=True,
@@ -654,7 +656,7 @@ class ImmersionUser(AbstractUser):
     def send_message(self, request, template_code, copies=None, recipient='user', **kwargs):
         """
         Get a MailTemplate by its code, replace variables and send
-        :param message_code: Code of message to send
+        :param template_code: Code of message to send
         :return: True if message sent else False
         """
         try:
@@ -725,6 +727,12 @@ class ImmersionUser(AbstractUser):
         except ObjectDoesNotExist:
             return None
 
+    def get_visitor_record(self) -> Optional[Any]:
+        try:
+            return self.visitor_record
+        except ObjectDoesNotExist:
+            return None
+
     def get_student_establishment(self):
         """
         Match student record establishment with core Establishment class
@@ -753,12 +761,6 @@ class ImmersionUser(AbstractUser):
             return _('Visitor')
         else:
             return self.get_high_school() or self.get_student_establishment()
-
-    def get_visitor_record(self) -> Optional[Any]:
-        try:
-            return self.visitor_record
-        except ObjectDoesNotExist:
-            return None
 
     def get_authorized_structures(self):
         if self.is_superuser or self.is_master_establishment_manager() or self.is_operator():
@@ -1201,6 +1203,23 @@ class TrainingSubdomain(models.Model):
             )
             .prefetch_related('course__training__training_subdomains__training_domain')
             .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
+            .count()
+        )
+
+        return slots_count
+
+    def count_group_public_and_private_subdomain_slots(self):
+        today = datetime.datetime.today()
+        slots_count = (
+            Slot.objects.filter(
+                course__training__training_subdomains=self,
+                published=True,
+                event__isnull=True,
+                allow_group_registrations=True,
+            )
+            .prefetch_related('course__training__training_subdomains__training_domain')
+            .filter(
+                Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
             .count()
         )
 
@@ -2473,6 +2492,28 @@ class PublicDocument(models.Model):
         ordering = ['label', ]
 
 
+class VisitorType(models.Model):
+    """
+    Visitor type
+    """
+    code = models.CharField(_("Code"), primary_key=True, null=False, blank=False)
+    label = models.CharField(_("Label"), max_length=256, null=False, unique=True)
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.label}"
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A visitor type with this label already exists'))
+
+    class Meta:
+        verbose_name = _('Visitor type')
+        verbose_name_plural = _('Visitor types')
+
+
 class AttestationDocument(models.Model):
     """
     AttestationDocument class
@@ -2504,6 +2545,15 @@ class AttestationDocument(models.Model):
         related_name='attestations',
         blank=True,
         limit_choices_to={'code__in': ["LYC_W_CONV", "LYC_WO_CONV", "VIS"]}
+    )
+
+    visitor_types = models.ManyToManyField(
+        VisitorType,
+        verbose_name=_("Visitor types"),
+        related_name='attestations',
+        blank=True,
+        limit_choices_to={"active": True},
+        help_text=_("Optional: when visitor profile is selected, you may select one or more visitor types")
     )
 
     objects = models.Manager() # default manager
@@ -3688,6 +3738,7 @@ class MefStat(models.Model):
     class Meta:
         verbose_name = _('MefStat - High school level')
         verbose_name_plural = _('MefStat - High school levels')
+
 
 
 ####### SIGNALS #########

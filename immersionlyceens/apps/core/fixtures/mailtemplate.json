@@ -585,7 +585,7 @@
         "label": "Mail rejet compte lycéen ou visiteur",
         "description": "Mail envoyé lors du rejet d’un compte",
         "subject": "Rejet de votre compte Immersion",
-        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }},</p><p>{% if estlyceen %}Votre compte immersion a été rejeté par le lycée que vous avez choisi.</p><p>Merci de contacter votre lycée ou de renseigner le bon lycée. {% elif estvisiteur %}<br></p><p>Votre compte immersion a été rejeté par le référent Immersion. </p>Merci de nous contacter afin de discuter de vos motivations.{% endif %}<br><p></p><p></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p><br></p><p></p>",
+        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }},</p><p>{% if estlyceen %}Votre compte immersion a été rejeté par le lycée que vous avez choisi.</p><p>Merci de contacter votre lycée ou de renseigner le bon lycée. {% elif estvisiteur %}<br></p><p>Votre compte immersion a été rejeté par le référent Immersion. </p>Merci de nous contacter afin de discuter de vos motivations.{% endif %}{% if motif_de_rejet %}<br><p>{{ motif_de_rejet }}</p>{% endif %}<br><p></p><p></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p><br></p><p></p>",
         "active": true,
         "available_vars": [
             1,
@@ -593,7 +593,8 @@
             55,
             27,
             29,
-            32
+            32,
+            82
         ]
     }
 },

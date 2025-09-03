@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import TokenProxy
 
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
-    VisitorRecordDocument,
+    VisitorRecord, VisitorRecordDocument,
 )
 
 from immersionlyceens.fields import UpperCharField
@@ -38,6 +38,7 @@ from .admin_forms import (
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
     ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    VisitorTypeForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
@@ -48,7 +49,7 @@ from .models import (
     InformationText, MailTemplate, MefStat, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, VisitorType
 )
 
 logger = logging.getLogger(__name__)
@@ -137,6 +138,13 @@ class AdminWithRequest:
                 return AdminForm(*args, **kwargs)
 
         return AdminFormWithRequest
+
+    def in_messages(self, messages, message):
+        for m in messages:
+            if m.message == message:
+                return True
+
+        return False
 
 
 class ActivationFilter(admin.SimpleListFilter):
@@ -1092,9 +1100,13 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
             # In use
             if Immersion.objects.filter(cancellation_type=obj).exists():
-                messages.warning(
-                    request, _("This cancellation type can't be updated because it is used by some registrations"),
+                warning_message = gettext(
+                    "This cancellation type can't be updated because it is used by some registrations"
                 )
+
+                if not self.in_messages(messages.get_messages(request), warning_message):
+                    messages.warning(request, warning_message)
+
                 return False
 
             # Protected
@@ -1627,10 +1639,10 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     form = AttestationDocumentForm
     search_fields = ('label',)
     list_filter = ('active', 'mandatory', 'for_minors', 'requires_validity_date')
-    list_display = ('label', 'order', 'profile_list', 'file_url', 'active', 'mandatory', 'for_minors',
-                    'requires_validity_date')
+    list_display = ('label', 'order', 'profile_list', 'visitor_types_list', 'file_url', 'active',
+                    'mandatory', 'for_minors', 'requires_validity_date')
     list_display_links = ('label', )
-    filter_horizontal = ('profiles',)
+    filter_horizontal = ('profiles', 'visitor_types', )
     ordering = ('order',)
     sortable_by = ('order',)
 
@@ -1642,6 +1654,9 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     def profile_list(self, obj):
         return format_html("<br>".join([p.code for p in obj.profiles.all()]))
 
+    def visitor_types_list(self, obj):
+        return format_html("<br>".join([vt.code for vt in obj.visitor_types.all()]))
+
     def file_url(self, obj):
         if obj.template:
             url = self.request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
@@ -1650,6 +1665,7 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
         return ""
 
     profile_list.short_description = _('Profiles')
+    visitor_types_list.short_description = _('Visitor types')
     file_url.short_description = _('Address')
 
     def has_delete_permission(self, request, obj=None):
@@ -2130,6 +2146,71 @@ class HistoryAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
+
+class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    """
+    Admin for Visitor types
+    Group permissions NOT taken into account
+    """
+    form = VisitorTypeForm
+    list_display = ('code', 'label', 'active')
+    list_filter = ('active', )
+    ordering = ('label',)
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_add_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_change_permission(self, request, obj=None):
+        warning_message = gettext("Warning : this visitor type is in use")
+
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+
+        if obj:
+            exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+            if exists and not self.in_messages(messages.get_messages(request), warning_message):
+                messages.warning(request, warning_message)
+
+        return any(allowed_users)
+
+    def has_delete_permission(self, request, obj=None):
+        #FIXME add test to forbid deletion when a type is in use
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+
+        exists = False
+
+        if obj:
+            exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+            if exists:
+                messages.warning(request, _("This visitor type can't be deleted because it is in use"))
+                return False
+
+        return any(allowed_users) and not exists
+
+
 """
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
@@ -2173,6 +2254,7 @@ admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(MefStat, MefStatAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
+admin.site.register(VisitorType, VisitorTypeAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
 admin.site.register(ScheduledTask, ScheduledTaskAdmin)

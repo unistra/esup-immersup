@@ -35,7 +35,7 @@ from .models import (
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UAI, UniversityYear, Vacation,
+    UAI, UniversityYear, Vacation, VisitorType
 )
 
 
@@ -1867,11 +1867,14 @@ class AttestationDocumentForm(forms.ModelForm):
                     )
             else:
                 raise forms.ValidationError(_('File type is not allowed'))
+
         return template
 
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
+        profiles = cleaned_data.get('profiles', None)
+        visitor_types = cleaned_data.get('visitor_types', None)
 
         try:
             user = self.request.user
@@ -1882,8 +1885,11 @@ class AttestationDocumentForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        if not cleaned_data.get("profiles", None):
+        if not profiles:
             raise forms.ValidationError(_("At least one profile is required"))
+
+        if visitor_types and not profiles.filter(code='VIS').exists():
+            raise forms.ValidationError(_("Visitor profile is mandatory when adding visitor types"))
 
         return cleaned_data
 
@@ -2347,4 +2353,13 @@ class ScheduledTaskForm(forms.ModelForm):
 
     class Meta:
         model = ScheduledTask
+        fields = '__all__'
+
+
+class VisitorTypeForm(TypeFormMixin):
+    """
+    visitor type form class
+    """
+    class Meta:
+        model = VisitorType
         fields = '__all__'

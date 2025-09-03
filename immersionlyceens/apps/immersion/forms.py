@@ -18,7 +18,7 @@ from ...libs.utils import get_general_setting
 from immersionlyceens.apps.core.models import (
     BachelorMention, BachelorType, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, HighSchoolLevel, ImmersionUser, Period, PostBachelorLevel,
-    StudentLevel,
+    StudentLevel, VisitorType,
 )
 
 from .models import (
@@ -721,11 +721,9 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
 
 
 class VisitorRecordForm(forms.ModelForm):
-
-    validation_disabled_fields: Tuple[str, ...] = (
-        "birth_date", "motivation",
-    )
-
+    """
+    Form for visitor record
+    """
     def has_change_permission(self):
         return any([
             self.request.user.is_establishment_manager(),
@@ -733,29 +731,41 @@ class VisitorRecordForm(forms.ModelForm):
             self.request.user.is_operator()
         ])
 
+    @staticmethod
+    def visitor_type_label_from_instance(obj):
+        return obj.label
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
         fields: List[str] = ["phone", "motivation", ]
 
+        self.fields["visitor"].widget = forms.HiddenInput()
+
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
 
-        is_hs_manager_or_master: bool = self.has_change_permission()
-        self.fields["visitor"].widget = forms.HiddenInput()
+        self.fields['visitor_type'].queryset = VisitorType.objects.filter(active=True).order_by('label')
+        self.fields['visitor_type'].label_from_instance = self.visitor_type_label_from_instance
 
-        if self.instance and self.instance.validation == 2:
-            for field in self.validation_disabled_fields:
+        for field in ["birth_date", "visitor_type"]:
+            if self.instance and getattr(self.instance, field, None):
                 self.fields[field].disabled = True
 
+        # Valid record : disable the motivations field
+        if self.instance and self.instance.validation == 2:
+            self.fields["motivation"].disabled = True
+
+        # Exception for high school and establishments managers
+        is_hs_manager_or_master: bool = self.has_change_permission()
         if is_hs_manager_or_master:
             self.fields["birth_date"].disabled = False
 
 
     class Meta:
         model = VisitorRecord
-        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation', 'disability']
+        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation', 'disability', 'visitor_type']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
