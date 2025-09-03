@@ -89,6 +89,12 @@ class CourseForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
+        start = cleaned_data.get('start_date')
+        end = cleaned_data.get('end_date')
+
+        if start and end and end < start:
+            raise forms.ValidationError(_("The end date must be after the start date."))
+
         try:
             active_year = UniversityYear.objects.get(active=True)
         except UniversityYear.MultipleObjectsReturned:
@@ -120,11 +126,17 @@ class CourseForm(forms.ModelForm):
                     if not allowed_highschools.filter(pk=highschool.id).exists():
                         raise forms.ValidationError(_("You don't have enough privileges to update this course"))
 
+
+
         return cleaned_data
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training', 'structure', 'establishment', 'highschool')
+        fields = ('id', 'label', 'url', 'published', 'start_date', 'end_date', 'training', 'structure', 'establishment', 'highschool')
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
 
 
 class SlotForm(forms.ModelForm):
@@ -512,6 +524,10 @@ class SlotForm(forms.ModelForm):
             instance.course.published = True
             instance.course.save()
             messages.success(self.request, _("Course published"))
+
+        if instance.published :
+            if (instance.course.start_date and instance.date < instance.course.start_date) or (instance.course.end_date and instance.date > instance.course.end_date) :
+                messages.warning(_("The slot will be saved, but the course publication dates do not match the slot date. Remember to change them."))
 
         if self.data.get("repeat"):
             # Careful with date formats, especially with unit tests
