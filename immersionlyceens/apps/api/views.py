@@ -1608,7 +1608,7 @@ def ajax_slot_registration(request):
 
                     # Should notify establishment/high school referent (if email is set)
                     # and the structure referents
-                    if immersion:
+                    if immersion and immersion.slot.date > today:
                         ret = immersion.notify_disability_referent()
                         error = ret.get("error", False)
                         if ret.get("msg"):
@@ -4294,6 +4294,7 @@ def notify_disability_referent(request):
     user = request.user
     slot_id = request.POST.get('slot_id')
     str_ref_only = request.POST.get('str_ref_only') == "true"
+    today = datetime.datetime.today().date()
 
     try:
         slot = Slot.objects.get(pk=slot_id)
@@ -4304,7 +4305,7 @@ def notify_disability_referent(request):
 
     immersion = Immersion.objects.filter(student=user, slot=slot, cancellation_type__isnull=True).first()
 
-    if immersion:
+    if immersion and immersion.slot.date > today:
         res = immersion.notify_disability_referent(str_ref_only=str_ref_only)
         response.update({
             "msg": res.get("msg"),
