@@ -5425,7 +5425,9 @@ def ajax_search_slots_list(request, slot_id=None):
     today = timezone.now()
     response = {'msg': '', 'data': []}
     user = request.user
-    user_highschool = user.highschool if user.is_authenticated else ''
+    is_authenticated = user.is_authenticated
+
+    user_highschool = user.highschool if is_authenticated else ''
 
     slots = (
         Slot.objects.filter(published=True)
@@ -5433,7 +5435,7 @@ def ajax_search_slots_list(request, slot_id=None):
         .exclude(Q(allow_group_registrations=True) & Q(public_group=False) & Q(allow_individual_registrations=False))
     )
 
-    if user.is_authenticated and not user.is_high_school_manager():
+    if is_authenticated and not user.is_high_school_manager():
         slots = slots.exclude(Q(allow_group_registrations=True) & Q(allow_individual_registrations=False) & Q(public_group=False))
 
     group_registered_persons_query = (
@@ -5487,8 +5489,31 @@ def ajax_search_slots_list(request, slot_id=None):
         "user_is_registered"
     ]
 
-    if user.is_authenticated:
+    # defaults
+    immersions_count = Value(0)
+    group_immersions_count = Value(0)
+
+    if is_authenticated:
         fields.append('url')
+
+        immersions_count = Count(
+            "immersions",
+            filter=Q(
+                immersions__student=user,
+                immersions__cancellation_type__isnull=True
+            ),
+            distinct=True
+        )
+
+    if user_highschool:
+        group_immersions_count = Count(
+            'group_immersions',
+            filter=Q(
+                group_immersions__highschool=user_highschool,
+                group_immersions__cancellation_type__isnull=True
+            ),
+            distinct=True
+        )
 
     slots = (
         slots.annotate(
@@ -5600,22 +5625,16 @@ def ajax_search_slots_list(request, slot_id=None):
             passed_registration_limit_date=ExpressionWrapper(
                 Q(registration_limit_date__lt=timezone.now()), output_field=CharField()
             ),
-            group_immersions_count=Count(
-                'group_immersions',
-                filter=Q(
-                    group_immersions__highschool=user_highschool,
-                    group_immersions__cancellation_type__isnull=True
-                ),
-                distinct=True
-            ),
+            group_immersions_count=group_immersions_count,
             user_has_group_immersions=Case(
                 When(Q(group_immersions_count__gte=1), then=True),
                 default=False
             ),
-            user_is_registered=Q(
-                immersions__student=user,
-                immersions__cancellation_type__isnull=True
-            )
+            immersions_count=immersions_count,
+            user_is_registered=Case(
+                When(Q(immersions_count__gte=1), then=True),
+                default=False
+            ),
         )
         .annotate(
             group_registered_persons=Subquery(group_registered_persons_query),
@@ -5623,8 +5642,8 @@ def ajax_search_slots_list(request, slot_id=None):
         .order_by("date", "start_time")
         .values(*fields, 'group_registered_persons')
     )
-    response['data'] = {"slots": list(slots)}
 
+    response['data'] = {"slots": list(slots)}
     return JsonResponse(response, safe=False)
 
 
