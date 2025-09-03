@@ -356,16 +356,16 @@
         },
         {
           "render": function (data, type, row) {
-            if(row.place === face_to_face) {
+            if(row.place === face_to_face && !hide_fields_public_area["building"].hide_after_registration) {
                 data = `${row.building}<br>${row.room}`
             }
-            else {
+            else if(!hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = row.meeting_place
             }
-            if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+            if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration && !hide_fields_public_area["building"].hide_after_registration) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
-              return "<label>{% trans 'Meeting place'%} :</label>";
+              return
             }
             return data
           },
@@ -446,7 +446,7 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration) {
         etab.push(rowData[0].structure)
       }
       if (slotType === 'c') {
@@ -736,11 +736,13 @@
         },
         {
           "render": function (data, type, row) {
-            data = row.meeting_place
+            if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = row.meeting_place
+            }
             if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration){
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
-              return "<label>{% trans 'Meeting place'%} :</label>";
+              return
             }
             return data
           },
@@ -1081,11 +1083,13 @@
         },
         {
           "render": function (data, type, row) {
-            data = row.meeting_place
+            if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = row.meeting_place
+            }
             if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
-              return "<label>{% trans 'Meeting place'%} :</label>";
+              return
             }
             return data;
           },

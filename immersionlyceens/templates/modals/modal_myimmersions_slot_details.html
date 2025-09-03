@@ -1,4 +1,6 @@
 {% load immersionlyceens_tags i18n static %}
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+{{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
 <!-- Modal -->
 <div class="modal fade show" id="modal_myimmersions_slot_details" tabindex="-1" role="dialog" aria-labelledby="modal_myimmersions_slot_details_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -77,30 +79,36 @@
                 </div>
                 <div id="modal_city" class="col-4 col-sm-6"></div>
               </div>
+              {% if not hide_fields_public_area.building.hide_public_area %}
               <div id="row_building" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Building' %} :
                 </div>
                 <div id="modal_building" class="col-4 col-sm-6"></div>
               </div>
+              {% endif %}
+              {% if not hide_fields_public_area.meeting_place.hide_public_area %}
               <div id="row_meeting_place" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Meeting place' %} :
                 </div>
                 <div id="modal_meeting_place" class="col-4 col-sm-6"></div>
               </div>
+              {% endif %}
               <div id="row_url" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'URL' %} :
                 </div>
                 <div id="modal_url" class="col-4 col-sm-6"></div>
               </div>
+              {% if not hide_fields_public_area.speakers.hide_public_area %}
               <div id="row_speakers" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Speakers' %} :
                 </div>
                 <div id="modal_speakers" class="col-4 col-sm-6"></div>
               </div>
+              {% endif %}
               <div id="row_additional_information" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Additional information' %} :
