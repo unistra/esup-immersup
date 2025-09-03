@@ -203,11 +203,13 @@
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
                     <th id="date_filter_rejected">{% trans "Rejection date" %}</th>
+                    <th id="rejection_message">{% trans "Rejection Reason" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -838,6 +840,12 @@ $(document).ready(function () {
                   return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
                          'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
                 }
+              },
+              { data: 'rejection_message',
+                render: function (data, type, row) {
+                  return row.rejection_reason
+                }
+
               }
             ],
             columnDefs: [{

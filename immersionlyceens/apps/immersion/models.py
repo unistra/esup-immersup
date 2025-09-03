@@ -494,6 +494,7 @@ class VisitorRecord(BaseRecord):
     allowed_immersions = models.ManyToManyField(Period, through='VisitorRecordQuota')
 
     rejected_date = models.DateTimeField(_("Rejected date"), null=True, blank=True)
+    rejection_reason = models.TextField(_("Rejection reason"), null=True, blank=True)
 
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")

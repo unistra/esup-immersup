@@ -551,6 +551,7 @@ def ajax_validate_reject_student(request, validate):
 
         record.validation_date = timezone.localtime() if validate else None # Seulement si aucune date n'a été specifiée ?
         record.rejected_date = None if validate else timezone.localtime()
+        record.rejection_reason = rejection_reason if rejection_reason else ""
         record.save()
 
         # Delete attestations ?
@@ -562,7 +563,7 @@ def ajax_validate_reject_student(request, validate):
                     attestation.delete()
 
         template = 'CPT_MIN_VALIDE' if validate else 'CPT_MIN_REJET'
-        ret = record.student.send_message(request, template, rejection_reason)
+        ret = record.student.send_message(request, template)
 
         if ret:
             msgs.append(_("Record updated but notification not sent : %s") % ret)

@@ -555,7 +555,7 @@
     "model": "core.mailtemplatevars",
     "pk": 82,
     "fields": {
-        "code": "{{ rejection_reason }}",
+        "code": "{{ motifrejet }}",
         "description": "Motif de rejet d'un compte"
     }
 }
