@@ -5607,15 +5607,15 @@ def ajax_search_slots_list(request, slot_id=None):
     today = timezone.now()
     response = {'msg': '', 'data': []}
     user = request.user
-    user_highschool = user.highschool
+    user_highschool = user.highschool if user.is_authenticated else ''
 
     slots = (
         Slot.objects.filter(published=True)
         .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
     )
 
-    if not request.user.is_high_school_manager():
-        slots = slots.exclude().exclude(Q(allow_group_registrations=True) & Q(allow_individual_registrations=False) & Q(public_group=False))
+    if user.is_authenticated and not user.is_high_school_manager():
+        slots = slots.exclude(Q(allow_group_registrations=True) & Q(allow_individual_registrations=False) & Q(public_group=False))
 
     group_registered_persons_query = (
         ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
