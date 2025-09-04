@@ -115,6 +115,7 @@ class ParserFaker:
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
             "justificatifs_expires": cls.add_tooltip("justificatifs_expires", "<br>".join(attestations)),
             "educonnect": educonnect,
+            "motifRejetCompte": cls.add_tooltip("motifRejetCompte", "Lycée incorrect"),
         })
         context[user_is] = True
 
@@ -505,7 +506,8 @@ class Parser:
                         "lycee": record.highschool.label if record and record.highschool else _("unknown"),
                         "educonnect": record.highschool.uses_student_federation if record and record.highschool else False,
                         "datedenaissance": date_format(record.birth_date, 'd/m/Y') if record.birth_date else "",
-                        "justificatifs_expires": format_html("<br>".join(attestations))
+                        "justificatifs_expires": format_html("<br>".join(attestations)),
+                        "motifRejetCompte": record.rejection_reason or "",
                     })
 
             elif user.is_student():
@@ -534,7 +536,9 @@ class Parser:
                     ]
 
                     context.update({
-                        "justificatifs_expires": format_html("<br>".join(attestations))
+                        "justificatifs_expires": format_html("<br>".join(attestations)),
+                        "datedenaissance": date_format(record.birth_date, 'd/m/Y') if record.birth_date else "",
+                        "motifRejetCompte": record.rejection_reason or "",
                     })
 
             elif user.highschool:
