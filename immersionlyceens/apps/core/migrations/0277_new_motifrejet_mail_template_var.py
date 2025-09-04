@@ -5,7 +5,7 @@ from django.db import migrations
 def add_template_vars(apps, schema_editor):
     MailTemplateVars = apps.get_model('core', "MailTemplateVars")
 
-    code = "motifRejetCompte"
+    code = "{{ motifRejetCompte }}"
 
     if not MailTemplateVars.objects.filter(code=code).exists():
         MailTemplateVars.objects.create(
