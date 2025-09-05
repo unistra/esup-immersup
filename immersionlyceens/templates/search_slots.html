@@ -492,8 +492,10 @@
               if (data === '' || data === null) {
                 return ''
               }
-              if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
-                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
+              if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area && !hide_fields_public_area["building"].hide_public_area) {
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true) //+ .html(buildingFull ?? rowData[0].building_label)
+              } else if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
+                return '<label>' + "{% trans 'Meeting place' %}" + ' :</label>' + displayLongString(data, 40, html = true)
               } else {
                 return
               }
@@ -584,7 +586,7 @@
       }
       availablesSeatslabel += '</ul>';
       $.each(rowData[0].speakers_list, function(i, item) {
-        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
+        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + "</li>";
       });
 
       // display all row_* elements
