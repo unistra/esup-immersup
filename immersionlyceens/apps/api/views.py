@@ -5179,9 +5179,7 @@ class VisitorRecordRejectValidate(View):
         # can't be none. No routes allowed for that
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
-        rejection_reason: str = self.kwargs.get("rejection_reason", "")
-        validation_value: str = "TO_VALIDATE"
-        validation_email_template: str = ""
+        rejection_reason: str = request.POST.get("rejection_reason", "")
         delete_attachments: bool = False
         set_status_params = {}
 
@@ -5228,8 +5226,9 @@ class VisitorRecordRejectValidate(View):
         res = record.set_status(validation_value, **set_status_params)
         record.validation_date = timezone.localtime() if validation_value == "VALIDATED" else None
         record.rejected_date = timezone.localtime() if validation_value == "REJECTED" else None
+        record.rejection_reason = rejection_reason if validation_value == "REJECTED" else None
         record.save()
-        ret = record.visitor.send_message(self.request, validation_email_template, rejection_reason)
+        ret = record.visitor.send_message(self.request, validation_email_template)
         data["data"] = {"record_id": record.id}
 
         if res.get("msg"):
