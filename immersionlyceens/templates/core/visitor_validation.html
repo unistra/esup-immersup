@@ -252,6 +252,39 @@ $(document).ready(function () {
       ],
     });
 
+    //If a validity date is missing on a document, the user can put it manually
+    //This function check if the date put manually is valid
+    function enable_validate_button(){
+
+      $(".validity-date").each(function() {
+        const val = $(this).val();
+        let invalid = false;
+        const row = $(this).closest('tr');
+
+        if (!val) {
+          invalid = true;
+        } else {
+          const entered = new Date(val);
+          const today = new Date();
+          if (entered < today) {
+            invalid = true;
+          }
+        }
+
+        if (invalid) {
+          row.find('.btn_validate').prop('disabled', true);
+          row.find('td:last').append("<br>{% trans 'Some attestation dates are invalid' %}");
+        } else {
+          row.find('.btn_validate').prop('disabled', false);
+        }
+      });
+    }
+
+    // All the elements with the "validity-date" class are checked to see if they changed
+    $(document).on("change", ".validity-date", function() {
+      enable_validate_button()
+    })
+
     function load_to_revalidate() {
         dts['to_revalidate'] = $('#to_revalidate').DataTable({
             processing: false,
@@ -306,15 +339,36 @@ $(document).ready(function () {
                   return data
                 }
               },
-              { data: 'attestations',
+              {
+                data: 'attestations',
                 render: function(data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
+
                   return '<ul class="mb-0">' + data.map(att =>
                     `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
                   ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',
@@ -398,15 +452,36 @@ $(document).ready(function () {
                   return data
                 }
               },
-              { data: 'attestations',
+              {
+                data: 'attestations',
                 render: function(data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
+
                   return '<ul class="mb-0">' + data.map(att =>
                     `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
                   ).join('') + '</ul>';
+                },
+
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
                 }
               },
               { data: 'id',

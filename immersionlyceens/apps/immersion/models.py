@@ -640,7 +640,6 @@ class HighSchoolStudentRecordDocument(RecordDocument):
     M2M 'through' relation between high school student records and attestation documents
     """
     record = models.ForeignKey(HighSchoolStudentRecord, related_name="attestation", on_delete=models.CASCADE)
-    validity_date = models.DateField(_("Validity date"), null=True, blank=True)
 
     class Meta:
         verbose_name = _('High school student record / Attestation document')
