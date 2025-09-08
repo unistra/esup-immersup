@@ -2221,7 +2221,7 @@ class StudentLevelForm(TypeFormMixin):
 
 class CustomThemeFileForm(forms.ModelForm):
     """
-    Custome theme file form class
+    Custom theme file form class
     """
 
     def __init__(self, *args, **kwargs):

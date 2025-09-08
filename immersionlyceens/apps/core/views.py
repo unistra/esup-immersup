@@ -42,7 +42,7 @@ from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
     HighSchool, Holiday, Immersion, ImmersionGroupRecord, ImmersionUser,
     InformationText, OffOfferEvent, Period, RefStructuresNotificationsSettings,
-    Slot, Structure, Training, UniversityYear
+    Slot, Structure, Training, UniversityYear, CustomThemeFile
 )
 
 from .serializers import PeriodSerializer
@@ -2637,3 +2637,11 @@ class HighSchoolCohortsRegistrations(generic.TemplateView):
             context["training_id"] = None
 
         return context
+
+def home(request):
+    theme_files = CustomThemeFile.objects.all()
+    return render(
+        request,
+        "home.html",
+        {"theme_files": theme_files}
+    )
