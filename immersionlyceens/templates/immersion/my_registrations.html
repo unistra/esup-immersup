@@ -736,10 +736,13 @@
         },
         {
           "render": function (data, type, row) {
-            if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
+            if(row.place === face_to_face && !hide_fields_public_area["building"].hide_after_registration) {
+                data = `${row.building}<br>${row.room}`
+            }
+            else if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = row.meeting_place
             }
-            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration){
+            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration && !hide_fields_public_area["building"].hide_after_registration){
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return
@@ -788,7 +791,6 @@
     }).on('select', function (e, dt, type, indexes) {
       let rowData = dt.rows(indexes).data().toArray()
       let speakers_array = "";
-      let url = null;
       let buildingFull = null;
       let courseLabelFull = null;
       let slotType = rowData[0].type[0].toLowerCase();
@@ -838,7 +840,7 @@
           filteredRows.push('row_highschool_address');
         }
       }
-      if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== '') {
+      if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== ''){
         courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
       if (rowData[0].campus === '' || rowData[0].campus === null) {
@@ -847,13 +849,9 @@
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
       }
-
-
       if (rowData[0].building === '' || rowData[0].building === null) {
         filteredRows.push('row_building');
       }
-
-
       if (rowData[0].info === '' || rowData[0].info === null) {
         filteredRows.push('row_additional_information');
       }
@@ -917,6 +915,7 @@
       selectedRows = filteredRows.map(id => `#${id}`).join(',');
       $(selectedRows).hide();
       $('#modal_myimmersions_slot_details').modal("show");
+      $('#row_url').hide();
     });
 
     dt_past.on("draw.dt", function (e, dt, type, indexes) {
@@ -1083,10 +1082,13 @@
         },
         {
           "render": function (data, type, row) {
-            if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
+            if(row.place === face_to_face && !hide_fields_public_area["building"].hide_after_registration) {
+                data = `${row.building}<br>${row.room}`
+            }
+            else if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = row.meeting_place
             }
-            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration && !hide_fields_public_area["building"].hide_after_registration) {
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return
@@ -1139,7 +1141,6 @@
     }).on('select', function (e, dt, type, indexes) {
       let rowData = dt.rows(indexes).data().toArray()
       let speakers_array = "";
-      let url = null;
       let buildingFull = null;
       let courseLabelFull = null;
       let slotType = rowData[0].type[0].toLowerCase();
@@ -1161,11 +1162,9 @@
       }
       availablesSeatslabel += '</ul>';
 
-      //Cette partie est déjà faite au dessus. Qu'est ce qui justifie le doublon ?
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
-
 
       // display all row_* elements
       $(displayedRows).show();
@@ -1186,14 +1185,9 @@
       } else {
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
       }
-
-
-
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
-
-
       if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== '') {
         courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
@@ -1211,11 +1205,6 @@
       }
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
-      }
-      if (rowData[0].place === remote) {
-        if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
-          url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
-        }
       }
       if (rowData[0].place == remote || rowData[0].place == outside) {
         filteredRows.push('row_city');
@@ -1280,6 +1269,7 @@
       selectedRows = filteredRows.map(id => `#${id}`).join(',')
       $(selectedRows).hide();
       $('#modal_myimmersions_slot_details').modal("show");
+      $('#row_url').hide();
     });
     dt_cancelled.on("draw.dt", function (e, dt, type, indexes) {
         if ($(this).find(".dataTables_empty").length == 1) {
