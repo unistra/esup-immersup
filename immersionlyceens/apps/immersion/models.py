@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.db import models
 from django.db.models import Q
 from django.template.defaultfilters import filesizeformat
+from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
 
 from immersionlyceens.libs.mails.mail import Mail
@@ -54,6 +55,9 @@ class BaseRecord(models.Model):
 
         if isinstance(status, str) and status.upper() in self.STATUSES:
             self.validation = self.STATUSES[status.upper()]
+
+            if status == "VALIDATED":
+                self.validation_date = timezone.now()
 
             # Send disability notification when the record is valid (among other conditions)
             if notify_disability:

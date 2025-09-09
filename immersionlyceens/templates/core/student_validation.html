@@ -360,6 +360,7 @@ $(document).ready(function () {
         } else {
           const entered = new Date(val);
           const today = new Date();
+
           if (entered < today) {
             invalid = true;
           }
@@ -409,18 +410,28 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            let student_record_id = $("#vdialog-form").data('param');
+            let student_record_id = $("#vdialog-form").data('param')
+            let att = $("#vdialog-form").data('atts')
 
-            let documents_validity_dates = [];
-            row.find(".validity-date").each(function () {
-                let docId = $(this).data("document-id");
-                let dateValue = $(this).val();
+            let documents_validity_dates = []
+
+            // get validity date for all attestations that require one
+            att.forEach(att_id => {
+              // get date input depending on the record id and the record_attestation object id
+              let date_input = document.getElementById(`validity_date_${student_record_id}_${att_id}`)
+
+              if(date_input) {
+                let docId = date_input.dataset.docId;
+                let dateValue = date_input.value;
+
                 documents_validity_dates.push({
-                    id: docId,
-                    validity_date: dateValue
+                  id: docId,
+                  validity_date: dateValue
                 });
-            });
+              }
+            })
 
+            // send validation data to the API
             validate_student(student_record_id, documents_validity_dates);
             vdialog.dialog("close");
           },
@@ -562,7 +573,7 @@ $(document).ready(function () {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {
-                      html += ` <input type="date" id="validity_date_${row.id}_${att.slot_id}" name="validity_date_${row.id}_${att.slot_id}" class="validity-date" data-doc-id="${att.slot_id}" value="${att.validity_date || ''}">`;
+                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
                     }
                     html += '</li>';
                   });
@@ -575,14 +586,23 @@ $(document).ready(function () {
                   let element = '';
                   let disabled = '';
                   let txt = '';
+                  let att_ids = []
 
                   if(row.invalid_dates > 0) {
                     disabled = "disabled"
                     txt = "<br>{% trans 'Some attestation dates are invalid' %}"
                   }
 
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
-                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Renew validation" %}</button>`;
+                       onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog('open')">{% trans "Renew validation" %}</button>`;
+
                   element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
                        onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
 
@@ -682,7 +702,6 @@ $(document).ready(function () {
                   ).join('') + '</ul>';
                 },
                 render: function (data, type, row) {
-
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
                   }
@@ -692,7 +711,7 @@ $(document).ready(function () {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {
-                      html += ` <input type="date" id="validity_date" name="validity_date" class="validity-date" value="${att.validity_date || ''}">`;
+                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" class="validity-date" value="${att.validity_date || ''}">`;
                     }
                     html += '</li>';
                   });
@@ -705,14 +724,23 @@ $(document).ready(function () {
                   let element = '';
                   let disabled = '';
                   let txt = '';
+                  let att_ids = []
 
                   if(row.invalid_dates > 0) {
                     disabled = "disabled"
                     txt = "<br>{% trans 'Some attestation dates are invalid' %}"
                   }
 
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
-                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Validate" %}</button>`;
+                       onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog('open')">{% trans "Validate" %}</button>`;
+
                   element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
                        onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
 
@@ -892,9 +920,18 @@ $(document).ready(function () {
 
               },
               { data: 'id',
-                render: function(data) {
-                  return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
-                         'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                render: function(data, type, row) {
+                  let att_ids = [];
+
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
+                  return `<button class="btn btn-success btn_validate" id="btn_validate_'+data+'" ` +
+                         `onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog(\'open\')">{% trans "Validate" %}</button>`
                 }
               },
             ],

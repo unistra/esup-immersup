@@ -467,6 +467,7 @@ def ajax_get_student_records(request):
         att = doc.attestation
         if att:
             attestations_by_record.setdefault(doc.record_id, []).append({
+                'id': doc.pk,
                 'label': att.label,
                 'url': doc.document.url if doc.document else '',
                 'validity_date': doc.validity_date.strftime("%Y-%m-%d") if doc.validity_date else None,
@@ -490,31 +491,7 @@ def ajax_validate_reject_student(request, validate):
     """
     student_record_id = request.POST.get('student_record_id')
     rejection_reason = request.POST.get('rejection_reason', '')
-
-    try:
-        data = json.loads(request.POST.get("validity_dates", "[]"))
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-
-    if (request.user.is_visitor):
-        for doc_data in data:
-            doc_id = doc_data.get("id")
-            doc_validity_date = doc_data.get("documents_validity_date", "")
-
-            document = get_object_or_404(VisitorRecordDocument, pk=doc_id)
-            if doc_validity_date:
-                document.validity_date = parse_date(doc_validity_date)
-            document.save()
-
-    if (request.user.is_high_school_student):
-        for doc_data in data:
-            doc_id = doc_data.get("id")
-            doc_validity_date = doc_data.get("documents_validity_date", "")
-
-            document = get_object_or_404(HighSchoolStudentRecordDocument, pk=doc_id)
-            if doc_validity_date:
-                document.validity_date = parse_date(doc_validity_date)
-            document.save()
+    validation_data = request.POST.get("validity_dates", "[]")
 
     today = timezone.localdate()
     response = {'data': None, 'msg': ''}
@@ -525,12 +502,19 @@ def ajax_validate_reject_student(request, validate):
         response['msg'] = "Error: No student selected"
         return JsonResponse(response, safe=False)
 
+    try:
+        validation_data = json.loads(validation_data)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON validation data"}, status=400)
+
+    # Check authenticated user profile, the following have access to all high schools
     all_highschools_conditions = [
         request.user.is_establishment_manager(),
         request.user.is_master_establishment_manager(),
         request.user.is_operator(),
     ]
 
+    # Single high school access (the one linked to the user)
     if not any(all_highschools_conditions):
         highschool_filter['id'] = request.user.highschool.id
 
@@ -539,6 +523,21 @@ def ajax_validate_reject_student(request, validate):
     if not hs.exists():
         response['msg'] = "Error: No high school"
         return JsonResponse(response, safe=False)
+
+    # Direct validation of attestations (POST validation_data from student_validation template)
+    for document_data in validation_data:
+        doc_id = document_data.get("id")
+        doc_validity_date = document_data.get("validity_date", "")
+
+        try:
+            document = HighSchoolStudentRecordDocument.objects.get(pk=doc_id, record_id=student_record_id)
+            if doc_validity_date:
+                document.validity_date = parse_date(doc_validity_date)
+                document.save()
+
+        except HighSchoolStudentRecordDocument.DoesNotExist:
+            pass
+        # Add exception for parse_date ?
 
     try:
         record = HighSchoolStudentRecord.objects.prefetch_related('attestation').get(
