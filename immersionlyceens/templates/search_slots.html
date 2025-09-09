@@ -491,13 +491,11 @@
               if (data === '' || data === null) {
                 return ''
               }
-              if (full['building_label']) {
+              if (full['building_label'] && !hide_fields_public_area["building"].hide_public_area) {
                 data += ' - ' + full['building_label']
               }
-              if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area && !hide_fields_public_area["building"].hide_public_area) {
+              if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
                 return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
-              } else if(type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
-                return '<label>' + "{% trans 'Meeting place' %}" + ' :</label>' + displayLongString(data, 40, html = true)
               } else {
                 return
               }
@@ -753,7 +751,7 @@
 
       {% if authorized_groups|in_groups:"REF-LYC" %}
       if ( rowData[0].allow_group_registrations === true ) {
-
+        console.log("allow group registrations")
         $.ajax({
           url: "/api/can_register_slot/" + rowData[0].id,
           type: 'GET',
@@ -767,8 +765,7 @@
                         "data-slot-id='" + rowData[0].id + "' " +
                         "data-target='#modal_register_group'>{% trans 'Register a group' %}" +
                         "</button>"
-                )
-                ;
+                );
               } else if (data['data'][0]['already_registered'] === true) {
                 $('#modal_register_btn').html(
                         "<span class=\"badge badge-pill badge-success\">{% trans 'Already registered' %}</span>"
