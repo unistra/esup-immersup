@@ -751,7 +751,6 @@
 
       {% if authorized_groups|in_groups:"REF-LYC" %}
       if ( rowData[0].allow_group_registrations === true ) {
-        console.log("allow group registrations")
         $.ajax({
           url: "/api/can_register_slot/" + rowData[0].id,
           type: 'GET',
