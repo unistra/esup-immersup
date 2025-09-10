@@ -356,13 +356,14 @@
         },
         {
           "render": function (data, type, row) {
-            if(row.place === face_to_face && !hide_fields_public_area["building"].hide_after_registration) {
-                data = `${row.building}<br>${row.room}`
-            }
-            else if(!hide_fields_public_area["meeting_place"].hide_after_registration) {
-              data = row.meeting_place
-            }
-            if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration && !hide_fields_public_area["building"].hide_after_registration) {
+            if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.building}<br>${row.meeting_place}`
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
+              data = `${row.building}`
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.meeting_place}`
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return
@@ -476,6 +477,9 @@
       }
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
+      }
+      if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== ''){
+        courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
       if (rowData[0].building === '' || rowData[0].building === null) {
         filteredRows.push('row_building');
