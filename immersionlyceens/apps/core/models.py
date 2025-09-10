@@ -1883,8 +1883,8 @@ class Course(models.Model):
     published = models.BooleanField(_("Published"), default=True)
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses', blank=True)
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
-    start_date = models.DateField(_("Immersions start date"), null=True, blank=True)
-    end_date = models.DateField(_("Immersions end date"), null=True, blank=True)
+    start_date = models.DateTimeField(_("Immersions start date"), null=True, blank=True)
+    end_date = models.DateTimeField(_("Immersions end date"), null=True, blank=True)
 
     def __str__(self):
         return self.label
@@ -2093,8 +2093,8 @@ class OffOfferEvent(models.Model):
     )
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
-    start_date = models.DateField(_("Immersions start date"), null=True, blank=True)
-    end_date = models.DateField(_("Immersions end date"), null=True, blank=True)
+    start_date = models.DateTimeField(_("Immersions start date"), null=True, blank=True)
+    end_date = models.DateTimeField(_("Immersions end date"), null=True, blank=True)
 
     def __str__(self):
         if self.establishment:

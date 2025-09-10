@@ -131,8 +131,8 @@ class CourseForm(forms.ModelForm):
         model = Course
         fields = ('id', 'label', 'url', 'published', 'start_date', 'end_date', 'training', 'structure', 'establishment', 'highschool')
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
         }
 
 
@@ -803,7 +803,6 @@ class OffOfferEventSlotForm(SlotForm):
         end_time = cleaned_data.get('end_time')
         if start_time and end_time and start_time >= end_time:
             self.add_error('start_time', _("Error: Start time must be set before end time"))
-            # raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
 
         if event and not event.published and published:
             event.published = True
@@ -1100,8 +1099,8 @@ class OffOfferEventForm(forms.ModelForm):
         model = OffOfferEvent
         fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool', 'start_date', 'end_date')
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'start_date': forms.DateTimeInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateTimeInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
 
