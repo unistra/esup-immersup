@@ -528,7 +528,7 @@ def ajax_cancel_rejection(request):
         record.save()
         response['data'] = {'ok': True}
     except record_class.DoesNotExist:
-        response['msg'] = gettext("Error: record not found")
+        response['msg'] = gettext("Error - record not found: %s") % (record_id)
 
     return JsonResponse(response, safe=False)
 
