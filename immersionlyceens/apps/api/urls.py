@@ -47,6 +47,7 @@ urlpatterns = [
     path('set_group_attendance', views.ajax_set_group_attendance, name='SetGroupAttendance'),
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
+    path('cancel_rejection/', views.ajax_cancel_rejection, name='cancelRejection'),
     path('remove_link', views.remove_link, name='remove_link'),
     path('notify_disability_referent', views.notify_disability_referent, name='notify_disability_referent'),
 

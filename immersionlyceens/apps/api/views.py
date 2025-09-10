@@ -481,6 +481,56 @@ def ajax_get_student_records(request):
 
     return JsonResponse(response, safe=False)
 
+@is_ajax_request
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+def ajax_cancel_rejection(request):
+    """
+    Reinit the visitor or high school student record status to 'to validate'
+    """
+    student_record_id = request.POST.get('student_record_id')
+    visitor_record_id = request.POST.get('visitor_record_id')
+
+    response = {'data': None, 'msg': ''}
+    highschool_filter = {}
+    msgs = []
+
+    if not student_record_id and not visitor_record_id:
+        response['msg'] = "Error: No record selected"
+        return JsonResponse(response, safe=False)
+    else:
+        if student_record_id:
+            record_class = HighSchoolStudentRecord
+            record_id = student_record_id
+        else:
+            record_class = VisitorRecord
+            record_id = visitor_record_id
+
+    # Check authenticated user profile, the following have access to all high schools
+    all_highschools_conditions = [
+        request.user.is_establishment_manager(),
+        request.user.is_master_establishment_manager(),
+        request.user.is_operator(),
+    ]
+
+    # Single high school access (the one linked to the user)
+    if not any(all_highschools_conditions):
+        highschool_filter['id'] = request.user.highschool.id
+
+    hs = HighSchool.objects.filter(**highschool_filter)
+
+    if not hs.exists():
+        response['msg'] = "Error: No high school"
+        return JsonResponse(response, safe=False)
+
+    try:
+        record = record_class.objects.get(pk=record_id)
+        record.set_status("TO_VALIDATE")
+        record.save()
+        response['data'] = {'ok': True}
+    except record_class.DoesNotExist:
+        response['msg'] = gettext("Error: record not found")
+
+    return JsonResponse(response, safe=False)
 
 # REJECT / VALIDATE STUDENT
 @is_ajax_request

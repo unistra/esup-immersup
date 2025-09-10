@@ -58,6 +58,14 @@ class BaseRecord(models.Model):
 
             if status == "VALIDATED":
                 self.validation_date = timezone.now()
+                # Just in case
+                self.rejection_date = None
+                self.rejection_reason = None
+
+            if status == "TO_VALIDATE":
+                self.validation_date = None
+                self.rejection_date = None
+                self.rejection_reason = None
 
             # Send disability notification when the record is valid (among other conditions)
             if notify_disability:

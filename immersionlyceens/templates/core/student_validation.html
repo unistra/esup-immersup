@@ -30,6 +30,12 @@
     </span>
   </div>
 
+  <div id="cdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
+    <span>
+      {% trans 'Do you really want to cancel this rejection ?' %}
+    </span>
+  </div>
+
   <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
     <span>
       {% trans 'Do you really want to reject this high school student?' %}
@@ -50,6 +56,9 @@
       </div>
       <div class="alert alert-success hide" id="validate_message">
         {% trans "Student validated" %}
+      </div>
+      <div class="alert alert-success hide" id="cancel_rejection_message">
+        {% trans "Rejection canceled" %}
       </div>
       <div class="alert alert-success hide" id="reject_message">
         {% trans "Student rejected" %}
@@ -230,7 +239,7 @@
 <script type="text/javascript">
 var t1, t2;
 var dts = {};
-var vdialog, rdialog;
+var vdialog, cdialog, rdialog;
 var date_options = { dateStyle: 'long', timeStyle: 'medium' };
 var birth_date_options = { dateStyle: 'short' };
 var hs_id = "{{ hs_id }}";
@@ -416,20 +425,22 @@ $(document).ready(function () {
             let documents_validity_dates = []
 
             // get validity date for all attestations that require one
-            att.forEach(att_id => {
-              // get date input depending on the record id and the record_attestation object id
-              let date_input = document.getElementById(`validity_date_${student_record_id}_${att_id}`)
+            if(is_set(att)) {
+              att.forEach(att_id => {
+                // get date input depending on the record id and the record_attestation object id
+                let date_input = document.getElementById(`validity_date_${student_record_id}_${att_id}`)
 
-              if(date_input) {
-                let docId = date_input.dataset.docId;
-                let dateValue = date_input.value;
+                if (date_input) {
+                  let docId = date_input.dataset.docId;
+                  let dateValue = date_input.value;
 
-                documents_validity_dates.push({
-                  id: docId,
-                  validity_date: dateValue
-                });
-              }
-            })
+                  documents_validity_dates.push({
+                    id: docId,
+                    validity_date: dateValue
+                  });
+                }
+              })
+            }
 
             // send validation data to the API
             validate_student(student_record_id, documents_validity_dates);
@@ -441,6 +452,34 @@ $(document).ready(function () {
           "class": 'dialog-button',
           click: function () {
             vdialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    cdialog = $("#cdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            let student_record_id = $("#cdialog-form").data('param')
+            cancel_rejection(student_record_id);
+            cdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            cdialog.dialog("close");
           },
         }
       ],
@@ -921,17 +960,8 @@ $(document).ready(function () {
               },
               { data: 'id',
                 render: function(data, type, row) {
-                  let att_ids = [];
-
-                  // attestation ids array
-                  if(is_set(row.attestations)) {
-                    row.attestations.forEach(att => {
-                      att_ids.push(att.id)
-                    })
-                  }
-
-                  return `<button class="btn btn-success btn_validate" id="btn_validate_'+data+'" ` +
-                         `onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog(\'open\')">{% trans "Validate" %}</button>`
+                  return `<button class="btn btn-success btn_validate" id="btn_validate_${data}" ` +
+                         `onclick="cdialog.data('param', ${data}).dialog(\'open\')">{% trans "Cancel" %}</button>`
                 }
               },
             ],
@@ -1074,6 +1104,69 @@ function validate_student(student_record_id, documents_validity_date) {
         else {
           $('#fail_message').html(
             "{% trans 'An error occurred. The validation or rejection failed.' %}"
+          )
+        }
+
+        $('#fail_message').show();
+
+        setTimeout(function() {
+            $('#fail_message').fadeOut(
+              1000,
+              function() {
+                $('#fail_message').hide();
+              }
+            )
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        );
+      }
+    },
+    error: function() {
+        $('#fail_message').show();
+        setTimeout(function(){
+            $('#fail_message').fadeOut(
+                1000,
+                function() {
+                    $('#fail_message').hide();
+                }
+            )
+        }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+    }
+  });
+}
+
+function cancel_rejection(student_record_id) {
+  $.post({
+    url: "{% url 'cancelRejection' %}",
+    data: {
+        student_record_id: student_record_id,
+    },
+    success: function(obj) {
+      if (is_set(obj.data)) {
+        reload_to_validate();
+        reload_rejected();
+
+        $('#cancel_rejection_message').show();
+
+        if (t1) {
+          clearTimeout(t1);
+        }
+
+        t1 = setTimeout(function() {
+            $('#cancel_rejection_message').fadeOut(1000, function(){
+              $('#cancel_rejection_message').hide();
+            });
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        )
+      }
+      else {
+        if(is_set(obj.msg)) {
+          $('#fail_message').html(obj.msg)
+        }
+        else {
+          $('#fail_message').html(
+            "{% trans 'An error occurred. The operation has failed.' %}"
           )
         }
 
