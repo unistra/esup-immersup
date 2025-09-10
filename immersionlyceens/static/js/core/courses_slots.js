@@ -422,6 +422,10 @@ function init_datatable() {
           d.courses = true;
           d.events = false;
 
+          if(is_set(current_period_id) || $('#id_period').val()) {
+            d.period_id = current_period_id || $('#id_period').val();
+          }
+
           if(is_set(current_establishment_id) || $('#id_establishment').val()) {
             d.establishment_id = current_establishment_id || $('#id_establishment').val();
           }
