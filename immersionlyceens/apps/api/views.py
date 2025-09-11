@@ -5213,6 +5213,32 @@ class VisitorRecordValidation(View):
             )
         )
 
+        # List of the ids of the extracted records
+        record_ids = [r['id'] for r in records]
+
+        # Getting the attestations linked to the records
+        docs_qs = VisitorRecordDocument.objects.filter(
+            record_id__in=record_ids,
+            archive=False,
+            document__isnull=False
+        ).select_related('attestation')
+
+        # List of attestations
+        attestations_by_record = {}
+        for doc in docs_qs:
+            att = doc.attestation
+            if att:
+                attestations_by_record.setdefault(doc.record_id, []).append({
+                    'id': doc.pk,
+                    'label': att.label,
+                    'url': doc.document.url if doc.document else '',
+                    'validity_date': doc.validity_date.strftime("%Y-%m-%d") if doc.validity_date else None,
+                    'requires_validity_date': doc.requires_validity_date,
+                })
+
+        for rec in records:
+            rec['attestations'] = attestations_by_record.get(rec['id'], [])
+
         data['data'] = list(records)
 
         return JsonResponse(data)
@@ -5229,8 +5255,14 @@ class VisitorRecordRejectValidate(View):
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
         rejection_reason: str = request.POST.get("rejection_reason", "")
+        validation_data = request.POST.get("validity_dates", "[]")
         delete_attachments: bool = False
         set_status_params = {}
+
+        try:
+            validation_data = json.loads(validation_data)
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "msg": "Invalid JSON validation data"}, status=400)
 
         if operation == "validate":
             validation_value = "VALIDATED"
@@ -5242,6 +5274,20 @@ class VisitorRecordRejectValidate(View):
         else:
             data["msg"] = _("Error - Bad operation selected. Allowed: validate, reject")
             return JsonResponse(data)
+
+        # Direct validation of attestations (POST validation_data from visitor_validation template)
+        for document_data in validation_data:
+            doc_id = document_data.get("id")
+            doc_validity_date = document_data.get("validity_date", "")
+
+            try:
+                document = VisitorRecordDocument.objects.get(pk=doc_id, record_id=record_id)
+                if doc_validity_date:
+                    document.validity_date = parse_date(doc_validity_date)
+                    document.save()
+            except VisitorRecordDocument.DoesNotExist:
+                pass
+            # Add exception for parse_date ?
 
         try:
             record: VisitorRecord = VisitorRecord.objects.prefetch_related('attestation').get(id=record_id)

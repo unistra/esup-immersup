@@ -590,17 +590,6 @@ $(document).ready(function () {
               },
               {
                 data: 'attestations',
-                render: function(data, type, row) {
-
-                  if (!Array.isArray(data) || data.length === 0) {
-                    return '{% trans "No attestation" %}';
-                  }
-
-                  return '<ul class="mb-0">' + data.map(att =>
-                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
-                  ).join('') + '</ul>';
-                },
-
                 render: function (data, type, row) {
 
                   if (!Array.isArray(data) || data.length === 0) {
@@ -730,16 +719,6 @@ $(document).ready(function () {
               },
               {
                 data: 'attestations',
-                render: function(data, type, row) {
-
-                  if (!Array.isArray(data) || data.length === 0) {
-                    return '{% trans "No attestation" %}';
-                  }
-
-                  return '<ul class="mb-0">' + data.map(att =>
-                    `<li><a href="${att.url}" target="_blank" rel="noopener">${att.label}</a></li>`
-                  ).join('') + '</ul>';
-                },
                 render: function (data, type, row) {
                   if (!Array.isArray(data) || data.length === 0) {
                     return '{% trans "No attestation" %}';
@@ -750,7 +729,7 @@ $(document).ready(function () {
                     html += `<li>
                           <a href="${att.url}" target="_blank">${att.label}</a>`;
                     if (att.requires_validity_date) {
-                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" class="validity-date" value="${att.validity_date || ''}">`;
+                      html += `<input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" class="validity-date" value="${att.validity_date || ''}">`;
                     }
                     html += '</li>';
                   });
@@ -959,7 +938,7 @@ $(document).ready(function () {
 
               },
               { data: 'id',
-                render: function(data, type, row) {
+                render: function(data) {
                   return `<button class="btn btn-success btn_validate" id="btn_validate_${data}" ` +
                          `onclick="cdialog.data('param', ${data}).dialog(\'open\')">{% trans "Cancel" %}</button>`
                 }
