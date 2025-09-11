@@ -2851,6 +2851,17 @@ class Slot(models.Model):
         s = int(self.n_places) - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count() if self.n_places else 0
         return 0 if s < 0 else s
 
+    def available_group_seats(self):
+        """
+        :return: True if there are some available seats (depending on group mode)
+        """
+        # one group mode -> return False if there is already a non-canceled registered group
+        if self.group_mode == self.ONE_GROUP:
+            return not self.group_immersions.filter(cancellation_type__isnull=True).exists()
+
+        return sum(self.registered_groups_people_count().values()) < self.n_group_places
+
+
     def registered_students(self):
         """
         :return: number of registered students for instance slot

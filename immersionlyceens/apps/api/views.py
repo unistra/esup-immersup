@@ -1494,10 +1494,10 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Check if slot date is not passed. The admins can register people even if the date is passed
-    if not (user.is_master_establishment_manager or
-            user.is_establishment_manager and establishment == user_establishment or
-            user.is_structure_manager and structure == allowed_structures or
-            user.is_high_school_manager and user.highschool == user_highschool):
+    if not (user.is_master_establishment_manager() or
+            user.is_establishment_manager() and establishment == user_establishment or
+            user.is_structure_manager() and structure == allowed_structures or
+            user.is_high_school_manager() and user.highschool == user_highschool):
         if slot.date < today or (slot.date == today and today_time > slot.start_time):
             response = {'error': True, 'msg': _("Register to past slot is not possible")}
             return JsonResponse(response, safe=False)
@@ -5645,9 +5645,12 @@ def ajax_can_register_slot(request, slot_id=None):
     # if (request.user.is_high_school_manager) : # Au lieu de copier les tests de l'autre fonction et faire de la duplication, je peux peut-être juste tester si c'est un
     # highschool_manager. Si c'est le cas, j'ignore le cas des seats available, de toute manière il sera testé plus tard ?
     # Need to test if I can register a group with the tests from ajax_group_slot_registration() line 1724
-
-    # Check free seat in slot
-    if (not request.user.is_high_school_manager and slot.available_seats() == 0): # If it's a group, I don't need to test the individual seats. The seats are tested above
+    if request.user.is_high_school_manager():
+        if not slot.available_group_seats():
+            response['msg'] = _("No group seat available for selected slot")
+            return JsonResponse(response, safe=False)
+    elif slot.available_seats() == 0:
+        # Check free seat in slot for individual registration
         response['msg'] = _("No seat available for selected slot")
         return JsonResponse(response, safe=False)
 
