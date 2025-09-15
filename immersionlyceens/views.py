@@ -660,7 +660,10 @@ def cohort_offer_subdomain(request, subdomain_id):
     now = timezone.now()
     today = timezone.localdate()
     user = request.user
-    user_is_high_school_manager = user.is_high_school_manager()
+    public_groups_filter = {}
+    
+    if user.is_anonymous or not user.is_high_school_manager():
+        public_groups_filter = {"public_group": True}
 
     group_registered_persons_query = (
         ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
@@ -683,6 +686,7 @@ def cohort_offer_subdomain(request, subdomain_id):
                     published=True,
                     date__gte=today,
                     allow_group_registrations=True,
+                    **public_groups_filter
                 )
                 .annotate(
                     group_registered_persons=Subquery(group_registered_persons_query),
@@ -700,9 +704,6 @@ def cohort_offer_subdomain(request, subdomain_id):
                 )
                 .order_by('date', 'start_time', 'end_time')
             )
-
-            if user.is_anonymous or not user_is_high_school_manager:
-                slots = slots.filter(public_group=True,)
 
             training_data = {
                 'training': training,
