@@ -5688,9 +5688,9 @@ def ajax_can_register_slot(request, slot_id=None):
     # ========================
 
     # If user == REF-LYC
-    # if (request.user.is_high_school_manager) : # Au lieu de copier les tests de l'autre fonction et faire de la duplication, je peux peut-être juste tester si c'est un
-    # highschool_manager. Si c'est le cas, j'ignore le cas des seats available, de toute manière il sera testé plus tard ?
-    # Need to test if I can register a group with the tests from ajax_group_slot_registration() line 1724
+    # Need to test if I can register a group with the available seats for groups
+    # else
+    # Need to test if I can register someone with the individual seats
     if request.user.is_high_school_manager():
         if not slot.available_group_seats():
             response['msg'] = _("No group seat available for selected slot")
