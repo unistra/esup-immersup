@@ -335,12 +335,20 @@ def offer_subdomain(request, subdomain_id):
                                 slot.can_register = True
                             elif now < slot.registration_limit_date:
                                 slot.opening_soon = True
+
+                            if now <= course.start_date\
+                                and course.start_date >= slot.registration_limit_date >= now:
+                                course.published = True
+                            elif slot.registration_limit_date >= course.end_date\
+                                    and now >= course.start_date:
+                                course.published = True
             else:
                 for slot in slots:
                     slot.cancelled = False
                     slot.can_register = False
                     slot.already_registered = False
 
+            training_data['course'] = course
             training_data['slots'] = slots
 
             data.append(training_data.copy())

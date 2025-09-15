@@ -131,8 +131,8 @@ class CourseForm(forms.ModelForm):
         model = Course
         fields = ('id', 'label', 'url', 'published', 'start_date', 'end_date', 'training', 'structure', 'establishment', 'highschool')
         widgets = {
-            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format="%Y-%m-%dT%H:%M"),
+            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'},format="%Y-%m-%dT%H:%M"),
         }
 
 
@@ -524,8 +524,8 @@ class SlotForm(forms.ModelForm):
             messages.success(self.request, _("Course published"))
 
         if instance.course and instance.published :
-            if (instance.course.start_date and instance.date < instance.course.start_date) \
-                or (instance.course.end_date and instance.date > instance.course.end_date) :
+            if (instance.course.start_date and instance.date < instance.course.start_date.date()) \
+                or (instance.course.end_date and instance.date > instance.course.end_date.date()) :
                 messages.warning(
                     self.request, 
                     _("The slot will be saved, but the course publication dates do not match the slot date. Remember to change them.")

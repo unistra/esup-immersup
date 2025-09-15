@@ -276,6 +276,8 @@ def course(request, course_id=None, duplicate=False):
                     'training': course.training,
                     'published': course.published,
                     'label': course.label,
+                    'start_date': course.start_date,
+                    'end_date': course.end_date,
                     'url': course.url,
                 }
                 course = Course(**data)
