@@ -659,6 +659,8 @@ def cohort_offer_subdomain(request, subdomain_id):
     data = []
     now = timezone.now()
     today = timezone.localdate()
+    user = request.user
+    user_is_high_school_manager = user.is_high_school_manager()
 
     group_registered_persons_query = (
         ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
@@ -699,7 +701,7 @@ def cohort_offer_subdomain(request, subdomain_id):
                 .order_by('date', 'start_time', 'end_time')
             )
 
-            if not request.user.is_high_school_manager():
+            if user.is_anonymous or not user_is_high_school_manager:
                 slots = slots.filter(public_group=True,)
 
             training_data = {
