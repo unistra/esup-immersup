@@ -740,13 +740,14 @@
         },
         {
           "render": function (data, type, row) {
-            if(row.place === face_to_face && !hide_fields_public_area["building"].hide_after_registration) {
-                data = `${row.building}<br>${row.room}`
-            }
-            else if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
-              data = row.meeting_place
-            }
-            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration && !hide_fields_public_area["building"].hide_after_registration){
+            if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.building}<br>${row.meeting_place}`
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
+              data = `${row.building}`
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.meeting_place}`
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return
@@ -1086,18 +1087,19 @@
         },
         {
           "render": function (data, type, row) {
-            if(row.place === face_to_face && !hide_fields_public_area["building"].hide_after_registration) {
-                data = `${row.building}<br>${row.room}`
-            }
-            else if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
-              data = row.meeting_place
-            }
-            if(type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration && !hide_fields_public_area["building"].hide_after_registration) {
+            if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.building}<br>${row.meeting_place}`
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
+              data = `${row.building}`
+              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.meeting_place}`
               return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
             } else {
               return
             }
-            return data;
+            return data
           },
         },
         { "data": "cancellation_date",
