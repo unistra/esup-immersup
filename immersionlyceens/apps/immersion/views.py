@@ -934,6 +934,8 @@ class ActivateView(View):
             try:
                 user = ImmersionUser.objects.get(validation_string=hash)
                 user.validate_account()
+                user.email_validation_date = timezone.now()
+                user.save()
                 messages.success(request, _("Your account is now enabled. Thanks !"))
 
                 backend = ('shibboleth.backends.ShibbolethRemoteUserBackend'
