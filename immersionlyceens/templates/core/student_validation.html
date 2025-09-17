@@ -70,8 +70,8 @@
           <label for="id_convention" class="col-form-label col-sm-1">{% trans 'Convention' %} : </label>
           <select name="convention" id="id_convention" class="form-control col-sm-2 ml-1">
             <option value="all">{% trans 'Both' %}</option>
-            <option value="1">{% trans 'With convention' context "highschool_filter" %}</option>
-            <option value="0">{% trans 'Without convention' context "highschool_filter" %}</option>
+            <option value="1">{% trans 'Yes' context "highschool_filter" %}</option>
+            <option value="0">{% trans 'No' context "highschool_filter" %}</option>
           </select>
         {% endif %}
         <label for="id_high_school" class="col-form-label col-sm-1">{% trans 'High schools' %} :</label>
@@ -556,7 +556,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -685,7 +685,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -813,7 +813,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -899,7 +899,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
