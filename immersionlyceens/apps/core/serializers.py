@@ -615,7 +615,7 @@ class CourseSerializer(serializers.ModelSerializer):
             )
 
         # optional start/end_date validation
-        if data['start_date'] and data['end_date']:
+        if data.get('start_date') and data.get('end_date'):
             if data['start_date'] > data['end_date']:
                 raise serializers.ValidationError(
                     detail=gettext("Start date cannot be greater than end date"),
