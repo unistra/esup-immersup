@@ -564,7 +564,9 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """
-        check speakers/published status and that only structures OR highschool are set at the same time
+        check:
+         - speakers/published status and that only structures OR highschool are set at the same time
+         - start_time < end_time
         """
         published = data.get('published', False) in ('true', 'True', True)
         speakers = data.get('speakers')
@@ -611,6 +613,14 @@ class CourseSerializer(serializers.ModelSerializer):
                 detail=gettext("A Course object with the same structure/highschool, training and label already exists"),
                 code=status.HTTP_400_BAD_REQUEST
             )
+
+        # optional start/end_date validation
+        if data['start_date'] and data['end_date']:
+            if data['start_date'] > data['end_date']:
+                raise serializers.ValidationError(
+                    detail=gettext("Start date cannot be greater than end date"),
+                    code=status.HTTP_400_BAD_REQUEST
+                )
 
         return data
 
