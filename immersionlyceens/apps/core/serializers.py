@@ -690,7 +690,8 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields =  [
-            "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by"
+            "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by",
+            "start_date", "end_date"
         ]
         validators = []
 
