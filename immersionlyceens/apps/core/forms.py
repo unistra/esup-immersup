@@ -528,7 +528,7 @@ class SlotForm(forms.ModelForm):
                 or (instance.course.end_date and instance.date > instance.course.end_date.date()) :
                 messages.warning(
                     self.request, 
-                    _("The slot will be saved, but the course publication dates do not match the slot date. Remember to change them.")
+                    _("The slot will be saved, but the course display dates do not match the slot date. Remember to change them.")
                 )
 
         if self.data.get("repeat"):
@@ -810,7 +810,7 @@ class OffOfferEventSlotForm(SlotForm):
             messages.success(self.request, _("Event published"))
 
             if (event.start_date and _date < event.start_date) or (event.end_date and _date > event.end_date) :
-                messages.warning(_("The slot will be saved, but the event publication dates do not match the slot date. Remember to change them."))
+                messages.warning(_("The slot will be saved, but the event display dates do not match the slot date. Remember to change them."))
 
         return cleaned_data
 
