@@ -410,6 +410,7 @@ def offer_off_offer_events(request):
     # Published event only & no course
     filters["course__isnull"] = True
     filters["event__published"] = True
+    filters["published"] = True
     filters["allow_individual_registrations"] = True
 
     filters["date__gte"] = today
@@ -459,7 +460,12 @@ def offer_off_offer_events(request):
             event.already_registered = False
 
 
+    #je ne dois conserver que les events qui sont published
     events_count = events.count()
+    print("+++++++++++++++++++++++++++++++++++++++")
+    print(events_count)
+    print("---------------------------------------")
+    print(events)
     context = {
         'events_count': events_count,
         'events_txt': events_txt,
@@ -611,6 +617,7 @@ def cohort_offer(request):
 
     filters["course__isnull"] = True
     filters["event__published"] = True
+    filters["published"] = True
     filters["allow_group_registrations"] = True
     filters["date__gte"] = today
     if not request.user.is_high_school_manager():
@@ -638,7 +645,6 @@ def cohort_offer(request):
         .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
     )
 
-    #Même chose que pour offer mais prends également en compte les events
     context = {
         'subdomains': subdomains,
         'slots_count': slots_count,

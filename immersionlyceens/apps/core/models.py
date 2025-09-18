@@ -2292,9 +2292,8 @@ class OffOfferEvent(models.Model):
     def is_displayed(self):
         now = timezone.now()
         if self.published:
-            if self.start_date and now >= self.start_date:
-                return True
-            elif self.end_date and now <= self.end_date:
+            if (self.start_date is None or self.start_date <= now) and \
+                (self.end_date is None or now <= self.end_date):
                 return True
 
         return False
