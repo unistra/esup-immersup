@@ -28,7 +28,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Max, Q, Sum
+from django.db.models import Max, Q, Sum, Case, When, Value, BooleanField
 from django.db.models.functions import Coalesce
 from django.dispatch import receiver
 from django.template.defaultfilters import date as _date, filesizeformat
@@ -1175,25 +1175,39 @@ class TrainingSubdomain(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A training sub domain with this label already exists'))
 
-    def count_subdomain_slots(self):
+    #Offer (each subdomain)
+    def subdomain_slots(self):
         today = datetime.datetime.today()
-        slots_count = Slot.objects.filter(
+        slots= (
+        Slot.objects.filter(
             course__training__training_subdomains=self,
             published=True,
             event__isnull=True,
             allow_individual_registrations=True,
-        ).prefetch_related('course__training__training_subdomains__training_domain') \
+        ).prefetch_related('course__training__training_subdomains__training_domain')
         .filter(
             Q(date__isnull=True)
             | Q(date__gte=today.date())
             | Q(date=today.date(), end_time__gte=today.time())
-        ).distinct().count()
+        ).distinct()
+        ).annotate(
+        course_displayed=Case(
+            When(
+                Q(course__start_date__lte=today) &
+                Q(course__end_date__gte=today),
+                then=Value(True)
+            ),
+            default=Value(False),
+            output_field=BooleanField(),
+        )
+    ).filter(course_displayed=True)
 
-        return slots_count
+        return slots
 
-    def count_group_public_subdomain_slots(self):
+    #Cohort_Offer (each subdomain)
+    def group_public_subdomain_slots(self):
         today = datetime.datetime.today()
-        slots_count = (
+        slots = (
             Slot.objects.filter(
                 course__training__training_subdomains=self,
                 published=True,
@@ -1202,15 +1216,29 @@ class TrainingSubdomain(models.Model):
                 public_group=True
             )
             .prefetch_related('course__training__training_subdomains__training_domain')
-            .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
-            .count()
-        )
+            .filter(
+                Q(date__isnull=True)
+                | Q(date__gte=today.date())
+                | Q(date=today.date(), end_time__gte=today.time())
+            ).distinct()
+            ).annotate(
+            course_displayed=Case(
+                    When(
+                        Q(course__start_date__lte=today) &
+                        Q(course__end_date__gte=today),
+                        then=Value(True)
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            ).filter(course_displayed=True)
 
-        return slots_count
+        return slots
 
-    def count_group_public_and_private_subdomain_slots(self):
+    #Cohort_Offer (for the REF-LYC) (each subdomain)
+    def group_public_and_private_subdomain_slots(self):
         today = datetime.datetime.today()
-        slots_count = (
+        slots = (
             Slot.objects.filter(
                 course__training__training_subdomains=self,
                 published=True,
@@ -1219,11 +1247,23 @@ class TrainingSubdomain(models.Model):
             )
             .prefetch_related('course__training__training_subdomains__training_domain')
             .filter(
-                Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
-            .count()
-        )
+                Q(date__isnull=True)
+                | Q(date__gte=today.date())
+                | Q(date=today.date(), end_time__gte=today.time())
+            ).distinct()
+            ).annotate(
+                course_displayed=Case(
+                    When(
+                        Q(course__start_date__lte=today) &
+                        Q(course__end_date__gte=today),
+                        then=Value(True)
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            ).filter(course_displayed=True)
 
-        return slots_count
+        return slots
 
     class Meta:
         verbose_name = _('Training sub domain')
@@ -2022,6 +2062,15 @@ class Course(models.Model):
         except ValidationError as e:
             raise
 
+    def is_displayed(self):
+        now = timezone.now()
+        if self.published:
+            if (self.start_date is None or self.start_date <= now) and \
+                (self.end_date is None or now <= self.end_date):
+                return True
+
+        return False
+
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
@@ -2239,6 +2288,16 @@ class OffOfferEvent(models.Model):
                     )
         except ValidationError as e:
             raise
+
+    def is_displayed(self):
+        now = timezone.now()
+        if self.published:
+            if self.start_date and now >= self.start_date:
+                return True
+            elif self.end_date and now <= self.end_date:
+                return True
+
+        return False
 
     class Meta:
         constraints = [

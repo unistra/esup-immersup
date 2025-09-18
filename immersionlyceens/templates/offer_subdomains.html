@@ -80,7 +80,7 @@
         <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="training{{training.grouper.pk}}" data-parent="#accordion">
           <div class="card-body">
           {% for d in training.list %}
-            {% if d.course.published %}
+            {% if d.course.is_displayed %}
               <div class="card-header">
                 <h6 class="mb-5 mb-sm-0 more-less-title">
                   <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>

@@ -77,7 +77,7 @@
                       <ul class="list-arrows">
                         {% if request.user.is_high_school_manager %}
                           {% for d in subdomain.list %}
-                            {% with slots_number=d.count_group_public_and_private_subdomain_slots %}
+                            {% with slots_number=d.group_public_and_private_subdomain_slots %}
                               <li>
                                 {% if slots_number > 0 %}
                                   <a href="{% url 'cohort_offer_subdomain' d.id %}">{{ d.label }}</a>
@@ -90,7 +90,7 @@
                           {% endfor %}
                         {% else %}
                           {% for d in subdomain.list %}
-                            {% with slots_number=d.count_group_public_subdomain_slots %}
+                            {% with slots_number=d.group_public_subdomain_slots|length %}
                               <li>
                                 {% if slots_number > 0 %}
                                   <a href="{% url 'cohort_offer_subdomain' d.id %}">{{ d.label }}</a>

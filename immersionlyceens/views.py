@@ -98,14 +98,13 @@ def offer(request):
     except InformationText.DoesNotExist:
         offer_txt = ''
 
-    today = datetime.datetime.today()
+    slots_count = 0
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = Slot.objects.filter(published=True, event__isnull=True, allow_individual_registrations=True).filter(
-        Q(date__isnull=True)
-        | Q(date__gte=today.date())
-        | Q(date=today.date(), end_time__gte=today.time())
 
-    ).distinct().count()
+    # Count the total of all subdomains
+    for sub in subdomains:
+        sub_list = sub.subdomain_slots()
+        slots_count += sub_list.count()
 
     context = {
         'subdomains': subdomains,
@@ -336,12 +335,6 @@ def offer_subdomain(request, subdomain_id):
                             elif now < slot.registration_limit_date:
                                 slot.opening_soon = True
 
-                            if now <= course.start_date\
-                                and course.start_date >= slot.registration_limit_date >= now:
-                                course.published = True
-                            elif slot.registration_limit_date >= course.end_date\
-                                    and now >= course.start_date:
-                                course.published = True
             else:
                 for slot in slots:
                     slot.cancelled = False
@@ -592,19 +585,18 @@ def cohort_offer(request):
     except InformationText.DoesNotExist:
         cohort_offer_txt = ''
 
-    today = datetime.datetime.today()
+    slots_count = 0
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots = (
-        Slot.objects
-        .filter(published=True, event__isnull=True, allow_group_registrations=True)
-        .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
-        .distinct()
-    )
 
     if not request.user.is_high_school_manager():
-        slots = slots.filter(public_group=True)
-
-    slots_count = slots.count()
+        # Count the total of all subdomains
+        for sub in subdomains:
+            sub_list = sub.group_public_subdomain_slots()
+            slots_count += sub_list.count()
+    else :
+        for sub in subdomains:
+            sub_list = sub.group_public_and_private_subdomain_slots()
+            slots_count += sub_list.count()
 
     now = timezone.now()
     today = timezone.now().date()
@@ -646,6 +638,7 @@ def cohort_offer(request):
         .order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date', 'start_time')
     )
 
+    #Même chose que pour offer mais prends également en compte les events
     context = {
         'subdomains': subdomains,
         'slots_count': slots_count,
