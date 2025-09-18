@@ -1852,7 +1852,7 @@ class OffOfferEventAdd(generic.CreateView):
                     'event_type': event.event_type.id,
                     'label': event.label,
                     'description': event.description,
-                    'published': event.published
+                    'published': event.published,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())

@@ -1099,8 +1099,8 @@ class OffOfferEventForm(forms.ModelForm):
         model = OffOfferEvent
         fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool', 'start_date', 'end_date')
         widgets = {
-            'start_date': forms.DateTimeInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'end_date': forms.DateTimeInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format="%Y-%m-%dT%H:%M"),
+            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format="%Y-%m-%dT%H:%M"),
         }
 
 
