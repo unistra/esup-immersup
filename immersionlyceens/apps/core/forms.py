@@ -524,12 +524,24 @@ class SlotForm(forms.ModelForm):
             messages.success(self.request, _("Course published"))
 
         if instance.course and instance.published :
-            if (instance.course.start_date and instance.date < instance.course.start_date.date()) \
-                or (instance.course.end_date and instance.date > instance.course.end_date.date()) :
+            if instance.course.start_date and instance.date < instance.course.start_date.date():
                 messages.warning(
-                    self.request, 
-                    _("The slot will be saved, but the course display dates do not match the slot date. Remember to change them.")
+                    self.request,
+                    _("The slot will be saved, but the course publication start date do not match the slot date. The course \
+                     publication start date will be changed automatically. Remember to adjust it yourself so that \
+                     registrations can proceed without problems.")
                 )
+
+            if instance.course.end_date and instance.date > instance.course.end_date.date():
+                instance.course.end_date = instance.date
+                messages.warning(
+                    self.request,
+                    _("The slot will be saved, but the course publication end date do not match the slot date. The course \
+                     publication end date will be changed automatically. Remember to adjust it yourself so that \
+                     registrations can proceed without problems.")
+                )
+
+            instance.course.save()
 
         if self.data.get("repeat"):
             # Careful with date formats, especially with unit tests
@@ -806,11 +818,27 @@ class OffOfferEventSlotForm(SlotForm):
 
         if event and not event.published and published:
             event.published = True
-            event.save()
             messages.success(self.request, _("Event published"))
 
-            if (event.start_date and _date < event.start_date) or (event.end_date and _date > event.end_date) :
-                messages.warning(_("The slot will be saved, but the event display dates do not match the slot date. Remember to change them."))
+            if event.start_date and _date < event.start_date:
+                event.start_date = _date
+                messages.warning(
+                    self.request,
+                    _("The slot will be saved, but the event publication start date do not match the slot date. The event \
+                     publication start date will be changed automatically. Remember to adjust it yourself so that \
+                     registrations can proceed without problems.")
+                )
+
+            if event.end_date and _date > event.end_date:
+                event.end_date = _date
+                messages.warning(
+                    self.request,
+                    _("The slot will be saved, but the event publication end date do not match the slot date. The event \
+                     publication end date will be changed automatically. Remember to adjust it yourself so that \
+                     registrations can proceed without problems.")
+                )
+
+            event.save()
 
         return cleaned_data
 

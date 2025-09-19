@@ -459,13 +459,7 @@ def offer_off_offer_events(request):
             event.can_register = False
             event.already_registered = False
 
-
-    #je ne dois conserver que les events qui sont published
     events_count = events.count()
-    print("+++++++++++++++++++++++++++++++++++++++")
-    print(events_count)
-    print("---------------------------------------")
-    print(events)
     context = {
         'events_count': events_count,
         'events_txt': events_txt,
