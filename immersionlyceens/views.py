@@ -580,6 +580,9 @@ def cohort_offer(request):
     """Cohort offer view"""
 
     filters = {}
+    user = request.user
+    is_anonymous = request.user.is_anonymous
+
     try:
         cohort_offer_txt = InformationText.objects.get(code="INTRO_OFFER_COHORT", active=True).content
     except InformationText.DoesNotExist:
@@ -588,7 +591,7 @@ def cohort_offer(request):
     slots_count = 0
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
 
-    if not request.user.is_high_school_manager():
+    if is_anonymous or not user.is_high_school_manager():
         # Count the total of all subdomains
         for sub in subdomains:
             sub_list = sub.group_public_subdomain_slots()
@@ -614,7 +617,8 @@ def cohort_offer(request):
     filters["published"] = True
     filters["allow_group_registrations"] = True
     filters["date__gte"] = today
-    if not request.user.is_high_school_manager():
+
+    if is_anonymous or not request.user.is_high_school_manager():
         filters["public_group"] = True
 
     events = (
