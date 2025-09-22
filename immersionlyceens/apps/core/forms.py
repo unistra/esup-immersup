@@ -525,7 +525,7 @@ class SlotForm(forms.ModelForm):
 
         if instance.course and instance.published :
             if instance.course.start_date and instance.date < instance.course.start_date.date():
-                instance.course.start_date = instance.date
+                instance.course.start_date = instance.date - timedelta(days=7)
                 messages.warning(
                     self.request,
                     _("The slot will be saved, but the course publication start date do not match the slot date. The course \
@@ -543,7 +543,7 @@ class SlotForm(forms.ModelForm):
                 )
 
             if instance.course.first_slot_date and instance.date < instance.course.first_slot_date.date():
-                instance.course.first_slot_date = instance.date - timedelta(days=7)
+                instance.course.first_slot_date = instance.date
             if instance.course.last_slot_date and instance.date > instance.course.last_slot_date.date():
                 instance.course.last_slot_date = instance.date
 
@@ -827,7 +827,7 @@ class OffOfferEventSlotForm(SlotForm):
             messages.success(self.request, _("Event published"))
 
             if event.start_date and _date < event.start_date.date():
-                event.start_date = _date
+                event.start_date = _date - timedelta(days=7)
                 messages.warning(
                     self.request,
                     _("The slot will be saved, but the event publication start date do not match the slot date. The event \
@@ -846,7 +846,7 @@ class OffOfferEventSlotForm(SlotForm):
                 )
 
             if event.first_slot_date and _date < event.first_slot_date.date():
-                event.first_slot_date = _date - timedelta(days=7)
+                event.first_slot_date = _date
             if event.first_slot_date and _date > event.last_slot_date.date():
                 event.last_slot_date = _date
 
