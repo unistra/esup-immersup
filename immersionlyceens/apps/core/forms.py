@@ -525,6 +525,7 @@ class SlotForm(forms.ModelForm):
 
         if instance.course and instance.published :
             if instance.course.start_date and instance.date < instance.course.start_date.date():
+                instance.course.start_date = instance.date
                 messages.warning(
                     self.request,
                     _("The slot will be saved, but the course publication start date do not match the slot date. The course \
@@ -540,6 +541,11 @@ class SlotForm(forms.ModelForm):
                      publication end date will be changed automatically. Remember to adjust it yourself so that \
                      registrations can proceed without problems.")
                 )
+
+            if instance.course.first_slot_date and instance.date < instance.course.first_slot_date.date():
+                instance.course.first_slot_date = instance.date
+            if instance.course.last_slot_date and instance.date > instance.course.last_slot_date.date():
+                instance.course.last_slot_date = instance.date
 
             instance.course.save()
 
@@ -820,7 +826,7 @@ class OffOfferEventSlotForm(SlotForm):
             event.published = True
             messages.success(self.request, _("Event published"))
 
-            if event.start_date and _date < event.start_date:
+            if event.start_date and _date < event.start_date.date():
                 event.start_date = _date
                 messages.warning(
                     self.request,
@@ -829,7 +835,8 @@ class OffOfferEventSlotForm(SlotForm):
                      registrations can proceed without problems.")
                 )
 
-            if event.end_date and _date > event.end_date:
+
+            if event.end_date and _date > event.end_date.date():
                 event.end_date = _date
                 messages.warning(
                     self.request,
@@ -837,6 +844,11 @@ class OffOfferEventSlotForm(SlotForm):
                      publication end date will be changed automatically. Remember to adjust it yourself so that \
                      registrations can proceed without problems.")
                 )
+
+            if event.first_slot_date and _date < event.first_slot_date.date():
+                event.first_slot_date = _date
+            if event.first_slot_date and _date > event.last_slot_date.date():
+                event.last_slot_date = _date
 
             event.save()
 
