@@ -23,6 +23,7 @@
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   {% block confirm_slot_creation %}{% endblock %}
   {% block confirm_publication %}{% endblock %}
+  {% block dates_modification %}{% endblock %}
 
   <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
     <span>
@@ -559,6 +560,7 @@
 <script>
   var dateDialog;
   var publicationDialog;
+  var modificationDialog;
   var cancelDialog;
   var repetitionDialog;
   var dateErrorDialog;
@@ -1847,6 +1849,32 @@ $(document).ready(function(){
           $('#id_event').val('');
           $('#id_course').val('');
           publicationDialog.dialog("close");
+        },
+      }],
+  });
+
+    modificationDialog = $("#modification-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          modificationDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          $('#id_event').val('');
+          $('#id_course').val('');
+          modificationDialog.dialog("close");
         },
       }],
   });
