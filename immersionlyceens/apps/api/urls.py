@@ -13,6 +13,7 @@ urlpatterns = [
     path('cancel_registration', views.ajax_cancel_registration, name='CancelRegistration'),
 
     path('validate_slot_date', views.validate_slot_date, name='ValidateSlotDate'),
+    path('validate_parent_date', views.validate_parent_date, name='ValidateParentDate'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 
     path('get_available_documents/', views.ajax_get_documents, name='get_available_documents'),

@@ -1551,6 +1551,39 @@
     }
   }
 
+  function check_parent_date(date=$('#id_date').val(), dialog=true, callback) {
+    var start_date
+    var end_date
+    if(course_id) {
+        start_date = courses[course_id]['start_date']
+        end_date = courses[course_id]['end_date']
+    } else {
+        start_date = events[event_id]['end_date']
+        end_date = events[event_id]['end_date']
+    }
+    if(date) {
+      return $.ajax({
+        url: '/api/validate_parent_date',
+        data: {
+          date: date,
+          start_date: start_date,
+          end_date: end_date,
+        },
+        success: function (data) {
+          if (data['data']) {
+            if (data['data']['outside']) {
+              if (dialog) {
+                modificationDialog.dialog('open');
+              } else if (callback) {
+                callback(data['data']['outside'])
+              }
+            }
+          }
+        },
+      });
+    }
+  }
+
   function addDays(date, days) {
     var result = new Date(date);
     result.setDate(result.getDate() + days);
@@ -1872,8 +1905,7 @@ $(document).ready(function(){
         text: "{% trans 'No' %}",
         "class": 'dialog-button',
         click: function () {
-          $('#id_event').val('');
-          $('#id_course').val('');
+          $('#id_date').val('');
           modificationDialog.dialog("close");
         },
       }],
@@ -1962,6 +1994,7 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    check_parent_date();
     toggle_period_display();
     set_periods();
     display_registration_limit_delay()

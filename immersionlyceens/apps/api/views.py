@@ -361,6 +361,56 @@ def validate_slot_date(request):
 
     return JsonResponse(response, safe=False)
 
+def validate_parent_date(request):
+    """
+    Check if a date:
+      - is before the start_date of the parent (event or course)
+      - is after the end_date of the parent (event or course)
+    :param request: the request.
+    :return: a dict with data about the date
+    """
+    response = {'data': {}, 'msg': ''}
+
+    _date = request.GET.get('date')
+    start_date = datetime.datetime.fromisoformat(request.GET.get('start_date'))
+    end_date = datetime.datetime.fromisoformat(request.GET.get('end_date'))
+    is_before = False
+    is_after = False
+
+    if not _date:
+        response['msg'] = gettext('Error: A date is required')
+        return JsonResponse(response, safe=False)
+
+    # two format date
+    try:
+        formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
+    except ValueError:
+        try:
+            formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+        except ValueError:
+            response['msg'] = gettext('Error: bad date format')
+            return JsonResponse(response, safe=False)
+
+    formated_date =  timezone.make_aware(formated_date)
+
+    details = []
+    if start_date:
+        is_before = formated_date < start_date
+    if end_date:
+        is_after = formated_date > end_date
+
+    if is_before:
+        details.append(_("Before"))
+    if is_after:
+        details.append(_("After"))
+
+    response['data'] = {
+        'date': _date,
+        'outside': is_before or is_after,
+        'details': details,
+    }
+
+    return JsonResponse(response, safe=False)
 
 @is_post_request
 @is_ajax_request
