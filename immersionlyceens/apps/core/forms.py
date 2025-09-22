@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict
 
 from ckeditor.widgets import CKEditorWidget
@@ -543,7 +543,7 @@ class SlotForm(forms.ModelForm):
                 )
 
             if instance.course.first_slot_date and instance.date < instance.course.first_slot_date.date():
-                instance.course.first_slot_date = instance.date
+                instance.course.first_slot_date = instance.date - timedelta(days=7)
             if instance.course.last_slot_date and instance.date > instance.course.last_slot_date.date():
                 instance.course.last_slot_date = instance.date
 
@@ -846,7 +846,7 @@ class OffOfferEventSlotForm(SlotForm):
                 )
 
             if event.first_slot_date and _date < event.first_slot_date.date():
-                event.first_slot_date = _date
+                event.first_slot_date = _date - timedelta(days=7)
             if event.first_slot_date and _date > event.last_slot_date.date():
                 event.last_slot_date = _date
 
