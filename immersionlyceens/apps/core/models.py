@@ -1934,12 +1934,12 @@ class Course(models.Model):
 
     def clean(self):
         if self.start_date and self.first_slot_date:
-            if not (self.first_slot_date > self.start_date):
+            if self.first_slot_date < self.start_date:
                 raise ValidationError(
                     {"start_date": _("Start date must be after the date of the first slot")}
                 )
         if self.end_date and self.last_slot_date:
-            if not (self.end_date > self.last_slot_date):
+            if self.last_slot_date > self.end_date:
                 raise ValidationError(
                     {"end_date": _("End date must be after the date of the last slot")}
                 )
@@ -2269,11 +2269,12 @@ class OffOfferEvent(models.Model):
     def clean(self):
         if [self.establishment, self.highschool].count(None) != 1:
             raise ValidationError("You must select one of : Establishment or High school")
-        if self.start_date and self.first_slot_date and self.last_slot_date:
+        if self.start_date and self.first_slot_date:
             if not (self.first_slot_date > self.start_date):
                 raise ValidationError(
                     {"start_date": _("Start date must be after the date of the first slot")}
                 )
+        if self.end_date and self.last_slot_date:
             if not (self.end_date > self.last_slot_date):
                 raise ValidationError(
                     {"end_date": _("End date must be after the date of the last slot")}

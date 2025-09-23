@@ -7,7 +7,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Min, Max
 from django.forms.widgets import DateInput, TimeInput
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _, ngettext
@@ -524,28 +524,35 @@ class SlotForm(forms.ModelForm):
             messages.success(self.request, _("Course published"))
 
         if instance.course and instance.published :
-            if instance.course.start_date and instance.date < instance.course.start_date.date():
-                instance.course.start_date = instance.date - timedelta(days=7)
-                messages.warning(
-                    self.request,
-                    _("The slot will be saved, but the course publication start date do not match the slot date. The course \
-                     publication start date will be changed automatically. Remember to adjust it yourself so that \
-                     registrations can proceed without problems.")
-                )
+            bounds = Slot.objects.filter(course=instance.course).aggregate(
+                date_min=Min('date'),
+                date_max=Max('date'),
+            )
 
-            if instance.course.end_date and instance.date > instance.course.end_date.date():
-                instance.course.end_date = instance.date
-                messages.warning(
-                    self.request,
-                    _("The slot will be saved, but the course publication end date do not match the slot date. The course \
-                     publication end date will be changed automatically. Remember to adjust it yourself so that \
-                     registrations can proceed without problems.")
-                )
+            instance.course.first_slot_date = bounds['date_min']
+            instance.course.last_slot_date = bounds['date_max']
 
-            if instance.course.first_slot_date and instance.date < instance.course.first_slot_date.date():
-                instance.course.first_slot_date = instance.date
-            if instance.course.last_slot_date and instance.date > instance.course.last_slot_date.date():
-                instance.course.last_slot_date = instance.date
+            if instance.course.start_date:
+                if instance.date < instance.course.start_date.date():
+                    messages.warning(
+                        self.request,
+                        _("The slot will be saved, but the course publication start date do not match the slot date. The course \
+                         publication start date will be changed automatically. Remember to adjust it yourself so that \
+                         registrations can proceed without problems.")
+                    )
+                if bounds['date_min'] and instance.course.start_date.date() > bounds['date_min']:
+                    instance.course.start_date = bounds['date_min'] - timedelta(days=7)
+
+            if instance.course.end_date:
+                if instance.date > instance.course.end_date.date():
+                    messages.warning(
+                        self.request,
+                        _("The slot will be saved, but the course publication end date do not match the slot date. The course \
+                         publication end date will be changed automatically. Remember to adjust it yourself so that \
+                         registrations can proceed without problems.")
+                    )
+                if bounds['date_max'] and instance.course.end_date.date() < bounds['date_max']:
+                    instance.course.end_date = bounds['date_max']
 
             instance.course.save()
 
@@ -826,29 +833,33 @@ class OffOfferEventSlotForm(SlotForm):
             event.published = True
             messages.success(self.request, _("Event published"))
 
-            if event.start_date and _date < event.start_date.date():
-                event.start_date = _date - timedelta(days=7)
-                messages.warning(
-                    self.request,
-                    _("The slot will be saved, but the event publication start date do not match the slot date. The event \
-                     publication start date will be changed automatically. Remember to adjust it yourself so that \
-                     registrations can proceed without problems.")
-                )
+        if event and published:
+            bounds = Slot.objects.filter(event=event).aggregate(
+                date_min=Min('date'),
+                date_max=Max('date'),
+            )
 
+            if event.start_date:
+                if _date < event.start_date.date():
+                    messages.warning(
+                        self.request,
+                        _("The slot will be saved, but the event publication start date do not match the slot date. The event \
+                         publication start date will be changed automatically. Remember to adjust it yourself so that \
+                         registrations can proceed without problems.")
+                    )
+                if bounds['date_min'] and event.start_date.date() > bounds['date_min']:
+                    event.start_date = bounds['date_min'] - timedelta(days=7)
 
-            if event.end_date and _date > event.end_date.date():
-                event.end_date = _date
-                messages.warning(
-                    self.request,
-                    _("The slot will be saved, but the event publication end date do not match the slot date. The event \
-                     publication end date will be changed automatically. Remember to adjust it yourself so that \
-                     registrations can proceed without problems.")
-                )
-
-            if event.first_slot_date and _date < event.first_slot_date.date():
-                event.first_slot_date = _date
-            if event.first_slot_date and _date > event.last_slot_date.date():
-                event.last_slot_date = _date
+            if event.end_date:
+                if _date > event.end_date.date():
+                    messages.warning(
+                        self.request,
+                        _("The slot will be saved, but the event publication end date do not match the slot date. The event \
+                         publication end date will be changed automatically. Remember to adjust it yourself so that \
+                         registrations can proceed without problems.")
+                    )
+                if bounds['date_max'] and event.end_date.date() < bounds['date_max']:
+                    event.end_date = bounds['date_max']
 
             event.save()
 
