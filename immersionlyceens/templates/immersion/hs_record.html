@@ -391,23 +391,22 @@
             </div>
           </div>
         {% endif %}
-        {% if student.email_validation_date %}
-          <div class="form-group row align-items-center">
-            <label class="col-sm-4 col-form-label">
-              {% trans 'Email validation date' %} :
-            </label>
-            <div class="col-sm-8">
-              {{ student.email_validation_date }}
-            </div>
-          </div>
-        {% endif %}
-        {% if student.email_change_date %}
+        {% if student.email_change_date and not student.email_validation_date or student.email_change_date > student.email_validation_date %}
           <div class="form-group row align-items-center">
             <label class="col-sm-4 col-form-label">
               {% trans 'Email change date' %} :
             </label>
             <div class="col-sm-8">
               {{ student.email_change_date }}
+            </div>
+          </div>
+        {% elif student.email_validation_date %}
+          <div class="form-group row align-items-center">
+            <label class="col-sm-4 col-form-label">
+              {% trans 'Email validation date' %} :
+            </label>
+            <div class="col-sm-8">
+              {{ student.email_validation_date }}
             </div>
           </div>
         {% endif %}

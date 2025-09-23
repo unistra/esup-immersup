@@ -9615,7 +9615,7 @@ msgstr "Date de validation de la fiche"
 #: immersionlyceens/templates/immersion/student_record.html:240
 #: immersionlyceens/templates/immersion/visitor_record.html:287
 msgid "Email validation date"
-msgstr "Date de validation de l'email"
+msgstr "Date de validation du courriel"
 
 #: immersionlyceens/templates/immersion/hs_record.html:423
 msgid "Next"
