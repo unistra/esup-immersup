@@ -839,6 +839,9 @@ class OffOfferEventSlotForm(SlotForm):
                 date_max=Max('date'),
             )
 
+            event.first_slot_date = bounds['date_min']
+            event.last_slot_date = bounds['date_max']
+
             if event.start_date:
                 if _date < event.start_date.date():
                     messages.warning(
