@@ -493,7 +493,7 @@
               }
 
               if(type === "display" && !hide_fields_public_area["building"].hide_public_area && !hide_fields_public_area["meeting_place"].hide_public_area) {
-                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + (full['building_label'] ? full['building_label'] : '') + ' - ' + displayLongString(data, 40, html=true)
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + (full['building_label'] ? full['building_label'] + ' - ': '') + displayLongString(data, 40, html=true)
               } else if (type === "display" && !hide_fields_public_area["building"].hide_public_area) {
                 return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + (full['building_label'] ? full['building_label'] : '')
               } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
