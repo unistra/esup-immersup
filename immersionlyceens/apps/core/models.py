@@ -1193,15 +1193,24 @@ class TrainingSubdomain(models.Model):
         ).annotate(
         course_displayed=Case(
             When(
-                course_published=True,
-                then=Value(True)
-            ),
-            When(
-                course__start_date__isnull=False,
-                course__end_date__isnull=False,
-                course__start_date__lte=today,
-                course__end_date__gte=today,
-                then=Value(True)
+                Q(course__published=True) |
+                (
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__start_date__lte=today) &
+                    Q(course__end_date__gte=today)
+                ) |
+                (
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=True) &
+                    Q(course__start_date__lte=today)
+                ) |
+                (
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__end_date__gte=today)
+                ),
+                then=Value(True),
             ),
             default=Value(False),
             output_field=BooleanField(),
@@ -1230,15 +1239,24 @@ class TrainingSubdomain(models.Model):
             ).annotate(
             course_displayed=Case(
                 When(
-                    course_published=True,
-                    then=Value(True)
-                ),
-                When(
-                    course__start_date__isnull=False,
-                    course__end_date__isnull=False,
-                    course__start_date__lte=today,
-                    course__end_date__gte=today,
-                    then=Value(True)
+                    Q(course__published=True) |
+                    (
+                        Q(course__start_date__isnull=False) &
+                        Q(course__end_date__isnull=False) &
+                        Q(course__start_date__lte=today) &
+                        Q(course__end_date__gte=today)
+                    ) |
+                    (
+                        Q(course__start_date__isnull=False) &
+                        Q(course__end_date__isnull=True) &
+                        Q(course__start_date__lte=today)
+                    ) |
+                    (
+                        Q(course__start_date__isnull=True) &
+                        Q(course__end_date__isnull=False) &
+                        Q(course__end_date__gte=today)
+                    ),
+                    then=Value(True),
                 ),
                     default=Value(False),
                     output_field=BooleanField(),
@@ -1266,15 +1284,24 @@ class TrainingSubdomain(models.Model):
             ).annotate(
                 course_displayed=Case(
                     When(
-                        course_published=True,
-                        then=Value(True)
-                    ),
-                    When(
-                        course__start_date__isnull=False,
-                        course__end_date__isnull=False,
-                        course__start_date__lte=today,
-                        course__end_date__gte=today,
-                        then=Value(True)
+                        Q(course__published=True) |
+                        (
+                            Q(course__start_date__isnull=False) &
+                            Q(course__end_date__isnull=False) &
+                            Q(course__start_date__lte=today) &
+                            Q(course__end_date__gte=today)
+                        ) |
+                        (
+                            Q(course__start_date__isnull=False) &
+                            Q(course__end_date__isnull=True) &
+                            Q(course__start_date__lte=today)
+                        ) |
+                        (
+                            Q(course__start_date__isnull=True) &
+                            Q(course__end_date__isnull=False) &
+                            Q(course__end_date__gte=today)
+                        ),
+                        then=Value(True),
                     ),
                     default=Value(False),
                     output_field=BooleanField(),
