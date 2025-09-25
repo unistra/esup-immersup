@@ -1193,8 +1193,14 @@ class TrainingSubdomain(models.Model):
         ).annotate(
         course_displayed=Case(
             When(
-                Q(course__start_date__lte=today) &
-                Q(course__end_date__gte=today),
+                course_published=True,
+                then=Value(True)
+            ),
+            When(
+                course__start_date__isnull=False,
+                course__end_date__isnull=False,
+                course__start_date__lte=today,
+                course__end_date__gte=today,
                 then=Value(True)
             ),
             default=Value(False),
@@ -1223,11 +1229,17 @@ class TrainingSubdomain(models.Model):
             ).distinct()
             ).annotate(
             course_displayed=Case(
-                    When(
-                        Q(course__start_date__lte=today) &
-                        Q(course__end_date__gte=today),
-                        then=Value(True)
-                    ),
+                When(
+                    course_published=True,
+                    then=Value(True)
+                ),
+                When(
+                    course__start_date__isnull=False,
+                    course__end_date__isnull=False,
+                    course__start_date__lte=today,
+                    course__end_date__gte=today,
+                    then=Value(True)
+                ),
                     default=Value(False),
                     output_field=BooleanField(),
                 )
@@ -1254,8 +1266,14 @@ class TrainingSubdomain(models.Model):
             ).annotate(
                 course_displayed=Case(
                     When(
-                        Q(course__start_date__lte=today) &
-                        Q(course__end_date__gte=today),
+                        course_published=True,
+                        then=Value(True)
+                    ),
+                    When(
+                        course__start_date__isnull=False,
+                        course__end_date__isnull=False,
+                        course__start_date__lte=today,
+                        course__end_date__gte=today,
                         then=Value(True)
                     ),
                     default=Value(False),

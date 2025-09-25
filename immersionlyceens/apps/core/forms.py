@@ -788,7 +788,7 @@ class OffOfferEventSlotForm(SlotForm):
         cleaned_data = self.clean_fields(cleaned_data)
         cleaned_data = self.clean_registrations(cleaned_data)
 
-        if published is True:
+        if published:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['event', 'date', 'period', 'start_time', 'end_time', 'speakers']
 
