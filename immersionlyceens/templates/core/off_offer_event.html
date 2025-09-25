@@ -232,7 +232,7 @@
   function refresh_speakers_list() {
     $("#id_speakers").empty();
     $.each(speakers_array, function(i, item) {
-      let txt = "<li>";
+      let txt = "<li><nobr>";
 
       if(can_update === "True" && (item["is_removable"] === true || item["is_removable"] === undefined)) {
         txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['username']+"')\">X</button> ";
@@ -241,7 +241,13 @@
         txt += "<button type=\"button\" class=\"btn btn-danger btn-sm\">X</button> ";
       }
 
-      txt += item['display_name'] + " (" + item['email'] + ")</li>";
+      txt += `${item['display_name']} (${item['email']})`;
+
+      if(item["is_active"] === false) {
+        txt += " - {% trans 'inactive account' %}"
+      }
+
+      txt += "</nobr></li>"
 
       $("#id_speakers").append(txt);
     });
