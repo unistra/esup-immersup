@@ -524,35 +524,33 @@ class SlotForm(forms.ModelForm):
             messages.success(self.request, _("Course published"))
 
         if instance.course and instance.published :
-            bounds = Slot.objects.filter(course=instance.course).aggregate(
-                date_min=Min('date'),
-                date_max=Max('date'),
-            )
+            slot_min = Slot.objects.filter(course=instance.course).order_by("date", "start_time").first()
+            slot_max = Slot.objects.filter(course=instance.course).order_by("-date", "-end_time").first()
 
-            instance.course.first_slot_date = bounds['date_min']
-            instance.course.last_slot_date = bounds['date_max']
+            instance.course.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+            instance.course.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
 
             if instance.course.start_date:
-                if instance.date < instance.course.start_date.date():
+                if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < instance.course.start_date:
                     messages.warning(
                         self.request,
                         _("The slot will be saved, but the course publication start date do not match the slot date. The course \
                          publication start date will be changed automatically. Remember to adjust it yourself so that \
                          registrations can proceed without problems.")
                     )
-                if bounds['date_min'] and instance.course.start_date.date() > bounds['date_min']:
-                    instance.course.start_date = bounds['date_min'] - timedelta(days=7)
+                if instance.course.first_slot_date and instance.course.start_date > instance.course.first_slot_date:
+                    instance.course.start_date = instance.course.first_slot_date - timedelta(days=7)
 
             if instance.course.end_date:
-                if instance.date > instance.course.end_date.date():
+                if timezone.make_aware(datetime.combine(instance.date, instance.end_time)) > instance.course.end_date:
                     messages.warning(
                         self.request,
                         _("The slot will be saved, but the course publication end date do not match the slot date. The course \
                          publication end date will be changed automatically. Remember to adjust it yourself so that \
                          registrations can proceed without problems.")
                     )
-                if bounds['date_max'] and instance.course.end_date.date() < bounds['date_max']:
-                    instance.course.end_date = bounds['date_max']
+                if instance.course.last_slot_date and instance.course.end_date < instance.course.last_slot_date:
+                    instance.course.end_date = instance.course.last_slot_date
 
             instance.course.save()
 
