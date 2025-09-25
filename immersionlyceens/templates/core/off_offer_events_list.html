@@ -448,7 +448,7 @@
             let to_txt = ""
 
             if(is_set(row.start_date)) { from_txt = `{% trans 'From' %}: ${formatDate(row.start_date, date_options)}` }
-            if(is_set(row.start_date)) { to_txt = `{% trans 'To' %}: ${formatDate(row.end_date, date_options)}` }
+            if(is_set(row.end_date)) { to_txt = `{% trans 'To' %}: ${formatDate(row.end_date, date_options)}` }
 
             if(is_set(from_txt) && is_set(to_txt)) {
               return `<nobr>${from_txt}</nobr><br><nobr>${to_txt}</nobr>`
