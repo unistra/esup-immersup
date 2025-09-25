@@ -99,6 +99,7 @@
             <th><span id="managed_by_filter">{% trans 'Managed by' context "courses" %}</span></th>
             <th id="label_filter" style="width:20%">{% trans 'Label' %}</th>
             <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
+            <th class="align-top">{% trans 'Publication' %} </th>
             <th class="align-top">{% trans 'Published slots' %} </th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
@@ -107,6 +108,7 @@
         <tfoot>
           <tr>
             <td class="dt-body-nowrap"></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -135,6 +137,7 @@
   var confirmDialog;
   var tableConfig;
   var is_structure_consultant = "{{ request.user.is_structure_consultant }}" === "True";
+  let date_options = { dateStyle: 'short', timeStyle: 'short' };
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
@@ -369,6 +372,21 @@
               return txt;
             },
           },
+          { "data": "",
+            "render": function(data, type, row) {
+              let from_txt = ""
+              let to_txt = ""
+
+              if(is_set(row.start_date)) { from_txt = `{% trans 'From' %}: ${formatDate(row.start_date, date_options)}` }
+              if(is_set(row.start_date)) { to_txt = `{% trans 'To' %}: ${formatDate(row.end_date, date_options)}` }
+
+              if(is_set(from_txt) && is_set(to_txt)) {
+                return `<nobr>${from_txt}</nobr><br><nobr>${to_txt}</nobr>`
+              }
+              else if (is_set(from_txt)) return `<nobr>${from_txt}</nobr>`
+              else return `<nobr>${to_txt}</nobr>`
+            }
+          },
           { "data": "published_slots_count",
             "render": function(data, type, row) {
               return data + "/" + row.slots_count;
@@ -484,7 +502,7 @@
         filter_reset_button_text: false,
       },
       {
-        column_number: 8,
+        column_number: 9,
         filter_default_label: "",
         filter_match_mode: "exact",
         filter_container_id: "alerts_filter",
