@@ -1193,23 +1193,35 @@ class TrainingSubdomain(models.Model):
         ).annotate(
         course_displayed=Case(
             When(
-                Q(course__published=True) |
-                (
-                    Q(course__start_date__isnull=False) &
-                    Q(course__end_date__isnull=False) &
-                    Q(course__start_date__lte=today) &
-                    Q(course__end_date__gte=today)
-                ) |
-                (
-                    Q(course__start_date__isnull=False) &
-                    Q(course__end_date__isnull=True) &
-                    Q(course__start_date__lte=today)
-                ) |
-                (
-                    Q(course__start_date__isnull=True) &
-                    Q(course__end_date__isnull=False) &
-                    Q(course__end_date__gte=today)
-                ),
+                # No dates and published == True
+                Q(course__published=True) &
+                Q(course__start_date__isnull=True) &
+                Q(course__end_date__isnull=True),
+                then=Value(True),
+            ),
+            When(
+                # Start + End and published == True + today in [start, end]
+                Q(course__published=True) &
+                Q(course__start_date__isnull=False) &
+                Q(course__end_date__isnull=False) &
+                Q(course__start_date__lte=today) &
+                Q(course__end_date__gte=today),
+                then=Value(True),
+            ),
+            When(
+                # Start and published == True + today >= start
+                Q(course__published=True) &
+                Q(course__start_date__isnull=False) &
+                Q(course__end_date__isnull=True) &
+                Q(course__start_date__lte=today),
+                then=Value(True),
+            ),
+            When(
+                # End and published == True + today <= end
+                Q(course__published=True) &
+                Q(course__start_date__isnull=True) &
+                Q(course__end_date__isnull=False) &
+                Q(course__end_date__gte=today),
                 then=Value(True),
             ),
             default=Value(False),
@@ -1239,23 +1251,35 @@ class TrainingSubdomain(models.Model):
             ).annotate(
             course_displayed=Case(
                 When(
-                    Q(course__published=True) |
-                    (
-                        Q(course__start_date__isnull=False) &
-                        Q(course__end_date__isnull=False) &
-                        Q(course__start_date__lte=today) &
-                        Q(course__end_date__gte=today)
-                    ) |
-                    (
-                        Q(course__start_date__isnull=False) &
-                        Q(course__end_date__isnull=True) &
-                        Q(course__start_date__lte=today)
-                    ) |
-                    (
-                        Q(course__start_date__isnull=True) &
-                        Q(course__end_date__isnull=False) &
-                        Q(course__end_date__gte=today)
-                    ),
+                    # No dates and published == True
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=True),
+                    then=Value(True),
+                ),
+                When(
+                    # Start + End and published == True + today in [start, end]
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__start_date__lte=today) &
+                    Q(course__end_date__gte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # Start and published == True + today >= start
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=True) &
+                    Q(course__start_date__lte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # End and published == True + today <= end
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__end_date__gte=today),
                     then=Value(True),
                 ),
                     default=Value(False),
@@ -1284,23 +1308,35 @@ class TrainingSubdomain(models.Model):
             ).annotate(
                 course_displayed=Case(
                     When(
-                        Q(course__published=True) |
-                        (
-                            Q(course__start_date__isnull=False) &
-                            Q(course__end_date__isnull=False) &
-                            Q(course__start_date__lte=today) &
-                            Q(course__end_date__gte=today)
-                        ) |
-                        (
-                            Q(course__start_date__isnull=False) &
-                            Q(course__end_date__isnull=True) &
-                            Q(course__start_date__lte=today)
-                        ) |
-                        (
-                            Q(course__start_date__isnull=True) &
-                            Q(course__end_date__isnull=False) &
-                            Q(course__end_date__gte=today)
-                        ),
+                        # No dates and published == True
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=True) &
+                        Q(course__end_date__isnull=True),
+                        then=Value(True),
+                    ),
+                    When(
+                        # Start + End and published == True + today in [start, end]
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=False) &
+                        Q(course__end_date__isnull=False) &
+                        Q(course__start_date__lte=today) &
+                        Q(course__end_date__gte=today),
+                        then=Value(True),
+                    ),
+                    When(
+                        # Start and published == True + today >= start
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=False) &
+                        Q(course__end_date__isnull=True) &
+                        Q(course__start_date__lte=today),
+                        then=Value(True),
+                    ),
+                    When(
+                        # End and published == True + today <= end
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=True) &
+                        Q(course__end_date__isnull=False) &
+                        Q(course__end_date__gte=today),
                         then=Value(True),
                     ),
                     default=Value(False),
