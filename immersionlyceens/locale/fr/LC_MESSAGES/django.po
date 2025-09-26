@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-26 09:44+0200\n"
+"POT-Creation-Date: 2025-09-26 10:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -8520,13 +8520,21 @@ msgstr ""
 "%(msg)s"
 
 #: immersionlyceens/apps/core/models.py:1984
+msgid "Start date of display must be after the date of the first slot (%s)"
+msgstr ""
+"La date de début de publication doit être paramétrée avant la date du premier créneau (%s)"
+
+#: immersionlyceens/apps/core/models.py:1989
+msgid "End date of display must be after the date of the last slot (%s)"
+msgstr ""
+"La date de fin de publication doit être paramétrée après la date du dernier créneau (%s)"
+
 #: immersionlyceens/apps/core/models.py:2320
 #, python-format
 msgid "Start date must be after the date of the first slot (%s)"
 msgstr ""
 "La date de début doit être paramétrée avant la date du premier créneau (%s)"
 
-#: immersionlyceens/apps/core/models.py:1989
 #: immersionlyceens/apps/core/models.py:2325
 #, python-format
 msgid "End date must be after the date of the last slot (%s)"
@@ -9974,8 +9982,9 @@ msgid ""
 "The course publication dates do not correspond to the slot date. The course "
 "publication dates will be changed automatically. Do you want to continue ?"
 msgstr ""
-"Les dates de publication du cours ne correspondent pas à la date du créneau. Les dates de publication du cours vont "
-"être modifiées automatiquement. Voulez-vous continuer ?"
+"Les dates de publication du cours ne correspondent pas à la date du créneau. "
+"Les dates de publication du cours vont être modifiées automatiquement. "
+"Voulez-vous continuer ?"
 
 #: immersionlyceens/templates/core/course_slot.html:42
 msgid "Select slots date within selected period"
@@ -10513,7 +10522,6 @@ msgstr ""
 "l'évènement associé sera publié. Voulez-vous continuer ?"
 
 #: immersionlyceens/templates/core/off_offer_event_slot.html:34
-
 msgid "The Event dates will be changed"
 msgstr "Les dates de l'événement vont être modifiées"
 
@@ -10522,8 +10530,9 @@ msgid ""
 "The event publication dates do not correspond to the slot date. The event "
 "publication dates will be changed automatically. Do you want to continue ?"
 msgstr ""
-"Les dates de publication de l'événement ne correspondent pas à la date du créneau. Les dates de publication de "
-"l'événement vont être modifiées automatiquement. Voulez-vous continuer ?"
+"Les dates de publication de l'événement ne correspondent pas à la date du "
+"créneau. Les dates de publication de l'événement vont être modifiées "
+"automatiquement. Voulez-vous continuer ?"
 
 #: immersionlyceens/templates/core/off_offer_events_list.html:16
 #: immersionlyceens/templates/core/off_offer_events_list.html:29
