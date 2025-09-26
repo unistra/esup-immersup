@@ -849,7 +849,7 @@ class CoreViewsTestCase(TestCase):
         # Fail with missing field
         response = self.client.post("/core/course", data, follow=True)
         self.assertFalse(Course.objects.filter(label="New test course").exists())
-        self.assertIn("At least one speaker is required", response.content.decode('utf-8'))
+        self.assertIn("At least one active speaker is required", response.content.decode('utf-8'))
 
         data['speakers_list'] = \
             """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"},
@@ -1281,7 +1281,8 @@ class CoreViewsTestCase(TestCase):
             "firstname": self.speaker1.first_name,
             "email": self.speaker1.email,
             "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
-            "is_removable": True
+            "is_removable": True,
+            "is_active": True
         }]))
 
         data = {
@@ -1296,6 +1297,7 @@ class CoreViewsTestCase(TestCase):
                 "username": self.speaker2.username,
                 "lastname": self.speaker2.last_name,
                 "firstname": self.speaker2.first_name,
+                "is_active": self.speaker2.is_active
             }])
         }
 

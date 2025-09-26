@@ -785,7 +785,7 @@ class FormTestCase(TestCase):
         # Fail : missing speakers
         form = OffOfferEventForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Please add at least one speaker.", form.errors["__all__"])
+        self.assertIn("Please add at least one active speaker.", form.errors["__all__"])
 
         # Success
         data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)

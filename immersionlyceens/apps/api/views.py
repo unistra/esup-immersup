@@ -246,9 +246,12 @@ def ajax_get_person(request):
                 'lastname': user.last_name,
                 'email': user.email,
                 'display_name': f"{user.last_name} {user.first_name}",
+                'is_active': user.is_active
             }
             for user in users_queryset
         ]
+
+    print(f"response: {response}")
 
     return JsonResponse(response, safe=False)
 
@@ -4615,9 +4618,9 @@ class SpeakerList(ManyMixin, generics.ListCreateAPIView):
         event_id = self.kwargs.get("event_id")
 
         if course_id:
-            return Course.objects.get(id=course_id).speakers.all()
+            return Course.objects.get(id=course_id).speakers.filter(is_active=True)
         if event_id:
-            return OffOfferEvent.objects.get(id=event_id).speakers.all()
+            return OffOfferEvent.objects.get(id=event_id).speakers.filter(is_active=True)
 
         filters = {'groups__name': 'INTER'}
 
