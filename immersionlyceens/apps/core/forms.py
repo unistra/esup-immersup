@@ -1075,6 +1075,8 @@ class OffOfferEventForm(forms.ModelForm):
         except Exception:
             speakers = []
 
+        # Filter out inactive accounts
+        # A new speaker is considered active
         if not speakers or not bool(next(filter(lambda k:k.get("is_active", True), speakers), None)):
             msg = _("Please add at least one active speaker.")
             messages.error(self.request, msg)

@@ -235,7 +235,7 @@
       let txt = "<li><nobr>";
 
       if(can_update === "True" && (item["is_removable"] === true || item["is_removable"] === undefined)) {
-        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['username']+"')\">X</button> ";
+        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['email']+"')\">X</button> ";
       }
       else {
         txt += "<button type=\"button\" class=\"btn btn-danger btn-sm\">X</button> ";
@@ -255,9 +255,9 @@
     $('#id_speakers_list').val(JSON.stringify(speakers_array));
   }
 
-  function remove_speaker(username) {
+  function remove_speaker(email) {
     speakers_array = $.grep(speakers_array, function(value) {
-      return value["username"] != username;
+      return value["email"] != email;
     });
 
     refresh_speakers_list();

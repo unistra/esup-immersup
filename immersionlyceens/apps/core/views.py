@@ -2174,7 +2174,7 @@ class OffOfferEventSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()],
+                    'speakers': [s.id for s in slot.speakers.filter(is_active=True)],
                     'allow_group_registrations': slot.allow_group_registrations,
                     'allow_individual_registrations': slot.allow_individual_registrations,
                     'group_mode': slot.group_mode,

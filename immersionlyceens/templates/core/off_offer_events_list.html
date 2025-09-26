@@ -431,7 +431,9 @@
           "render": function (data, type, row) {
             let txt = "";
             $.each(data, function (index, speaker) {
-              txt += "<a href='mailto:" + speaker.email + "'>" + speaker.first_name + " " + speaker.last_name +"</a><br>";
+              if(speaker.is_active === true) {
+                txt += `<a href="mailto:${speaker.email}">${speaker.first_name} ${speaker.last_name}</a><br>`
+              }
             });
 
             if(type === 'filter') {
