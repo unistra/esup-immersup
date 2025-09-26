@@ -1554,13 +1554,16 @@
   function check_parent_date(date=$('#id_date').val(), dialog=true, callback) {
     var start_date
     var end_date
+
     if(course_id) {
         start_date = courses[course_id]['start_date']
         end_date = courses[course_id]['end_date']
-    } else {
-        start_date = events[event_id]['end_date']
+    }
+    if(event_id) {
+        start_date = events[event_id]['start_date']
         end_date = events[event_id]['end_date']
     }
+
     if(date) {
       return $.ajax({
         url: '/api/validate_parent_date',
@@ -1885,7 +1888,6 @@ $(document).ready(function(){
         },
       }],
   });
-
     modificationDialog = $("#modification-dialog-form").dialog({
     autoOpen: false,
     closeOnEscape: false,
