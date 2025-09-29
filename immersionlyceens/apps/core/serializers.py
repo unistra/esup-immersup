@@ -453,7 +453,6 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
     structure = StructureSerializer(many=False, read_only=True)
     highschool = HighSchoolViewSerializer(many=False, read_only=True)
     event_type = serializers.StringRelatedField(many=False)
-    # speakers = ImmersionUserSerializer(many=True, read_only=True)
     speakers = SpeakerSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()
     published_slots_count = serializers.IntegerField()

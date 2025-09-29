@@ -545,7 +545,6 @@ def ajax_cancel_rejection(request):
 
     response = {'data': None, 'msg': ''}
     highschool_filter = {}
-    msgs = []
 
     if not student_record_id and not visitor_record_id:
         response['msg'] = "Error: No record selected"
@@ -2149,7 +2148,6 @@ def ajax_get_highschool_students(request):
     and no highschool id is specified
     """
     highschool_id = None
-    no_record_filter: bool = False
     no_account_activation: bool = False
     response: Dict[str, Any] = {'data': [], 'msg': ''}
 

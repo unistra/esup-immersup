@@ -153,7 +153,7 @@ class AccountAPI(BaseAccountsAPI):
                 raise
         except Exception as e:
             if response and hasattr(response, "status_code"):
-                logger.error("Can't perform REST search (error %s) : %s", (response.status_code, e))
+                logger.error("Can't perform REST search (error %s) : %s", response.status_code, e)
             else:
                 logger.error("Can't perform REST search : %s", e)
                 

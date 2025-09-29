@@ -17,7 +17,6 @@ class Command(BaseCommand, Schedulable):
     def handle(self, *args, **options):
         """Delete users not present in ldap of establishments"""
 
-        t: float = time.time()
         users: QuerySet = ImmersionUser.objects.filter(
             auth_token__isnull=True,
             establishment__data_source_plugin="LDAP",

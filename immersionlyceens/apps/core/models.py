@@ -295,7 +295,7 @@ class Structure(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A structure with this code already exists'))
 
     class Meta:
@@ -1137,7 +1137,7 @@ class TrainingDomain(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A training domain with this label already exists'))
 
     class Meta:
@@ -1172,7 +1172,7 @@ class TrainingSubdomain(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A training sub domain with this label already exists'))
 
     #Offer (each subdomain)
@@ -1416,7 +1416,7 @@ class Training(models.Model):
                         _("A Training object with the same high school and label already exists")
                     )
 
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     class Meta:
@@ -1475,7 +1475,7 @@ class Campus(models.Model):
                         _("A Campus object with the same establishment and label already exists")
                     )
 
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     class Meta:
@@ -1506,7 +1506,7 @@ class BachelorMention(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A bachelor mention with this label already exists'))
 
     class Meta:
@@ -1534,7 +1534,7 @@ class BachelorType(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A bachelor type with this label already exists'))
 
     class Meta:
@@ -1563,7 +1563,7 @@ class Building(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A building with this label for the same campus already exists'))
 
     class Meta:
@@ -1600,7 +1600,7 @@ class CancelType(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A cancel type with this label already exists'))
 
     def usable_for_students(self):
@@ -1653,7 +1653,7 @@ class CourseType(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A course type with this label already exists'))
 
     class Meta:
@@ -1680,7 +1680,7 @@ class GeneralBachelorTeaching(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A specialty teaching with this label already exists'))
 
     class Meta:
@@ -1710,7 +1710,7 @@ class PublicType(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A public type with this label already exists'))
 
     class Meta:
@@ -1750,7 +1750,7 @@ class UniversityYear(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A university year with this label already exists'))
 
 
@@ -1788,7 +1788,7 @@ class Holiday(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A holiday with this label already exists'))
 
     @classmethod
@@ -1821,7 +1821,7 @@ class Vacation(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A vacation with this label already exists'))
 
 
@@ -1948,7 +1948,7 @@ class Period(models.Model):
                     raise ValidationError(
                         _("A Period object with the same label already exists")
                     )
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     def save(self, *args, **kwargs):
@@ -2155,14 +2155,14 @@ class Course(models.Model):
                     raise ValidationError(
                         _("A Course object with the same structure/high school, training and label already exists")
                     )
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     def is_displayed(self):
         now = timezone.now()
-        if self.published:
-            if (self.start_date is None or self.start_date <= now) and \
-                (self.end_date is None or now <= self.end_date):
+        if self.published and \
+            (self.start_date is None or self.start_date <= now) and \
+            (self.end_date is None or now <= self.end_date):
                 return True
 
         return False
@@ -2351,12 +2351,12 @@ class OffOfferEvent(models.Model):
         if [self.establishment, self.highschool].count(None) != 1:
             raise ValidationError("You must select one of : Establishment or High school")
         if self.start_date and self.first_slot_date:
-            if not (self.first_slot_date > self.start_date):
+            if self.first_slot_date <= self.start_date:
                 raise ValidationError(
                     {"start_date": _("Start date must be after the date of the first slot (%s)") % self.first_slot_date.strftime("%d/%m/%Y %H:%M")}
                 )
         if self.end_date and self.last_slot_date:
-            if not (self.end_date > self.last_slot_date):
+            if self.end_date <= self.last_slot_date:
                 raise ValidationError(
                     {"end_date": _("End date must be after the date of the last slot (%s)") % self.last_slot_date.strftime("%d/%m/%Y %H:%M")}
                 )
@@ -2395,14 +2395,14 @@ class OffOfferEvent(models.Model):
                     raise ValidationError(
                         _("An off offer event with the same attachments and label already exists")
                     )
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     def is_displayed(self):
         now = timezone.now()
-        if self.published:
-            if (self.start_date is None or self.start_date <= now) and \
-                (self.end_date is None or now <= self.end_date):
+        if self.published and \
+            (self.start_date is None or self.start_date <= now) and \
+            (self.end_date is None or now <= self.end_date):
                 return True
 
         return False
@@ -2583,7 +2583,7 @@ class AccompanyingDocument(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An accompanying document with this label already exists'))
 
 
@@ -2636,7 +2636,7 @@ class PublicDocument(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A public document with this label already exists'))
 
     def delete(self, using=None, keep_parents=False):
@@ -2675,7 +2675,7 @@ class VisitorType(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A visitor type with this label already exists'))
 
     class Meta:
@@ -2736,7 +2736,7 @@ class AttestationDocument(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An attestation with this label already exists'))
 
     def delete(self, using=None, keep_parents=False):
@@ -2774,7 +2774,7 @@ class EvaluationType(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An evaluation type with this code already exists'))
 
     class Meta:
@@ -2809,7 +2809,7 @@ class EvaluationFormLink(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
 
     class Meta:
@@ -3381,6 +3381,7 @@ class Immersion(models.Model):
                 success = True
 
         if success:
+            #During all the sends, if at least one error is excepted
             if not error:
                 msg = gettext("Notification sent to disability referent")
                 return {"send": True, "error": False, "msg": msg}
