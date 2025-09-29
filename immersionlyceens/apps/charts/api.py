@@ -341,11 +341,6 @@ def get_charts_filters_data(request):
             for uai_code in uai_codes:
                 institution = higher_institutions_uai.get(uai_code, None)
 
-                """
-                if institution and institution.establishment is not None:
-                    continue
-                """
-
                 institution_data = {
                     'institution': '',
                     'institution_id': uai_code,
@@ -478,11 +473,6 @@ def get_global_trainings_charts(request):
           'filter_reset_button_text': False,
         })
 
-    # Limit to current highschool or establishment for these users
-    """
-    if user.is_high_school_manager() and user.highschool:
-        trainings_filter['highschool'] = user.highschool
-    """
     if any(structure_col_conditions):
         # Already done when filter_by_my_trainings is True, is it necessary again here ?
         if user.is_establishment_manager() and user.establishment:

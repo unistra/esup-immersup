@@ -255,7 +255,6 @@ class HighSchoolStudentForm(forms.ModelForm):
 
 class NewPassForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
-        # self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
         for field in self.fields:
@@ -365,7 +364,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
         try:
             attestation_resend_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
-        except Exception as e:
+        except Exception:
             # display error only for managers
             attestation_resend_delay = 0 # good default value ?
             if not self.request.user.is_high_school_student() and not self.request.user.is_visitor():
@@ -441,7 +440,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            if not document.content_type in RecordDocument.ALLOWED_TYPES.values():
+            if document.content_type not in RecordDocument.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
             if document.size > int(settings.MAX_UPLOAD_SIZE):

@@ -105,8 +105,6 @@ class CustomAdminSite(admin.AdminSite):
                     )
                 )
 
-            # yield app
-
         return app_list
 
     def app_index(self, request, app_label, extra_context=None):
@@ -758,8 +756,8 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # establishment manager : can't delete a campus if it's not attached to his/her own establishment
-        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
-                request.user.establishment == obj.establishment:
+        if obj and request.user.establishment and request.user.is_establishment_manager() and \
+                request.user.establishment != obj.establishment:
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
@@ -821,8 +819,8 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # establishment manager : can't delete a building if it's not attached to his/her own establishment
-        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
-                request.user.establishment == obj.campus.establishment:
+        if obj and request.user.establishment and request.user.is_establishment_manager() and \
+                request.user.establishment != obj.campus.establishment:
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
@@ -1208,7 +1206,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         if request.user.is_master_establishment_manager() or request.user.is_operator():
-            return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
+            return UniversityYear.objects.filter(purge_date__isnull=True).count() <= 0
 
         # Group permissions
         return super().has_add_permission(request)
@@ -1269,35 +1267,13 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         'cancellation_limit_delay', 'allowed_immersions'
     )
 
-    """
-    def get_readonly_fields(self, request, obj=None):
-        today = timezone.localdate()
-
-        if not obj:
-            return []
-
-        fields = []
-        uy = None
-
-        try:
-            uy = UniversityYear.get_active()
-        except Exception as e:
-            messages.error(
-                request, _("Multiple active years found. Please check your university years settings."),
-            )
-
-        if uy is None or request.user.is_superuser:
-            return []
-
-        return list(set(fields))
-    """
 
     def has_add_permission(self, request):
         uy = None
 
         try:
             uy = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             messages.error(
                 request, _("Multiple active years found. Please check your university years settings."),
             )
@@ -1321,7 +1297,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
         try:
             uy = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             messages.error(
                 request, _("Multiple active years found. Please check your university years settings."),
             )
@@ -1379,7 +1355,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
         try:
             uy = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             self.details['ERROR'].add(
                 _("Multiple active years found. Please check your university years settings.")
             )
@@ -1489,8 +1465,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = []
-        if obj:
-            if obj.student_records.exists():
+        if obj and obj.student_records.exists():
                 fields.append('active')
 
         return fields
@@ -2006,28 +1981,6 @@ class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
 
-"""
-class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
-    def custom_has_something_permission(self, request, obj=None):
-        if request.user.is_operator:
-            return True
-        return super().has_add_permission(request)
-
-    def has_module_permission(self, request):
-        return self.custom_has_something_permission(request)
-
-    def has_view_permission(self, request, obj=None):
-        return self.custom_has_something_permission(request, obj)
-
-    def has_add_permission(self, request):
-        return self.custom_has_something_permission(request)
-
-    def has_change_permission(self, request, obj=None):
-        return self.custom_has_something_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        return self.custom_has_something_permission(request, obj)
-"""
 
 class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
@@ -2210,11 +2163,6 @@ class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return any(allowed_users) and not exists
 
-
-"""
-admin.site.unregister(TokenProxy)
-admin.site.register(TokenProxy, TokenCustomAdmin)
-"""
 
 admin.site = CustomAdminSite(name='Repositories')
 

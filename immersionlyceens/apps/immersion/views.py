@@ -201,7 +201,6 @@ class CustomLoginView(FormView):
         elif self.user.is_visitor():
             return reverse("immersion:visitor_record")
 
-            # return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
         elif any(go_home):
             return reverse('home')
         else:
@@ -443,7 +442,7 @@ def shibbolethLogin(request, profile=None):
                     Q(uai_codes=uai_code)|Q(uai_codes=clean_uai_code),
                     uses_student_federation=True
                 )
-            except HighSchool.DoesNotExist as e:
+            except HighSchool.DoesNotExist:
                 return render(request, 'immersion/missing_hs.html', {})
 
         else:
@@ -500,7 +499,6 @@ def shibbolethLogin(request, profile=None):
             messages.error(request, _("Group error"))
 
         if is_high_school_student:
-            # validation=HighSchoolStudentRecord.TO_COMPLETE
             HighSchoolStudentRecord.objects.create(
                 highschool=record_highschool,
                 student=new_user,
@@ -600,7 +598,7 @@ def shibbolethLogin(request, profile=None):
             if request.user.is_high_school_student():
                 try:
                     validate_email(request.user.email)
-                except ValidationError as e:
+                except ValidationError:
                     messages.success(
                         request,
                         _("Your account is almost ready, please enter you email address for the activation procedure")
@@ -894,7 +892,7 @@ def change_password(request):
 
         try:
             validate_password(request.POST.get('new_password1'))
-        except ValidationError as e:
+        except ValidationError:
             pass
 
         if password_form.is_valid():
@@ -958,11 +956,6 @@ class ActivateView(View):
                     messages.success(request, _("Please use the login button to authenticate"))
 
                 return HttpResponseRedirect(redirect_url)
-
-                """
-                if user.is_student():
-                    return HttpResponseRedirect("/shib")
-                """
 
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid activation data"))

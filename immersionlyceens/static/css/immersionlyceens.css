@@ -208,7 +208,7 @@ a.unlink:hover {
 .more-less-title>button:after {
     /* minus */
     content: '\f067';
-    font-family: 'FontAwesome';
+    font-family: 'FontAwesome', sans-serif;
     position: absolute;
     right: 2px;
 }

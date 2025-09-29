@@ -26,7 +26,6 @@ class EmailBackend(BaseEmailBackend):
         self.host_user = getattr(settings, 'EMAIL_HOST_USER', '')
         self.host_password = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
         self.ssl_on_connect = getattr(settings, 'EMAIL_SSL_ON_CONNECT', False)
-        # self.from_addr = getattr(settings, 'FROM_ADDR', None)
         super().__init__(*args, **kwargs)
 
     def send_message(self, email_message):

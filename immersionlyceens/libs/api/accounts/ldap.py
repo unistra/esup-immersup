@@ -114,7 +114,7 @@ class AccountAPI(BaseAccountsAPI):
 
         try:
             return Tls(**tls_settings)
-        except Exception as e:
+        except Exception:
             return None
 
 

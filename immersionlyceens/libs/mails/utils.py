@@ -56,9 +56,7 @@ def send_email(address, subject, body, from_addr=None, reply_to=None, copies=())
 
     html = body
 
-    # part1 = MIMEText(text, 'plain')
     part2 = MIMEText(html, 'html')
-    # msg.attach(part1)
     msg.attach(part2)
     try:
         mail_backend().send_message(msg)

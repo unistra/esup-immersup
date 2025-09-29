@@ -304,7 +304,6 @@ class BuildingForm(forms.ModelForm):
 
     class Meta:
         model = Building
-        # fields = '__all__'
         fields = ('label', 'establishment', 'campus', 'url', 'active')
 
 
@@ -449,8 +448,6 @@ class EstablishmentForm(forms.ModelForm):
                 self.fields["disability_notify_on_slot_registration"].disabled = True
                 self.fields["disability_referent_email"].disabled = True
 
-        # Plugins
-        # self.fields["data_source_plugins"] = forms.ChoiceField(choices=settings.AVAILABLE_ACCOUNTS_PLUGINS)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -757,7 +754,7 @@ class VacationForm(forms.ModelForm):
         # existence if an active university year
         try:
             univ_year = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             raise
 
         if not univ_year:
@@ -1054,7 +1051,6 @@ class ImmersionUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
-        # fields = '__all__'
         fields = ("establishment", "username", "search", "password1", "password2", "email",
                   "first_name", "last_name", "is_active")
 
@@ -1222,11 +1218,10 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self._errors["groups"] = forms.utils.ErrorList()
                 self._errors['groups'].append(self.error_class([msg]))
 
-            if groups.filter(name='REF-LYC').exists():
-                if not highschool:
-                    msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
-                    self._errors["highschool"] = self.error_class([msg])
-                    del cleaned_data["highschool"]
+            if groups.filter(name='REF-LYC').exists() and not highschool:
+                msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
+                self._errors["highschool"] = self.error_class([msg])
+                del cleaned_data["highschool"]
 
             if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
                 msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
@@ -1283,10 +1278,9 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         new_groups = set(self.data.get('groups', []))
 
-        if inter_group:
-            if self.request.user.is_high_school_manager():
-                if not self.instance.groups.filter(name='INTER').exists():
-                    new_groups.add(str(inter_group.id))
+        if inter_group and self.request.user.is_high_school_manager():
+            if not self.instance.groups.filter(name='INTER').exists():
+                new_groups.add(str(inter_group.id))
 
         # Username override except for high school students using EduConnect
         exceptions = [
@@ -1495,7 +1489,7 @@ class HighSchoolForm(forms.ModelForm):
             ]
 
             valid_user = any(valid_groups)
-        except AttributeError as exc:
+        except AttributeError:
             pass
 
         if not valid_user:
@@ -2094,7 +2088,7 @@ class CertificateLogoForm(forms.ModelForm):
     def clean_logo(self):
         logo = self.cleaned_data['logo']
         if logo and isinstance(logo, UploadedFile):
-            if not logo.content_type in CertificateLogo.ALLOWED_TYPES.values():
+            if logo.content_type not in CertificateLogo.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return logo

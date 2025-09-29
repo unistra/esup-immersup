@@ -39,7 +39,7 @@ class Command(BaseCommand):
         try:
             r = requests.get(url)
             json_data = r.json()
-        except Exception as e:
+        except Exception:
             msg = _("Cannot get institutes from url %s") % url
             logger.exception(msg)
             raise CommandError(msg)
@@ -78,7 +78,7 @@ class Command(BaseCommand):
                         current_institutes[json_uai] = new_data.copy()
                         current_institutes_objs[json_uai] = new_institute
                         created += 1
-                    except Exception as e:
+                    except Exception:
                         msg = _("Cannot create new institute from data : %s") % new_data
                         returns.append(msg)
                         logger.exception(msg)
@@ -98,7 +98,7 @@ class Command(BaseCommand):
                 url = settings.INSTITUTES_URL % (rows, start)
                 r = requests.get(url)
                 json_data = r.json()
-            except Exception as e:
+            except Exception:
                 msg = _("Cannot get institutes from url %s") % url
                 logger.exception(msg)
                 raise CommandError(msg)

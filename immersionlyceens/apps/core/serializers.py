@@ -205,7 +205,6 @@ class CampusSerializer(serializers.ModelSerializer):
 class EstablishmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Establishment
-        # fields = "__all__"
         exclude = ['data_source_settings', ]
 
 

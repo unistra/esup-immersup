@@ -1229,7 +1229,7 @@ class CourseSlotUpdate(generic.UpdateView):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.get_object()
-        except Exception as e:
+        except Exception:
             if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
                 messages.error(request, _("This slot belongs to another structure"))
             else:
@@ -2255,7 +2255,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.get_object()
-        except Exception as e:
+        except Exception:
             if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
                 messages.error(request, _("This slot belongs to another structure"))
             else:

@@ -4517,7 +4517,6 @@ class TrainingList(ManyMixin, generics.ListCreateAPIView):
     Returns only active trainings
     """
 
-    # queryset = Training.objects.all()
     serializer_class = TrainingSerializer
     permission_classes = [
         IsRefLycPermissions
@@ -6110,7 +6109,6 @@ class TrainingAllList(ManyMixin, generics.ListCreateAPIView):
     Training list without restrictions for REF-LYC
     """
 
-    # queryset = Training.objects.all()
     serializer_class = TrainingSerializer
     permission_classes = [
         IsRefLycPermissions,

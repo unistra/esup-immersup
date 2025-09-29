@@ -48,8 +48,6 @@ from .managers import (
     HighSchoolAgreedManager, StructureQuerySet,
 )
 
-# from ordered_model.models import OrderedModel
-
 logger = logging.getLogger(__name__)
 
 
