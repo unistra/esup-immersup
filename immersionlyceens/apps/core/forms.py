@@ -1071,9 +1071,12 @@ class OffOfferEventForm(forms.ModelForm):
         except Exception:
             speakers = []
 
-        if not speakers:
-            messages.error(self.request, _("Please add at least one speaker."))
-            raise forms.ValidationError(_("Please add at least one speaker."))
+        # Filter out inactive accounts
+        # A new speaker is considered active
+        if not speakers or not bool(next(filter(lambda k:k.get("is_active", True), speakers), None)):
+            msg = _("Please add at least one active speaker.")
+            messages.error(self.request, msg)
+            raise forms.ValidationError(msg)
 
         return cleaned_data
 
@@ -1102,7 +1105,7 @@ class OffOfferEventForm(forms.ModelForm):
                         username=speaker['email'],
                         last_name=speaker['lastname'],
                         first_name=speaker['firstname'],
-                            email=speaker['email'],
+                        email=speaker['email'],
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['email']))

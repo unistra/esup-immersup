@@ -267,6 +267,7 @@ def course(request, course_id=None, duplicate=False):
                 "email": t.email,
                 "display_name": f"{t.last_name} {t.first_name}",
                 "is_removable": not t.slots.filter(course=course_id).exists(),
+                "is_active": t.is_active,
             } for t in course.speakers.all()]
 
             if duplicate:
@@ -319,9 +320,10 @@ def course(request, course_id=None, duplicate=False):
 
         try:
             speakers_list = json.loads(speakers_list)
-            assert not is_published or len(speakers_list) > 0
+            assert not is_published or \
+                   len(speakers_list) > 0 and bool(next(filter(lambda k:k.get("is_active", True), speakers_list), None))
         except Exception:
-            messages.error(request, _("At least one speaker is required"))
+            messages.error(request, _("At least one active speaker is required"))
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
@@ -1957,6 +1959,7 @@ class OffOfferEventUpdate(generic.UpdateView):
                     "email": t.email,
                     "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": not t.slots.filter(event=event_id).exists(),
+                    "is_active": t.is_active,
                 } for t in event.speakers.all()]
 
                 context["speakers"] = json.dumps(speakers_list)
@@ -2171,7 +2174,7 @@ class OffOfferEventSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()],
+                    'speakers': [s.id for s in slot.speakers.filter(is_active=True)],
                     'allow_group_registrations': slot.allow_group_registrations,
                     'allow_individual_registrations': slot.allow_individual_registrations,
                     'group_mode': slot.group_mode,

@@ -5074,7 +5074,9 @@ class APITestCase(TestCase):
                     'can_delete': not new_user.courses.exists()
                 }],
                 'url': 'http://test.com',
-                'managed_by': 'ETA3 - STR3'
+                'managed_by': 'ETA3 - STR3',
+                'start_date': None,
+                'end_date': None
             },
             'status': 'success',
             'msg': ''
