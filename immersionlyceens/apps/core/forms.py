@@ -527,8 +527,10 @@ class SlotForm(forms.ModelForm):
             slot_min = Slot.objects.filter(course=instance.course).order_by("date", "start_time").first()
             slot_max = Slot.objects.filter(course=instance.course).order_by("-date", "-end_time").first()
 
-            instance.course.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
-            instance.course.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
+            if slot_min:
+                instance.course.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+            if slot_max:
+                instance.course.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
 
             if instance.course.start_date:
                 if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < instance.course.start_date:
@@ -835,8 +837,10 @@ class OffOfferEventSlotForm(SlotForm):
             slot_min = Slot.objects.filter(event=event).order_by("date", "start_time").first()
             slot_max = Slot.objects.filter(event=event).order_by("-date", "-end_time").first()
 
-            event.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
-            event.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
+            if slot_min:
+                event.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+            if slot_max:
+                event.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
 
             if event.start_date:
                 if timezone.make_aware(datetime.combine(_date, start_time)) < event.start_date.date():
