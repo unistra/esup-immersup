@@ -219,7 +219,7 @@ def ajax_get_person(request):
                     response['msg'] = gettext("Error : can't query establishment accounts data source")
 
             except KeyError:
-                pass
+                logger.info("Plugin %s not found in ACCOUNTS_PLUGINS", establishment.data_source_plugin)
             except Exception as e:
                 response['msg'] = gettext("Error : %s" % e)
         else:
@@ -636,7 +636,7 @@ def ajax_validate_reject_student(request, validate):
                 document.save()
 
         except HighSchoolStudentRecordDocument.DoesNotExist:
-            pass
+            logger.info("Document not found (pk=%s, record=%s)", doc_id, student_record_id)
         # Add exception for parse_date ?
 
     try:
@@ -1447,8 +1447,7 @@ def ajax_slot_registration(request):
         try:
             student = ImmersionUser.objects.get(pk=student_id)
         except ImmersionUser.DoesNotExist:
-            # FIXME ?
-            pass
+            logger.info("Student with id=%s does not exist", student_id)
     else:
         student = user
 
@@ -1457,7 +1456,7 @@ def ajax_slot_registration(request):
             slot = Slot.objects.get(pk=slot_id)
             off_offer = True if slot.event else False
         except Slot.DoesNotExist:
-            pass
+            logger.info("Slot with id=%s does not exist", slot_id)
 
     if not slot or not student:
         response = {'error': True, 'msg': _("Invalid parameters")}
@@ -4005,7 +4004,7 @@ def ajax_send_email_contact_us(request):
         template = MailTemplate.objects.get(code='CONTACTUS_NOTIFICATION', active=True)
         notify_user = True
     except MailTemplate.DoesNotExist:
-        pass
+        logger.info("Mail template CONTACTUS_NOTIFICATION not found")
 
     # Contacting user mail notification
     if notify_user:
@@ -4400,8 +4399,7 @@ def remove_link(request):
         user_group.immersionusers.remove(remove_user_id)
         response['msg'] = gettext('User removed from your group')
     except Exception:
-        # No group or user not in group : nothing to do
-        pass
+        response['msg'] = gettext('No group or user not in group : No action needed')
 
     return JsonResponse(response, safe=False)
 
@@ -5336,7 +5334,7 @@ class VisitorRecordRejectValidate(View):
                     document.validity_date = parse_date(doc_validity_date)
                     document.save()
             except VisitorRecordDocument.DoesNotExist:
-                pass
+                logger.info("VisitorRecordDocument with id=%s and record_id=%s not found", doc_id, record_id)
             # Add exception for parse_date ?
 
         try:

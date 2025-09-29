@@ -135,15 +135,10 @@ def slots(request):
 
     if not user_filter and not cohorts_only:
         if events and not establishment_id and not highschool_id:
-            try:
+            if hasattr(user, "establishment") and user.establishment:
                 establishment_id = user.establishment.id
-            except:
-                pass
-
-            try:
+            if hasattr(user, "highschool") and user.highschool:
                 highschool_id = user.highschool.id
-            except:
-                pass
 
             if not highschool_id and not establishment_id:
                 response['msg'] = gettext("Error : a valid establishment or high school must be selected")

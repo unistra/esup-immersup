@@ -1486,14 +1486,14 @@ def course_slot_mass_update(request):
 
         # Same establishment ? => send to form to initializer campuses queryset
         if Slot.objects.filter(id__in=slot_ids).values('course__structure__establishment').distinct().count() == 1:
-            try:
-                establishment_id = Slot.objects.get(pk=slot_ids[0]).course.structure.establishment.pk
+            slot = Slot.objects.filter(pk=slot_ids[0]).first()
+            establishment_id = None
+
+            if slot and slot.course and slot.course.structure and slot.course.structure.establishment:
+                establishment_id = slot.course.structure.establishment.pk
                 form_kwargs['establishment'] = establishment_id
                 context['establishment_id'] = establishment_id
-            except:
-                # Slot course has no structure (linked to a highschool)
-                pass
-
+            # else : Slot course has no structure (linked to a highschool)
 
         # Update selected slots
         if not request.POST.get("mass_update"):

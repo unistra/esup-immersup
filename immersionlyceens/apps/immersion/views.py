@@ -259,15 +259,13 @@ def loginChoice(request, profile=None):
         if settings.EDUCONNECT_LOGIN_URL:
             educonnect_url = f"{login_url}?entityID={quote_plus(settings.EDUCONNECT_LOGIN_URL)}&target={target}"
     except:
-        # EDUCONNECT_LOGIN_URL not set
-        pass
+        logger.info("EDUCONNECT_LOGIN_URL not set")
 
     try:
         if settings.AGENT_FEDERATION_LOGIN_URL:
             agents_url = f"{login_url}?entityID={quote_plus(settings.AGENT_FEDERATION_LOGIN_URL)}&target={target}"
     except:
-        # AGENT_FEDERATION_LOGIN_URL not set
-        pass
+        logger.info("AGENT_FEDERATION_LOGIN_URL not set")
 
     context = {
         "agents_federation_url": agents_url,
@@ -747,8 +745,7 @@ def register(request, profile=None):
                 if get_general_setting('ACTIVATE_VISITORS') and registration_type == "vis":
                     group_name = "VIS"
             except:
-                # Should only happen if ACTIVATE_VISITORS setting is not present
-                pass
+                logger.info("ACTIVATE_VISITORS setting not found")
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)
