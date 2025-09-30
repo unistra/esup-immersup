@@ -404,12 +404,6 @@ Firefox is sadly not supporting :has for now :(
 .slot-type-e {
     color: DarkGreen;
 }
-/*
-TODO: Remove this when upgrading to django-ckeditor-5 !!! For now hidding warning message !!!
-*/
-.cke_notification_warning {
-        display: none;
-}
 
 /*
 Disable highlighting of selected items in the datatables

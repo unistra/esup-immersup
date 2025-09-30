@@ -26,7 +26,7 @@
 
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
-  <form class="" role="form" action="/immersion/student_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
+  <form class="" action="/immersion/student_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
         {% csrf_token %}
         {{ record_form.student }}
         {{ record_form.id }}

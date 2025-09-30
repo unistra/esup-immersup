@@ -1600,7 +1600,7 @@ def ajax_slot_registration(request):
                 training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
                 training_quota_active = training_quota['activate']
                 training_quota_count = training_quota['default_quota']
-            except Exception as e:
+            except Exception:
                 msg = _(
                     "ACTIVATE_TRAINING_QUOTAS parameter not found or incorrect : please check the platform settings"
                 )
@@ -2371,7 +2371,6 @@ def ajax_batch_cancel_registration(request):
     msg = ""
     warning_msg = ""
     err = False
-    err_msg = None
     today = datetime.datetime.today()
     now = timezone.now()
     user = request.user
@@ -2535,7 +2534,6 @@ def ajax_groups_batch_cancel_registration(request):
     msg = ""
     warning_msg = ""
     err = False
-    err_msg = None
     today = datetime.datetime.today()
     now = timezone.now()
     user = request.user
@@ -3997,7 +3995,7 @@ def ajax_send_email_contact_us(request):
     try:
         body = _('Mail sent by %s from contact form') % f'{firstname} {lastname} ({email})' + '<br><br>' + body
         send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
-    except Exception as e:
+    except Exception:
         response['error'] = True
         response['msg'] += gettext("%s : error") % recipient
 
@@ -4010,11 +4008,11 @@ def ajax_send_email_contact_us(request):
     # Contacting user mail notification
     if notify_user:
         try:
-            vars = {
+            user = {
                 "nom": lastname,
                 "prenom": firstname,
             }
-            message_body = render_text(template_data=template.body, data=vars)
+            message_body = render_text(template_data=template.body, data=user)
 
             send_email(email, template.subject, message_body)
         except Exception as e:
@@ -4308,7 +4306,7 @@ def ajax_get_duplicates(request):
     Get duplicates lists
     """
     response = {'data': [], 'msg': ''}
-    id = 0
+    record_pk = 0
     for t in HighSchoolStudentRecord.get_duplicate_tuples():
         records = []
         registrations = []
@@ -4329,7 +4327,7 @@ def ajax_get_duplicates(request):
 
         if len(records) > 1:
             dupes_data = {
-                "id": id,
+                "id": record_pk,
                 "record_ids": [r.id for r in records],
                 "account_ids": [r.student.id for r in records],
                 "names": [str(r.student) for r in records],
@@ -4341,7 +4339,7 @@ def ajax_get_duplicates(request):
                 "registrations": [_('Yes') if r > 0 else _('No') for r in registrations],
             }
 
-            id += 1
+            record_pk += 1
 
             response['data'].append(dupes_data.copy())
 
@@ -4753,7 +4751,6 @@ class CourseTypeList(ManyMixin, generics.ListCreateAPIView):
     filterset_fields = ['label', 'full_label', 'active']
 
     def get_queryset(self):
-        user = self.request.user
         queryset = CourseType.objects.all()
         return queryset
 
@@ -4979,7 +4976,6 @@ class SlotList(ManyMixin, generics.ListCreateAPIView):
     ]
 
     def get_queryset(self):
-        user = self.request.user
         queryset = Slot.objects.all()
         return queryset
 
@@ -5392,7 +5388,6 @@ class VisitorRecordRejectValidate(View):
 @groups_required("REF-ETAB", "REF-LYC")
 def signCharter(request):
     data = {"msg": "", "error": ""}
-    charter_sign = get_general_setting('CHARTER_SIGN')  # useful somewhere ?
     success = False
     user = request.user
 
@@ -5661,7 +5656,7 @@ def ajax_can_register_slot(request, slot_id=None):
     GET parameters:
     slot_id
     """
-    now = timezone.now()
+    now = timezone.localtime()
     today = timezone.localdate()
 
     user = request.user
@@ -5678,8 +5673,6 @@ def ajax_can_register_slot(request, slot_id=None):
     if not slot_id:
         response['msg'] = gettext("Error : missing slot id")
         return JsonResponse(response, safe=False)
-
-    now = timezone.localtime()
 
     slot = Slot.objects.get(id=slot_id)
 
@@ -6121,7 +6114,6 @@ class TrainingAllList(ManyMixin, generics.ListCreateAPIView):
     # Auth : default (see settings/base.py)
 
     def get_queryset(self):
-        user = self.request.user
         trainings_queryset = (
             Training.objects.prefetch_related('highschool', 'structures__establishment', 'courses')
             .filter(active=True)

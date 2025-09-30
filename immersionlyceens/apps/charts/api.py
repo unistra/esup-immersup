@@ -692,7 +692,6 @@ def get_registration_charts_by_population(request):
     high_school_user_filters = {}
     level_filter = {}
     immersions_filter = {}
-    allowed_structures = user.get_authorized_structures()
 
     try:
         structure_id = int(structure_id)
@@ -1646,7 +1645,6 @@ def get_slots_charts(request):
 
     user = request.user
 
-    immersions_filter = {}
     # Parse filters in POST request
     establishment_id = request.GET.get("establishment_id")
     empty_structures = request.GET.get("empty_structures", False) == 'true'

@@ -25,7 +25,7 @@
     </div>
     <div class="card-body">
 
-      <form class="" role="form" action="/core/training{% if training %}/{{ training.id }}/update{% endif %}" method="POST">
+      <form class="" action="/core/training{% if training %}/{{ training.id }}/update{% endif %}" method="POST">
       {% csrf_token %}
       {{ form.id }}
 

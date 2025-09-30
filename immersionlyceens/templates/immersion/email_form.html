@@ -19,7 +19,7 @@
       <p class="text-center">
         {% trans 'All communications will take place by email, please provide a valid email address.' %}
       </p>
-      <form method="post" role="form">
+      <form method="post">
       {% csrf_token %}
         <input type='hidden' name="id" value="{{ form.instance.id }}">
         <div class="form-group row justify-content-center">

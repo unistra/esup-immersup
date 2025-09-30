@@ -28,7 +28,7 @@
         {% endif %}
         </div>
         <div class="card-body">
-            <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
+            <form class="" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
                 <fieldset>
                     <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
                     {% csrf_token %}

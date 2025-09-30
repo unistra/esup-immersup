@@ -239,7 +239,7 @@ def sub(value, arg):
 def get_etab_label(obj):
     try:
         return f'{obj.label} - {obj.city}' if isinstance(obj, HighSchool) else obj.label
-    except Exception as e:
+    except Exception:
         return ""
 
 

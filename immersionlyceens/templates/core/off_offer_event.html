@@ -34,7 +34,7 @@
     </div>
     <div class="card-body">
       <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
-      <form class="" role="form" action="/core/off_offer_event{% if form.instance.id %}/{{ form.instance.id }}{% elif origin_id %}/{{ origin_id }}{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
+      <form class="" action="/core/off_offer_event{% if form.instance.id %}/{{ form.instance.id }}{% elif origin_id %}/{{ origin_id }}{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}
         <input type="hidden" name="duplicate" value="{{ duplicate }}">

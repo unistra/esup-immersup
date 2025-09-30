@@ -239,9 +239,9 @@ class HasUAIFilter(admin.SimpleListFilter):
         if not self.value():
             return queryset
 
-        bool = self.value() == 0
+        is_zero = self.value() == 0
 
-        return queryset.filter(uai_codes__isnull=bool).distinct()
+        return queryset.filter(uai_codes__isnull=is_zero).distinct()
 
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
@@ -396,17 +396,13 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             record = obj.get_student_record()
             if record and record.institution:
                 return record.institution.uai_code
-        elif obj.is_structure_manager() or obj.is_structure_consultant():
-            if obj.highschool:
-                return obj.highschool
-            elif obj.establishment:
-                return obj.establishment
-        elif obj.is_speaker() or obj.is_operator() or obj.is_master_establishment_manager() \
-            or obj.is_establishment_manager() or obj.is_high_school_manager() or obj.is_legal_department_staff():
-            if obj.highschool:
-                return obj.highschool
-            elif obj.establishment:
-                return obj.establishment
+        elif obj.is_structure_manager() or obj.is_structure_consultant() or obj.is_speaker() or obj.is_operator() \
+            or obj.is_master_establishment_manager() or obj.is_establishment_manager() or obj.is_high_school_manager() \
+            or obj.is_legal_department_staff():
+                if obj.highschool:
+                    return obj.highschool
+                elif obj.establishment:
+                    return obj.establishment
         else:
             return ''
 
@@ -965,11 +961,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
 
-    # TODO: remove this when upgrading to django-ckeditor-5
-    class Media:
-        css = {'all': ('css/immersionlyceens.min.css',)}
-
-
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = StructureForm
     list_display = ('code', 'label', 'establishment', 'active', 'mailing_list')
@@ -1026,13 +1017,6 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
         # Group permissions
         return super().has_delete_permission(request, obj)
 
-    # TODO: remove this when upgrading to django-ckeditor-5
-    class Media:
-        css = {
-            'all': (
-                'css/immersionlyceens.min.css',
-            )
-        }
 
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1504,13 +1488,6 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
                 'js/jquery-3.4.1.slim.min.js',
                 'js/admin_highschool.min.js',
             )
-
-        # TODO: remove this when upgrading to django-ckeditor-5
-        css = {
-            "all": (
-                "css/immersionlyceens.min.css",
-            )
-        }
 
 class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     form = InformationTextForm
