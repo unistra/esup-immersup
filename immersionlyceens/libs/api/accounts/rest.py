@@ -43,14 +43,14 @@ class AccountAPI(BaseAccountsAPI):
         """
         timestamp = datetime.now().strftime('%s')
         key=f"{self.SECRET}-{timestamp}"
-        hash = hashlib.sha512(key.encode('utf-8')).hexdigest()
+        _hash = hashlib.sha512(key.encode('utf-8')).hexdigest()
 
-        return {'X-Token': f"key={hash},timestamp={timestamp}"}
+        return {'X-Token': f"key={_hash},timestamp={timestamp}"}
 
 
     @classmethod
-    def get_plugin_attrs(self):
-        return self.attrs_list
+    def get_plugin_attrs(cls):
+        return cls.attrs_list
 
     def check_settings(self):
         if not isinstance(self.establishment, Establishment):
@@ -150,7 +150,7 @@ class AccountAPI(BaseAccountsAPI):
             response = requests.get(request_string, headers=self.HEADERS)
             content = json.loads(response.content.decode("utf-8"))
             if response.status_code != 200:
-                raise
+                raise ValueError(f"Bad response: {response.status_code}")
         except Exception as e:
             if response and hasattr(response, "status_code"):
                 logger.error("Can't perform REST search (error %s) : %s", response.status_code, e)

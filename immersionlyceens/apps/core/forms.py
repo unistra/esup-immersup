@@ -369,7 +369,7 @@ class SlotForm(forms.ModelForm):
             enabled_groups = False
 
         if not enabled_groups:
-            cleaned_data["group_mode"], group_mode = None, None
+            cleaned_data["group_mode"] = None
             cleaned_data["allow_group_registrations"], allow_group_registrations = False, False
             cleaned_data["allow_individual_registrations"], allow_individual_registrations = True, True
             cleaned_data["n_group_places"], n_group_places = None, None
@@ -842,7 +842,7 @@ class OffOfferEventSlotForm(SlotForm):
                 event.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
 
             if event.start_date:
-                if timezone.make_aware(datetime.combine(_date, start_time)) < event.start_date.date():
+                if timezone.make_aware(datetime.combine(_date, start_time)) < event.start_date:
                     messages.warning(
                         self.request,
                         _("The slot will be saved, but the event publication start date do not match the slot date. The event \
@@ -853,7 +853,7 @@ class OffOfferEventSlotForm(SlotForm):
                     event.start_date = event.first_slot_date - timedelta(days=7)
 
             if event.end_date:
-                if timezone.make_aware(datetime.combine(_date, end_time)) > event.end_date.date():
+                if timezone.make_aware(datetime.combine(_date, end_time)) > event.end_date:
                     messages.warning(
                         self.request,
                         _("The slot will be saved, but the event publication end date do not match the slot date. The event \

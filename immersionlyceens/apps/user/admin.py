@@ -595,11 +595,11 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        highschool_filter = {}
+        filter = {}
         Q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
-            highschool_filter = {'highschool' : request.user.highschool}
+            filter = {'highschool' : request.user.highschool}
 
         if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
@@ -609,7 +609,7 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
             .filter(
                 Q_filter,
                 groups__name='CONS-STR',
-                **highschool_filter)\
+                **filter)\
             .distinct()\
             .order_by('last_name', 'first_name')
 

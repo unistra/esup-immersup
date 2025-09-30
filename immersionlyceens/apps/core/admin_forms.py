@@ -1574,7 +1574,7 @@ class HighSchoolForm(forms.ModelForm):
 
     class Meta:
         model = HighSchool
-        #FIXME : use an exclude list instead
+
         fields = ('active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
                   'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
