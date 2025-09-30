@@ -1554,8 +1554,6 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         def doc_used_in(obj):
 
-            used_docs = []
-
             texts_docs_id = obj.get_all_texts_id()
             docs = InformationText.objects.filter(id__in=texts_docs_id)
 

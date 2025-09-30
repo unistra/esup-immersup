@@ -735,7 +735,6 @@ class VacationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        label = cleaned_data.get('label')
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         now = datetime.now().date()
@@ -861,7 +860,6 @@ class PeriodForm(forms.ModelForm):
 
     def clean(self):
         today = timezone.localdate()
-        now = timezone.now()
 
         cleaned_data = super().clean()
 
@@ -941,8 +939,8 @@ class PeriodForm(forms.ModelForm):
 
         # Fields that can be updated with conditions
         if self.instance and self.instance.pk:
-            if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
-                if self.has_changed():
+            if self.has_changed():
+                if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
                     if 'immersion_end_date' in self.changed_data:
                         # change end date only for a future date
                         if immersion_end_date < self.instance.immersion_end_date:
@@ -952,8 +950,7 @@ class PeriodForm(forms.ModelForm):
                             raise forms.ValidationError(
                                 _("New allowed immersions value can only be higher than the previous one")
                             )
-            if self.instance.immersion_start_date > today:
-                if self.has_changed():
+                if self.instance.immersion_start_date > today:
                     slots_exist = self.instance.slots.exists()
                     if 'immersion_start_date' in self.changed_data:
                         if slots_exist and immersion_start_date > self.instance.immersion_start_date:
@@ -1475,7 +1472,6 @@ class HighSchoolForm(forms.ModelForm):
 
         active = cleaned_data.get("active", False)
         uses_student_federation = cleaned_data.get("uses_student_federation")
-        uses_agent_federation = cleaned_data.get("uses_agent_federation")
         uai_codes = cleaned_data.get('uai_codes')
 
         try:
@@ -2126,7 +2122,7 @@ class CertificateSignatureForm(forms.ModelForm):
     def clean_signature(self):
         signature = self.cleaned_data['signature']
         if signature and isinstance(signature, UploadedFile):
-            if not signature.content_type in CertificateSignature.ALLOWED_TYPES.values():
+            if signature.content_type not in CertificateSignature.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return signature
@@ -2229,7 +2225,7 @@ class CustomThemeFileForm(forms.ModelForm):
             #mimetypes.add_type("text/javascript", ".js")
             #allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
 
-            if not file.content_type in CustomThemeFile.ALLOWED_TYPES.values():
+            if file.content_type not in CustomThemeFile.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return file

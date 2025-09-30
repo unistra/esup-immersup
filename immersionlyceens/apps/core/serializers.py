@@ -74,7 +74,6 @@ class ImmersionUserSerializer(serializers.ModelSerializer):
 class SpeakerSerializer(ImmersionUserSerializer):
     def validate(self, attrs):
         # Note : email (account) unicity is checked before serializer validation
-        filter = {}
         establishment = attrs.get('establishment', None)
         highschool = attrs.get('highschool', None)
         email = attrs.get("email")
@@ -137,7 +136,7 @@ class SpeakerSerializer(ImmersionUserSerializer):
         try:
             user = super().create(validated_data)
             Group.objects.get(name='INTER').user_set.add(user)
-        except Exception as e:
+        except Exception:
             raise
 
         return user
@@ -262,15 +261,6 @@ class BuildingSerializer(serializers.ModelSerializer):
         model = Building
         fields = "__all__"
         validators = []
-        """
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Building.objects.all(),
-                fields=['campus', 'label'],
-                message=_("A Building object with the same campus and label already exists")
-            )
-        ]
-        """
 
 
 class HighSchoolViewSerializer(serializers.ModelSerializer):
@@ -725,8 +715,6 @@ class SlotSerializer(serializers.ModelSerializer):
         place = data.get("place", Slot.FACE_TO_FACE)
         published = data.get("published", False)
         speakers = data.get("speakers")
-        n_places = data.get('n_places')
-        n_group_places = data.get('n_group_places')
         allowed_establishments = data.get("allowed_establishments")
         allowed_highschools = data.get("allowed_highschools")
         allowed_highschool_levels = data.get("allowed_highschool_levels")
@@ -737,8 +725,6 @@ class SlotSerializer(serializers.ModelSerializer):
         allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
         allow_individual_registrations = data.get('allow_individual_registrations')
         allow_group_registrations = data.get('allow_group_registrations')
-        group_mode = data.get('group_mode')
-        public_group = data.get('public_group')
         details = {}
 
         enabled_groups = get_general_setting("ACTIVATE_COHORT")

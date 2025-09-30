@@ -273,7 +273,6 @@ class EmailForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        request = kwargs.pop('request', None)
         initial = kwargs.get('initial', {})
 
         # Override email value if it's still the EduConnect temporary email
@@ -682,12 +681,6 @@ class StudentRecordForm(forms.ModelForm):
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
-
-        valid_users = [
-            self.request.user.is_establishment_manager(),
-            self.request.user.is_master_establishment_manager(),
-            self.request.user.is_operator()
-        ]
 
     class Meta:
         model = StudentRecord

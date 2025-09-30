@@ -76,7 +76,6 @@ def slots(request):
     past_slots_with_attendances = request.GET.get('past', False) == "true"
     cohorts_only = request.GET.get('cohorts_only', False) == "true"
     current_slots_only = request.GET.get('current_slots_only', False) == "true"
-    all_slots = request.GET.get('all_slots', False) == "true"
     highschool_cohorts_registrations_only = request.GET.get('highschool_cohorts_registrations_only', False) == "true"
 
     if not courses and not events:
@@ -313,9 +312,6 @@ def slots(request):
         )
 
     slots = slots.filter(slots_filters).distinct()
-
-    # TODO: Check if this is necessary
-    all_data = []
 
     allowed_structures = user.get_authorized_structures()
     user_establishment = user.establishment

@@ -647,7 +647,6 @@ class ImmersionUser(AbstractUser):
         return False
 
     def authorized_groups(self):
-        # user_filter = {} if self.is_superuser else {'user__id': self.pk}
         user_filter = {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
 
@@ -825,7 +824,7 @@ class ImmersionUser(AbstractUser):
                 custom_quota = record.quota.get(period=period)
                 allowed_immersions = custom_quota.allowed_immersions
             except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
-                    VisitorRecordQuota.DoesNotExist) as e:
+                    VisitorRecordQuota.DoesNotExist):
                 logger.debug("%s : record not found" % self)
                 allowed_immersions = period.allowed_immersions
 
@@ -858,7 +857,7 @@ class ImmersionUser(AbstractUser):
             quota.allowed_immersions += 1
             quota.save()
         except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
-                VisitorRecordQuota.DoesNotExist) as e:
+                VisitorRecordQuota.DoesNotExist):
             # Not found : something to do ?
             pass
 
@@ -1381,11 +1380,6 @@ class Training(models.Model):
     def is_structure(self) -> bool:
         """Return True if structure is set"""
         return self.structures is not None and self.structures.count() > 0
-
-    """
-    def can_delete(self):
-        return not self.courses.all().exists()
-    """
 
     def distinct_establishments(self):
         return Establishment.objects.filter(structures__in=self.structures.all()).distinct()
@@ -1920,7 +1914,7 @@ class Period(models.Model):
 
         try:
             return Period.objects.get(pk=pk, immersion_start_date__lte=date, immersion_end_date__gte=date)
-        except Period.DoesNotExist as e:
+        except Period.DoesNotExist:
             raise
 
     def __str__(self):
@@ -2592,7 +2586,6 @@ class AccompanyingDocument(models.Model):
 
 
     def get_types(self):
-        # TODO: ???
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')
@@ -3011,8 +3004,6 @@ class Slot(models.Model):
         """
         :return: number of available seats for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
-
         s = int(self.n_places) - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count() if self.n_places else 0
         return 0 if s < 0 else s
 
@@ -3031,21 +3022,18 @@ class Slot(models.Model):
         """
         :return: number of registered students for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
     def registered_groups(self):
         """
         :return: number of registered students for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
         return ImmersionGroupRecord.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
     def registered_groups_people_count(self):
         """
         :return: number of registered students for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
         group_queryset = (ImmersionGroupRecord.objects
             .filter(slot=self.pk, cancellation_type__isnull=True)
             .aggregate(

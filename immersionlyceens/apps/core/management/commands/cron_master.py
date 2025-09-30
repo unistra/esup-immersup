@@ -31,7 +31,6 @@ class Command(BaseCommand):
             help=_('simulate cron running at <time> (for testing purpose). Format : HHMM'),
         )
     def handle(self, *args, **options):
-        force_time = None
 
         now = timezone.localtime().replace(second=0, microsecond=0)
         today = timezone.localdate()

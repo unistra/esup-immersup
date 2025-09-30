@@ -36,7 +36,7 @@ class CourseForm(forms.ModelForm):
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
         for field_name, field in self.fields.items():
-            if not field.widget.__class__.__name__ == 'CheckboxInput':
+            if field.widget.__class__.__name__ != 'CheckboxInput':
                 field.widget.attrs.update({'class': 'form-control'})
 
         if self.request:
@@ -353,7 +353,6 @@ class SlotForm(forms.ModelForm):
     def clean_registrations(self, cleaned_data):
         allow_individual_registrations = cleaned_data.get('allow_individual_registrations')
         allow_group_registrations = cleaned_data.get('allow_group_registrations')
-        group_mode = cleaned_data.get('group_mode')
         n_places = cleaned_data.get('n_places', 0)
         n_group_places = cleaned_data.get('n_group_places', 0)
         published = cleaned_data.get('published', None)

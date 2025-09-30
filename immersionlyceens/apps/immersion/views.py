@@ -195,7 +195,6 @@ class CustomLoginView(FormView):
         ]
 
         if self.user.is_high_school_student():
-            record = self.user.get_high_school_student_record()
             return reverse("immersion:hs_record")
 
         elif self.user.is_visitor():
@@ -538,8 +537,6 @@ def shibbolethLogin(request, profile=None):
     # -> auto-creation for students and high school students after confirmation
     # -> must have been created first for managers (high school, structure, ...)
 
-    # Already authenticated ?
-    is_authenticated = request.user.is_authenticated
     user = authenticate(request, remote_user=shib_attrs.get("username"), shib_meta=shib_attrs)
 
     if user:

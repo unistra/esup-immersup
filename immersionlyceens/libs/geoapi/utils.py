@@ -34,7 +34,6 @@ def get_cities(dep_code=None):
 
 
 def get_zipcodes(dep_code=None, city=None):
-    zipcodes = []
     try:
         if city:
             results = get_json_from_url(
