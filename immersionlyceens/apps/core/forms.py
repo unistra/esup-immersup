@@ -838,6 +838,7 @@ class OffOfferEventSlotForm(SlotForm):
 
             if slot_min:
                 event.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+
             if slot_max:
                 event.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
 
@@ -845,9 +846,9 @@ class OffOfferEventSlotForm(SlotForm):
                 if timezone.make_aware(datetime.combine(_date, start_time)) < event.start_date:
                     messages.warning(
                         self.request,
-                        _("The slot will be saved, but the event publication start date do not match the slot date. The event \
-                         publication start date will be changed automatically. Remember to adjust it yourself so that \
-                         registrations can proceed without problems.")
+                        _("""The slot will be saved, but the event publication start date does not match """
+                          """the slot date. The event publication start date will be changed automatically. """
+                          """Remember to adjust it yourself so that registrations can proceed without problems.""")
                     )
                 if event.first_slot_date and event.start_date > event.first_slot_date:
                     event.start_date = event.first_slot_date - timedelta(days=7)
@@ -856,9 +857,9 @@ class OffOfferEventSlotForm(SlotForm):
                 if timezone.make_aware(datetime.combine(_date, end_time)) > event.end_date:
                     messages.warning(
                         self.request,
-                        _("The slot will be saved, but the event publication end date do not match the slot date. The event \
-                         publication end date will be changed automatically. Remember to adjust it yourself so that \
-                         registrations can proceed without problems.")
+                        _("""The slot will be saved, but the event publication end date does not match """
+                          """the slot date. The event publication end date will be changed automatically. """
+                          """Remember to adjust it yourself so that registrations can proceed without problems.""")
                     )
                 if event.last_slot_date and event.end_date < event.last_slot_date:
                     event.end_date = event.last_slot_date
