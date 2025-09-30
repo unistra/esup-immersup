@@ -5780,7 +5780,88 @@ def ajax_search_slots_list(request, slot_id=None):
 
     slots = (
         Slot.objects.filter(published=True)
-        .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
+        .filter(
+            Q(date__isnull=True) |
+            Q(date__gte=today.date()) |
+            Q(date=today.date(), end_time__gte=today.time())
+        )
+        .annotate(
+            course_displayed=Case(
+                When(
+                    # No dates and published == True
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=True),
+                    then=Value(True),
+                ),
+                When(
+                    # Start + End and published == True + today in [start, end]
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__start_date__lte=today) &
+                    Q(course__end_date__gte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # Start and published == True + today >= start
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=True) &
+                    Q(course__start_date__lte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # End and published == True + today <= end
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__end_date__gte=today),
+                    then=Value(True),
+                ),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
+            event_displayed=Case(
+                When(
+                    # No dates and published == True
+                    Q(event__published=True) &
+                    Q(event__start_date__isnull=True) &
+                    Q(event__end_date__isnull=True),
+                    then=Value(True),
+                ),
+                When(
+                    # Start + End and published == True + today in [start, end]
+                    Q(event__published=True) &
+                    Q(event__start_date__isnull=False) &
+                    Q(event__end_date__isnull=False) &
+                    Q(event__start_date__lte=today) &
+                    Q(event__end_date__gte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # Start and published == True + today >= start
+                    Q(event__published=True) &
+                    Q(event__start_date__isnull=False) &
+                    Q(event__end_date__isnull=True) &
+                    Q(event__start_date__lte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # End and published == True + today <= end
+                    Q(event__published=True) &
+                    Q(event__start_date__isnull=True) &
+                    Q(event__end_date__isnull=False) &
+                    Q(event__end_date__gte=today),
+                    then=Value(True),
+                ),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        ).filter(
+                Q(course_displayed=True) |
+                Q(event_displayed=True)
+            )
     )
 
     if is_authenticated and not user.is_high_school_manager():
