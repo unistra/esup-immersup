@@ -2009,7 +2009,7 @@ class Course(models.Model):
         if self.start_date and self.first_slot_date:
             if self.first_slot_date < self.start_date:
                 raise ValidationError(
-                    {"start_date": _("Start date of display must be after the date of the first slot (%s)") % self.first_slot_date.strftime("%d/%m/%Y %H:%M")}
+                    {"start_date": _("Start date of display must be before the date of the first slot (%s)") % self.first_slot_date.strftime("%d/%m/%Y %H:%M")}
                 )
         if self.end_date and self.last_slot_date:
             if self.last_slot_date > self.end_date:
@@ -2345,12 +2345,12 @@ class OffOfferEvent(models.Model):
         if self.start_date and self.first_slot_date:
             if self.first_slot_date <= self.start_date:
                 raise ValidationError(
-                    {"start_date": _("Start date must be after the date of the first slot (%s)") % self.first_slot_date.strftime("%d/%m/%Y %H:%M")}
+                    {"start_date": _("Start date of display must be before the date of the first slot (%s)") % self.first_slot_date.strftime("%d/%m/%Y %H:%M")}
                 )
         if self.end_date and self.last_slot_date:
             if self.end_date <= self.last_slot_date:
                 raise ValidationError(
-                    {"end_date": _("End date must be after the date of the last slot (%s)") % self.last_slot_date.strftime("%d/%m/%Y %H:%M")}
+                    {"end_date": _("End date of display must be after the date of the last slot (%s)") % self.last_slot_date.strftime("%d/%m/%Y %H:%M")}
                 )
 
     def get_etab_or_high_school(self):
