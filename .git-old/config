@@ -1,0 +1,13 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = git@git.unistra.fr:di/immersionlyceens.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+[pull]
+	rebase = false
