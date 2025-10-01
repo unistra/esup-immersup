@@ -117,21 +117,6 @@ function init_datatable() {
         let remote = 1
         let outside = 2
 
-        /*
-        let room = row.room
-
-        let txt = is_set(campus_label) ? campus_label : ''
-        txt += txt !== '' ? '<br>' : ''
-        txt += is_set(building_label) ? building_label : ''
-        txt += txt !== '' ? '<br>' : ''
-        txt += is_set(room) ? room : ''
-
-        if (type === 'filter') {
-          return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-        }
-
-        return txt
-        */
         if (type === 'filter') {
           if (row.place === face_to_face) {
             txt = `${campus_label} ${building_label} ${row.room}`

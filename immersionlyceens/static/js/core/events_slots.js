@@ -569,21 +569,6 @@ function init_datatable() {
   $('#filters_reset_all').click(function () {
     reset_filters()
   })
-  /*
-  $('#filters_reset_all').click(function () {
-    yadcf.exResetAllFilters(dt);
-    // Clear search inputs
-    columns_idx.forEach(function(col_idx) {
-      let column = dt.column(col_idx)
-      let column_header_id = column.header().id
-      let filter_id = `${column_header_id}_input`
-
-      $(`#${filter_id}`).val('')
-    })
-
-    dt.columns().search("").draw();
-  });
-  */
 
   $('#filter_past_slots').click(function () {
     dt.ajax.reload();
