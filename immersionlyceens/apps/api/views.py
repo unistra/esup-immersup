@@ -1801,14 +1801,14 @@ def ajax_group_slot_registration(request):
     try:
         students_count = int(students_count)
         assert students_count > 0
-    except:
+    except (TypeError, ValueError, AssertionError):
         response = {'error': True, 'msg': _("Invalid value for students count")}
         return JsonResponse(response, safe=False)
 
     try:
         guides_count = int(guides_count)
         assert guides_count > 0
-    except:
+    except (TypeError, ValueError, AssertionError):
         response = {'error': True, 'msg': _("Invalid value for guides count")}
         return JsonResponse(response, safe=False)
 
