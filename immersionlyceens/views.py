@@ -299,13 +299,9 @@ def offer_subdomain(request, subdomain_id):
                     slot.passed_cancellation_limit_date = \
                         slot.cancellation_limit_date < timezone.now() if slot.cancellation_limit_date else False
 
-                    # FIXME: still used somewhere ?
-                    remaining_period_registrations = 0
-
                     # get slot period (for dates)
                     try:
                         period = Period.from_date(pk=slot.period.pk, date=slot.date)
-                        remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
                     except Period.DoesNotExist:
                         raise
                     except Period.MultipleObjectsReturned:
@@ -319,9 +315,8 @@ def offer_subdomain(request, subdomain_id):
 
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
-                    # ignore "remaining_period_registrations > 0" ?
                     if not slot.already_registered or slot.cancelled:
-                        can_register, reasons = student.can_register_slot(slot)
+                        can_register, _ = student.can_register_slot(slot)
 
                         if slot.available_seats() > 0 and can_register:
                             immersion_end_datetime = datetime.datetime.combine(
@@ -384,8 +379,6 @@ def offer_off_offer_events(request):
     today = timezone.now().date()
     student = None
     record = None
-    Q_Filter = None
-    semester = None
 
 
     if not request.user.is_anonymous \
@@ -440,7 +433,7 @@ def offer_off_offer_events(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
-                can_register, reasons = student.can_register_slot(event)
+                can_register, _ = student.can_register_slot(event)
 
                 try:
                     period = Period.from_date(pk=event.period.pk, date=event.date)
@@ -479,7 +472,7 @@ def charter_not_signed(request):
 
 def error_500(request, *args, **kwargs):
     context = {}
-    type_, exc, traceback = sys.exc_info()
+    _, exc, _ = sys.exc_info()
     display = getattr(exc, "display", False)
 
     if display:
@@ -560,7 +553,6 @@ def highschools(request):
 
 
 def search_slots(request):
-    today = timezone.now()
 
     try:
         intro_offer_search = InformationText.objects.get(

@@ -375,8 +375,13 @@ def validate_parent_date(request):
     response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
-    start_date = datetime.datetime.fromisoformat(request.GET.get('start_date'))
-    end_date = datetime.datetime.fromisoformat(request.GET.get('end_date'))
+
+    start_date_to_convert = request.GET.get('start_date')
+    end_date_to_convert = request.GET.get('end_date')
+
+    start_date = datetime.datetime.fromisoformat(start_date_to_convert) if start_date_to_convert else None
+    end_date = datetime.datetime.fromisoformat(end_date_to_convert) if end_date_to_convert else None
+
     is_before = False
     is_after = False
 
