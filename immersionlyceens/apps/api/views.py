@@ -373,12 +373,19 @@ def validate_parent_date(request):
     :return: a dict with data about the date
     """
     response = {'data': {}, 'msg': ''}
+    details = []
 
     _date = request.GET.get('date')
-    start_date = datetime.datetime.fromisoformat(request.GET.get('start_date'))
-    end_date = datetime.datetime.fromisoformat(request.GET.get('end_date'))
-    is_before = False
-    is_after = False
+
+    try:
+        start_date = datetime.datetime.fromisoformat(request.GET.get('start_date'))
+    except ValueError:
+        start_date = None
+
+    try:
+        end_date = datetime.datetime.fromisoformat(request.GET.get('end_date'))
+    except ValueError:
+        end_date = None
 
     if not _date:
         response['msg'] = gettext('Error: A date is required')
@@ -394,16 +401,14 @@ def validate_parent_date(request):
             response['msg'] = gettext('Error: bad date format')
             return JsonResponse(response, safe=False)
 
-    formated_date =  timezone.make_aware(formated_date)
+    formated_date = timezone.make_aware(formated_date)
 
-    details = []
-    if start_date:
-        is_before = formated_date < start_date
-    if end_date:
-        is_after = formated_date > end_date
+    is_before = formated_date < start_date if start_date else False
+    is_after = formated_date > end_date if end_date else False
 
     if is_before:
         details.append(_("Before"))
+
     if is_after:
         details.append(_("After"))
 
