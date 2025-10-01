@@ -654,7 +654,7 @@ class ImmersionUser(AbstractUser):
         """
         Get a MailTemplate by its code, replace variables and send
         :param template_code: Code of message to send
-        :return: True if message sent else False
+        :return: None if message sent else error msg
         """
         try:
             template = MailTemplate.objects.get(code=template_code, active=True)

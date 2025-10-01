@@ -779,10 +779,7 @@ def ajax_delete_account(request):
             if record:
                 HighSchoolStudentRecord.clear_duplicate(record.id)
 
-        elif account.is_student() or account.is_visitor():
-            pass
-
-        else:
+        elif not (account.is_student() or account.is_visitor()):
             response = {'error': True, 'msg': gettext("You can't delete this account (invalid group)")}
             return JsonResponse(response, safe=False)
 
@@ -807,6 +804,7 @@ def ajax_cancel_registration(request):
     now = timezone.now()
     user = request.user
     allowed_structures = user.get_authorized_structures()
+    ret = None
 
     # FIXME : test request.user rights on immersion.slot
 
@@ -885,7 +883,6 @@ def ajax_cancel_registration(request):
                 if slot_structure:
                     for notify in RefStructuresNotificationsSettings.objects.filter(structures=slot_structure):
                         ret = notify.user.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
-                        # FIXME : do something if send_message fails
 
                 # High school managers
                 highschool = immersion.slot.get_highschool()
@@ -897,13 +894,14 @@ def ajax_cancel_registration(request):
                     for manager in highschool.users.filter(groups__name='REF-LYC'):
                         if manager.get_preference("RECEIVE_REGISTERED_STUDENTS_LIST", False):
                             ret = manager.send_message(None, "IMMERSION_ANNULATION_STR", slot=immersion.slot)
-                            # FIXME : do something if send_message fails
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
         except Immersion.DoesNotExist:
             response = {'error': True, 'msg': gettext("User not found")}
         except CancelType.DoesNotExist:
             response = {'error': True, 'msg': gettext("Invalid cancellation reason #id")}
+        if ret is not None:
+            response = {'error': True, 'msg': gettext("Send message error during cancellation of registration")}
 
     return JsonResponse(response, safe=False)
 
@@ -1276,7 +1274,7 @@ def ajax_set_attendance(request):
 
     try:
         attendance_value = int(request.POST.get('attendance_value'))
-    except:
+    except (TypeError, ValueError):
         attendance_value = None
 
     if not attendance_value:
@@ -1357,7 +1355,7 @@ def ajax_set_group_attendance(request):
 
     try:
         attendance_value = int(request.POST.get('attendance_value'))
-    except:
+    except (TypeError, ValueError):
         attendance_value = None
 
     if not attendance_value:
@@ -1557,7 +1555,7 @@ def ajax_slot_registration(request):
             return JsonResponse(response, safe=False)
 
     # Slot restrictions validation
-    can_register_slot, reasons = student.can_register_slot(slot)
+    can_register_slot, _ = student.can_register_slot(slot)
     passed_registration_date = timezone.localtime() > slot.registration_limit_date
 
     if not can_register_slot or passed_registration_date:
@@ -1779,7 +1777,7 @@ def ajax_group_slot_registration(request):
     """
     Register a group to a slot
     """
-    id = request.POST.get('id', None)
+    _id = request.POST.get('id', None)
     slot_id = request.POST.get('slot_id', None)
     highschool_id = request.POST.get('highschool_id', None)
     students_count = request.POST.get('students_count', None)
@@ -1816,7 +1814,7 @@ def ajax_group_slot_registration(request):
 
     try:
         # Update
-        immersion_group_record = ImmersionGroupRecord.objects.get(pk=id)
+        immersion_group_record = ImmersionGroupRecord.objects.get(pk=_id)
         current_students_count = immersion_group_record.students_count
         current_guides_count = immersion_group_record.guides_count
     except:
@@ -1834,7 +1832,7 @@ def ajax_group_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     if slot.group_mode == Slot.ONE_GROUP:
-        excludes = {"pk": id} if id else {}
+        excludes = {"pk": _id} if _id else {}
 
         if slot.group_immersions.filter(cancellation_type__isnull=True).exclude(**excludes).count() > 0:
             response = {'error': True, 'msg': _("This slot accepts only one registered group")}
