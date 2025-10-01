@@ -517,43 +517,63 @@ class SlotForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
 
-        if instance.course and not instance.course.published and instance.published:
-            instance.course.published = True
-            instance.course.save()
-            messages.success(self.request, _("Course published"))
+        if instance.course:
+            activity = instance.course
+            msg_publication = _("Course published")
+            msg_warning_start = _("The slot will be saved, but the course publication start date do not match the slot date. The course \
+                publication start date will be changed automatically. Remember to adjust it yourself so that \
+                registrations can proceed without problems.")
+            msg_warning_end = _("The slot will be saved, but the course publication end date do not match the slot date. The course \
+                publication end date will be changed automatically. Remember to adjust it yourself so that \
+                registrations can proceed without problems.")
+            slot_min = Slot.objects.filter(course=activity).order_by("date", "start_time").first()
+            slot_max = Slot.objects.filter(course=activity).order_by("-date", "-end_time").first()
 
-        if instance.course and instance.published :
-            slot_min = Slot.objects.filter(course=instance.course).order_by("date", "start_time").first()
-            slot_max = Slot.objects.filter(course=instance.course).order_by("-date", "-end_time").first()
+        elif instance.event:
+            activity = instance.event
+            msg_publication = _("Event published")
+            msg_warning_start = _("The slot will be saved, but the event publication start date do not match the slot date. The event \
+                publication start date will be changed automatically. Remember to adjust it yourself so that \
+                registrations can proceed without problems.")
+            msg_warning_end = _("The slot will be saved, but the event publication end date do not match the slot date. The event \
+                publication end date will be changed automatically. Remember to adjust it yourself so that \
+                registrations can proceed without problems.")
+            slot_min = Slot.objects.filter(event=activity).order_by("date", "start_time").first()
+            slot_max = Slot.objects.filter(event=activity).order_by("-date", "-end_time").first()
 
+        else:
+            raise Exception(_("Slot without Course or Event, you broke something, somewhere"))
+
+        if activity and not activity.published and instance.published:
+            activity.published = True
+            activity.save()
+            messages.success(self.request, msg_publication)
+
+        if activity and instance.published:
             if slot_min:
-                instance.course.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+                activity.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
             if slot_max:
-                instance.course.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
+                activity.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
 
-            if instance.course.start_date:
-                if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < instance.course.start_date:
+            if activity.start_date:
+                if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < activity.start_date:
                     messages.warning(
                         self.request,
-                        _("The slot will be saved, but the course publication start date do not match the slot date. The course \
-                         publication start date will be changed automatically. Remember to adjust it yourself so that \
-                         registrations can proceed without problems.")
+                        msg_warning_start
                     )
-                if instance.course.first_slot_date and instance.course.start_date > instance.course.first_slot_date:
-                    instance.course.start_date = instance.course.first_slot_date - timedelta(days=7)
+                if activity.first_slot_date and activity.start_date > activity.first_slot_date:
+                    activity.start_date = activity.first_slot_date - timedelta(days=7)
 
-            if instance.course.end_date:
-                if timezone.make_aware(datetime.combine(instance.date, instance.end_time)) > instance.course.end_date:
+            if activity.end_date:
+                if timezone.make_aware(datetime.combine(instance.date, instance.end_time)) > activity.end_date:
                     messages.warning(
                         self.request,
-                        _("The slot will be saved, but the course publication end date do not match the slot date. The course \
-                         publication end date will be changed automatically. Remember to adjust it yourself so that \
-                         registrations can proceed without problems.")
+                        msg_warning_end
                     )
-                if instance.course.last_slot_date and instance.course.end_date < instance.course.last_slot_date:
-                    instance.course.end_date = instance.course.last_slot_date
+                if activity.last_slot_date and activity.end_date < activity.last_slot_date:
+                    activity.end_date = activity.last_slot_date
 
-            instance.course.save()
+            activity.save()
 
         if self.data.get("repeat"):
             # Careful with date formats, especially with unit tests
@@ -828,42 +848,7 @@ class OffOfferEventSlotForm(SlotForm):
         if start_time and end_time and start_time >= end_time:
             self.add_error('start_time', _("Error: Start time must be set before end time"))
 
-        if event and not event.published and published:
-            event.published = True
-            messages.success(self.request, _("Event published"))
-
-        if event and published:
-            slot_min = Slot.objects.filter(event=event).order_by("date", "start_time").first()
-            slot_max = Slot.objects.filter(event=event).order_by("-date", "-end_time").first()
-
-            if slot_min:
-                event.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
-            if slot_max:
-                event.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
-
-            if event.start_date:
-                if timezone.make_aware(datetime.combine(_date, start_time)) < event.start_date:
-                    messages.warning(
-                        self.request,
-                        _("The slot will be saved, but the event publication start date do not match the slot date. The event \
-                         publication start date will be changed automatically. Remember to adjust it yourself so that \
-                         registrations can proceed without problems.")
-                    )
-                if event.first_slot_date and event.start_date > event.first_slot_date:
-                    event.start_date = event.first_slot_date - timedelta(days=7)
-
-            if event.end_date:
-                if timezone.make_aware(datetime.combine(_date, end_time)) > event.end_date:
-                    messages.warning(
-                        self.request,
-                        _("The slot will be saved, but the event publication end date do not match the slot date. The event \
-                         publication end date will be changed automatically. Remember to adjust it yourself so that \
-                         registrations can proceed without problems.")
-                    )
-                if event.last_slot_date and event.end_date < event.last_slot_date:
-                    event.end_date = event.last_slot_date
-
-            event.save()
+        event.save()
 
         return cleaned_data
 
