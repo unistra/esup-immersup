@@ -516,6 +516,7 @@ class SlotForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
+        repeat_limit_date = None
 
         if instance.course:
             activity = instance.course
@@ -548,32 +549,6 @@ class SlotForm(forms.ModelForm):
             activity.published = True
             activity.save()
             messages.success(self.request, msg_publication)
-
-        if activity and instance.published:
-            if slot_min:
-                activity.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
-            if slot_max:
-                activity.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
-
-            if activity.start_date:
-                if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < activity.start_date:
-                    messages.warning(
-                        self.request,
-                        msg_warning_start
-                    )
-                if activity.first_slot_date and activity.start_date > activity.first_slot_date:
-                    activity.start_date = activity.first_slot_date - timedelta(days=7)
-
-            if activity.end_date:
-                if timezone.make_aware(datetime.combine(instance.date, instance.end_time)) > activity.end_date:
-                    messages.warning(
-                        self.request,
-                        msg_warning_end
-                    )
-                if activity.last_slot_date and activity.end_date < activity.last_slot_date:
-                    activity.end_date = activity.last_slot_date
-
-            activity.save()
 
         if self.data.get("repeat"):
             # Careful with date formats, especially with unit tests
@@ -635,6 +610,32 @@ class SlotForm(forms.ModelForm):
                             new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
 
                             messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+
+        if activity and instance.published:
+            if slot_min:
+                activity.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+            if slot_max:
+                activity.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
+
+            if activity.start_date:
+                if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < activity.start_date:
+                    messages.warning(
+                        self.request,
+                        msg_warning_start
+                    )
+                if activity.first_slot_date and activity.start_date > activity.first_slot_date:
+                    activity.start_date = activity.first_slot_date - timedelta(days=7)
+
+            if activity.end_date:
+                if timezone.make_aware(datetime.combine(repeat_limit_date if  repeat_limit_date else instance.date, instance.end_time)) > activity.end_date:
+                    messages.warning(
+                        self.request,
+                        msg_warning_end
+                    )
+                if activity.last_slot_date and activity.end_date < activity.last_slot_date:
+                    activity.end_date = activity.last_slot_date
+
+            activity.save()
 
         return instance
 
