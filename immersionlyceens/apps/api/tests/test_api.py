@@ -1406,7 +1406,7 @@ class APITestCase(TestCase):
                 self.assertIn(self.training.label, row[10])
                 self.assertIn(self.course.label, row[11])
                 self.assertEqual(self.past_slot.period.label, row[12])
-                self.assertEqual(_date(self.past_slot.date, 'd/m/Y'), row[13])
+                self.assertEqual(_date(self.past_slot.date.date(), 'd/m/Y'), row[13])
                 self.assertEqual(self.past_slot.start_time.strftime("%H:%M:%S"), row[14])
                 self.assertEqual(self.past_slot.end_time.strftime("%H:%M:%S"), row[15])
                 self.assertEqual(self.past_slot.campus.label, row[16])
