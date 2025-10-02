@@ -113,7 +113,7 @@ class CourseForm(forms.ModelForm):
 
         # Publication dates
         # get min/max course slot dates and forbid publication dates outside this interval
-        if self.instance:
+        if self.instance.id:
             if publication_start:
                 # First slot in the future (we can safely ignore past slots)
                 slot_min = self.instance.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
@@ -1080,10 +1080,10 @@ class OffOfferEventForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        start = cleaned_data.get('start_date')
-        end = cleaned_data.get('end_date')
+        publication_start = cleaned_data.get('start_date')
+        publication_end = cleaned_data.get('end_date')
 
-        if start and end and end < start:
+        if publication_start and publication_end and publication_end < publication_start:
             raise forms.ValidationError(_("The end date must be after the start date."))
 
         # Uniqueness
