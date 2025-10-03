@@ -2038,7 +2038,7 @@ class Course(models.Model):
                         raise ValidationError(
                             _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
                               """the publication end date must be after the end of this slot.""")
-                            % {'max_date': slot_max.date, 'start_time': slot_max_end_time}
+                            % {'max_date': slot_max.date, 'end_time': slot_max_end_time}
                         )
 
     def get_structures_queryset(self):
@@ -2399,7 +2399,7 @@ class OffOfferEvent(models.Model):
                         raise ValidationError(
                             _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
                               """the publication end date must be after the end of this slot.""")
-                            % {'max_date': slot_max.date, 'start_time': slot_max_end_time}
+                            % {'max_date': slot_max.date, 'end_time': slot_max_end_time}
                         )
 
     def get_etab_or_high_school(self):
