@@ -94,7 +94,7 @@ class CourseForm(forms.ModelForm):
         publication_end = cleaned_data.get('end_date')
 
         if publication_start and publication_end and publication_end < publication_start:
-            raise forms.ValidationError(_("The end date must be after the start date."))
+            raise forms.ValidationError(_("The publication end date must be after the publication start date."))
 
         try:
             active_year = UniversityYear.objects.get(active=True)
@@ -1054,7 +1054,7 @@ class OffOfferEventForm(forms.ModelForm):
         publication_end = cleaned_data.get('end_date')
 
         if publication_start and publication_end and publication_end < publication_start:
-            raise forms.ValidationError(_("The end date must be after the start date."))
+            raise forms.ValidationError(_("The publication end date must be after the publication start date."))
 
         # Uniqueness
         filters = {

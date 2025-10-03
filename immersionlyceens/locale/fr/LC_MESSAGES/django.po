@@ -2783,10 +2783,10 @@ msgstr "Référentiels"
 
 #: immersionlyceens/apps/core/forms.py:97
 #: immersionlyceens/apps/core/forms.py:1057
-msgid "The end date must be after the start date."
+msgid "The publication end date must be after the publication start date."
 msgstr ""
-"La date de début des immersions doit être antérieure à la date de fin des "
-"immersions"
+"La date de début de publication doit être antérieure à la date de fin de "
+"publication"
 
 #: immersionlyceens/apps/core/forms.py:102
 #: immersionlyceens/apps/core/models.py:1734
