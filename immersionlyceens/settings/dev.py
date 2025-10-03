@@ -30,13 +30,6 @@ DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', '')
 DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', '')
 DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'db.sqlite3',
-#     }
-# }
-
 ########################
 #     CAS SETTINGS     #
 ########################
