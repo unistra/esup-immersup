@@ -2016,7 +2016,9 @@ class Course(models.Model):
                 slot_min = self.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
 
                 if slot_min:
-                    slot_min_start_datetime = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+                    slot_min_start_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_min.date, slot_min.start_time)
+                    )
                     slot_min_start_time = timezone.make_aware(slot_min.start_time)
                     if self.start_date > slot_min_start_datetime:
                         raise ValidationError(
@@ -2028,7 +2030,9 @@ class Course(models.Model):
                 slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
 
                 if slot_max:
-                    slot_max_end_datetime = timezone.make_aware(datetime.combine(slot_max.date, slot_max.start_time))
+                    slot_max_end_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_max.date, slot_max.start_time)
+                    )
                     slot_max_end_time = timezone.make_aware(slot_max.end_time)
                     if self.end_date < slot_max_end_datetime:
                         raise ValidationError(
@@ -2373,7 +2377,9 @@ class OffOfferEvent(models.Model):
                 slot_min = self.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
 
                 if slot_min:
-                    slot_min_start_datetime = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+                    slot_min_start_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_min.date, slot_min.start_time)
+                    )
                     slot_min_start_time = timezone.make_aware(slot_min.start_time)
                     if self.start_date > slot_min_start_datetime:
                         raise ValidationError(
@@ -2385,7 +2391,9 @@ class OffOfferEvent(models.Model):
                 slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
 
                 if slot_max:
-                    slot_max_end_datetime = timezone.make_aware(datetime.combine(slot_max.date, slot_max.start_time))
+                    slot_max_end_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_max.date, slot_max.start_time)
+                    )
                     slot_max_end_time = timezone.make_aware(slot_max.end_time)
                     if self.end_date < slot_max_end_datetime:
                         raise ValidationError(
