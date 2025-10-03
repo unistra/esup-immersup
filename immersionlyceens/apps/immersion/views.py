@@ -443,7 +443,7 @@ def shibbolethLogin(request, profile=None):
                     uses_student_federation=True
                 )
             except HighSchool.DoesNotExist:
-                return render(request, 'immersion/missing_hs.html', {'uai': clean_uai_code})
+                return render(request, 'immersion/missing_hs.html', {'uai_code': clean_uai_code})
 
         else:
             is_student = True
