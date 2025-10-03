@@ -87,11 +87,13 @@ class CourseForm(forms.ModelForm):
 
 
     def clean(self):
-        cleaned_data = super().clean()
-        start = cleaned_data.get('start_date')
-        end = cleaned_data.get('end_date')
+        now = timezone.now()
 
-        if start and end and end < start:
+        cleaned_data = super().clean()
+        publication_start = cleaned_data.get('start_date')
+        publication_end = cleaned_data.get('end_date')
+
+        if publication_start and publication_end and publication_end < publication_start:
             raise forms.ValidationError(_("The end date must be after the start date."))
 
         try:
@@ -108,6 +110,36 @@ class CourseForm(forms.ModelForm):
                 )
         else:
             raise forms.ValidationError(_("Error : dates of active university year improperly configured"))
+
+        # Publication dates
+        # get min/max course slot dates and forbid publication dates outside this interval
+        if self.instance.id:
+            if publication_start:
+                # First slot in the future (we can safely ignore past slots)
+                slot_min = self.instance.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
+
+                if slot_min:
+                    slot_min_start_datetime = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+                    slot_min_start_time = timezone.make_aware(slot_min.start_time)
+                    if publication_start > slot_min_start_datetime:
+                        raise forms.ValidationError(
+                            _("""There is a slot that starts on %s at %s, """
+                              """the publication start date must be before this slot.""")
+                            % (slot_min.date, slot_min_start_time)
+                        )
+
+            if publication_end:
+                slot_max = self.instance.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
+
+                if slot_max:
+                    slot_max_end_datetime = timezone.make_aware(datetime.combine(slot_max.date, slot_max.start_time))
+                    slot_max_end_time = timezone.make_aware(slot_max.end_time)
+                    if publication_end < slot_max_end_datetime:
+                        raise forms.ValidationError(
+                            _("""There is a slot that ends on %s at %s, """
+                              """the publication end date must be after the end of this slot.""")
+                            % (slot_max.date, slot_max_end_time)
+                        )
 
         # Check user rights
         if self.request:
@@ -129,10 +161,19 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'start_date', 'end_date', 'training', 'structure', 'establishment', 'highschool')
+        fields = (
+            'id', 'label', 'url', 'published', 'start_date', 'end_date', 'training', 'structure',
+            'establishment', 'highschool'
+        )
         widgets = {
-            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format="%Y-%m-%dT%H:%M"),
-            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'},format="%Y-%m-%dT%H:%M"),
+            'start_date': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'},
+                format="%Y-%m-%dT%H:%M"
+            ),
+            'end_date': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'},
+                format="%Y-%m-%dT%H:%M"
+            ),
         }
 
 
@@ -521,27 +562,35 @@ class SlotForm(forms.ModelForm):
         if instance.course:
             activity = instance.course
             msg_publication = _("Course published")
-            msg_warning_start = _("The slot will be saved, but the course publication start date do not match the slot date. The course \
-                publication start date will be changed automatically. Remember to adjust it yourself so that \
-                registrations can proceed without problems.")
-            msg_warning_end = _("The slot will be saved, but the course publication end date do not match the slot date. The course \
-                publication end date will be changed automatically. Remember to adjust it yourself so that \
-                registrations can proceed without problems.")
+            msg_warning_start = _(
+                """The slot will be saved, but the course publication start date do not match the slot date. """
+                """The course publication start date will be changed automatically. Remember to adjust it """ 
+                """yourself so that registrations can proceed without problems."""
+            )
+            msg_warning_end = _(
+                """The slot will be saved, but the course publication end date do not match the slot date. """
+                """The course publication end date will be changed automatically. Remember to adjust it """
+                """yourself so that registrations can proceed without problems."""
+            )
             slot_min = Slot.objects.filter(course=activity).order_by("date", "start_time").first()
             slot_max = Slot.objects.filter(course=activity).order_by("-date", "-end_time").first()
-
+            
         elif instance.event:
             activity = instance.event
             msg_publication = _("Event published")
-            msg_warning_start = _("The slot will be saved, but the event publication start date do not match the slot date. The event \
-                publication start date will be changed automatically. Remember to adjust it yourself so that \
-                registrations can proceed without problems.")
-            msg_warning_end = _("The slot will be saved, but the event publication end date do not match the slot date. The event \
-                publication end date will be changed automatically. Remember to adjust it yourself so that \
-                registrations can proceed without problems.")
+            msg_warning_start = _(
+                """The slot will be saved, but the event publication start date do not match the slot date. """
+                """The event publication start date will be changed automatically. Remember to adjust it """
+                """yourself so that registrations can proceed without problems."""
+            )
+            msg_warning_end = _(
+                """The slot will be saved, but the event publication end date do not match the slot date. """
+                """The event publication end date will be changed automatically. Remember to adjust it """
+                """yourself so that registrations can proceed without problems."""
+            )
             slot_min = Slot.objects.filter(event=activity).order_by("date", "start_time").first()
             slot_max = Slot.objects.filter(event=activity).order_by("-date", "-end_time").first()
-
+           
         else:
             raise ValueError(_("Slot without Course or Event, you broke something, somewhere"))
 
@@ -1031,10 +1080,10 @@ class OffOfferEventForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        start = cleaned_data.get('start_date')
-        end = cleaned_data.get('end_date')
+        publication_start = cleaned_data.get('start_date')
+        publication_end = cleaned_data.get('end_date')
 
-        if start and end and end < start:
+        if publication_start and publication_end and publication_end < publication_start:
             raise forms.ValidationError(_("The end date must be after the start date."))
 
         # Uniqueness

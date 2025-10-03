@@ -2393,8 +2393,6 @@ def user_preferences(request):
         if form.is_valid():
             cleaned_data = form.cleaned_data
 
-            print(f"cleaned data : {cleaned_data}")
-
             for setting_name, value in cleaned_data.items():
                 user.preferences[setting_name] = value
 
