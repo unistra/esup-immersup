@@ -2022,9 +2022,9 @@ class Course(models.Model):
                     slot_min_start_time = timezone.make_aware(slot_min.start_time)
                     if self.start_date > slot_min_start_datetime:
                         raise ValidationError(
-                            _("""There is a slot that starts on %s at %s, """
+                            _("""There is a slot that starts on %(min_date)s at %(start_time)s, """
                               """the publication start date must be before this slot.""")
-                            % (slot_min.date, slot_min_start_time)
+                            % {'min_date': slot_min.date, 'start_time': slot_min_start_time}
                         )
             if self.end_date:
                 slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
@@ -2036,9 +2036,9 @@ class Course(models.Model):
                     slot_max_end_time = timezone.make_aware(slot_max.end_time)
                     if self.end_date < slot_max_end_datetime:
                         raise ValidationError(
-                            _("""There is a slot that ends on %s at %s, """
+                            _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
                               """the publication end date must be after the end of this slot.""")
-                            % (slot_max.date, slot_max_end_time)
+                            % {'max_date': slot_max.date, 'end_time': slot_max_end_time}
                         )
 
     def get_structures_queryset(self):
@@ -2383,9 +2383,9 @@ class OffOfferEvent(models.Model):
                     slot_min_start_time = timezone.make_aware(slot_min.start_time)
                     if self.start_date > slot_min_start_datetime:
                         raise ValidationError(
-                            _("""There is a slot that starts on %s at %s, """
+                            _("""There is a slot that starts on %(min_date)s at %(start_time)s, """
                               """the publication start date must be before this slot.""")
-                            % (slot_min.date, slot_min_start_time)
+                            % {'min_date': slot_min.date, 'start_time': slot_min_start_time}
                         )
             if self.end_date:
                 slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
@@ -2397,9 +2397,9 @@ class OffOfferEvent(models.Model):
                     slot_max_end_time = timezone.make_aware(slot_max.end_time)
                     if self.end_date < slot_max_end_datetime:
                         raise ValidationError(
-                            _("""There is a slot that ends on %s at %s, """
+                            _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
                               """the publication end date must be after the end of this slot.""")
-                            % (slot_max.date, slot_max_end_time)
+                            % {'max_date': slot_max.date, 'end_time': slot_max_end_time}
                         )
 
     def get_etab_or_high_school(self):

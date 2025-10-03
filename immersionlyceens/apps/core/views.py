@@ -1948,8 +1948,6 @@ class OffOfferEventUpdate(generic.UpdateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        for k, error in form.errors.items():
-            messages.error(self.request, error)
         messages.error(self.request, _("Off offer event \"%s\" not updated.") % str(form.instance))
         return super().form_invalid(form)
 
