@@ -1127,9 +1127,6 @@ class AdminFormsTestCase(TestCase):
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
 
-        form.is_valid()
-        print(form.errors)
-
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())

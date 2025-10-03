@@ -251,8 +251,6 @@ def ajax_get_person(request):
             for user in users_queryset
         ]
 
-    print(f"response: {response}")
-
     return JsonResponse(response, safe=False)
 
 
