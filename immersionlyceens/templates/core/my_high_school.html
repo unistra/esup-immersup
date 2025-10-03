@@ -20,13 +20,6 @@
     {% endif %}
     <div class="card-body">
       <form class="" action="/core/high_school/{{ high_school.id }}" method="POST">
-      <!--
-      <input type="hidden" name="active" value="{{ high_school.active }}">
-      <input type="hidden" name="postbac_immersion" value="{{ high_school.postbac_immersion }}">
-      <input type="hidden" name="uses_agent_federation" value="{{ high_school.uses_agent_federation }}">
-      <input type="hidden" name="uses_student_federation" value="{{ high_school.uses_student_federation }}">
-      <input type="hidden" name="uai_codes" value="{{ high_school.uai_codes }}">
-      -->
       {% csrf_token %}
         <div class="card">
           <div class="card-title card-header">
@@ -155,11 +148,6 @@
               <div class="col-sm-6 text-secondary">
                 <div class="readonly">{{ high_school.mailing_list | default:"-" }}</div>
               </div>
-              <!--
-              <div class="col-sm-6">
-                <output class="form-control">{{ high_school.mailing_list | default:"-" }}</output>
-              </div>
-              -->
             </div>
 
           </div>

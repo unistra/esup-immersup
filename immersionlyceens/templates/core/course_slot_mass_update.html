@@ -58,14 +58,6 @@
               <label for="id_mass_course_type_0" class="col-form-label">{% trans 'Keep each value' %}</label>
               <input class="chk ml-2" type="radio" id="id_mass_course_type_1" name="mass_course_type" value="update">
               <label for="id_mass_course_type_1" class="col-form-label">{% trans 'Update all' %}</label>
-
-              <!-- {{ form.mass_course_type }} -->
-              <!--
-              <input class="chk" type="radio" id="id_mass_course_type_keep" name="mass_course_type" value="keep" checked>
-              <label for="id_mass_course_type_keep" class="col-form-label">{% trans 'Keep each value' %}</label>
-              <input class="chk ml-2" type="radio" id="id_mass_course_type_update" name="mass_course_type" value="update">
-              <label for="id_mass_course_type_update" class="col-form-label">{% trans 'Update all' %}</label>
-              -->
             </div>
           </div>
           {% if slot_form.course_type.errors %}
