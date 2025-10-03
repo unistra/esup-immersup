@@ -2024,7 +2024,7 @@ class Course(models.Model):
                         raise ValidationError(
                             _("""There is a slot that starts on %(min_date)s at %(start_time)s, """
                               """the publication start date must be before this slot.""")
-                            % {'min_date': slot_min.date, 'start_time': slot_min_start_time}
+                            % {'min_date': date_format(slot_min.date), 'start_time': slot_min_start_time}
                         )
             if self.end_date:
                 slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
@@ -2038,7 +2038,7 @@ class Course(models.Model):
                         raise ValidationError(
                             _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
                               """the publication end date must be after the end of this slot.""")
-                            % {'max_date': slot_max.date, 'end_time': slot_max_end_time}
+                            % {'max_date': date_format(slot_max.date), 'end_time': slot_max_end_time}
                         )
 
     def get_structures_queryset(self):
@@ -2385,7 +2385,7 @@ class OffOfferEvent(models.Model):
                         raise ValidationError(
                             _("""There is a slot that starts on %(min_date)s at %(start_time)s, """
                               """the publication start date must be before this slot.""")
-                            % {'min_date': slot_min.date, 'start_time': slot_min_start_time}
+                            % {'min_date': date_format(slot_min.date), 'start_time': slot_min_start_time}
                         )
             if self.end_date:
                 slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
@@ -2399,7 +2399,7 @@ class OffOfferEvent(models.Model):
                         raise ValidationError(
                             _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
                               """the publication end date must be after the end of this slot.""")
-                            % {'max_date': slot_max.date, 'end_time': slot_max_end_time}
+                            % {'max_date': date_format(slot_max.date), 'end_time': slot_max_end_time}
                         )
 
     def get_etab_or_high_school(self):
