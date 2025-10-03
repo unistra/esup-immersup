@@ -10,7 +10,6 @@ $(document).ready(function(){
   // Added some style
   $('#id_content_iframe').css('position', 'relative')
   $('#id_content_iframe').css('top', '20px')
-  // $('#template_vars_modal').modal('hide');
 
   // modal
   $('#docs_list_dialog').dialog({
