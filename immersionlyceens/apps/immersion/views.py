@@ -435,6 +435,7 @@ def shibbolethLogin(request, profile=None):
                 return HttpResponseRedirect("/")
 
             # Check UAI
+            clean_uai_code = None
             try:
                 clean_uai_code = uai_code.replace('{UAI}', '')
                 record_highschool = HighSchool.objects.get(
