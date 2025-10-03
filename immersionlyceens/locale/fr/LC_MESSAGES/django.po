@@ -9829,8 +9829,8 @@ msgid ""
 "page, specifying your institution."
 msgstr ""
 "Votre lycée n'a pas été trouvé ou n'est pas configuré pour utiliser "
-"EduConnect.<br>Merci d'utiliser le lien 'contact' en bas de page, en "
-"précisant le nom et l'adresse de votre lycée."
+"EduConnect (UAI: %(uai_code)s).<br>Merci d'utiliser le lien 'contact' en "
+"bas de page, en précisant le nom et l'adresse de votre lycée."
 
 #: immersionlyceens/templates/immersion/my_registrations.html:19
 #: immersionlyceens/templates/immersion/my_registrations.html:34
