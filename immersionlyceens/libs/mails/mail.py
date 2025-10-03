@@ -91,7 +91,8 @@ class Mail(object):
         try:
             validate_email(self.recipient_type)
             return self.recipient_type
-        except EmailNotValidError:
+        except EmailNotValidError as e:
+            logger.error(f"Email not valid: {e}")
             raise
 
     def send(self):

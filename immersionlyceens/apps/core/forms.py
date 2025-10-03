@@ -543,7 +543,7 @@ class SlotForm(forms.ModelForm):
             slot_max = Slot.objects.filter(event=activity).order_by("-date", "-end_time").first()
 
         else:
-            raise Exception(_("Slot without Course or Event, you broke something, somewhere"))
+            raise ValueError(_("Slot without Course or Event, you broke something, somewhere"))
 
         if activity and not activity.published and instance.published:
             activity.published = True
