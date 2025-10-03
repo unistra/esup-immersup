@@ -1,5 +1,7 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
+import datetime
+
 from collections import OrderedDict
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers, status
@@ -9,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext, gettext_lazy as _
+from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 
@@ -764,6 +767,25 @@ class SlotSerializer(serializers.ModelSerializer):
             for rfield in required_fields:
                 if not data.get(rfield):
                     details[rfield] = _("Field '%s' is required for a new published slot") % rfield
+
+            if all([date, start_time, end_time]):
+                # Slot date validation against course or event publication dates
+                start_datetime = timezone.make_aware(datetime.datetime.combine(date, start_time))
+                end_datetime = timezone.make_aware(datetime.datetime.combine(date, end_time))
+
+                obj = course or event
+
+                if obj:
+                    if obj.start_date and obj.start_date > start_datetime:
+                        details["date_start_time"] = _(
+                            "Slot date/start time must be after the start of publication"
+                        )
+
+                    if obj.end_date and obj.end_date < end_datetime:
+                        details["date_end_time"] = _(
+                            "Slot date/end time must be before the end of publication"
+                        )
+
 
         if period and date and not period.immersion_start_date <= date <= period.immersion_end_date:
             details["date"] = _("Invalid date for selected period : please check periods settings")
