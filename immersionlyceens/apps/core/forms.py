@@ -111,36 +111,6 @@ class CourseForm(forms.ModelForm):
         else:
             raise forms.ValidationError(_("Error : dates of active university year improperly configured"))
 
-        # Publication dates
-        # get min/max course slot dates and forbid publication dates outside this interval
-        if self.instance.id:
-            if publication_start:
-                # First slot in the future (we can safely ignore past slots)
-                slot_min = self.instance.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
-
-                if slot_min:
-                    slot_min_start_datetime = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
-                    slot_min_start_time = timezone.make_aware(slot_min.start_time)
-                    if publication_start > slot_min_start_datetime:
-                        raise forms.ValidationError(
-                            _("""There is a slot that starts on %s at %s, """
-                              """the publication start date must be before this slot.""")
-                            % (slot_min.date, slot_min_start_time)
-                        )
-
-            if publication_end:
-                slot_max = self.instance.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
-
-                if slot_max:
-                    slot_max_end_datetime = timezone.make_aware(datetime.combine(slot_max.date, slot_max.start_time))
-                    slot_max_end_time = timezone.make_aware(slot_max.end_time)
-                    if publication_end < slot_max_end_datetime:
-                        raise forms.ValidationError(
-                            _("""There is a slot that ends on %s at %s, """
-                              """the publication end date must be after the end of this slot.""")
-                            % (slot_max.date, slot_max_end_time)
-                        )
-
         # Check user rights
         if self.request:
             highschool = cleaned_data.get("highschool")
