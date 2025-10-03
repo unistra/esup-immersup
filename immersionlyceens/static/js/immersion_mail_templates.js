@@ -59,8 +59,6 @@ $(document).ready(function () {
   $('#id_body').css('position', 'relative')
   $('#id_body').css('top', '20px')
 
-  // $('#template_vars_modal').modal('hide');
-
   $('#template_vars_dialog').dialog({
     // dialogClass: "no-close",
     autoOpen: false,

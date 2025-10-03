@@ -70,22 +70,6 @@
         </div>
       {% endif %}
       {% if not filter_by_my_trainings and not request.user.is_high_school_manager and not request.user.is_structure_manager %}
-        <!--
-        <div class="form-group mx-sm-3 mb-2">
-          <label for="id_highschool" class="form-check-label ml-md-2">
-            {% trans 'Filter by pupils from' %}
-          </label>
-          <select id="id_highschool">
-            <option value="all">{% trans 'All high schools and establishments' %}</option>
-            <option value="all_highschools">{% trans 'High schools only' %}</option>
-            {% for highschool in all_highschools %}
-              <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
-                {{ highschool.city }} - {{ highschool.label }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-        -->
       {% endif %}
       <div class="form-group mx-sm-3 mb-2">
         <label for="id_level_part1" class="form-check-label ml-md-2">{% trans 'Students level / categories' %} :</label>

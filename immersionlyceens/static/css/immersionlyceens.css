@@ -278,18 +278,6 @@ a.unlink:hover {
     font-weight: 400 !important;
 }
 
-/* Badge text color autodetect */
-/* :root {
-  --light-color: 80;
-  --threshold: 60;
-}
-
-.immersup-badge {
-  --switch: calc((attr(--background-color) - var(--threshold)) * -100);
-  color: hsl(0, 0%, var(--switch));
-  background-color: attr(background-color);
-} */
-
 /* FAQ section */
 
 .faq_area {

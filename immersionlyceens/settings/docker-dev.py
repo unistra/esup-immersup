@@ -31,13 +31,6 @@ DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', 'immersup'
 DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', 'immersup')
 DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'db.sqlite3',
-#     }
-# }
-
 ########################
 #     CAS SETTINGS     #
 ########################
@@ -102,7 +95,6 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
 EMAIL_BACKEND = environ.get('EMAIL_BACKEND', 'immersionlyceens.libs.mails.backends.ConsoleBackend')
 FORCE_EMAIL = environ.get('FORCE_EMAIL', '')
-# FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
 DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', 'no-reply@%s' % socket.getfqdn())
 
 ############
