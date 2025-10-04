@@ -2039,10 +2039,15 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class ScheduledTaskLogAdmin(admin.ModelAdmin):
-    list_display = ('task', 'execution_date', 'success', 'message')
+    list_display = ('task', 'execution_date', 'success', 'format_message')
     ordering = ('-execution_date', )
     list_filter = ('task', 'success')
     list_per_page = 25
+
+    def format_message(self, obj):
+        return format_html(obj.message.replace("\n", "<br>"))
+
+    format_message.short_description = _('Message')
 
     def has_add_permission(self, request, obj=None):
         return False
