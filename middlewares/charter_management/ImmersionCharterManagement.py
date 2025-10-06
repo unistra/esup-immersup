@@ -69,7 +69,7 @@ class ImmersionCharterManagement:
 
                 conditions = [
                     request.path in reverse_exceptions,
-                    any(map(lambda n:request.path.startswith(n), namespaces_exceptions))
+                    any(request.path.startswith(n) for n in namespaces_exceptions)
                 ]
 
                 if not any(conditions):
