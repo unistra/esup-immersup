@@ -75,7 +75,7 @@
                     </header>
                     <div class="card-body">
                       <ul class="list-arrows">
-                        {% if request.user.is_high_school_manager %}
+                        {% if authorized_groups|in_groups:'REF-LYC' %}
                           {% for d in subdomain.list %}
                             {% with slots_number=d.group_public_and_private_subdomain_slots %}
                               <li>
