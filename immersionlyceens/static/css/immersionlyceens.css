@@ -53,7 +53,7 @@ input[type='number'] {
 }
 
 .glyphicon-refresh-animate {
-    -animation: spin 0.7s infinite linear;
+    animation: spin 0.7s infinite linear;
     -ms-animation: spin 0.7s infinite linear;
     -webkit-animation: spinw 0.7s infinite linear;
     -moz-animation: spinm 0.7s infinite linear;
