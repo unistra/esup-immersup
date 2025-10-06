@@ -37,8 +37,7 @@ CKEDITOR_5_CONFIGS = {
                 '|', 'bulletedList', 'numberedList', 'blockQuote'
             ]
         },
-        'language': ['fr', 'en']
-
+        'language': ['fr', 'en'],
     },
     'extends': {
         'blockToolbar': [

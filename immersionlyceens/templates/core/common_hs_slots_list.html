@@ -5,6 +5,10 @@
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
+{% block header %}
+    {{ form.media }} # Required for styling/js to make ckeditor5 work
+{% endblock %}
+
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -20,8 +24,6 @@
 {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
 {% endif %}
-<script src="{% static "ckeditor/ckeditor-init.js" %}"></script>
-<script src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 {% endblock %}

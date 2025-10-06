@@ -958,9 +958,10 @@ class ContactForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields['subject'] = forms.CharField(label=_("Subject"), max_length=100, required=True)
-        self.fields['body'] = forms.CharField(widget=CKEditor5Widget())
+        self.fields['body'] = forms.CharField(
+            widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}, config_name="default")
+        )
         self.fields['subject'].widget.attrs['class'] = 'form-control'
-
 
 class StructureForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
