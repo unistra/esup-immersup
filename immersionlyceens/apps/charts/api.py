@@ -687,17 +687,8 @@ def get_registration_charts_by_population(request):
     user = request.user
     level_value = request.GET.get("level", 0) # default : all
     highschool_id = request.GET.get("highschool_id", 'all')
-    structure_id = request.GET.get("structure_id")
-    structure = None
     high_school_user_filters = {}
-    level_filter = {}
     immersions_filter = {}
-
-    try:
-        structure_id = int(structure_id)
-        structure = Structure.objects.get(pk=structure_id)
-    except (ValueError, TypeError, Structure.DoesNotExist):
-        structure_id = None
 
     # Highschool id override for high school managers
     if user.is_high_school_manager() and user.highschool:
@@ -800,7 +791,7 @@ def get_registration_charts_by_population(request):
         .all()
 
     if level_value == 0:
-        levels = [l for l in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+        levels = list(HighSchoolLevel.objects.filter(active=True).order_by('order'))
 
         if not user.is_high_school_manager():
             levels.append('visitors')
@@ -809,7 +800,6 @@ def get_registration_charts_by_population(request):
         levels =  ['visitors']
     else:
         l = HighSchoolLevel.objects.get(pk=level_value)
-        level_filter = {'level': level_value}
         levels = [l]
 
     for level in levels:
@@ -1039,14 +1029,11 @@ def get_registration_charts_by_trainings(request):
         .all()
 
     if level_value == 0:
-        levels = [
-            l for l in HighSchoolLevel.objects.filter(active=True).order_by('order')
-        ] + ['visitors']
+        levels = list(HighSchoolLevel.objects.filter(active=True).order_by('order')) + ['visitors']
     elif level_value == 'visitors':
         levels =  ['visitors']
     else:
         l = HighSchoolLevel.objects.get(pk=level_value)
-        level_filter = {'level': level_value}
         levels = [l]
 
     for level in levels:
@@ -1397,8 +1384,8 @@ def get_registration_charts_cats_by_trainings(request):
 
     # Adjust X axis scale to have the same max value on all bars
     max_x = max([
-        max(map(lambda x:sum([v for k,v in x.items() if k != 'name']), datasets['one_immersion'])),
-        max(map(lambda x:sum([v for k,v in x.items() if k != 'name']), datasets['attended_one']))
+        max(sum(v for k, v in x.items() if k != 'name') for x in datasets['one_immersion']),
+        max(sum(v for k, v in x.items() if k != 'name') for x in datasets['attended_one'])
     ])
 
     if max_x:
@@ -1606,9 +1593,9 @@ def get_registration_charts_cats_by_population(request):
 
     # Adjust X axis scale to have the same max value on all bars
     max_x = max([
-        max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets['platform_regs'])),
-        max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets['one_immersion'])),
-        max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets['attended_one'])),
+        max(sum(v for k, v in x.items() if k != 'name') for x in datasets['platform_regs']),
+        max(sum(v for k, v in x.items() if k != 'name') for x in datasets['one_immersion']),
+        max(sum(v for k, v in x.items() if k != 'name') for x in datasets['attended_one'])
     ])
 
     if max_x:

@@ -29,21 +29,21 @@
           </a>
         </div>
         <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProcedure" role="button" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-              {% trans 'Procedure' %}
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownProcedure">
-              <a class="dropdown-item" href="{% url 'procedure' %}">{% trans 'General information' %}</a>
-              <a class="dropdown-item" href="{% url 'host_establishments' %}">{% trans 'Host establishments' %}</a>
-              <a class="dropdown-item" href="{% url 'highschools' %}">{% trans 'High schools' %}</a>
-            </div>
+          <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownProcedure" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            {% trans 'Procedure' %}
+          </button>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownProcedure">
+            <a class="dropdown-item" href="{% url 'procedure' %}">{% trans 'General information' %}</a>
+            <a class="dropdown-item" href="{% url 'host_establishments' %}">{% trans 'Host establishments' %}</a>
+            <a class="dropdown-item" href="{% url 'highschools' %}">{% trans 'High schools' %}</a>
+          </div>
         </div>
         <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownOffer" role="button" data-toggle="dropdown"
+          <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownOffer" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             {% trans 'Offer' %}
-          </a>
+          </button>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownOffer">
             <a class="dropdown-item" href="{% url 'search_slots' %}" >{% trans "Search immersions slots" %}</a>
             <a class="dropdown-item" href="{% url 'offer' %}">{% trans 'Courses' %}</a>
@@ -57,7 +57,7 @@
         </div>
         {% if show_accompanying_docs_menu %}
         <div class="nav-item">
-            <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
+            <a class="nav-link btn btn-link border-0" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
         </div>
         {% endif %}
         {% if show_faq_menu %}
@@ -68,10 +68,10 @@
         {# ref-etab, ref-str, ref-etab-maitre, ref-lyc with postbac immersions #}
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,CONS-STR" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCourses" role="button" data-toggle="dropdown"
+            <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownCourses" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Courses' %}
-            </a>
+            </button>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
               <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
               {% if not authorized_groups|in_groups:"CONS-STR" %}
@@ -88,10 +88,10 @@
         {# Off offer events #}
         {% if events_off_offer and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,CONS-STR" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
         <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEvents" role="button" data-toggle="dropdown"
+          <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownEvents" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             {% trans 'Events' %}
-          </a>
+          </>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownEvents">
             <a class="dropdown-item" href="{% url 'off_offer_events' %}">{% trans 'Off offer events list' %}</a>
             {% if not authorized_groups|in_groups:"CONS-STR" %}
@@ -108,10 +108,10 @@
         {# Structure #}
         {% if authorized_groups|in_groups:"REF-STR,CONS-STR" or authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,REF-TEC" and activated_training_quotas.activate %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownStructures" role="button" data-toggle="dropdown"
+            <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownStructures" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Structures' %}
-            </a>
+            </button>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownStructures">
               {% if authorized_groups|in_groups:"REF-STR" %}
                 <a class="dropdown-item" href="{% url 'structure' %}">{% trans 'Update structures settings' %}</a>
@@ -126,9 +126,9 @@
         {# Speaker #}
         {% if authorized_groups|in_groups:"INTER" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultSpeaker" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownConsultSpeaker" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
-            </a>
+            </button>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultSpeaker">
               {% if authorized_groups|in_groups:"INTER" %}
                 <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
@@ -142,9 +142,9 @@
         {# Students #}
         {% if authorized_groups|in_groups:"LYC,ETU,VIS" and request.user.is_valid %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultStudent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownConsultStudent" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
-            </a>
+            </button>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultStudent">
               {% if authorized_groups|in_groups:"LYC" %}
                 <a class="dropdown-item" href="{% url 'immersion:hs_record' %}">{% trans 'My record' %}</a>
@@ -161,13 +161,13 @@
         {% if not user.is_superuser %}
           {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,SRV-JUR,REF-ETAB-MAITRE,REF-TEC" %}
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHighSchool" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownHighSchool" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   {% trans 'High school' %}
                 {% elif authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,SRV-JUR,REF-TEC" %}
                   {% trans 'Registered users' %}
                 {% endif %}
-              </a>
+              </button>
               <div class="dropdown-menu" aria-labelledby="navbarDropdownHighSchool">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
@@ -200,9 +200,9 @@
           {# Cohorts for high school manager #}
           {% if activated_cohort and authorized_groups|in_groups:"REF-LYC" %}
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarCohorts" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarCohorts" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% trans 'Cohorts' %}
-              </a>
+              </button>
               <div class="dropdown-menu" aria-labelledby="navbarCohorts">
                 <a class="dropdown-item" href="{% url 'highschool_cohorts_courses' %}">{% trans "Courses opened to cohorts" %}</a>
                 <a class="dropdown-item" href="{% url 'highschool_cohorts_events' %}">{% trans "Events opened to cohorts" %}</a>
@@ -214,9 +214,9 @@
         {# charts #}
         {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-ETAB-MAITRE,REF-TEC,REF-STR" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownStats" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownStats" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Charts' %}
-            </a>
+            </button>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownStats">
               {% if authorized_groups|in_groups:"REF-LYC" %}
                 <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'High school - my high school students registrations/participations' %}</a>

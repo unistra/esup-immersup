@@ -87,8 +87,6 @@ class CourseForm(forms.ModelForm):
 
 
     def clean(self):
-        now = timezone.now()
-
         cleaned_data = super().clean()
         publication_start = cleaned_data.get('start_date')
         publication_end = cleaned_data.get('end_date')
@@ -586,17 +584,17 @@ class SlotForm(forms.ModelForm):
                 pass
             else:
                 # Store current slot related objects
-                slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
+                slot_speakers = list(new_slot_template.speakers.all())
                 slot_allowed_establishments = [
-                    e for e in new_slot_template.allowed_establishments.filter(is_host_establishment=True)
+                    list(new_slot_template.allowed_establishments.filter(is_host_establishment=True))
                 ]
-                slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
-                slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
-                slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
-                slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
-                slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
-                slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
-                slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
+                slot_allowed_highschools = list(new_slot_template.allowed_highschools.all())
+                slot_allowed_highschool_levels = list(new_slot_template.allowed_highschool_levels.all())
+                slot_allowed_student_levels = list(new_slot_template.allowed_student_levels.all())
+                slot_allowed_post_bachelor_levels = list(new_slot_template.allowed_post_bachelor_levels.all())
+                slot_allowed_bachelor_types = list(new_slot_template.allowed_bachelor_types.all())
+                slot_allowed_bachelor_mentions = list(new_slot_template.allowed_bachelor_mentions.all())
+                slot_allowed_bachelor_teachings = list(new_slot_template.allowed_bachelor_teachings.all())
 
                 for new_date in new_dates:
                     try:
@@ -1097,7 +1095,7 @@ class OffOfferEventForm(forms.ModelForm):
 
         speakers_list = json.loads(self.data.get('speakers_list', []))
 
-        current_speakers = [u for u in instance.speakers.all().values_list('username', flat=True)]
+        current_speakers = list(instance.speakers.all().values_list('username', flat=True))
         new_speakers = [speaker.get('username') for speaker in speakers_list]
 
         # speakers to add

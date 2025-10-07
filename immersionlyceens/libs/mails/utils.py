@@ -38,8 +38,8 @@ def send_email(address, subject, body, from_addr=None, reply_to=None, copies=())
         cc = [settings.FORCE_EMAIL_ADDRESS] if copies else []
     else:
         recipient = address
-        cc = list(map(lambda a: sanitize_address(a, encoding), copies))
-
+        cc = [sanitize_address(a, encoding) for a in copies]
+        
     if not recipient:
         logger.warning("Cannot send mail (no email address specified)")
         return

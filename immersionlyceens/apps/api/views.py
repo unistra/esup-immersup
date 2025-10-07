@@ -1878,7 +1878,7 @@ def ajax_group_slot_registration(request):
 
     # Validate emails format
     if emails:
-        for email in map(lambda a: a.strip(), emails.split(',')):
+        for email in (a.strip() for a in emails.split(',')):
             try:
                 validate_email(email)
                 cleaned_emails.append(email.lower())
@@ -2133,7 +2133,7 @@ def ajax_get_available_students(request, slot_id):
         "bachelor_type_is_professional",
     )
 
-    response['data'] = [s for s in students]
+    response['data'] = list(students)
 
     return JsonResponse(response, safe=False)
 
@@ -2161,6 +2161,7 @@ def ajax_get_highschool_students(request):
     try:
         request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
     except:
+        logger.info("REQUEST_FOR_STUDENT_AGREEMENT not found in General Settings")
         request_agreement = False
 
     # Display only accounts that are not activated yet (validation string is not empty)
@@ -5445,10 +5446,12 @@ class MailingListGlobalView(APIView):
             except Period.DoesNotExist:
                 response["msg"] = f"Warning : invalid filter : period '{period_id}' not found"
 
-        mailing_list = [
-            email
-            for email in ImmersionUser.objects.prefetch_related(
-                "student_record", "high_school_student_record", "visitor_record", "immersions__slot"
+        mailing_list = list(
+            ImmersionUser.objects.prefetch_related(
+                "student_record",
+                "high_school_student_record",
+                "visitor_record",
+                "immersions__slot"
             )
             .filter(
                 Q(student_record__isnull=False)
@@ -5458,7 +5461,7 @@ class MailingListGlobalView(APIView):
             .filter(**extra_filter)
             .values_list('email', flat=True)
             .distinct()
-        ]
+        )
 
         response["data"] = {global_mail: mailing_list}
         return JsonResponse(data=response)
@@ -5474,13 +5477,12 @@ class MailingListStructuresView(APIView):
         response["data"] = {}
         for structure in Structure.objects.filter(mailing_list__isnull=False):
             mail = structure.mailing_list
-            mailing_list = [
-                email
-                for email in Immersion.objects.filter(cancellation_type__isnull=True)
+            mailing_list = list(
+                Immersion.objects.filter(cancellation_type__isnull=True)
                 .filter(Q(slot__course__structure=structure) | Q(slot__event__structure=structure))
                 .values_list('student__email', flat=True)
                 .distinct()
-            ]
+            )
             response["data"][mail] = mailing_list
 
         return JsonResponse(data=response)
@@ -5495,16 +5497,15 @@ class MailingListEstablishmentsView(APIView):
         response: Dict[str, Any] = {"msg": "", "data": None}
         response["data"] = {}
         for establishment in Establishment.objects.filter(mailing_list__isnull=False):
-            mailing_list = [
-                email
-                for email in Immersion.objects.filter(cancellation_type__isnull=True)
+            mailing_list = list(
+                Immersion.objects.filter(cancellation_type__isnull=True)
                 .filter(
                     Q(slot__course__structure__establishment=establishment)
                     | Q(slot__event__establishment=establishment)
                 )
                 .values_list('student__email', flat=True)
                 .distinct()
-            ]
+            )
             response["data"][establishment.mailing_list] = mailing_list
 
         return JsonResponse(data=response)
@@ -5520,13 +5521,15 @@ class MailingListHighSchoolsView(APIView):
         response["data"] = {}
 
         for hs in HighSchool.agreed.filter(mailing_list__isnull=False):
-            mailing_list = [
-                email
-                for email in Immersion.objects.filter(cancellation_type__isnull=True)
-                .filter(Q(slot__course__highschool=hs) | Q(slot__event__highschool=hs))
+            mailing_list = list(
+                Immersion.objects.filter(cancellation_type__isnull=True)
+                .filter(
+                    Q(slot__course__highschool=hs)
+                    | Q(slot__event__highschool=hs)
+                )
                 .values_list('student__email', flat=True)
                 .distinct()
-            ]
+            )
             response["data"][hs.mailing_list] = mailing_list
 
         return JsonResponse(data=response)

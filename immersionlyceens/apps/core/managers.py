@@ -45,21 +45,21 @@ class HighSchoolAgreedManager(models.Manager):
     - with allow
     """
     def get_queryset(self):
-        GeneralSettings = apps.get_model('core', 'GeneralSettings')
+        general_settings_class = apps.get_model('core', 'GeneralSettings')
 
         # Convention General Settings
         today = timezone.localdate()
 
         try:
-            w_convention = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
+            w_convention = general_settings_class.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITH_AGREEMENT")
             hs_w_convention = w_convention.parameters.get("value", True)
-        except GeneralSettings.DoesNotExist:
+        except general_settings_class.DoesNotExist:
             hs_w_convention = True
 
         try:
-            wo_convention = GeneralSettings.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
+            wo_convention = general_settings_class.objects.get(setting="ACTIVATE_HIGH_SCHOOL_WITHOUT_AGREEMENT")
             hs_wo_convention = wo_convention.parameters.get("value", False)
-        except GeneralSettings.DoesNotExist:
+        except general_settings_class.DoesNotExist:
             hs_wo_convention = False
 
         highschool_filters = {'active': True, }

@@ -616,7 +616,6 @@ class UniversityYearForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
-        label = cleaned_data.get('label')
         valid_user = False
 
         try:
@@ -938,30 +937,29 @@ class PeriodForm(forms.ModelForm):
             raise forms.ValidationError(_("Immersions end date must be after immersions start date"))
 
         # Fields that can be updated with conditions
-        if self.instance and self.instance.pk:
-            if self.has_changed():
-                if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
-                    if 'immersion_end_date' in self.changed_data:
-                        # change end date only for a future date
-                        if immersion_end_date < self.instance.immersion_end_date:
-                            raise forms.ValidationError(_("Immersions end date can only be set after the actual one"))
-                    if 'allowed_immersions' in self.changed_data:
-                        if allowed_immersions < self.instance.allowed_immersions:
-                            raise forms.ValidationError(
-                                _("New allowed immersions value can only be higher than the previous one")
-                            )
-                if self.instance.immersion_start_date > today:
-                    slots_exist = self.instance.slots.exists()
-                    if 'immersion_start_date' in self.changed_data:
-                        if slots_exist and immersion_start_date > self.instance.immersion_start_date:
-                            raise forms.ValidationError(
-                                _("Immersions start date can only be set before the actual one")
-                            )
-                    if 'immersion_end_date' in self.changed_data:
-                        if slots_exist and immersion_end_date < self.instance.immersion_end_date:
-                            raise forms.ValidationError(
-                                _("Immersions end date can only be set after the actual one")
-                            )
+        if self.instance and self.instance.pk and self.has_changed():
+            if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
+                if 'immersion_end_date' in self.changed_data:
+                    # change end date only for a future date
+                    if immersion_end_date < self.instance.immersion_end_date:
+                        raise forms.ValidationError(_("Immersions end date can only be set after the actual one"))
+                if 'allowed_immersions' in self.changed_data:
+                    if allowed_immersions < self.instance.allowed_immersions:
+                        raise forms.ValidationError(
+                            _("New allowed immersions value can only be higher than the previous one")
+                        )
+            if self.instance.immersion_start_date > today:
+                slots_exist = self.instance.slots.exists()
+                if 'immersion_start_date' in self.changed_data:
+                    if slots_exist and immersion_start_date > self.instance.immersion_start_date:
+                        raise forms.ValidationError(
+                            _("Immersions start date can only be set before the actual one")
+                        )
+                if 'immersion_end_date' in self.changed_data:
+                    if slots_exist and immersion_end_date < self.instance.immersion_end_date:
+                        raise forms.ValidationError(
+                            _("Immersions end date can only be set after the actual one")
+                        )
 
         return cleaned_data
 
@@ -1253,7 +1251,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 if forbidden_groups:
                     raise forms.ValidationError(
-                        _("You can't modify these groups : %s" % ', '.join(x for x in forbidden_groups))
+                        _("You can't modify these groups : %s" % ', '.join(forbidden_groups))
                     )
 
             if self.instance.is_superuser != cleaned_data["is_superuser"]:
@@ -2296,8 +2294,8 @@ class ScheduledTaskForm(forms.ModelForm):
         for command, app in get_commands().items():
             if app.startswith("immersionlyceens"):
                 try:
-                    CommandClass = load_command_class(app, command)
-                    if CommandClass.is_schedulable():
+                    command_class = load_command_class(app, command)
+                    if command_class.is_schedulable():
                         choices_dict.appendlist(app, command)
                 except AttributeError:
                     # 'is_schedulable' is missing : nothing to do

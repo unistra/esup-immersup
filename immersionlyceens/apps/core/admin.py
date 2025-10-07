@@ -512,11 +512,11 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             if request.user.is_master_establishment_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE')
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups) - set(rights))
 
             if request.user.is_operator():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC')
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups) - set(rights))
 
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
@@ -528,7 +528,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups) - set(rights))
 
             if request.user.is_high_school_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
@@ -538,7 +538,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups)- set(rights))
 
             messages.warning(request, no_delete_msg)
 
@@ -562,19 +562,19 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             if request.user.is_operator():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC')
-                if not ({x for x in user_groups} - set(rights)):
+                if not (set(user_groups) - set(rights)):
                     return True
 
             if request.user.is_establishment_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
-                if not ({x for x in user_groups} - set(rights)):
+                if not (set(user_groups) - set(rights)):
                     return True
 
             if request.user.is_high_school_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
-                return highschool_condition and not ({x for x in user_groups} - set(rights))
+                return highschool_condition and not (set(user_groups) - set(rights))
 
             return False
 
@@ -2023,8 +2023,7 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def days(self, obj):
         week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        days = ", ".join(map(lambda d:gettext(d.title()), filter(lambda day:getattr(obj, day) is True, week_days)))
-
+        days = ", ".join([gettext(d.title()) for d in week_days if getattr(obj, d) is True])
         return days
 
     days.short_description = _('Days')
