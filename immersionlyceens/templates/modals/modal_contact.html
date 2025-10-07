@@ -17,7 +17,7 @@
             </div>
           </div>
           <div class="form-group row align-items-center">
-            <div class='col-md-12'>
+            <div class='col-md-12' id="editor">
               {{ contact_form.body }}
             </div>
           </div>
@@ -39,11 +39,14 @@
 </div>
 <script>
   var mode;
+  var editor;
 
   $('#modal_contact_students').on('show.bs.modal', function(event) {
     $('#id_body_iframe').css('height', '300px');
     let button = $(event.relatedTarget) // Button that triggered the modal
     mode = button.data('mode')
+    editor = window.editors["id_body"]
+    editor.setData('')
   });
 
   function send_email(slot_id) {
@@ -68,7 +71,7 @@
             $("#contact_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
             setTimeout(function() { $("#contact_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             $("#id_subject").val("");
-
+            editor.setData('')
         }
       },
       error: function (json) {
