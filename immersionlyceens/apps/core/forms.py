@@ -959,7 +959,10 @@ class ContactForm(forms.Form):
 
         self.fields['subject'] = forms.CharField(label=_("Subject"), max_length=100, required=True)
         self.fields['body'] = forms.CharField(
-            widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}, config_name="default")
+            widget=CKEditor5Widget(
+                attrs={"class": "django_ckeditor_5"},
+                config_name="default"
+            )
         )
         self.fields['subject'].widget.attrs['class'] = 'form-control'
 

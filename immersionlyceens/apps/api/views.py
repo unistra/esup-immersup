@@ -2310,15 +2310,18 @@ def ajax_send_email(request):
 
     try:
         slot = Slot.objects.get(pk=slot_id)
-
         slot_label = slot.get_label()
+    except Slot.DoesNotExist:
+        response = {'error': True, 'msg': gettext("Invalid slot id")}
+        return JsonResponse(response, safe=False)
+
+    try:
         date = date_format(slot.date, format='l d F Y', use_l10n=True)
         start_time = slot.start_time.isoformat(timespec='minutes')
         end_time = slot.end_time.isoformat(timespec='minutes')
         subject = f"{slot_label} : {date} ({start_time}-{end_time}) - {subject}"
-    except Slot.DoesNotExist:
-        response = {'error': True, 'msg': gettext("Invalid slot id")}
-        return JsonResponse(response, safe=False)
+    except AttributeError:
+        subject = f"{slot_label} - {subject}"
 
     if mode == 'student':
         immersions = Immersion.objects.filter(slot_id=slot_id, cancellation_type__isnull=True)

@@ -38,6 +38,10 @@ CKEDITOR_5_CONFIGS = {
             ]
         },
         'language': ['fr', 'en'],
+        'wordCount': {
+            'displayWords': False,
+            'displayCharacters': False
+        }
     },
     'extends': {
         'blockToolbar': [
@@ -70,8 +74,9 @@ CKEDITOR_5_CONFIGS = {
 
         },
         'table': {
-            'contentToolbar': [ 'tableColumn', 'tableRow', 'mergeTableCells',
-            'tableProperties', 'tableCellProperties' ],
+            'contentToolbar': [
+                'tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties'
+            ],
             'tableProperties': {
                 'borderColors': customColorPalette,
                 'backgroundColors': customColorPalette
