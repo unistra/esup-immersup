@@ -329,7 +329,7 @@ def shibbolethLogin(request, profile=None):
 
 
     if error:
-        logger.error(f"Shibboleth error : {error}")
+        logger.error(f"Shibboleth error : {error}. shib_attrs: {shib_attrs}")
         messages.error(request, _("Incomplete data for account creation"))
         return HttpResponseRedirect("/")
 
@@ -463,10 +463,15 @@ def shibbolethLogin(request, profile=None):
 
     # parse affiliations:
     if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
-        messages.error(request,
+        logger.error(
+            f"Some mandatory attributes ({mandatory_attributes}) have not been found in shibboleth ones: {shib_attrs}"
+        )
+        messages.error(
+            request,
             _("Missing attributes, account not created." +
              "<br>Your institution may not be aware of the Immersion service." +
-             "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
+             "<br>Please use the 'contact' link at the bottom of this page, specifying your institution.")
+        )
         return HttpResponseRedirect("/")
 
     is_employee = not is_student and not is_high_school_student
@@ -1630,6 +1635,7 @@ def student_record(request, student_id=None, record_id=None):
         record = student.get_student_record()
         uai_code = None
         institution = None
+        shib_attrs = {}
 
         no_record = record is None
 
@@ -1639,7 +1645,9 @@ def student_record(request, student_id=None, record_id=None):
             # Make sure we only consider the {UAI} part and split the string
             uai_code = shib_attrs.get("uai_code").split(";")[0]
         except Exception:
-            logger.error("Cannot retrieve uai code from shibboleth data")
+            logger.error(
+                f"Cannot retrieve uai code from shibboleth data : {shib_attrs}"
+            )
 
         if uai_code and uai_code.startswith('{UAI}'):
             uai_code = uai_code.replace('{UAI}', '')

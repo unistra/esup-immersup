@@ -4,7 +4,7 @@ import mimetypes
 import re
 from datetime import datetime
 from typing import Any, Dict
-from ckeditor.widgets import CKEditorWidget
+from django_ckeditor_5.widgets import CKEditor5Widget
 from django import forms, template
 from django.conf import settings
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -527,8 +527,8 @@ class EstablishmentForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': CKEditorWidget(),
-            'certificate_footer': CKEditorWidget(),
+            'certificate_header': CKEditor5Widget(),
+            'certificate_footer': CKEditor5Widget(),
         }
 
 
@@ -1582,8 +1582,8 @@ class HighSchoolForm(forms.ModelForm):
                   'disability_notify_on_slot_registration', 'disability_referent_email')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': CKEditorWidget(),
-            'certificate_footer': CKEditorWidget(),
+            'certificate_header': CKEditor5Widget(),
+            'certificate_footer': CKEditor5Widget(),
         }
 
 
@@ -1685,7 +1685,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': CKEditorWidget(),
+            'body': CKEditor5Widget(),
         }
 
 
@@ -1772,7 +1772,7 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
-        widgets = {'content': CKEditorWidget}
+        widgets = {'content': CKEditor5Widget}
 
 
 class PublicDocumentForm(forms.ModelForm):
@@ -2266,7 +2266,7 @@ class FaqEntryAdminForm(forms.ModelForm):
     class Meta:
         model = FaqEntry
         fields = '__all__'
-        widgets = {'answer': CKEditorWidget,}
+        widgets = {'answer': CKEditor5Widget,}
 
 
 class ProfileForm(forms.ModelForm):
