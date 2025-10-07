@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import mimetypes
 import os
 import sys
@@ -32,6 +33,8 @@ from immersionlyceens.apps.core.models import (
 )
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
+
+logger = logging.getLogger(__name__)
 
 
 def home(request):
@@ -284,7 +287,7 @@ def offer_subdomain(request, subdomain_id):
                 'training': training,
                 'course': course,
                 'slots': None,
-                'alert': (not slots or all([s.available_seats() == 0 for s in slots])),
+                'alert': (not slots or all(s.available_seats() == 0 for s in slots)),
             }
 
             # If the current user is a student, check whether he can register
@@ -302,9 +305,11 @@ def offer_subdomain(request, subdomain_id):
                     # get slot period (for dates)
                     try:
                         period = Period.from_date(pk=slot.period.pk, date=slot.date)
-                    except Period.DoesNotExist:
+                    except Period.DoesNotExist as e:
+                        logger.exception(f"Period does not exist : {e}")
                         raise
-                    except Period.MultipleObjectsReturned:
+                    except Period.MultipleObjectsReturned as e:
+                        logger.exception(f"Multiple period returned : {e}")
                         raise
 
                     # Already registered / cancelled ?
@@ -437,7 +442,8 @@ def offer_off_offer_events(request):
 
                 try:
                     period = Period.from_date(pk=event.period.pk, date=event.date)
-                except Period.DoesNotExist:
+                except Period.DoesNotExist as e:
+                    logger.exception(f"Period does not exist : {e}")
                     raise
 
                 if event.available_seats() > 0 and can_register:
@@ -524,7 +530,6 @@ def highschools(request):
             active=True
         ).content
     except InformationText.DoesNotExist:
-        # TODO: Default txt value ?
         affiliated_highschools_intro_txt = ''
 
     try:
@@ -533,7 +538,6 @@ def highschools(request):
             active=True
         ).content
     except InformationText.DoesNotExist:
-        # TODO: Default txt value ?
         not_affiliated_highschools_intro_txt = ''
 
     not_affiliated_highschools = HighSchool.objects.filter(
@@ -559,7 +563,6 @@ def search_slots(request):
             code="INTRO_OFFER_SEARCH", active=True
         ).content
     except InformationText.DoesNotExist:
-        # TODO: Default txt value ?
         intro_offer_search = ""
 
     context = {

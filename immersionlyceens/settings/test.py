@@ -63,7 +63,6 @@ USE_CAS = False
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
 CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
-# CAS_SERVER_URL = 'https://cas-pprd.unistra.fr:443/cas/'
 # CAS_LOGOUT_REQUEST_ALLOWED = ('cas-w1-pprd.di.unistra.fr', 'cas-w2-pprd.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
 

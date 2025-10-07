@@ -21,6 +21,8 @@
 {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
 {% endif %}
+<script src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+<script src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/core/common_slots_functions.min.js' %}"></script>
 <script src="{% static 'django_ckeditor_5/dist/bundle.js' %}"></script>

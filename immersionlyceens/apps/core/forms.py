@@ -966,6 +966,7 @@ class ContactForm(forms.Form):
         )
         self.fields['subject'].widget.attrs['class'] = 'form-control'
 
+
 class StructureForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
