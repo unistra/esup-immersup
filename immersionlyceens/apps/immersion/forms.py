@@ -273,7 +273,7 @@ class EmailForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        request = kwargs.pop('request', None)
+        kwargs.pop('request', None)
         initial = kwargs.get('initial', {})
 
         # Override email value if it's still the EduConnect temporary email

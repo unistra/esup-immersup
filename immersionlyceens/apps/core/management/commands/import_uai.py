@@ -50,7 +50,7 @@ class Command(BaseCommand, Schedulable):
         try:
             results = get_json_from_url(f"{url}", headers=headers)
             if isinstance(results, dict):
-                if not results.get("http_status_code", None) == 200:
+                if results.get("http_status_code", None) != 200:
                     raise Exception("Status %s : %s" % (results.get("http_status_code"), results.get("message")))
         except Exception as e:
             logger.error("Error (get_json_from_url) %s" % (e))
