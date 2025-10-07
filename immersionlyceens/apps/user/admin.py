@@ -232,13 +232,13 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_establishment_manager():
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter, groups__name='INTER',).order_by('last_name', 'first_name')
+        return ImmersionUser.objects.filter(q_filter, groups__name='INTER',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return False
@@ -313,13 +313,13 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_establishment_manager():
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter, groups__name='REF-ETAB',).order_by('last_name', 'first_name')
+        return ImmersionUser.objects.filter(q_filter, groups__name='REF-ETAB',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return False
@@ -434,16 +434,16 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         highschool_filter = {}
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
             highschool_filter = {'highschool' : 'request.user.highschool'}
 
         if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter,
+        return ImmersionUser.objects.filter(q_filter,
                                             groups__name='REF-STR',
                                             **highschool_filter).order_by('last_name', 'first_name')
 
@@ -488,16 +488,16 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         highschool_filter = {}
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
             highschool_filter = {'highschool' : 'request.user.highschool'}
 
         if request.user.is_establishment_manager():
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter,
+        return ImmersionUser.objects.filter(q_filter,
                                             groups__name='SRV-JUR',
                                             **highschool_filter).order_by('last_name', 'first_name')
 
@@ -596,18 +596,18 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         filter = {}
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
             filter = {'highschool' : request.user.highschool}
 
         if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
         return ImmersionUser.objects\
             .filter(
-                Q_filter,
+                q_filter,
                 groups__name='CONS-STR',
                 **filter)\
             .distinct()\
