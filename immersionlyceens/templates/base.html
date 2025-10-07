@@ -44,11 +44,6 @@
     {% endfor %}
     {% block head-css %}{% endblock %}
     <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-    <script>
-        var CKEDITOR_BASEPATH = "{% static '/ckeditor/ckeditor/' %}";
-    </script>
-    <script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
-    <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
     {% if use_matomo %}
     {% settings_get 'MATOMO_URL' as matomo_url %}
     {% settings_get 'MATOMO_SITE_ID' as matomo_site_id %}
