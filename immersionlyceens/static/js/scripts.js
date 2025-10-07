@@ -12,9 +12,9 @@
 
   $(window).on('load resize scroll', function () {
     $('.bg-parallax').each(function () {
-      var windowTop = $(window).scrollTop()
-      var speed = -$(this).data('scroll-speed')
-      var topPosition = -(windowTop * speed) + 'px'
+      let windowTop = $(window).scrollTop()
+      let speed = -$(this).data('scroll-speed')
+      let topPosition = -(windowTop * speed) + 'px'
       $(this)
         .css(
           'background-position', 'top ' + topPosition + ' center'
@@ -22,9 +22,9 @@
     })
 
     $('.bg-parallax-bottom').each(function () {
-      var windowTop = $(window).scrollTop()
-      var speed = -$(this).data('scroll-speed')
-      var bottomPosition = (windowTop * speed) + 'px'
+      let windowTop = $(window).scrollTop()
+      let speed = -$(this).data('scroll-speed')
+      let bottomPosition = (windowTop * speed) + 'px'
       $(this)
         .css(
           'background-position', 'bottom ' + bottomPosition + ' center'

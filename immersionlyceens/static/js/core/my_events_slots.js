@@ -47,7 +47,7 @@ function init_yadcf_filter() {
 }
 
 function init_datatable() {
-  var columns_idx = [2, 4, 5]
+  let columns_idx = [2, 4, 5]
 
   dt = $('#slots_list').DataTable({
     'processing': false,
@@ -219,14 +219,14 @@ function init_datatable() {
     "columnDefs": init_column_defs(),
 
     initComplete: function () {
-        var api = this.api();
+        let api = this.api();
 
         columns_idx.forEach(function(col_idx) {
-          var column = api.column(col_idx);
-          var column_header_id = column.header().id;
-          var cell = $(`#${column_header_id}`);
-          var filter_id = `${column_header_id}_input`;
-          var title = $(cell).text();
+          let column = api.column(col_idx);
+          let column_header_id = column.header().id;
+          let cell = $(`#${column_header_id}`);
+          let filter_id = `${column_header_id}_input`;
+          let title = $(cell).text();
 
           $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
 
@@ -242,7 +242,7 @@ function init_datatable() {
               // Get the search value
               $(this).attr('title', $(this).val());
 
-              var cursorPosition = this.selectionStart;
+              let cursorPosition = this.selectionStart;
 
               // Column search with cleaned value
               api

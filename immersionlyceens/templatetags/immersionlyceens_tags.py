@@ -147,7 +147,7 @@ class UserFilteredNode(template.Node):
 
 @register.tag
 def authorized_groups(parser, token):
-    tag_name, user = token.split_contents()
+    _, user = token.split_contents()
     return AuthorizedGroupsNode(user)
 
 
@@ -247,7 +247,7 @@ def get_etab_label(obj):
 def get_custom_favicon():
     try:
         return get_custom_theme_files("FAVICON").first()
-    except:
+    except FileNotFoundError:
         return ""
 
 
@@ -255,7 +255,7 @@ def get_custom_favicon():
 def get_custom_css_files():
     try:
         return get_custom_theme_files("CSS")
-    except:
+    except FileNotFoundError:
         return ""
 
 
@@ -263,7 +263,7 @@ def get_custom_css_files():
 def get_custom_js_files():
     try:
         return get_custom_theme_files("JS")
-    except:
+    except FileNotFoundError:
         return ""
 
 
@@ -271,7 +271,7 @@ def get_custom_js_files():
 def get_custom_images_files():
     try:
         return get_custom_theme_files("IMG")
-    except:
+    except FileNotFoundError:
         return ""
 
 

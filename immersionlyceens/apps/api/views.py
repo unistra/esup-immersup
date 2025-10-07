@@ -1815,13 +1815,14 @@ def ajax_group_slot_registration(request):
         immersion_group_record = ImmersionGroupRecord.objects.get(pk=_id)
         current_students_count = immersion_group_record.students_count
         current_guides_count = immersion_group_record.guides_count
-    except:
+    except Exception as e:
+        logger.info("ImmersionGroupRecord with id %s not found, creating a new record. Details: %s", _id, e)
         # Creation
         immersion_group_record = None
 
     try:
         slot = Slot.objects.get(pk=slot_id)
-    except:
+    except Slot.DoesNotExist:
         response = {'error': True, 'msg': _("Invalid slot")}
         return JsonResponse(response, safe=False)
 
@@ -2160,8 +2161,7 @@ def ajax_get_highschool_students(request):
     # request agreement setting
     try:
         request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
-    except:
-        logger.info("REQUEST_FOR_STUDENT_AGREEMENT not found in General Settings")
+    except GeneralSettings.DoesNotExist:
         request_agreement = False
 
     # Display only accounts that are not activated yet (validation string is not empty)
@@ -4040,7 +4040,7 @@ def ajax_get_student_presence(request):
 
     try:
         place = int(request.GET.get('place', 0))
-    except:
+    except (TypeError, ValueError):
         place = 0
 
     filters = {'slot__place': place}
@@ -4213,7 +4213,7 @@ def ajax_set_course_alert(request):
 
     try:
         validate_email(email)
-    except:
+    except ValidationError:
         response['error'] = True
         response['msg'] = gettext('Invalid email format')
         return JsonResponse(response, safe=False)

@@ -128,12 +128,12 @@ class AdminWithRequest:
     """
 
     def get_form(self, request, obj=None, **kwargs):
-        AdminForm = super().get_form(request, obj, **kwargs)
+        admin_form = super().get_form(request, obj, **kwargs)
 
-        class AdminFormWithRequest(AdminForm):
+        class AdminFormWithRequest(admin_form):
             def __new__(cls, *args, **kwargs):
                 kwargs['request'] = request
-                return AdminForm(*args, **kwargs)
+                return admin_form(*args, **kwargs)
 
         return AdminFormWithRequest
 
@@ -409,14 +409,14 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     def get_highschool(self, obj):
         try:
             return obj.highschool
-        except:
+        except AttributeError:
             return ''
 
     def get_structure(self, obj):
         try:
             structures = ', '.join([s.label for s in obj.structures.all().order_by('label')])
             return structures
-        except:
+        except AttributeError:
             return ''
 
     def get_groups_list(self, obj):
