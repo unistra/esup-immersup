@@ -5,6 +5,8 @@ from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import gettext_lazy as _
 
+from ckeditor.configs import DEFAULT_CONFIG
+
 ######################
 # Path configuration #
 ######################
