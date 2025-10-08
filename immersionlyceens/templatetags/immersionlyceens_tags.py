@@ -1,4 +1,5 @@
 import re
+import logging
 from decimal import Decimal
 from functools import reduce
 from tkinter import N
@@ -29,7 +30,7 @@ from ..apps.core.models import (
 )
 
 register = template.Library()
-
+logger = logging.getLogger(__name__)
 
 @register.filter
 def redify(value, redvalue):
@@ -247,7 +248,8 @@ def get_etab_label(obj):
 def get_custom_favicon():
     try:
         return get_custom_theme_files("FAVICON").first()
-    except FileNotFoundError:
+    except Exception as e:
+        logger.warning("Error while loading custom favicon: %s", e)
         return ""
 
 
@@ -255,7 +257,8 @@ def get_custom_favicon():
 def get_custom_css_files():
     try:
         return get_custom_theme_files("CSS")
-    except FileNotFoundError:
+    except Exception as e:
+        logger.warning("Error while loading custom css files: %s", e)
         return ""
 
 
@@ -263,7 +266,8 @@ def get_custom_css_files():
 def get_custom_js_files():
     try:
         return get_custom_theme_files("JS")
-    except FileNotFoundError:
+    except Exception as e:
+        logger.warning("Error while loading custom js files: %s", e)
         return ""
 
 
@@ -271,7 +275,8 @@ def get_custom_js_files():
 def get_custom_images_files():
     try:
         return get_custom_theme_files("IMG")
-    except FileNotFoundError:
+    except Exception as e:
+        logger.warning("Error while loading custom theme files: %s", e)
         return ""
 
 
