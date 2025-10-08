@@ -484,8 +484,8 @@ def error_500(request, *args, **kwargs):
     if display:
         context["error"] = str(exc)
 
-    return render(request, '500.html', context, status=500)
-
+    #return render(request, '500.html', context, status=500)
+    raise
 
 def faq(request):
     """FAQ view"""

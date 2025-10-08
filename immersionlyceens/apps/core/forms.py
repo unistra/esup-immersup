@@ -585,9 +585,7 @@ class SlotForm(forms.ModelForm):
             else:
                 # Store current slot related objects
                 slot_speakers = list(new_slot_template.speakers.all())
-                slot_allowed_establishments = [
-                    list(new_slot_template.allowed_establishments.filter(is_host_establishment=True))
-                ]
+                slot_allowed_establishments = list(new_slot_template.allowed_establishments.filter(is_host_establishment=True))
                 slot_allowed_highschools = list(new_slot_template.allowed_highschools.all())
                 slot_allowed_highschool_levels = list(new_slot_template.allowed_highschool_levels.all())
                 slot_allowed_student_levels = list(new_slot_template.allowed_student_levels.all())

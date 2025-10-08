@@ -1822,7 +1822,8 @@ def ajax_group_slot_registration(request):
 
     try:
         slot = Slot.objects.get(pk=slot_id)
-    except Slot.DoesNotExist:
+    except Exception as e:
+        logger.info("Invalid Slot. Details: %s", e)
         response = {'error': True, 'msg': _("Invalid slot")}
         return JsonResponse(response, safe=False)
 
@@ -2161,7 +2162,8 @@ def ajax_get_highschool_students(request):
     # request agreement setting
     try:
         request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
-    except GeneralSettings.DoesNotExist:
+    except Exception as e:
+        logger.info("REQUEST_FOR_STUDENT_AGREEMENT not found in General Settings. Details: %s", e)
         request_agreement = False
 
     # Display only accounts that are not activated yet (validation string is not empty)
