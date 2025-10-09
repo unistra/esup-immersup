@@ -72,7 +72,7 @@ class Command(BaseCommand, Schedulable):
             }
 
             try:
-                _, created = UAI.objects.update_or_create(
+                obj, created = UAI.objects.update_or_create(
                     code=code,
                     defaults=data
                 )
