@@ -247,7 +247,7 @@
               data = row.establishment;
             }
             if(type === "display") {
-              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+              return '<dt>{% trans 'Establishment' %} :</dt><dd>' + displayLongString(data, 40, html=true) + '</dd>';
             }
             return data;
           }
@@ -257,14 +257,14 @@
             slotType = row.type[0].toLowerCase();
 
             if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
+              label = "<dt>{% trans "Training" %} :</dt>";
               data = row.course.training;
             } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
+              label =  "<dt>{% trans "Event type" %} :</dt>";
               data = row.event.type
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 30, html=true) + "</dd>";
             }
             return data;
           }
@@ -272,14 +272,14 @@
         {
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
+            label = "<dt>{% trans "Label" %} :</dt>";
             if (slotType === 'c') {
               data = row.course.label;
             } else {
               data = row.event.label;
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 40, html=true) + "</dd>";
             }
             return data;
           }
@@ -288,9 +288,9 @@
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
             data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
+            label = "<dt>{% trans 'Type' %} :</dt>";
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 40, html=true) + "</dd>";
             }
             return data;
           }
@@ -298,9 +298,9 @@
         {
           "render": function(data, type, row) {
             data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
+            label = "<dt>{% trans 'Date' %} :</dt>";
             if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+              return label + "<dd>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</dd>";
             }
             if (type !== 'sort') {
               return data ? formatDate(data) : "";
@@ -311,10 +311,10 @@
         {
           "render": function (data, type, row) {
             if (row.place === outside) {
-                return "<label>{% trans 'Address' %} : </label>";
+                return "<dt>{% trans 'Address' %} : </dt>";
             }
             else if (row.place === remote) {
-              label = "<label>{% trans 'URL' %} : </label>";
+              label = "<dt>{% trans 'URL' %} : </dt>";
 
               if(row.can_show_url) {
                 data = `<a href="${row.url}">{% trans "Remote link" %}</a>`
@@ -325,7 +325,7 @@
             else {
               if (row.campus === '' || row.campus === null) {
                 if (row.highschool != null || row.highschool != '') {
-                  label = "<label>{% trans 'Address' %} : </label>";
+                  label = "<dt>{% trans 'Address' %} : </dt>";
                   data = row.highschool_address ? row.highschool_address : '&nbsp;';
                   data += row.highschool_city ? `, ${row.highschool_city}` : '';
                 }
@@ -334,7 +334,7 @@
                 }
               }
               else {
-                label = "<label>{% trans 'Campus' %} : </label>";
+                label = "<dt>{% trans 'Campus' %} : </dt>";
                 data = row.campus
                 data += row.campus_city ? ` - ${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()}` : '&nbsp;';
               }
@@ -358,13 +358,13 @@
           "render": function (data, type, row) {
             if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = `${row.building}<br>${row.meeting_place}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
               data = `${row.building}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = `${row.meeting_place}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else {
               return
             }
@@ -375,7 +375,7 @@
           "data": "registration_date",
           "render": function(data, type, row) {
             if (type==='display') {
-              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+              return "<dt>{% trans "Registered date" %} :</dt><dd>" + formatDate(data) + "</dd>";
             }
             return data
           }
@@ -384,7 +384,7 @@
           "render": function(data, type, row) {
             cancellation_limit_date = row.cancellation_limit_date ? formatDate(row.cancellation_limit_date) : "";
             classLabel = row.cancellable ? "badge-info" : "badge-danger";
-            return `<label>{% trans 'Cancellation limit' %} : </label><span class="badge badge-pill ${classLabel}">${cancellation_limit_date}</span>`;
+            return `<dt>{% trans 'Cancellation limit' %} : </dt><dd class="badge badge-pill ${classLabel}">${cancellation_limit_date}</dd>`;
           }
         },
         {
@@ -401,7 +401,7 @@
                      "<i class='fa fas fa-trash fa-15'></i>" +
                      "</button>";
             }
-            return `<div class="pull-right"><span>${msg}</span><button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></div>`;
+            return `<div class="pull-right"><dd>${msg}</dd><button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></div>`;
           }
         }
       ],
@@ -652,7 +652,7 @@
               data = row.establishment;
             }
             if(type === "display") {
-              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+              return '<dt>{% trans 'Establishment' %} :</dt><dd>' + displayLongString(data, 40, html=true) + '</dd>';
             }
             return data;
           }
@@ -662,14 +662,14 @@
             slotType = row.type[0].toLowerCase();
 
             if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
+              label = "<dt>{% trans "Training" %} :</dt>";
               data = row.course.training;
             } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
+              label =  "<dt>{% trans "Event type" %} :</dt>";
               data = row.event.type
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 30, html=true) + "</dd>";
             }
             return data;
           }
@@ -677,14 +677,14 @@
         {
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
+            label = "<dt>{% trans "Label" %} :</dt>";
             if (slotType === 'c') {
               data = row.course.label;
             } else {
               data = row.event.label;
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 40, html=true) + "</dd>";
             }
             return data;
           }
@@ -693,9 +693,9 @@
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
             data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
+            label = "<dt>{% trans 'Type' %} :</dt>";
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 40, html=true) + "</dd>";
             }
             return data;
           }
@@ -703,9 +703,9 @@
         {
           "render": function(data, type, row) {
             data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
+            label = "<dt>{% trans 'Date' %} :</dt>";
             if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+              return label + "<dd>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</dd>";
             }
             if (type !== 'sort') {
               return data ? formatDate(data) : "";
@@ -717,7 +717,7 @@
           "render": function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
-                label = "<label>{% trans 'Address' %} : </label>";
+                label = "<dt>{% trans 'Address' %} : </dt>";
                 data = row.highschool_address ? row.highschool_address : '&nbsp;';
                 data += row.highschool_city ? `, ${row.highschool_city}` : '';
               }
@@ -725,7 +725,7 @@
                 return '&nbsp;';
               }
             } else {
-              label = "<label>{% trans 'Campus' %} : </label>";
+              label = "<dt>{% trans 'Campus' %} : </dt>";
               data = row.campus
               data += row.campus_city ? ` - ${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()}` : '&nbsp;';
             }
@@ -742,13 +742,13 @@
           "render": function (data, type, row) {
             if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = `${row.building}<br>${row.meeting_place}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
               data = `${row.building}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = `${row.meeting_place}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else {
               return
             }
@@ -758,14 +758,14 @@
         { "data": "registration_date",
           "render": function(data, type, row) {
             if (type==='display') {
-              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+              return "<dt>{% trans "Registered date" %} :</dt><dd>" + formatDate(data) + "</dd>";
             }
             return data
           }
         },
         { "data": "attendance",
           "render": function(data, type, row) {
-            let msg = "<label>{% trans "Attendance" %} :</label>" + data;
+            let msg = "<dt>{% trans "Attendance" %} :</dt>" + data;
             return msg;
           }
         },
@@ -778,7 +778,7 @@
                   "<i class='fa fas fa-download fa-15'></i>" +
                   "</a>";
             }
-            return "<span class='pull-right'>" + msg + "<button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></span>"
+            return "<dd class='pull-right'>" + msg + "<button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></dd>"
           }
 
         },
@@ -1000,7 +1000,7 @@
               data = row.establishment;
             }
             if(type === "display") {
-              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+              return '<dt>{% trans 'Establishment' %} :</dt><dd>' + displayLongString(data, 40, html=true) + '</dd>';
             }
             return data;
           }
@@ -1010,14 +1010,14 @@
             slotType = row.type[0].toLowerCase();
 
             if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
+              label = "<dt>{% trans "Training" %} :</dt>";
               data = row.course.training;
             } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
+              label =  "<dt>{% trans "Event type" %} :</dt>";
               data = row.event.type
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 30, html=true) + "</dd>";
             }
             return data;
           }
@@ -1025,14 +1025,14 @@
         {
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
+            label = "<dt>{% trans "Label" %} :</dt>";
             if (slotType === 'c') {
               data = row.course.label;
             } else {
               data = row.event.label;
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 40, html=true) + "</dd>";
             }
             return data;
           }
@@ -1041,9 +1041,9 @@
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
             data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
+            label = "<dt>{% trans 'Type' %} :</dt>";
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<dd>" + displayLongString(data, 40, html=true) + "</dd>";
             }
             return data;
           }
@@ -1051,9 +1051,9 @@
         {
           "render": function(data, type, row) {
             data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
+            label = "<dt>{% trans 'Date' %} :</dt>";
             if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+              return label + "<dd>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</dd>";
             }
             if (type !== 'sort') {
               return data ? formatDate(data) : "";
@@ -1065,14 +1065,14 @@
           "render": function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
-                label = "<label>{% trans 'Address' %} : </label>";
+                label = "<dt>{% trans 'Address' %} : </dt>";
                 data = row.highschool_address ? row.highschool_address : '&nbsp;';
                 data += row.highschool_city ? `, ${row.highschool_city}` : '';
               } else {
                 return '&nbsp;';
               }
             } else {
-              label = "<label>{% trans 'Campus' %} : </label>";
+              label = "<dt>{% trans 'Campus' %} : </ldt>";
               data = row.campus
               data += row.campus_city ? ` (${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()})` : '&nbsp;';
             }
@@ -1089,13 +1089,13 @@
           "render": function (data, type, row) {
             if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = `${row.building}<br>${row.meeting_place}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
               data = `${row.building}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
               data = `${row.meeting_place}`
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+              return "<dt>{% trans 'Meeting place'%} :</dt><dd>" + displayLongString(data, 25, html=true) + "</dd>";
             } else {
               return
             }
@@ -1108,7 +1108,7 @@
               data = formatDate(data,{ dateStyle: 'long', timeStyle: 'short' });
             }
             if (type==='display') {
-              return "<label>{% trans 'Cancellation date' %} :</label><span>" + data + "</span>";
+              return "<dt>{% trans 'Cancellation date' %} :</dt><dd>" + data + "</dd>";
             }
             return data;
           },
@@ -1116,7 +1116,7 @@
         { "data": "cancellation_type",
           "render": function(data, type, row) {
             if (type==='display'){
-              return "<label>{% trans 'Cancellation type' %} :</label>" + data;
+              return "<dt>{% trans 'Cancellation type' %} :</dt>" + data;
             }
             return data
           }
@@ -1130,7 +1130,7 @@
             }
 
             if(row.free_seats === 0) {
-                msg += "<span class='ml-2 badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+                msg += "<dd class='ml-2 badge badge-pill badge-danger'>{% trans 'Full' %}</dd>";
             }
             return "<div class='pull-right'>" + msg + "<button class=\"ml-2 btn badge badge-pill badge-primary btn-more-details\">{% trans 'More details' %}</button></div>"
           }

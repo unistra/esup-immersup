@@ -356,7 +356,18 @@ Firefox is sadly not supporting :has for now :(
     display: inline;
     position: relative;
     float: left;
-    color: #808080;
+    color: #757575;
+    min-width: 2rem;
+    margin-left: 0;
+    margin-right: 0.2rem;
+    text-align: left;
+}
+
+.results-cards tbody dt {
+    display: inline;
+    position: relative;
+    float: left;
+    color: #757575;
     min-width: 2rem;
     margin-left: 0;
     margin-right: 0.2rem;
