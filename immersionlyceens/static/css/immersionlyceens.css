@@ -363,7 +363,7 @@ Firefox is sadly not supporting :has for now :(
     text-align: left;
 }
 
-.results-cards tbody dt {
+.field-label {
     display: inline;
     position: relative;
     float: left;

@@ -186,16 +186,16 @@
       <div class="card-body">
         {% if record.creation_date %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">
+          <div class="col-sm-4 col-form-label">
             {% trans 'Record creation date' %} :
-          </label>
+          </div>
           <div class="col-sm-4">
             {{ record.creation_date }}
           </div>
         </div>
         {% endif %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">{% trans "File status" %} :</label>
+          <div class="col-sm-4 col-form-label">{% trans "File status" %} :</div>
           <div class="col-sm-4">
 
             {% if record.validation == 0 or record.validation == 5 %}
@@ -224,9 +224,9 @@
         </div>
         {% if record.validation_date %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">
+          <div class="col-sm-4 col-form-label">
             {% trans 'Record validation date' %} :
-          </label>
+          </div>
           <div class="col-sm-8">
             {{ record.validation_date }}
           </div>
@@ -234,18 +234,18 @@
         {% endif %}
         {% if student.email_validation_date %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-4 col-form-label">
+            <div class="col-sm-4 col-form-label">
               {% trans 'Email validation date' %} :
-            </label>
+            </div>
             <div class="col-sm-8">
               {{ student.email_validation_date }}
             </div>
           </div>
         {% elif student.email_change_date %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-4 col-form-label">
+            <div class="col-sm-4 col-form-label">
               {% trans 'Email change date' %} :
-            </label>
+            </div>
             <div class="col-sm-8">
               {{ student.email_change_date }}
             </div>
