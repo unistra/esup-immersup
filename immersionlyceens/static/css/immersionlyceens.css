@@ -219,6 +219,10 @@ a.unlink:hover {
     right: 2px;
 }
 
+.more-less-title > button.excluded::after {
+  content: none !important;
+}
+
 .light-bg-secondary {
     background-color: #e1e1e1;
 }

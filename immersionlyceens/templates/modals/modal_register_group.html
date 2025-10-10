@@ -55,7 +55,9 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label for="file">{% trans 'File' %}</label>
-                <a id="file_link" href="" class="sun-row" style='display:none;'></a>
+                <a id="file_link" href="" class="sun-row" style='display:none;'>
+                    <span class="sr-only">{% trans "Upload file" %}</span>
+                </a>
                 <input id="file" type="file" name="file" class="form-control">
                 <small>{{ group_file_help_text }}</small>
               </div>

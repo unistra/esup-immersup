@@ -774,7 +774,7 @@
           render: function (data, type, full, meta) {
             let msg = "";
             if(full['attendance_status'] === 1 || full['place'] === 1) {
-              msg += "<a href=\"dl/attestation/" + full['id'] + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+              msg += "<a href=\"dl/attestation/" + full['id'] + "\" class=\"ml-4 btn btn-light btn-sm\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-15'></i>" +
                   "</a>";
             }
@@ -814,7 +814,7 @@
       }
       availablesSeatslabel += '</ul>';
       if(rowData[0].attendance_status === 1 || rowData[0].place === 1) {
-        attendanceLabel += "<a href=\"dl/attestation/" + rowData[0].id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+        attendanceLabel += "<a href=\"dl/attestation/" + rowData[0].id + "\" class=\"ml-4 btn btn-light btn-sm\" title=\"{% trans 'Attestation download' %}\">" +
             "<i class='fa fas fa-download fa-15'></i>" +
             "</a>";
       }
