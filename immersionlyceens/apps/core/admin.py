@@ -1159,7 +1159,6 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
-    change_list_template = "admin/core/universityyear/change_list.html"
     form = UniversityYearForm
     list_display = (
         'label',
@@ -1218,7 +1217,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         js = (
             "js/vendor/jquery/jquery-3.4.1.min.js",
             "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js",
-            "js/admin/annual_purge.js",
         )
         css = {
             "all": (
