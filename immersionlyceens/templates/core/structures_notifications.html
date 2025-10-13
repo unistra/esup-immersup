@@ -48,9 +48,9 @@
 
           <div id="checkAllToggle" class="form-check form-group row">
             <label for="toggleCheck" class="form-check-label col-sm-6" >{% trans "Check all" %}</label>
-            <input type="checkbox" id="toggleAllInput" class="form-check-inline col-sm-2" onClick="check_uncheck_checkbox(this.checked)">
+            <input type="checkbox" id="toggleAllInput" class="form-check-inline col-sm-2" onClick="check_uncheck_checkbox(this.checked)" onKeyDown="if(key === 'Enter' || key === ' ') check_uncheck_checkbox(this.checked)" >
             {% if enabled_disability %}
-              <input type="checkbox" id="toggleAllInputDisability" class="form-check-inline col-sm-2" onClick="check_uncheck_dis_checkbox(this.checked)">
+              <input type="checkbox" id="toggleAllInputDisability" class="form-check-inline col-sm-2" onClick="check_uncheck_dis_checkbox(this.checked)" onKeyDown="if(key === 'Enter' || key === ' ') check_uncheck_checkbox(this.checked)">
             {% endif %}
           </div>
 
