@@ -156,7 +156,7 @@
             <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
             <select id='live_select' style='display:none;'></select>
             <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
-            <label id='ws_message' style='display:none; width:400px;'></label>
+            <span id='ws_message' style='display:none; width:400px;'></span>
             <ul id="id_speakers" class="mt-4"></ul>
             {{ form.speakers.errors }}
             <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
@@ -165,7 +165,7 @@
         {% if can_update %}
         <div class="form-group row">
           <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
-            <a href="{% url 'off_offer_events' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+            <a href="{% url 'off_offer_events' %}" class="btn btn-secondary btn-sm mb-1">{% trans 'Cancel' %}</a>
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">

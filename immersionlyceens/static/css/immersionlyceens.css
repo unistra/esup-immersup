@@ -219,6 +219,10 @@ a.unlink:hover {
     right: 2px;
 }
 
+.more-less-title > button.excluded::after {
+  content: none !important;
+}
+
 .light-bg-secondary {
     background-color: #e1e1e1;
 }
@@ -363,7 +367,7 @@ Firefox is sadly not supporting :has for now :(
     text-align: left;
 }
 
-.results-cards tbody dt {
+.field-label {
     display: inline;
     position: relative;
     float: left;
