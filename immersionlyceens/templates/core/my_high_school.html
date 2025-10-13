@@ -27,7 +27,7 @@
           </div>
           <div class="card-body">
             <div class="form-group row">
-              <label class="col-sm-3">{% trans "Label" %}</label>
+              <label class="col-sm-3" for="id_label">{% trans "Label" %}</label>
               <div class="col-sm-6 text-secondary">
                 <div class="readonly">{{ high_school.label }}</div>
               </div>
@@ -144,7 +144,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3">{% trans "Mailing list" %}</label>
+              <label class="col-sm-3" for="id_mailing_list">{% trans "Mailing list" %}</label>
               <div class="col-sm-6 text-secondary">
                 <div class="readonly">{{ high_school.mailing_list | default:"-" }}</div>
               </div>
@@ -202,19 +202,19 @@
           <div class="card-title card-header">{% trans "Convention" %}</div>
           <div class="card-body">
             <div class="form-group row">
-              <label class="col-sm-3">{% trans "With convention" %}</label>
+              <label class="col-sm-3" for="id_with_convention">{% trans "With convention" %}</label>
               <div class="col-sm-6">
                 <div id="with_convention" class="readonly">{{ high_school.with_convention|yesno }}</div>
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-sm-3">{% trans "Convention start date" %}</label>
+              <label class="col-sm-3" for="id_convention_start_date">{% trans "Convention start date" %}</label>
               <div class="col-sm-6">
                 <div id="convention_start_date" class="readonly">{{ high_school.convention_start_date|default:'-' }}</div>
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-sm-3">{% trans "Convention end date" %}</label>
+              <label class="col-sm-3" for="id_convention_end_date">{% trans "Convention end date" %}</label>
               <div class="col-sm-6">
                 <div id="convention_end_date" class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
               </div>

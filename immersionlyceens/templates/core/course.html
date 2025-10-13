@@ -138,7 +138,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3">
+                        <label for="id_mandatory_speakers" class="col-form-label col-sm-3">
                             <i id='id_mandatory_speakers' class="fa fas fa-asterisk" style="display:none"></i>
                             {% trans 'Speakers' %}
                         </label>
@@ -148,7 +148,7 @@
                                 <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
                                 <select id='live_select' style='display:none;'></select>
                                 <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
-                                <label id='ws_message' style='display:none; width:300px;'></label>
+                                <span id='ws_message' style='display:none; width:300px;'></span>
                                 <ul id="id_speakers" class="mt-4"></ul>
                                 {{ course_form.speakers.errors }}
                                 <input type="hidden" value="" name="speakers_list" id="id_speakers_list">

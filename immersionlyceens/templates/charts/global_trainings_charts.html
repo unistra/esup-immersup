@@ -91,7 +91,7 @@
           </div>
           {% endif %}
           <div class="form-group mx-sm-3 mb-2">
-            <label class="form-check-label ml-md-2">{% trans 'Toggle counts columns' %} : </label>
+            <span class="form-check-label ml-md-2">{% trans 'Toggle counts columns' %} : </span>
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="pupils_cnt_{{ level.label }}">{{ level.label }}</a>
@@ -103,7 +103,7 @@
             - <a class="toggle-vis" href='' data-column="SHOW-ALL-CNTS">{% trans 'Show all' %}</a> / <a class="toggle-vis" href='' data-column="HIDE-ALL-CNTS">{% trans 'Hide all' %}</a>
           </div>
           <div class="form-group mx-sm-3 mb-2">
-            <label class="form-check-label ml-md-2">{% trans 'Toggle registrations columns' %} : </label>
+            <span class="form-check-label ml-md-2">{% trans 'Toggle registrations columns' %} : </span>
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="registrations_{{ level.label }}">{{ level.label }}</a>
