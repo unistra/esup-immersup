@@ -327,7 +327,6 @@ a.unlink:hover {
 }
 
 /*
-
 Firefox is sadly not supporting :has for now :(
 .results-cards tbody tr:not(:has(td.dataTables_empty)) {
     float: left;
@@ -338,7 +337,6 @@ Firefox is sadly not supporting :has for now :(
     border-radius: .15rem;
     box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
 }
-
 */
 
 .results-cards tbody tr {
@@ -346,10 +344,20 @@ Firefox is sadly not supporting :has for now :(
     width: 20rem;
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
-    min-height: max-content;
-    border-radius: .15rem;
+    border-radius: .5rem;
     box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
+    height: 30rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
+
+.results-cards tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0.15rem 0.15rem 0.5rem rgba(0, 0, 0, 0.3);
+    transition: 0.2s ease;
+}
+
 
 .results-cards tbody td {
     display: block;
