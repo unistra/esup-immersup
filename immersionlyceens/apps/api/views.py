@@ -1467,7 +1467,7 @@ def ajax_slot_registration(request):
     user_establishment = user.establishment
     user_highschool = user.highschool
 
-    establishment = slot.get_establishment()
+    slot_establishment = slot.get_establishment()
     slot_structure = slot.get_structure()
     slot_highschool = slot.get_highschool()
 
@@ -1481,7 +1481,7 @@ def ajax_slot_registration(request):
     unpublished_slot_update_conditions = [
         user.is_master_establishment_manager(),
         user.is_operator(),
-        user.is_establishment_manager() and establishment == user_establishment,
+        user.is_establishment_manager() and slot_establishment == user_establishment,
     ]
 
     published_slot_update_conditions = [
@@ -1493,6 +1493,13 @@ def ajax_slot_registration(request):
         and (slot.course or slot.event)
         and slot_highschool
         and user.highschool == slot_highschool,
+    ]
+
+    managers = [
+        user.is_master_establishment_manager(),
+        (user.is_establishment_manager() and slot_establishment == user_establishment),
+        (user.is_structure_manager() and slot_structure in allowed_structures),
+        (user.is_high_school_manager() and slot_highschool == user_highschool),
     ]
 
     # Check registration rights depending on the (not student) authenticated user
@@ -1543,10 +1550,7 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Check if slot date is not passed. The admins can register people even if the date is passed
-    if not (user.is_master_establishment_manager() or
-            user.is_establishment_manager() and establishment == user_establishment or
-            user.is_structure_manager() and structure == allowed_structures or
-            user.is_high_school_manager() and user.highschool == user_highschool):
+    if not managers:
         if slot.date < today or (slot.date == today and today_time > slot.start_time):
             response = {'error': True, 'msg': _("Register to past slot is not possible")}
             return JsonResponse(response, safe=False)
@@ -1571,7 +1575,7 @@ def ajax_slot_registration(request):
             if not can_register_slot:
                 response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
                 return JsonResponse(response, safe=False)
-            if passed_registration_date:
+            if passed_registration_date and not managers:
                 response = {'error': True, 'msg': _("Cannot register slot due to passed registration date")}
                 return JsonResponse(response, safe=False)
 
