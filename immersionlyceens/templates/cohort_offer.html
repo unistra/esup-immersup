@@ -51,6 +51,7 @@
   </section>
   {% endif %}
   <section class="py-5 bg-gray">
+  {% authorized_groups request.user %}
     <div class="container-fluid">
       <nav class="nav nav-pills">
         <a class="nav-item nav-link active" href="#courses" data-toggle="tab">{% trans 'Courses' %}</a>
@@ -75,9 +76,9 @@
                     </header>
                     <div class="card-body">
                       <ul class="list-arrows">
-                        {% if authorized_groups|in_groups:'REF-LYC' %}
+                        {% if authorized_groups|in_groups:"REF-LYC" %}
                           {% for d in subdomain.list %}
-                            {% with slots_number=d.group_public_and_private_subdomain_slots %}
+                            {% with slots_number=d.group_public_and_private_subdomain_slots|length %}
                               <li>
                                 {% if slots_number > 0 %}
                                   <a href="{% url 'cohort_offer_subdomain' d.id %}">{{ d.label }}</a>
@@ -117,7 +118,6 @@
         <!-- Tab Events pan -->
         {% if events_off_offer %}
         <div class="tab-pane" id="events">
-          {% authorized_groups request.user %}
           {% trans 'No city' as no_city %}
           <div class="container-fluid mt-4">
             <p class="text-center">
@@ -303,7 +303,7 @@
                                                       {% blocktrans %}Only one group of {{ total_groups_places }} persons max{% endblocktrans %}
                                                         </span>
                                                         <span class="badge badge-pill {% if s.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ s.registration_limit_date }}</span><br>
-                                                        {% if authorized_groups|in_groups:'REF-LYC' %}
+                                                        {% if authorized_groups|in_groups:"REF-LYC" %}
                                                           {% if not s.allowed_highschools.all or request.user.highschool in s.allowed_highschools.all %}
                                                             {% if s.valid_registration_start_date %}
                                                               <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
@@ -320,7 +320,7 @@
                                                           {% blocktrans  %}group(s) of <span id="group_registrations_counter_{{ pk }}">{{ total_groups }}</span> persons max{% endblocktrans %}
                                                         </span>
                                                         <span class="badge badge-pill {% if s.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ s.registration_limit_date }}</span><br>
-                                                          {% if authorized_groups|in_groups:'REF-LYC' %}
+                                                          {% if authorized_groups|in_groups:"REF-LYC" %}
                                                             {% if not s.allowed_highschools.all or request.user.highschool in s.allowed_highschools.all %}
                                                               {% if s.valid_registration_start_date %}
                                                                 <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
