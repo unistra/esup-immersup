@@ -341,7 +341,7 @@
               {% if use_cas == 'True' %}
                   <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
               {% endif %}
-              <a class="dropdown-item dropdown-collapsible dropdown-toggle" data-toggle="collapse" href="#navbarDropdownSubMenu1" role="button" aria-expanded="false" aria-controls="navbarDropdownSubMenu1">{% trans "Member of "%} ... </a>
+              <button class="dropdown-item dropdown-collapsible dropdown-toggle" data-toggle="collapse" href="#navbarDropdownSubMenu1" aria-expanded="false" aria-controls="navbarDropdownSubMenu1">{% trans "Member of "%} ... </button>
               <div class="collapse bg-light" id="navbarDropdownSubMenu1">
                 {% for establishment in core_establishments %}
                   <a class="dropdown-item pl-4" href="{% if establishment.data_source_plugin %}{% url 'shibboleth_login' %}{% else %}{% url 'immersion:login' profile='speaker' %}{% endif %}">
