@@ -618,6 +618,12 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
         return fieldsets
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.groups.filter(name__in=["ETU", "LYC", "VIS"]).exists():
+            return ['groups', 'establishment', 'highschool', 'structures', 'username']
+
+        return []
+
     class Media:
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
