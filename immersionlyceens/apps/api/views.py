@@ -1808,7 +1808,7 @@ def ajax_group_slot_registration(request):
 
     try:
         guides_count = int(guides_count)
-        assert guides_count > 0
+        assert guides_count >= 0
     except (TypeError, ValueError, AssertionError):
         response = {'error': True, 'msg': _("Invalid value for guides count")}
         return JsonResponse(response, safe=False)

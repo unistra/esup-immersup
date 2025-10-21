@@ -118,7 +118,6 @@
           if (typeof reload_groups_table === 'function') {
             reload_groups_table();
           }
-          // groups_dtr.ajax.reload();
           if (typeof dt != "undefined") {
             dt.ajax.reload();
           }
@@ -126,7 +125,6 @@
         else {
           $("#register_group_feedback").html('<div class="alert alert-success">' + json['msg'] + '</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
-          // groups_dtr.ajax.reload();
           if (typeof reload_groups_table === 'function') {
             reload_groups_table();
           }
