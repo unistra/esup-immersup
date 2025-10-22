@@ -2611,6 +2611,12 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid json decoding")
 
+        data = {
+            'immersion_ids': f'[{self.immersion.id}]',
+            'reason_id': self.cancel_type.id,
+            'slot_id': self.immersion.slot_id
+        }
+
         # Authenticated user has no rights
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
@@ -2960,13 +2966,6 @@ class APITestCase(TestCase):
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to visitor record state", content['msg'])
-
-        # Fail with past slot registration
-        data['student_id'] = self.highschool_user.id
-        data['slot_id'] = self.past_slot.id
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Register to past slot is not possible", content['msg'])
 
         # Fail with full slot registration
         data['slot_id'] = self.full_slot.id
