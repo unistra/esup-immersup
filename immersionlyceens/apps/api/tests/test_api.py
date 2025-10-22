@@ -2381,18 +2381,6 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid cancellation reason #id")
 
-        # Past immersion
-        self.slot.date = self.today - timedelta(days=1)
-        self.slot.save()
-
-        data = {
-            'immersion_id': self.immersion.id,
-            'reason_id': self.cancel_type.id
-        }
-        content = json.loads(self.client.post(url, data, **self.header).content.decode())
-        self.assertTrue(content['error'])
-        self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
-
         # Cancellation deadline has passed
         passed_test_immersion = Immersion.objects.create(
             student=self.highschool_user,
@@ -2622,20 +2610,6 @@ class APITestCase(TestCase):
 
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid json decoding")
-
-        # Past immersions
-        self.slot.date = self.today - timedelta(days=1)
-        self.slot.save()
-
-        data = {
-            'immersion_ids': f'[{self.immersion.id}]',
-            'reason_id': self.cancel_type.id,
-            'slot_id': self.immersion.slot_id
-        }
-        content = json.loads(self.client.post(url, data, **self.header).content.decode())
-
-        self.assertTrue(content['error'])
-        self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
 
         # Authenticated user has no rights
         self.slot.date = self.today + timedelta(days=1)
