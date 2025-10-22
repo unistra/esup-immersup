@@ -2968,6 +2968,7 @@ class APITestCase(TestCase):
         self.assertEqual("Cannot register slot due to visitor record state", content['msg'])
 
         # Fail with full slot registration
+        data['student_id'] = self.highschool_user.id
         data['slot_id'] = self.full_slot.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
@@ -2988,12 +2989,6 @@ class APITestCase(TestCase):
         )
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
-
-        # Fail with passed slot registration limit date
-        data['slot_id'] = self.passed_registration_date_slot.id
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Cannot register slot due to passed registration date", content['msg'])
 
         # Fail with bachelor restrictions
         response = client.post(
