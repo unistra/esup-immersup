@@ -1560,7 +1560,7 @@ def ajax_slot_registration(request):
     passed_registration_date = timezone.localtime() > slot.registration_limit_date
 
     if not can_register_slot or passed_registration_date:
-        if can_force_reg:
+        if can_force_reg or user.is_structure_manager() or user.is_high_school_manager():
             if not force:
                 if not can_register_slot:
                     return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'restrictions'}, safe=False)
