@@ -1751,7 +1751,7 @@ def ajax_slot_registration(request):
 
             response = {
                 'error': error,
-                'msg': "<br>".join(msgs),
+                'msg': "\n".join(msgs),
                 'notify_disability': notify_disability
             }
 
