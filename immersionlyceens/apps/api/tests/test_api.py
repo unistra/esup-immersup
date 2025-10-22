@@ -7,6 +7,7 @@ import unittest
 import codecs
 
 from datetime import datetime, time, timedelta, timezone as datetime_timezone
+from zoneinfo import ZoneInfo
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -745,6 +746,25 @@ class APITestCase(TestCase):
         date = (self.today + timedelta(days=10)).strftime("%Y-%m-%d")
         speaker = self.course.speakers.first()
 
+        future_date_registration = self.today + timedelta(days=9)
+        future_date_cancellation = self.today + timedelta(days=8)
+
+        utc_offset_registration = datetime(
+            future_date_registration.year,
+            future_date_registration.month,
+            future_date_registration.day,
+            10, 0, 0,
+            tzinfo=ZoneInfo("Europe/Paris")
+        ).isoformat(timespec='seconds').split('T')[1]
+
+        utc_offset_cancellation = datetime(
+            future_date_cancellation.year,
+            future_date_cancellation.month,
+            future_date_cancellation.day,
+            10, 0, 0,
+            tzinfo=ZoneInfo("Europe/Paris")
+        ).isoformat(timespec='seconds').split('T')[1]
+
         data = {
             "course": self.course.id,
             "n_places": "30",
@@ -781,91 +801,45 @@ class APITestCase(TestCase):
 
         slot = Slot.objects.get(period=self.period, date=date, course=self.course.pk)
 
-        test_data = {
-            "id":slot.pk,
-            "room":"salle 113",
-            "date":date,
-            "period":self.period.pk,
-            "start_time":"10:00:00",
-            "end_time":"12:00:00",
-            "n_places":30,
-            "n_group_places": None,
-            "additional_information":None,
-            "url":None,
-            "published":False,
-            "place": Slot.FACE_TO_FACE,
-            "establishments_restrictions":False,
-            "levels_restrictions":True,
-            "bachelors_restrictions":False,
-            "course":self.course.pk,
-            "course_type":self.course_type.pk,
-            "event":None,
-            "campus":self.campus.pk,
-            "building":self.building.pk,
-            "speakers":[speaker.id],
-            "allow_individual_registrations": True,
-            "allow_group_registrations": False,
-            "group_mode": 0,
-            "public_group": False,
-            "allowed_establishments":[],
-            "allowed_highschools":[],
-            "allowed_highschool_levels":[1],
-            "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[],
-            "allowed_bachelor_types":[],
-            "allowed_bachelor_mentions":[],
-            "allowed_bachelor_teachings":[],
-            "registration_limit_delay":24,
-            "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "reminder_notification_sent":False,
-        }
-
-        """
-        import dictdiffer
-        print([x for x in dictdiffer.diff(test_data, result)])
-        """
-
         self.assertEqual(result, {
-            "id":slot.pk,
-            "room":"salle 113",
-            "date":date,
+            "id": slot.pk,
+            "room": "salle 113",
+            "date": date,
             "period": self.period.pk,
-            "start_time":"10:00:00",
-            "end_time":"12:00:00",
-            "n_places":30,
+            "start_time": "10:00:00",
+            "end_time": "12:00:00",
+            "n_places": 30,
             "n_group_places": None,
-            "additional_information":None,
-            "url":None,
-            "published":False,
+            "additional_information": None,
+            "url": None,
+            "published": False,
             "place": Slot.FACE_TO_FACE,
-            "establishments_restrictions":False,
-            "levels_restrictions":True,
-            "bachelors_restrictions":False,
-            "course":self.course.pk,
-            "course_type":self.course_type.pk,
-            "event":None,
-            "campus":self.campus.pk,
-            "building":self.building.pk,
-            "speakers":[speaker.id],
+            "establishments_restrictions": False,
+            "levels_restrictions": True,
+            "bachelors_restrictions": False,
+            "course": self.course.pk,
+            "course_type": self.course_type.pk,
+            "event": None,
+            "campus": self.campus.pk,
+            "building": self.building.pk,
+            "speakers": [speaker.id],
             "allow_individual_registrations": True,
             "allow_group_registrations": False,
             "group_mode": 0,
             "public_group": False,
-            "allowed_establishments":[],
-            "allowed_highschools":[],
-            "allowed_highschool_levels":[1],
-            "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[],
-            "allowed_bachelor_types":[],
-            "allowed_bachelor_mentions":[],
-            "allowed_bachelor_teachings":[],
-            "registration_limit_delay":24,
-            "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "reminder_notification_sent":False,
+            "allowed_establishments": [],
+            "allowed_highschools": [],
+            "allowed_highschool_levels": [1],
+            "allowed_student_levels": [],
+            "allowed_post_bachelor_levels": [],
+            "allowed_bachelor_types": [],
+            "allowed_bachelor_mentions": [],
+            "allowed_bachelor_teachings": [],
+            "registration_limit_delay": 24,
+            "cancellation_limit_delay": 48,
+            "registration_limit_date": f"{future_date_registration.date()}T{utc_offset_registration}",
+            "cancellation_limit_date": f"{future_date_cancellation.date()}T{utc_offset_cancellation}",
+            "reminder_notification_sent": False,
         })
 
         # Published course - test missing fields
