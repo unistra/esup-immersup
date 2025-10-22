@@ -1,4 +1,4 @@
-var columns_idx = []
+let columns_idx = []
 
 function init_datatable() {
   let _cohorts_only = typeof cohorts_only === 'boolean' && cohorts_only ? cohorts_only : false;

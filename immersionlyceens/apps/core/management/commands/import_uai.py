@@ -51,9 +51,9 @@ class Command(BaseCommand, Schedulable):
             results = get_json_from_url(f"{url}", headers=headers)
             if isinstance(results, dict):
                 if results.get("http_status_code", None) != 200:
-                    raise Exception("Status %s : %s" % (results.get("http_status_code"), results.get("message")))
+                    raise RuntimeError("Status %s : %s" % (results.get("http_status_code"), results.get("message")))
         except Exception as e:
-            logger.error("Error (get_json_from_url) %s" % (e))
+            logger.error("Error (get_json_from_url) %s" % e)
             returns.append(_("UAI update error (get_json_from_url) : %s") % e)
             return "\n".join(returns)
 
