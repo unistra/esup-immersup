@@ -619,10 +619,16 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         return fieldsets
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and obj.groups.filter(name__in=["ETU", "LYC", "VIS"]).exists():
-            return ['groups', 'establishment', 'highschool', 'structures', 'username']
+        fields = []
 
-        return []
+        if obj:
+            if obj.groups.filter(name__in=["ETU", "LYC", "VIS"]).exists():
+                fields += ['groups', 'establishment', 'highschool', 'structures', 'username']
+
+            if obj.groups.filter(name="ETU").exists():
+                fields.append("email")
+
+        return fields
 
     class Media:
         js = (
