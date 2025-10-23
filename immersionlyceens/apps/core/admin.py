@@ -626,7 +626,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 fields += ['groups', 'establishment', 'highschool', 'structures', 'username']
 
             if obj.groups.filter(name="ETU").exists():
-                fields.append("email")
+                fields += ['email', 'first_name', 'last_name']
 
         return fields
 
