@@ -300,30 +300,30 @@ class HighSchoolStudentRecord(BaseRecord):
         else:
             return []
 
-    def remove_duplicate(self, id=None):
+    def remove_duplicate(self, record_id=None):
         """
         Remove a record id from duplicates list
         """
         try:
-            id = int(id)
+            record_id = int(record_id)
         except ValueError:
             return
 
         if self.duplicates:
             dupes = json.loads(self.duplicates)
             try:
-                dupes.remove(id)
+                dupes.remove(record_id)
                 self.duplicates = json.dumps(dupes) if dupes else None
             except ValueError:
                 pass
 
         if self.solved_duplicates:
             solved_list = self.solved_duplicates.split(',')
-            if str(id) not in solved_list:
-                solved_list.append(str(id))
+            if str(record_id) not in solved_list:
+                solved_list.append(str(record_id))
                 self.solved_duplicates = ','.join(solved_list)
         else:
-            self.solved_duplicates = str(id)
+            self.solved_duplicates = str(record_id)
 
         self.save()
 
@@ -336,7 +336,7 @@ class HighSchoolStudentRecord(BaseRecord):
         records = cls.objects.filter(duplicates__isnull=False)
 
         for record in records:
-            dupes_list.append(tuple(d for d in sorted(json.loads(record.duplicates) + [record.id])))
+            dupes_list.append(tuple(sorted(json.loads(record.duplicates) + [record.id])))
 
         return set(dupes_list)
 

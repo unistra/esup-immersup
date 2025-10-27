@@ -1,6 +1,7 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
 import datetime
+import logging
 
 from collections import OrderedDict
 from django_countries.serializers import CountryFieldMixin
@@ -139,7 +140,8 @@ class SpeakerSerializer(ImmersionUserSerializer):
         try:
             user = super().create(validated_data)
             Group.objects.get(name='INTER').user_set.add(user)
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             raise
 
         return user

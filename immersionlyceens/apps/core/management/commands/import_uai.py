@@ -51,9 +51,9 @@ class Command(BaseCommand, Schedulable):
             results = get_json_from_url(f"{url}", headers=headers)
             if isinstance(results, dict):
                 if results.get("http_status_code", None) != 200:
-                    raise Exception("Status %s : %s" % (results.get("http_status_code"), results.get("message")))
+                    raise RuntimeError("Status %s : %s" % (results.get("http_status_code"), results.get("message")))
         except Exception as e:
-            logger.error("Error (get_json_from_url) %s" % (e))
+            logger.error("Error (get_json_from_url) %s" % e)
             returns.append(_("UAI update error (get_json_from_url) : %s") % e)
             return "\n".join(returns)
 
@@ -66,13 +66,13 @@ class Command(BaseCommand, Schedulable):
             code = result.get('code', None)
 
             data = {
-                'city': None or result['city'],
-                'academy': None or result['academy'],
+                'city': result.get('city', None),
+                'academy': result.get('academy', None),
                 'label': result['label'],
             }
 
             try:
-                obj, created = UAI.objects.update_or_create(
+                _obj, created = UAI.objects.update_or_create(
                     code=code,
                     defaults=data
                 )

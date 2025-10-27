@@ -161,7 +161,7 @@ class ParserFaker:
                     "libelle": cls.add_tooltip("creneau.batiment.libelle", "Musée d'art moderne (MoMa)"),
                     "lien": cls.add_tooltip(
                         "creneau.batiment.lien",
-                        format_html(f"<a href='https://www.moma.org/'>https://www.moma.org/</a>")
+                        format_html("<a href='https://www.moma.org/'>https://www.moma.org/</a>")
                     ),
                 },
                 "campus": {
@@ -171,7 +171,7 @@ class ParserFaker:
                 "temoindistanciel": place == Slot.REMOTE,
                 "lien": cls.add_tooltip(
                     "creneau.lien",
-                    format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
+                    format_html("<a href='https://unistra.fr/'>https://unistra.fr/</a>")
                 ),
                 "cours": {
                     "libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
@@ -465,7 +465,8 @@ class Parser:
         if user:
             try:
                 agent_federation = GeneralSettings.get_setting("ACTIVATE_FEDERATION_AGENT")
-            except:
+            except Exception as e:
+                logger.error(e)
                 agent_federation = False
 
             local_account = not any([

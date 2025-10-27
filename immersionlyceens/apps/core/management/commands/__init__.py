@@ -2,7 +2,7 @@ class Schedulable:
     """
     Class for commands we want to configure in 'Scheduled tasks'
     """
-    schedulable = True
+    _schedulable = True
 
     def is_schedulable(self):
-        return self.schedulable
+        return self._schedulable

@@ -45,7 +45,7 @@ def hijack_permissions(*, hijacker, hijacked):
                 return True
 
             # Establishment manager could hijack students, visitors and high school students from anywhere
-            elif (
+            if (
                 hijacker.is_establishment_manager() and
                 hijacked.is_high_school_manager() or hijacked.is_visitor() or hijacked.is_student() or hijacked.is_high_school_student()
             ):

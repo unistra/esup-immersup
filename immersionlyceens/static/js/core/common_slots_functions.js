@@ -204,7 +204,6 @@ function display_group_informations(row) {
   if(row.allow_group_registrations === true) {
     const ONE_GROUP = 0
     let group_data = `${group_registrations_txt}`
-    let details = ''
     let public_private = row.public_group ? public_group_txt : private_group_txt;
     let public_private_icon = row.public_group ? "fa-eye" : "fa-eye-slash"
 

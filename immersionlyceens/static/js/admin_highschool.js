@@ -4,8 +4,8 @@ $(document).on('change', 'select#id_department', function() {
     type: 'GET',
     success(data) {
       let options = '<option value="">---------</option>'
-      for (let i = 0; i < data.length; i++) {
-        options += `<option value="${data[i][0]}">${data[i][0]}</option>`
+      for (const item of data) {
+        options += `<option value="${item[0]}">${item[0]}</option>`
       }
       $('select#id_city').html(options)
     },
@@ -18,12 +18,12 @@ $(document).on('change', 'select#id_city', () => {
     url: `/geoapi/zipcodes/${$('select#id_department').val()}/${$('select#id_city').val()}`,
     type: 'GET',
     success(data) {
-      var options = '<option value="">---------</option>'
+      let options = '<option value="">---------</option>'
       if (data.length === 1) {
         options = `<option value="${data[0][0]}">${data[0][0]}</option>`
       } else {
-        for (let i = 0; i < data.length; i++) {
-          options += `<option value="${data[i][0]}">${data[i][0]}</option>`
+        for (const item of data){
+          options += `<option value="${item[0]}">${item[0]}</option>`
         }
 
       }
@@ -46,8 +46,8 @@ if ($(this).val() != 'FR') {
     type: 'GET',
     success(data) {
       let options = '<option value="">---------</option>'
-      for (let i = 0; i < data.length; i++) {
-        options += `<option value="${data[i][0]}">${data[i][1]}</option>`
+      for (const item of data) {
+        options += `<option value="${item[0]}">${item[1]}</option>`
       }
       $('select#id_department').html(options)
     },
@@ -76,7 +76,6 @@ $(document).on('change', 'input#id_uses_student_federation', function() {
 
 // init
 $(document).ready(function() {
-  var uai_results = Object()
 
   function toggle_fields() {
     if ($("#id_postbac_immersion").is(':checked')) {

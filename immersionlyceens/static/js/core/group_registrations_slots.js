@@ -116,6 +116,7 @@ function init_datatable() {
         let face_to_face = 0
         let remote = 1
         let outside = 2
+        let txt
 
         if (type === 'filter') {
           if (row.place === face_to_face) {

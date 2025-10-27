@@ -31,9 +31,9 @@ class Command(BaseCommand, Schedulable):
 
         try:
             slot_unsubscribe_delay = int(GeneralSettings.get_setting("AUTO_SLOT_UNSUBSCRIBE_DELAY"))
-        except:
+        except Exception as e:
             msg = _("AUTO_SLOT_UNSUBSCRIBE_DELAY missing or invalid, please check your configuration.")
-            logger.error(msg)
+            logger.error(msg, exc_info=e)
             raise CommandError(msg)
 
         try:
