@@ -4370,13 +4370,13 @@ def ajax_keep_entries(request):
         logger.debug("Duplicates : remove %s from %s", couple[0], couple[1])
         try:
             record = HighSchoolStudentRecord.objects.get(pk=int(couple[0]))
-            record.remove_duplicate(id=couple[1])
+            record.remove_duplicate(record_id=couple[1])
         except (HighSchoolStudentRecord.DoesNotExist, ValueError):
             response['error'] = gettext("An error occurred while clearing duplicates data")
 
         try:
             record = HighSchoolStudentRecord.objects.get(pk=int(couple[1]))
-            record.remove_duplicate(id=couple[0])
+            record.remove_duplicate(record_id=couple[0])
         except (HighSchoolStudentRecord.DoesNotExist, ValueError):
             response['error'] = gettext("An error occurred while clearing duplicates data")
 

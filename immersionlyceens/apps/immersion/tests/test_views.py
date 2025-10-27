@@ -1025,7 +1025,7 @@ class ImmersionViewsTestCase(TestCase):
 
         self.assertTrue(record.has_duplicates())
         self.assertEqual(record.get_duplicates(), [4,5,6])
-        record.remove_duplicate(id=5)
+        record.remove_duplicate(record_id=5)
         self.assertEqual(record.get_duplicates(), [4,6])
         self.assertEqual(record.solved_duplicates, "5")
 

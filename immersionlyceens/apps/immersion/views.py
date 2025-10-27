@@ -396,7 +396,7 @@ def shibboleth_login(request, profile=None):
         """
 
         # Check registration dates
-        is_reg_possible, _, year = check_active_year()
+        is_reg_possible, _obj, year = check_active_year()
 
         if not year or not is_reg_possible:
             messages.warning(request, _("Sorry, you can't register right now."))
@@ -710,7 +710,7 @@ def set_email(request):
 
 def register(request, profile=None):
     # Is current university year valid ?
-    is_reg_possible, _, year = check_active_year()
+    is_reg_possible, _obj, year = check_active_year()
 
     if not year or not is_reg_possible:
         messages.warning(request, _("Sorry, you can't register right now."))
@@ -1370,7 +1370,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     has_mandatory_attestations = False
 
                     for attestation in attestations:
-                        _, created = HighSchoolStudentRecordDocument.objects.update_or_create(
+                        _obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
                             record=record,
                             attestation=attestation,
                             archive=False,
@@ -2311,7 +2311,7 @@ class VisitorRecordView(FormView):
                     has_mandatory_attestations = False
 
                     for attestation in attestations:
-                        _, created = VisitorRecordDocument.objects.update_or_create(
+                        _obj, created = VisitorRecordDocument.objects.update_or_create(
                             record=record,
                             attestation=attestation,
                             archive=False,
