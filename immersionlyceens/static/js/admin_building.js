@@ -6,9 +6,10 @@ $(document).ready(function() {
       success(data) {
         let selected
         let options = '<option value="">---------</option>'
-        for (let i = 0; i < data.length; i++) {
-          selected = parseInt($('#id_campus').val()) === data[i]['id'] ? "selected=selected" : ""
-          options += `<option ${selected} value="${data[i]['id']}">${data[i]['label']}</option>`
+        const campusId = parseInt($('#id_campus').val());
+        for (const item of data) {
+          const selected = campusId === item.id ? "selected" : "";
+          options += `<option ${selected} value="${item.id}">${item.label}</option>`;
         }
         $('select#id_campus').html(options)
       },

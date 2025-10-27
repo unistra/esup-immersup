@@ -85,8 +85,8 @@ class AccountAPI(BaseAccountsAPI):
                 raise
 
     @classmethod
-    def get_plugin_attrs(self):
-        return self.attrs_list
+    def get_plugin_attrs(cls):
+        return cls.attrs_list
 
     def set_tls(self):
         """
