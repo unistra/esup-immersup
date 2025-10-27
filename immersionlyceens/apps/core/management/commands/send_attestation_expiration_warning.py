@@ -29,9 +29,9 @@ class Command(BaseCommand, Schedulable):
 
         try:
             expiration_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
-        except:
+        except Exception as e:
             msg = _("ATTESTATION_DOCUMENT_DEPOSIT_DELAY setting is missing, please check your configuration.")
-            logger.error(msg)
+            logger.error(msg, exc_info=e)
             raise CommandError(msg)
 
         expiration_date = today + datetime.timedelta(days=expiration_delay)

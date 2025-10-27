@@ -66,13 +66,13 @@ class Command(BaseCommand, Schedulable):
             code = result.get('code', None)
 
             data = {
-                'city': None or result['city'],
-                'academy': None or result['academy'],
+                'city': result.get('city', None),
+                'academy': result.get('academy', None),
                 'label': result['label'],
             }
 
             try:
-                obj, created = UAI.objects.update_or_create(
+                _, created = UAI.objects.update_or_create(
                     code=code,
                     defaults=data
                 )

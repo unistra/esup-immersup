@@ -700,7 +700,8 @@ def set_session_values(request, pagename=None, values=None):
     if not isinstance(values, dict):
         try:
             values = json.loads(values)
-        except:
+        except Exception as e:
+            logging.error(e)
             # bad format
             return JsonResponse({}, safe=False)
 

@@ -905,7 +905,6 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-# TODO: check rights
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def ajax_get_immersions(request, user_id=None):
     """
@@ -1890,6 +1889,7 @@ def ajax_group_slot_registration(request):
                     'msg': _("This email seems invalid : %s. Please check the field format.") % email,
                 }
                 return JsonResponse(response, safe=False)
+                break
         else:
             emails = ",".join(cleaned_emails)
 
@@ -2592,7 +2592,6 @@ def ajax_groups_batch_cancel_registration(request):
             return JsonResponse(response, safe=False)
 
         # Cancellation reason
-        # TODO : check that the reason is compatible with groups immersions
         try:
             cancellation_reason = CancelType.objects.get(pk=reason_id)
         except CancelType.DoesNotExist:
@@ -4636,8 +4635,6 @@ class SpeakerList(ManyMixin, generics.ListCreateAPIView):
 
         if user:
             user.send_message(self.request, 'CPT_CREATE')
-            # TODO : check send message return
-
 
 class UserList(generics.ListAPIView):
     """
@@ -4928,7 +4925,8 @@ class CourseDetail(generics.RetrieveUpdateDestroyAPIView):
                 data = get_or_create_user(self.request, data)
                 if data:
                     serializer_kwargs["data"] = data
-            except Exception:
+            except Exception as e:
+                logger.exception(e)
                 raise
 
         return super().get_serializer(**serializer_kwargs)
@@ -5391,7 +5389,7 @@ class VisitorRecordRejectValidate(View):
 @is_ajax_request
 @is_post_request
 @groups_required("REF-ETAB", "REF-LYC")
-def signCharter(request):
+def sign_charter(request):
     data = {"msg": "", "error": ""}
     success = False
     user = request.user
@@ -5638,7 +5636,7 @@ def ajax_update_structures_notifications(request):
     structures = request.user.get_authorized_structures().filter(id__in=ids).values_list('id', flat=True)
     dis_structures = request.user.get_authorized_structures().filter(id__in=dis_ids).values_list('id', flat=True)
 
-    settings, created = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
+    settings, _ = RefStructuresNotificationsSettings.objects.get_or_create(user=request.user)
 
     if not structures and not dis_structures:
         settings.delete()

@@ -1,4 +1,6 @@
 import importlib
+import logging
+
 import magic
 import mimetypes
 import re
@@ -752,7 +754,8 @@ class VacationForm(forms.ModelForm):
         # existence if an active university year
         try:
             univ_year = UniversityYear.get_active()
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             raise
 
         if not univ_year:

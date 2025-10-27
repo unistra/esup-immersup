@@ -94,14 +94,15 @@ class CustomAdminSite(admin.AdminSite):
             else:
                 app['models'] = list(
                     filter(
-                        lambda m: m['object_name'] in settings.ADMIN_MODELS_ORDER.get(lower_app_name),
+                        lambda m, app_name=lower_app_name: \
+                            m['object_name'] in settings.ADMIN_MODELS_ORDER.get(app_name),
                         app['models'],
                     )
                 )
 
                 app['models'].sort(
-                    key=lambda x: self.find_in_list(
-                        settings.ADMIN_MODELS_ORDER[lower_app_name], x.get('object_name')
+                    key=lambda x, app_name=lower_app_name: self.find_in_list(
+                        settings.ADMIN_MODELS_ORDER[app_name], x.get('object_name')
                     )
                 )
 
@@ -1482,7 +1483,6 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
     class Media:
-        # TODO: check why I can't use django.jquery stuff !!!!!
         if settings.USE_GEOAPI:
             js = (
                 'js/jquery-3.4.1.slim.min.js',

@@ -134,7 +134,7 @@ class CustomLoginView(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         profile: Optional[str] = self.kwargs.get("profile")
-        is_reg_possible, is_year_valid, year = check_active_year()
+        _, is_year_valid, year = check_active_year()
         if not profile and (not year or not is_year_valid):
             self.invalid_year(year)
 
@@ -206,7 +206,7 @@ class CustomLoginView(FormView):
             return super().get_success_url()
 
 
-def loginChoice(request, profile=None):
+def login_choice(request, profile=None):
     """
     :param request:
     :param profile:
@@ -214,7 +214,7 @@ def loginChoice(request, profile=None):
     """
     intro_connection_code = None
     intro_connection = ""
-    is_reg_possible, is_year_valid, year = check_active_year()
+    is_reg_possible, _, year = check_active_year()
 
     if profile == "lyc" and (not year or not is_reg_possible):
         messages.warning(request, _("Sorry, you can't register right now."))
@@ -281,7 +281,7 @@ def loginChoice(request, profile=None):
 
 
 @login_optional
-def shibbolethLogin(request, profile=None):
+def shibboleth_login(request, profile=None):
     """
     """
     enabled_students = get_general_setting('ACTIVATE_STUDENTS')
@@ -376,6 +376,13 @@ def shibbolethLogin(request, profile=None):
                 )
             )
         )
+
+        #affiliations = {
+        #    aff.partition('@')[0]
+        #    for attr in one_of_affiliations
+        #    for aff in shib_attrs.pop(attr, '').split(";")
+        #    if aff.strip()
+        #}
     except Exception as e:
         logger.warning(e)
         affiliations = []
@@ -389,7 +396,7 @@ def shibbolethLogin(request, profile=None):
         """
 
         # Check registration dates
-        is_reg_possible, is_year_valid, year = check_active_year()
+        is_reg_possible, _, year = check_active_year()
 
         if not year or not is_reg_possible:
             messages.warning(request, _("Sorry, you can't register right now."))
@@ -418,7 +425,8 @@ def shibbolethLogin(request, profile=None):
             # Check allowed etu_stages
             try:
                 etu_stage = shib_attrs.get('etu_stage').split("}")[1]
-            except:
+            except Exception as e:
+                logger.error(e)
                 # Not found or incorrect
                 etu_stage = ""
 
@@ -457,12 +465,15 @@ def shibbolethLogin(request, profile=None):
         try:
             shib_attrs['username'] = shib_attrs.get('username', "").split(",")[0].strip().lower()
             shib_attrs['email'] = shib_attrs['email'].strip().lower()
-        except:
+        except Exception as e:
+            logger.error(e)
             # KeyError ? nothing to do
             pass
 
+    mandatory_attrs_present = (attr in shib_attrs for attr in mandatory_attributes)
+
     # parse affiliations:
-    if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
+    if not all(mandatory_attrs_present) or not affiliations:
         logger.error(
             f"Some mandatory attributes ({mandatory_attributes}) have not been found in shibboleth ones: {shib_attrs}"
         )
@@ -642,7 +653,7 @@ def shibbolethLogin(request, profile=None):
 
 @login_required
 @groups_required("LYC")
-def setEmail(request):
+def set_email(request):
     """
     This form must be used by high school students after first connection from EduConnect
     to add their email to their account
@@ -699,7 +710,7 @@ def setEmail(request):
 
 def register(request, profile=None):
     # Is current university year valid ?
-    is_reg_possible, is_year_valid, year = check_active_year()
+    is_reg_possible, _, year = check_active_year()
 
     if not year or not is_reg_possible:
         messages.warning(request, _("Sorry, you can't register right now."))
@@ -745,8 +756,8 @@ def register(request, profile=None):
             try:
                 if get_general_setting('ACTIVATE_VISITORS') and registration_type == "vis":
                     group_name = "VIS"
-            except:
-                logger.info("ACTIVATE_VISITORS setting not found")
+            except Exception as e:
+                logger.info("ACTIVATE_VISITORS setting not found", exc_info=e)
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)
@@ -927,10 +938,10 @@ class ActivateView(View):
     def get(self, request, *args, **kwargs):
         redirect_url = reverse("home")
 
-        hash = kwargs.get("hash", None)
-        if hash:
+        _hash = kwargs.get("hash", None)
+        if _hash:
             try:
-                user = ImmersionUser.objects.get(validation_string=hash)
+                user = ImmersionUser.objects.get(validation_string=_hash)
                 user.validate_account()
                 user.email_validation_date = timezone.now()
                 user.save()
@@ -1072,10 +1083,10 @@ class LinkView(View):
     redirect_url: str = "/immersion/link_accounts"
 
     def get(self, request, *args, **kwargs):
-        hash = kwargs.get("hash", None)
-        if hash:
+        _hash = kwargs.get("hash", None)
+        if _hash:
             try:
-                pending_link = PendingUserGroup.objects.get(validation_string=hash)
+                pending_link = PendingUserGroup.objects.get(validation_string=_hash)
                 u1 = pending_link.immersionuser1
                 u2 = pending_link.immersionuser2
 
@@ -1107,7 +1118,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
     High school student record
     """
     template_name: str = 'immersion/hs_record.html'
-    redirect_url: str = reverse('immersion:hs_record')
     record = None
     student = None
     create_documents = False
@@ -1360,7 +1370,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     has_mandatory_attestations = False
 
                     for attestation in attestations:
-                        obj, created = HighSchoolStudentRecordDocument.objects.update_or_create(
+                        _, created = HighSchoolStudentRecordDocument.objects.update_or_create(
                             record=record,
                             attestation=attestation,
                             archive=False,
@@ -1428,8 +1438,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 match record.validation:
                     case HighSchoolStudentRecord.VALIDATED:
                         record.set_status("TO_REVALIDATE")
-                    case HighSchoolStudentRecord.TO_REVALIDATE:
-                        pass
                     case _:
                         record.set_status("TO_VALIDATE")
 
@@ -1718,7 +1726,7 @@ def student_record(request, student_id=None, record_id=None):
                     else:
                         messages.warning(
                             request,
-                            _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
+                            _("""You have updated your email address.<br>A new activation email has been sent.""")
                         )
                         student.email_change_date = timezone.now()
                         student.save(update_fields=['email_change_date'])
@@ -1787,8 +1795,6 @@ def student_record(request, student_id=None, record_id=None):
 
                 if not quota_form_valid:
                     messages.error(request, _("You have errors in Immersion periods section"))
-            else:
-                no_quota_form = True
         else:
             record.set_status("TO_COMPLETE")
             record.save()
@@ -1912,7 +1918,7 @@ def immersion_attestation_download(request, immersion_id):
             user=student,
             request=request,
             message_body=tpl.body,
-            vars=[v for v in tpl.available_vars.all()],
+            vars=list(tpl.available_vars.all()),
             immersion=immersion,
             slot=immersion.slot,
         )
@@ -2305,7 +2311,7 @@ class VisitorRecordView(FormView):
                     has_mandatory_attestations = False
 
                     for attestation in attestations:
-                        obj, created = VisitorRecordDocument.objects.update_or_create(
+                        _, created = VisitorRecordDocument.objects.update_or_create(
                             record=record,
                             attestation=attestation,
                             archive=False,
@@ -2374,8 +2380,6 @@ class VisitorRecordView(FormView):
                 match record.validation:
                     case VisitorRecord.VALIDATED:
                         record.set_status("TO_REVALIDATE")
-                    case VisitorRecord.TO_REVALIDATE:
-                        pass
                     case _:
                         record.set_status("TO_VALIDATE")
             elif record.validation == VisitorRecord.TO_COMPLETE:

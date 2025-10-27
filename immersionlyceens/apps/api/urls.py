@@ -108,7 +108,7 @@ urlpatterns = [
     path('course_alerts', views.UserCourseAlertList.as_view(), name='user_course_alert_list'),
 
     # Charter
-    path('sign_charter', views.signCharter, name="sign_charter"),
+    path('sign_charter', views.sign_charter, name="sign_charter"),
 
     # Mailing lists
     path("mailing_list/global", views.MailingListGlobalView.as_view(), name="mailing_list_global"),
