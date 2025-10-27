@@ -23,14 +23,14 @@ urlpatterns = [
 
     path("login", views.CustomLoginView.as_view(), name="login"),
     path("logout", views.CustomShibbolethLogoutView.as_view(), name="logout"),
-    path("login_choice/<profile>", views.loginChoice, name="login_choice"),
+    path("login_choice/<profile>", views.login_choice, name="login_choice"),
     path("login/<profile>", views.CustomLoginView.as_view(), name="login"),
 
     path('recovery', views.RecoveryView.as_view(), name='recovery'),
 
     path('register', views.register, name='register'),
     path('register/<profile>', views.register, name='register'),
-    path('set_email', views.setEmail, name='set_email'),
+    path('set_email', views.set_email, name='set_email'),
 
     path('resend_activation', views.ResendActivationView.as_view(), name='resend_activation'),
 

@@ -1,13 +1,13 @@
 // default dates settings
-var _dates_options = { dateStyle: 'long' };
-var _dates_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
+let _dates_options = { dateStyle: 'long' };
+let _dates_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
 
 function getCookie(name) {
   let cookieValue = null
   if (document.cookie && document.cookie != '') {
     let cookies = document.cookie.split(';')
-    for (let i = 0; i < cookies.length; i++) {
-      let cookie = $.trim(cookies[i])
+    for (const item of cookies) {
+      let cookie = $.trim(item)
       // Does this cookie string begin with the name we want?
       if (cookie.substring(0, name.length + 1) == (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
@@ -114,7 +114,7 @@ function findBootstrapEnvironment() {
 
   let curEnv = envs.shift();
 
-  for (let env of envs.reverse()) {
+  for (let env of envs.toReversed()) {
     el.classList.add(`d-${env}-none`);
 
     if (window.getComputedStyle(el).display === 'none') {

@@ -5,7 +5,7 @@ from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from immersionlyceens.apps.immersion.views import shibbolethLogin
+from immersionlyceens.apps.immersion.views import shibboleth_login
 
 from .apps.core import views as core_views
 from .views import (
@@ -64,7 +64,7 @@ urlpatterns = [
     path('procedure', procedure, name='procedure'),
     path('search_slots', search_slots, name='search_slots'),
     path('shib_secure/', include('shibboleth.urls', namespace='shibboleth')),
-    path('shib/', shibbolethLogin, name='shibboleth_login'),
+    path('shib/', shibboleth_login, name='shibboleth_login'),
     path("ckeditor5/", include('django_ckeditor_5.urls')),
     path('cohort_offer', cohort_offer, name='cohort_offer'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -65,7 +65,7 @@ class FileBackend(BaseEmailBackend):
         self.file_path = getattr(settings, 'EMAIL_FILE_PATH', None)
         if os.path.exists(self.file_path)\
                 and not os.path.isdir(self.file_path):
-            raise Exception('EMAIL_FILE_PATH parameter %s is not a directory'
+            raise RuntimeError('EMAIL_FILE_PATH parameter %s is not a directory'
                             % self.file_path)
         elif not os.path.exists(self.file_path):
             os.makedirs(self.file_path)

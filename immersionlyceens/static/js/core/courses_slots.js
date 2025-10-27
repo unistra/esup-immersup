@@ -1,6 +1,6 @@
 // var selected_slots = Array()
-var selected_slots = {"values": Array()}
-var columns_idx = []
+let selected_slots = {"values": Array()}
+let columns_idx = []
 
 function slot_mass_update() {
     let slots_array = $("input:checkbox[name=select_for_mass_update]:checked")

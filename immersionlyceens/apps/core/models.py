@@ -995,7 +995,8 @@ class ImmersionUser(AbstractUser):
         """
         try:
             request_agreement = GeneralSettings.get_setting("REQUEST_FOR_STUDENT_AGREEMENT")
-        except:
+        except Exception as e:
+            logger.error(e)
             request_agreement = False
 
         # Setting disabled : return True
@@ -1408,7 +1409,8 @@ class Training(models.Model):
                         _("A Training object with the same high school and label already exists")
                     )
 
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(e)
             raise
 
     class Meta:
@@ -1467,7 +1469,8 @@ class Campus(models.Model):
                         _("A Campus object with the same establishment and label already exists")
                     )
 
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(e)
             raise
 
     class Meta:
@@ -1731,7 +1734,7 @@ class UniversityYear(models.Model):
         except UniversityYear.DoesNotExist:
             return None
         except UniversityYear.MultipleObjectsReturned as e:
-            raise Exception(_("Error : multiple active university years")) from e
+            raise RuntimeError(_("Error : multiple active university years")) from e
 
     def __str__(self):
         """str"""
@@ -1914,7 +1917,8 @@ class Period(models.Model):
 
         try:
             return Period.objects.get(pk=pk, immersion_start_date__lte=date, immersion_end_date__gte=date)
-        except Period.DoesNotExist:
+        except Period.DoesNotExist as e:
+            logger.error(e)
             raise
 
     def __str__(self):
@@ -1940,7 +1944,8 @@ class Period(models.Model):
                     raise ValidationError(
                         _("A Period object with the same label already exists")
                     )
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(e)
             raise
 
     def save(self, *args, **kwargs):
@@ -2171,7 +2176,8 @@ class Course(models.Model):
                     raise ValidationError(
                         _("A Course object with the same structure/high school, training and label already exists")
                     )
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(e)
             raise
 
     def is_displayed(self):
@@ -2436,7 +2442,8 @@ class OffOfferEvent(models.Model):
                     raise ValidationError(
                         _("An off offer event with the same attachments and label already exists")
                     )
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(e)
             raise
 
     def is_displayed(self):
@@ -2506,7 +2513,8 @@ class MailTemplate(models.Model):
             user=user,
             request=request,
             message_body=self.body,
-            vars=[v for v in self.available_vars.all()], **kwargs,
+            vars=list(self.available_vars.all()),
+            **kwargs,
         )
 
     def parse_vars_faker(self, user, request, **kwargs):
@@ -2515,7 +2523,7 @@ class MailTemplate(models.Model):
             user=user,
             request=request,
             message_body=self.body,
-            available_vars=[v for v in self.available_vars.all()],
+            available_vars=list(self.available_vars.all()),
             **kwargs,
         )
 
@@ -2526,7 +2534,7 @@ class MailTemplate(models.Model):
             user=user,
             request=request,
             message_body=body,
-            available_vars=[v for v in self.available_vars.all()],
+            available_vars=list(self.available_vars.all()),
             **kwargs,
         )
 
@@ -3556,7 +3564,7 @@ class ImmersionGroupRecord(models.Model):
 
         contacts = self.emails.split(',')
         recipients = list(
-            set(contacts).union(set(hsm.email for hsm in high_school_managers if hsm.email != main_manager.email))
+            set(contacts).union({hsm.email for hsm in high_school_managers if hsm.email != main_manager.email})
         )
 
         # Send a confirmation message to highschool managers and all contacts
@@ -3601,7 +3609,7 @@ class GeneralSettings(models.Model):
         try:
             return cls.objects.get(setting__iexact=name).parameters["value"]
         except (cls.DoesNotExist, KeyError) as e:
-            raise Exception(
+            raise RuntimeError(
                 _("General setting '%s' is missing or incorrect. Please check your settings.") % name
             ) from e
 

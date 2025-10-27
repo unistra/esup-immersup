@@ -1098,7 +1098,7 @@ class OffOfferEventForm(forms.ModelForm):
 
         speakers_list = json.loads(self.data.get('speakers_list', []))
 
-        current_speakers = list(instance.speakers.all().values_list('username', flat=True))
+        current_speakers = set(instance.speakers.all().values_list('username', flat=True))
         new_speakers = [speaker.get('username') for speaker in speakers_list]
 
         # speakers to add
@@ -1147,7 +1147,7 @@ class OffOfferEventForm(forms.ModelForm):
                     instance.speakers.add(speaker_user)
 
         # speakers to remove
-        remove_list = set(current_speakers) - set(new_speakers)
+        remove_list = current_speakers - set(new_speakers)
         for username in remove_list:
             try:
                 user = ImmersionUser.objects.get(username=username)

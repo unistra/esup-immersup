@@ -66,15 +66,15 @@ class Command(BaseCommand, Schedulable):
         )
 
         for structure in structures:
-            slot_list = [
-                s for s in Slot.objects.prefetch_related("course__structure", "event__structure")
+            slot_list = list(
+                Slot.objects.prefetch_related("course__structure", "event__structure")
                     .filter(
                         Q(course__structure=structure)|Q(event__structure=structure),
                         date__gte=slot_min_date,
                         date__lte=slot_max_date,
                         published=True
                     ).order_by('date', 'start_time')
-            ]
+            )
 
             logger.debug("======= Structure : %s", structure.label)
             for s in slot_list:

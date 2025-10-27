@@ -67,7 +67,8 @@ def hijack_clean_session_vars(sender, hijacker, hijacked, request, **kwargs):
         ]
 
     for page, vars in session_vars.items():
-        map(lambda x:request.session.pop(x, None), vars)
+        for x in vars:
+            request.session.pop(x, None)
 
 signals.hijack_started.connect(hijack_clean_session_vars)
 
@@ -334,7 +335,7 @@ def course(request, course_id=None, duplicate=False):
                     "current_establishment_id": new_course.structure.establishment.id if new_course.structure else ""
                 })
 
-                current_speakers = [u for u in new_course.speakers.all().values_list('username', flat=True)]
+                current_speakers = list(new_course.speakers.all().values_list('username', flat=True))
                 new_speakers = [speaker.get('username') for speaker in speakers_list]
 
                 # speakers to add
@@ -836,7 +837,8 @@ class TrainingList(generic.TemplateView):
             training_quota = GeneralSettings.get_setting("ACTIVATE_TRAINING_QUOTAS")
             context['activated_training_quotas'] = training_quota['activate']
             context['training_quotas_value'] = training_quota['default_quota']
-        except:
+        except Exception as e:
+            logger.error(e)
             context['activated_training_quotas'] = False
 
         return context
@@ -1365,7 +1367,7 @@ def course_slot_mass_update(request):
     ]
 
     m2m_annotations = {
-        "%s_pks" % m2m: ArrayAgg(F'%s' % m2m) for m2m in m2ms
+        "%s_pks" % m2m: ArrayAgg("%s" % m2m) for m2m in m2ms
     }
 
     m2m_aggregations = {
@@ -1483,7 +1485,7 @@ def course_slot_mass_update(request):
                     "mass_levels_restrictions", "keep") == "update"
                 update_bachelors_restrictions = mass_update_form.cleaned_data.get(
                     "mass_bachelors_restrictions", "keep") == "update"
-                update_speakers = mass_update_form.cleaned_data.get(f"mass_speakers", "keep") == "update"
+                update_speakers = mass_update_form.cleaned_data.get("mass_speakers", "keep") == "update"
 
                 if published and mass_update_published:
                     mandatory_fields = ['start_time', 'end_time', 'course_type', 'room']

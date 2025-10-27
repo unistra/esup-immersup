@@ -614,7 +614,7 @@ def get_global_trainings_charts(request):
         if training.highschool:
             establishment = _("High school") + f" {training.highschool.label} ({training.highschool.city})"
         else:
-            establishment = "<br>".join(set(sorted([s.establishment.label for s in training.structures.all()])))
+            establishment = "<br>".join(sorted(set([s.establishment.label for s in training.structures.all()])))
             structure = "<br>".join(sorted([s.label for s in training.structures.filter(active=True)]))
 
         base_persons_qs = ImmersionUser.objects\
@@ -667,7 +667,7 @@ def get_global_trainings_charts(request):
             Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
             .distinct().count()
 
-        row[f"students_registrations"] = base_immersions_qs.filter(
+        row["students_registrations"] = base_immersions_qs.filter(
             Q(student__high_school_student_record__level__in=post_bachelor_levels) |
             Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
             .count()
