@@ -55,6 +55,10 @@ hr {
   box-sizing: content-box;
   height: 0;
   overflow: visible;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 h1,
@@ -173,6 +177,9 @@ pre {
   margin-top: 0;
   margin-bottom: 1rem;
   overflow: auto;
+  display: block;
+  font-size: 87.5%;
+  color: #212529;
 }
 
 figure {
@@ -423,13 +430,6 @@ h6,
   line-height: 1.2;
 }
 
-hr {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  border: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
 small,
 .small {
   font-size: 80%;
@@ -548,12 +548,6 @@ kbd kbd {
   padding: 0;
   font-size: 100%;
   font-weight: 700;
-}
-
-pre {
-  display: block;
-  font-size: 87.5%;
-  color: #212529;
 }
 
 pre code {
@@ -3761,7 +3755,7 @@ input[type="button"].btn-block {
 .dropright .dropdown-toggle::after {
   display: inline-block;
   margin-left: 0.255em;
-  vertical-align: 0.255em;
+  vertical-align: 0;
   content: "";
   border-top: 0.3em solid transparent;
   border-right: 0;
@@ -3773,10 +3767,6 @@ input[type="button"].btn-block {
   margin-left: 0;
 }
 
-.dropright .dropdown-toggle::after {
-  vertical-align: 0;
-}
-
 .dropleft .dropdown-menu {
   top: 0;
   right: 100%;
@@ -3786,20 +3776,16 @@ input[type="button"].btn-block {
 }
 
 .dropleft .dropdown-toggle::after {
-  display: inline-block;
+  display: none;
   margin-left: 0.255em;
   vertical-align: 0.255em;
   content: "";
 }
 
-.dropleft .dropdown-toggle::after {
-  display: none;
-}
-
 .dropleft .dropdown-toggle::before {
   display: inline-block;
   margin-right: 0.255em;
-  vertical-align: 0.255em;
+  vertical-align: 0;
   content: "";
   border-top: 0.3em solid transparent;
   border-right: 0.3em solid;
@@ -3808,10 +3794,6 @@ input[type="button"].btn-block {
 
 .dropleft .dropdown-toggle:empty::after {
   margin-left: 0;
-}
-
-.dropleft .dropdown-toggle::before {
-  vertical-align: 0;
 }
 
 .dropdown-menu[x-placement^="top"],
@@ -5048,6 +5030,7 @@ input[type="button"].btn-block {
 .navbar-expand>.container-xl {
   padding-right: 0;
   padding-left: 0;
+  flex-wrap: nowrap;
 }
 
 .navbar-expand .navbar-nav {
@@ -5061,15 +5044,6 @@ input[type="button"].btn-block {
 .navbar-expand .navbar-nav .nav-link {
   padding-right: 1rem;
   padding-left: 1rem;
-}
-
-.navbar-expand>.container,
-.navbar-expand>.container-fluid,
-.navbar-expand>.container-sm,
-.navbar-expand>.container-md,
-.navbar-expand>.container-lg,
-.navbar-expand>.container-xl {
-  flex-wrap: nowrap;
 }
 
 .navbar-expand .navbar-collapse {
@@ -5431,10 +5405,6 @@ input[type="button"].btn-block {
   padding-right: 0.5rem;
   color: #6c757d;
   content: "/";
-}
-
-.breadcrumb-item+.breadcrumb-item:hover::before {
-  text-decoration: underline;
 }
 
 .breadcrumb-item+.breadcrumb-item:hover::before {
