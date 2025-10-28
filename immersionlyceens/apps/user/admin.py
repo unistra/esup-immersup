@@ -367,14 +367,7 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return any(valid_groups)
 
     def has_module_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
+        return self.has_view_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
         """
@@ -516,15 +509,7 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return any(conditions)
 
     def has_change_permission(self, request, obj=None):
-        conditions = [
-            request.user.is_superuser,
-            request.user.is_operator(),
-            request.user.is_master_establishment_manager(),
-            request.user.is_establishment_manager() and obj and
-                obj.structures.all().intersection(request.user.get_authorized_structures()).exists(),
-        ]
-
-        return any(conditions)
+        return self.has_delete_permission(request, obj)
 
 
 class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -545,13 +530,7 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
         return any(valid_groups)
 
     def has_view_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
+        return self.has_module_permission(request)
 
     def has_add_permission(self, request):
         return request.user.is_superuser or request.user.is_operator()
@@ -566,13 +545,7 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
         return any(valid_groups)
 
     def has_change_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_operator(),
-            request.user.is_master_establishment_manager(),
-        ]
-
-        return any(valid_groups)
+        return self.has_delete_permission(request, obj)
 
     get_immersionusers.short_description = _('Linked users')
     get_immersionusers.allow_tags = True

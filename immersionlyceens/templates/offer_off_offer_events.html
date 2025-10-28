@@ -91,6 +91,11 @@
                               {% if s.event.is_displayed and s.published %}
                                 <div class="table-responsive">
                                   <table class="table table-bordered">
+                                    <thead>
+                                      <tr>
+                                        <th style="display: none;">{% trans "Event slot number " %}{{ forloop.counter }}</th>
+                                      </tr>
+                                    </thead>
                                     <tbody>
                                       <tr>
                                         <td style="width: 15%">

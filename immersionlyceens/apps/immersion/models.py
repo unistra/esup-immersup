@@ -268,7 +268,7 @@ class HighSchoolStudentRecord(BaseRecord):
             self.save()
 
             for id in ids_list:
-                other_ids_list = sorted([self.id] + [i for i in ids_list if i != id])
+                other_ids_list = [self.id] + [i for i in ids_list if i != id]
                 try:
                     record = HighSchoolStudentRecord.objects.get(pk=id)
                     solved_duplicates = {

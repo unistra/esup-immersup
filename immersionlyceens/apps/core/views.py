@@ -46,7 +46,6 @@ from .models import (
 )
 
 from .serializers import PeriodSerializer
-from ..context_processors import establishments
 
 logger = logging.getLogger(__name__)
 
