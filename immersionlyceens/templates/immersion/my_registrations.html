@@ -431,7 +431,7 @@
       var actions = ""
 
       if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym> " + rowData[0].free_seats + ' / ' + rowData[0].n_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><abbr title='{% trans "Individual immersions" %}' >Ind.</abbr> " + rowData[0].free_seats + ' / ' + rowData[0].n_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
 
@@ -810,7 +810,7 @@
       let outside = 2;
       let attendanceLabel = rowData[0].attendance;
       if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym> " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_registered)) + ' / ' + rowData[0].n_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><abbr title='{% trans "Individual immersions" %}' >Ind.</abbr> " + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_registered)) + ' / ' + rowData[0].n_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
       if(rowData[0].attendance_status === 1 || rowData[0].place === 1) {
@@ -1162,7 +1162,7 @@
       let actions = ""
 
       if (rowData[0].allow_individual_registrations === true) {
-        availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Individual immersions" %}' >Ind.</acronym>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_registered)) + ' / ' + rowData[0].n_places + '</li>'
+        availablesSeatslabel += "<li class='list-inline-item'><abbr title='{% trans "Individual immersions" %}' >Ind.</abbr>" + (parseInt(rowData[0].n_places)-parseInt(rowData[0].n_registered)) + ' / ' + rowData[0].n_places + '</li>'
       } else {
         filteredRows.push('row_available_seats');
       }

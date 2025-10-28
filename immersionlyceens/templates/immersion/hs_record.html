@@ -213,22 +213,22 @@
             {{ document_form.record }}
             {{ document_form.attestation }}
             <div class="form-group row align-items-center">
-              <label class="col-sm-3 col-md-4 col-form-label">
+              <span class="col-sm-3 col-md-4 col-form-label">
                 {{ document_form.attestation_label }} {% if document_form.instance.mandatory %}*{% endif %} :
-              </label>
+              </span>
               <div class="col-sm-3 col-md-4">{{ document_form.document }}</div>
               <div class="col-sm-4 col-md-4">{{ document_form.document.errors }}</div>
             </div>
             {% if document_form.instance.deposit_date %}
             <div class="form-group row align-items-center">
-              <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Deposit date' %}</label>
+              <span class="col-sm-3 col-md-4 col-form-label">{% trans 'Deposit date' %}</span>
               <div class="col-sm-3 col-md-4">{{ document_form.instance.deposit_date }}</div>
             </div>
             {% endif %}
             {% if document_form.instance.requires_validity_date %}
               {% if document_form.validity_required or document_form.validity_date.value %}
                 <div class="form-group row align-items-center">
-                  <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</label>
+                  <span class="col-sm-3 col-md-4 col-form-label">{% trans 'Validity date' %}</span>
                   {% if document_form.validity_required %}
                     <div class="col-sm-3 col-md-4">{{ document_form.validity_date }}</div>
                     <div class="col-sm-4 col-md-4">{{ document_form.validity_date.errors }}</div>
@@ -244,7 +244,7 @@
             {% endif %}
             {% if document_form.attestation_template %}
               <div class="form-group row align-items-center">
-                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Template' %}</label>
+                <span class="col-sm-3 col-md-4 col-form-label">{% trans 'Template' %}</span>
                 <div class="col-sm-3 col-md-4">
                   <a target='_blank' href="{{ document_form.attestation_template.url }}">{% trans 'Get document template' %}</a>
                 </div>
@@ -252,7 +252,7 @@
             {% endif %}
             {% if archives|keyvalue:document_form.instance.attestation.id and not request.user.is_high_school_student %}
               <div class="form-group row align-items-center">
-                <label class="col-sm-3 col-md-4 col-form-label">{% trans 'Archives' %}</label>
+                <span class="col-sm-3 col-md-4 col-form-label">{% trans 'Archives' %}</span>
                 <div class="col-sm-9 col-md-8">
                   <ul class="filelinks">
                   {% for archive in archives|keyvalue:document_form.instance.attestation.id %}
@@ -287,9 +287,9 @@
                 {{ quota_form.period }}
                 <div class="form-group row align-items-center">
                   <div class="col-sm-5">
-                    <label class="col-form-label">
+                    <span class="col-form-label">
                       {{ quota_form.period_label }}
-                    </label>
+                    </span>
                   </div>
                   <div class="col-sm-2 col-form-label">
                     {% trans 'allowed immersions' %} :
@@ -303,9 +303,9 @@
               {% for quota in user_quotas|dictsort:"period.immersion_start_date" %}
                 <div class="form-group row align-items-center">
                   <div class="col-sm-5">
-                    <label class="col-form-label">
+                    <span class="col-form-label">
                       {{ quota.period }}
-                    </label>
+                    </span>
                   </div>
                   <div class="col-sm-2 col-form-label">
                     {% trans 'allowed immersions' %} :
@@ -325,7 +325,7 @@
             {% for period in future_periods|dictsort:"immersion_start_date" %}
               <div class="form-group row align-items-center">
                 <div class="col-sm-5">
-                  <label class="col-form-label">
+                  <label for="{{ period.id_for_label }}" class="col-form-label">
                     {{ period }}
                   </label>
                 </div>
@@ -344,16 +344,16 @@
       <div class="card-body">
         {% if record.creation_date %}
         <div class="form-group row align-items-center">
-            <label class="col-sm-4 col-form-label">
+            <span class="col-sm-4 col-form-label">
               {% trans 'Record creation date' %} :
-            </label>
+            </span>
             <div class="col-sm-4">
               {{ record.creation_date }}
             </div>
         </div>
         {% endif %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">{% trans "File status" %} :</label>
+          <span class="col-sm-4 col-form-label">{% trans "File status" %} :</span>
           <div class="col-sm-4">
 
             {% if record.validation == 0 or record.validation == 5 %}
@@ -382,9 +382,9 @@
         </div>
         {% if record.validation_date %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-4 col-form-label">
+            <span class="col-sm-4 col-form-label">
               {% trans 'Record validation date' %} :
-            </label>
+            </span>
             <div class="col-sm-8">
               {{ record.validation_date }}
             </div>
