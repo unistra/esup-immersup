@@ -24,7 +24,7 @@
                 <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
                 <thead>
                   <tr>
-                    <th></th>
+                    <th scope="row"></th>
                     {% if activate_disability.activate %}
                       <th scope="col">{% trans 'Disabled person' context 'header' %}</th>
                     {% endif %}
@@ -43,7 +43,7 @@
                     {% else %}
                       <th colspan='7' scope="colgroup"></th>
                     {% endif %}
-                    <th>
+                    <th scope="row">
                       <div id="id_update_attendances" style="display:none">
                         <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
                           <i class='fa fas fa-check'></i>
@@ -53,7 +53,7 @@
                         </button>
                       </div>
                     </th>
-                    <th></th>
+                    <th scope="row"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -125,7 +125,7 @@
                 <table id="groups_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;">
                 <thead>
                   <tr>
-                    <th></th>
+                    <th scope="row"></th>
                     <th scope="col">{% trans 'Educational establishment' %}</th>
                     <th scope="col">{% trans 'City' %}</th>
                     <th scope="col">{% trans 'People' %}</th>
@@ -135,8 +135,8 @@
                     <th scope="col">{% trans 'Date of registration' %}</th>
                   </tr>
                   <tr id="id_groups_attendances">
-                    <th colspan='6'></th>
-                    <th>
+                    <th scope="row" colspan='6'></th>
+                    <th scope="row">
                       <div id="id_groups_update_attendances" style="display:none">
                         <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_groups_attendances(1)" title="{% trans 'Set all present' %}">
                           <i class='fa fas fa-check'></i>
@@ -146,7 +146,7 @@
                         </button>
                       </div>
                     </th>
-                    <th></th>
+                    <th scope="row"></th>
                   </tr>
                 </thead>
                 <tbody>

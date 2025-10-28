@@ -1555,7 +1555,7 @@ def ajax_slot_registration(request):
             return JsonResponse(response, safe=False)
 
     # Slot restrictions validation
-    can_register_slot, reasons = student.can_register_slot(slot)
+    can_register_slot, _obj = student.can_register_slot(slot)
     passed_registration_date = timezone.localtime() > slot.registration_limit_date
 
     if not can_register_slot or passed_registration_date:

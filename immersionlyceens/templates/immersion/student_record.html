@@ -130,9 +130,9 @@
             {{ quota_form.period }}
             <div class="form-group row align-items-center">
               <div class="col-sm-5">
-                <label class="col-form-label">
+                <span class="col-form-label">
                   {{ quota_form.period_label }}
-                </label>
+                </span>
               </div>
               <div class="col-sm-2 col-form-label">
                 {% trans 'allowed immersions' %} :
@@ -146,9 +146,9 @@
           {% for quota in record.quota.all|dictsort:"period.immersion_start_date" %}
             <div class="form-group row align-items-center">
               <div class="col-sm-5">
-                <label class="col-form-label">
+                <span class="col-form-label">
                   {{ quota.period }}
-                </label>
+                </span>
               </div>
               <div class="col-sm-2 col-form-label">
                 {% trans 'allowed immersions' %} :
@@ -167,9 +167,9 @@
         {% for period in future_periods|dictsort:"immersion_start_date" %}
           <div class="form-group row align-items-center">
             <div class="col-sm-5">
-              <label class="col-form-label">
+              <span class="col-form-label">
                 {{ period }}
-              </label>
+              </span>
             </div>
             <div class="col-sm-2 col-form-label">
               {% trans 'allowed immersions' %} :

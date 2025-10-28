@@ -1,15 +1,5 @@
-// var selected_slots = Array()
 let selected_slots = {"values": Array()}
 let columns_idx = []
-
-function slot_mass_update() {
-    let slots_array = $("input:checkbox[name=select_for_mass_update]:checked")
-        .map(function (){
-          return $(this).val();
-        }).toArray();
-
-    window.location.href = "/core/";
-}
 
 function init_datatable() {
   let _show_duplicate_btn = typeof show_duplicate_btn === 'boolean' && !show_duplicate_btn ? show_duplicate_btn : true;

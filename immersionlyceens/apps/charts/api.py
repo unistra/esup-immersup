@@ -614,7 +614,7 @@ def get_global_trainings_charts(request):
         if training.highschool:
             establishment = _("High school") + f" {training.highschool.label} ({training.highschool.city})"
         else:
-            establishment = "<br>".join(sorted(set([s.establishment.label for s in training.structures.all()])))
+            establishment = "<br>".join(sorted({s.establishment.label for s in training.structures.all()}))
             structure = "<br>".join(sorted([s.label for s in training.structures.filter(active=True)]))
 
         base_persons_qs = ImmersionUser.objects\

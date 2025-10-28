@@ -214,7 +214,7 @@ def login_choice(request, profile=None):
     """
     intro_connection_code = None
     intro_connection = ""
-    is_reg_possible, _, year = check_active_year()
+    is_reg_possible, _obj, year = check_active_year()
 
     if profile == "lyc" and (not year or not is_reg_possible):
         messages.warning(request, _("Sorry, you can't register right now."))
@@ -281,12 +281,10 @@ def login_choice(request, profile=None):
 
 
 @login_optional
-def shibboleth_login(request, profile=None):
+def shibboleth_login(request):
     """
     """
     enabled_students = get_general_setting('ACTIVATE_STUDENTS')
-    enabled_student_federation = get_general_setting('ACTIVATE_EDUCONNECT')
-    enabled_agent_federation = get_general_setting('ACTIVATE_FEDERATION_AGENT')
     group_name = None
     record_highschool = None
     level = None
@@ -298,14 +296,13 @@ def shibboleth_login(request, profile=None):
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
     """
-    # hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
+    #hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
     hs = HighSchool.objects.filter(
         label="Lycée Jean-Jacques Henner",
         uses_student_federation=True,
         active=True,
         uai_codes__isnull=False
     ).first()
-
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
         "first_name": "Jean-Jacques",
@@ -365,24 +362,12 @@ def shibboleth_login(request, profile=None):
 
     # Extract all affiliations, clean empty lists and remove scopes (something@domain)
     try:
-        affiliations = set(
-            map(lambda a:a.partition('@')[0],
-                reduce(
-                    lambda a,b:a+b,
-                    filter(
-                        lambda a: a != [''],
-                        [shib_attrs.pop(attr, '').split(";") for attr in one_of_affiliations]
-                    )
-                )
-            )
-        )
-
-        #affiliations = {
-        #    aff.partition('@')[0]
-        #    for attr in one_of_affiliations
-        #    for aff in shib_attrs.pop(attr, '').split(";")
-        #    if aff.strip()
-        #}
+        affiliations = {
+            aff.partition('@')[0]
+            for attr in one_of_affiliations
+            for aff in shib_attrs.pop(attr, '').split(";")
+            if aff.strip()
+        }
     except Exception as e:
         logger.warning(e)
         affiliations = []
@@ -467,8 +452,6 @@ def shibboleth_login(request, profile=None):
             shib_attrs['email'] = shib_attrs['email'].strip().lower()
         except Exception as e:
             logger.error(e)
-            # KeyError ? nothing to do
-            pass
 
     mandatory_attrs_present = (attr in shib_attrs for attr in mandatory_attributes)
 
