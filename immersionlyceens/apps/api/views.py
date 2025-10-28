@@ -804,6 +804,15 @@ def ajax_cancel_registration(request):
     allowed_structures = user.get_authorized_structures()
     ret = None
 
+    # Check usability
+    managers = [
+        user.is_establishment_manager(),
+        user.is_master_establishment_manager(),
+        user.is_high_school_manager(),
+        user.is_operator(),
+        user.is_structure_manager(),
+    ]
+
     # FIXME : test request.user rights on immersion.slot
 
     if not immersion_id or not reason_id:
@@ -813,7 +822,7 @@ def ajax_cancel_registration(request):
             immersion = Immersion.objects.prefetch_related("slot__course", "student", "slot__speakers").get(
                 pk=immersion_id
             )
-            if immersion.slot.date < today.date() or (
+            if not any(managers) and immersion.slot.date < today.date() or (
                 immersion.slot.date == today.date() and immersion.slot.start_time < today.time()
             ):
                 response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
@@ -845,16 +854,6 @@ def ajax_cancel_registration(request):
                 return JsonResponse(response, safe=False)
 
             cancellation_reason = CancelType.objects.get(pk=reason_id)
-
-            # Check usability
-            managers = [
-                request.user.is_establishment_manager(),
-                request.user.is_master_establishment_manager(),
-                request.user.is_high_school_manager(),
-                request.user.is_operator(),
-                request.user.is_structure_manager(),
-            ]
-
             students = [request.user.is_high_school_student(), request.user.is_visitor(), request.user.is_student()]
 
             if (
@@ -1467,7 +1466,7 @@ def ajax_slot_registration(request):
     user_establishment = user.establishment
     user_highschool = user.highschool
 
-    establishment = slot.get_establishment()
+    slot_establishment = slot.get_establishment()
     slot_structure = slot.get_structure()
     slot_highschool = slot.get_highschool()
 
@@ -1481,7 +1480,7 @@ def ajax_slot_registration(request):
     unpublished_slot_update_conditions = [
         user.is_master_establishment_manager(),
         user.is_operator(),
-        user.is_establishment_manager() and establishment == user_establishment,
+        user.is_establishment_manager() and slot_establishment == user_establishment,
     ]
 
     published_slot_update_conditions = [
@@ -1493,6 +1492,13 @@ def ajax_slot_registration(request):
         and (slot.course or slot.event)
         and slot_highschool
         and user.highschool == slot_highschool,
+    ]
+
+    managers = [
+        user.is_master_establishment_manager(),
+        (user.is_establishment_manager() and slot_establishment == user_establishment),
+        (user.is_structure_manager() and slot_structure in allowed_structures),
+        (user.is_high_school_manager() and slot_highschool == user_highschool),
     ]
 
     # Check registration rights depending on the (not student) authenticated user
@@ -1543,10 +1549,7 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Check if slot date is not passed. The admins can register people even if the date is passed
-    if not (user.is_master_establishment_manager() or
-            user.is_establishment_manager() and establishment == user_establishment or
-            user.is_structure_manager() and structure == allowed_structures or
-            user.is_high_school_manager() and user.highschool == user_highschool):
+    if not managers:
         if slot.date < today or (slot.date == today and today_time > slot.start_time):
             response = {'error': True, 'msg': _("Register to past slot is not possible")}
             return JsonResponse(response, safe=False)
@@ -1556,7 +1559,7 @@ def ajax_slot_registration(request):
     passed_registration_date = timezone.localtime() > slot.registration_limit_date
 
     if not can_register_slot or passed_registration_date:
-        if can_force_reg:
+        if can_force_reg or user.is_structure_manager() or user.is_high_school_manager():
             if not force:
                 if not can_register_slot:
                     return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'restrictions'}, safe=False)
@@ -1571,7 +1574,7 @@ def ajax_slot_registration(request):
             if not can_register_slot:
                 response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
                 return JsonResponse(response, safe=False)
-            if passed_registration_date:
+            if passed_registration_date and not managers:
                 response = {'error': True, 'msg': _("Cannot register slot due to passed registration date")}
                 return JsonResponse(response, safe=False)
 
@@ -1747,7 +1750,7 @@ def ajax_slot_registration(request):
 
             response = {
                 'error': error,
-                'msg': "<br>".join(msgs),
+                'msg': "\n".join(msgs),
                 'notify_disability': notify_disability
             }
 
@@ -1804,7 +1807,7 @@ def ajax_group_slot_registration(request):
 
     try:
         guides_count = int(guides_count)
-        assert guides_count > 0
+        assert guides_count >= 0
     except (TypeError, ValueError, AssertionError):
         response = {'error': True, 'msg': _("Invalid value for guides count")}
         return JsonResponse(response, safe=False)
@@ -2382,6 +2385,15 @@ def ajax_batch_cancel_registration(request):
     mail_returns = set()
     allowed_structures = user.get_authorized_structures()
 
+    # Check usability
+    managers = [
+        user.is_establishment_manager(),
+        user.is_master_establishment_manager(),
+        user.is_high_school_manager(),
+        user.is_operator(),
+        user.is_structure_manager(),
+    ]
+
     if not all([immersion_ids, reason_id, slot_id]):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
@@ -2414,13 +2426,12 @@ def ajax_batch_cancel_registration(request):
             and user.highschool == slot_highschool,
         ]
 
-
         if not any(valid_conditions):
             response = {'error': True, 'msg': _("You don't have enough privileges to cancel these registrations")}
             return JsonResponse(response, safe=False)
 
         # Check slot date
-        if slot.date < today.date() or (slot.date == today.date() and slot.start_time < today.time()):
+        if not any(managers) and slot.date < today.date() or (slot.date == today.date() and slot.start_time < today.time()):
             response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
             return JsonResponse(response, safe=False)
 
@@ -2431,16 +2442,7 @@ def ajax_batch_cancel_registration(request):
             response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
             return JsonResponse(response, safe=False)
 
-        # Check usability
-        managers = [
-            request.user.is_establishment_manager(),
-            request.user.is_master_establishment_manager(),
-            request.user.is_high_school_manager(),
-            request.user.is_operator(),
-            request.user.is_structure_manager(),
-        ]
-
-        students = [request.user.is_high_school_student(), request.user.is_visitor(), request.user.is_student()]
+        students = [user.is_high_school_student(), user.is_visitor(), user.is_student()]
 
         if (
             not cancellation_reason.usable_for_students
@@ -2545,6 +2547,15 @@ def ajax_groups_batch_cancel_registration(request):
     mail_returns = set()
     allowed_structures = user.get_authorized_structures()
 
+    # Check usability for groups
+    managers = [
+        user.is_establishment_manager(),
+        user.is_master_establishment_manager(),
+        user.is_high_school_manager(),
+        user.is_operator(),
+        user.is_structure_manager(),
+    ]
+
     if not all([groups_immersion_ids, reason_id, slot_id]):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
@@ -2587,7 +2598,7 @@ def ajax_groups_batch_cancel_registration(request):
             return JsonResponse(response, safe=False)
 
         # Check slot date
-        if slot.date < today.date() or (slot.date == today.date() and slot.start_time < today.time()):
+        if not any(managers) and slot.date < today.date() or (slot.date == today.date() and slot.start_time < today.time()):
             response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
             return JsonResponse(response, safe=False)
 
@@ -2598,16 +2609,7 @@ def ajax_groups_batch_cancel_registration(request):
             response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
             return JsonResponse(response, safe=False)
 
-        # Check usability for groups
-        managers = [
-            request.user.is_establishment_manager(),
-            request.user.is_master_establishment_manager(),
-            request.user.is_high_school_manager(),
-            request.user.is_operator(),
-            request.user.is_structure_manager(),
-        ]
-
-        students = [request.user.is_high_school_student(), request.user.is_visitor(), request.user.is_student()]
+        students = [user.is_high_school_student(), user.is_visitor(), user.is_student()]
 
         if (
             not cancellation_reason.usable_for_groups

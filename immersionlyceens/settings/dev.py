@@ -149,4 +149,4 @@ if EXTRA_LOCALE_PATH:
 ###########################
 UAI_API_URL = environ.get("UAI_API_URL", "")
 UAI_API_AUTH_HEADER = environ.get("UAI_API_AUTH_HEADER", "")
-UAI_API_SEARCH_ATTR = environ.get("UAI_API_SEARCH_ATTR", "")
+

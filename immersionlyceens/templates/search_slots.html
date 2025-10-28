@@ -328,7 +328,16 @@
         url: "{% url 'search_slots_list' %}",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
-            return json['data']['slots'];
+
+            const userIsRefLyc = {{ authorized_groups|in_groups:"REF-LYC"|yesno:"true,false" }};
+
+            // If user is REF-LYC, the private cohort immersions are shown
+            return json['data']['slots'].filter(slot => {
+                if (slot.allow_group_registrations === true && slot.public_group === false) {
+                    return userIsRefLyc;
+              }
+              return true;
+            });
           }
         }
       },
@@ -648,7 +657,6 @@
             filteredRows.push('row_highschool');
           }
       }
-
 
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";

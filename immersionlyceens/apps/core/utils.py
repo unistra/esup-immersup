@@ -166,15 +166,6 @@ def slots(request):
         elif highschool_id:
             filters['event__highschool__id'] = highschool_id
 
-        if period_id:
-            kw_courses_filters = {'period__id': period_id}
-            kw_events_filters = {'period__id': period_id}
-
-            args_filters.append(
-                Q(**kw_courses_filters)
-                | Q(**kw_events_filters)
-            )
-
         user_filter_key = ['course__training__structures__in', 'event__structure__in']
 
     elif events:
@@ -186,13 +177,6 @@ def slots(request):
                 filters['event__structure__id'] = structure_id
         elif highschool_id:
             filters['event__highschool__id'] = highschool_id
-
-        if period_id:
-            kw_events_filters = {'period__id': period_id}
-
-            args_filters.append(
-                Q(**kw_events_filters)
-            )
 
         user_filter_key = "event__structure__in"
 
@@ -208,14 +192,11 @@ def slots(request):
         if training_id is not None:
             filters['course__training__id'] = training_id
 
-        if period_id:
-            kw_courses_filters = {'period__id': period_id}
-
-            args_filters.append(
-                Q(**kw_courses_filters)
-            )
-
         user_filter_key = "course__training__structures__in"
+
+    # period filter
+    if period_id:
+        filters['period__id'] = period_id
 
     if cohorts_only:
         filters['allow_group_registrations'] = True
@@ -262,6 +243,7 @@ def slots(request):
         'allowed_bachelor_mentions',
         'allowed_bachelor_teachings',
         'group_immersions',
+        'period'
     ).filter(*args_filters, **filters)
 
     if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
@@ -387,7 +369,8 @@ def slots(request):
                     & (
                         Q(
                             Value(user.is_structure_manager()),
-                            Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                            Q(course__structure__in=allowed_structures)
+                            | Q(event__structure__in=allowed_structures),
                         )
                         | Q(
                             Value(user.is_high_school_manager()),
@@ -406,7 +389,8 @@ def slots(request):
                         Q(Value(user.is_speaker())) & Q(speakers=user)
                         | Q(
                             Value(user.is_structure_manager()),
-                            Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                            Q(course__structure__in=allowed_structures)
+                            | Q(event__structure__in=allowed_structures),
                         )
                         | Q(
                             Value(user.is_high_school_manager()),
@@ -451,7 +435,8 @@ def slots(request):
             ),
             structure_managed_by_me=Case(
                 When(
-                    Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures), then=True
+                    Q(course__structure__in=allowed_structures)
+                    | Q(event__structure__in=allowed_structures), then=True
                 ),
                 default=False,
             ),
@@ -482,7 +467,11 @@ def slots(request):
             is_past=ExpressionWrapper(
                 Q(date__lt=today) | Q(date=today, start_time__lt=now), output_field=BooleanField()
             ),
-            valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
+            valid_immersions=Count(
+                'immersions',
+                filter=Q(immersions__cancellation_type__isnull=True),
+                distinct=True
+            ),
             attendances_to_enter=Count(
                 'immersions',
                 filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
@@ -604,13 +593,12 @@ def slots(request):
                 distinct=True
             ),
             user_has_group_immersions=Case(
-                When(Q(group_immersions_count__gte=1), then=True),
+                When(
+                    Q(group_immersions_count__gte=1, group_immersions__cancellation_type__isnull=True),
+                    then=True
+                ),
                 default=False
             ),
-            user_is_registered=Q(
-                immersions__student=user,
-                immersions__cancellation_type__isnull=True
-            )
         )
         .order_by('date', 'start_time')
         .values(
@@ -681,7 +669,6 @@ def slots(request):
             'registration_start_date',
             'valid_registration_start_date',
             'user_has_group_immersions',
-            'user_is_registered'
         )
     )
 

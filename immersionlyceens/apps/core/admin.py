@@ -619,6 +619,18 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
         return fieldsets
 
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+
+        if obj:
+            if obj.groups.filter(name__in=["ETU", "LYC", "VIS"]).exists():
+                fields += ['groups', 'establishment', 'highschool', 'structures', 'username']
+
+            if obj.groups.filter(name="ETU").exists():
+                fields += ['email', 'first_name', 'last_name']
+
+        return fields
+
     class Media:
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
@@ -1160,7 +1172,6 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
-    change_list_template = "admin/core/universityyear/change_list.html"
     form = UniversityYearForm
     list_display = (
         'label',
@@ -1219,7 +1230,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         js = (
             "js/vendor/jquery/jquery-3.4.1.min.js",
             "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js",
-            "js/admin/annual_purge.js",
         )
         css = {
             "all": (

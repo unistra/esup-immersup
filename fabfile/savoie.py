@@ -3,7 +3,7 @@
 
 import pydiploy
 from fabric.api import env, execute, roles, task
-# from . import build_env
+from .map_settings import map_settings
 
 @roles(['web', 'shib'])
 def build_env():
@@ -30,32 +30,7 @@ def preprod_savoie():
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'preprod'
     env.socket_port = '8001'
-    env.map_settings = {
-        'default_db_host': "DATABASES['default']['HOST']",
-        'default_db_user': "DATABASES['default']['USER']",
-        'default_db_password': "DATABASES['default']['PASSWORD']",
-        'default_db_name': "DATABASES['default']['NAME']",
-        'secret_key': "SECRET_KEY",
-        'cas_redirect_url': "CAS_REDIRECT_URL",
-        'release': "RELEASE",
-        's3_access_key': "AWS_ACCESS_KEY_ID",
-        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
-        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
-        's3_endpoint': "AWS_S3_ENDPOINT_URL",
-        'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
-        'use_unistra_theme': "UNISTRA",
-        'email_host': "EMAIL_HOST",
-        'email_port': "EMAIL_PORT",
-        'email_use_tls': "EMAIL_USE_TLS",
-        'email_ssl_on_connect': "EMAIL_SSL_ON_CONNECT",
-        'email_host_user': "EMAIL_HOST_USER",
-        'email_host_password': "EMAIL_HOST_PASSWORD",
-        'force_email_address': "FORCE_EMAIL_ADDRESS",
-        'default_from_email': "DEFAULT_FROM_EMAIL",
-        'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
-    }
+    env.map_settings = map_settings
     execute(build_env)
 
 
@@ -80,30 +55,5 @@ def prod_savoie():
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'prod'
     env.socket_port = '8001'
-    env.map_settings = {
-        'default_db_host': "DATABASES['default']['HOST']",
-        'default_db_user': "DATABASES['default']['USER']",
-        'default_db_password': "DATABASES['default']['PASSWORD']",
-        'default_db_name': "DATABASES['default']['NAME']",
-        'secret_key': "SECRET_KEY",
-        'cas_redirect_url': "CAS_REDIRECT_URL",
-        'release': "RELEASE",
-        's3_access_key': "AWS_ACCESS_KEY_ID",
-        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
-        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
-        's3_endpoint': "AWS_S3_ENDPOINT_URL",
-        'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
-        'use_unistra_theme': "UNISTRA",
-        'email_host': "EMAIL_HOST",
-        'email_port': "EMAIL_PORT",
-        'email_use_tls': "EMAIL_USE_TLS",
-        'email_ssl_on_connect': "EMAIL_SSL_ON_CONNECT",
-        'email_host_user': "EMAIL_HOST_USER",
-        'email_host_password': "EMAIL_HOST_PASSWORD",
-        'force_email_address': "FORCE_EMAIL_ADDRESS",
-        'default_from_email': "DEFAULT_FROM_EMAIL",
-        'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
-    }
+    env.map_settings = map_settings
     execute(build_env)

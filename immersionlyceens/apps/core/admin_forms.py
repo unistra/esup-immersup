@@ -1058,24 +1058,27 @@ class ImmersionUserChangeForm(UserChangeForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        if self.fields and self.fields.get('highschool'):
-            self.fields["highschool"].queryset = HighSchool.objects.all().order_by("city", "label")
+        if self.fields:
+            if self.fields.get('highschool'):
+                self.fields["highschool"].queryset = HighSchool.objects.all().order_by("city", "label")
 
-        if self.fields and self.fields.get('structures'):
-            self.fields["structures"] = CustomStructureMultipleChoiceField(
-                queryset=Structure.objects.all().order_by('establishment__code', 'label'),
-                widget=FilteredSelectMultiple(
-                    verbose_name=Structure._meta.verbose_name,
-                    is_stacked=False
-                ),
-                required=False
-            )
+            if self.fields.get('structures'):
+                self.fields["structures"] = CustomStructureMultipleChoiceField(
+                    queryset=Structure.objects.all().order_by('establishment__code', 'label'),
+                    widget=FilteredSelectMultiple(
+                        verbose_name=Structure._meta.verbose_name,
+                        is_stacked=False
+                    ),
+                    required=False
+                )
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
             if self.fields.get('establishment'):
                 if self.instance.establishment:
-                    self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
+                    self.fields["establishment"].queryset = Establishment.objects.filter(
+                        id=self.instance.establishment.id
+                    )
                     self.fields["establishment"].empty_label = None
 
                     # Lock fields when the selected establishment has a source plugin set
@@ -1087,11 +1090,16 @@ class ImmersionUserChangeForm(UserChangeForm):
                         self.fields["last_name"].disabled = True
 
                     self.fields["groups"].queryset = \
-                        self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC'])
+                        self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC', 'VIS'])
                 else:
                     self.fields["establishment"].queryset = Establishment.objects.none()
-                    self.fields["groups"].queryset = \
-                        self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
+
+                    # Do not allow group modification for student, high school students and visitors
+                    #if set(self.instance.groups.all().values_list('name', flat=True)) & set(["ETU", "LYC", "VIS"]):
+                    #    self.fields["groups"].disabled = True
+
+                    #self.fields["groups"].queryset = \
+                    #    self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
 
                 self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
@@ -1113,18 +1121,31 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["structures"].queryset = Structure.objects.none()
 
             # Restrictions on group depending on current user group
+            excludes = {}
+            if not self.instance.groups.exists():
+                excludes = {"name__in": ["ETU", "LYC", "VIS"]}
+
             if self.request.user.is_master_establishment_manager():
                 if not self.instance.is_master_establishment_manager() and self.fields.get('groups'):
+                    """
                     self.fields["groups"].queryset = \
                         self.fields["groups"].queryset.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+                    """
+                    self.fields["groups"].queryset = (self.fields["groups"].queryset
+                        .filter(name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB-MAITRE'])
+                        .exclude(**excludes)
+                        .order_by('name')
+                    )
 
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
 
                 if self.fields.get('groups'):
-                    self.fields["groups"].queryset = self.fields["groups"].queryset.filter(
-                        name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
-                    ).order_by('name')
+                    self.fields["groups"].queryset = (self.fields["groups"].queryset
+                        .filter(name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB'])
+                        .exclude(**excludes)
+                        .order_by('name')
+                    )
 
                 if self.fields.get('structures'):
                     self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
@@ -1238,12 +1259,10 @@ class ImmersionUserChangeForm(UserChangeForm):
                 # Add groups to this list when needed
                 can_change_groups = False
 
-                if self.request.user.has_groups('REF-ETAB'):
-                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
-                elif self.request.user.has_groups('REF-ETAB-MAITRE'):
-                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
-                elif self.request.user.has_groups('REF-TEC'):
-                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC', )
+                for group_name in ['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB']:
+                    if self.request.user.has_groups(group_name):
+                        can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get(group_name)
+                        break
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
                 new_groups = set(groups.all().values_list('name', flat=True)) if groups else set()
@@ -1254,7 +1273,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 if forbidden_groups:
                     raise forms.ValidationError(
-                        _("You can't modify these groups : %s" % ', '.join(forbidden_groups))
+                        _("You can't modify these groups : %s") % ', '.join(forbidden_groups)
                     )
 
             if self.instance.is_superuser != cleaned_data["is_superuser"]:
