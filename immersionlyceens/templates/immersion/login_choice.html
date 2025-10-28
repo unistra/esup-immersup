@@ -31,15 +31,15 @@
         {% if profile == 'lyc' and has_highschool_without_student_federation or profile != 'lyc' and has_highschool_without_agent_federation %}
         <div class="col-sm-6 col-md-6">
           {% if profile == 'lyc' and educonnect_url %}
-              <a href="{{ educonnect_url }}" class="btn btn-primary float-right"></a>
+              <a href="{{ educonnect_url }}" class="btn btn-primary float-right" aria-label="{% trans 'Connection with EduConnect' %}"></a>
           {% elif profile == 'ref-lyc' or profile == 'speaker' %}
             {% if agents_federation_url %}
-              <a href="{{ agents_federation_url }}" class="btn btn-primary float-right"></a>
+              <a href="{{ agents_federation_url }}" class="btn btn-primary float-right" aria-label="{% trans 'Connection with agent' %}"></a>
             {% else %}
-              <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"></a>
+              <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right" aria-label="{% trans 'Connection with Shibboleth' %}"></a>
             {% endif %}
           {% else %}
-            <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right"></a>
+            <a href="{% url 'shibboleth_login' %}" class="btn btn-primary float-right" aria-label="{% trans 'Connection with Shibboleth' %}"></a>
           {% endif %}
         {% else %}
         <div class="col-sm-12 col-md-12 text-center">
