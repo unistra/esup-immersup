@@ -14,7 +14,7 @@ def mocked_ldap_bind(*args, **kwargs):
     """
     pass
 
-def mocked_search_user(search_value):
+def mocked_search_user(search_value, search_attr):
     """
     Return a user
     """
