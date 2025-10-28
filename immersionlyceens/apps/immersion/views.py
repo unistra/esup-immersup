@@ -281,7 +281,7 @@ def login_choice(request, profile=None):
 
 
 @login_optional
-def shibboleth_login(request, profile=None):
+def shibboleth_login(request):
     """
     """
     enabled_students = get_general_setting('ACTIVATE_STUDENTS')
