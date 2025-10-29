@@ -4,7 +4,6 @@ $(document).ready(function() {
       url: '/api/campuses?establishment='+establishment_id,
       type: 'GET',
       success(data) {
-        let selected
         let options = '<option value="">---------</option>'
         const campusId = parseInt($('#id_campus').val());
         for (const item of data) {

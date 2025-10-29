@@ -334,7 +334,7 @@ def course(request, course_id=None, duplicate=False):
                     "current_establishment_id": new_course.structure.establishment.id if new_course.structure else ""
                 })
 
-                current_speakers = list(new_course.speakers.all().values_list('username', flat=True))
+                current_speakers = set(new_course.speakers.all().values_list('username', flat=True))
                 new_speakers = [speaker.get('username') for speaker in speakers_list]
 
                 # speakers to add
@@ -386,7 +386,7 @@ def course(request, course_id=None, duplicate=False):
                             new_course.speakers.add(speaker_user)
 
                 # speakers to remove
-                remove_list = set(current_speakers) - set(new_speakers)
+                remove_list = current_speakers - set(new_speakers)
                 for username in remove_list:
                     try:
                         user = ImmersionUser.objects.get(username=username)
