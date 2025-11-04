@@ -18,7 +18,13 @@
 {% general_settings_get 'ACTIVATE_COHORT' as activated_cohort %}
 {% authorized_groups request.user %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
-  {% include './modals/modal_search_slots_details.html' %}
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+{{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
+
+  {% include "./modals/modal_search_slots_details.html" %}
+  {% include "./modals/modal_notify_disability.html" %}
+  {% include "./modals/modal_register_group.html" %}
+
   <div class="main-title inside text-center">
     <div></div>
     <div class="container">
@@ -178,6 +184,11 @@
   let bachelors_txt = "{% trans 'Bachelor types' %}"
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
+  let register_group_txt = "{% trans 'Register a group' %}";
+  var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
+  const hide_fields_public_area = JSON.parse(
+    document.getElementById("hide-fields-public-area-data").textContent
+  );
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
@@ -194,24 +205,34 @@
       success: function (json) {
         let msg = json['msg'];
         let error = json['error'];
-        $('#modal_search_slots_details').modal("hide");
+        notify_disability = json['notify_disability'];
 
+        $('#modal_search_slots_details').modal("hide");
 
         if (error) {
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
-          dt.ajax.reload(null, false);
+          if(notify_disability === "on_demand") {
+            open_notify_disability_modal(slot_id).then(() => {
+              feedback.trigger("showFeedback", [[msg, "success"]]);
+              dt.ajax.reload(null, false);
+            })
+          }
+          else {
+            feedback.trigger("showFeedback", [[msg, "success"]]);
+            dt.ajax.reload(null, false);
+          }
         }
         $(document.body).scrollTop($('#message').offset().top);
-        setTimeout(function() { $("#feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        setTimeout(function() { $("#feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       },
       error: function (json) {
         console.log(json);
       }
     })
   }
+
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
@@ -234,16 +255,17 @@
         var remoteSlots = $('input:checkbox[name="remoteSlots"]').prop("checked") ? 1 : 0;
         var faceToFaceSlots = $('input:checkbox[name="faceToFaceSlots"]').prop("checked") ? 1 : 0;
         var place = rowData['place'];
+
         {% if activated_cohort %}
-        var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
-        var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
-        var individual = rowData['allow_individual_registrations'];
-        var group = rowData['allow_group_registrations'];
-        var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
-                                   || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
-                                   ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
+          var individualSlots = $('input:checkbox[name="individualSlots"]').prop("checked") ? 1 : 0;
+          var groupSlots = $('input:checkbox[name="groupsSlots"]').prop("checked") ? 1 : 0;
+          var individual = rowData['allow_individual_registrations'];
+          var group = rowData['allow_group_registrations'];
+          var showIndividualGroup = individualSlots === 0 && individual === false && groupSlots === 1 && group === true
+                                     || individualSlots === 1 && individual === true && groupSlots === 0 && group === false
+                                     ||  individualSlots === 1 && individual === true || groupSlots === 1 && group === true ;
         {% else %}
-        var showIndividualGroup = true;
+          var showIndividualGroup = true;
         {% endif %}
 
         var start_date = $('#start_date').val() || null;
@@ -305,7 +327,16 @@
         url: "{% url 'search_slots_list' %}",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
-            return json['data']['slots'];
+
+            const userIsRefLyc = {{ authorized_groups|in_groups:"REF-LYC"|yesno:"true,false" }};
+
+            // If user is REF-LYC, the private cohort immersions are shown
+            return json['data']['slots'].filter(slot => {
+                if (slot.allow_group_registrations === true && slot.public_group === false) {
+                    return userIsRefLyc;
+              }
+              return true;
+            });
           }
         }
       },
@@ -340,7 +371,6 @@
             data: "establishment_label",
             render: function (data, type, full, meta) {
               if (data === '' || data === null) {
-
                 if (full['highschool_label'] !== null) {
                   data = full['highschool_label'];
                 } else {
@@ -348,7 +378,7 @@
                 }
               }
               if(type === "display") {
-                return '<label>'+ '{% trans 'Establishment' %}' + ' :</label><span>' + data + '</span>';
+                return '<label>' + '{% trans 'Establishment' %}' + ' :</label><span>' + data + '</span>';
               }
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -470,9 +500,17 @@
               if (data === '' || data === null) {
                 return ''
               }
-              if(type === "display") {
+
+              if(type === "display" && !hide_fields_public_area["building"].hide_public_area && !hide_fields_public_area["meeting_place"].hide_public_area) {
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + (full['building_label'] ? full['building_label'] + ' - ': '') + displayLongString(data, 40, html=true)
+              } else if (type === "display" && !hide_fields_public_area["building"].hide_public_area) {
+                return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + (full['building_label'] ? full['building_label'] : '')
+              } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_public_area) {
                 return '<label>'+ "{% trans 'Meeting place' %}" +' :</label>' + displayLongString(data, 40, html=true)
+              } else {
+                return
               }
+
               if(type === 'filter') {
                 return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
               }
@@ -559,10 +597,10 @@
         availablesSeatslabel += "<li class='list-inline-item'><acronym title='{% trans "Cohort immersions" %}'>Gr.</acronym>" + (parseInt(rowData[0].n_group_places)-parseInt(rowData[0].group_registered_persons)) + ' / ' + rowData[0].n_group_places + '</li>'
       }
       availablesSeatslabel += '</ul>';
-
       $.each(rowData[0].speakers_list, function(i, item) {
-        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + " (" + item['email'] + ")</li>";
+        speakers_array += "<li>" + item['first_name'] +  " " + item['last_name'] + "</li>";
       });
+
       // display all row_* elements
       $(displayedRows).show();
       $('#modal_register_btn').html('');
@@ -570,9 +608,11 @@
           if (rowData[0].establishment_label !==null) {
             etab.push(rowData[0].establishment_label)
           }
-
           if (rowData[0].highschool_label !== null) {
             etab.push(rowData[0].highschool_label)
+          }
+          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
+            etab.push(rowData[0].structure_label)
           }
           $('#modal_search_slots_details #modal_course_label').html(rowData[0].course_training_label);
           filteredRows.push('row_highschool');
@@ -580,10 +620,12 @@
           if (rowData[0].establishment_label !==null ) {
             etab.push(rowData[0].establishment_label)
           }
-          if (rowData[0].structure_label !== null) {
+          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
             etab.push(rowData[0].structure_label)
           }
+
           filteredRows.push('row_course_label', 'row_course_type', 'row_building');
+
           if (rowData[0].highschool_label !== null && rowData[0].highschool_city !== null) {
             $('#modal_search_slots_details #modal_highschool').html(rowData[0].highschool_label + ' (' + rowData[0].highschool_city + ')' );
           } else if (rowData[0].highschool_label !== null) {
@@ -601,7 +643,7 @@
           if (rowData[0].highschool_label !== null) {
             etab.push(rowData[0].highschool_label)
           }
-          if (rowData[0].structure_label !== null) {
+          if (rowData[0].structure_label !== null && !hide_fields_public_area["structure"].hide_public_area) {
             etab.push(rowData[0].structure_label)
           }
           filteredRows.push('row_course_label', 'row_course_type');
@@ -614,9 +656,11 @@
             filteredRows.push('row_highschool');
           }
       }
+
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
+
       if (rowData[0].course_training_url !== null && rowData[0].course_training_url !== '') {
         courseLabelFull = rowData[0].course_training_label + "&nbsp;<a href=\""+rowData[0].course_training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
@@ -629,15 +673,19 @@
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
       }
+
       if (rowData[0].building_label === '' || rowData[0].building_label === null) {
         filteredRows.push('row_building');
       }
+
       if (rowData[0].additional_information === '' || rowData[0].additional_information === null) {
         filteredRows.push('row_additional_information');
       }
+
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
       }
+
       if (rowData[0].place === remote) {
           if (Object.keys(rowData[0]).indexOf('url')
               && rowData[0].url != null
@@ -646,6 +694,7 @@
             url = ' <a href="' + rowData[0].url + '">{% trans "Remote" %}</a>';
           }
       }
+
       $.ajax({
         url: "/api/get_slot_restrictions/" + rowData[0].id,
         type: 'GET',
@@ -659,6 +708,7 @@
             }
         }
       })
+
       $('#modal_search_slots_details #modal_establishment').html(etab.join(' - ')??'');
       $('#modal_search_slots_details #modal_course_label').html(courseLabelFull ?? rowData[0].course_training_label);
       $('#modal_search_slots_details #modal_label').html(labelFull ?? rowData[0].label);
@@ -668,12 +718,25 @@
       $('#modal_search_slots_details #modal_location').html(rowData[0].location + ' ' + rowData[0].building_label + ' ' + rowData[0].room);
       $('#modal_search_slots_details #modal_campus').html(rowData[0].campus_label + ' (' + rowData[0].city + ')')
       $('#modal_search_slots_details #modal_highschool_address').html(rowData[0].highschool_address + ' (' + rowData[0].city + ')')
-      $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label )
-      $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
-      $('#modal_search_slots_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if (!hide_fields_public_area["building"].hide_public_area) {
+        $('#modal_search_slots_details #modal_building').html(buildingFull ?? rowData[0].building_label)
+      }
+      if (!hide_fields_public_area["meeting_place"].hide_public_area) {
+        $('#modal_search_slots_details #modal_meeting_place').html(url ?? rowData[0].meeting_place);
+      }
+      if (!hide_fields_public_area["speakers"].hide_public_area) {
+        $('#modal_search_slots_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
+
+      if (rowData[0].additional_information && rowData[0].additional_information.length > 300) {
+        $('#show_more_info').show();
+      } else {
+        $('#show_more_info').hide();
+      }
+
       $('#modal_search_slots_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_search_slots_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
@@ -696,6 +759,45 @@
         }
       })
       {% endif %}
+
+      {% if authorized_groups|in_groups:"REF-LYC" %}
+      if ( rowData[0].allow_group_registrations === true ) {
+        $.ajax({
+          url: "/api/can_register_slot/" + rowData[0].id,
+          type: 'GET',
+          success: function (data) {
+            if (data['data'] !== undefined && data['data'][0] !== undefined) {
+              if (data['data'][0]['can_register'] === true) {
+                $('#modal_register_btn').html(
+                        "<button class='btn badge badge-pill badge-primary pull-right' " +
+                        "id='btn_register_group_" + rowData[0].id + "' " +
+                        "data-toggle='modal' " +
+                        "data-slot-id='" + rowData[0].id + "' " +
+                        "data-target='#modal_register_group'>{% trans 'Register a group' %}" +
+                        "</button>"
+                );
+              } else if (data['data'][0]['already_registered'] === true) {
+                $('#modal_register_btn').html(
+                        "<span class=\"badge badge-pill badge-success\">{% trans 'Already registered' %}</span>"
+                );
+              }
+            }
+          }
+        })
+
+        $('#modal_register_group').on('show.bs.modal', function (event) {
+          let button = $(event.relatedTarget)
+          let slotId = button.data('slot-id')
+
+          current_slot_id = slotId;
+
+          $(this).find('input[name="slot_id"]').val(slotId);
+        })
+
+      }
+
+      {% endif %}
+
       $('[data-toggle="tooltip"]').tooltip({placement:"left",});
       // rows to hide
       selectedRows = filteredRows.map(id => `#${id}`).join(',')

@@ -1,13 +1,13 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict
 
-from ckeditor.widgets import CKEditorWidget
+from django_ckeditor_5.widgets import CKEditor5Widget
 from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Min, Max
 from django.forms.widgets import DateInput, TimeInput
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _, ngettext
@@ -36,7 +36,7 @@ class CourseForm(forms.ModelForm):
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
         for field_name, field in self.fields.items():
-            if not field.widget.__class__.__name__ == 'CheckboxInput':
+            if field.widget.__class__.__name__ != 'CheckboxInput':
                 field.widget.attrs.update({'class': 'form-control'})
 
         if self.request:
@@ -88,6 +88,11 @@ class CourseForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        publication_start = cleaned_data.get('start_date')
+        publication_end = cleaned_data.get('end_date')
+
+        if publication_start and publication_end and publication_end < publication_start:
+            raise forms.ValidationError(_("The publication end date must be after the publication start date."))
 
         try:
             active_year = UniversityYear.objects.get(active=True)
@@ -124,7 +129,20 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training', 'structure', 'establishment', 'highschool')
+        fields = (
+            'id', 'label', 'url', 'published', 'start_date', 'end_date', 'training', 'structure',
+            'establishment', 'highschool'
+        )
+        widgets = {
+            'start_date': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'},
+                format="%Y-%m-%dT%H:%M"
+            ),
+            'end_date': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'},
+                format="%Y-%m-%dT%H:%M"
+            ),
+        }
 
 
 class SlotForm(forms.ModelForm):
@@ -344,7 +362,6 @@ class SlotForm(forms.ModelForm):
     def clean_registrations(self, cleaned_data):
         allow_individual_registrations = cleaned_data.get('allow_individual_registrations')
         allow_group_registrations = cleaned_data.get('allow_group_registrations')
-        group_mode = cleaned_data.get('group_mode')
         n_places = cleaned_data.get('n_places', 0)
         n_group_places = cleaned_data.get('n_group_places', 0)
         published = cleaned_data.get('published', None)
@@ -361,7 +378,7 @@ class SlotForm(forms.ModelForm):
             enabled_groups = False
 
         if not enabled_groups:
-            cleaned_data["group_mode"], group_mode = None, None
+            cleaned_data["group_mode"] = None
             cleaned_data["allow_group_registrations"], allow_group_registrations = False, False
             cleaned_data["allow_individual_registrations"], allow_individual_registrations = True, True
             cleaned_data["n_group_places"], n_group_places = None, None
@@ -508,10 +525,47 @@ class SlotForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
-        if instance.course and not instance.course.published and instance.published:
-            instance.course.published = True
-            instance.course.save()
-            messages.success(self.request, _("Course published"))
+        repeat_limit_date = None
+
+        if instance.course:
+            activity = instance.course
+            msg_publication = _("Course published")
+            msg_warning_start = _(
+                """The slot will be saved, but the course publication start date do not match the slot date. """
+                """The course publication start date will be changed automatically. Remember to adjust it """ 
+                """yourself so that registrations can proceed without problems."""
+            )
+            msg_warning_end = _(
+                """The slot will be saved, but the course publication end date do not match the slot date. """
+                """The course publication end date will be changed automatically. Remember to adjust it """
+                """yourself so that registrations can proceed without problems."""
+            )
+            slot_min = Slot.objects.filter(course=activity).order_by("date", "start_time").first()
+            slot_max = Slot.objects.filter(course=activity).order_by("-date", "-end_time").first()
+            
+        elif instance.event:
+            activity = instance.event
+            msg_publication = _("Event published")
+            msg_warning_start = _(
+                """The slot will be saved, but the event publication start date do not match the slot date. """
+                """The event publication start date will be changed automatically. Remember to adjust it """
+                """yourself so that registrations can proceed without problems."""
+            )
+            msg_warning_end = _(
+                """The slot will be saved, but the event publication end date do not match the slot date. """
+                """The event publication end date will be changed automatically. Remember to adjust it """
+                """yourself so that registrations can proceed without problems."""
+            )
+            slot_min = Slot.objects.filter(event=activity).order_by("date", "start_time").first()
+            slot_max = Slot.objects.filter(event=activity).order_by("-date", "-end_time").first()
+           
+        else:
+            raise ValueError(_("Slot without Course or Event, you broke something, somewhere"))
+
+        if activity and not activity.published and instance.published:
+            activity.published = True
+            activity.save()
+            messages.success(self.request, msg_publication)
 
         if self.data.get("repeat"):
             # Careful with date formats, especially with unit tests
@@ -530,17 +584,15 @@ class SlotForm(forms.ModelForm):
                 pass
             else:
                 # Store current slot related objects
-                slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
-                slot_allowed_establishments = [
-                    e for e in new_slot_template.allowed_establishments.filter(is_host_establishment=True)
-                ]
-                slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
-                slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
-                slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
-                slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
-                slot_allowed_bachelor_types = [l for l in new_slot_template.allowed_bachelor_types.all()]
-                slot_allowed_bachelor_mentions = [l for l in new_slot_template.allowed_bachelor_mentions.all()]
-                slot_allowed_bachelor_teachings = [l for l in new_slot_template.allowed_bachelor_teachings.all()]
+                slot_speakers = list(new_slot_template.speakers.all())
+                slot_allowed_establishments = list(new_slot_template.allowed_establishments.filter(is_host_establishment=True))
+                slot_allowed_highschools = list(new_slot_template.allowed_highschools.all())
+                slot_allowed_highschool_levels = list(new_slot_template.allowed_highschool_levels.all())
+                slot_allowed_student_levels = list(new_slot_template.allowed_student_levels.all())
+                slot_allowed_post_bachelor_levels = list(new_slot_template.allowed_post_bachelor_levels.all())
+                slot_allowed_bachelor_types = list(new_slot_template.allowed_bachelor_types.all())
+                slot_allowed_bachelor_mentions = list(new_slot_template.allowed_bachelor_mentions.all())
+                slot_allowed_bachelor_teachings = list(new_slot_template.allowed_bachelor_teachings.all())
 
                 for new_date in new_dates:
                     try:
@@ -573,6 +625,32 @@ class SlotForm(forms.ModelForm):
                             new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
 
                             messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+
+        if activity and instance.published:
+            if slot_min:
+                activity.first_slot_date = timezone.make_aware(datetime.combine(slot_min.date, slot_min.start_time))
+            if slot_max:
+                activity.last_slot_date = timezone.make_aware(datetime.combine(slot_max.date, slot_max.end_time))
+
+            if activity.start_date:
+                if timezone.make_aware(datetime.combine(instance.date, instance.start_time)) < activity.start_date:
+                    messages.warning(
+                        self.request,
+                        msg_warning_start
+                    )
+                if activity.first_slot_date and activity.start_date > activity.first_slot_date:
+                    activity.start_date = activity.first_slot_date - timedelta(days=7)
+
+            if activity.end_date:
+                if timezone.make_aware(datetime.combine(repeat_limit_date if  repeat_limit_date else instance.date, instance.end_time)) > activity.end_date:
+                    messages.warning(
+                        self.request,
+                        msg_warning_end
+                    )
+                if activity.last_slot_date and activity.end_date < activity.last_slot_date:
+                    activity.end_date = activity.last_slot_date
+
+            activity.save()
 
         return instance
 
@@ -745,7 +823,7 @@ class OffOfferEventSlotForm(SlotForm):
         cleaned_data = self.clean_fields(cleaned_data)
         cleaned_data = self.clean_registrations(cleaned_data)
 
-        if published is True:
+        if published:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['event', 'date', 'period', 'start_time', 'end_time', 'speakers']
 
@@ -785,12 +863,8 @@ class OffOfferEventSlotForm(SlotForm):
         end_time = cleaned_data.get('end_time')
         if start_time and end_time and start_time >= end_time:
             self.add_error('start_time', _("Error: Start time must be set before end time"))
-            # raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
 
-        if event and not event.published and published:
-            event.published = True
-            event.save()
-            messages.success(self.request, _("Event published"))
+        event.save()
 
         return cleaned_data
 
@@ -880,7 +954,12 @@ class ContactForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields['subject'] = forms.CharField(label=_("Subject"), max_length=100, required=True)
-        self.fields['body'] = forms.CharField(widget=CKEditorWidget())
+        self.fields['body'] = forms.CharField(
+            widget=CKEditor5Widget(
+                attrs={"class": "django_ckeditor_5"},
+                config_name="default"
+            )
+        )
         self.fields['subject'].widget.attrs['class'] = 'form-control'
 
 
@@ -972,6 +1051,11 @@ class OffOfferEventForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        publication_start = cleaned_data.get('start_date')
+        publication_end = cleaned_data.get('end_date')
+
+        if publication_start and publication_end and publication_end < publication_start:
+            raise forms.ValidationError(_("The publication end date must be after the publication start date."))
 
         # Uniqueness
         filters = {
@@ -996,9 +1080,12 @@ class OffOfferEventForm(forms.ModelForm):
         except Exception:
             speakers = []
 
-        if not speakers:
-            messages.error(self.request, _("Please add at least one speaker."))
-            raise forms.ValidationError(_("Please add at least one speaker."))
+        # Filter out inactive accounts
+        # A new speaker is considered active
+        if not speakers or not bool(next(filter(lambda k:k.get("is_active", True), speakers), None)):
+            msg = _("Please add at least one active speaker.")
+            messages.error(self.request, msg)
+            raise forms.ValidationError(msg)
 
         return cleaned_data
 
@@ -1011,7 +1098,7 @@ class OffOfferEventForm(forms.ModelForm):
 
         speakers_list = json.loads(self.data.get('speakers_list', []))
 
-        current_speakers = [u for u in instance.speakers.all().values_list('username', flat=True)]
+        current_speakers = list(instance.speakers.all().values_list('username', flat=True))
         new_speakers = [speaker.get('username') for speaker in speakers_list]
 
         # speakers to add
@@ -1027,7 +1114,7 @@ class OffOfferEventForm(forms.ModelForm):
                         username=speaker['email'],
                         last_name=speaker['lastname'],
                         first_name=speaker['firstname'],
-                            email=speaker['email'],
+                        email=speaker['email'],
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['email']))
@@ -1072,7 +1159,11 @@ class OffOfferEventForm(forms.ModelForm):
 
     class Meta:
         model = OffOfferEvent
-        fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool')
+        fields = ('label', 'description', 'event_type', 'published', 'structure', 'establishment', 'highschool', 'start_date', 'end_date')
+        widgets = {
+            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format="%Y-%m-%dT%H:%M"),
+            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format="%Y-%m-%dT%H:%M"),
+        }
 
 
 class UserPreferencesForm(forms.Form):

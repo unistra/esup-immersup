@@ -23,6 +23,8 @@ from rouen import preprod_rouen, prod_rouen
 from savoie import preprod_savoie, prod_savoie
 from stetienne import preprod_stetienne, prod_stetienne
 
+from map_settings import map_settings
+
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
 # using apache + shibb mod for now !
@@ -48,6 +50,19 @@ env.extra_goals = ['preprod']  # add extra goal(s) to defaults (test,dev,prod)
 env.dipstrap_version = 'latest'
 env.verbose_output = False  # True for verbose output
 env.no_circus_web = True
+
+# Circus / uwsgi
+env.enable_circus = True # Default: True
+env.enable_uwsgi = False # Default: False
+
+# Defaults - override in tasks when needed
+env.remote_uwsgi_emperor_service_name = "uwsgi-emperor"
+env.remote_uwsgi_emperor_path = "/etc/uwsgi-emperor"
+env.remote_uwsgi_vassal_plugins = "python3,logfile"
+env.remote_uwsgi_emperor_owner = "root"
+env.remote_uwsgi_emperor_group = "root"
+env.remote_uwsgi_vassal_owner = "www-data"
+env.remote_uwsgi_vassal_group = "di"
 
 # optional parameters
 
@@ -122,6 +137,23 @@ def test():
         'lb': ['django-test2.di.unistra.fr'],
         'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
+
+    # Remove this for test env
+    map_settings.pop('secret_key', None)
+
+    env.enable_circus = False
+    env.enable_uwsgi = True
+    
+    # uwsgi settings
+    env.remote_uwsgi_emperor_service_name = "emperor.uwsgi.python3.12"
+    env.remote_uwsgi_emperor_path = "/etc/uwsgi"
+    env.remote_uwsgi_emperor_owner = "root"
+    env.remote_uwsgi_emperor_group = "root"
+
+    env.remote_uwsgi_vassal_owner = "django"
+    env.remote_uwsgi_vassal_group = "di"
+
+
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
     env.server_name = 'immersup-test.app.unistra.fr'
@@ -135,30 +167,7 @@ def test():
     env.goal = 'test'
     env.socket_port = '8042'
     env.socket_host = '127.0.0.1'
-    env.map_settings = {
-        'default_db_host': "DATABASES['default']['HOST']",
-        'default_db_user': "DATABASES['default']['USER']",
-        'default_db_password': "DATABASES['default']['PASSWORD']",
-        'default_db_name': "DATABASES['default']['NAME']",
-        'cas_redirect_url': "CAS_REDIRECT_URL",
-        'release': "RELEASE",
-        's3_access_key': "AWS_ACCESS_KEY_ID",
-        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
-        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
-        's3_endpoint': "AWS_S3_ENDPOINT_URL",
-        'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
-        'use_unistra_theme': "UNISTRA",
-        'email_host': "EMAIL_HOST",
-        'email_port': "EMAIL_PORT",
-        'email_use_tls': "EMAIL_USE_TLS",
-        'email_host_user': "EMAIL_HOST_USER",
-        'email_host_password': "EMAIL_HOST_PASSWORD",
-        'force_email_address': "FORCE_EMAIL_ADDRESS",
-        'default_from_email': "DEFAULT_FROM_EMAIL",
-        'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
-    }
+    env.map_settings = map_settings
     env.extra_symlink_dirs = ['media']
     execute(build_env)
 
@@ -172,7 +181,6 @@ def preprod():
     }
 
     # env.user = 'root'  # user for ssh
-
     env.backends = env.roledefs['web']
     env.server_name = 'immersup-pprd.app.unistra.fr'
     env.short_server_name = 'immersup-pprd'
@@ -184,31 +192,7 @@ def preprod():
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'preprod'
     env.socket_port = '8044'
-    env.map_settings = {
-        'default_db_host': "DATABASES['default']['HOST']",
-        'default_db_user': "DATABASES['default']['USER']",
-        'default_db_password': "DATABASES['default']['PASSWORD']",
-        'default_db_name': "DATABASES['default']['NAME']",
-        'secret_key': "SECRET_KEY",
-        'cas_redirect_url': "CAS_REDIRECT_URL",
-        'release': "RELEASE",
-        's3_access_key': "AWS_ACCESS_KEY_ID",
-        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
-        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
-        's3_endpoint': "AWS_S3_ENDPOINT_URL",
-        'use_unistra_theme': "UNISTRA",
-        'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
-        'email_host': "EMAIL_HOST",
-        'email_port': "EMAIL_PORT",
-        'email_use_tls': "EMAIL_USE_TLS",
-        'email_host_user': "EMAIL_HOST_USER",
-        'email_host_password': "EMAIL_HOST_PASSWORD",
-        'force_email_address': "FORCE_EMAIL_ADDRESS",
-        'default_from_email': "DEFAULT_FROM_EMAIL",
-        'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
-    }
+    env.map_settings = map_settings
     execute(build_env)
 
 
@@ -234,30 +218,7 @@ def prod():
     env.path_to_cert_key = '/etc/ssl/private/immersion.projet-noria.fr.key'
     env.goal = 'prod'
     env.socket_port = '8012'
-    env.map_settings = {
-        'default_db_host': "DATABASES['default']['HOST']",
-        'default_db_user': "DATABASES['default']['USER']",
-        'default_db_password': "DATABASES['default']['PASSWORD']",
-        'default_db_name': "DATABASES['default']['NAME']",
-        'secret_key': "SECRET_KEY",
-        'cas_redirect_url': "CAS_REDIRECT_URL",
-        'release': "RELEASE",
-        's3_access_key': "AWS_ACCESS_KEY_ID",
-        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
-        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
-        's3_endpoint': "AWS_S3_ENDPOINT_URL",
-        'use_unistra_theme': "UNISTRA",
-        'email_host': "EMAIL_HOST",
-        'email_port': "EMAIL_PORT",
-        'email_use_tls': "EMAIL_USE_TLS",
-        'email_host_user': "EMAIL_HOST_USER",
-        'email_host_password': "EMAIL_HOST_PASSWORD",
-        'default_from_email': "DEFAULT_FROM_EMAIL",
-        'extra_locale_path': "EXTRA_LOCALE_PATH",
-        'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
-        'csrf_trusted_origins': "CSRF_TRUSTED_ORIGINS",
-    }
+    env.map_settings = map_settings
     execute(build_env)
 
 

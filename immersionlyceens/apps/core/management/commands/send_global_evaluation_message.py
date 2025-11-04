@@ -25,7 +25,6 @@ class Command(BaseCommand, Schedulable):
     def handle(self, *args, **options):
         success = "%s : %s" % (_("Send global evaluation message"), _("success"))
         template_code = 'EVALUATION_GLOBALE'
-        today = timezone.localdate()
 
         # Get the mailing list address
         try:

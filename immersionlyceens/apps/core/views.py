@@ -42,7 +42,7 @@ from .models import (
     BachelorType, Campus, CancelType, Course, Establishment, GeneralSettings,
     HighSchool, Holiday, Immersion, ImmersionGroupRecord, ImmersionUser,
     InformationText, OffOfferEvent, Period, RefStructuresNotificationsSettings,
-    Slot, Structure, Training, UniversityYear
+    Slot, Structure, Training, UniversityYear, CustomThemeFile
 )
 
 from .serializers import PeriodSerializer
@@ -267,6 +267,7 @@ def course(request, course_id=None, duplicate=False):
                 "email": t.email,
                 "display_name": f"{t.last_name} {t.first_name}",
                 "is_removable": not t.slots.filter(course=course_id).exists(),
+                "is_active": t.is_active,
             } for t in course.speakers.all()]
 
             if duplicate:
@@ -276,6 +277,8 @@ def course(request, course_id=None, duplicate=False):
                     'training': course.training,
                     'published': course.published,
                     'label': course.label,
+                    'start_date': course.start_date,
+                    'end_date': course.end_date,
                     'url': course.url,
                 }
                 course = Course(**data)
@@ -317,9 +320,10 @@ def course(request, course_id=None, duplicate=False):
 
         try:
             speakers_list = json.loads(speakers_list)
-            assert not is_published or len(speakers_list) > 0
+            assert not is_published or \
+                   len(speakers_list) > 0 and bool(next(filter(lambda k:k.get("is_active", True), speakers_list), None))
         except Exception:
-            messages.error(request, _("At least one speaker is required"))
+            messages.error(request, _("At least one active speaker is required"))
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
@@ -727,53 +731,6 @@ class MyStructureView(generic.TemplateView):
         else:
             context.update({"structures": list(my_structures)})
         return context
-
-#
-# @groups_required('REF-STR')
-# def structure(request, structure_code=None):
-#     """
-#     Update structure url and mailing list
-#     """
-#     form = None
-#     structure = None
-#     structures = None
-#
-#     if request.method == "POST":
-#         try:
-#             structure = Structure.objects.get(code=request.POST.get('code'))
-#         except Exception:
-#             messages.error(request, _("Invalid parameter"))
-#             return redirect('structure')
-#
-#         form = StructureForm(request.POST, instance=structure)
-#
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, _("Structure settings successfully saved"))
-#             return redirect('structure')
-#     elif structure_code:
-#         try:
-#             structure = Structure.objects.get(code=structure_code)
-#             form = StructureForm(instance=structure)
-#         except Structure.DoesNotExist:
-#             messages.error(request, _("Invalid parameter"))
-#             return redirect('structure')
-#     else:
-#         my_structures = Structure.objects.filter(referents=request.user).order_by('label')
-#
-#         if my_structures.count() == 1:
-#             structure = my_structures.first()
-#             form = StructureForm(instance=structure)
-#         else:
-#             structures = [c for c in my_structures]
-#
-#     context = {
-#         'form': form,
-#         'structure': structure,
-#         'structures': structures,
-#     }
-#
-#     return render(request, 'core/structure.html', context)
 
 
 @groups_required(
@@ -1225,7 +1182,7 @@ class CourseSlotUpdate(generic.UpdateView):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.get_object()
-        except Exception as e:
+        except Exception:
             if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
                 messages.error(request, _("This slot belongs to another structure"))
             else:
@@ -1484,14 +1441,14 @@ def course_slot_mass_update(request):
 
         # Same establishment ? => send to form to initializer campuses queryset
         if Slot.objects.filter(id__in=slot_ids).values('course__structure__establishment').distinct().count() == 1:
-            try:
-                establishment_id = Slot.objects.get(pk=slot_ids[0]).course.structure.establishment.pk
+            slot = Slot.objects.filter(pk=slot_ids[0]).first()
+            establishment_id = None
+
+            if slot and slot.course and slot.course.structure and slot.course.structure.establishment:
+                establishment_id = slot.course.structure.establishment.pk
                 form_kwargs['establishment'] = establishment_id
                 context['establishment_id'] = establishment_id
-            except:
-                # Slot course has no structure (linked to a highschool)
-                pass
-
+            # else : Slot course has no structure (linked to a highschool)
 
         # Update selected slots
         if not request.POST.get("mass_update"):
@@ -1850,7 +1807,7 @@ class OffOfferEventAdd(generic.CreateView):
                     'event_type': event.event_type.id,
                     'label': event.label,
                     'description': event.description,
-                    'published': event.published
+                    'published': event.published,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1955,6 +1912,7 @@ class OffOfferEventUpdate(generic.UpdateView):
                     "email": t.email,
                     "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": not t.slots.filter(event=event_id).exists(),
+                    "is_active": t.is_active,
                 } for t in event.speakers.all()]
 
                 context["speakers"] = json.dumps(speakers_list)
@@ -2169,7 +2127,7 @@ class OffOfferEventSlot(generic.CreateView):
                     'allowed_bachelor_types': slot.allowed_bachelor_types.all(),
                     'allowed_bachelor_mentions': slot.allowed_bachelor_mentions.all(),
                     'allowed_bachelor_teachings': slot.allowed_bachelor_teachings.all(),
-                    'speakers': [s.id for s in slot.speakers.all()],
+                    'speakers': [s.id for s in slot.speakers.filter(is_active=True)],
                     'allow_group_registrations': slot.allow_group_registrations,
                     'allow_individual_registrations': slot.allow_individual_registrations,
                     'group_mode': slot.group_mode,
@@ -2250,7 +2208,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.get_object()
-        except Exception as e:
+        except Exception:
             if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
                 messages.error(request, _("This slot belongs to another structure"))
             else:
@@ -2433,8 +2391,6 @@ def user_preferences(request):
         if form.is_valid():
             cleaned_data = form.cleaned_data
 
-            print(f"cleaned data : {cleaned_data}")
-
             for setting_name, value in cleaned_data.items():
                 user.preferences[setting_name] = value
 
@@ -2455,19 +2411,27 @@ def structures_notifications(request, structure_code=None):
     """
 
     data = []
-    settings = None
+    settings, _ = RefStructuresNotificationsSettings.objects.get_or_create(
+        user=request.user,
+        defaults={"user": request.user}
+    )
+
     try:
-        settings = RefStructuresNotificationsSettings.objects.get(user=request.user)
-    except RefStructuresNotificationsSettings.DoesNotExist:
-        pass
+        enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+    except:
+        enabled_disability = False
 
     structures = Structure.objects.filter(referents=request.user).order_by('label')
 
-    for structure in structures:
-        data.append({'structure':structure, 'checked':(structure in settings.structures.all()) if settings else False})
+    data = [{
+        'structure': structure,
+        'registrants_checked': structure in settings.structures.all(),
+        'disability_checked': structure in settings.disability_structures.all(),
+    } for structure in structures]
 
     context = {
-        'structures': data
+        'structures': data,
+        'enabled_disability': enabled_disability
     }
 
     return render(request, 'core/structures_notifications.html', context)
@@ -2629,3 +2593,11 @@ class HighSchoolCohortsRegistrations(generic.TemplateView):
             context["training_id"] = None
 
         return context
+
+def home(request):
+    theme_files = CustomThemeFile.objects.all()
+    return render(
+        request,
+        "home.html",
+        {"theme_files": theme_files}
+    )

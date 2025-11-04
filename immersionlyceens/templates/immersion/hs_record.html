@@ -30,11 +30,12 @@
 
 {% block content %}
 {% authorized_groups request.user %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
 
 <div class="container" style="padding-top:20px; width:70%;">
-  <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
+  <form class="" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ record_form.student }}
         {{ record_form.id }}
@@ -79,6 +80,16 @@
           <div class="col-sm-6 col-md-6">{{ record_form.phone }}</div>
           <div class="col-sm-3 col-md-2">{{ record_form.phone.errors }}</div>
         </div>
+        {% if activate_disability.activate %}
+        <div class="form-group row">
+          <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">
+          {{ activate_disability.form_sentence }} :</label>
+          <div class="col-sm-6 col-md-6">
+            {{ record_form.disability }}
+          </div>
+          <div class="col-sm-3 col-md-2">{{ record_form.disability.errors }}</div>
+        </div>
+        {% endif %}
       </div>
       <div class="card-header text-white bg-secondary">
         {% trans "Level of studies" %}
@@ -351,11 +362,11 @@
 
             {% elif record.validation == 1 %}
               <span class="badge badge-pill badge-warning" id="record_status">
-              {% trans "Waiting validation" %}
+                {% trans "Waiting validation" %}
 
             {% elif record.validation == 2 %}
               <span class="badge badge-pill badge-success" id="record_status">
-              {% trans "Validated record" %}
+                {% trans "Validated record" %}
 
             {% elif record.validation == 3 %}
               <span class="badge badge-pill badge-danger" id="record_status">
@@ -363,7 +374,7 @@
 
             {% elif record.validation == 4 %}
               <span class="badge badge-pill badge-warning" id="recordStatus">
-              {% trans "Waiting revalidation" %}
+                {% trans "Waiting revalidation" %}
 
             {% endif %}
             </span>
@@ -376,6 +387,25 @@
             </label>
             <div class="col-sm-8">
               {{ record.validation_date }}
+            </div>
+          </div>
+        {% endif %}
+        {% if student.email_change_date and not student.email_validation_date or student.email_change_date > student.email_validation_date %}
+          <div class="form-group row align-items-center">
+            <div class="col-sm-4 col-form-label">
+              {% trans 'Email change date' %} :
+            </div>
+            <div class="col-sm-8">
+              {{ student.email_change_date }}
+            </div>
+          </div>
+        {% elif student.email_validation_date %}
+          <div class="form-group row align-items-center">
+            <div class="col-sm-4 col-form-label">
+              {% trans 'Email validation date' %} :
+            </div>
+            <div class="col-sm-8">
+              {{ student.email_validation_date }}
             </div>
           </div>
         {% endif %}
@@ -402,6 +432,24 @@
     let high_school_levels = is_set('{{ high_school_levels }}') ? JSON.parse('{{ high_school_levels }}') : Array()
     let bachelor_types = is_set('{{ bachelor_types }}') ? JSON.parse('{{ bachelor_types }}') : Array()
   {% endautoescape %}
+
+  var upload_message = "Votre pièce a bien été versée, n'oubliez pas de valider votre fiche en bas de page"
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Select all the elements where id = <id_document_*-document>
+    const inputs = document.querySelectorAll('[id^="id_document_"][id$="-document"]');
+
+    inputs.forEach(function(input) {
+      input.addEventListener('change', function(event) {
+        const message = document.createElement('div');
+        message.classList.add('document-message', 'text-info', 'mt-2');
+        message.textContent = upload_message;
+
+        // Print the message just after the element
+        input.parentElement.appendChild(message);
+      });
+    });
+  });
 
   function open_modal() {
     $('#modal_nuke_account').modal('show');

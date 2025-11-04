@@ -1,4 +1,6 @@
 {% load immersionlyceens_tags i18n static %}
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+{{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
 <!-- Modal -->
 <div class="modal fade show" id="modal_myimmersions_slot_details" tabindex="-1" role="dialog" aria-labelledby="modal_myimmersions_slot_details_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -77,35 +79,55 @@
                 </div>
                 <div id="modal_city" class="col-4 col-sm-6"></div>
               </div>
+              {% if not hide_fields_public_area.building.hide_after_registration %}
               <div id="row_building" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Building' %} :
                 </div>
                 <div id="modal_building" class="col-4 col-sm-6"></div>
               </div>
+              {% endif %}
+              {% if not hide_fields_public_area.meeting_place.hide_after_registration %}
               <div id="row_meeting_place" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Meeting place' %} :
                 </div>
                 <div id="modal_meeting_place" class="col-4 col-sm-6"></div>
               </div>
+              {% endif %}
               <div id="row_url" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'URL' %} :
                 </div>
                 <div id="modal_url" class="col-4 col-sm-6"></div>
               </div>
+              {% if not hide_fields_public_area.speakers.hide_after_registration %}
               <div id="row_speakers" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Speakers' %} :
                 </div>
                 <div id="modal_speakers" class="col-4 col-sm-6"></div>
               </div>
+              {% endif %}
               <div id="row_additional_information" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">
                   {% trans 'Additional information' %} :
                 </div>
-                <div id="modal_additional_information" class="col-4 col-sm-6"></div>
+                <div class="col-4 col-sm-6">
+                  <div id="modal_additional_information" class="text-truncate" style="max-height: 4.5em; overflow: hidden;"></div>
+                  <button id="show_more_info" class="btn btn-link p-0 mt-1" onclick="openFullInfoModal()">{% trans 'See more' %}</button>
+                </div>
+              </div>
+              <div class="modal fade" id="fullTextModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">{% trans 'Additional information' %}</h5>
+                      <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                    </div>
+                    <div class="modal-body" id="full_text_content"></div>
+                  </div>
+                </div>
               </div>
               <div id="row_restrictions" class="row">
                 <div class="font-weight-bold col-8 col-sm-6">

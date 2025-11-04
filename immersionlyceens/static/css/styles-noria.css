@@ -534,7 +534,7 @@ mark,
 
 .list-arrows li::before {
     content: '\f105';
-    font-family: 'FontAwesome';
+    font-family: 'FontAwesome', sans-serif;
     position: absolute;
     margin: -0.1em 0 0 -1.1em;
     -webkit-align-self: normal;
@@ -11319,7 +11319,7 @@ a.text-gray:focus {
 }
 
 .breadcrumb-item+.breadcrumb-item::before {
-    font-family: 'FontAwesome';
+    font-family: 'FontAwesome', sans-serif;
     line-height: 1;
 }
 
@@ -11444,7 +11444,6 @@ a {
 
 .page-header {
     background-color: #72cde8 !important;
-    /* background-image: none !important; */
 }
 
 @media (max-width: 767.98px) {
@@ -11720,7 +11719,6 @@ h1 {
 .card .card-cours h2 {
     margin-right: auto;
     margin-top: 0;
-    margin-bottom: 0;
     margin-bottom: 0;
 }
 

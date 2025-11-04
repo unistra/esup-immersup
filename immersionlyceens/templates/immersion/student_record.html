@@ -21,12 +21,12 @@
 {% endblock %}
 
 {% block content %}
-
 {% authorized_groups request.user %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
-  <form class="" role="form" action="/immersion/student_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
+  <form class="" action="/immersion/student_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
         {% csrf_token %}
         {{ record_form.student }}
         {{ record_form.id }}
@@ -70,6 +70,16 @@
           <div class="col-sm-3">{{ record_form.phone }}</div>
           <div class="col-sm-6">{{ record_form.phone.errors }}</div>
         </div>
+        {% if activate_disability.activate %}
+        <div class="form-group row">
+          <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">
+          {{ activate_disability.form_sentence }} :</label>
+          <div class="col-sm-6 col-md-6">
+            {{ record_form.disability }}
+          </div>
+          <div class="col-sm-3 col-md-2">{{ record_form.disability.errors }}</div>
+        </div>
+        {% endif %}
       </div>
       <div class="card-header text-white bg-secondary">
         {% trans "Level of studies" %}
@@ -176,16 +186,16 @@
       <div class="card-body">
         {% if record.creation_date %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">
+          <div class="col-sm-4 col-form-label">
             {% trans 'Record creation date' %} :
-          </label>
+          </div>
           <div class="col-sm-4">
             {{ record.creation_date }}
           </div>
         </div>
         {% endif %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">{% trans "File status" %} :</label>
+          <div class="col-sm-4 col-form-label">{% trans "File status" %} :</div>
           <div class="col-sm-4">
 
             {% if record.validation == 0 or record.validation == 5 %}
@@ -214,13 +224,32 @@
         </div>
         {% if record.validation_date %}
         <div class="form-group row align-items-center">
-          <label class="col-sm-4 col-form-label">
+          <div class="col-sm-4 col-form-label">
             {% trans 'Record validation date' %} :
-          </label>
+          </div>
           <div class="col-sm-8">
             {{ record.validation_date }}
           </div>
         </div>
+        {% endif %}
+        {% if student.email_validation_date %}
+          <div class="form-group row align-items-center">
+            <div class="col-sm-4 col-form-label">
+              {% trans 'Email validation date' %} :
+            </div>
+            <div class="col-sm-8">
+              {{ student.email_validation_date }}
+            </div>
+          </div>
+        {% elif student.email_change_date %}
+          <div class="form-group row align-items-center">
+            <div class="col-sm-4 col-form-label">
+              {% trans 'Email change date' %} :
+            </div>
+            <div class="col-sm-8">
+              {{ student.email_change_date }}
+            </div>
+          </div>
         {% endif %}
       </div>
       {% endif %}

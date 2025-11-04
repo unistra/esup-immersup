@@ -37,17 +37,17 @@
 {% block table_definition %}
 <thead>
   <tr>
-    <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-    <th id="managed_by_filter" class="align-top">{% trans 'Managed by' context "slots" %}</th>
-    <th id="event_filter" class="align-top">{% trans 'Event label' %}</th>
-    <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
-    <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
-    <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
-    <th class="align-top">{% trans 'Registered students' %}</th>
-    <th id="attendances_filter" class="align-top">{% trans 'Attendance' %}</th>
-    <th id="additionnals_info"></th>
-    <th class="align-top">{% trans 'Restr.' %}</th>
-    <th id="groups_filter" class="align-top">{% trans 'Groups' %}</th>
+    <th id="published_filter" class="align-top" scope="col">{% trans 'Published' %}</th>
+    <th id="managed_by_filter" class="align-top" scope="col">{% trans 'Managed by' context "slots" %}</th>
+    <th id="event_filter" class="align-top" scope="col">{% trans 'Event label' %}</th>
+    <th id="schedules_filter" class="align-top" scope="col">{% trans 'Schedules' %}</th>
+    <th id="location_filter" class="align-top" scope="col">{% trans 'Location' %}</th>
+    <th id="speaker_filter" class="align-top" scope="col">{% trans 'Speakers' %}</th>
+    <th class="align-top" scope="col">{% trans 'Registered students' %}</th>
+    <th id="attendances_filter" class="align-top" scope="col">{% trans 'Attendance' %}</th>
+    <th id="additionnals_info" scope="col"></th>
+    <th class="align-top" scope="col">{% trans 'Restr.' %}</th>
+    <th id="groups_filter" class="align-top" scope="col">{% trans 'Groups' %}</th>
   </tr>
 </thead>
 <tbody>

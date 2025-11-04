@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import mimetypes
 import os
 import sys
@@ -32,6 +33,8 @@ from immersionlyceens.apps.core.models import (
 )
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
+
+logger = logging.getLogger(__name__)
 
 
 def home(request):
@@ -98,14 +101,13 @@ def offer(request):
     except InformationText.DoesNotExist:
         offer_txt = ''
 
-    today = datetime.datetime.today()
+    slots_count = 0
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = Slot.objects.filter(published=True, event__isnull=True, allow_individual_registrations=True).filter(
-        Q(date__isnull=True)
-        | Q(date__gte=today.date())
-        | Q(date=today.date(), end_time__gte=today.time())
 
-    ).distinct().count()
+    # Count the total of all subdomains
+    for sub in subdomains:
+        sub_list = sub.subdomain_slots()
+        slots_count += sub_list.count()
 
     context = {
         'subdomains': subdomains,
@@ -285,7 +287,7 @@ def offer_subdomain(request, subdomain_id):
                 'training': training,
                 'course': course,
                 'slots': None,
-                'alert': (not slots or all([s.available_seats() == 0 for s in slots])),
+                'alert': (not slots or all(s.available_seats() == 0 for s in slots)),
             }
 
             # If the current user is a student, check whether he can register
@@ -300,16 +302,14 @@ def offer_subdomain(request, subdomain_id):
                     slot.passed_cancellation_limit_date = \
                         slot.cancellation_limit_date < timezone.now() if slot.cancellation_limit_date else False
 
-                    # FIXME: still used somewhere ?
-                    remaining_period_registrations = 0
-
                     # get slot period (for dates)
                     try:
                         period = Period.from_date(pk=slot.period.pk, date=slot.date)
-                        remaining_period_registrations = remaining_regs_count.get(period.pk, 0)
-                    except Period.DoesNotExist:
+                    except Period.DoesNotExist as e:
+                        logger.exception(f"Period does not exist : {e}")
                         raise
-                    except Period.MultipleObjectsReturned:
+                    except Period.MultipleObjectsReturned as e:
+                        logger.exception(f"Multiple period returned : {e}")
                         raise
 
                     # Already registered / cancelled ?
@@ -320,9 +320,8 @@ def offer_subdomain(request, subdomain_id):
 
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
-                    # ignore "remaining_period_registrations > 0" ?
                     if not slot.already_registered or slot.cancelled:
-                        can_register, reasons = student.can_register_slot(slot)
+                        can_register, _ = student.can_register_slot(slot)
 
                         if slot.available_seats() > 0 and can_register:
                             immersion_end_datetime = datetime.datetime.combine(
@@ -335,12 +334,14 @@ def offer_subdomain(request, subdomain_id):
                                 slot.can_register = True
                             elif now < slot.registration_limit_date:
                                 slot.opening_soon = True
+
             else:
                 for slot in slots:
                     slot.cancelled = False
                     slot.can_register = False
                     slot.already_registered = False
 
+            training_data['course'] = course
             training_data['slots'] = slots
 
             data.append(training_data.copy())
@@ -383,8 +384,6 @@ def offer_off_offer_events(request):
     today = timezone.now().date()
     student = None
     record = None
-    Q_Filter = None
-    semester = None
 
 
     if not request.user.is_anonymous \
@@ -409,13 +408,19 @@ def offer_off_offer_events(request):
     # Published event only & no course
     filters["course__isnull"] = True
     filters["event__published"] = True
+    filters["published"] = True
     filters["allow_individual_registrations"] = True
-
     filters["date__gte"] = today
-    events = Slot.objects.prefetch_related(
+
+    events = (Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', \
-                                        'date', 'start_time' )
+            .filter(
+                **filters
+            ).filter(
+                Q(event__start_date__lte=today) |
+                Q(event__start_date__isnull=True)
+            ).order_by('event__establishment__label', 'event__highschool__label', 'event__label', \
+                                        'date', 'start_time' ))
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     now = timezone.now()
@@ -438,11 +443,12 @@ def offer_off_offer_events(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
-                can_register, reasons = student.can_register_slot(event)
+                can_register, _ = student.can_register_slot(event)
 
                 try:
                     period = Period.from_date(pk=event.period.pk, date=event.date)
-                except Period.DoesNotExist:
+                except Period.DoesNotExist as e:
+                    logger.exception(f"Period does not exist : {e}")
                     raise
 
                 if event.available_seats() > 0 and can_register:
@@ -456,7 +462,6 @@ def offer_off_offer_events(request):
             event.cancelled = False
             event.can_register = False
             event.already_registered = False
-
 
     events_count = events.count()
     context = {
@@ -478,14 +483,13 @@ def charter_not_signed(request):
 
 def error_500(request, *args, **kwargs):
     context = {}
-    type_, exc, traceback = sys.exc_info()
+    _, exc, _ = sys.exc_info()
     display = getattr(exc, "display", False)
 
     if display:
         context["error"] = str(exc)
 
     return render(request, '500.html', context, status=500)
-
 
 def faq(request):
     """FAQ view"""
@@ -530,7 +534,6 @@ def highschools(request):
             active=True
         ).content
     except InformationText.DoesNotExist:
-        # TODO: Default txt value ?
         affiliated_highschools_intro_txt = ''
 
     try:
@@ -539,7 +542,6 @@ def highschools(request):
             active=True
         ).content
     except InformationText.DoesNotExist:
-        # TODO: Default txt value ?
         not_affiliated_highschools_intro_txt = ''
 
     not_affiliated_highschools = HighSchool.objects.filter(
@@ -559,14 +561,12 @@ def highschools(request):
 
 
 def search_slots(request):
-    today = timezone.now()
 
     try:
         intro_offer_search = InformationText.objects.get(
             code="INTRO_OFFER_SEARCH", active=True
         ).content
     except InformationText.DoesNotExist:
-        # TODO: Default txt value ?
         intro_offer_search = ""
 
     context = {
@@ -579,20 +579,27 @@ def cohort_offer(request):
     """Cohort offer view"""
 
     filters = {}
+    user = request.user
+    is_anonymous = request.user.is_anonymous
+
     try:
         cohort_offer_txt = InformationText.objects.get(code="INTRO_OFFER_COHORT", active=True).content
     except InformationText.DoesNotExist:
         cohort_offer_txt = ''
 
-    today = datetime.datetime.today()
+    slots_count = 0
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    slots_count = (
-        Slot.objects
-        .filter(published=True, event__isnull=True, allow_group_registrations=True, public_group=True)
-        .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
-        .distinct()
-        .count()
-    )
+
+    if is_anonymous or not user.is_high_school_manager():
+        # Count the total of all subdomains
+        for sub in subdomains:
+            sub_list = sub.group_public_subdomain_slots()
+            slots_count += sub_list.count()
+    else :
+        for sub in subdomains:
+            sub_list = sub.group_public_and_private_subdomain_slots()
+            slots_count += sub_list.count()
+
     now = timezone.now()
     today = timezone.now().date()
     # Published event only & no course
@@ -606,9 +613,13 @@ def cohort_offer(request):
 
     filters["course__isnull"] = True
     filters["event__published"] = True
+    filters["published"] = True
     filters["allow_group_registrations"] = True
-    filters["public_group"] = True
     filters["date__gte"] = today
+
+    if is_anonymous or not request.user.is_high_school_manager():
+        filters["public_group"] = True
+
     events = (
         Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions'
@@ -652,6 +663,11 @@ def cohort_offer_subdomain(request, subdomain_id):
     data = []
     now = timezone.now()
     today = timezone.localdate()
+    user = request.user
+    public_groups_filter = {}
+    
+    if user.is_anonymous or not user.is_high_school_manager():
+        public_groups_filter = {"public_group": True}
 
     group_registered_persons_query = (
         ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
@@ -674,7 +690,7 @@ def cohort_offer_subdomain(request, subdomain_id):
                     published=True,
                     date__gte=today,
                     allow_group_registrations=True,
-                    public_group=True,
+                    **public_groups_filter
                 )
                 .annotate(
                     group_registered_persons=Subquery(group_registered_persons_query),

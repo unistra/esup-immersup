@@ -63,19 +63,15 @@ USE_CAS = False
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
 CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
-# CAS_SERVER_URL = 'https://cas-pprd.unistra.fr:443/cas/'
-# CAS_LOGOUT_REQUEST_ALLOWED = ('cas-w1-pprd.di.unistra.fr', 'cas-w2-pprd.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
 
 
 ####################
 #    SHIBBOLETH    #
 ####################
-# EDUCONNECT_LOGIN_URL = "https://pr4.educonnect.phm.education.gouv.fr/idp/profile/SAML2/Unsolicited/SSO"
 EDUCONNECT_LOGIN_URL = "https://pr4.educonnect.phm.education.gouv.fr/idp"
 EDUCONNECT_LOGOUT_URL = "https://pr4.educonnect.phm.education.gouv.fr/logout"
 
-# AGENT_FEDERATION_LOGIN_URL = "https://hub-pr2.phm.education.gouv.fr/idp/profile/SAML2/Unsolicited/SSO"
 AGENT_FEDERATION_LOGIN_URL = "https://hub-pr2.phm.education.gouv.fr/idp"
 AGENT_FEDERATION_LOGOUT_URL = "https://hub-pr2.phm.education.gouv.fr/logout"
 
@@ -165,5 +161,4 @@ if EXTRA_LOCALE_PATH:
 ###########################
 UAI_API_URL = "{{ uai_api_url }}"
 UAI_API_AUTH_HEADER = "{{ uai_api_auth_header }}"
-UAI_API_SEARCH_ATTR = "{{ uai_api_search_attr }}"
 

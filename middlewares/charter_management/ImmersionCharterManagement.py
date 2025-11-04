@@ -33,8 +33,6 @@ class ImmersionCharterManagement:
             already_signed_charter = any([
                 user.is_superuser,
                 user.is_operator(),
-                #user.is_student(), # FIXME WHEN WE KNOW HOW TO LINK A STUDENT WITH THE ESTABLISHMENT
-                #user.is_high_school_student() and not highschool,
                 user.establishment and (user.establishment.master or user.establishment.signed_charter),
                 highschool and highschool.postbac_immersion and highschool.signed_charter,
                 highschool and not highschool.postbac_immersion,
@@ -71,7 +69,7 @@ class ImmersionCharterManagement:
 
                 conditions = [
                     request.path in reverse_exceptions,
-                    any(map(lambda n:request.path.startswith(n), namespaces_exceptions))
+                    any(request.path.startswith(n) for n in namespaces_exceptions)
                 ]
 
                 if not any(conditions):

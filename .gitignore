@@ -30,6 +30,7 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
+coverage.xml
 nosetests.xml
 htmlcov/
 
@@ -82,3 +83,9 @@ assets/
 *.save
 *.old
 restart_*sh
+
+# DB
+*.dump
+
+# Archives
+*.tar.gz

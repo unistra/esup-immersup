@@ -24,16 +24,26 @@
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
 
-  <div id="vdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
+  <div id="vdialog-form" style='z-index:3000;' title='{% trans "Visitor profiles" %}'>
     <span>
       {% trans 'Did you really want to validate this visitor?' %}
     </span>
   </div>
 
-  <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
+  <div id="cdialog-form" style='z-index:3000;' title='{% trans "Visitor profiles" %}'>
+    <span>
+      {% trans 'Do you really want to cancel this rejection ?' %}
+    </span>
+  </div>
+
+  <div id="rdialog-form" style='z-index:3000;' title='{% trans "Visitor profiles" %}'>
     <span>
       {% trans 'Did you really want to reject this visitor?' %}
     </span>
+    <div style="margin-top: 10px;">
+      <label for="rejection_reason">{% trans 'Reason (optional)' %}</label><br>
+      <textarea id="rejection_reason" name="rejection_reason" rows="3" style="width: 100%;"></textarea>
+    </div>
   </div>
 
   <div class="card">
@@ -65,6 +75,7 @@
                     <th id="name_filter_to_revalidate">{% trans "Name" %}</th>
                     <th id="birthdate_filter_to_revalidate">{% trans "Birth date" %}</th>
                     <th id="date_filter_to_revalidate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_revalidate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -94,6 +105,7 @@
                     <th id="name_filter_to_validate">{% trans "Name" %}</th>
                     <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
                     <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_validate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -152,11 +164,13 @@
                     <th id="name_filter_rejected">{% trans "Name" %}</th>
                     <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
                     <th id="date_filter_rejected">{% trans "Rejection date" %}</th>
+                    <th id="rejection_message_filter_rejected">{% trans "Rejection Reason" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -174,8 +188,8 @@
 <script type="text/javascript">
 var t1, t2;
 var dts = {};
-var vdialog, rdialog;
-var date_options = { dateStyle: 'long', timeStyle: 'medium' };
+var vdialog, cdialog, rdialog;
+var date_options = { dateStyle: 'short', timeStyle: 'short' };
 var birth_date_options = { dateStyle: 'short' };
 
 $(document).ready(function () {
@@ -200,7 +214,29 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            validate_student($("#vdialog-form").data('param'));
+            let visitor_record_id = $("#vdialog-form").data('param')
+            let att = $("#vdialog-form").data('atts')
+            let documents_validity_dates = []
+
+            // get validity date for all attestations that require one
+            if(is_set(att)) {
+              att.forEach(att_id => {
+                // get date input depending on the record id and the record_attestation object id
+                let date_input = document.getElementById(`validity_date_${visitor_record_id}_${att_id}`)
+
+                if (date_input) {
+                  let docId = date_input.dataset.docId;
+                  let dateValue = date_input.value;
+
+                  documents_validity_dates.push({
+                    id: docId,
+                    validity_date: dateValue
+                  });
+                }
+              })
+            }
+
+            validate_student(visitor_record_id, documents_validity_dates);
             vdialog.dialog("close");
           },
         },
@@ -209,6 +245,34 @@ $(document).ready(function () {
           "class": 'dialog-button',
           click: function () {
             vdialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    cdialog = $("#cdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            let visitor_record_id = $("#cdialog-form").data('param')
+            cancel_rejection(visitor_record_id);
+            cdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            cdialog.dialog("close");
           },
         }
       ],
@@ -227,7 +291,10 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            reject_student($("#rdialog-form").data('param'));
+            let visitor_record_id = $("#rdialog-form").data('param');
+            let reason = $("#rejection_reason").val();
+
+            reject_student(visitor_record_id, reason);
             rdialog.dialog("close");
           },
         },
@@ -240,6 +307,40 @@ $(document).ready(function () {
         }
       ],
     });
+
+    //If a validity date is missing on a document, the user can put it manually
+    //This function check if the date put manually is valid
+    function enable_validate_button(){
+
+      $(".validity-date").each(function() {
+        const val = $(this).val();
+        let invalid = false;
+        const row = $(this).closest('tr');
+
+        if (!val) {
+          invalid = true;
+        } else {
+          const entered = new Date(val);
+          const today = new Date();
+
+          if (entered < today) {
+            invalid = true;
+          }
+        }
+
+        if (invalid) {
+          row.find('.btn_validate').prop('disabled', true);
+          row.find('td:last').append("<br>{% trans 'Some attestation dates are invalid' %}");
+        } else {
+          row.find('.btn_validate').prop('disabled', false);
+        }
+      });
+    }
+
+    // All the elements with the "validity-date" class are checked to see if they changed
+    $(document).on("change", ".validity-date", function() {
+      enable_validate_button()
+    })
 
     function load_to_revalidate() {
         dts['to_revalidate'] = $('#to_revalidate').DataTable({
@@ -295,19 +396,49 @@ $(document).ready(function () {
                   return data
                 }
               },
+              {
+                data: 'attestations',
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
+                }
+              },
               { data: 'id',
                 render: function(data, type, row) {
                   let element = '';
                   let disabled = '';
                   let txt = '';
+                  let att_ids = []
 
                   if(row.invalid_dates > 0) {
                     disabled = "disabled"
                     txt = "<br>{% trans 'Some attestation dates are invalid' %}"
                   }
 
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
-                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Renew validation" %}</button>`;
+                       onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog('open')">{% trans "Renew validation" %}</button>`;
+
                   element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
                        onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
 
@@ -376,19 +507,48 @@ $(document).ready(function () {
                   return data
                 }
               },
+              {
+                data: 'attestations',
+                render: function (data, type, row) {
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += `<input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
+                }
+              },
               { data: 'id',
                 render: function(data, type, row) {
                   let element = '';
                   let disabled = '';
                   let txt = '';
+                  let att_ids = []
 
                   if(row.invalid_dates > 0) {
                     disabled = "disabled"
                     txt = "<br>{% trans 'Some attestation dates are invalid' %}"
                   }
 
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
-                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Validate" %}</button>`;
+                       onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog('open')">{% trans "Validate" %}</button>`;
+
                   element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
                        onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
 
@@ -526,12 +686,18 @@ $(document).ready(function () {
                   return data
                 }
               },
+              { data: 'rejection_reason',
+                render: function (data, type, row) {
+                  return data
+                }
+
+              },
               { data: 'id',
                 render: function(data) {
-                  return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
-                         'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                  return `<button class="btn btn-success btn_validate" id="btn_validate_${data}" ` +
+                         `onclick="cdialog.data('param', ${data}).dialog(\'open\')">{% trans "Cancel" %}</button>`
                 }
-              }
+              },
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -593,9 +759,12 @@ function reload_rejected() {
     $('#rejected').DataTable().ajax.reload();
 }
 
-function validate_student( student_record_id ) {
+function validate_student(visitor_record_id, documents_validity_date) {
   $.post({
-    url: "/api/visitor/record/" + student_record_id + "/validate",
+    url: "/api/visitor/record/" + visitor_record_id + "/validate",
+    data: {
+        validity_dates: JSON.stringify(documents_validity_date),
+    },
     success: function(data) {
         if (data !== undefined) {
 
@@ -604,17 +773,24 @@ function validate_student( student_record_id ) {
             reload_validated();
             reload_rejected();
 
+            if(data["msg"]) {
+              $('#validate_message').append(`<br> ${data["msg"]}`)
+            }
+
             $('#validate_message').show();
+
             if (t1) { clearTimeout(t1); }
-            t1 = setTimeout(function(){
-                    $('#validate_message').fadeOut(1000, function(){
-                        $('#validate_message').hide();
-                    });
-                },
-                {%  settings_get 'MESSAGES_TIMEOUT' %}
-            );
+
+            t1 = setTimeout(function() {
+              $('#validate_message').fadeOut(1000, function(){
+                $('#validate_message').hide();
+              });
+              },
+              {% settings_get 'MESSAGES_TIMEOUT' %}
+            )
         } else {
             $('#fail_message').show();
+
             setTimeout(function(){
                 $('#fail_message').fadeOut(
                     1000,
@@ -622,8 +798,71 @@ function validate_student( student_record_id ) {
                         $('#fail_message').hide();
                     }
                 )
-            }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+            }, {% settings_get 'MESSAGES_TIMEOUT' %});
         }
+    },
+    error: function() {
+        $('#fail_message').show();
+        setTimeout(function(){
+            $('#fail_message').fadeOut(
+                1000,
+                function() {
+                    $('#fail_message').hide();
+                }
+            )
+        }, {% settings_get 'MESSAGES_TIMEOUT' %});
+    }
+  });
+}
+
+function cancel_rejection(visitor_record_id) {
+  $.post({
+    url: "{% url 'cancelRejection' %}",
+    data: {
+        visitor_record_id: visitor_record_id,
+    },
+    success: function(obj) {
+      if (is_set(obj.data)) {
+        reload_to_validate();
+        reload_rejected();
+
+        $('#cancel_rejection_message').show();
+
+        if (t1) {
+          clearTimeout(t1);
+        }
+
+        t1 = setTimeout(function() {
+            $('#cancel_rejection_message').fadeOut(1000, function(){
+              $('#cancel_rejection_message').hide();
+            });
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        )
+      }
+      else {
+        if(is_set(obj.msg)) {
+          $('#fail_message').html(obj.msg)
+        }
+        else {
+          $('#fail_message').html(
+            "{% trans 'An error occurred. The operation has failed.' %}"
+          )
+        }
+
+        $('#fail_message').show();
+
+        setTimeout(function() {
+            $('#fail_message').fadeOut(
+              1000,
+              function() {
+                $('#fail_message').hide();
+              }
+            )
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        );
+      }
     },
     error: function() {
         $('#fail_message').show();
@@ -639,9 +878,12 @@ function validate_student( student_record_id ) {
   });
 }
 
-function reject_student( student_record_id ) {
+function reject_student(visitor_record_id, reason) {
   $.post({
-      url: "/api/visitor/record/" + student_record_id + "/reject",
+      url: "/api/visitor/record/" + visitor_record_id + "/reject",
+      data: {
+        rejection_reason: reason,
+      },
       success: function(data) {
           if (data !== undefined) {
 
@@ -650,6 +892,10 @@ function reject_student( student_record_id ) {
               reload_validated();
               reload_rejected();
 
+              if(data["msg"]) {
+                $('#reject_message').append(`<br> ${data["msg"]}`)
+              }
+
               $('#reject_message').show();
               if (t2) { clearTimeout(t2); }
               t2 = setTimeout(function(){
@@ -657,10 +903,10 @@ function reject_student( student_record_id ) {
                           $('#reject_message').hide();
                       });
                   },
-                  {%  settings_get 'MESSAGES_TIMEOUT' %}
+                  {% settings_get 'MESSAGES_TIMEOUT' %}
               );
 
-              let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
+              let elem = $('#btn_reject_' + visitor_record_id + '').parent().parent();
               elem.fadeOut(
                   500,
                   function() {
@@ -678,7 +924,7 @@ function reject_student( student_record_id ) {
                           $('#fail_message').hide();
                       }
                   )
-              }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+              }, {% settings_get 'MESSAGES_TIMEOUT' %});
           }
       },
       error: function() {
@@ -690,7 +936,7 @@ function reject_student( student_record_id ) {
                       $('#fail_message').hide();
                   }
               )
-          }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          }, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
   });
 }

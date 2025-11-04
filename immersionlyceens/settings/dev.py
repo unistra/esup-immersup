@@ -30,13 +30,6 @@ DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', '')
 DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', '')
 DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'db.sqlite3',
-#     }
-# }
-
 ########################
 #     CAS SETTINGS     #
 ########################
@@ -156,4 +149,4 @@ if EXTRA_LOCALE_PATH:
 ###########################
 UAI_API_URL = environ.get("UAI_API_URL", "")
 UAI_API_AUTH_HEADER = environ.get("UAI_API_AUTH_HEADER", "")
-UAI_API_SEARCH_ATTR = environ.get("UAI_API_SEARCH_ATTR", "")
+

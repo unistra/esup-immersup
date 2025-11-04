@@ -3,11 +3,11 @@ var _dates_options = { dateStyle: 'long' };
 var _dates_locale = navigator.languages !== undefined ? navigator.languages[0] : navigator.language;
 
 function getCookie(name) {
-  var cookieValue = null
+  let cookieValue = null
   if (document.cookie && document.cookie != '') {
-    var cookies = document.cookie.split(';')
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = $.trim(cookies[i])
+    let cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      let cookie = $.trim(cookies[i])
       // Does this cookie string begin with the name we want?
       if (cookie.substring(0, name.length + 1) == (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
@@ -21,7 +21,7 @@ function getCookie(name) {
 
 function initFeedback(obj) {
   $(document).on('showFeedback', function (event, ...messages) {
-    var $target = $(event.target).empty()
+    let $target = $(event.target).empty()
     messages.forEach(function (element) {
       $target.append(
         $('<div/>', {
@@ -43,14 +43,14 @@ function initFeedback(obj) {
 
 function initBadge() {
   $('.immersup-badge').each(function () {
-    var rgb = $(this).css('backgroundColor')
-    var colors = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
+    let rgb = $(this).css('backgroundColor')
+    let colors = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
 
-    var r = colors[1]
-    var g = colors[2]
-    var b = colors[3]
+    let r = colors[1]
+    let g = colors[2]
+    let b = colors[3]
 
-    var o = Math.round(((parseInt(r) * 299) + (parseInt(g) * 587) + (parseInt(b) * 114)) / 1000)
+    let o = Math.round(((parseInt(r) * 299) + (parseInt(g) * 587) + (parseInt(b) * 114)) / 1000)
 
     if (o > 125) {
       $(this).css('color', 'black')
@@ -69,7 +69,7 @@ function formatDate(date, date_options = _dates_options, date_locale = _dates_lo
 }
 
 function set_session_values(pagename, values) {
-  var csrftoken = getCookie('csrftoken');
+  let csrftoken = getCookie('csrftoken');
 
   $.ajax({
     beforeSend: function (request) {
@@ -125,4 +125,33 @@ function findBootstrapEnvironment() {
 
   document.body.removeChild(el);
   return curEnv;
+}
+
+/*
+Display and manage exit of the disabled referent notification modal
+*/
+function open_notify_disability_modal(slot_id, modal_mode=false) {
+  current_slot_id = slot_id
+  modal_open = modal_mode;
+  $('#modal_notify_disability').modal('show');
+
+  // Wait for the modal to close (whatever the choice of the student)
+  return new Promise(resolve =>
+      $("#modal_notify_disability").on('hidden.bs.modal', () => {
+        resolve();
+      })
+  );
+}
+
+/*
+Open the additional information into a new modal if the text is too long
+*/
+function openFullInfoModal() {
+  $('#full_text_content').html($('#modal_additional_information').html());
+  $('#fullTextModal').modal('show');
+}
+
+function openFullInfoModalHtml(content) {
+  document.getElementById('full_text_content').innerText = content;
+  $('#fullTextModal').modal('show');
 }

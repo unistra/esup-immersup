@@ -158,4 +158,3 @@ if EXTRA_LOCALE_PATH:
 ###########################
 UAI_API_URL = "{{ uai_api_url }}"
 UAI_API_AUTH_HEADER = "{{ uai_api_auth_header }}"
-UAI_API_SEARCH_ATTR = "{{ uai_api_search_attr }}"

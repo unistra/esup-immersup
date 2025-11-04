@@ -19,7 +19,6 @@ $(document).on('change', 'select#id_city', () => {
     type: 'GET',
     success(data) {
       var options = '<option value="">---------</option>'
-      // console.log(data.length)
       if (data.length === 1) {
         options = `<option value="${data[0][0]}">${data[0][0]}</option>`
       } else {

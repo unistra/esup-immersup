@@ -23,6 +23,7 @@
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   {% block confirm_slot_creation %}{% endblock %}
   {% block confirm_publication %}{% endblock %}
+  {% block dates_modification %}{% endblock %}
 
   <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
     <span>
@@ -48,7 +49,7 @@
     {% block card_header %}{% endblock %}
     <div class="card-body">
 
-        <form method="POST" class="form-group" role="form" id="add_slot">
+        <form method="POST" class="form-group" id="add_slot">
             <fieldset>
 
                 <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
@@ -269,7 +270,7 @@
         </div>
 
         <div class="form-group row">
-          <label class="col-sm-3">
+          <label for="id_mandatory_speakers" class="col-sm-3">
             <i id='id_mandatory_speakers' class="fa fas fa-asterisk" style="display:none"></i>
             {% trans 'Speakers' %}
           </label>
@@ -559,6 +560,7 @@
 <script>
   var dateDialog;
   var publicationDialog;
+  var modificationDialog;
   var cancelDialog;
   var repetitionDialog;
   var dateErrorDialog;
@@ -1398,10 +1400,6 @@
     toggle_required_fields()
   }
 
-  function open_slot_repetition_modal() {
-    $('#modal_slot_repetition').modal('show');
-  }
-
   function toggle_establishments_restrictions() {
     if ($('#id_establishments_restrictions').prop('checked')) {
       $('#id_div_allowed_establishments').show()
@@ -1545,6 +1543,42 @@
                 dateDialog.dialog('open');
               } else if (callback) {
                 callback(data['data']['is_between'])
+              }
+            }
+          }
+        },
+      });
+    }
+  }
+
+  function check_parent_date(date=$('#id_date').val(), dialog=true, callback) {
+    var start_date
+    var end_date
+
+    if(course_id) {
+        start_date = courses[course_id]['start_date']
+        end_date = courses[course_id]['end_date']
+    }
+    if(event_id) {
+        start_date = events[event_id]['start_date']
+        end_date = events[event_id]['end_date']
+    }
+
+    if(date) {
+      return $.ajax({
+        url: '/api/validate_parent_date',
+        data: {
+          date: date,
+          start_date: start_date,
+          end_date: end_date,
+        },
+        success: function (data) {
+          if (data['data']) {
+            if (data['data']['outside']) {
+              if (dialog) {
+                modificationDialog.dialog('open');
+              } else if (callback) {
+                callback(data['data']['outside'])
               }
             }
           }
@@ -1854,6 +1888,30 @@ $(document).ready(function(){
         },
       }],
   });
+    modificationDialog = $("#modification-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          modificationDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          $('#id_date').val('');
+          modificationDialog.dialog("close");
+        },
+      }],
+  });
 
   cancelDialog = $("#cancel-dialog-form").dialog({
     autoOpen: false,
@@ -1938,6 +1996,7 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    check_parent_date();
     toggle_period_display();
     set_periods();
     display_registration_limit_delay()

@@ -53,7 +53,7 @@ input[type='number'] {
 }
 
 .glyphicon-refresh-animate {
-    -animation: spin 0.7s infinite linear;
+    animation: spin 0.7s infinite linear;
     -ms-animation: spin 0.7s infinite linear;
     -webkit-animation: spinw 0.7s infinite linear;
     -moz-animation: spinm 0.7s infinite linear;
@@ -208,7 +208,7 @@ a.unlink:hover {
 .more-less-title>button:after {
     /* minus */
     content: '\f067';
-    font-family: 'FontAwesome';
+    font-family: 'FontAwesome', sans-serif;
     position: absolute;
     right: 2px;
 }
@@ -217,6 +217,10 @@ a.unlink:hover {
     /* plus */
     content: '\f068';
     right: 2px;
+}
+
+.more-less-title > button.excluded::after {
+  content: none !important;
 }
 
 .light-bg-secondary {
@@ -278,18 +282,6 @@ a.unlink:hover {
     font-weight: 400 !important;
 }
 
-/* Badge text color autodetect */
-/* :root {
-  --light-color: 80;
-  --threshold: 60;
-}
-
-.immersup-badge {
-  --switch: calc((attr(--background-color) - var(--threshold)) * -100);
-  color: hsl(0, 0%, var(--switch));
-  background-color: attr(background-color);
-} */
-
 /* FAQ section */
 
 .faq_area {
@@ -335,7 +327,6 @@ a.unlink:hover {
 }
 
 /*
-
 Firefox is sadly not supporting :has for now :(
 .results-cards tbody tr:not(:has(td.dataTables_empty)) {
     float: left;
@@ -346,7 +337,6 @@ Firefox is sadly not supporting :has for now :(
     border-radius: .15rem;
     box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
 }
-
 */
 
 .results-cards tbody tr {
@@ -354,10 +344,20 @@ Firefox is sadly not supporting :has for now :(
     width: 20rem;
     margin: 0.5rem;
     border: 0.0625rem solid rgba(0, 0, 0, .125);
-    min-height: max-content;
-    border-radius: .15rem;
+    border-radius: .5rem;
     box-shadow: 0.10rem 0.10rem 0.3rem rgba(0, 0, 0, 0.25);
+    height: 30rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
+
+.results-cards tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0.15rem 0.15rem 0.5rem rgba(0, 0, 0, 0.3);
+    transition: 0.2s ease;
+}
+
 
 .results-cards tbody td {
     display: block;
@@ -368,7 +368,18 @@ Firefox is sadly not supporting :has for now :(
     display: inline;
     position: relative;
     float: left;
-    color: #808080;
+    color: #757575;
+    min-width: 2rem;
+    margin-left: 0;
+    margin-right: 0.2rem;
+    text-align: left;
+}
+
+.field-label {
+    display: inline;
+    position: relative;
+    float: left;
+    color: #757575;
     min-width: 2rem;
     margin-left: 0;
     margin-right: 0.2rem;
@@ -403,12 +414,6 @@ Firefox is sadly not supporting :has for now :(
 
 .slot-type-e {
     color: DarkGreen;
-}
-/*
-TODO: Remove this when upgrading to django-ckeditor-5 !!! For now hidding warning message !!!
-*/
-.cke_notification_warning {
-        display: none;
 }
 
 /*

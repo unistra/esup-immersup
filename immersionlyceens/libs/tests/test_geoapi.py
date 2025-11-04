@@ -45,8 +45,9 @@ class GEOAPITestCase(TestCase):
         try:
             get_json_from_url(url)
             raises = False
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"GEOAPI error : {e}")
+
         self.assertFalse(raises)
 
         with self.assertRaises(Exception):

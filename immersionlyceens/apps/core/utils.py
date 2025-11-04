@@ -70,12 +70,12 @@ def slots(request):
     structure_id = request.GET.get('structure_id')
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
+    period_id = request.GET.get('period_id')
     courses = request.GET.get('courses', False) == "true"
     events = request.GET.get('events', False) == "true"
     past_slots_with_attendances = request.GET.get('past', False) == "true"
     cohorts_only = request.GET.get('cohorts_only', False) == "true"
     current_slots_only = request.GET.get('current_slots_only', False) == "true"
-    all_slots = request.GET.get('all_slots', False) == "true"
     highschool_cohorts_registrations_only = request.GET.get('highschool_cohorts_registrations_only', False) == "true"
 
     if not courses and not events:
@@ -108,6 +108,11 @@ def slots(request):
     except (TypeError, ValueError):
         training_id = None
 
+    try:
+        int(period_id)
+    except (TypeError, ValueError):
+        period_id = None
+
     force_user_filter = [
         user_slots,
         user.is_speaker()
@@ -129,15 +134,10 @@ def slots(request):
 
     if not user_filter and not cohorts_only:
         if events and not establishment_id and not highschool_id:
-            try:
+            if hasattr(user, "establishment") and user.establishment:
                 establishment_id = user.establishment.id
-            except:
-                pass
-
-            try:
+            if hasattr(user, "highschool") and user.highschool:
                 highschool_id = user.highschool.id
-            except:
-                pass
 
             if not highschool_id and not establishment_id:
                 response['msg'] = gettext("Error : a valid establishment or high school must be selected")
@@ -194,6 +194,10 @@ def slots(request):
 
         user_filter_key = "course__training__structures__in"
 
+    # period filter
+    if period_id:
+        filters['period__id'] = period_id
+
     if cohorts_only:
         filters['allow_group_registrations'] = True
         if highschool_id:
@@ -239,6 +243,7 @@ def slots(request):
         'allowed_bachelor_mentions',
         'allowed_bachelor_teachings',
         'group_immersions',
+        'period'
     ).filter(*args_filters, **filters)
 
     if not user.is_superuser and (user.is_structure_manager() or user.is_structure_consultant()):
@@ -289,9 +294,6 @@ def slots(request):
         )
 
     slots = slots.filter(slots_filters).distinct()
-
-    # TODO: Check if this is necessary
-    all_data = []
 
     allowed_structures = user.get_authorized_structures()
     user_establishment = user.establishment
@@ -367,7 +369,8 @@ def slots(request):
                     & (
                         Q(
                             Value(user.is_structure_manager()),
-                            Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                            Q(course__structure__in=allowed_structures)
+                            | Q(event__structure__in=allowed_structures),
                         )
                         | Q(
                             Value(user.is_high_school_manager()),
@@ -386,7 +389,8 @@ def slots(request):
                         Q(Value(user.is_speaker())) & Q(speakers=user)
                         | Q(
                             Value(user.is_structure_manager()),
-                            Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures),
+                            Q(course__structure__in=allowed_structures)
+                            | Q(event__structure__in=allowed_structures),
                         )
                         | Q(
                             Value(user.is_high_school_manager()),
@@ -431,7 +435,8 @@ def slots(request):
             ),
             structure_managed_by_me=Case(
                 When(
-                    Q(course__structure__in=allowed_structures) | Q(event__structure__in=allowed_structures), then=True
+                    Q(course__structure__in=allowed_structures)
+                    | Q(event__structure__in=allowed_structures), then=True
                 ),
                 default=False,
             ),
@@ -462,7 +467,11 @@ def slots(request):
             is_past=ExpressionWrapper(
                 Q(date__lt=today) | Q(date=today, start_time__lt=now), output_field=BooleanField()
             ),
-            valid_immersions=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True), distinct=True),
+            valid_immersions=Count(
+                'immersions',
+                filter=Q(immersions__cancellation_type__isnull=True),
+                distinct=True
+            ),
             attendances_to_enter=Count(
                 'immersions',
                 filter=Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
@@ -584,13 +593,12 @@ def slots(request):
                 distinct=True
             ),
             user_has_group_immersions=Case(
-                When(Q(group_immersions_count__gte=1), then=True),
+                When(
+                    Q(group_immersions_count__gte=1, group_immersions__cancellation_type__isnull=True),
+                    then=True
+                ),
                 default=False
             ),
-            user_is_registered=Q(
-                immersions__student=user,
-                immersions__cancellation_type__isnull=True
-            )
         )
         .order_by('date', 'start_time')
         .values(

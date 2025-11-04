@@ -22,10 +22,11 @@
 
 {% block content %}
 {% authorized_groups request.user %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
 
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
-  <form class="" role="form" action="/immersion/visitor_record{% if form.instance and can_change %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
+  <form class="" action="/immersion/visitor_record{% if form.instance and can_change %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <input id="id_visitor" type="hidden" name="visitor" value="{{ visitor.id }}"/>
     {{ form.id }}
@@ -71,6 +72,21 @@
           <div class="col-sm-6 col-md-6">{{ form.phone }}</div>
           <div class="col-sm-3 col-md-2">{{ form.phone.errors }}</div>
         </div>
+        <div class="form-group row">
+          <label for="id_visitor_type" class="col-sm-3 col-md-4 col-form-label">{% trans 'Your situation' %} :</label>
+          <div class="col-sm-6 col-md-6">{{ form.visitor_type }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.visitor_type.errors }}</div>
+        </div>
+        {% if activate_disability.activate %}
+        <div class="form-group row">
+          <label for="id_disability" class="col-sm-3 col-md-4 col-form-label">
+          {{ activate_disability.form_sentence }} :</label>
+          <div class="col-sm-6 col-md-6">
+            {{ form.disability }}
+          </div>
+          <div class="col-sm-3 col-md-2">{{ form.disability.errors }}</div>
+        </div>
+        {% endif %}
       </div>
       <div class="card-header text-white bg-secondary">
         {% trans "Motivations" %}
@@ -262,7 +278,26 @@
             {{ record.validation_date }}
           </div>
         </div>
-       {% endif %}
+        {% endif %}
+        {% if student.email_validation_date %}
+          <div class="form-group row align-items-center">
+            <div class="col-sm-4 col-form-label">
+              {% trans 'Email validation date' %} :
+            </div>
+            <div class="col-sm-8">
+              {{ student.email_validation_date }}
+            </div>
+          </div>
+        {% elif student.email_change_date %}
+          <div class="form-group row align-items-center">
+            <div class="col-sm-4 col-form-label">
+              {% trans 'Email change date' %} :
+            </div>
+            <div class="col-sm-8">
+              {{ student.email_change_date }}
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
     <div class="row mt-4">
@@ -278,6 +313,24 @@
 <script>
 
 var age = 0;
+
+var upload_message = "Votre pièce a bien été versée, n'oubliez pas de valider votre fiche en bas de page"
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Select all the elements where id = <id_document_*-document>
+  const inputs = document.querySelectorAll('[id^="id_document_"][id$="-document"]');
+
+  inputs.forEach(function(input) {
+    input.addEventListener('change', function(event) {
+      const message = document.createElement('div');
+      message.classList.add('document-message', 'text-info', 'mt-2');
+      message.textContent = upload_message;
+
+      // Print the message just after the element
+      input.parentElement.appendChild(message);
+    });
+  });
+});
 
 function open_modal() {
   $('#modal_nuke_account').modal('show');

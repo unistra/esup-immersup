@@ -25,7 +25,7 @@
     </div>
     <div class="card-body">
 
-      <form class="" role="form" action="/core/training{% if training %}/{{ training.id }}/update{% endif %}" method="POST">
+      <form class="" action="/core/training{% if training %}/{{ training.id }}/update{% endif %}" method="POST">
       {% csrf_token %}
       {{ form.id }}
 
@@ -100,12 +100,12 @@
         <div class="form-group row">
           <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
             {% if can_update %}
-              <a href="{% url 'trainings' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+              <a href="{% url 'trainings' %}" class="btn btn-secondary btn-sm mb-1">{% trans 'Cancel' %}</a>
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
             {% else %}
-              <a href="{% url 'trainings' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+              <a href="{% url 'trainings' %}" class="btn btn-secondary btn-sm mb-1">{% trans 'Cancel' %}</a>
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
             {% endif %}
           </div>

@@ -4,12 +4,18 @@
     {% load static %}
     {% load immersionlyceens_tags %}
     {% get_custom_css_files as custom_css_files %}
+    {% get_custom_favicon as custom_favicon %}
 
     {% for css_file in custom_css_files %}
       <link rel="stylesheet" href="{{ css_file.file.url }}">
     {% endfor %}
 
     <script src="{% url 'javascript-catalog' %}"></script>
-    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
+
+    {% if custom_favicon %}
+      <link rel="shortcut icon" href="{{ custom_favicon.file.url }}" type="image/png">
+    {% else %}
+      <link rel="shortcut icon" href="{% static 'img/favicon-noria-32px.png' %}" type="image/png">
+    {% endif %}
     {{ block.super }}
 {% endblock %}

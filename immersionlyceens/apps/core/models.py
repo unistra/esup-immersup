@@ -16,7 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from hijack.signals import hijack_started, hijack_ended
 from ipware import get_client_ip
@@ -28,7 +28,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Max, Q, Sum
+from django.db.models import Max, Q, Sum, Case, When, Value, BooleanField
 from django.db.models.functions import Coalesce
 from django.dispatch import receiver
 from django.template.defaultfilters import date as _date, filesizeformat
@@ -47,8 +47,6 @@ from .managers import (
     ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
     HighSchoolAgreedManager, StructureQuerySet,
 )
-
-# from ordered_model.models import OrderedModel
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +115,91 @@ class UAI(models.Model):
         verbose_name_plural = _('Establishments with UAI')
         ordering = ['city', 'label', ]
 
-class Establishment(models.Model):
+
+class BaseEstablishment(models.Model):
+    """
+    Base class for Establishment and High schools
+    """
+    # On slot registration, notify the disability referent :
+    DISABILITY_SLOT_NOTIFICATION_NEVER = 0  # Never
+    DISABILITY_SLOT_NOTIFICATION_IF_CHECKED = 1  # Always, if the registrant checked the disability flag
+    DISABILITY_SLOT_NOTIFICATION_IF_ASKED = 2  # When the registrant ask for this slot
+
+    DISABILITY_NOTIFICATION_CHOICES = (
+        (DISABILITY_SLOT_NOTIFICATION_NEVER, _("Never")),
+        (DISABILITY_SLOT_NOTIFICATION_IF_CHECKED, _("Always, if the registrant checked the disability flag")),
+        (DISABILITY_SLOT_NOTIFICATION_IF_ASKED, _("At the request of the registrant for the slot")),
+    )
+
+    label = models.CharField(_("Label"), max_length=256, blank=False, null=False)
+
+    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
+    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
+
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+    signed_charter = models.BooleanField(_("Signed charter"), default=False)
+    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
+    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+
+    # Disability related fields
+    disability_notify_on_record_validation = models.BooleanField(
+        _("Disability referent record notification"),
+        blank=False,
+        null=False,
+        default=True,
+        help_text=_("Notify disability referent on record validation"),
+    )
+
+    disability_notify_on_slot_registration = models.SmallIntegerField(
+        _("Disability slot notification"),
+        blank=False,
+        null=False,
+        default=DISABILITY_SLOT_NOTIFICATION_NEVER,
+        choices=DISABILITY_NOTIFICATION_CHOICES,
+        help_text=_("Notify disability referent on slot registration"),
+    )
+
+    disability_referent_email = models.EmailField(_('Disability referent email'), blank=True, null=True)
+
+    @classmethod
+    def get_disability_referents(cls, on_record_validation: bool = False, on_slot_registration: bool = False) -> List:
+        """
+        Get all high schools disability referents
+          - depending on validation mode (on record validation or on slot registration ("if checked")
+          - the high school or the establishment propose some immersions
+          - email is not null
+        :return: List of _unique_ emails
+        """
+
+        filters = {
+            "disability_notify_on_record_validation": on_record_validation,
+            "disability_referent_email__isnull": False
+        }
+
+        if on_slot_registration:
+            filters["disability_notify_on_slot_registration"] = cls.DISABILITY_SLOT_NOTIFICATION_IF_CHECKED
+
+        # Specific filter for high schools / establishments
+        if cls.__name__ == "HighSchool":
+            filters["postbac_immersion"] = True
+        elif cls.__name__ == "Establishment":
+            filters["is_host_establishment"] = True
+
+        return list(
+            set(cls.objects.filter(**filters).values_list('disability_referent_email', flat=True))
+        )
+
+    class Meta:
+        abstract = True
+
+
+class Establishment(BaseEstablishment):
     """
     Establishment class : highest structure level
     """
@@ -133,23 +215,15 @@ class Establishment(models.Model):
         unique=True,
     )
 
-    label = models.CharField(_("Label"), max_length=256, unique=True)
     short_label = models.CharField(_("Short label"), max_length=64, unique=True)
-    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
-    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
-    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
-    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
-    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
-    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
-    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
+
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     email = models.EmailField(_('Email'))
     mailing_list = models.EmailField(_('Mailing list'), blank=True, null=True)
-    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+
     master = models.BooleanField(_("Master"), default=True)
     is_host_establishment = models.BooleanField(_("Is host establishment"), default=True)
-    signed_charter = models.BooleanField(_("Signed charter"), default=False)
+
     data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
         choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
     )
@@ -168,8 +242,7 @@ class Establishment(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
-    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
-    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
+
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
@@ -183,6 +256,13 @@ class Establishment(models.Model):
         verbose_name = _('Higher education establishment')
         verbose_name_plural = _('Higher education establishments')
         ordering = ['label', ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', ],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_establishment_label'
+            ),
+        ]
 
 
 class Structure(models.Model):
@@ -213,7 +293,7 @@ class Structure(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A structure with this code already exists'))
 
     class Meta:
@@ -222,24 +302,17 @@ class Structure(models.Model):
         ordering = ['label', ]
 
 
-class HighSchool(models.Model):
+class HighSchool(BaseEstablishment):
     """
     HighSchool class
     Can also be used to enter secondary (middle) schools
     """
-
-    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-
-    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
     address = models.CharField(_("Address"), max_length=255, blank=True, null=True)
-    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
-    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
-    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
     zip_code = models.CharField(_("Zip code"), max_length=128, blank=True, null=True)
+    city = UpperCharField(_("City"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=True, null=True)
+    country = CountryField(_("Country"), blank_label=gettext('select a country'), blank=True, null=True)
     phone_number = models.CharField(_("Phone number"), max_length=20, null=True, blank=True)
-    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
-
     email = models.EmailField(_('Email'), null=True, blank=True)
 
     head_teacher_name = models.CharField(
@@ -269,10 +342,7 @@ class HighSchool(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
-    signed_charter = models.BooleanField(_("Signed charter"), default=False)
-    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
-    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
-    active = models.BooleanField(_("Active"), default=True)
+
     with_convention = models.BooleanField(_("Has a convention"), default=True)
     uses_student_federation = models.BooleanField(_("Uses EduConnect student federation"), default=False)
     uses_agent_federation = models.BooleanField(_("Uses agent identity federation"), default=False)
@@ -288,6 +358,7 @@ class HighSchool(models.Model):
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
     immersions_proposal = PostBacImmersionManager()
+
 
     def __str__(self):
         city = self.city or "(" + gettext("No city") + ")"
@@ -314,8 +385,8 @@ def get_object_default_order(object_class):
         else:
             return cls.objects.all().aggregate(Max('order'))['order__max'] + 1
     except Exception as e:
+        logger.info("Model %s not found: %s", object_class, e)
         # Falling here because "Models aren't loaded yet"
-        pass
 
     return None
 
@@ -464,6 +535,8 @@ class ImmersionUser(AbstractUser):
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
     creation_email_sent = models.BooleanField(_("Creation email sent"), blank=True, null=True, default=False)
+    email_change_date = models.DateTimeField(_("Email change date"), blank=True, null=True)
+    email_validation_date = models.DateTimeField(_("Email activation date"), blank=True, null=True)
     preferences = models.JSONField(
         _("User preferences"),
        blank=True,
@@ -574,15 +647,14 @@ class ImmersionUser(AbstractUser):
         return False
 
     def authorized_groups(self):
-        # user_filter = {} if self.is_superuser else {'user__id': self.pk}
         user_filter = {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
 
     def send_message(self, request, template_code, copies=None, recipient='user', **kwargs):
         """
         Get a MailTemplate by its code, replace variables and send
-        :param message_code: Code of message to send
-        :return: True if message sent else False
+        :param template_code: Code of message to send
+        :return: None if message sent else error msg
         """
         try:
             template = MailTemplate.objects.get(code=template_code, active=True)
@@ -652,6 +724,12 @@ class ImmersionUser(AbstractUser):
         except ObjectDoesNotExist:
             return None
 
+    def get_visitor_record(self) -> Optional[Any]:
+        try:
+            return self.visitor_record
+        except ObjectDoesNotExist:
+            return None
+
     def get_student_establishment(self):
         """
         Match student record establishment with core Establishment class
@@ -680,12 +758,6 @@ class ImmersionUser(AbstractUser):
             return _('Visitor')
         else:
             return self.get_high_school() or self.get_student_establishment()
-
-    def get_visitor_record(self) -> Optional[Any]:
-        try:
-            return self.visitor_record
-        except ObjectDoesNotExist:
-            return None
 
     def get_authorized_structures(self):
         if self.is_superuser or self.is_master_establishment_manager() or self.is_operator():
@@ -752,7 +824,7 @@ class ImmersionUser(AbstractUser):
                 custom_quota = record.quota.get(period=period)
                 allowed_immersions = custom_quota.allowed_immersions
             except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
-                    VisitorRecordQuota.DoesNotExist) as e:
+                    VisitorRecordQuota.DoesNotExist):
                 logger.debug("%s : record not found" % self)
                 allowed_immersions = period.allowed_immersions
 
@@ -785,7 +857,7 @@ class ImmersionUser(AbstractUser):
             quota.allowed_immersions += 1
             quota.save()
         except (HighSchoolStudentRecordQuota.DoesNotExist, StudentRecordQuota.DoesNotExist,
-                VisitorRecordQuota.DoesNotExist) as e:
+                VisitorRecordQuota.DoesNotExist):
             # Not found : something to do ?
             pass
 
@@ -1062,7 +1134,7 @@ class TrainingDomain(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A training domain with this label already exists'))
 
     class Meta:
@@ -1097,28 +1169,69 @@ class TrainingSubdomain(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A training sub domain with this label already exists'))
 
-    def count_subdomain_slots(self):
+    #Offer (each subdomain)
+    def subdomain_slots(self):
         today = datetime.datetime.today()
-        slots_count = Slot.objects.filter(
+        slots= (
+        Slot.objects.filter(
             course__training__training_subdomains=self,
             published=True,
             event__isnull=True,
             allow_individual_registrations=True,
-        ).prefetch_related('course__training__training_subdomains__training_domain') \
+        ).prefetch_related('course__training__training_subdomains__training_domain')
         .filter(
             Q(date__isnull=True)
             | Q(date__gte=today.date())
             | Q(date=today.date(), end_time__gte=today.time())
-        ).distinct().count()
+        ).distinct()
+        ).annotate(
+        course_displayed=Case(
+            When(
+                # No dates and published == True
+                Q(course__published=True) &
+                Q(course__start_date__isnull=True) &
+                Q(course__end_date__isnull=True),
+                then=Value(True),
+            ),
+            When(
+                # Start + End and published == True + today in [start, end]
+                Q(course__published=True) &
+                Q(course__start_date__isnull=False) &
+                Q(course__end_date__isnull=False) &
+                Q(course__start_date__lte=today) &
+                Q(course__end_date__gte=today),
+                then=Value(True),
+            ),
+            When(
+                # Start and published == True + today >= start
+                Q(course__published=True) &
+                Q(course__start_date__isnull=False) &
+                Q(course__end_date__isnull=True) &
+                Q(course__start_date__lte=today),
+                then=Value(True),
+            ),
+            When(
+                # End and published == True + today <= end
+                Q(course__published=True) &
+                Q(course__start_date__isnull=True) &
+                Q(course__end_date__isnull=False) &
+                Q(course__end_date__gte=today),
+                then=Value(True),
+            ),
+            default=Value(False),
+            output_field=BooleanField(),
+        )
+    ).filter(course_displayed=True)
 
-        return slots_count
+        return slots
 
-    def count_group_public_subdomain_slots(self):
+    #Cohort_Offer (each subdomain)
+    def group_public_subdomain_slots(self):
         today = datetime.datetime.today()
-        slots_count = (
+        slots = (
             Slot.objects.filter(
                 course__training__training_subdomains=self,
                 published=True,
@@ -1127,11 +1240,108 @@ class TrainingSubdomain(models.Model):
                 public_group=True
             )
             .prefetch_related('course__training__training_subdomains__training_domain')
-            .filter(Q(date__isnull=True) | Q(date__gte=today.date()) | Q(date=today.date(), end_time__gte=today.time()))
-            .count()
-        )
+            .filter(
+                Q(date__isnull=True)
+                | Q(date__gte=today.date())
+                | Q(date=today.date(), end_time__gte=today.time())
+            ).distinct()
+            ).annotate(
+            course_displayed=Case(
+                When(
+                    # No dates and published == True
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=True),
+                    then=Value(True),
+                ),
+                When(
+                    # Start + End and published == True + today in [start, end]
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__start_date__lte=today) &
+                    Q(course__end_date__gte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # Start and published == True + today >= start
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=False) &
+                    Q(course__end_date__isnull=True) &
+                    Q(course__start_date__lte=today),
+                    then=Value(True),
+                ),
+                When(
+                    # End and published == True + today <= end
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) &
+                    Q(course__end_date__isnull=False) &
+                    Q(course__end_date__gte=today),
+                    then=Value(True),
+                ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            ).filter(course_displayed=True)
 
-        return slots_count
+        return slots
+
+    #Cohort_Offer (for the REF-LYC) (each subdomain)
+    def group_public_and_private_subdomain_slots(self):
+        today = datetime.datetime.today()
+        slots = (
+            Slot.objects.filter(
+                course__training__training_subdomains=self,
+                published=True,
+                event__isnull=True,
+                allow_group_registrations=True,
+            )
+            .prefetch_related('course__training__training_subdomains__training_domain')
+            .filter(
+                Q(date__isnull=True)
+                | Q(date__gte=today.date())
+                | Q(date=today.date(), end_time__gte=today.time())
+            ).distinct()
+            ).annotate(
+                course_displayed=Case(
+                    When(
+                        # No dates and published == True
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=True) &
+                        Q(course__end_date__isnull=True),
+                        then=Value(True),
+                    ),
+                    When(
+                        # Start + End and published == True + today in [start, end]
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=False) &
+                        Q(course__end_date__isnull=False) &
+                        Q(course__start_date__lte=today) &
+                        Q(course__end_date__gte=today),
+                        then=Value(True),
+                    ),
+                    When(
+                        # Start and published == True + today >= start
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=False) &
+                        Q(course__end_date__isnull=True) &
+                        Q(course__start_date__lte=today),
+                        then=Value(True),
+                    ),
+                    When(
+                        # End and published == True + today <= end
+                        Q(course__published=True) &
+                        Q(course__start_date__isnull=True) &
+                        Q(course__end_date__isnull=False) &
+                        Q(course__end_date__gte=today),
+                        then=Value(True),
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            ).filter(course_displayed=True)
+
+        return slots
 
     class Meta:
         verbose_name = _('Training sub domain')
@@ -1171,11 +1381,6 @@ class Training(models.Model):
         """Return True if structure is set"""
         return self.structures is not None and self.structures.count() > 0
 
-    """
-    def can_delete(self):
-        return not self.courses.all().exists()
-    """
-
     def distinct_establishments(self):
         return Establishment.objects.filter(structures__in=self.structures.all()).distinct()
 
@@ -1203,7 +1408,7 @@ class Training(models.Model):
                         _("A Training object with the same high school and label already exists")
                     )
 
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     class Meta:
@@ -1262,7 +1467,7 @@ class Campus(models.Model):
                         _("A Campus object with the same establishment and label already exists")
                     )
 
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     class Meta:
@@ -1293,7 +1498,7 @@ class BachelorMention(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A bachelor mention with this label already exists'))
 
     class Meta:
@@ -1321,7 +1526,7 @@ class BachelorType(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A bachelor type with this label already exists'))
 
     class Meta:
@@ -1350,7 +1555,7 @@ class Building(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A building with this label for the same campus already exists'))
 
     class Meta:
@@ -1387,7 +1592,7 @@ class CancelType(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A cancel type with this label already exists'))
 
     def usable_for_students(self):
@@ -1440,7 +1645,7 @@ class CourseType(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A course type with this label already exists'))
 
     class Meta:
@@ -1467,7 +1672,7 @@ class GeneralBachelorTeaching(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A specialty teaching with this label already exists'))
 
     class Meta:
@@ -1497,7 +1702,7 @@ class PublicType(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A public type with this label already exists'))
 
     class Meta:
@@ -1537,7 +1742,7 @@ class UniversityYear(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A university year with this label already exists'))
 
 
@@ -1575,7 +1780,7 @@ class Holiday(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A holiday with this label already exists'))
 
     @classmethod
@@ -1608,7 +1813,7 @@ class Vacation(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A vacation with this label already exists'))
 
 
@@ -1709,7 +1914,7 @@ class Period(models.Model):
 
         try:
             return Period.objects.get(pk=pk, immersion_start_date__lte=date, immersion_end_date__gte=date)
-        except Period.DoesNotExist as e:
+        except Period.DoesNotExist:
             raise
 
     def __str__(self):
@@ -1735,7 +1940,7 @@ class Period(models.Model):
                     raise ValidationError(
                         _("A Period object with the same label already exists")
                     )
-        except ValidationError as e:
+        except ValidationError:
             raise
 
     def save(self, *args, **kwargs):
@@ -1791,9 +1996,50 @@ class Course(models.Model):
     published = models.BooleanField(_("Published"), default=True)
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses', blank=True)
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
+    start_date = models.DateTimeField(_("Immersions start date"), null=True, blank=True)
+    end_date = models.DateTimeField(_("Immersions end date"), null=True, blank=True)
+
+    first_slot_date = models.DateTimeField(null=True, blank=True)
+    last_slot_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.label
+
+    def clean(self):
+        """
+        Check slots dates vs course publication dates
+        Ignore past slots
+        """
+        if self.pk:
+            now = timezone.now()
+            if self.start_date:
+                slot_min = self.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
+
+                if slot_min:
+                    slot_min_start_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_min.date, slot_min.start_time)
+                    )
+                    slot_min_start_time = timezone.make_aware(slot_min.start_time)
+                    if self.start_date > slot_min_start_datetime:
+                        raise ValidationError(
+                            _("""There is a slot that starts on %(min_date)s at %(start_time)s, """
+                              """the publication start date must be before this slot.""")
+                            % {'min_date': date_format(slot_min.date), 'start_time': slot_min_start_time}
+                        )
+            if self.end_date:
+                slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
+
+                if slot_max:
+                    slot_max_end_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_max.date, slot_max.start_time)
+                    )
+                    slot_max_end_time = timezone.make_aware(slot_max.end_time)
+                    if self.end_date < slot_max_end_datetime:
+                        raise ValidationError(
+                            _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
+                              """the publication end date must be after the end of this slot.""")
+                            % {'max_date': date_format(slot_max.date), 'end_time': slot_max_end_time}
+                        )
 
     def get_structures_queryset(self):
         return self.training.structures.all()
@@ -1925,8 +2171,17 @@ class Course(models.Model):
                     raise ValidationError(
                         _("A Course object with the same structure/high school, training and label already exists")
                     )
-        except ValidationError as e:
+        except ValidationError:
             raise
+
+    def is_displayed(self):
+        now = timezone.now()
+        if self.published and \
+            (self.start_date is None or self.start_date <= now) and \
+            (self.end_date is None or now <= self.end_date):
+                return True
+
+        return False
 
     class Meta:
         verbose_name = _('Course')
@@ -1999,6 +2254,11 @@ class OffOfferEvent(models.Model):
     )
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
+    start_date = models.DateTimeField(_("Immersions start date"), null=True, blank=True)
+    end_date = models.DateTimeField(_("Immersions end date"), null=True, blank=True)
+
+    first_slot_date = models.DateTimeField(null=True, blank=True)
+    last_slot_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         if self.establishment:
@@ -2107,6 +2367,41 @@ class OffOfferEvent(models.Model):
         if [self.establishment, self.highschool].count(None) != 1:
             raise ValidationError("You must select one of : Establishment or High school")
 
+        """
+        Check slots dates vs event publication dates
+        Ignore past slots
+        """
+        if self.pk:
+            now = timezone.now()
+            if self.start_date:
+                slot_min = self.slots.filter(date__gte=now.date()).order_by('date', 'start_time').first()
+
+                if slot_min:
+                    slot_min_start_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_min.date, slot_min.start_time)
+                    )
+                    slot_min_start_time = timezone.make_aware(slot_min.start_time)
+                    if self.start_date > slot_min_start_datetime:
+                        raise ValidationError(
+                            _("""There is a slot that starts on %(min_date)s at %(start_time)s, """
+                              """the publication start date must be before this slot.""")
+                            % {'min_date': date_format(slot_min.date), 'start_time': slot_min_start_time}
+                        )
+            if self.end_date:
+                slot_max = self.slots.filter(date__gte=now.date()).order_by('date', 'end_time').last()
+
+                if slot_max:
+                    slot_max_end_datetime = timezone.make_aware(
+                        datetime.datetime.combine(slot_max.date, slot_max.start_time)
+                    )
+                    slot_max_end_time = timezone.make_aware(slot_max.end_time)
+                    if self.end_date < slot_max_end_datetime:
+                        raise ValidationError(
+                            _("""There is a slot that ends on %(max_date)s at %(end_time)s, """
+                              """the publication end date must be after the end of this slot.""")
+                            % {'max_date': date_format(slot_max.date), 'end_time': slot_max_end_time}
+                        )
+
     def get_etab_or_high_school(self):
         if not self.highschool:
             return self.establishment
@@ -2141,8 +2436,17 @@ class OffOfferEvent(models.Model):
                     raise ValidationError(
                         _("An off offer event with the same attachments and label already exists")
                     )
-        except ValidationError as e:
+        except ValidationError:
             raise
+
+    def is_displayed(self):
+        now = timezone.now()
+        if self.published and \
+            (self.start_date is None or self.start_date <= now) and \
+            (self.end_date is None or now <= self.end_date):
+                return True
+
+        return False
 
     class Meta:
         constraints = [
@@ -2320,7 +2624,7 @@ class AccompanyingDocument(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An accompanying document with this label already exists'))
 
 
@@ -2331,7 +2635,6 @@ class AccompanyingDocument(models.Model):
 
 
     def get_types(self):
-        # TODO: ???
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')
@@ -2373,7 +2676,7 @@ class PublicDocument(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('A public document with this label already exists'))
 
     def delete(self, using=None, keep_parents=False):
@@ -2396,6 +2699,28 @@ class PublicDocument(models.Model):
         verbose_name = _('Public document')
         verbose_name_plural = _('Public documents')
         ordering = ['label', ]
+
+
+class VisitorType(models.Model):
+    """
+    Visitor type
+    """
+    code = models.CharField(_("Code"), primary_key=True, null=False, blank=False)
+    label = models.CharField(_("Label"), max_length=256, null=False, unique=True)
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.label}"
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError:
+            raise ValidationError(_('A visitor type with this label already exists'))
+
+    class Meta:
+        verbose_name = _('Visitor type')
+        verbose_name_plural = _('Visitor types')
 
 
 class AttestationDocument(models.Model):
@@ -2431,6 +2756,15 @@ class AttestationDocument(models.Model):
         limit_choices_to={'code__in': ["LYC_W_CONV", "LYC_WO_CONV", "VIS"]}
     )
 
+    visitor_types = models.ManyToManyField(
+        VisitorType,
+        verbose_name=_("Visitor types"),
+        related_name='attestations',
+        blank=True,
+        limit_choices_to={"active": True},
+        help_text=_("Optional: when visitor profile is selected, you may select one or more visitor types")
+    )
+
     objects = models.Manager() # default manager
     activated = ActiveManager() # manager for active elements only
 
@@ -2442,7 +2776,7 @@ class AttestationDocument(models.Model):
         """Validate unique"""
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An attestation with this label already exists'))
 
     def delete(self, using=None, keep_parents=False):
@@ -2480,7 +2814,7 @@ class EvaluationType(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An evaluation type with this code already exists'))
 
     class Meta:
@@ -2515,7 +2849,7 @@ class EvaluationFormLink(models.Model):
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
 
     class Meta:
@@ -2719,30 +3053,36 @@ class Slot(models.Model):
         """
         :return: number of available seats for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
-
         s = int(self.n_places) - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count() if self.n_places else 0
         return 0 if s < 0 else s
+
+    def available_group_seats(self):
+        """
+        :return: True if there are some available seats (depending on group mode)
+        """
+        # one group mode -> return False if there is already a non-canceled registered group
+        if self.group_mode == self.ONE_GROUP:
+            return not self.group_immersions.filter(cancellation_type__isnull=True).exists()
+
+        return sum(self.registered_groups_people_count().values()) < self.n_group_places
+
 
     def registered_students(self):
         """
         :return: number of registered students for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
     def registered_groups(self):
         """
         :return: number of registered students for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
         return ImmersionGroupRecord.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
     def registered_groups_people_count(self):
         """
         :return: number of registered students for instance slot
         """
-        # TODO: check if we need to filter published slots only ???
         group_queryset = (ImmersionGroupRecord.objects
             .filter(slot=self.pk, cancellation_type__isnull=True)
             .aggregate(
@@ -2755,6 +3095,20 @@ class Slot(models.Model):
             'students': group_queryset.get('students', 0) or 0,
             'guides': group_queryset.get('guides', 0) or 0
         }
+
+    def get_disability_notification_setting(self):
+        """
+        Return Establishment or High school "notify disability on slot registration" setting value
+        """
+        activate_disability = GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+        # Never notify if GeneralSetting is disabled
+        if not activate_disability:
+            return BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+
+        establishment_or_highschool = self.get_establishment_or_highschool()
+        return establishment_or_highschool.disability_notify_on_slot_registration
+
 
     def clean(self):
         if [self.course, self.event].count(None) != 1:
@@ -2992,6 +3346,90 @@ class Immersion(models.Model):
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
+
+    def notify_disability_referent(self, str_ref_only=False):
+        """
+        For the current student and slot, depending on platform disability settings,
+        send a notification to the disability referent of the slot establishment/high school
+        if str_ref_only is True, do not send notification to slot establishment/high school
+        Return a dict {"sent":boolean, "error":boolean, "msg":str}:
+            - sent = True if mail has been sent else False
+            - error = True if an error occured else False
+            - msg = success or error message
+        """
+        from immersionlyceens.libs.mails.mail import Mail
+
+        recipients = []
+        return_dict = {"sent": False, "error": False, "msg": ""}
+
+        # Nothing to send if this setting is not enabled
+        activate_disability = GeneralSettings.get_setting("ACTIVATE_DISABILITY")['activate']
+
+        record = (
+            self.student.get_high_school_student_record()
+            or self.student.get_student_record()
+            or self.student.get_visitor_record()
+        )
+
+        if not record or not record.disability or not activate_disability:
+            # Nothing to do or display
+            return return_dict
+
+        # Get slot establishment or high school and check settings
+        establishment = self.slot.get_establishment_or_highschool()
+        notification_settings = self.slot.get_disability_notification_setting()
+
+        # str_ref_only or disabled notifications for establishment or high school : don't add the email to recipients
+        if not str_ref_only and notification_settings != BaseEstablishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+            recipients = [establishment.disability_referent_email]
+
+        # Also get the structure referents
+        structure = self.slot.get_structure()
+
+        if structure:
+            for s in RefStructuresNotificationsSettings.objects.filter(disability_structures=structure):
+                recipients.append(s.user.email)
+
+        # Nothing more to do if we have no recipient at this point
+        if not recipients:
+            return return_dict
+
+        error = False
+        success = False
+
+        for recipient in recipients:
+            try:
+                mail = Mail(
+                    request=None,
+                    recipient_type=recipient,
+                    template_code="HANDICAP_NOTIF_IMMERSION",
+                    registrant=self.student,
+                    slot=self.slot
+                )
+
+                mail.send()
+            except Exception as e:
+                msg = gettext("Couldn't send the disability notification to this referent : %s" % e)
+                logger.error(msg)
+                error = True
+            else:
+                success = True
+
+        if success:
+            #During all the sends, if at least one error is excepted
+            if not error:
+                msg = gettext("Notification sent to disability referent")
+                return {"send": True, "error": False, "msg": msg}
+
+            # Some errors
+            msg = gettext("Some notifications have been sent to disability referents, but some errors occured")
+            return {"send": True, "error": True, "msg": msg}
+
+        elif error:
+            msg = gettext("Couldn't send the disability notifications to the referents")
+            return_dict = {"sent": False, "error": True, "msg": msg}
+
+        return return_dict
 
     def __str__(self):
         return f"{self.student} - {self.slot}"
@@ -3419,7 +3857,17 @@ class RefStructuresNotificationsSettings(models.Model):
     )
 
     structures = models.ManyToManyField(
-        Structure, verbose_name=_("Structures"), related_name='source_structures', blank=True
+        Structure,
+        verbose_name=_("Selected structures for registrants list"),
+        related_name='source_structures',
+        blank=True
+    )
+
+    disability_structures = models.ManyToManyField(
+        Structure,
+        verbose_name=_("Selected structures for disabled registrants notifications"),
+        related_name='structures_disabled_notifications',
+        blank=True
     )
 
     def __str__(self):
@@ -3506,6 +3954,7 @@ class MefStat(models.Model):
     class Meta:
         verbose_name = _('MefStat - High school level')
         verbose_name_plural = _('MefStat - High school levels')
+
 
 
 ####### SIGNALS #########

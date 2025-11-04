@@ -68,7 +68,6 @@ CAS_FORCE_SSL_SERVICE_URL = True
 EDUCONNECT_LOGIN_URL = "https://pr4.educonnect.phm.education.gouv.fr/idp"
 EDUCONNECT_LOGOUT_URL = "https://pr4.educonnect.phm.education.gouv.fr/logout"
 
-# AGENT_FEDERATION_LOGIN_URL = "https://hub-pr2.phm.education.gouv.fr/idp/profile/SAML2/Unsolicited/SSO"
 AGENT_FEDERATION_LOGIN_URL = "https://hub-pr2.phm.education.gouv.fr/idp"
 AGENT_FEDERATION_LOGOUT_URL = "https://hub-pr2.phm.education.gouv.fr/logout"
 
@@ -163,4 +162,3 @@ if EXTRA_LOCALE_PATH:
 ###########################
 UAI_API_URL = "{{ uai_api_url }}"
 UAI_API_AUTH_HEADER = "{{ uai_api_auth_header }}"
-UAI_API_SEARCH_ATTR = "{{ uai_api_search_attr }}"

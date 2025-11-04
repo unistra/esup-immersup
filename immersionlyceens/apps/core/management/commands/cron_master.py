@@ -30,8 +30,8 @@ class Command(BaseCommand):
             action='store',
             help=_('simulate cron running at <time> (for testing purpose). Format : HHMM'),
         )
+
     def handle(self, *args, **options):
-        force_time = None
 
         now = timezone.localtime().replace(second=0, microsecond=0)
         today = timezone.localdate()
@@ -74,6 +74,12 @@ class Command(BaseCommand):
             command_name = task.command_name
             run_today = task.date == today or getattr(task, week_days[now.weekday()])
 
+            print(f"task.command_name: {task.command_name}")
+            print(f"task.time: {task.time}")
+            print(f"hour: {task.time.hour}")
+            print(f"minute: {task.time.minute}")
+            print(f"time_run: {now.hour == task.time.hour and now.minute == task.time.minute}")
+
             if task.time:
                 hour = task.time.hour
                 minute = task.time.minute
@@ -97,7 +103,7 @@ class Command(BaseCommand):
                 self.stdout.write(_("Running task : %s" % command_name))
 
                 try:
-                    # TODO : review all commands to add proper return values
+                    # Every command should have return values
                     ret = call_command(command_name, verbosity=0)
                     ScheduledTaskLog.objects.create(
                         task=task,

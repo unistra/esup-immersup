@@ -56,7 +56,7 @@
           <div class="card-body">
             <ul class="list-arrows">
               {% for d in subdomain.list %}
-              {%  with slots_number=d.count_subdomain_slots %}
+              {% with slots_number=d.subdomain_slots|length %}
               <li>
                 {% if slots_number > 0 %}
                 <a href="{% url 'offer_subdomain' d.id %}">

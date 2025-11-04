@@ -8,8 +8,6 @@ from . import views
 from . import utils
 
 urlpatterns = [
-    # path('structure', views.structure, name='structure'),
-    # path('structure/<structure_code>', views.structure, name='update_structure'),
     path('utils/', include('immersionlyceens.apps.core.utils_urls')),
     path('structure', views.MyStructureView.as_view(), name='structure'),
     path('course', views.course, name='course'),

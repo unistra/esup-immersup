@@ -22,6 +22,10 @@
 {% include "../modals/modal_cancel_immersion.html" %}
 {% include '../modals/modal_myimmersions_slot_details.html' %}
 {% include '../modals/modal_alerts.html' %}
+
+{% general_settings_get 'HIDE_FIELDS_PUBLIC_AREA' as hide_fields_public_area %}
+{{ hide_fields_public_area|json_script:"hide-fields-public-area-data" }}
+
 <div class="main-title inside text-center">
   <div></div>
   <div class="container">
@@ -110,6 +114,10 @@
   let allowed_mentions_txt = "{% trans 'Allowed mentions' %}"
   let allowed_teachings_txt = "{% trans 'Allowed teachings' %}"
   var modal_open = false;
+  var is_connected = {{ request.user.is_authenticated|yesno:"true,false" }}
+  const hide_fields_public_area = JSON.parse(
+    document.getElementById("hide-fields-public-area-data").textContent
+  );
 
   // Slot places
   var face_to_face = 0
@@ -123,7 +131,7 @@
     minute: "numeric",
   };
 
-  function open_students_modal(immersion_id,modal_mode=false) {
+  function open_students_modal(immersion_id, modal_mode=false) {
     current_immersion_id = immersion_id;
     modal_open = modal_mode;
     $('#modal_other_registrants').modal('show');
@@ -172,6 +180,8 @@
     feedback = $("#feedback");
     $.fn.dataTableExt.errMode = 'console';
 
+    /* Immersions to come */
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     dt_future = $('#immersions_to_come').DataTable({
       'processing': false,
       'order': [
@@ -237,7 +247,7 @@
               data = row.establishment;
             }
             if(type === "display") {
-              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+              return '<div class="field-label">{% trans 'Establishment' %} :</div><div class="field-value">' + displayLongString(data, 40, html=true) + '</div>';
             }
             return data;
           }
@@ -247,14 +257,14 @@
             slotType = row.type[0].toLowerCase();
 
             if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
+              label = "<div class='field-label'>{% trans "Training" %} :</div>";
               data = row.course.training;
             } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
+              label =  "<div class='field-label'>{% trans "Event type" %} :</div>";
               data = row.event.type
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 30, html=true) + "</div>";
             }
             return data;
           }
@@ -262,14 +272,14 @@
         {
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
+            label = "<div class='field-label'>{% trans "Label" %} :</div>";
             if (slotType === 'c') {
               data = row.course.label;
             } else {
               data = row.event.label;
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 40, html=true) + "</div>";
             }
             return data;
           }
@@ -278,9 +288,9 @@
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
             data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
+            label = "<div class='field-label'>{% trans 'Type' %} :</div>";
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 40, html=true) + "</div>";
             }
             return data;
           }
@@ -288,9 +298,9 @@
         {
           "render": function(data, type, row) {
             data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
+            label = "<div class='field-label'>{% trans 'Date' %} :</div>";
             if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+              return label + "<div class='field-value'>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</div>";
             }
             if (type !== 'sort') {
               return data ? formatDate(data) : "";
@@ -301,10 +311,10 @@
         {
           "render": function (data, type, row) {
             if (row.place === outside) {
-                return "<label>{% trans 'Address' %} : </label>";
+                return "<div class='field-label'>{% trans 'Address' %} : </div>";
             }
             else if (row.place === remote) {
-              label = "<label>{% trans 'URL' %} : </label>";
+              label = "<div class='field-label'>{% trans 'URL' %} : </div>";
 
               if(row.can_show_url) {
                 data = `<a href="${row.url}">{% trans "Remote link" %}</a>`
@@ -315,7 +325,7 @@
             else {
               if (row.campus === '' || row.campus === null) {
                 if (row.highschool != null || row.highschool != '') {
-                  label = "<label>{% trans 'Address' %} : </label>";
+                  label = "<div class='field-label'>{% trans 'Address' %} : </div>";
                   data = row.highschool_address ? row.highschool_address : '&nbsp;';
                   data += row.highschool_city ? `, ${row.highschool_city}` : '';
                 }
@@ -324,7 +334,7 @@
                 }
               }
               else {
-                label = "<label>{% trans 'Campus' %} : </label>";
+                label = "<div class='field-label'>{% trans 'Campus' %} : </div>";
                 data = row.campus
                 data += row.campus_city ? ` - ${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()}` : '&nbsp;';
               }
@@ -346,23 +356,26 @@
         },
         {
           "render": function (data, type, row) {
-            if(row.place === face_to_face) {
-                data = `${row.building}<br>${row.room}`
+            if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.building}<br>${row.meeting_place}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
+              data = `${row.building}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.meeting_place}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else {
+              return
             }
-            else {
-              data = row.meeting_place
-            }
-            if(type === "display") {
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
-            }
-
             return data
           },
         },
-        { "data": "registration_date",
+        {
+          "data": "registration_date",
           "render": function(data, type, row) {
             if (type==='display') {
-              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+              return "<div class='field-label'>{% trans "Registered date" %} :</div><div class='field-value'>" + formatDate(data) + "</div>";
             }
             return data
           }
@@ -371,7 +384,7 @@
           "render": function(data, type, row) {
             cancellation_limit_date = row.cancellation_limit_date ? formatDate(row.cancellation_limit_date) : "";
             classLabel = row.cancellable ? "badge-info" : "badge-danger";
-            return `<label>{% trans 'Cancellation limit' %} : </label><span class="badge badge-pill ${classLabel}">${cancellation_limit_date}</span>`;
+            return `<div class='field-label'>{% trans 'Cancellation limit' %} : </div><div class="badge badge-pill ${classLabel}">${cancellation_limit_date}</div>`;
           }
         },
         {
@@ -425,6 +438,7 @@
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
+
       $(displayedRows).show();
 
       if (is_set(rowData[0].establishment)) {
@@ -433,10 +447,9 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration) {
         etab.push(rowData[0].structure)
       }
-
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.training);
         filteredRows.push('row_event_type', 'row_highschool');
@@ -464,6 +477,9 @@
       }
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
+      }
+      if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== ''){
+        courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
       if (rowData[0].building === '' || rowData[0].building === null) {
         filteredRows.push('row_building');
@@ -517,7 +533,7 @@
         }
       })
 
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ') ?? '');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -529,12 +545,25 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city)
-      $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building )
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if (!hide_fields_public_area["building"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_building').html(buildingFull ?? rowData[0].building)
+      }
+      if (!hide_fields_public_area["meeting_place"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      }
+      if (!hide_fields_public_area["speakers"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
+
+      if (rowData[0].info && rowData[0].info.length > 300) {
+        $('#show_more_info').show();
+      } else {
+        $('#show_more_info').hide();
+      }
+
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
@@ -557,7 +586,9 @@
             $('[data-toggle="tooltip"]').tooltip()
         }
     });
+
     /* Past immersions */
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     dt_past = $('#past_immersions').DataTable({
       'processing': false,
       'order': [
@@ -621,7 +652,7 @@
               data = row.establishment;
             }
             if(type === "display") {
-              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+              return '<div class="field-label">{% trans 'Establishment' %} :</div><div class="field-value">' + displayLongString(data, 40, html=true) + '</div>';
             }
             return data;
           }
@@ -631,14 +662,14 @@
             slotType = row.type[0].toLowerCase();
 
             if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
+              label = "<div class='field-label'>{% trans "Training" %} :</div>";
               data = row.course.training;
             } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
+              label =  "<div class='field-label'>{% trans "Event type" %} :</div>";
               data = row.event.type
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 30, html=true) + "</div>";
             }
             return data;
           }
@@ -646,14 +677,14 @@
         {
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
+            label = "<div class='field-label'>{% trans "Label" %} :</div>";
             if (slotType === 'c') {
               data = row.course.label;
             } else {
               data = row.event.label;
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 40, html=true) + "</div>";
             }
             return data;
           }
@@ -662,9 +693,9 @@
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
             data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
+            label = "<div class='field-label'>{% trans 'Type' %} :</div>";
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 40, html=true) + "</div>";
             }
             return data;
           }
@@ -672,9 +703,9 @@
         {
           "render": function(data, type, row) {
             data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
+            label = "<div class='field-label'>{% trans 'Date' %} :</div>";
             if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+              return label + "<div class='field-value'>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</div>";
             }
             if (type !== 'sort') {
               return data ? formatDate(data) : "";
@@ -683,10 +714,10 @@
           },
         },
         {
-          render: function (data, type, row) {
+          "render": function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
-                label = "<label>{% trans 'Address' %} : </label>";
+                label = "<div class='field-label'>{% trans 'Address' %} : </div>";
                 data = row.highschool_address ? row.highschool_address : '&nbsp;';
                 data += row.highschool_city ? `, ${row.highschool_city}` : '';
               }
@@ -694,7 +725,7 @@
                 return '&nbsp;';
               }
             } else {
-              label = "<label>{% trans 'Campus' %} : </label>";
+              label = "<div class='field-label'>{% trans 'Campus' %} : </div>";
               data = row.campus
               data += row.campus_city ? ` - ${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()}` : '&nbsp;';
             }
@@ -709,9 +740,17 @@
         },
         {
           "render": function (data, type, row) {
-            data = row.meeting_place
-            if(type === "display") {
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.building}<br>${row.meeting_place}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
+              data = `${row.building}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.meeting_place}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else {
+              return
             }
             return data
           },
@@ -719,14 +758,14 @@
         { "data": "registration_date",
           "render": function(data, type, row) {
             if (type==='display') {
-              return "<label>{% trans "Registered date" %} :</label><span>" + formatDate(data) + "</span>";
+              return "<div class='field-label'>{% trans "Registered date" %} :</div><div class='field-value'>" + formatDate(data) + "</div>";
             }
             return data
           }
         },
         { "data": "attendance",
           "render": function(data, type, row) {
-            let msg = "<label>{% trans "Attendance" %} :</label>" + data;
+            let msg = "<div class='field-label'>{% trans "Attendance" %} :</div>" + data;
             return msg;
           }
         },
@@ -735,7 +774,7 @@
           render: function (data, type, full, meta) {
             let msg = "";
             if(full['attendance_status'] === 1 || full['place'] === 1) {
-              msg += "<a href=\"dl/attestation/" + full['id'] + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+              msg += "<a href=\"dl/attestation/" + full['id'] + "\" class=\"ml-4 btn btn-light btn-sm\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-15'></i>" +
                   "</a>";
             }
@@ -757,7 +796,6 @@
     }).on('select', function (e, dt, type, indexes) {
       let rowData = dt.rows(indexes).data().toArray()
       let speakers_array = "";
-      let url = null;
       let buildingFull = null;
       let courseLabelFull = null;
       let slotType = rowData[0].type[0].toLowerCase();
@@ -776,13 +814,15 @@
       }
       availablesSeatslabel += '</ul>';
       if(rowData[0].attendance_status === 1 || rowData[0].place === 1) {
-        attendanceLabel += "<a href=\"dl/attestation/" + rowData[0].id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+        attendanceLabel += "<a href=\"dl/attestation/" + rowData[0].id + "\" class=\"ml-4 btn btn-light btn-sm\" title=\"{% trans 'Attestation download' %}\">" +
             "<i class='fa fas fa-download fa-15'></i>" +
             "</a>";
       }
+
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
+
       // display all row_* elements
       $(displayedRows).show();
 
@@ -792,10 +832,9 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration) {
         etab.push(rowData[0].structure);
       }
-
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course_training_label);
         $('#modal_myimmersions_slot_details #row_event_type').hide();
@@ -806,7 +845,7 @@
           filteredRows.push('row_highschool_address');
         }
       }
-      if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== '') {
+      if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== ''){
         courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
       }
       if (rowData[0].campus === '' || rowData[0].campus === null) {
@@ -845,7 +884,7 @@
             }
         }
       })
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ') ?? '');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -855,12 +894,25 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if(!hide_fields_public_area["building"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
+      }
+      if(!hide_fields_public_area["meeting_place"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      }
+      if (!hide_fields_public_area["speakers"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
+
+      if (rowData[0].info && rowData[0].info.length > 300) {
+        $('#show_more_info').show();
+      } else {
+        $('#show_more_info').hide();
+      }
+
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_attendance').html(attendanceLabel);
@@ -868,6 +920,7 @@
       selectedRows = filteredRows.map(id => `#${id}`).join(',');
       $(selectedRows).hide();
       $('#modal_myimmersions_slot_details').modal("show");
+      $('#row_url').hide();
     });
 
     dt_past.on("draw.dt", function (e, dt, type, indexes) {
@@ -883,6 +936,7 @@
     });
 
     /* Cancelled immersions */
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     dt_cancelled = $('#cancelled_immersions').DataTable({
       'processing': false,
       'order': [
@@ -946,7 +1000,7 @@
               data = row.establishment;
             }
             if(type === "display") {
-              return '<label>{% trans 'Establishment' %} :</label><span>' + displayLongString(data, 40, html=true) + '</span>';
+              return '<div class="field-label">{% trans 'Establishment' %} :</div><div class="field-value">' + displayLongString(data, 40, html=true) + '</div>';
             }
             return data;
           }
@@ -956,14 +1010,14 @@
             slotType = row.type[0].toLowerCase();
 
             if (slotType === 'c') {
-              label = "<label>{% trans "Training" %} :</label>";
+              label = "<div class='field-label'>{% trans "Training" %} :</div>";
               data = row.course.training;
             } else {
-              label =  "<label>{% trans "Event type" %} :</label>";
+              label =  "<div class='field-label'>{% trans "Event type" %} :</div>";
               data = row.event.type
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 30, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 30, html=true) + "</div>";
             }
             return data;
           }
@@ -971,14 +1025,14 @@
         {
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
-            label = "<label>{% trans "Label" %} :</label>";
+            label = "<div class='field-label'>{% trans "Label" %} :</div>";
             if (slotType === 'c') {
               data = row.course.label;
             } else {
               data = row.event.label;
             }
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 40, html=true) + "</div>";
             }
             return data;
           }
@@ -987,9 +1041,9 @@
           "render": function(data, type, row) {
             slotType = row.type[0].toLowerCase();
             data = (slotType === 'c') ? row.course.type_full : row.event.type;
-            label = "<label>{% trans 'Type' %} :</label>";
+            label = "<div class='field-label'>{% trans 'Type' %} :</div>";
             if(type === "display") {
-              return label + "<span>" + displayLongString(data, 40, html=true) + "</span>";
+              return label + "<div class='field-value'>" + displayLongString(data, 40, html=true) + "</div>";
             }
             return data;
           }
@@ -997,9 +1051,9 @@
         {
           "render": function(data, type, row) {
             data = row.datetime;
-            label = "<label>{% trans 'Date' %} :</label>";
+            label = "<div class='field-label'>{% trans 'Date' %} :</div>";
             if(type === "display" || type === "filter") {
-              return label + "<span>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</span>";
+              return label + "<div class='field-value'>" + row.date + "<br>" + row.start_time + " - " + row.end_time +"</div>";
             }
             if (type !== 'sort') {
               return data ? formatDate(data) : "";
@@ -1008,17 +1062,17 @@
           },
         },
         {
-          render: function (data, type, row) {
+          "render": function (data, type, row) {
             if (row.campus === '' || row.campus === null) {
               if (row.highschool != null || row.highschool != '') {
-                label = "<label>{% trans 'Address' %} : </label>";
+                label = "<div class='field-label'>{% trans 'Address' %} : </div>";
                 data = row.highschool_address ? row.highschool_address : '&nbsp;';
                 data += row.highschool_city ? `, ${row.highschool_city}` : '';
               } else {
                 return '&nbsp;';
               }
             } else {
-              label = "<label>{% trans 'Campus' %} : </label>";
+              label = "<div class='field-label'>{% trans 'Campus' %} : </div>";
               data = row.campus
               data += row.campus_city ? ` (${row.campus_city[0].toUpperCase() + row.campus_city.substring(1).toLowerCase()})` : '&nbsp;';
             }
@@ -1033,11 +1087,19 @@
         },
         {
           "render": function (data, type, row) {
-            data = row.meeting_place
-            if(type === "display") {
-              return "<label>{% trans 'Meeting place'%} :</label><span>" + displayLongString(data, 20, html=true) + "</span>";
+            if (type === "display" && !hide_fields_public_area["building"].hide_after_registration && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.building}<br>${row.meeting_place}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else if (type === "display" && !hide_fields_public_area["building"].hide_after_registration) {
+              data = `${row.building}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else if (type === "display" && !hide_fields_public_area["meeting_place"].hide_after_registration) {
+              data = `${row.meeting_place}`
+              return "<div class='field-label'>{% trans 'Meeting place'%} :</div><div class='field-value'>" + displayLongString(data, 25, html=true) + "</div>";
+            } else {
+              return
             }
-            return data;
+            return data
           },
         },
         { "data": "cancellation_date",
@@ -1046,7 +1108,7 @@
               data = formatDate(data,{ dateStyle: 'long', timeStyle: 'short' });
             }
             if (type==='display') {
-              return "<label>{% trans 'Cancellation date' %} :</label><span>" + data + "</span>";
+              return "<div class='field-label'>{% trans 'Cancellation date' %} :</div><div class='field-value'>" + data + "</div>";
             }
             return data;
           },
@@ -1054,7 +1116,7 @@
         { "data": "cancellation_type",
           "render": function(data, type, row) {
             if (type==='display'){
-              return "<label>{% trans 'Cancellation type' %} :</label>" + data;
+              return "<div class='field-label'>{% trans 'Cancellation type' %} :</div>" + data;
             }
             return data
           }
@@ -1085,7 +1147,6 @@
     }).on('select', function (e, dt, type, indexes) {
       let rowData = dt.rows(indexes).data().toArray()
       let speakers_array = "";
-      let url = null;
       let buildingFull = null;
       let courseLabelFull = null;
       let slotType = rowData[0].type[0].toLowerCase();
@@ -1110,6 +1171,7 @@
       $.each(rowData[0].speakers, function(i, item) {
         speakers_array += "<li>" + item + "</li>";
       });
+
       // display all row_* elements
       $(displayedRows).show();
       $('#modal_register_btn').html('');
@@ -1120,17 +1182,15 @@
       if (is_set(rowData[0].highschool)) {
         etab.push(rowData[0].highschool)
       }
-      if (is_set(rowData[0].structure)) {
+      if (is_set(rowData[0].structure) && !hide_fields_public_area["structure"].hide_after_registration) {
         etab.push(rowData[0].structure);
       }
-
       if (slotType === 'c') {
         $('#modal_myimmersions_slot_details #modal_course_label').html(rowData[0].course.label);
         filteredRows.push('row_highschool');
       } else {
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
       }
-
       if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
         buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
@@ -1151,11 +1211,6 @@
       }
       if (rowData[0].meeting_place === '' || rowData[0].meeting_place === null) {
         filteredRows.push('row_meeting_place');
-      }
-      if (rowData[0].place === remote) {
-        if (Object.keys(rowData[0]).indexOf('url') && rowData[0].url != null && rowData[0].url != '') {
-          url = ' <a href="' + rowData[0].url + '">{% trans "Remote link" %}</a>';
-        }
       }
       if (rowData[0].place == remote || rowData[0].place == outside) {
         filteredRows.push('row_city');
@@ -1181,7 +1236,7 @@
         }
       })
 
-      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ')??'');
+      $('#modal_myimmersions_slot_details #modal_establishment').html(etab.join(' - ') ?? '');
       $('#modal_myimmersions_slot_details #modal_course_label').html(courseLabelFull ?? rowData[0].course.training);
       $('#modal_myimmersions_slot_details #modal_label').html(rowData[0].label);
       $('#modal_myimmersions_slot_details #modal_type').html(rowData[0].translated_type);
@@ -1191,12 +1246,25 @@
       $('#modal_myimmersions_slot_details #modal_campus').html(rowData[0].campus)
       $('#modal_myimmersions_slot_details #modal_city').html(rowData[0].campus_city ? rowData[0].campus_city : rowData[0].highschool_city);
       $('#modal_myimmersions_slot_details #modal_highschool_address').html(rowData[0].highschool_address)
-      $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
-      $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
-      $('#modal_myimmersions_slot_details #modal_speakers').html(
-        '<ul class="list-group">' + speakers_array + '</ul>'
-      )
+      if(!hide_fields_public_area["building"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_building').html(rowData[0].building)
+      }
+      if(!hide_fields_public_area["meeting_place"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_meeting_place').html(rowData[0].meeting_place);
+      }
+      if(!hide_fields_public_area["speakers"].hide_after_registration) {
+        $('#modal_myimmersions_slot_details #modal_speakers').html(
+                '<ul class="list-group">' + speakers_array + '</ul>'
+        )
+      }
       $('#modal_myimmersions_slot_details #modal_additional_information').html(rowData[0].info);
+
+      if (rowData[0].info && rowData[0].info.length > 300) {
+        $('#show_more_info').show();
+      } else {
+        $('#show_more_info').hide();
+      }
+
       $('#modal_myimmersions_slot_details #modal_available_seats').html(availablesSeatslabel);
       $('#modal_myimmersions_slot_details #modal_registration_date').html(formatDate(rowData[0].registration_date,{ dateStyle: 'long', timeStyle: 'medium' }));
       $('#modal_myimmersions_slot_details #modal_end_registration_date').html(formatDate(rowData[0].registration_limit_date,{ dateStyle: 'long', timeStyle: 'medium' }));
@@ -1207,6 +1275,7 @@
       selectedRows = filteredRows.map(id => `#${id}`).join(',')
       $(selectedRows).hide();
       $('#modal_myimmersions_slot_details').modal("show");
+      $('#row_url').hide();
     });
     dt_cancelled.on("draw.dt", function (e, dt, type, indexes) {
         if ($(this).find(".dataTables_empty").length == 1) {

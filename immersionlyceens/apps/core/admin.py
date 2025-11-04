@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import TokenProxy
 
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, HighSchoolStudentRecordDocument, StudentRecord,
-    VisitorRecordDocument,
+    VisitorRecord, VisitorRecordDocument,
 )
 
 from immersionlyceens.fields import UpperCharField
@@ -38,6 +38,7 @@ from .admin_forms import (
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
     ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    VisitorTypeForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
@@ -48,7 +49,7 @@ from .models import (
     InformationText, MailTemplate, MefStat, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType,
     ScheduledTask, ScheduledTaskLog, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, VisitorType
 )
 
 logger = logging.getLogger(__name__)
@@ -104,8 +105,6 @@ class CustomAdminSite(admin.AdminSite):
                     )
                 )
 
-            # yield app
-
         return app_list
 
     def app_index(self, request, app_label, extra_context=None):
@@ -129,14 +128,21 @@ class AdminWithRequest:
     """
 
     def get_form(self, request, obj=None, **kwargs):
-        AdminForm = super().get_form(request, obj, **kwargs)
+        admin_form = super().get_form(request, obj, **kwargs)
 
-        class AdminFormWithRequest(AdminForm):
+        class AdminFormWithRequest(admin_form):
             def __new__(cls, *args, **kwargs):
                 kwargs['request'] = request
-                return AdminForm(*args, **kwargs)
+                return admin_form(*args, **kwargs)
 
         return AdminFormWithRequest
+
+    def in_messages(self, messages, message):
+        for m in messages:
+            if m.message == message:
+                return True
+
+        return False
 
 
 class ActivationFilter(admin.SimpleListFilter):
@@ -233,9 +239,9 @@ class HasUAIFilter(admin.SimpleListFilter):
         if not self.value():
             return queryset
 
-        bool = self.value() == 0
+        is_zero = self.value() == 0
 
-        return queryset.filter(uai_codes__isnull=bool).distinct()
+        return queryset.filter(uai_codes__isnull=is_zero).distinct()
 
 
 class HighschoolConventionFilter(admin.SimpleListFilter):
@@ -324,11 +330,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     )
 
     def get_activated_account(self, obj):
-        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student()):
-            if obj.is_valid():
-                return _('Yes')
-            else:
-                return _('No')
+        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
+            return _('Yes') if obj.is_valid() else _('No')
         else:
             return ''
 
@@ -355,7 +358,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 record = obj.get_student_record()
             elif obj.is_visitor():
                 record = obj.get_visitor_record()
-            return _('Yes') if record else _('No')
+                
+            if record:
+                if record.validation in [record.TO_COMPLETE, record.INIT]:
+                    return _('No')
+                
+                # Validated, To validate, To revalidate, Rejected
+                return _('Yes')
+                
+            return _('No')
         else:
             return ''
 
@@ -385,31 +396,27 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             record = obj.get_student_record()
             if record and record.institution:
                 return record.institution.uai_code
-        elif obj.is_structure_manager() or obj.is_structure_consultant():
-            if obj.highschool:
-                return obj.highschool
-            elif obj.establishment:
-                return obj.establishment
-        elif obj.is_speaker() or obj.is_operator() or obj.is_master_establishment_manager() \
-            or obj.is_establishment_manager() or obj.is_high_school_manager() or obj.is_legal_department_staff():
-            if obj.highschool:
-                return obj.highschool
-            elif obj.establishment:
-                return obj.establishment
+        elif obj.is_structure_manager() or obj.is_structure_consultant() or obj.is_speaker() or obj.is_operator() \
+            or obj.is_master_establishment_manager() or obj.is_establishment_manager() or obj.is_high_school_manager() \
+            or obj.is_legal_department_staff():
+                if obj.highschool:
+                    return obj.highschool
+                elif obj.establishment:
+                    return obj.establishment
         else:
             return ''
 
     def get_highschool(self, obj):
         try:
             return obj.highschool
-        except:
+        except AttributeError:
             return ''
 
     def get_structure(self, obj):
         try:
             structures = ', '.join([s.label for s in obj.structures.all().order_by('label')])
             return structures
-        except:
+        except AttributeError:
             return ''
 
     def get_groups_list(self, obj):
@@ -505,11 +512,11 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             if request.user.is_master_establishment_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE')
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups) - set(rights))
 
             if request.user.is_operator():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC')
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups) - set(rights))
 
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
@@ -521,7 +528,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups) - set(rights))
 
             if request.user.is_high_school_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
@@ -531,7 +538,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not ({x for x in user_groups} - set(rights))
+                return not (set(user_groups)- set(rights))
 
             messages.warning(request, no_delete_msg)
 
@@ -555,19 +562,19 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             if request.user.is_operator():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC')
-                if not ({x for x in user_groups} - set(rights)):
+                if not (set(user_groups) - set(rights)):
                     return True
 
             if request.user.is_establishment_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
-                if not ({x for x in user_groups} - set(rights)):
+                if not (set(user_groups) - set(rights)):
                     return True
 
             if request.user.is_high_school_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
-                return highschool_condition and not ({x for x in user_groups} - set(rights))
+                return highschool_condition and not (set(user_groups) - set(rights))
 
             return False
 
@@ -610,6 +617,18 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             fieldsets = tuple(lst)
 
         return fieldsets
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+
+        if obj:
+            if obj.groups.filter(name__in=["ETU", "LYC", "VIS"]).exists():
+                fields += ['groups', 'establishment', 'highschool', 'structures', 'username']
+
+            if obj.groups.filter(name="ETU").exists():
+                fields += ['email', 'first_name', 'last_name']
+
+        return fields
 
     class Media:
         js = (
@@ -745,8 +764,8 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # establishment manager : can't delete a campus if it's not attached to his/her own establishment
-        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
-                request.user.establishment == obj.establishment:
+        if obj and request.user.establishment and request.user.is_establishment_manager() and \
+                request.user.establishment != obj.establishment:
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
@@ -808,8 +827,8 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # establishment manager : can't delete a building if it's not attached to his/her own establishment
-        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
-                request.user.establishment == obj.campus.establishment:
+        if obj and request.user.establishment and request.user.is_establishment_manager() and \
+                request.user.establishment != obj.campus.establishment:
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
@@ -954,11 +973,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
 
-    # TODO: remove this when upgrading to django-ckeditor-5
-    class Media:
-        css = {'all': ('css/immersionlyceens.min.css',)}
-
-
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = StructureForm
     list_display = ('code', 'label', 'establishment', 'active', 'mailing_list')
@@ -1015,13 +1029,6 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
         # Group permissions
         return super().has_delete_permission(request, obj)
 
-    # TODO: remove this when upgrading to django-ckeditor-5
-    class Media:
-        css = {
-            'all': (
-                'css/immersionlyceens.min.css',
-            )
-        }
 
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1087,9 +1094,13 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
             # In use
             if Immersion.objects.filter(cancellation_type=obj).exists():
-                messages.warning(
-                    request, _("This cancellation type can't be updated because it is used by some registrations"),
+                warning_message = gettext(
+                    "This cancellation type can't be updated because it is used by some registrations"
                 )
+
+                if not self.in_messages(messages.get_messages(request), warning_message):
+                    messages.warning(request, warning_message)
+
                 return False
 
             # Protected
@@ -1160,7 +1171,6 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
-    change_list_template = "admin/core/universityyear/change_list.html"
     form = UniversityYearForm
     list_display = (
         'label',
@@ -1191,7 +1201,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         if request.user.is_master_establishment_manager() or request.user.is_operator():
-            return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
+            return UniversityYear.objects.filter(purge_date__isnull=True).count() <= 0
 
         # Group permissions
         return super().has_add_permission(request)
@@ -1219,7 +1229,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         js = (
             "js/vendor/jquery/jquery-3.4.1.min.js",
             "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js",
-            "js/admin/annual_purge.js",
         )
         css = {
             "all": (
@@ -1252,35 +1261,13 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
         'cancellation_limit_delay', 'allowed_immersions'
     )
 
-    """
-    def get_readonly_fields(self, request, obj=None):
-        today = timezone.localdate()
-
-        if not obj:
-            return []
-
-        fields = []
-        uy = None
-
-        try:
-            uy = UniversityYear.get_active()
-        except Exception as e:
-            messages.error(
-                request, _("Multiple active years found. Please check your university years settings."),
-            )
-
-        if uy is None or request.user.is_superuser:
-            return []
-
-        return list(set(fields))
-    """
 
     def has_add_permission(self, request):
         uy = None
 
         try:
             uy = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             messages.error(
                 request, _("Multiple active years found. Please check your university years settings."),
             )
@@ -1304,7 +1291,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
         try:
             uy = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             messages.error(
                 request, _("Multiple active years found. Please check your university years settings."),
             )
@@ -1362,7 +1349,7 @@ class PeriodAdmin(AdminWithRequest, admin.ModelAdmin):
 
         try:
             uy = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             self.details['ERROR'].add(
                 _("Multiple active years found. Please check your university years settings.")
             )
@@ -1440,7 +1427,8 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'address3', 'department', 'zip_code', 'city', 'phone_number', 'fax', 'email',
         'head_teacher_name', 'with_convention', 'convention_start_date', 'convention_end_date',
         'signed_charter', 'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
-        'certificate_footer'
+        'certificate_footer', 'disability_notify_on_record_validation', 'disability_notify_on_slot_registration',
+        'disability_referent_email'
     )
 
     @admin.display(description=_('Postbac immersions'), boolean=True)
@@ -1471,8 +1459,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = []
-        if obj:
-            if obj.student_records.exists():
+        if obj and obj.student_records.exists():
                 fields.append('active')
 
         return fields
@@ -1511,13 +1498,6 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
                 'js/jquery-3.4.1.slim.min.js',
                 'js/admin_highschool.min.js',
             )
-
-        # TODO: remove this when upgrading to django-ckeditor-5
-        css = {
-            "all": (
-                "css/immersionlyceens.min.css",
-            )
-        }
 
 class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     form = InformationTextForm
@@ -1584,8 +1564,6 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         def doc_used_in(obj):
 
-            used_docs = []
-
             texts_docs_id = obj.get_all_texts_id()
             docs = InformationText.objects.filter(id__in=texts_docs_id)
 
@@ -1621,10 +1599,10 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     form = AttestationDocumentForm
     search_fields = ('label',)
     list_filter = ('active', 'mandatory', 'for_minors', 'requires_validity_date')
-    list_display = ('label', 'order', 'profile_list', 'file_url', 'active', 'mandatory', 'for_minors',
-                    'requires_validity_date')
+    list_display = ('label', 'order', 'profile_list', 'visitor_types_list', 'file_url', 'active',
+                    'mandatory', 'for_minors', 'requires_validity_date')
     list_display_links = ('label', )
-    filter_horizontal = ('profiles',)
+    filter_horizontal = ('profiles', 'visitor_types', )
     ordering = ('order',)
     sortable_by = ('order',)
 
@@ -1636,6 +1614,9 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
     def profile_list(self, obj):
         return format_html("<br>".join([p.code for p in obj.profiles.all()]))
 
+    def visitor_types_list(self, obj):
+        return format_html("<br>".join([vt.code for vt in obj.visitor_types.all()]))
+
     def file_url(self, obj):
         if obj.template:
             url = self.request.build_absolute_uri(reverse('attestation_document', args=(obj.pk,)))
@@ -1644,6 +1625,7 @@ class AttestationDocumentAdmin(AdminWithRequest, SortableAdminMixin, admin.Model
         return ""
 
     profile_list.short_description = _('Profiles')
+    visitor_types_list.short_description = _('Visitor types')
     file_url.short_description = _('Address')
 
     def has_delete_permission(self, request, obj=None):
@@ -1984,28 +1966,6 @@ class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
 
-"""
-class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
-    def custom_has_something_permission(self, request, obj=None):
-        if request.user.is_operator:
-            return True
-        return super().has_add_permission(request)
-
-    def has_module_permission(self, request):
-        return self.custom_has_something_permission(request)
-
-    def has_view_permission(self, request, obj=None):
-        return self.custom_has_something_permission(request, obj)
-
-    def has_add_permission(self, request):
-        return self.custom_has_something_permission(request)
-
-    def has_change_permission(self, request, obj=None):
-        return self.custom_has_something_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        return self.custom_has_something_permission(request, obj)
-"""
 
 class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
@@ -2073,8 +2033,7 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def days(self, obj):
         week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        days = ", ".join(map(lambda d:gettext(d.title()), filter(lambda day:getattr(obj, day) is True, week_days)))
-
+        days = ", ".join([gettext(d.title()) for d in week_days if getattr(obj, d) is True])
         return days
 
     days.short_description = _('Days')
@@ -2089,10 +2048,15 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class ScheduledTaskLogAdmin(admin.ModelAdmin):
-    list_display = ('task', 'execution_date', 'success', 'message')
+    list_display = ('task', 'execution_date', 'success', 'format_message')
     ordering = ('-execution_date', )
     list_filter = ('task', 'success')
     list_per_page = 25
+
+    def format_message(self, obj):
+        return format_html(obj.message.replace("\n", "<br>"))
+
+    format_message.short_description = _('Message')
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -2124,10 +2088,70 @@ class HistoryAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
-"""
-admin.site.unregister(TokenProxy)
-admin.site.register(TokenProxy, TokenCustomAdmin)
-"""
+
+class VisitorTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    """
+    Admin for Visitor types
+    Group permissions NOT taken into account
+    """
+    form = VisitorTypeForm
+    list_display = ('code', 'label', 'active')
+    list_filter = ('active', )
+    ordering = ('label',)
+
+    def has_module_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_add_permission(self, request):
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+        return any(allowed_users)
+
+    def has_change_permission(self, request, obj=None):
+        warning_message = gettext("Warning : this visitor type is in use")
+
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+
+        if obj:
+            exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+            if exists and not self.in_messages(messages.get_messages(request), warning_message):
+                messages.warning(request, warning_message)
+
+        return any(allowed_users)
+
+    def has_delete_permission(self, request, obj=None):
+        #FIXME add test to forbid deletion when a type is in use
+        allowed_users = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser,
+        ]
+
+        exists = False
+
+        if obj:
+            exists = VisitorRecord.objects.filter(visitor_type=obj).exists()
+
+            if exists:
+                messages.warning(request, _("This visitor type can't be deleted because it is in use"))
+                return False
+
+        return any(allowed_users) and not exists
+
 
 admin.site = CustomAdminSite(name='Repositories')
 
@@ -2167,6 +2191,7 @@ admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(MefStat, MefStatAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
+admin.site.register(VisitorType, VisitorTypeAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
 admin.site.register(ScheduledTask, ScheduledTaskAdmin)

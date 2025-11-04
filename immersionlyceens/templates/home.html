@@ -4,6 +4,7 @@
 {% trans "Homepage" %}
 {% endblock %}
 {% block content %}
+{% general_settings_get 'SOCIAL_ACCOUNT_URL' as social_account_url %}
 {% active_accompanying_docs as show_accompanying_docs %}
 <div class="main-title">
     <div></div>
@@ -58,22 +59,18 @@
         </div>
       </div>
       {% endif %}
-      {% if social_network_url %}
       <div class="col-md-3">
-        <div class="info">
-          <div class="info-icon">
-            <i class="nv nv-twitter nv-fw nv-2x text-third"></i>
+        <h4>{% trans 'Social Media' %}</h4>
+          <div class="info d-flex align-items-center flex-wrap mb-2">
+            {% for key, social_account in social_account_url.items %}
+              {% if social_account.activate %}
+                <a href="{{ social_account.url }}" target="_blank" class="me-2 mb-1 mb-md-0" title="{{ social_account.name|default:key|capfirst }}">
+                  <img src="{{ ''|add:social_account.logo }}" alt="{{ key }}" style="width:32px; height:auto; margin-right:8px;">
+                </a>
+              {% endif %}
+            {% endfor %}
           </div>
-          <aside class="info-description">
-            <h4>{% trans 'Social' %}</h4>
-            <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ social_network_url }}" data-lang="fr" data-chrome="nofooter">
-            {% trans 'Feed' %}
-            </a>
-            <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-          </aside>
-        </div>
       </div>
-      {% endif %}
     </div>
   </div>
 </section>

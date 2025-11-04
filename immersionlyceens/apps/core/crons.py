@@ -26,7 +26,6 @@ class CronBase(CronJobBase):
             schedule_params = {}
             run_on_days = []
 
-            command_name = task.command_name
             if task.time:
                 schedule_params['run_at_times'] = [task.time.strftime("%H:%M")]
 

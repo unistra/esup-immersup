@@ -60,7 +60,17 @@ sed -i 's/{{ goal }}/docker-demo/g' "$APP_HOME"/manage.py \
 sed -i 's/{{ goal }}/docker-demo/g' "$APP_HOME"/immersionlyceens/wsgi.py \
 chown -R immersup:immersup "$APP_HOME" \
 apt-get update \
-apt-get install -y --no-install-recommends gettext libcairo2-dev libffi-dev libpango1.0-dev libpcre3 libpcre3-dev libxml2-dev libxslt-dev locales tk \
+apt-get install -y --no-install-recommends \
+gettext \
+libcairo2-dev \
+libffi-dev \
+libpango1.0-dev \
+libpcre3 \
+libpcre3-dev \
+libxml2-dev
+\libxslt-dev
+\locales
+\tk \
 apt-get clean
 EOF
 

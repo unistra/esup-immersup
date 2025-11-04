@@ -34,7 +34,7 @@
     </div>
     <div class="card-body">
       <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
-      <form class="" role="form" action="/core/off_offer_event{% if form.instance.id %}/{{ form.instance.id }}{% elif origin_id %}/{{ origin_id }}{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
+      <form class="" action="/core/off_offer_event{% if form.instance.id %}/{{ form.instance.id }}{% elif origin_id %}/{{ origin_id }}{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}
         <input type="hidden" name="duplicate" value="{{ duplicate }}">
@@ -126,6 +126,25 @@
           <div class="col-sm-6">
             {{ form.published.errors }}
           </div>
+          <div class="small col-sm-3">
+            {% trans 'If the published checkbox is not checked, the event will not be displayed even if the start and end dates of display are entered.' %}
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-3">
+              {% trans 'Start date of display (optional) :' %}
+          </div>
+          <div class="col-sm-3">
+              {{ form.start_date }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-3">
+              {% trans 'End date of display (optional) :' %}
+          </div>
+          <div class="col-sm-3">
+              {{ form.end_date }}
+          </div>
         </div>
         <div class="form-group row">
           <label for="person_search" class="col-sm-3 col-form-label">
@@ -137,7 +156,7 @@
             <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
             <select id='live_select' style='display:none;'></select>
             <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
-            <label id='ws_message' style='display:none; width:400px;'></label>
+            <span id='ws_message' style='display:none; width:400px;'></span>
             <ul id="id_speakers" class="mt-4"></ul>
             {{ form.speakers.errors }}
             <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
@@ -146,7 +165,7 @@
         {% if can_update %}
         <div class="form-group row">
           <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
-            <a href="{% url 'off_offer_events' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+            <a href="{% url 'off_offer_events' %}" class="btn btn-secondary btn-sm mb-1">{% trans 'Cancel' %}</a>
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
@@ -213,16 +232,22 @@
   function refresh_speakers_list() {
     $("#id_speakers").empty();
     $.each(speakers_array, function(i, item) {
-      let txt = "<li>";
+      let txt = "<li><nobr>";
 
       if(can_update === "True" && (item["is_removable"] === true || item["is_removable"] === undefined)) {
-        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['username']+"')\">X</button> ";
+        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['email']+"')\">X</button> ";
       }
       else {
         txt += "<button type=\"button\" class=\"btn btn-danger btn-sm\">X</button> ";
       }
 
-      txt += item['display_name'] + " (" + item['email'] + ")</li>";
+      txt += `${item['display_name']} (${item['email']})`;
+
+      if(item["is_active"] === false) {
+        txt += " - {% trans 'inactive account' %}"
+      }
+
+      txt += "</nobr></li>"
 
       $("#id_speakers").append(txt);
     });
@@ -230,9 +255,9 @@
     $('#id_speakers_list').val(JSON.stringify(speakers_array));
   }
 
-  function remove_speaker(username) {
+  function remove_speaker(email) {
     speakers_array = $.grep(speakers_array, function(value) {
-      return value["username"] != username;
+      return value["email"] != email;
     });
 
     refresh_speakers_list();

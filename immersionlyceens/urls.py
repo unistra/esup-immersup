@@ -65,7 +65,7 @@ urlpatterns = [
     path('search_slots', search_slots, name='search_slots'),
     path('shib_secure/', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
-    path('ckeditor/', include('ckeditor_uploader.urls')),
+    path("ckeditor5/", include('django_ckeditor_5.urls')),
     path('cohort_offer', cohort_offer, name='cohort_offer'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

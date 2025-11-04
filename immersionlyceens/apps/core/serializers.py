@@ -1,5 +1,7 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
+import datetime
+
 from collections import OrderedDict
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers, status
@@ -9,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext, gettext_lazy as _
+from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 
@@ -74,7 +77,6 @@ class ImmersionUserSerializer(serializers.ModelSerializer):
 class SpeakerSerializer(ImmersionUserSerializer):
     def validate(self, attrs):
         # Note : email (account) unicity is checked before serializer validation
-        filter = {}
         establishment = attrs.get('establishment', None)
         highschool = attrs.get('highschool', None)
         email = attrs.get("email")
@@ -137,7 +139,7 @@ class SpeakerSerializer(ImmersionUserSerializer):
         try:
             user = super().create(validated_data)
             Group.objects.get(name='INTER').user_set.add(user)
-        except Exception as e:
+        except Exception:
             raise
 
         return user
@@ -205,7 +207,6 @@ class CampusSerializer(serializers.ModelSerializer):
 class EstablishmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Establishment
-        # fields = "__all__"
         exclude = ['data_source_settings', ]
 
 
@@ -263,15 +264,6 @@ class BuildingSerializer(serializers.ModelSerializer):
         model = Building
         fields = "__all__"
         validators = []
-        """
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Building.objects.all(),
-                fields=['campus', 'label'],
-                message=_("A Building object with the same campus and label already exists")
-            )
-        ]
-        """
 
 
 class HighSchoolViewSerializer(serializers.ModelSerializer):
@@ -453,7 +445,6 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
     structure = StructureSerializer(many=False, read_only=True)
     highschool = HighSchoolViewSerializer(many=False, read_only=True)
     event_type = serializers.StringRelatedField(many=False)
-    # speakers = ImmersionUserSerializer(many=True, read_only=True)
     speakers = SpeakerSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()
     published_slots_count = serializers.IntegerField()
@@ -564,7 +555,9 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """
-        check speakers/published status and that only structures OR highschool are set at the same time
+        check:
+         - speakers/published status and that only structures OR highschool are set at the same time
+         - start_time < end_time
         """
         published = data.get('published', False) in ('true', 'True', True)
         speakers = data.get('speakers')
@@ -611,6 +604,14 @@ class CourseSerializer(serializers.ModelSerializer):
                 detail=gettext("A Course object with the same structure/highschool, training and label already exists"),
                 code=status.HTTP_400_BAD_REQUEST
             )
+
+        # optional start/end_date validation
+        if data.get('start_date') and data.get('end_date'):
+            if data['start_date'] > data['end_date']:
+                raise serializers.ValidationError(
+                    detail=gettext("Start date cannot be greater than end date"),
+                    code=status.HTTP_400_BAD_REQUEST
+                )
 
         return data
 
@@ -689,8 +690,9 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields =  [
-            "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by"
+        fields = [
+            "id", "label", "training", "structure", "highschool", "published", "speakers", "url", "managed_by",
+            "start_date", "end_date"
         ]
         validators = []
 
@@ -716,8 +718,6 @@ class SlotSerializer(serializers.ModelSerializer):
         place = data.get("place", Slot.FACE_TO_FACE)
         published = data.get("published", False)
         speakers = data.get("speakers")
-        n_places = data.get('n_places')
-        n_group_places = data.get('n_group_places')
         allowed_establishments = data.get("allowed_establishments")
         allowed_highschools = data.get("allowed_highschools")
         allowed_highschool_levels = data.get("allowed_highschool_levels")
@@ -728,8 +728,6 @@ class SlotSerializer(serializers.ModelSerializer):
         allowed_bachelor_teachings = data.get("allowed_bachelor_teachings")
         allow_individual_registrations = data.get('allow_individual_registrations')
         allow_group_registrations = data.get('allow_group_registrations')
-        group_mode = data.get('group_mode')
-        public_group = data.get('public_group')
         details = {}
 
         enabled_groups = get_general_setting("ACTIVATE_COHORT")
@@ -769,6 +767,25 @@ class SlotSerializer(serializers.ModelSerializer):
             for rfield in required_fields:
                 if not data.get(rfield):
                     details[rfield] = _("Field '%s' is required for a new published slot") % rfield
+
+            if all([date, start_time, end_time]):
+                # Slot date validation against course or event publication dates
+                start_datetime = timezone.make_aware(datetime.datetime.combine(date, start_time))
+                end_datetime = timezone.make_aware(datetime.datetime.combine(date, end_time))
+
+                obj = course or event
+
+                if obj:
+                    if obj.start_date and obj.start_date > start_datetime:
+                        details["date_start_time"] = _(
+                            "Slot date/start time must be after the start of publication"
+                        )
+
+                    if obj.end_date and obj.end_date < end_datetime:
+                        details["date_end_time"] = _(
+                            "Slot date/end time must be before the end of publication"
+                        )
+
 
         if period and date and not period.immersion_start_date <= date <= period.immersion_end_date:
             details["date"] = _("Invalid date for selected period : please check periods settings")

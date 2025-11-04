@@ -2,10 +2,8 @@ import os
 import re
 import csv
 from os.path import abspath, basename, dirname, join, normpath
-
 from django.utils.translation import gettext_lazy as _
-
-from ckeditor.configs import DEFAULT_CONFIG
+from .ckeditor import *
 
 ######################
 # Path configuration #
@@ -238,7 +236,6 @@ CAS_REDIRECT_URL = '/'
 CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
 CAS_RETRY_LOGIN = True
 
-# CAS_LOGOUT_COMPLETELY = True
 CAS_FORCE_SSL_SERVICE_URL = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
@@ -282,7 +279,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'hijack',
     'hijack.contrib.admin',
-    'ckeditor',
+    'django_ckeditor_5',
     'django_json_widget',
     'django_admin_listfilter_dropdown',
     'adminsortable2',
@@ -541,6 +538,7 @@ ADMIN_MODELS_ORDER = {
         'MefStat',
         'PostBachelorLevel',
         'StudentLevel',
+        'VisitorType',
     ],
     'docs': [
         'MailTemplate',
@@ -586,185 +584,10 @@ ADMIN_MODELS_ORDER = {
 # DO NOT EDIT
 HAS_RIGHTS_ON_GROUP = {
     'REF-TEC': ['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'LYC', 'VIS', 'ETU', 'CONS-STR'],
-    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'CONS-STR'],
-    'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER', 'CONS-STR'],
+    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'CONS-STR', 'LYC', 'VIS', 'ETU'],
+    'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER', 'CONS-STR', 'LYC', 'VIS', 'ETU'],
     'REF-LYC': ['INTER']
 }
-
-
-############
-# CKEDITOR #
-############
-X_FRAME_OPTIONS = 'SAMEORIGIN'
-CUSTOM_TOOLBAR = [
-    {
-        "name": "document",
-        "items": [
-            "Styles",
-            "Format",
-            "Font",
-            "Bold",
-            "Italic",
-            "Underline",
-            "Strike",
-            "-",
-            "TextColor",
-            "BGColor",
-            "-",
-            "JustifyLeft",
-            "JustifyCenter",
-            "JustifyRight",
-            "JustifyBlock",
-        ],
-    },
-    {
-        "name": "widgets",
-        "items": [
-            "Undo",
-            "Redo",
-            "-",
-            "NumberedList",
-            "BulletedList",
-            "-",
-            "Outdent",
-            "Indent",
-            "-",
-            "Link",
-            "Unlink",
-            "-",
-            "CodeSnippet",
-            "Table",
-            "HorizontalRule",
-            "SpecialChar",
-            "-",
-            "Blockquote",
-            "-",
-            "Maximize",
-        ],
-    },
-]
-
-"""
-CKEDITOR_CONFIGS = {
-    "default": {
-        "skin": "moono-lisa",
-        "toolbar": CUSTOM_TOOLBAR,
-        "toolbarGroups": None,
-        "extraPlugins": ",".join(
-            [
-                'codesnippet',
-            ]
-        ),
-        "removePlugins": ",".join(['image', 'uploadimage', 'uploadwidget', 'elementspath']),
-        "codeSnippet_theme": "xcode",
-        'height': '100%',
-        'width': '100%',
-    },
-    'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ],
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ],
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            ['link', 'table', 'hr'],
-        ],
-        [
-            'view',
-            ['codeview', 'undo', 'redo', 'fullscreen'],
-        ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-        ],
-    },
-}
-"""
-
-CKEDITOR_CONFIGS = {
-    'default': {
-        'skin': 'moono',
-        # 'skin': 'office2013',
-        'toolbar_Basic': [
-            ['Source', '-', 'Bold', 'Italic']
-        ],
-        'toolbar_YourCustomToolbarConfig': [
-            {'name': 'clipboard', 'items': ['Undo', 'Redo']},
-            {'name': 'basicstyles',
-             'items': ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
-            {'name': 'paragraph',
-             'items': ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-',
-                       'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl']},
-            {'name': 'links', 'items': ['Link', 'Unlink']},
-            '/',
-            {'name': 'insert',
-             'items': ['Table', 'HorizontalRule', 'SpecialChar', 'PageBreak']},
-            {'name': 'styles', 'items': ['Styles', 'Format', 'Font', 'FontSize']},
-            {'name': 'colors', 'items': ['TextColor', 'BGColor']},
-            {'name': 'tools', 'items': ['Preview', 'Maximize', 'ShowBlocks']},
-            {'name': 'about', 'items': ['About']},
-        ],
-        'toolbar': 'YourCustomToolbarConfig',  # put selected toolbar config here
-        # 'toolbarGroups': [{ 'name': 'document', 'groups': [ 'mode', 'document', 'doctools' ] }],
-        # 'height': 291,
-        # 'width': '100%',
-        'height': 'full',
-        'width': 'full',
-        # 'filebrowserWindowHeight': 725,
-        # 'filebrowserWindowWidth': 940,
-        # 'toolbarCanCollapse': True,
-        # 'mathJaxLib': '//cdn.mathjax.org/mathjax/2.2-latest/MathJax.js?config=TeX-AMS_HTML',
-        'tabSpaces': 4,
-        'extraPlugins': ','.join([
-            # 'uploadimage', # the upload image feature
-            # your extra plugins here
-            'div',
-            'autolink',
-            'autoembed',
-            'embedsemantic',
-            'autogrow',
-            # 'devtools',
-            'widget',
-            'lineutils',
-            'clipboard',
-            'dialog',
-            'dialogui',
-            # 'elementspath'
-        ]),
-        "removePlugins": ",".join(['resize', 'image', 'uploadimage', 'uploadwidget', 'elementspath']),
-    }
-}
-
-
-CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 ####################
 # Geo Api settings #

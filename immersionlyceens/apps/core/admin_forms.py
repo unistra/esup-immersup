@@ -4,7 +4,7 @@ import mimetypes
 import re
 from datetime import datetime
 from typing import Any, Dict
-from ckeditor.widgets import CKEditorWidget
+from django_ckeditor_5.widgets import CKEditor5Widget
 from django import forms, template
 from django.conf import settings
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -35,7 +35,7 @@ from .models import (
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
     PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UAI, UniversityYear, Vacation,
+    UAI, UniversityYear, Vacation, VisitorType
 )
 
 
@@ -304,7 +304,6 @@ class BuildingForm(forms.ModelForm):
 
     class Meta:
         model = Building
-        # fields = '__all__'
         fields = ('label', 'establishment', 'campus', 'url', 'active')
 
 
@@ -420,6 +419,11 @@ class EstablishmentForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        try:
+            self.enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+        except:
+            self.enabled_disability = False
+
         if self.fields:
             if self.fields.get("active"):
                 self.fields["active"].initial = True
@@ -438,8 +442,12 @@ class EstablishmentForm(forms.ModelForm):
                 self.fields["master"].disabled = True
                 self.fields["master"].help_text = _("This attribute cannot be updated")
 
-        # Plugins
-        # self.fields["data_source_plugins"] = forms.ChoiceField(choices=settings.AVAILABLE_ACCOUNTS_PLUGINS)
+            # Disability related fields
+            if not self.enabled_disability:
+                self.fields["disability_notify_on_record_validation"].disabled = True
+                self.fields["disability_notify_on_slot_registration"].disabled = True
+                self.fields["disability_referent_email"].disabled = True
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -491,6 +499,25 @@ class EstablishmentForm(forms.ModelForm):
         if Establishment.objects.filter(short_label__iexact=short_label).exclude(**exclude_filter).exists():
             raise forms.ValidationError(_("This short label already exists"))
 
+        # Disability related fields
+        if self.enabled_disability:
+            disability_notify_on_record_validation = cleaned_data.get('disability_notify_on_record_validation')
+            disability_notify_on_slot_registration = cleaned_data.get('disability_notify_on_slot_registration')
+            disability_referent_email = cleaned_data.get('disability_referent_email')
+
+            if disability_notify_on_record_validation not in [True, False]:
+                raise forms.ValidationError(_("Disability notification on record validation cannot be empty"))
+
+            if disability_notify_on_slot_registration is None or disability_notify_on_slot_registration == "":
+                raise forms.ValidationError(_("Disability notification on slot registration cannot be empty"))
+
+            if disability_notify_on_slot_registration == Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+                cleaned_data["disability_referent_email"] = None
+            if (disability_notify_on_slot_registration != Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+                and disability_referent_email is None):
+                raise forms.ValidationError(_("Disability referent email is mandatory if slot notification is enabled"))
+
+
         # TODO : run selected plugin settings selftests when available
 
         return cleaned_data
@@ -500,8 +527,8 @@ class EstablishmentForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': CKEditorWidget(),
-            'certificate_footer': CKEditorWidget(),
+            'certificate_header': CKEditor5Widget(),
+            'certificate_footer': CKEditor5Widget(),
         }
 
 
@@ -589,7 +616,6 @@ class UniversityYearForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
-        label = cleaned_data.get('label')
         valid_user = False
 
         try:
@@ -708,7 +734,6 @@ class VacationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        label = cleaned_data.get('label')
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         now = datetime.now().date()
@@ -727,7 +752,7 @@ class VacationForm(forms.ModelForm):
         # existence if an active university year
         try:
             univ_year = UniversityYear.get_active()
-        except Exception as e:
+        except Exception:
             raise
 
         if not univ_year:
@@ -834,7 +859,6 @@ class PeriodForm(forms.ModelForm):
 
     def clean(self):
         today = timezone.localdate()
-        now = timezone.now()
 
         cleaned_data = super().clean()
 
@@ -913,31 +937,29 @@ class PeriodForm(forms.ModelForm):
             raise forms.ValidationError(_("Immersions end date must be after immersions start date"))
 
         # Fields that can be updated with conditions
-        if self.instance and self.instance.pk:
+        if self.instance and self.instance.pk and self.has_changed():
             if self.instance.immersion_start_date <= today <= self.instance.immersion_end_date:
-                if self.has_changed():
-                    if 'immersion_end_date' in self.changed_data:
-                        # change end date only for a future date
-                        if immersion_end_date < self.instance.immersion_end_date:
-                            raise forms.ValidationError(_("Immersions end date can only be set after the actual one"))
-                    if 'allowed_immersions' in self.changed_data:
-                        if allowed_immersions < self.instance.allowed_immersions:
-                            raise forms.ValidationError(
-                                _("New allowed immersions value can only be higher than the previous one")
-                            )
+                if 'immersion_end_date' in self.changed_data:
+                    # change end date only for a future date
+                    if immersion_end_date < self.instance.immersion_end_date:
+                        raise forms.ValidationError(_("Immersions end date can only be set after the actual one"))
+                if 'allowed_immersions' in self.changed_data:
+                    if allowed_immersions < self.instance.allowed_immersions:
+                        raise forms.ValidationError(
+                            _("New allowed immersions value can only be higher than the previous one")
+                        )
             if self.instance.immersion_start_date > today:
-                if self.has_changed():
-                    slots_exist = self.instance.slots.exists()
-                    if 'immersion_start_date' in self.changed_data:
-                        if slots_exist and immersion_start_date > self.instance.immersion_start_date:
-                            raise forms.ValidationError(
-                                _("Immersions start date can only be set before the actual one")
-                            )
-                    if 'immersion_end_date' in self.changed_data:
-                        if slots_exist and immersion_end_date < self.instance.immersion_end_date:
-                            raise forms.ValidationError(
-                                _("Immersions end date can only be set after the actual one")
-                            )
+                slots_exist = self.instance.slots.exists()
+                if 'immersion_start_date' in self.changed_data:
+                    if slots_exist and immersion_start_date > self.instance.immersion_start_date:
+                        raise forms.ValidationError(
+                            _("Immersions start date can only be set before the actual one")
+                        )
+                if 'immersion_end_date' in self.changed_data:
+                    if slots_exist and immersion_end_date < self.instance.immersion_end_date:
+                        raise forms.ValidationError(
+                            _("Immersions end date can only be set after the actual one")
+                        )
 
         return cleaned_data
 
@@ -1024,7 +1046,6 @@ class ImmersionUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
-        # fields = '__all__'
         fields = ("establishment", "username", "search", "password1", "password2", "email",
                   "first_name", "last_name", "is_active")
 
@@ -1034,24 +1055,27 @@ class ImmersionUserChangeForm(UserChangeForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        if self.fields and self.fields.get('highschool'):
-            self.fields["highschool"].queryset = HighSchool.objects.all().order_by("city", "label")
+        if self.fields:
+            if self.fields.get('highschool'):
+                self.fields["highschool"].queryset = HighSchool.objects.all().order_by("city", "label")
 
-        if self.fields and self.fields.get('structures'):
-            self.fields["structures"] = CustomStructureMultipleChoiceField(
-                queryset=Structure.objects.all().order_by('establishment__code', 'label'),
-                widget=FilteredSelectMultiple(
-                    verbose_name=Structure._meta.verbose_name,
-                    is_stacked=False
-                ),
-                required=False
-            )
+            if self.fields.get('structures'):
+                self.fields["structures"] = CustomStructureMultipleChoiceField(
+                    queryset=Structure.objects.all().order_by('establishment__code', 'label'),
+                    widget=FilteredSelectMultiple(
+                        verbose_name=Structure._meta.verbose_name,
+                        is_stacked=False
+                    ),
+                    required=False
+                )
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
             if self.fields.get('establishment'):
                 if self.instance.establishment:
-                    self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
+                    self.fields["establishment"].queryset = Establishment.objects.filter(
+                        id=self.instance.establishment.id
+                    )
                     self.fields["establishment"].empty_label = None
 
                     # Lock fields when the selected establishment has a source plugin set
@@ -1063,11 +1087,16 @@ class ImmersionUserChangeForm(UserChangeForm):
                         self.fields["last_name"].disabled = True
 
                     self.fields["groups"].queryset = \
-                        self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC'])
+                        self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC', 'VIS'])
                 else:
                     self.fields["establishment"].queryset = Establishment.objects.none()
-                    self.fields["groups"].queryset = \
-                        self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
+
+                    # Do not allow group modification for student, high school students and visitors
+                    #if set(self.instance.groups.all().values_list('name', flat=True)) & set(["ETU", "LYC", "VIS"]):
+                    #    self.fields["groups"].disabled = True
+
+                    #self.fields["groups"].queryset = \
+                    #    self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
 
                 self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
@@ -1089,18 +1118,31 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["structures"].queryset = Structure.objects.none()
 
             # Restrictions on group depending on current user group
+            excludes = {}
+            if not self.instance.groups.exists():
+                excludes = {"name__in": ["ETU", "LYC", "VIS"]}
+
             if self.request.user.is_master_establishment_manager():
                 if not self.instance.is_master_establishment_manager() and self.fields.get('groups'):
+                    """
                     self.fields["groups"].queryset = \
                         self.fields["groups"].queryset.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+                    """
+                    self.fields["groups"].queryset = (self.fields["groups"].queryset
+                        .filter(name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB-MAITRE'])
+                        .exclude(**excludes)
+                        .order_by('name')
+                    )
 
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
 
                 if self.fields.get('groups'):
-                    self.fields["groups"].queryset = self.fields["groups"].queryset.filter(
-                        name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
-                    ).order_by('name')
+                    self.fields["groups"].queryset = (self.fields["groups"].queryset
+                        .filter(name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB'])
+                        .exclude(**excludes)
+                        .order_by('name')
+                    )
 
                 if self.fields.get('structures'):
                     self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
@@ -1192,11 +1234,10 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self._errors["groups"] = forms.utils.ErrorList()
                 self._errors['groups'].append(self.error_class([msg]))
 
-            if groups.filter(name='REF-LYC').exists():
-                if not highschool:
-                    msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
-                    self._errors["highschool"] = self.error_class([msg])
-                    del cleaned_data["highschool"]
+            if groups.filter(name='REF-LYC').exists() and not highschool:
+                msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
+                self._errors["highschool"] = self.error_class([msg])
+                del cleaned_data["highschool"]
 
             if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
                 msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
@@ -1215,12 +1256,10 @@ class ImmersionUserChangeForm(UserChangeForm):
                 # Add groups to this list when needed
                 can_change_groups = False
 
-                if self.request.user.has_groups('REF-ETAB'):
-                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
-                elif self.request.user.has_groups('REF-ETAB-MAITRE'):
-                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
-                elif self.request.user.has_groups('REF-TEC'):
-                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC', )
+                for group_name in ['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB']:
+                    if self.request.user.has_groups(group_name):
+                        can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get(group_name)
+                        break
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
                 new_groups = set(groups.all().values_list('name', flat=True)) if groups else set()
@@ -1231,7 +1270,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 if forbidden_groups:
                     raise forms.ValidationError(
-                        _("You can't modify these groups : %s" % ', '.join(x for x in forbidden_groups))
+                        _("You can't modify these groups : %s") % ', '.join(forbidden_groups)
                     )
 
             if self.instance.is_superuser != cleaned_data["is_superuser"]:
@@ -1253,10 +1292,9 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         new_groups = set(self.data.get('groups', []))
 
-        if inter_group:
-            if self.request.user.is_high_school_manager():
-                if not self.instance.groups.filter(name='INTER').exists():
-                    new_groups.add(str(inter_group.id))
+        if inter_group and self.request.user.is_high_school_manager():
+            if not self.instance.groups.filter(name='INTER').exists():
+                new_groups.add(str(inter_group.id))
 
         # Username override except for high school students using EduConnect
         exceptions = [
@@ -1319,6 +1357,11 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        try:
+            self.enabled_disability = GeneralSettings.get_setting(name="ACTIVATE_DISABILITY")["activate"]
+        except:
+            self.enabled_disability = False
 
         if self.fields and self.fields.get('uai_codes'):
             self.fields['uai_codes'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
@@ -1434,6 +1477,11 @@ class HighSchoolForm(forms.ModelForm):
                     "must match the agent federation ones."
                 )
 
+        # Disability related fields
+        if not self.enabled_disability:
+            self.fields["disability_notify_on_record_validation"].disabled = True
+            self.fields["disability_notify_on_slot_registration"].disabled = True
+            self.fields["disability_referent_email"].disabled = True
 
     def clean(self):
         valid_user = False
@@ -1441,7 +1489,6 @@ class HighSchoolForm(forms.ModelForm):
 
         active = cleaned_data.get("active", False)
         uses_student_federation = cleaned_data.get("uses_student_federation")
-        uses_agent_federation = cleaned_data.get("uses_agent_federation")
         uai_codes = cleaned_data.get('uai_codes')
 
         try:
@@ -1455,7 +1502,7 @@ class HighSchoolForm(forms.ModelForm):
             ]
 
             valid_user = any(valid_groups)
-        except AttributeError as exc:
+        except AttributeError:
             pass
 
         if not valid_user:
@@ -1521,20 +1568,41 @@ class HighSchoolForm(forms.ModelForm):
                         ) % {'code': uai_code.code, 'label': uai_code.label}
                     })
 
+        # Disability related fields
+        if self.enabled_disability:
+            disability_notify_on_record_validation = cleaned_data.get('disability_notify_on_record_validation')
+            disability_notify_on_slot_registration = cleaned_data.get('disability_notify_on_slot_registration')
+            disability_referent_email = cleaned_data.get('disability_referent_email')
+
+            if disability_notify_on_record_validation not in [True, False]:
+                raise forms.ValidationError(_("Disability notification on record validation cannot be empty"))
+
+            if disability_notify_on_slot_registration is None or disability_notify_on_slot_registration == "":
+                raise forms.ValidationError(_("Disability notification on slot registration cannot be empty"))
+
+            if disability_notify_on_slot_registration == Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER:
+                cleaned_data["disability_referent_email"] = None
+            if (disability_notify_on_slot_registration != Establishment.DISABILITY_SLOT_NOTIFICATION_NEVER
+                    and disability_referent_email is None):
+                raise forms.ValidationError(
+                    _("Disability referent email is mandatory if slot notification is enabled"))
+
         return cleaned_data
 
     class Meta:
         model = HighSchool
+
         fields = ('active', 'postbac_immersion', 'label', 'country', 'address', 'address2', 'address3',
                   'department', 'zip_code', 'city', 'phone_number', 'fax', 'email', 'head_teacher_name',
                   'with_convention', 'convention_start_date', 'convention_end_date', 'signed_charter',
                   'mailing_list', 'badge_html_color', 'logo', 'signature', 'certificate_header',
                   'certificate_footer', 'uses_agent_federation', 'uses_student_federation',
-                  'allow_individual_immersions', 'uai_codes')
+                  'allow_individual_immersions', 'uai_codes', 'disability_notify_on_record_validation',
+                  'disability_notify_on_slot_registration', 'disability_referent_email')
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
-            'certificate_header': CKEditorWidget(),
-            'certificate_footer': CKEditorWidget(),
+            'certificate_header': CKEditor5Widget(),
+            'certificate_footer': CKEditor5Widget(),
         }
 
 
@@ -1636,7 +1704,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': CKEditorWidget(),
+            'body': CKEditor5Widget(),
         }
 
 
@@ -1723,7 +1791,7 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
-        widgets = {'content': CKEditorWidget}
+        widgets = {'content': CKEditor5Widget}
 
 
 class PublicDocumentForm(forms.ModelForm):
@@ -1806,11 +1874,14 @@ class AttestationDocumentForm(forms.ModelForm):
                     )
             else:
                 raise forms.ValidationError(_('File type is not allowed'))
+
         return template
 
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
+        profiles = cleaned_data.get('profiles', None)
+        visitor_types = cleaned_data.get('visitor_types', None)
 
         try:
             user = self.request.user
@@ -1821,8 +1892,11 @@ class AttestationDocumentForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        if not cleaned_data.get("profiles", None):
+        if not profiles:
             raise forms.ValidationError(_("At least one profile is required"))
+
+        if visitor_types and not profiles.filter(code='VIS').exists():
+            raise forms.ValidationError(_("Visitor profile is mandatory when adding visitor types"))
 
         return cleaned_data
 
@@ -2027,7 +2101,7 @@ class CertificateLogoForm(forms.ModelForm):
     def clean_logo(self):
         logo = self.cleaned_data['logo']
         if logo and isinstance(logo, UploadedFile):
-            if not logo.content_type in CertificateLogo.ALLOWED_TYPES.values():
+            if logo.content_type not in CertificateLogo.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return logo
@@ -2065,7 +2139,7 @@ class CertificateSignatureForm(forms.ModelForm):
     def clean_signature(self):
         signature = self.cleaned_data['signature']
         if signature and isinstance(signature, UploadedFile):
-            if not signature.content_type in CertificateSignature.ALLOWED_TYPES.values():
+            if signature.content_type not in CertificateSignature.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return signature
@@ -2154,7 +2228,7 @@ class StudentLevelForm(TypeFormMixin):
 
 class CustomThemeFileForm(forms.ModelForm):
     """
-    Custome theme file form class
+    Custom theme file form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -2168,7 +2242,7 @@ class CustomThemeFileForm(forms.ModelForm):
             #mimetypes.add_type("text/javascript", ".js")
             #allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
 
-            if not file.content_type in CustomThemeFile.ALLOWED_TYPES.values():
+            if file.content_type not in CustomThemeFile.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
         return file
@@ -2211,7 +2285,7 @@ class FaqEntryAdminForm(forms.ModelForm):
     class Meta:
         model = FaqEntry
         fields = '__all__'
-        widgets = {'answer': CKEditorWidget,}
+        widgets = {'answer': CKEditor5Widget,}
 
 
 class ProfileForm(forms.ModelForm):
@@ -2239,8 +2313,8 @@ class ScheduledTaskForm(forms.ModelForm):
         for command, app in get_commands().items():
             if app.startswith("immersionlyceens"):
                 try:
-                    CommandClass = load_command_class(app, command)
-                    if CommandClass.is_schedulable():
+                    command_class = load_command_class(app, command)
+                    if command_class.is_schedulable():
                         choices_dict.appendlist(app, command)
                 except AttributeError:
                     # 'is_schedulable' is missing : nothing to do
@@ -2286,4 +2360,13 @@ class ScheduledTaskForm(forms.ModelForm):
 
     class Meta:
         model = ScheduledTask
+        fields = '__all__'
+
+
+class VisitorTypeForm(TypeFormMixin):
+    """
+    visitor type form class
+    """
+    class Meta:
+        model = VisitorType
         fields = '__all__'

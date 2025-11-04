@@ -195,13 +195,11 @@ class CustomLoginView(FormView):
         ]
 
         if self.user.is_high_school_student():
-            record = self.user.get_high_school_student_record()
             return reverse("immersion:hs_record")
 
         elif self.user.is_visitor():
             return reverse("immersion:visitor_record")
 
-            # return reverse('home') if self.user.get_visitor_record() else "/immersion/visitor_record"
         elif any(go_home):
             return reverse('home')
         else:
@@ -259,15 +257,13 @@ def loginChoice(request, profile=None):
         if settings.EDUCONNECT_LOGIN_URL:
             educonnect_url = f"{login_url}?entityID={quote_plus(settings.EDUCONNECT_LOGIN_URL)}&target={target}"
     except:
-        # EDUCONNECT_LOGIN_URL not set
-        pass
+        logger.info("EDUCONNECT_LOGIN_URL not set")
 
     try:
         if settings.AGENT_FEDERATION_LOGIN_URL:
             agents_url = f"{login_url}?entityID={quote_plus(settings.AGENT_FEDERATION_LOGIN_URL)}&target={target}"
     except:
-        # AGENT_FEDERATION_LOGIN_URL not set
-        pass
+        logger.info("AGENT_FEDERATION_LOGIN_URL not set")
 
     context = {
         "agents_federation_url": agents_url,
@@ -302,7 +298,14 @@ def shibbolethLogin(request, profile=None):
     # --------------- <shib dev> ----------------------
     # Uncomment this to fake Shibboleth data for DEV purpose
     """
-    hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
+    # hs = HighSchool.objects.filter(uses_student_federation=True,active=True,uai_codes__isnull=False).first()
+    hs = HighSchool.objects.filter(
+        label="Lycée Jean-Jacques Henner",
+        uses_student_federation=True,
+        active=True,
+        uai_codes__isnull=False
+    ).first()
+
     shib_attrs.update({
         "username": "https://pr4.educonnect.phm.education.gouv.fr/idp!https://immersup-test.app.unistra.fr!TGZM3VDBINLJTQMX4DJ23XYLYK43HVNO",
         "first_name": "Jean-Jacques",
@@ -312,7 +315,6 @@ def shibbolethLogin(request, profile=None):
         "birth_date": "2005-05-07",
         "unscoped_affiliation": "student"
     })
-    
     shib_attrs.update({
         "username": "sylvain.bidon@etu.unistra.fr",
         "first_name": "Sylvain",
@@ -322,11 +324,12 @@ def shibbolethLogin(request, profile=None):
         "unscoped_affiliation": "student;member",
         "affiliation": "student@unistra.fr;member@unistra.fr",
     })
-    # --------------- </shib dev> ----------------------
     """
+    # --------------- </shib dev> ----------------------
+
 
     if error:
-        logger.error(f"Shibboleth error : {error}")
+        logger.error(f"Shibboleth error : {error}. shib_attrs: {shib_attrs}")
         messages.error(request, _("Incomplete data for account creation"))
         return HttpResponseRedirect("/")
 
@@ -432,14 +435,15 @@ def shibbolethLogin(request, profile=None):
                 return HttpResponseRedirect("/")
 
             # Check UAI
+            clean_uai_code = None
             try:
                 clean_uai_code = uai_code.replace('{UAI}', '')
                 record_highschool = HighSchool.objects.get(
                     Q(uai_codes=uai_code)|Q(uai_codes=clean_uai_code),
                     uses_student_federation=True
                 )
-            except HighSchool.DoesNotExist as e:
-                return render(request, 'immersion/missing_hs.html', {})
+            except HighSchool.DoesNotExist:
+                return render(request, 'immersion/missing_hs.html', {'uai_code': clean_uai_code})
 
         else:
             is_student = True
@@ -459,10 +463,15 @@ def shibbolethLogin(request, profile=None):
 
     # parse affiliations:
     if not all([attr in shib_attrs for attr in mandatory_attributes]) or not affiliations:
-        messages.error(request,
+        logger.error(
+            f"Some mandatory attributes ({mandatory_attributes}) have not been found in shibboleth ones: {shib_attrs}"
+        )
+        messages.error(
+            request,
             _("Missing attributes, account not created." +
              "<br>Your institution may not be aware of the Immersion service." +
-             "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
+             "<br>Please use the 'contact' link at the bottom of this page, specifying your institution.")
+        )
         return HttpResponseRedirect("/")
 
     is_employee = not is_student and not is_high_school_student
@@ -495,7 +504,6 @@ def shibbolethLogin(request, profile=None):
             messages.error(request, _("Group error"))
 
         if is_high_school_student:
-            # validation=HighSchoolStudentRecord.TO_COMPLETE
             HighSchoolStudentRecord.objects.create(
                 highschool=record_highschool,
                 student=new_user,
@@ -535,8 +543,6 @@ def shibbolethLogin(request, profile=None):
     # -> auto-creation for students and high school students after confirmation
     # -> must have been created first for managers (high school, structure, ...)
 
-    # Already authenticated ?
-    is_authenticated = request.user.is_authenticated
     user = authenticate(request, remote_user=shib_attrs.get("username"), shib_meta=shib_attrs)
 
     if user:
@@ -595,7 +601,7 @@ def shibbolethLogin(request, profile=None):
             if request.user.is_high_school_student():
                 try:
                     validate_email(request.user.email)
-                except ValidationError as e:
+                except ValidationError:
                     messages.success(
                         request,
                         _("Your account is almost ready, please enter you email address for the activation procedure")
@@ -655,6 +661,7 @@ def setEmail(request):
             user = form.save(commit=False)
             user.set_validation_string()
             user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            user.email_validation_date = timezone.now()
             user.save()
 
             user.refresh_from_db()
@@ -739,8 +746,7 @@ def register(request, profile=None):
                 if get_general_setting('ACTIVATE_VISITORS') and registration_type == "vis":
                     group_name = "VIS"
             except:
-                # Should only happen if ACTIVATE_VISITORS setting is not present
-                pass
+                logger.info("ACTIVATE_VISITORS setting not found")
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)
@@ -889,7 +895,7 @@ def change_password(request):
 
         try:
             validate_password(request.POST.get('new_password1'))
-        except ValidationError as e:
+        except ValidationError:
             pass
 
         if password_form.is_valid():
@@ -926,6 +932,8 @@ class ActivateView(View):
             try:
                 user = ImmersionUser.objects.get(validation_string=hash)
                 user.validate_account()
+                user.email_validation_date = timezone.now()
+                user.save()
                 messages.success(request, _("Your account is now enabled. Thanks !"))
 
                 backend = ('shibboleth.backends.ShibbolethRemoteUserBackend'
@@ -951,11 +959,6 @@ class ActivateView(View):
                     messages.success(request, _("Please use the login button to authenticate"))
 
                 return HttpResponseRedirect(redirect_url)
-
-                """
-                if user.is_student():
-                    return HttpResponseRedirect("/shib")
-                """
 
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid activation data"))
@@ -1174,8 +1177,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         # The record must exist
         # Create quotas only for periods with allowed individual registrations
         for period in periods.filter(
-                registration_start_date__lte=timezone.localdate(),
-                slots__allow_individual_registrations=True
+            registration_start_date__lte=timezone.localdate(),
+            slots__allow_individual_registrations=True
         ):
             if not HighSchoolStudentRecordQuota.objects.filter(record=record, period=period).exists():
                 HighSchoolStudentRecordQuota.objects.create(
@@ -1231,7 +1234,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                                 """You have updated your email address."""
                                 """<br>A new activation email has been sent."""
                             )
-
+                        student.email_change_date = timezone.now()
+                        student.save(update_fields=['email_change_date'])
                         messages.warning(request, msg)
 
                 except Exception as e:
@@ -1243,21 +1247,44 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
+            set_status_params = {}
+
             if recordform.has_changed():
                 # for student federation users, validation is not needed unless some attestations have to be uploaded
                 record = recordform.save()
                 record.save()
                 messages.success(request, _("Record successfully saved."))
 
-                if (not user.uses_federation()
+                # Validation needed except when these flags are the only ones to change
+                if not user.uses_federation():
+                    exception_fields = [
+                        "disability", "phone", "visible_immersion_registrations", "visible_email", "bachelor_type",
+                        "professional_bachelor_mention", "technological_bachelor_mention", "general_bachelor_teachings"
+                    ]
+                    validation_needed = len(
+                        list(
+                            filter(lambda x: x not in exception_fields, recordform.changed_data)
+                        )
+                    ) > 0
+                else:
+                    validation_needed = False
+
+                if "disability" in recordform.changed_data and record.disability:
+                    set_status_params = {
+                        "request": request,
+                        "notify_disability": True
+                    }
+
+                if (validation_needed
+                    and not user.uses_federation()
                     and record.validation not in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]
                 ):
-                    validation_needed = True
                     messages.info(
                         request,
                         _("You have updated your record, it needs to be re-examined for validation.")
                     )
-
+                    student.email_change_date = timezone.now()
+                    student.save(update_fields=['email_change_date'])
                 # These particular field changes will trigger attestations updates
                 if 'highschool' in recordform.changed_data or 'birth_date' in recordform.changed_data:
                     create_documents = True
@@ -1396,6 +1423,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             # Evaluate new record status
             if completion_needed:
                 record.set_status("TO_COMPLETE")
+
             elif validation_needed:
                 match record.validation:
                     case HighSchoolStudentRecord.VALIDATED:
@@ -1404,11 +1432,30 @@ def high_school_student_record(request, student_id=None, record_id=None):
                         pass
                     case _:
                         record.set_status("TO_VALIDATE")
+
             elif record.validation in [HighSchoolStudentRecord.TO_COMPLETE, HighSchoolStudentRecord.INIT]:
                 if not user.uses_federation():
                     record.set_status("TO_VALIDATE")
                 else:
-                    record.set_status("VALIDATED")
+                    # Note: will send notification to disability referents if necessary
+                    res = record.set_status("VALIDATED", **set_status_params)
+
+                    if res.get("msg"):
+                        # Warning or success depending on set_status return
+                        func = messages.success if not res.get("error") else messages.warning
+                        func(request, str(res.get("msg")))
+
+                    # Federation in use : send account validation template
+                    if ret := record.student.send_message(request, "CPT_MIN_VALIDE"):
+                        messages.warning(_("Record updated but notification not sent : %s") % ret)
+
+            elif record.validation == HighSchoolStudentRecord.VALIDATED and set_status_params != {}:
+                # Special case if the status was already 'validated', but the disability flag has changed
+                res = record.set_status("VALIDATED", **set_status_params)
+
+                if res.get("msg"):
+                    func = messages.success if not res.get("error") else messages.warning
+                    func(request, str(res.get("msg")))
 
             record.save()
         else:
@@ -1588,6 +1635,7 @@ def student_record(request, student_id=None, record_id=None):
         record = student.get_student_record()
         uai_code = None
         institution = None
+        shib_attrs = {}
 
         no_record = record is None
 
@@ -1597,7 +1645,9 @@ def student_record(request, student_id=None, record_id=None):
             # Make sure we only consider the {UAI} part and split the string
             uai_code = shib_attrs.get("uai_code").split(";")[0]
         except Exception:
-            logger.error("Cannot retrieve uai code from shibboleth data")
+            logger.error(
+                f"Cannot retrieve uai code from shibboleth data : {shib_attrs}"
+            )
 
         if uai_code and uai_code.startswith('{UAI}'):
             uai_code = uai_code.replace('{UAI}', '')
@@ -1670,6 +1720,8 @@ def student_record(request, student_id=None, record_id=None):
                             request,
                             _("""You have updated your email address.""" """<br>A new activation email has been sent.""")
                         )
+                        student.email_change_date = timezone.now()
+                        student.save(update_fields=['email_change_date'])
                 except Exception as e:
                     logger.exception("Error while sending email update notification : %s", e)
                     messages.error(request, _("Cannot send email. The administrators have been notified."))
@@ -1681,9 +1733,28 @@ def student_record(request, student_id=None, record_id=None):
                         messages.error(request, error.get("message"))
 
         if recordform.is_valid():
+            set_status_params = {} # default
             record = recordform.save()
-            record.set_status("VALIDATED")
+
+            if recordform.has_changed():
+                if "disability" in recordform.changed_data and record.disability:
+                    set_status_params = {
+                        "request": request,
+                        "notify_disability": True
+                    }
+
+            if record.validation != record.VALIDATED:
+                if ret := record.student.send_message(request, "CPT_MIN_VALIDE"):
+                    messages.warning(_("Record updated but notification not sent : %s") % ret)
+
+            # This will send the notification to the disability referent
+            res = record.set_status("VALIDATED", **set_status_params)
+            if res.get("msg"):
+                func = messages.success if not res.get("error") else messages.warning
+                func(request, str(res.get("msg")))
+
             record.save()
+
             messages.success(request, _("Record successfully saved."))
 
             # Quota creation for newly created records
@@ -2100,6 +2171,8 @@ class VisitorRecordView(FormView):
                         """<br>A new activation email has been sent."""
                     ),
                 )
+                user.email_change_date = timezone.now()
+                user.save(update_fields=['email_change_date'])
         except Exception as exc:
             messages.error(self.request, _("Cannot send email. The administrators have been notified."))
             logger.exception("Error while sending email update notification : %s", exc)
@@ -2111,6 +2184,7 @@ class VisitorRecordView(FormView):
         record_id: Optional[int] = self.kwargs.get("record_id")
         current_email: Optional[str] = None
         user: Optional[ImmersionUser] = None
+        creation = False
         create_documents = False
         completion_needed = False
         validation_needed = False
@@ -2133,6 +2207,7 @@ class VisitorRecordView(FormView):
             current_email = user.email
 
         if not self.record:
+            creation = True
             create_documents = True
 
         if form.is_valid() and form_user.is_valid():
@@ -2148,15 +2223,33 @@ class VisitorRecordView(FormView):
 
             # any change : validation need
             if form.has_changed():
-                validation_needed = True
-                record.save()
-                messages.info(
-                    request,
-                    _("You have updated your record, it needs to be re-examined for validation.")
-                )
+                # Validation needed  ?
+                # fields that trigger the (re)validation :
+                fields = ["birth_date", "visitor_type"]
+                validation_needed = list(filter(lambda x:x in fields, form.changed_data)) != []
+
+                if not creation and validation_needed:
+                    messages.info(
+                        request,
+                        _("You have updated your record, it needs to be re-examined for validation.")
+                    )
+                    user.email_change_date = timezone.now()
+                    user.save(update_fields=['email_change_date'])
+                # Already validated record, but the disability is now enabled
+                if record.validation == record.VALIDATED and "disability" in form.changed_data and record.disability:
+                    set_status_params = {
+                        "request": request,
+                        "notify_disability": True
+                    }
+                    # This will send the notification
+                    res = record.set_status("VALIDATED", **set_status_params)
+                    if res.get("msg"):
+                        func = messages.success if not res.get("error") else messages.warning
+                        func(request, str(res.get("msg")))
 
                 # Documents update needed
-                create_documents = True
+                if validation_needed:
+                    create_documents = True
 
             # Quota for non-visitor user
             if not request.user.is_visitor():
@@ -2190,16 +2283,19 @@ class VisitorRecordView(FormView):
                               - ((today.month, today.day) < (record.birth_date.month, record.birth_date.day))
 
                 attestation_filters = {
-                    'profiles__code': "VIS"
+                    'profiles__code': "VIS",
                 }
 
                 if visitor_age >= 18:
                     attestation_filters['for_minors'] = False
 
                 current_documents = VisitorRecordDocument.objects.filter(record=record)
-                attestations = AttestationDocument.activated.filter(**attestation_filters)
+                attestations = AttestationDocument.activated.filter(
+                    Q(visitor_types__isnull=True)|Q(visitor_types=record.visitor_type),
+                    **attestation_filters
+                )
 
-                # Clean documents if school has changed, including archives
+                # Clean documents if something has changed, including archives
                 for vrd in current_documents:
                     if vrd.attestation not in attestations:
                         vrd.delete()
@@ -2251,6 +2347,8 @@ class VisitorRecordView(FormView):
                             request=request,
                             prefix=f"document_{document.attestation.id}"
                         )
+
+                        document_form.is_valid()
 
                         if document_form.is_valid():
                             document = document_form.save()

@@ -35,18 +35,33 @@
         {% trans 'Settings for structures' %}
     </div>
     <div class="card-body">
-      <div class="col-sm-10">
-          <p class="card-text">{% trans "Check structures if you want to receive the list of registrations for all the slots of your structure(s) at the same time as the speakers." %}</p>
-      {% if structures %}
+      <div class="col-sm-12">
+        <p class="card-text">{% trans "Check structures if you want to receive the following notifications :" %}</p>
+        {% if structures %}
+
+          <div class="form-check form-group row">
+            <div class="form-check-label text-center col-sm-2 offset-sm-6">{% trans "Registrants list" %}</div>
+            {% if enabled_disability %}
+              <div class="form-check-label text-center col-sm-2">{% trans "Disabled registrants" %}</div>
+            {% endif %}
+          </div>
+
           <div id="checkAllToggle" class="form-check form-group row">
             <label for="toggleCheck" class="form-check-label col-sm-6" >{% trans "Check all" %}</label>
-            <input type="checkbox" id="toggleAllInput" class="form-check-input col-sm-2" onClick="check_uncheck_checkbox(this.checked)">
-        </div>
+            <input type="checkbox" id="toggleAllInput" class="form-check-inline col-sm-2" onClick="check_uncheck_checkbox(this.checked)">
+            {% if enabled_disability %}
+              <input type="checkbox" id="toggleAllInputDisability" class="form-check-inline col-sm-2" onClick="check_uncheck_dis_checkbox(this.checked)">
+            {% endif %}
+          </div>
+
           {% for str in structures %}
-        <div id="structuresChk" class="form-check form-group row">
-          <label class="form-check-label col-sm-6" for="CheckStr{{ str.structure.pk }}">{{ str.structure.label }}</label>
-          <input class="form-check-input col-sm-2 structures-checkboxes" type="checkbox" value="{{ str.structure.pk }}" id="CheckStr{{ str.structure.pk }}" {% if str.checked %}checked{% endif %}/>
-        </div>
+          <div id="structuresChk" class="form-check form-group row">
+            <label class="form-check-label col-sm-6" for="CheckStr{{ str.structure.pk }}">{{ str.structure.label }}</label>
+            <input class="form-check-inline col-sm-2 structures-checkboxes" type="checkbox" value="{{ str.structure.pk }}" id="CheckStr{{ str.structure.pk }}" {% if str.registrants_checked %}checked{% endif %}/>
+            {% if enabled_disability %}
+              <input class="form-check-inline col-sm-2 structures-checkboxes" type="checkbox" value="{{ str.structure.pk }}" id="CheckDisStr{{ str.structure.pk }}" {% if str.disability_checked %}checked{% endif %}/>
+            {% endif %}
+          </div>
           {% endfor %}
 
         <button type="button" id="saveBtn" class="btn btn-primary mb-1 pull-right">{% trans "Save" %}</button>
@@ -59,18 +74,27 @@
 </div>
 <script>
   $(function () {
-      var str = new Array();
-
       $("#saveBtn").click(function () {
-          $("#structuresChk input[type=checkbox]:checked").each(function () {
+          let str = []
+          let dis_str = []
+
+          // Get checked structures for registrants list and disabled people
+          $("#structuresChk input[id^=CheckStr]:checked").each(function () {
               str.push(this.value);
+          });
+
+          $("#structuresChk input[id^=CheckDisStr]:checked").each(function () {
+              dis_str.push(this.value);
           });
 
           $.ajax({
             url: '{% url 'update_structures_notifications' %}',
             type: 'POST',
             headers: {"X-CSRFToken": getCookie("csrftoken")},
-            data: { 'ids': JSON.stringify(str) },
+            data: {
+              'ids': JSON.stringify(str),
+              'dis_ids': JSON.stringify(dis_str)
+            },
             success: function (response) {
               if(is_set(response.msg)) {
                 feedback.trigger("showFeedback", [[response.msg, "success"]]);
@@ -90,32 +114,57 @@
     feedback = $("#feedback");
   });
 
-  $('#structuresChk input[type=checkbox]').change(function() {
+  $('#structuresChk input[id^=CheckStr]').change(function() {
     update_check_all_btn();
+  });
+
+  $('#structuresChk input[id^=CheckDisStr]').change(function() {
+    update_dis_check_all_btn();
   });
 
   function check_uncheck_checkbox(isChecked) {
     if(isChecked) {
-      $('#structuresChk input[type=checkbox]').each(function() {
+      $('#structuresChk input[id^=CheckStr]').each(function() {
         this.checked = true;
       });
     } else {
-      $('#structuresChk input[type=checkbox]').each(function() {
+      $('#structuresChk input[id^=CheckStr]').each(function() {
+        this.checked = false;
+      });
+    }
+  }
+
+  function check_uncheck_dis_checkbox(isChecked) {
+    if(isChecked) {
+      $('#structuresChk input[id^=CheckDisStr]').each(function() {
+        this.checked = true;
+      });
+    } else {
+      $('#structuresChk input[id^=CheckDisStr]').each(function() {
         this.checked = false;
       });
     }
   }
 
   function update_check_all_btn() {
-    if ($('#structuresChk input[type=checkbox]').not(':checked').length === 0) {
-      $('#checkAllToggle input[type=checkbox]').prop('checked', true);
+    if ($('#structuresChk input[id^=CheckStr]').not(':checked').length === 0) {
+      $('#checkAllToggle input[id^=CheckStr]').prop('checked', true);
     } else {
-      $('#checkAllToggle input[type=checkbox]').prop('checked', false);
+      $('#checkAllToggle input[id^=CheckStr]').prop('checked', false);
+    }
+  }
+
+  function update_dis_check_all_btn() {
+    if ($('#structuresChk input[id^=CheckDisStr]').not(':checked').length === 0) {
+      $('#checkAllToggle input[id^=CheckDisStr]').prop('checked', true);
+    } else {
+      $('#checkAllToggle input[id^=CheckDisStr]').prop('checked', false);
     }
   }
 
   // On load launch update of checkAll checkbox
   update_check_all_btn();
+  update_dis_check_all_btn();
 
 </script>
 {% endblock %}

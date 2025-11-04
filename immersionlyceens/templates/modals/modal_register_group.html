@@ -55,7 +55,9 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label for="file">{% trans 'File' %}</label>
-                <a id="file_link" href="" class="sun-row" style='display:none;'></a>
+                <a id="file_link" href="" class="sun-row" style='display:none;'>
+                    <span class="sr-only">{% trans "Upload file" %}</span>
+                </a>
                 <input id="file" type="file" name="file" class="form-control">
                 <small>{{ group_file_help_text }}</small>
               </div>
@@ -102,7 +104,7 @@
     formData.append('file', upload_file);
     formData.append('emails', $("#emails").val());
     formData.append('feedback', true);
-    formData.append('middlewaretoken', '{{ csrf_token }}');
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
     $.ajax({
       url: "{% url 'GroupSlotRegistration' %}",
       type: 'POST',
@@ -116,7 +118,6 @@
           if (typeof reload_groups_table === 'function') {
             reload_groups_table();
           }
-          // groups_dtr.ajax.reload();
           if (typeof dt != "undefined") {
             dt.ajax.reload();
           }
@@ -124,7 +125,6 @@
         else {
           $("#register_group_feedback").html('<div class="alert alert-success">' + json['msg'] + '</div>');
           setTimeout(function() { $("#register_group_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
-          // groups_dtr.ajax.reload();
           if (typeof reload_groups_table === 'function') {
             reload_groups_table();
           }

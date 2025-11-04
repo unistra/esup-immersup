@@ -471,7 +471,7 @@ mark,
 
 .list-arrows li::before {
   content: "\f105";
-  font-family: "FontAwesome";
+  font-family: "FontAwesome", sans-serif;
   position: absolute;
   margin: -0.1em 0 0 -1.1em;
   -webkit-align-self: normal;

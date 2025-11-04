@@ -30,10 +30,20 @@
     </span>
   </div>
 
+  <div id="cdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
+    <span>
+      {% trans 'Do you really want to cancel this rejection ?' %}
+    </span>
+  </div>
+
   <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
     <span>
       {% trans 'Do you really want to reject this high school student?' %}
     </span>
+    <div style="margin-top: 10px;">
+      <label for="rejection_reason">{% trans 'Reason (optional)' %}</label><br>
+      <textarea id="rejection_reason" name="rejection_reason" rows="3" style="width: 100%;"></textarea>
+    </div>
   </div>
 
   <div class="card">
@@ -47,6 +57,9 @@
       <div class="alert alert-success hide" id="validate_message">
         {% trans "Student validated" %}
       </div>
+      <div class="alert alert-success hide" id="cancel_rejection_message">
+        {% trans "Rejection canceled" %}
+      </div>
       <div class="alert alert-success hide" id="reject_message">
         {% trans "Student rejected" %}
       </div>
@@ -57,8 +70,8 @@
           <label for="id_convention" class="col-form-label col-sm-1">{% trans 'Convention' %} : </label>
           <select name="convention" id="id_convention" class="form-control col-sm-2 ml-1">
             <option value="all">{% trans 'Both' %}</option>
-            <option value="1">{% trans 'With convention' context "highschool_filter" %}</option>
-            <option value="0">{% trans 'Without convention' context "highschool_filter" %}</option>
+            <option value="1">{% trans 'Yes' context "highschool_filter" %}</option>
+            <option value="0">{% trans 'No' context "highschool_filter" %}</option>
           </select>
         {% endif %}
         <label for="id_high_school" class="col-form-label col-sm-1">{% trans 'High schools' %} :</label>
@@ -85,6 +98,7 @@
                     <th id="level_filter_to_revalidate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_revalidate">{% trans "Class name" %}</th>
                     <th id="date_filter_to_revalidate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_revalidate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -122,6 +136,7 @@
                     <th id="level_filter_to_validate">{% trans "Level" %}</th>
                     <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
                     <th id="date_filter_to_validate">{% trans "Creation date" %}</th>
+                    <th id="attestations_to_validate">{% trans "Attestations" %}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -159,7 +174,7 @@
                     <th id="level_filter_validated">{% trans "Level" %}</th>
                     <th id="class_name_filter_validated">{% trans "Class name" %}</th>
                     <th id="date_filter_validated">{% trans "Validation date" %}</th>
-                    <th></th>
+                    <th id="attestations_validated">{% trans "Attestations" %}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -196,11 +211,13 @@
                     <th id="level_filter_rejected">{% trans "Level" %}</th>
                     <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
                     <th id="date_filter_rejected">{% trans "Rejection date" %}</th>
+                    <th id="rejection_reason_filter_rejected">{% trans "Rejection Reason" %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -222,8 +239,8 @@
 <script type="text/javascript">
 var t1, t2;
 var dts = {};
-var vdialog, rdialog;
-var date_options = { dateStyle: 'long', timeStyle: 'medium' };
+var vdialog, cdialog, rdialog;
+var date_options = { dateStyle: 'short', timeStyle: 'short' };
 var birth_date_options = { dateStyle: 'short' };
 var hs_id = "{{ hs_id }}";
 var w_convention = "{{ w_convention }}" === "True"
@@ -233,7 +250,19 @@ var convention_filter = "{{ request.session.convention_filter }}"
 var highschool_filter = "{{ request.session.highschool_filter }}"
 var referent_high_school = "{{ high_school.id }}"
 
+var current_highschool
+var current_convention
+
 $(document).ready(function () {
+    // Session filters : set the current values
+    if(highschool_filter) {
+      current_highschool = highschool_filter
+    }
+
+    if(convention_filter) {
+      current_convention = convention_filter
+    }
+
     $.ajaxSetup({
       beforeSend: function(xhr, settings) {
         if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
@@ -242,7 +271,7 @@ $(document).ready(function () {
       }
     });
 
-    function set_high_school(convention) {
+    function set_high_school(convention, refresh=true) {
       let data = {
         csrfmiddlewaretoken: '{{ csrf_token }}'
       }
@@ -260,12 +289,7 @@ $(document).ready(function () {
           let selected_value;
           let city;
 
-          if([false, "0"].includes(convention) || w_convention === false) {
-            options = "<option value='all'>{% trans 'All' %}</option>"
-          }
-          else {
-            options = '<option value="">---------</option>'
-          }
+          options = "<option value='all'>{% trans 'All' %}</option>"
 
           for (let i = 0; i < json.length; i++) {
             city = json[i]['city'] ? json[i]['city'] : "{% trans 'No city' %}"
@@ -273,7 +297,10 @@ $(document).ready(function () {
           }
           $('select#id_high_school').html(options)
 
-          if(is_set(highschool_filter) && $(`#id_high_school option[value='${highschool_filter}']`).length !== 0) {
+          if(is_set(current_highschool) && $(`#id_high_school option[value='${current_highschool}']`).length !== 0) {
+            selected_value = current_highschool
+          }
+          else if(is_set(highschool_filter) && $(`#id_high_school option[value='${highschool_filter}']`).length !== 0) {
             selected_value = highschool_filter
           }
           else if (is_set(hs_id) && $(`#id_high_school option[value='${hs_id}']`).length !== 0) {
@@ -283,15 +310,12 @@ $(document).ready(function () {
             selected_value = $("#id_high_school option:first").val()
           }
 
+          // store current highschool choice
+          current_highschool = selected_value
+
           $("#id_high_school").val(selected_value);
 
-          if (selected_value === "") {
-            clear_to_revalidate();
-            clear_to_validate();
-            clear_validated();
-            clear_rejected();
-          }
-          else {
+          if(refresh) {
             reload_to_revalidate();
             reload_to_validate();
             reload_validated();
@@ -303,11 +327,19 @@ $(document).ready(function () {
 
     $('#id_convention').change(function(event){
       convention = $(event.target).val(); // 'all', '0' or '1'
+      current_convention = convention
+
+      // As soon as the convention filter changes, clear the value from the session
+      convention_filter = ""
       set_high_school(convention);
     });
 
     $('#id_high_school').change(function(event){
         let value = $(event.target).val();
+        current_highschool = value
+
+        // As soon as the high school filter changes, clear the value from the session
+        highschool_filter = ""
 
         if (is_set(value)) {
           reload_to_revalidate();
@@ -323,6 +355,40 @@ $(document).ready(function () {
         }
     });
 
+    //If a validity date is missing on a document, the user can put it manually
+    //This function check if the date put manually is valid
+    function enable_validate_button(){
+
+      $(".validity-date").each(function() {
+        const val = $(this).val();
+        let invalid = false;
+        const row = $(this).closest('tr');
+
+        if (!val) {
+          invalid = true;
+        } else {
+          const entered = new Date(val);
+          const today = new Date();
+
+          if (entered < today) {
+            invalid = true;
+          }
+        }
+
+        if (invalid) {
+          row.find('.btn_validate').prop('disabled', true);
+          row.find('td:last').append("<br>{% trans 'Some attestation dates are invalid' %}");
+        } else {
+          row.find('.btn_validate').prop('disabled', false);
+        }
+      });
+    }
+
+    // All the elements with the "validity-date" class are checked to see if they changed
+    $(document).on("change", ".validity-date", function() {
+      enable_validate_button()
+    })
+
     // Init :
     // if high_school is not set :
     // - if only one sort of high school is activated, initialize the list
@@ -330,13 +396,13 @@ $(document).ready(function () {
     if(!is_set(referent_high_school)) {
       if(is_set(convention_filter)) {
         $('#id_convention').val(convention_filter)
-        set_high_school(convention_filter)
+        set_high_school(convention_filter, refresh=false)
       }
       else if(w_convention ^ wo_convention) {
-        set_high_school(w_convention)
+        set_high_school(w_convention, refresh=false)
       }
       else if(w_convention && wo_convention) {
-        set_high_school('all')
+        set_high_school('all', refresh=false)
       }
     }
 
@@ -353,7 +419,31 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            validate_student($("#vdialog-form").data('param'));
+            let student_record_id = $("#vdialog-form").data('param')
+            let att = $("#vdialog-form").data('atts')
+
+            let documents_validity_dates = []
+
+            // get validity date for all attestations that require one
+            if(is_set(att)) {
+              att.forEach(att_id => {
+                // get date input depending on the record id and the record_attestation object id
+                let date_input = document.getElementById(`validity_date_${student_record_id}_${att_id}`)
+
+                if (date_input) {
+                  let docId = date_input.dataset.docId;
+                  let dateValue = date_input.value;
+
+                  documents_validity_dates.push({
+                    id: docId,
+                    validity_date: dateValue
+                  });
+                }
+              })
+            }
+
+            // send validation data to the API
+            validate_student(student_record_id, documents_validity_dates);
             vdialog.dialog("close");
           },
         },
@@ -362,6 +452,34 @@ $(document).ready(function () {
           "class": 'dialog-button',
           click: function () {
             vdialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    cdialog = $("#cdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            let student_record_id = $("#cdialog-form").data('param')
+            cancel_rejection(student_record_id);
+            cdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            cdialog.dialog("close");
           },
         }
       ],
@@ -380,7 +498,10 @@ $(document).ready(function () {
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            reject_student($("#rdialog-form").data('param'));
+            let student_record_id = $("#rdialog-form").data('param');
+            let reason = $("#rejection_reason").val();
+
+            reject_student(student_record_id, reason);
             rdialog.dialog("close");
           },
         },
@@ -410,8 +531,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'TO_REVALIDATE';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -435,7 +556,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -467,19 +588,49 @@ $(document).ready(function () {
                   return data
                 }
               },
+              {
+                data: 'attestations',
+                render: function (data, type, row) {
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += ` <input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
+                }
+              },
               { data: 'id',
                 render: function(data, type, row) {
                   let element = '';
                   let disabled = '';
                   let txt = '';
+                  let att_ids = []
 
                   if(row.invalid_dates > 0) {
                     disabled = "disabled"
                     txt = "<br>{% trans 'Some attestation dates are invalid' %}"
                   }
 
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
-                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Renew validation" %}</button>`;
+                       onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog('open')">{% trans "Renew validation" %}</button>`;
+
                   element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
                        onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
 
@@ -510,8 +661,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'TO_VALIDATE';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -534,7 +685,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -566,19 +717,48 @@ $(document).ready(function () {
                   return data
                 }
               },
+              {
+                data: 'attestations',
+                render: function (data, type, row) {
+                  if (!Array.isArray(data) || data.length === 0) {
+                    return '{% trans "No attestation" %}';
+                  }
+
+                  let html = '<ul>';
+                  row.attestations.forEach(att => {
+                    html += `<li>
+                          <a href="${att.url}" target="_blank">${att.label}</a>`;
+                    if (att.requires_validity_date) {
+                      html += `<input type="date" id="validity_date_${row.id}_${att.id}" name="validity_date_${row.id}_${att.id}" class="validity-date" data-doc-id="${att.id}" class="validity-date" value="${att.validity_date || ''}">`;
+                    }
+                    html += '</li>';
+                  });
+                  html += '</ul>';
+                  return html;
+                }
+              },
               { data: 'id',
                 render: function(data, type, row) {
                   let element = '';
                   let disabled = '';
                   let txt = '';
+                  let att_ids = []
 
                   if(row.invalid_dates > 0) {
                     disabled = "disabled"
                     txt = "<br>{% trans 'Some attestation dates are invalid' %}"
                   }
 
+                  // attestation ids array
+                  if(is_set(row.attestations)) {
+                    row.attestations.forEach(att => {
+                      att_ids.push(att.id)
+                    })
+                  }
+
                   element += `<button ${disabled} class="btn btn-success mr-2 btn_validate" id="btn_validate_${data}"
-                       onclick="vdialog.data('param', ${data}).dialog('open')">{% trans "Validate" %}</button>`;
+                       onclick="vdialog.data('param', ${data}).data('atts', ${JSON.stringify(att_ids)}).dialog('open')">{% trans "Validate" %}</button>`;
+
                   element += `<button class="btn btn-danger btn_reject" id="btn_reject_${data}"
                        onclick="rdialog.data('param', ${data}).dialog('open')">{% trans "Reject" %}</button>`;
 
@@ -609,8 +789,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'VALIDATED';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -633,7 +813,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -695,8 +875,8 @@ $(document).ready(function () {
                 url: "{% url 'GetStudentRecords' %}",
                 data: function (d) {
                     d.action = 'REJECTED';
-                    d.high_school_id = $('#id_high_school').val();
-                    d.with_convention = convention;
+                    d.high_school_id = current_highschool || $('#id_high_school').val();
+                    d.with_convention = current_convention || convention;
                 },
                 dataSrc: function(json) {
                     if (json['data'] !== undefined) {
@@ -719,7 +899,7 @@ $(document).ready(function () {
               },
               { data: 'highschool__with_convention',
                 render: function(data, type, row) {
-                  return data === true ? "{% trans 'With convention' %}" : "{% trans 'Without convention' %}"
+                  return data === true ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
                 }
               },
               { data: 'user_last_name',
@@ -751,12 +931,18 @@ $(document).ready(function () {
                   return data
                 }
               },
+              { data: 'rejection_reason',
+                render: function (data, type, row) {
+                  return data
+                }
+
+              },
               { data: 'id',
                 render: function(data) {
-                  return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
-                         'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                  return `<button class="btn btn-success btn_validate" id="btn_validate_${data}" ` +
+                         `onclick="cdialog.data('param', ${data}).dialog(\'open\')">{% trans "Cancel" %}</button>`
                 }
-              }
+              },
             ],
             columnDefs: [{
                 defaultContent: '',
@@ -862,11 +1048,12 @@ function reload_rejected() {
     $('#rejected').DataTable().ajax.reload();
 }
 
-function validate_student( student_record_id ) {
+function validate_student(student_record_id, documents_validity_date) {
   $.post({
     url: "{% url 'validateStudent' %}",
     data: {
         student_record_id: student_record_id,
+        validity_dates: JSON.stringify(documents_validity_date),
     },
     success: function(obj) {
       if (is_set(obj.data)) {
@@ -927,11 +1114,75 @@ function validate_student( student_record_id ) {
   });
 }
 
-function reject_student( student_record_id ) {
+function cancel_rejection(student_record_id) {
+  $.post({
+    url: "{% url 'cancelRejection' %}",
+    data: {
+        student_record_id: student_record_id,
+    },
+    success: function(obj) {
+      if (is_set(obj.data)) {
+        reload_to_validate();
+        reload_rejected();
+
+        $('#cancel_rejection_message').show();
+
+        if (t1) {
+          clearTimeout(t1);
+        }
+
+        t1 = setTimeout(function() {
+            $('#cancel_rejection_message').fadeOut(1000, function(){
+              $('#cancel_rejection_message').hide();
+            });
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        )
+      }
+      else {
+        if(is_set(obj.msg)) {
+          $('#fail_message').html(obj.msg)
+        }
+        else {
+          $('#fail_message').html(
+            "{% trans 'An error occurred. The operation has failed.' %}"
+          )
+        }
+
+        $('#fail_message').show();
+
+        setTimeout(function() {
+            $('#fail_message').fadeOut(
+              1000,
+              function() {
+                $('#fail_message').hide();
+              }
+            )
+          },
+          {% settings_get 'MESSAGES_TIMEOUT' %}
+        );
+      }
+    },
+    error: function() {
+        $('#fail_message').show();
+        setTimeout(function(){
+            $('#fail_message').fadeOut(
+                1000,
+                function() {
+                    $('#fail_message').hide();
+                }
+            )
+        }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+    }
+  });
+}
+
+function reject_student(student_record_id, reason) {
   $.post({
       url: "{% url 'rejectStudent' %}",
       data: {
           student_record_id: student_record_id,
+          rejection_reason: reason,
       },
       success: function(obj) {
         if (is_set(obj.data)) {

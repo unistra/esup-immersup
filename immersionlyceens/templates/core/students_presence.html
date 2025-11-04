@@ -22,6 +22,8 @@
 {% endblock %}
 
 {% block content %}
+{% general_settings_get 'ACTIVATE_DISABILITY' as activate_disability %}
+
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -54,6 +56,9 @@
               <th id="student_profile_filter" class="align-bottom">{% trans 'Profile' %}<br></th>
               <th id="nb_persons_filter" class="align-bottom">{% trans 'Registered' %}<br></th>
               <th id="student_filter" class="align-bottom">{% trans 'Student' %}<br></th>
+            {% if activate_disability.activate %}
+              <th id="disability_filter" class="align-bottom">{% trans 'Disabled person' context 'header' %}<br></th>
+            {% endif %}
               <th id="institution_filter" class="align-bottom">{% trans 'Origin institution' %}<br></th>
               <th id="contact_filter" class="align-bottom">{% trans 'Phone / Email' %}<br></th>
             {% if not request.user.is_high_school_manager %}
@@ -69,16 +74,19 @@
             {% if request.user.is_master_establishment_manager or request.user.is_operator %}
               <td></td>
             {% endif %}
+            {% if activate_disability.activate %}
+              <td></td>
+            {% endif %}
               <td></td>
               <td></td>
               <td></td>
               <td></td>
               <td></td>
-              {% if not request.user.is_high_school_manager %}
+            {% if not request.user.is_high_school_manager %}
               <td></td>
               <td></td>
               <td></td>
-              {% endif %}
+            {% endif %}
               <td></td>
               <td></td>
               <td></td>
@@ -111,55 +119,7 @@
   var is_operator = "{{ request.user.is_operator }}" === "True"
   var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
 
-
-  $(document).ready(function () {
-    $(function () {
-      $(".datepicker").datepicker({
-        changeMonth: true,
-        changeYear: true,
-        minDate: new Date(min_date),
-        maxDate: new Date(max_date),
-      });
-    });
-
-    function def_dt_order() {
-      if(is_master_establishment_manager || is_operator) {
-        return [[2, "asc"]]
-      }
-      if(is_high_school_manager) {
-        return [[0, "asc"]]
-      }
-      return [[1, "asc"]]
-    }
-
-    $.fn.dataTableExt.errMode = 'console';
-    dt = $('#students_table').DataTable({
-      'processing': false,
-      'order': def_dt_order(),
-      'pageLength': 15,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': true,
-      'ajax': {
-        url: "{% url 'ajax_get_student_presence' %}",
-        data: function(d) {
-          d.from_date = from_date
-          d.until_date = until_date
-          d.place = $('#id_place').val()
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
-      },
-    'searching': true,
-    {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
-    'language': {
-      url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
-    },
-    {% endif %}
-    'columns': [
+  let columns = [
     {% if request.user.is_master_establishment_manager or request.user.is_operator %}
       { "data": "establishment",
         "name": "establishment"
@@ -174,10 +134,10 @@
         "name": "date",
         "render": function(data, type, row) {
           let date = formatDate(data, date_options)
-          let start_split = row.start_time.split(':')
-          let end_split = row.end_time.split(':')
-          let start = `${start_split[0]}h${start_split[1]}`
-          let end = `${end_split[0]}h${end_split[1]}`
+          let start_split = row.start_time ? row.start_time.split(':') : ""
+          let end_split = row.end_time ? row.end_time.split(':') : ""
+          let start = start_split ? `${start_split[0]}h${start_split[1]}` : ""
+          let end = end_split ? `${end_split[0]}h${end_split[1]}` : ""
 
           // format date only for display and filter, not for sorting
           if(type === "display" || type === "filter") {
@@ -226,6 +186,17 @@
           return ""
         }
       },
+      {% if activate_disability.activate %}
+        { "data": "disabled",
+          "name": "disabled",
+          "render": function(data, type, row) {
+            if(data === true) return "{% trans 'Yes' %}"
+            if(data === false) return "{% trans 'No' %}"
+
+            return ""
+          }
+        },
+      {% endif %}
       { "data": "institution",
         "name": "institution"
       },
@@ -246,10 +217,12 @@
               return ""
             }
 
-            let split = row.emails.split(',')
-            split.forEach(item => {
-              txt += `<li>${item}</li>`
-            })
+            let split = row.emails ? row.emails.split(',') : row.emails
+            if(split) {
+              split.forEach(item => {
+                txt += `<li>${item}</li>`
+              })
+            }
           }
           txt += "</ul>";
           return txt;
@@ -276,7 +249,56 @@
           return data
         }
       },
-    ],
+  ]
+
+  $(document).ready(function () {
+    $(function () {
+      $(".datepicker").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        minDate: new Date(min_date),
+        maxDate: new Date(max_date),
+      });
+    });
+
+    function def_dt_order() {
+      if(is_master_establishment_manager || is_operator) {
+        return [[2, "asc"]]
+      }
+      if(is_high_school_manager) {
+        return [[0, "asc"]]
+      }
+      return [[1, "asc"]]
+    }
+
+    $.fn.dataTableExt.errMode = 'console';
+    dt = $('#students_table').DataTable({
+      'processing': false,
+      'order': def_dt_order(),
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "{% url 'ajax_get_student_presence' %}",
+        data: function(d) {
+          d.from_date = from_date
+          d.until_date = until_date
+          d.place = $('#id_place').val()
+        },
+        dataSrc: function (json) {
+          if (json['data'] !== undefined) {
+            return json['data'];
+          }
+        }
+      },
+    'searching': true,
+    {% if LANGUAGE_CODE|fix_lang_code == 'fr-FR' %}
+    'language': {
+      url: "{% static 'js/vendor/i18n/fr-FR.json' %}"
+    },
+    {% endif %}
+    'columns': columns,
     "columnDefs": [
         {
           "defaultContent": "",
@@ -324,6 +346,12 @@
       column_selector: "name:name",
       filter_type: "text",
       filter_default_label: "",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_selector: "disabled:name",
+      filter_default_label: "",
+      filter_container_id: "disability_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },{

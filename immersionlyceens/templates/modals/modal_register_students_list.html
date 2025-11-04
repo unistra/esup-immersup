@@ -311,8 +311,8 @@ function register_student(student_id, slot_id, force=false) {
             else if(json['reason'] === "restrictions") {
                 $('#id_quota').hide()
                 $('#id_training_quota').hide()
-                $('#id_passed_registration_date').hide()
                 $('#id_restrictions').show()
+                $('#id_passed_registration_date').hide()
             }
             else if(json['reason'] === "passed_registration_date") {
                 $('#id_quota').hide()

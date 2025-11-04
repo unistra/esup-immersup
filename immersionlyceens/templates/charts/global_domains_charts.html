@@ -46,10 +46,10 @@
     <div class="card-header text-white bg-secondary">
       {% if request.user.is_high_school_manager %}
       <div class="form-group mx-sm-3 mb-2">
-        <label class="form-check-label ml-md-2">
+        <span class="form-check-label ml-md-2">
           {% trans "No city" as no_city %}
           {{ request.user.highschool.label }} - {% firstof request.user.highschool.city no_city %}
-        </label>
+        </span>
       </div>
       {% endif %}
       <div class="form-group mx-sm-3 mb-2">
@@ -86,16 +86,16 @@
     <div class="card-body">
         <div class="row">
           <div class="col-md-6">
-            <label><strong>{% trans 'Institutions' %}</strong></label>
+            <span><strong>{% trans 'Institutions' %}</strong></span>
           </div>
           <div class="col-md-6">
-            <label><strong>{% trans 'Level' %}</strong></label>
+            <span><strong>{% trans 'Level' %}</strong></span>
           </div>
         </div>
         <div class="row">
           <div class="col-md-6">
             {% if part2_filters.highschools %}
-            <label>{% trans 'High schools' %} :</label>
+            <span>{% trans 'High schools' %} :</span>
             <ul>
               {% for highschool in part2_filters.highschools %}
                 <li>{{ highschool }}</li>
@@ -103,7 +103,7 @@
             </ul>
             {% endif %}
             {% if part2_filters.higher_institutions %}
-            <label>{% trans 'Higher education institutions' %} :</label>
+            <span>{% trans 'Higher education institutions' %} :</span>
             <ul>
               {% for higher_institution in part2_filters.higher_institutions %}
                 <li>{{ higher_institution }}</li>

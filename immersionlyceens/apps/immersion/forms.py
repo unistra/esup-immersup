@@ -18,7 +18,7 @@ from ...libs.utils import get_general_setting
 from immersionlyceens.apps.core.models import (
     BachelorMention, BachelorType, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, HighSchoolLevel, ImmersionUser, Period, PostBachelorLevel,
-    StudentLevel,
+    StudentLevel, VisitorType,
 )
 
 from .models import (
@@ -255,7 +255,6 @@ class HighSchoolStudentForm(forms.ModelForm):
 
 class NewPassForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
-        # self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
         for field in self.fields:
@@ -274,7 +273,7 @@ class EmailForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        request = kwargs.pop('request', None)
+        kwargs.pop('request', None)
         initial = kwargs.get('initial', {})
 
         # Override email value if it's still the EduConnect temporary email
@@ -365,7 +364,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
 
         try:
             attestation_resend_delay = GeneralSettings.get_setting("ATTESTATION_DOCUMENT_DEPOSIT_DELAY")
-        except Exception as e:
+        except Exception:
             # display error only for managers
             attestation_resend_delay = 0 # good default value ?
             if not self.request.user.is_high_school_student() and not self.request.user.is_visitor():
@@ -441,7 +440,7 @@ class HighSchoolStudentRecordDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            if not document.content_type in RecordDocument.ALLOWED_TYPES.values():
+            if document.content_type not in RecordDocument.ALLOWED_TYPES.values():
                 raise forms.ValidationError(_('File type is not allowed'))
 
             if document.size > int(settings.MAX_UPLOAD_SIZE):
@@ -554,8 +553,13 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['post_bachelor_level'].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
 
         # CSS
-        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings', 'birth_date',
-            'allow_high_school_consultation'
+        excludes = [
+            'visible_immersion_registrations',
+            'visible_email',
+            'general_bachelor_teachings',
+            'birth_date',
+            'allow_high_school_consultation',
+            'disability'
         ]
         for field in self.fields:
             if field not in excludes:
@@ -649,7 +653,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
-                  'allow_high_school_consultation']
+                  'allow_high_school_consultation', 'disability']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
@@ -674,21 +678,15 @@ class StudentRecordForm(forms.ModelForm):
 
 
         # CSS
-        excludes = ['birth_date']
+        excludes = ['birth_date', 'disability']
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        valid_users = [
-            self.request.user.is_establishment_manager(),
-            self.request.user.is_master_establishment_manager(),
-            self.request.user.is_operator()
-        ]
-
     class Meta:
         model = StudentRecord
         fields = ['birth_date', 'phone', 'uai_code', 'level', 'origin_bachelor_type', 'current_diploma',
-                  'student']
+                  'student', 'disability']
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
         }
@@ -716,11 +714,9 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
 
 
 class VisitorRecordForm(forms.ModelForm):
-
-    validation_disabled_fields: Tuple[str, ...] = (
-        "birth_date", "motivation",
-    )
-
+    """
+    Form for visitor record
+    """
     def has_change_permission(self):
         return any([
             self.request.user.is_establishment_manager(),
@@ -728,29 +724,41 @@ class VisitorRecordForm(forms.ModelForm):
             self.request.user.is_operator()
         ])
 
+    @staticmethod
+    def visitor_type_label_from_instance(obj):
+        return obj.label
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        fields: List[str] = ["phone", "motivation"]
+        fields: List[str] = ["phone", "motivation", ]
+
+        self.fields["visitor"].widget = forms.HiddenInput()
 
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
 
-        is_hs_manager_or_master: bool = self.has_change_permission()
-        self.fields["visitor"].widget = forms.HiddenInput()
+        self.fields['visitor_type'].queryset = VisitorType.objects.filter(active=True).order_by('label')
+        self.fields['visitor_type'].label_from_instance = self.visitor_type_label_from_instance
 
-        if self.instance and self.instance.validation == 2:
-            for field in self.validation_disabled_fields:
+        for field in ["birth_date", "visitor_type"]:
+            if self.instance and getattr(self.instance, field, None):
                 self.fields[field].disabled = True
 
+        # Valid record : disable the motivations field
+        if self.instance and self.instance.validation == 2:
+            self.fields["motivation"].disabled = True
+
+        # Exception for high school and establishments managers
+        is_hs_manager_or_master: bool = self.has_change_permission()
         if is_hs_manager_or_master:
             self.fields["birth_date"].disabled = False
 
 
     class Meta:
         model = VisitorRecord
-        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation']
+        fields = ['id', 'birth_date', 'phone', 'visitor', 'motivation', 'disability', 'visitor_type']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

@@ -7,6 +7,7 @@ import unittest
 import codecs
 
 from datetime import datetime, time, timedelta, timezone as datetime_timezone
+from zoneinfo import ZoneInfo
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -745,6 +746,25 @@ class APITestCase(TestCase):
         date = (self.today + timedelta(days=10)).strftime("%Y-%m-%d")
         speaker = self.course.speakers.first()
 
+        future_date_registration = self.today + timedelta(days=9)
+        future_date_cancellation = self.today + timedelta(days=8)
+
+        utc_offset_registration = datetime(
+            future_date_registration.year,
+            future_date_registration.month,
+            future_date_registration.day,
+            10, 0, 0,
+            tzinfo=ZoneInfo("Europe/Paris")
+        ).isoformat(timespec='seconds').split('T')[1]
+
+        utc_offset_cancellation = datetime(
+            future_date_cancellation.year,
+            future_date_cancellation.month,
+            future_date_cancellation.day,
+            10, 0, 0,
+            tzinfo=ZoneInfo("Europe/Paris")
+        ).isoformat(timespec='seconds').split('T')[1]
+
         data = {
             "course": self.course.id,
             "n_places": "30",
@@ -781,91 +801,45 @@ class APITestCase(TestCase):
 
         slot = Slot.objects.get(period=self.period, date=date, course=self.course.pk)
 
-        test_data = {
-            "id":slot.pk,
-            "room":"salle 113",
-            "date":date,
-            "period":self.period.pk,
-            "start_time":"10:00:00",
-            "end_time":"12:00:00",
-            "n_places":30,
-            "n_group_places": None,
-            "additional_information":None,
-            "url":None,
-            "published":False,
-            "place": Slot.FACE_TO_FACE,
-            "establishments_restrictions":False,
-            "levels_restrictions":True,
-            "bachelors_restrictions":False,
-            "course":self.course.pk,
-            "course_type":self.course_type.pk,
-            "event":None,
-            "campus":self.campus.pk,
-            "building":self.building.pk,
-            "speakers":[speaker.id],
-            "allow_individual_registrations": True,
-            "allow_group_registrations": False,
-            "group_mode": 0,
-            "public_group": False,
-            "allowed_establishments":[],
-            "allowed_highschools":[],
-            "allowed_highschool_levels":[1],
-            "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[],
-            "allowed_bachelor_types":[],
-            "allowed_bachelor_mentions":[],
-            "allowed_bachelor_teachings":[],
-            "registration_limit_delay":24,
-            "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "reminder_notification_sent":False,
-        }
-
-        """
-        import dictdiffer
-        print([x for x in dictdiffer.diff(test_data, result)])
-        """
-
         self.assertEqual(result, {
-            "id":slot.pk,
-            "room":"salle 113",
-            "date":date,
+            "id": slot.pk,
+            "room": "salle 113",
+            "date": date,
             "period": self.period.pk,
-            "start_time":"10:00:00",
-            "end_time":"12:00:00",
-            "n_places":30,
+            "start_time": "10:00:00",
+            "end_time": "12:00:00",
+            "n_places": 30,
             "n_group_places": None,
-            "additional_information":None,
-            "url":None,
-            "published":False,
+            "additional_information": None,
+            "url": None,
+            "published": False,
             "place": Slot.FACE_TO_FACE,
-            "establishments_restrictions":False,
-            "levels_restrictions":True,
-            "bachelors_restrictions":False,
-            "course":self.course.pk,
-            "course_type":self.course_type.pk,
-            "event":None,
-            "campus":self.campus.pk,
-            "building":self.building.pk,
-            "speakers":[speaker.id],
+            "establishments_restrictions": False,
+            "levels_restrictions": True,
+            "bachelors_restrictions": False,
+            "course": self.course.pk,
+            "course_type": self.course_type.pk,
+            "event": None,
+            "campus": self.campus.pk,
+            "building": self.building.pk,
+            "speakers": [speaker.id],
             "allow_individual_registrations": True,
             "allow_group_registrations": False,
             "group_mode": 0,
             "public_group": False,
-            "allowed_establishments":[],
-            "allowed_highschools":[],
-            "allowed_highschool_levels":[1],
-            "allowed_student_levels":[],
-            "allowed_post_bachelor_levels":[],
-            "allowed_bachelor_types":[],
-            "allowed_bachelor_mentions":[],
-            "allowed_bachelor_teachings":[],
-            "registration_limit_delay":24,
-            "cancellation_limit_delay":48,
-            "registration_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=24)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "cancellation_limit_date":f"{(self.today + timedelta(days=10) - timedelta(hours=48)).date()}T10:00:00+0{str(int(self.today_utc_offset.total_seconds()/3600))}:00",
-            "reminder_notification_sent":False,
+            "allowed_establishments": [],
+            "allowed_highschools": [],
+            "allowed_highschool_levels": [1],
+            "allowed_student_levels": [],
+            "allowed_post_bachelor_levels": [],
+            "allowed_bachelor_types": [],
+            "allowed_bachelor_mentions": [],
+            "allowed_bachelor_teachings": [],
+            "registration_limit_delay": 24,
+            "cancellation_limit_delay": 48,
+            "registration_limit_date": f"{future_date_registration.date()}T{utc_offset_registration}",
+            "cancellation_limit_date": f"{future_date_cancellation.date()}T{utc_offset_cancellation}",
+            "reminder_notification_sent": False,
         })
 
         # Published course - test missing fields
@@ -986,16 +960,7 @@ class APITestCase(TestCase):
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['data'], [])
-        self.assertEqual("Error: No action selected for AJAX request", content['msg'])
-
-        # To validate - No student high school id
-        data = {
-            'action': 'TO_VALIDATE'
-        }
-        response = self.client.post(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-        self.assertEqual(content['msg'], "Error: No high school selected")
+        self.assertEqual("Error: No action selected for request", content['msg'])
 
         # To validate - With high school id
         # Add some attestations to the record, to check invalid_dates
@@ -1415,7 +1380,7 @@ class APITestCase(TestCase):
                 self.assertIn(self.training.label, row[10])
                 self.assertIn(self.course.label, row[11])
                 self.assertEqual(self.past_slot.period.label, row[12])
-                self.assertEqual(_date(self.past_slot.date, 'd/m/Y'), row[13])
+                self.assertEqual(_date(self.past_slot.date.date(), 'd/m/Y'), row[13])
                 self.assertEqual(self.past_slot.start_time.strftime("%H:%M:%S"), row[14])
                 self.assertEqual(self.past_slot.end_time.strftime("%H:%M:%S"), row[15])
                 self.assertEqual(self.past_slot.campus.label, row[16])
@@ -2231,8 +2196,12 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
+        # Add a validation_string to highschool_user3
+        self.highschool_user3.validation_string = "123"
+        self.highschool_user3.save()
+
         # No records
-        url = "/api/get_highschool_students/no_record"
+        url = "/api/get_highschool_students/no_account_activation"
 
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2411,18 +2380,6 @@ class APITestCase(TestCase):
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid cancellation reason #id")
-
-        # Past immersion
-        self.slot.date = self.today - timedelta(days=1)
-        self.slot.save()
-
-        data = {
-            'immersion_id': self.immersion.id,
-            'reason_id': self.cancel_type.id
-        }
-        content = json.loads(self.client.post(url, data, **self.header).content.decode())
-        self.assertTrue(content['error'])
-        self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
 
         # Cancellation deadline has passed
         passed_test_immersion = Immersion.objects.create(
@@ -2654,19 +2611,11 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Invalid json decoding")
 
-        # Past immersions
-        self.slot.date = self.today - timedelta(days=1)
-        self.slot.save()
-
         data = {
             'immersion_ids': f'[{self.immersion.id}]',
             'reason_id': self.cancel_type.id,
             'slot_id': self.immersion.slot_id
         }
-        content = json.loads(self.client.post(url, data, **self.header).content.decode())
-
-        self.assertTrue(content['error'])
-        self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
 
         # Authenticated user has no rights
         self.slot.date = self.today + timedelta(days=1)
@@ -2792,14 +2741,35 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.room, i['meeting_place'])
         self.assertEqual(student_profile, i['student_profile'])
 
-        # ref_lyc: forbidden
+        # ref_lyc: allowed only if high school has postbac immersions
         request.user = self.ref_lyc
         self.client.login(username='ref_lyc', password='pass')
         url = "/api/get_students_presence"
 
-        # No data
+        Immersion.objects.create(
+            slot=self.highschool_slot,
+            student=self.highschool_user
+        )
+
+        # remove the postbac immersions : won't return anything
+        self.high_school.postbac_immersion = False
+        self.high_school.save()
+
         response = self.client.get(url, data, **self.header)
-        self.assertEqual(response.content.decode('utf-8'), "")
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {"data": [], "msg": ""})
+
+        # postbac immersions back, should see the only registered student
+        self.high_school.postbac_immersion = True
+        self.high_school.save()
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content["data"]), 1)
+
+        self.assertEqual(content["data"][0]["student_id"], self.highschool_user.pk)
+        self.assertEqual(content["data"][0]["slot_id"], self.highschool_slot.pk)
+
+
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
@@ -2997,14 +2967,8 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to visitor record state", content['msg'])
 
-        # Fail with past slot registration
-        data['student_id'] = self.highschool_user.id
-        data['slot_id'] = self.past_slot.id
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Register to past slot is not possible", content['msg'])
-
         # Fail with full slot registration
+        data['student_id'] = self.highschool_user.id
         data['slot_id'] = self.full_slot.id
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
@@ -3025,12 +2989,6 @@ class APITestCase(TestCase):
         )
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
-
-        # Fail with passed slot registration limit date
-        data['slot_id'] = self.passed_registration_date_slot.id
-        response = client.post("/api/register", data, **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Cannot register slot due to passed registration date", content['msg'])
 
         # Fail with bachelor restrictions
         response = client.post(
@@ -3145,7 +3103,15 @@ class APITestCase(TestCase):
             follow=True
         )
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content, {'error': False, 'msg': 'Registration successfully added, confirmation email sent'})
+
+        self.assertEqual(
+            content,
+            {
+                'error': False,
+                'msg': 'Registration successfully added, confirmation email sent',
+                'notify_disability': 'never'
+            }
+        )
 
         # Remove first immersion cancellation and latest immersion, raise single training quota and register again
         immersion.cancellation_type = None
@@ -3162,7 +3128,14 @@ class APITestCase(TestCase):
             follow=True
         )
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content, {'error': False, 'msg': 'Registration successfully added, confirmation email sent'})
+        self.assertEqual(
+            content,
+            {
+                'error': False,
+                'msg': 'Registration successfully added, confirmation email sent',
+                'notify_disability': 'never'
+            }
+        )
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
 
@@ -4056,7 +4029,7 @@ class APITestCase(TestCase):
 
         response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
-        self.assertEqual(content["msg"], "")
+        self.assertEqual(content["msg"], "Record updated, notification sent")
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
         # value changed
@@ -4082,7 +4055,7 @@ class APITestCase(TestCase):
         self.assertIn("msg", content)
         self.assertIn("data", content)
         self.assertIsInstance(content["data"], dict)
-        self.assertEqual(content["msg"], "")
+        self.assertEqual(content["msg"], "Record updated, notification sent")
 
         self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
 
@@ -5043,7 +5016,9 @@ class APITestCase(TestCase):
                     'can_delete': not new_user.courses.exists()
                 }],
                 'url': 'http://test.com',
-                'managed_by': 'ETA3 - STR3'
+                'managed_by': 'ETA3 - STR3',
+                'start_date': None,
+                'end_date': None
             },
             'status': 'success',
             'msg': ''

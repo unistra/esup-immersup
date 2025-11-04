@@ -13,7 +13,6 @@
   {% trans "Add a new course slot" %}
 {% endif %}
 {% endblock %}
-{% include '../modals/modal_slot_repetition.html' %}
 
 {% block confirm_slot_creation %}
 <div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm course slot creation" %}">
@@ -27,6 +26,14 @@
 <div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course publication" %}'>
   <span>
     {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block dates_modification %}
+<div id="modification-dialog-form" style='z-index:3000;' title='{% trans "The Course dates will be changed" %}'>
+  <span>
+    {% trans 'The course publication dates do not correspond to the slot date. The course publication dates will be changed automatically. Do you want to continue ?' %}
   </span>
 </div>
 {% endblock %}
@@ -103,7 +110,7 @@
           {{ form.repeat }}
       </div>
       <div class="col-sm-2" id="id_div_repeat_button">
-          <button type="button" role="button" name="date_selection" class="btn btn-secondary duplicate_save_btn mb-1" onclick="repetitionDialog.dialog('open')">
+          <button type="button" name="date_selection" class="btn btn-secondary duplicate_save_btn mb-1" onclick="repetitionDialog.dialog('open')">
             {% trans 'Dates selection' %}
           </button>
       </div>

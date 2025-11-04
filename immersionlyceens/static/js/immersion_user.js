@@ -1,9 +1,9 @@
 function getCookie(name) {
-  var cookieValue = null
+  let cookieValue = null
   if (document.cookie && document.cookie != '') {
-    var cookies = document.cookie.split(';')
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = django.jQuery.trim(cookies[i])
+    let cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      let cookie = django.jQuery.trim(cookies[i])
       // Does this cookie string begin with the name we want?
       if (cookie.substring(0, name.length + 1) == (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
@@ -85,7 +85,7 @@ $(document).ready(function() {
 
     $('#id_search').on('input', function() {
       if(this.value.length >= 2) {
-        var csrftoken = getCookie('csrftoken')
+        let csrftoken = getCookie('csrftoken')
         query_order += 1
 
         $.ajax({
@@ -128,7 +128,7 @@ $(document).ready(function() {
                 $('#live_select').empty().append(
                   '<option value=\'\'>'+select_text+'</option>'
                 )
-                for (var i = 0; i < results.length; i++) {
+                for (let i = 0; i < results.length; i++) {
                   $('#live_select').append(
                     '<option value=\''+i+'\'>'+results[i]['display_name']+'</option>')
                 }
@@ -153,8 +153,7 @@ $(document).ready(function() {
     })
 
     $('#live_select').on('change', function (e, json) {
-      var optionSelected = $('option:selected', this)
-      var valueSelected = this.value
+      let valueSelected = this.value
 
       if(this.value !== '') {
         $('#id_username').val(results[valueSelected]['username'])

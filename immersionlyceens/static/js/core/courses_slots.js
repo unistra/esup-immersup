@@ -19,8 +19,8 @@ function init_datatable() {
   let _current_slots_only = typeof current_slots_only === 'boolean' && current_slots_only ? current_slots_only : false;
   let dt_columns = ""
   let yadcf_filters = ""
-  var initial_values = {}
-  var order = []
+  let initial_values = {}
+  let order = []
 
   if (_cohorts_only) {
     let register_date_options = { dateStyle: 'long', timeStyle: 'short' };
@@ -239,13 +239,15 @@ function init_datatable() {
                          `  <i class='fa fas fa-edit fa-2x centered-icon'></i>` +
                          `</button>`;
             }
-            // no attendance to enter : can view registered users or groups
-            else if (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0) {
+            // View registered users or groups
+            else if ((row.is_past === true && row.n_register === 0 && row.n_group_register === 0) ||
+                (row.attendances_value === attendance_not_yet || row.attendances_value === attendance_nothing_to_enter || row.n_register > 0 || row.n_group_register > 0)) {
               element += `<button type="button" class="btn btn-light btn-sm mr-1" name="view" onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${registered_text}">` +
                          `  <i class='fa fas fa-eye fa-2x centered-icon'></i>` +
                          `</button>`;
             }
           }
+
           return element;
         }
       },
@@ -420,6 +422,10 @@ function init_datatable() {
           d.courses = true;
           d.events = false;
 
+          if(is_set(current_period_id) || $('#id_period').val()) {
+            d.period_id = current_period_id || $('#id_period').val();
+          }
+
           if(is_set(current_establishment_id) || $('#id_establishment').val()) {
             d.establishment_id = current_establishment_id || $('#id_establishment').val();
           }
@@ -488,14 +494,14 @@ function init_datatable() {
     ],
 
     initComplete: function () {
-      var api = this.api();
+      let api = this.api();
 
       columns_idx.forEach(function(col_idx) {
-        var column = api.column(col_idx)
-        var column_header_id = column.header().id
-        var cell = $(`#${column_header_id}`)
-        var filter_id = `${column_header_id}_input`
-        var title = $(cell).text();
+        let column = api.column(col_idx)
+        let column_header_id = column.header().id
+        let cell = $(`#${column_header_id}`)
+        let filter_id = `${column_header_id}_input`
+        let title = $(cell).text();
         $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
 
 
@@ -516,7 +522,7 @@ function init_datatable() {
             // Get the search value
             $(this).attr('title', $(this).val());
 
-            var cursorPosition = this.selectionStart;
+            let cursorPosition = this.selectionStart;
 
             // Column search with cleaned value
             api
@@ -553,22 +559,6 @@ function init_datatable() {
   $('#filters_reset_all').click(function () {
     reset_filters()
   })
-  /*
-  $('#filters_reset_all').click(function () {
-    yadcf.exResetAllFilters(dt);
-
-    // Clear search inputs
-    columns_idx.forEach(function(col_idx) {
-      let column = dt.column(col_idx)
-      let column_header_id = column.header().id
-      let filter_id = `${column_header_id}_input`
-
-      $(`#${filter_id}`).val('')
-    })
-
-    dt.columns().search("").draw();
-  });
-  */
 
   $('#filter_past_slots').click(function () {
     dt.ajax.reload();

@@ -47,7 +47,7 @@ function init_yadcf_filter() {
 }
 
 function init_datatable() {
-  var columns_idx = [2, 4, 5]
+  let columns_idx = [2, 4, 5]
 
   dt = $('#slots_list').DataTable({
     'processing': false,
@@ -176,7 +176,6 @@ function init_datatable() {
           let msg = "";
           let edit_mode = 0;
 
-          // if(row.attendances_value === 1 && (row.can_update_event_slot || row.can_update_attendances)) {
           if(row.is_past === true && (row.n_register > 0 || row.n_group_register > 0) && (row.can_update_course_slot || row.can_update_attendances)) {
             edit_mode = 1
             msg = `<button type="button" class="btn btn-light btn-sm mr-4" name="edit" onclick="open_modal(${row.id}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})" title="${attendances_text}">` +
@@ -220,14 +219,14 @@ function init_datatable() {
     "columnDefs": init_column_defs(),
 
     initComplete: function () {
-        var api = this.api();
+        let api = this.api();
 
         columns_idx.forEach(function(col_idx) {
-          var column = api.column(col_idx);
-          var column_header_id = column.header().id;
-          var cell = $(`#${column_header_id}`);
-          var filter_id = `${column_header_id}_input`;
-          var title = $(cell).text();
+          let column = api.column(col_idx);
+          let column_header_id = column.header().id;
+          let cell = $(`#${column_header_id}`);
+          let filter_id = `${column_header_id}_input`;
+          let title = $(cell).text();
 
           $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
 
@@ -243,7 +242,7 @@ function init_datatable() {
               // Get the search value
               $(this).attr('title', $(this).val());
 
-              var cursorPosition = this.selectionStart;
+              let cursorPosition = this.selectionStart;
 
               // Column search with cleaned value
               api

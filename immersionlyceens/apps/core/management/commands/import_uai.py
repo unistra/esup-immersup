@@ -14,40 +14,84 @@ from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.api_utils import get_json_from_url
 
 from immersionlyceens.apps.core.models import UAI
+from immersionlyceens.views import highschools
+
+from . import Schedulable
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
+class Command(BaseCommand, Schedulable):
     """
     Base import command
     """
     def handle(self, *args, **options):
         url = settings.UAI_API_URL
         header = settings.UAI_API_AUTH_HEADER
-
+        headers = {}
+        returns = []
         results = []
+        creations = 0
+        updates = 0
 
         if not all([url, header]):
-            logger.error("Missing or invalid parameters.")
+            msg = _("UAI update error : missing url and/or header parameters.")
+            logger.error(msg)
+            return msg
 
         # convert headers to dict
-        try:
-            headers = {header.split(':')[0].strip(): header.split(':')[1].strip()}
-        except:
-            headers = {}
+        for h in header.split(";"):
+            try:
+                headers.update({
+                    h.split(':')[0].strip(): h.split(':')[1].strip()
+                })
+            except:
+                continue
 
         try:
             results = get_json_from_url(f"{url}", headers=headers)
+            if isinstance(results, dict):
+                if results.get("http_status_code", None) != 200:
+                    raise Exception("Status %s : %s" % (results.get("http_status_code"), results.get("message")))
+        except Exception as e:
+            logger.error("Error (get_json_from_url) %s" % (e))
+            returns.append(_("UAI update error (get_json_from_url) : %s") % e)
+            return "\n".join(returns)
 
-            for result in results:
-                UAI.objects.update_or_create(
-                    code=result['code'],
-                    defaults = {
-                        'city': None or result['city'],
-                        'academy': None or result['academy'],
-                        'label': result['label'],
-                    }
+        if results:
+            # Clean unused UAI codes
+            deleted = UAI.objects.filter(highschools__isnull=True).delete()
+            returns.append(_("%s unused UAI deleted") % deleted[0])
+
+        for result in results:
+            code = result.get('code', None)
+
+            data = {
+                'city': None or result['city'],
+                'academy': None or result['academy'],
+                'label': result['label'],
+            }
+
+            try:
+                obj, created = UAI.objects.update_or_create(
+                    code=code,
+                    defaults=data
                 )
 
-        except Exception as e:
-            logger.error("Error %s" % (e))
+                if created:
+                    creations += 1
+                else:
+                    updates += 1
+            except Exception as e:
+                logger.error("Error %s" % e)
+                data_txt = ", ".join([f"{k}={v}" for k, v in data.items()])
+
+                returns.append(
+                    _("UAI update : cannot update_or_create : %(error)s : code %(code)s, %(data)s")
+                    % {'error': e, 'code': code, 'data': data_txt}
+                )
+
+        returns.append(_("%s UAI created") % creations)
+        returns.append(_("%s UAI updated") % updates)
+
+        # Message return for scheduler logs
+        return "\n".join(returns)

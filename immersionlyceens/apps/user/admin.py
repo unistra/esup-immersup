@@ -59,6 +59,22 @@ class AgreementHighSchoolFilter(admin.SimpleListFilter):
 
         return queryset
 
+class AgreementHighSchoolFilter(admin.SimpleListFilter):
+    title = _('High school agreement')
+    parameter_name = 'agreement'
+
+    def lookups(self, request, model_admin):
+        return [('True', _('Yes')), ('False', _('No'))]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value in ('True', 'False'):
+            return queryset\
+                .prefetch_related("high_school_student_record__highschool")\
+                .filter(high_school_student_record__highschool__with_convention=(value == 'True'))
+
+        return queryset
+
 
 class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -154,22 +170,36 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         ]
         return any(valid_groups)
 
+
 class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
         'first_name',
         'last_name',
+        'visitor_type',
+        'get_activated_account',
         'destruction_date',
         'get_edited_record',
         'get_validated_record',
         'last_login',
     ]
 
-    list_filter = (ValidRecordFilter, )
+    list_filter = (
+        ('visitor_record__visitor_type', RelatedDropdownFilter),
+        ValidRecordFilter, 
+    )
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
+
+    def visitor_type(self, obj):
+        if not obj.visitor_record:
+            return ""
+            
+        return obj.visitor_record.visitor_type
+        
+    visitor_type.short_description = _('Visitor type')
 
     def has_add_permission(self, request):
         return False
@@ -202,13 +232,13 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_establishment_manager():
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter, groups__name='INTER',).order_by('last_name', 'first_name')
+        return ImmersionUser.objects.filter(q_filter, groups__name='INTER',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return False
@@ -283,13 +313,13 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_establishment_manager():
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter, groups__name='REF-ETAB',).order_by('last_name', 'first_name')
+        return ImmersionUser.objects.filter(q_filter, groups__name='REF-ETAB',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return False
@@ -403,19 +433,19 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        filter = {}
-        Q_filter = Q()
+        highschool_filter = {}
+        q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
-            filter = {'highschool' : 'request.user.highschool'}
+            highschool_filter = {'highschool' : 'request.user.highschool'}
 
         if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter,
+        return ImmersionUser.objects.filter(q_filter,
                                             groups__name='REF-STR',
-                                            **filter).order_by('last_name', 'first_name')
+                                            **highschool_filter).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return False
@@ -457,19 +487,19 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        filter = {}
-        Q_filter = Q()
+        highschool_filter = {}
+        q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
-            filter = {'highschool' : 'request.user.highschool'}
+            highschool_filter = {'highschool' : 'request.user.highschool'}
 
         if request.user.is_establishment_manager():
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
-        return ImmersionUser.objects.filter(Q_filter,
+        return ImmersionUser.objects.filter(q_filter,
                                             groups__name='SRV-JUR',
-                                            **filter).order_by('last_name', 'first_name')
+                                            **highschool_filter).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return False
@@ -566,18 +596,18 @@ class StructureConsultantAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         filter = {}
-        Q_filter = Q()
+        q_filter = Q()
 
         if request.user.is_high_school_manager() and request.user.highschool:
             filter = {'highschool' : request.user.highschool}
 
         if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
-            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+            q_filter = Q(structures__establishment=es)|Q(establishment=es)
 
         return ImmersionUser.objects\
             .filter(
-                Q_filter,
+                q_filter,
                 groups__name='CONS-STR',
                 **filter)\
             .distinct()\

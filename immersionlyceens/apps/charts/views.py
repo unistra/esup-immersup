@@ -56,20 +56,20 @@ def global_trainings_charts(request, my_trainings=False):
     """
     Registration statistics by trainings for establishments and highschools
     """
-    filter = {}
+    highschool_id_filter = {}
     high_school_name = None
     high_school_levels_filters = { 'active': True }
     filter_by_my_trainings = my_trainings
 
     if request.user.is_high_school_manager() and request.user.highschool:
         high_school_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
-        filter['pk'] = request.user.highschool.id
+        highschool_id_filter['pk'] = request.user.highschool.id
 
     if filter_by_my_trainings or not request.user.is_high_school_manager():
         high_school_levels_filters['is_post_bachelor'] = False
 
     highschools = list(
-        HighSchool.objects.filter(**filter)
+        HighSchool.objects.filter(**highschool_id_filter)
         .order_by('label', 'city')
         .values('id', 'label', 'city')
     )
@@ -84,7 +84,7 @@ def global_trainings_charts(request, my_trainings=False):
     # Do not include post_bachelor pupils levels as they will be added to Students count
     context = {
         'highschools': highschools,
-        'highschool_id': filter.get('pk', ''),
+        'highschool_id': highschool_id_filter.get('pk', ''),
         'high_school_name': high_school_name,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures else '',
@@ -158,7 +158,6 @@ def slots_charts(request, my_trainings=False):
     """
     Slots charts
     """
-    user = request.user
 
     establishments = Establishment.activated.filter(is_host_establishment=True).order_by('label')
     establishment_id = request.GET.get("establishment_id", None)
