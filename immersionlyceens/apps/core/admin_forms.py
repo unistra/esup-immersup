@@ -1094,13 +1094,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                 else:
                     self.fields["establishment"].queryset = Establishment.objects.none()
 
-                    # Do not allow group modification for student, high school students and visitors
-                    #if set(self.instance.groups.all().values_list('name', flat=True)) & set(["ETU", "LYC", "VIS"]):
-                    #    self.fields["groups"].disabled = True
-
-                    #self.fields["groups"].queryset = \
-                    #    self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
-
                 self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
@@ -1127,10 +1120,6 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             if self.request.user.is_master_establishment_manager():
                 if not self.instance.is_master_establishment_manager() and self.fields.get('groups'):
-                    """
-                    self.fields["groups"].queryset = \
-                        self.fields["groups"].queryset.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
-                    """
                     self.fields["groups"].queryset = (self.fields["groups"].queryset
                         .filter(name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB-MAITRE'])
                         .exclude(**excludes)
