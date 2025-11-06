@@ -668,8 +668,7 @@ def slots(request):
             'cancellation_limit_date',
             'registration_start_date',
             'valid_registration_start_date',
-            'user_has_group_immersions',
-            'user_is_registered'
+            'user_has_group_immersions'
         )
     )
 
