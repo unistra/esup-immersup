@@ -936,7 +936,7 @@ def ajax_get_immersions(request, user_id=None):
         response['msg'] = gettext("Error : invalid user id")
         return JsonResponse(response, safe=False)
 
-    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    # TODO: poc for now maybe refactor dirty code in a model method !
     today = timezone.localdate()
     now = timezone.localtime()
 
