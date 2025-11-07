@@ -1471,9 +1471,13 @@ class HighSchoolForm(forms.ModelForm):
 
         # Disability related fields
         if not self.enabled_disability:
-            self.fields["disability_notify_on_record_validation"].disabled = True
-            self.fields["disability_notify_on_slot_registration"].disabled = True
-            self.fields["disability_referent_email"].disabled = True
+            for field in [
+                "disability_notify_on_record_validation", "disability_notify_on_slot_registration",
+                "disability_referent_email"
+            ]:
+
+                if field in self.fields:
+                    self.fields[field].disabled = True
 
     def clean(self):
         valid_user = False
