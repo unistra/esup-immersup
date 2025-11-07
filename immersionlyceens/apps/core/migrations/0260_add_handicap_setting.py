@@ -13,7 +13,7 @@ def add_disability_setting(apps, schema_editor):
             parameters={
                 "type": "object",
                 "value": {
-                    "activate": True,
+                    "activate": False,
                     "form_sentence": "Je déclare être atteint(e) d'un handicap nécessitant un accompagnement lors des immersions"
                 },
                 "description": "Activation de la gestion du handicap pour les inscrits"
