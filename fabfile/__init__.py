@@ -203,7 +203,7 @@ def prod():
         # 'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
         'web': ['django-w7.di.unistra.fr', 'django-w8.di.unistra.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-m.di.unistra.fr', 'rp-apache-shib2-s.di.unistra.fr']
+        'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr']
     }
 
     # env.user = 'root'  # user for ssh
