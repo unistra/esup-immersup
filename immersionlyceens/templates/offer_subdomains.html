@@ -204,12 +204,12 @@
                                   {% endfor %}
                               </ul>
                               {% endif %}
-                              {% endif %}
-                              {% if not slot.establishments_restrictions and not slot.levels_restrictions and not slot.bachelors_restrictions %}
+                            {% endif %}
+                            {% if not slot.establishments_restrictions and not slot.levels_restrictions and not slot.bachelors_restrictions %}
 
                               <i class="fa fas fa-universal-access text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                               {% trans "Slot open to all" %}
-                              {% endif %}
+                            {% endif %}
                             </td>
                             <td>
                               {% if slot.cancelled %}
