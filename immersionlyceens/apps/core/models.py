@@ -3554,7 +3554,7 @@ class ImmersionGroupRecord(models.Model):
             error = True
             return msg, error
 
-        contacts = self.emails.split(',')
+        contacts = list(filter(lambda x:x, self.emails.split(',')))
         recipients = list(
             set(contacts).union(set(hsm.email for hsm in high_school_managers if hsm.email != main_manager.email))
         )
