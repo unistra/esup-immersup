@@ -4,6 +4,7 @@ import logging
 import mimetypes
 import os
 import sys
+from collections import defaultdict
 from email.policy import default
 from wsgiref.util import FileWrapper
 
@@ -242,10 +243,15 @@ def offer_subdomain(request, subdomain_id):
     record = None
     remaining_regs_count = None
     course_alerts = None
+    open_training_id, open_course_id = None, None
 
-    if not request.user.is_anonymous \
-        and (request.user.is_high_school_student() or request.user.is_student() or request.user.is_visitor()):
+    if not request.user.is_anonymous and (
+            request.user.is_high_school_student() or
+            request.user.is_student() or
+            request.user.is_visitor()
+    ):
         student = request.user
+
         # Get student record yet
         if student.is_high_school_student():
             record = student.get_high_school_student_record()
@@ -257,98 +263,121 @@ def offer_subdomain(request, subdomain_id):
         # Remaining registrations for each period
         # remaining_regs_count = { period.pk : nb_registrations_left }
         remaining_regs_count = student.remaining_registrations_count()
-
-        course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).values_list(
-            "course_id", flat=True
-        )
+        course_alerts = UserCourseAlert.objects.filter(
+            email=request.user.email, email_sent=False
+        ).values_list("course_id", flat=True)
 
     trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
-
-    data = []
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     now = timezone.now()
     today = timezone.localdate()
 
-    for training in trainings:
-        training_courses = (
-            Course.objects.prefetch_related('training')
-            .filter(training__id=training.id, published=True)
-            .order_by('label')
-        )
+    # Chercher tout les slots liés au subdomain
+    slots_list = (Slot.objects.filter(
+            course__training__training_subdomains=subdomain_id,
+            published=True,
+            date__gte=today,
+            allow_individual_registrations=True
+        ).order_by('date', 'start_time', 'end_time')
+        .select_related('course__structure__establishment', 'course__training')
+    )
 
-        for course in training_courses:
-            slots = Slot.objects.filter(
-                course__id=course.id, published=True, date__gte=today, allow_individual_registrations=True
-            ).order_by('date', 'start_time', 'end_time')
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    data_dict = {}
 
-            training_data = {
-                'training': training,
-                'course': course,
-                'slots': None,
-                'alert': (not slots or all(s.available_seats() == 0 for s in slots)),
-            }
+    # If the current user is a student, check whether he can register
+    if student and record and remaining_regs_count:
+        for slot in slots_list:
 
-            # If the current user is a student, check whether he can register
-            if student and record and remaining_regs_count:
-                for slot in slots:
-                    slot.already_registered = False
-                    slot.can_register = False
-                    slot.cancelled = False
-                    slot.opening_soon = False
-                    slot.passed_registration_limit_date = \
-                        slot.registration_limit_date < timezone.now() if slot.registration_limit_date else False
-                    slot.passed_cancellation_limit_date = \
-                        slot.cancellation_limit_date < timezone.now() if slot.cancellation_limit_date else False
+            slot.already_registered = False
+            slot.can_register = False
+            slot.cancelled = False
+            slot.opening_soon = False
 
-                    # get slot period (for dates)
-                    try:
-                        period = Period.from_date(pk=slot.period.pk, date=slot.date)
-                    except Period.DoesNotExist as e:
-                        logger.exception(f"Period does not exist : {e}")
-                        raise
-                    except Period.MultipleObjectsReturned as e:
-                        logger.exception(f"Multiple period returned : {e}")
-                        raise
+            slot.passed_registration_limit_date = \
+                slot.registration_limit_date < now if slot.registration_limit_date else False
+            slot.passed_cancellation_limit_date = \
+                slot.cancellation_limit_date < now if slot.cancellation_limit_date else False
 
-                    # Already registered / cancelled ?
-                    for immersion in student.immersions.all():
-                        if immersion.slot == slot:
-                            slot.already_registered = True
-                            slot.cancelled = immersion.cancellation_type is not None
+            # get slot period (for dates)
+            try:
+                period = Period.from_date(pk=slot.period.pk, date=slot.date)
+            except Period.DoesNotExist as e:
+                logger.exception(f"Period does not exist : {e}")
+                raise
+            except Period.MultipleObjectsReturned as e:
+                logger.exception(f"Multiple period returned : {e}")
+                raise
 
-                    # Can register ?
-                    # not registered + free seats + dates in range + cancelled to register again
-                    if not slot.already_registered or slot.cancelled:
-                        can_register, _ = student.can_register_slot(slot)
+            # Already registered / cancelled ?
+            for immersion in student.immersions.all():
+                if immersion.slot == slot:
+                    slot.already_registered = True
+                    slot.cancelled = immersion.cancellation_type is not None
 
-                        if slot.available_seats() > 0 and can_register:
-                            immersion_end_datetime = datetime.datetime.combine(
-                                period.immersion_end_date + datetime.timedelta(days=1),
-                                datetime.time(0, 0)
-                            ).replace(tzinfo=now.tzinfo)
+            # Can register ?
+            # not registered + free seats + dates in range + cancelled to register again
+            if not slot.already_registered or slot.cancelled:
+                can_register, _ = student.can_register_slot(slot)
 
-                            if period.registration_start_date <= now <= immersion_end_datetime\
-                                and slot.registration_limit_date >= now:
-                                slot.can_register = True
-                            elif now < slot.registration_limit_date:
-                                slot.opening_soon = True
+                if slot.available_seats() > 0 and can_register:
+                    immersion_end_datetime = datetime.datetime.combine(
+                        period.immersion_end_date + datetime.timedelta(days=1),
+                        datetime.time(0, 0)
+                    ).replace(tzinfo=now.tzinfo)
 
-            else:
-                for slot in slots:
-                    slot.cancelled = False
-                    slot.can_register = False
-                    slot.already_registered = False
+                    if period.registration_start_date <= now <= immersion_end_datetime \
+                            and slot.registration_limit_date >= now:
+                        slot.can_register = True
+                    elif now < slot.registration_limit_date:
+                        slot.opening_soon = True
 
-            training_data['course'] = course
-            training_data['slots'] = slots
+# TODO : Factorise this part into a new fun()
+########################################################################################################################
 
-            data.append(training_data.copy())
+            # Répartir les slots dans le dict
+            training = slot.course.training
+            etab = slot.course.structure.establishment
+            course = slot.course
+
+            data[training][etab][course].append(slot)
+
+            for training, etab_dict in data.items():
+                etabs = {}
+                for etab_pk, course_dict in etab_dict.items():
+                    etabs[etab] = dict(course_dict)
+                data_dict[training] = etabs
+
+########################################################################################################################
+
+    else:
+        for slot in slots_list:
+            slot.cancelled = False
+            slot.can_register = False
+            slot.already_registered = False
+
+########################################################################################################################
+
+            # Répartir les slots dans le dict
+            training = slot.course.training
+            etab = slot.course.structure.establishment
+            course = slot.course
+
+            data[training][etab][course].append(slot)
+
+            for training, etab_dict in data.items():
+                etabs = {}
+                for etab_pk, course_dict in etab_dict.items():
+                    etabs[etab] = dict(course_dict)
+                data_dict[training] = etabs
+
+########################################################################################################################
+
+    data_dict['alert'] = (not slots_list or all(s.available_seats() == 0 for s in slots_list))
 
     # For navigation
-    open_training_id, open_course_id = None, None
-
     slot_id = request.session.get("last_registration_slot_id", None)
     if slot_id:
         try:
@@ -365,7 +394,7 @@ def offer_subdomain(request, subdomain_id):
 
     context = {
         'subdomain': subdomain,
-        'data': data,
+        'data': data_dict,
         'today': today,
         'student': student,
         'open_training_id': open_training_id,
