@@ -594,7 +594,7 @@ def slots(request):
             ),
             user_has_group_immersions=Case(
                 When(
-                    Q(group_immersions_count__gte=1, group_immersions__cancellation_type__isnull=True),
+                    Q(group_immersions_count__gte=1),
                     then=True
                 ),
                 default=False
