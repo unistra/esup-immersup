@@ -245,6 +245,14 @@ def offer_subdomain(request, subdomain_id):
     course_alerts = None
     open_training_id, open_course_id = None, None
 
+    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
+
+    now = timezone.now()
+    today = timezone.localdate()
+
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    data_dict = {}
+
     if not request.user.is_anonymous and (
             request.user.is_high_school_student() or
             request.user.is_student() or
@@ -267,14 +275,8 @@ def offer_subdomain(request, subdomain_id):
             email=request.user.email, email_sent=False
         ).values_list("course_id", flat=True)
 
-    trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
-    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
-
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    now = timezone.now()
-    today = timezone.localdate()
 
-    # Chercher tout les slots liés au subdomain
     slots_list = (Slot.objects.filter(
             course__training__training_subdomains=subdomain_id,
             published=True,
@@ -283,9 +285,6 @@ def offer_subdomain(request, subdomain_id):
         ).order_by('date', 'start_time', 'end_time')
         .select_related('course__structure__establishment', 'course__training')
     )
-
-    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-    data_dict = {}
 
     # If the current user is a student, check whether he can register
     if student and record and remaining_regs_count:
@@ -337,7 +336,6 @@ def offer_subdomain(request, subdomain_id):
 # TODO : Factorise this part into a new fun()
 ########################################################################################################################
 
-            # Répartir les slots dans le dict
             training = slot.course.training
             etab = slot.course.structure.establishment
             course = slot.course
@@ -360,7 +358,6 @@ def offer_subdomain(request, subdomain_id):
 
 ########################################################################################################################
 
-            # Répartir les slots dans le dict
             training = slot.course.training
             etab = slot.course.structure.establishment
             course = slot.course
@@ -687,14 +684,17 @@ def cohort_offer(request):
 def cohort_offer_subdomain(request, subdomain_id):
     """Cohort subdomain offer view"""
 
-    trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
-    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
-    data = []
-    now = timezone.now()
-    today = timezone.localdate()
     user = request.user
     public_groups_filter = {}
-    
+
+    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
+
+    now = timezone.now()
+    today = timezone.localdate()
+
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    data_dict = {}
+
     if user.is_anonymous or not user.is_high_school_manager():
         public_groups_filter = {"public_group": True}
 
@@ -705,52 +705,50 @@ def cohort_offer_subdomain(request, subdomain_id):
         .values('total')
     )
 
-    for training in trainings:
-        training_courses = (
-            Course.objects.prefetch_related('training')
-            .filter(training__id=training.id, published=True)
-            .order_by('label')
-        )
-
-        for course in training_courses:
-            slots = (
-                Slot.objects.filter(
-                    course__id=course.id,
-                    published=True,
-                    date__gte=today,
-                    allow_group_registrations=True,
-                    **public_groups_filter
+    slots_list = (Slot.objects.filter(
+            course__training__training_subdomains=subdomain_id,
+            published=True,
+            date__gte=today,
+            allow_group_registrations=True,
+            **public_groups_filter
+        ).annotate(
+            group_registered_persons=Subquery(group_registered_persons_query),
+            valid_registration_start_date=Q(period__registration_start_date__lte=now),
+            valid_registration_date=Case(
+                When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
+                     then=Q(period__registration_start_date__lte=now,
+                            period__registration_end_date__gte=now)
+                     ),
+                default=Q(
+                    period__registration_start_date__lte=now,
+                    registration_limit_date__gte=now
                 )
-                .annotate(
-                    group_registered_persons=Subquery(group_registered_persons_query),
-                    valid_registration_start_date=Q(period__registration_start_date__lte=now),
-                    valid_registration_date=Case(
-                        When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
-                             then=Q(period__registration_start_date__lte=now,
-                                    period__registration_end_date__gte=now)
-                             ),
-                        default=Q(
-                            period__registration_start_date__lte=now,
-                            registration_limit_date__gte=now
-                        )
-                    )
-                )
-                .order_by('date', 'start_time', 'end_time')
             )
+        ).order_by('date', 'start_time', 'end_time')
+        .select_related('course__structure__establishment', 'course__training')
+    )
 
-            training_data = {
-                'training': training,
-                'course': course,
-                'slots': None,
-            }
+# TODO : Factorise this part into a new fun()
+########################################################################################################################
 
-            training_data['slots'] = slots
+    for slot in slots_list:
+        training = slot.course.training
+        etab = slot.course.structure.establishment
+        course = slot.course
 
-            data.append(training_data.copy())
+        data[training][etab][course].append(slot)
+
+        for training, etab_dict in data.items():
+            etabs = {}
+            for etab_pk, course_dict in etab_dict.items():
+                etabs[etab] = dict(course_dict)
+            data_dict[training] = etabs
+
+########################################################################################################################
 
     context = {
         'subdomain': subdomain,
-        'data': data,
+        'data': data_dict,
         'today': today,
         'is_anonymous': request.user.is_anonymous,
         'highschool': request.user.highschool if request.user.is_authenticated and request.user.is_high_school_manager() else None,

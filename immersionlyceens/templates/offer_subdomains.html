@@ -62,7 +62,7 @@
       <div class="card">
         <div class="card-header card-cours" id="training{{training.id}}">
           <h5 class="mb-0 more-less-title">
-        {% for etab, courses_dict in etabs_dict.items %}
+      {% for etab, courses_dict in etabs_dict.items %}
             <span class="badge badge-pill immersup-badge" style="background-color: {{etab.badge_html_color }};margin: 2px;">{{ etab.label }}</span>
             {% if training.highschool %}
               <span class="badge badge-pill immersup-badge" style="background-color: {{training.highschool.badge_html_color }};margin: 2px;">

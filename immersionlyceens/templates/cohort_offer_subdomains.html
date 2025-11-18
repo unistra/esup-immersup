@@ -58,62 +58,51 @@
 <div class="container-fluid mt-4">
   {% if data %}
     <div id="accordion" class="accordion">
-      {% regroup data by training as data_list %}
-      {% for training in data_list %}
+      {% for training, etabs_dict in data.items %}
       <div class="card">
-        <div class="card-header card-cours" id="training{{training.pk}}">
+        <div class="card-header card-cours" id="training{{training.id}}">
           <h5 class="mb-0 more-less-title">
-            {% for e in training.grouper.distinct_establishments %}
-              <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }}</span>
-            {% endfor %}
-            {% if training.grouper.highschool %}
-              <span class="badge badge-pill immersup-badge" style="background-color: {{training.grouper.highschool.badge_html_color }};margin: 2px;">
-                {{ training.grouper.highschool.label }} - {% firstof training.grouper.highschool.city no_city %}
+            {% for etab, courses_dict in etabs_dict.items %}
+              <span class="badge badge-pill immersup-badge" style="background-color: {{etab.badge_html_color }};margin: 2px;">{{ etab.label }}</span>
+            {% if training.highschool %}
+              <span class="badge badge-pill immersup-badge" style="background-color: {{training.highschool.badge_html_color }};margin: 2px;">
+                {{ training.highschool.label }} - {% firstof training.highschool.city no_city %}
               </span>
             {% endif %}
-            <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="training{{training.grouper.pk}}">
-            <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.grouper.label }}
+            <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.id}}" aria-expanded="false" aria-controls="training{{training.id}}">
+            <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.label }}
             </button>
-            {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>{% endif %}
+            {% if training.url %}<a href="{{ training.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>{% endif %}
           </h5>
         </div>
-        <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="training{{training.grouper.pk}}" data-parent="#accordion">
+        <div id="training{{training.id}}" class="collapse" aria-labelledby="training{{training.id}}" data-parent="#accordion">
           <div class="card-body">
-          {% for d in training.list %}
-            {% if d.course.is_displayed %}
+          {% for course, slots_list in courses_dict.items %}
+            <!-- TODO : Check if this is needed because I think we only give displayed courses to the front -->
+            {% if course.is_displayed %}
               <div class="card-header">
                 <h6 class="mb-5 mb-sm-0 more-less-title">
                   <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
-                  {% if d.slots %}
-                    <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
+                  {% if slots_list %}
+                    <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{course.id}}" aria-expanded="false" aria-controls="course{{course.id}}">
                   {% endif %}
-                  {{ d.course.label }}
-                  {% if not d.slots %}
+                  {{ course.label }}
+                  {% if not slots_list %}
                     <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
                   {% endif %}
-                  {% if d.slots %}
+                  {% if slots_list %}
                     </button>
-                  {% if d.course.url %}
-                    <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
+                  {% if course.url %}
+                    <a href="{{ course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
                   {% endif %}
-                  {% endif %}
-                  {% if True in d.alert or d.alert == True %}
-                    {% if request.user.is_anonymous or request.user.email and d.course.id not in course_alerts and authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                      <button href="#" class="badge badge-info excluded" id='id_alert_{{ d.course.id }}' onclick="open_alert_modal({{ d.course.id }})">{% trans 'Notify me when a place is available' %}</button>
-                    {% endif %}
-                    {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                      <a href="#" class="badge badge-success pull-right" id='id_alert_set_{{ d.course.id }}' {% if request.user.is_anonymous or d.course.id not in course_alerts %}style='display:none;'{% endif %}>
-                        {% trans 'Availability alert set' %}
-                      </a>
-                    {% endif %}
                   {% endif %}
                 </h6>
               </div>
-              {% if d.slots %}
-              <div class="collapse" id="course{{d.course.pk}}">
+              {% if slots_list %}
+              <div class="collapse" id="course{{course.id}}">
                 <div class="card">
                   <div class="card-body">
-                    {% for slot in d.slots %}
+                    {% for slot in slots_list %}
                     <div class="table-responsive">
                       <table class="table table-bordered">
                         <tbody>
@@ -302,11 +291,11 @@
                               <!--If there is structure to be shown AND :-->
                               <!--  The user is not connected and the structure are hidden OR-->
                               <!--  The user is connected and the structure are hidden to connected users anyway-->
-                              {% if slot.course.structure.label %}
+                              {% if course.structure.label %}
                                 {% if not hide_fields_public_area.structure.hide_public_area %}
                                   <p>
                                   <i class="fa fas fa-address-card text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
-                                  {{ slot.course.structure.label }} ({{ slot.course.structure.establishment.label }})
+                                  {{ course.structure.label }} ({{ etab.label }})
                                   </p>
                                 {% endif %}
                               {% endif %}
@@ -368,6 +357,7 @@
         </div>
       </div>
       {% endfor %}
+    {% endfor %}
     </div>
   {% else %}
   <p>{% trans 'No training available for the selected domain' %}</p>
