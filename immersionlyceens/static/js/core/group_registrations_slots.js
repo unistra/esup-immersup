@@ -21,12 +21,10 @@ function init_datatable() {
 
         // Future slot : register button
         // TODO: add registration limit date test
-        // if (row.is_past === false) {
-          element += `<button type="button" class="badge badge-pill badge-primary" name="view" title="${registered_text}" ` +
-                       `onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})">` +
-                       `${register_groups_txt}` +
-                     `</button>`;
-        // }
+        element += `<button type="button" class="badge badge-pill badge-primary" name="view" title="${registered_text}" ` +
+                     `onclick="open_modal(${data}, ${edit_mode}, ${row.n_places}, ${row.allow_individual_registrations}, ${row.allow_group_registrations}, ${row.group_mode}, ${row.n_group_places}, ${row.is_past}, ${row.can_update_registrations}, ${row.place})">` +
+                     `${register_groups_txt}` +
+                   `</button>`;
 
         if(can_register === false) {
           badge_class = "badge-danger"

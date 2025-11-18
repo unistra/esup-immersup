@@ -101,7 +101,8 @@ function display_slot_date(data, type, row, date_options = {year: "numeric", mon
       return `${formatDate(date, date_options)} ${start_time} ${end_time}`
     }
 
-    return data;
+    // keep unformatted date and time to ensure proper sort order
+    return `${data} ${start_time} ${end_time}`;
 }
 
 function display_slot_restrictions(data, type, row) {
