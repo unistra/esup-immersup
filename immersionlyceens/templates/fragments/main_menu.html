@@ -91,7 +91,7 @@
           <button class="nav-link dropdown-toggle btn btn-link border-0" href="#" id="navbarDropdownEvents" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             {% trans 'Events' %}
-          </>
+          </button>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownEvents">
             <a class="dropdown-item" href="{% url 'off_offer_events' %}">{% trans 'Off offer events list' %}</a>
             {% if not authorized_groups|in_groups:"CONS-STR" %}
