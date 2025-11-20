@@ -956,7 +956,7 @@ class ImmersionViewsTestCase(TestCase):
         # Should redirect to login page
         response = self.client.get('/immersion/registrations')
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/accounts/login/?next=/immersion/registrations")
+        self.assertEqual(response.url, "/?next=/immersion/registrations")
 
         # Simple view check
         self.client.login(username='hs', password='pass')

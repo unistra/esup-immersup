@@ -1366,7 +1366,7 @@ class HighSchoolForm(forms.ModelForm):
         if self.fields and self.fields.get('uai_codes'):
             self.fields['uai_codes'].queryset = UAI.objects.exclude(Q(city__isnull=True)|Q(city='')).order_by('city')
 
-        if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
+        if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self._errors):
             city_choices = [
                 ('', '---------'),
             ]
