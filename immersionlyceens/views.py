@@ -237,6 +237,55 @@ def serve_immersion_group_document(request, immersion_group_id):
         return HttpResponseNotFound()
 
 
+def data_for_context(data, data_dict, slot):
+
+    training_id = slot['training_id']
+    etab_label = slot['establishment_label'] if slot['course_structure_label'] else slot['training_highschool_label']
+    course_id = slot['course_id']
+
+    training_info = {
+        'id': slot['training_id'],
+        'label': slot['training_label'],
+        'url': slot['training_url'],
+        'highschool': slot['training_highschool'],
+        'highschool_badge_html_color': slot['training_highschool_badge_html_color'],
+        'highschool_label': slot['training_highschool_label'],
+        'highschool_city': slot['training_highschool_city'],
+    }
+
+    etab_info = {
+        'label': slot['establishment_label'],
+        'badge_html_color': slot['establishment_badge_html_color'],
+    }
+
+    course_info = {
+        'id': slot['course_id'],
+        'label': slot['course_label'],
+        'url': slot['course_url'],
+        'is_displayed': slot['course_is_displayed'],
+    }
+
+    if 'info' not in data[training_id]:
+        data[training_id]['info'] = training_info
+
+    if 'info' not in data[training_id][etab_label]:
+        data[training_id][etab_label]['info'] = etab_info
+
+    if 'info' not in data[training_id][etab_label][course_id]:
+        data[training_id][etab_label][course_id]['info'] = course_info
+
+    if 'slots' not in data[training_id][etab_label][course_id]:
+        data[training_id][etab_label][course_id]['slots'] = []
+
+    data[training_id][etab_label][course_id]['slots'].append(slot)
+
+    for training_id, etab_dict in data.items():
+        etabs = {}
+        for etab_label, course_dict in etab_dict.items():
+            etabs[etab_label] = dict(course_dict)
+        data_dict[training_id] = etabs
+
+
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
     student = None
@@ -250,7 +299,7 @@ def offer_subdomain(request, subdomain_id):
     now = timezone.now()
     today = timezone.localdate()
 
-    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     data_dict = {}
 
     if not request.user.is_anonymous and (
@@ -275,30 +324,251 @@ def offer_subdomain(request, subdomain_id):
             email=request.user.email, email_sent=False
         ).values_list("course_id", flat=True)
 
-    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    total_reserved_count = Count(
+        'immersions',
+        filter=Q(immersions__cancellation_type__isnull=True)
+    )
 
-    slots_list = (Slot.objects.filter(
+    # TODO: poc for now maybe refactor dirty code in a model method !!!! Update: The code changed, now relying on the database but the comment may still be interesting
+    slots_list = (Slot.objects
+        .prefetch_related(
+            'course__training__highschool',
+            'course__training__structures__establishment',
+            'course__structure__establishment',
+
+            'pk',
+            'id',
+            'date',
+            'start_time',
+            'end_time',
+            'course_type',
+            'speakers',
+            'allowed_establishments',
+            'allowed_highschools',
+            'allowed_highschool_levels',
+            'allowed_post_bachelor_levels',
+            'allowed_student_levels',
+            'allowed_bachelor_types',
+            'allowed_bachelor_mentions',
+            'allowed_bachelor_teachings',
+            'campus',
+            'building'
+        )
+        .filter(
             course__training__training_subdomains=subdomain_id,
             published=True,
             date__gte=today,
             allow_individual_registrations=True
-        ).order_by('date', 'start_time', 'end_time')
-        .select_related('course__structure__establishment', 'course__training')
+        )
+        .annotate(
+            training=F('course__training'),
+            training_id=F('course__training__id'),
+            training_label=F('course__training__label'),
+            training_url=F('course__training__url'),
+            training_highschool=F('course__training__highschool'),
+            training_highschool_badge_html_color=F('course__training__highschool__badge_html_color'),
+            training_highschool_label=F('course__training__highschool__label'),
+            training_highschool_city=F('course__training__highschool__city'),
+            establishment_label=Coalesce(
+                F('course__training__structures__establishment__label'),
+                F('course__structure__establishment__label'),
+            ),
+            establishment_badge_html_color=Coalesce(
+                F('course__training__structures__establishment__badge_html_color'),
+                F('course__structure__establishment__badge_html_color'),
+            ),
+            course_label=F('course__label'),
+            course_url=F('course__url'),
+            course_structure_label=F('course__structure__label'),
+            course_type_label=F('course_type__label'),
+
+            speaker_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        last_name=F('speakers__last_name'),
+                        first_name=F('speakers__first_name'),
+                        email=F('speakers__email'),
+                    ),
+                    filter=Q(speakers__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_establishments_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        city=F('allowed_establishments__city'),
+                        label=F('allowed_establishments__label')
+                    ),
+                    filter=Q(allowed_establishments__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        id=F('allowed_highschools__id'),
+                        city=F('allowed_highschools__city'),
+                        label=F('allowed_highschools__label')
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschool_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_highschool_levels__label'),
+                    filter=Q(allowed_highschool_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_post_bachelor_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_post_bachelor_levels__label'),
+                    filter=Q(allowed_post_bachelor_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_student_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_types_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_mentions_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_mentions__label'),
+                    filter=Q(allowed_bachelor_mentions__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_teachings_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_teachings__label'),
+                    filter=Q(allowed_bachelor_teachings__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            passed_registration_limit_date=Case(
+                When(
+                    registration_limit_date__isnull=False,
+                    registration_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
+            passed_cancellation_limit_date=Case(
+                When(
+                    cancellation_limit_date__isnull=False,
+                    cancellation_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
+            campus_label=F('campus__label'),
+            building_label=F('building__label'),
+            building_url=F('building__url'),
+
+            total_reserved=total_reserved_count,
+            calculated_seats=F('n_places') - F('total_reserved'),
+            final_available_seats=Case(
+                When(calculated_seats__lt=0, then=Value(0)),
+                default=F('calculated_seats'),
+                output_field=IntegerField()
+            ),
+
+            course_is_displayed=Case(
+                When(
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) | Q(course__start_date__lte=now) &
+                    Q(course__end_date__isnull=True) | Q(course__end_date__gte=now),
+                    then = True
+                ),
+                default = False,
+                output_field = BooleanField()
+            ),
+        )
+        .order_by('date', 'start_time', 'end_time')
+        .values(
+            'training',
+            'training_id',
+            'training_label',
+            'training_url',
+            'training_highschool',
+            'training_highschool_badge_html_color',
+            'training_highschool_label',
+            'training_highschool_city',
+            'establishment_label',
+            'establishment_badge_html_color',
+
+            'course_id',
+            'course_label',
+            'course_url',
+            'course_structure_label',
+
+            'pk',
+            'id',
+            'date',
+            'start_time',
+            'end_time',
+            'course_type_label',
+
+            'speaker_list',
+            'establishments_restrictions',
+            'levels_restrictions',
+            'bachelors_restrictions',
+
+            'allowed_establishments_list',
+            'allowed_highschools_list',
+            'allowed_highschool_levels_list',
+            'allowed_post_bachelor_levels_list',
+            'allowed_student_levels_list',
+            'allowed_bachelor_types_list',
+            'allowed_bachelor_mentions_list',
+            'allowed_bachelor_teachings_list',
+
+            'passed_registration_limit_date',
+            'passed_cancellation_limit_date',
+            'registration_limit_date',
+
+            'campus',
+            'campus_label',
+
+            'building',
+            'building_label',
+            'building_url',
+            'room',
+            'additional_information',
+
+            'final_available_seats',
+            'n_places',
+
+            'course_is_displayed',
+        )
     )
 
     # If the current user is a student, check whether he can register
     if student and record and remaining_regs_count:
         for slot in slots_list:
 
-            slot.already_registered = False
-            slot.can_register = False
-            slot.cancelled = False
-            slot.opening_soon = False
-
-            slot.passed_registration_limit_date = \
-                slot.registration_limit_date < now if slot.registration_limit_date else False
-            slot.passed_cancellation_limit_date = \
-                slot.cancellation_limit_date < now if slot.cancellation_limit_date else False
+            slot['already_registered'] = False
+            slot['can_register'] = False
+            slot['cancelled'] = False
+            slot['opening_soon'] = False
 
             # get slot period (for dates)
             try:
@@ -321,7 +591,7 @@ def offer_subdomain(request, subdomain_id):
             if not slot.already_registered or slot.cancelled:
                 can_register, _ = student.can_register_slot(slot)
 
-                if slot.available_seats() > 0 and can_register:
+                if slot['final_available_seats'] > 0 and can_register:
                     immersion_end_datetime = datetime.datetime.combine(
                         period.immersion_end_date + datetime.timedelta(days=1),
                         datetime.time(0, 0)
@@ -329,50 +599,23 @@ def offer_subdomain(request, subdomain_id):
 
                     if period.registration_start_date <= now <= immersion_end_datetime \
                             and slot.registration_limit_date >= now:
-                        slot.can_register = True
+                        slot['can_register'] = True
                     elif now < slot.registration_limit_date:
-                        slot.opening_soon = True
+                        slot['opening_soon'] = True
 
-# TODO : Factorise this part into a new fun()
-########################################################################################################################
-
-            training = slot.course.training
-            etab = slot.course.structure.establishment
-            course = slot.course
-
-            data[training][etab][course].append(slot)
-
-            for training, etab_dict in data.items():
-                etabs = {}
-                for etab_pk, course_dict in etab_dict.items():
-                    etabs[etab] = dict(course_dict)
-                data_dict[training] = etabs
-
-########################################################################################################################
+            data_for_context(data, data_dict, slot)
 
     else:
         for slot in slots_list:
-            slot.cancelled = False
-            slot.can_register = False
-            slot.already_registered = False
+            slot['already_registered'] = False
+            slot['can_register'] = False
+            slot['cancelled'] = False
 
-########################################################################################################################
+            data_for_context(data, data_dict, slot)
 
-            training = slot.course.training
-            etab = slot.course.structure.establishment
-            course = slot.course
+    data_dict["slot_list"] = slots_list
 
-            data[training][etab][course].append(slot)
-
-            for training, etab_dict in data.items():
-                etabs = {}
-                for etab_pk, course_dict in etab_dict.items():
-                    etabs[etab] = dict(course_dict)
-                data_dict[training] = etabs
-
-########################################################################################################################
-
-    data_dict['alert'] = (not slots_list or all(s.available_seats() == 0 for s in slots_list))
+    data_dict['alert'] = (not slots_list or all(slot['final_available_seats'] == 0 for slot in slots_list))
 
     # For navigation
     slot_id = request.session.get("last_registration_slot_id", None)
@@ -381,8 +624,8 @@ def offer_subdomain(request, subdomain_id):
             slot = Slot.objects.prefetch_related("course__training").get(pk=slot_id)
             # TODO: Check for events !!!!
             if slot.course:
-                open_training_id = slot.course.training.id
-                open_course_id = slot.course.id
+                open_training_id = slot.training_id
+                open_course_id = slot.course_id
         except Slot.DoesNotExist:
             pass
 
@@ -692,7 +935,7 @@ def cohort_offer_subdomain(request, subdomain_id):
     now = timezone.now()
     today = timezone.localdate()
 
-    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     data_dict = {}
 
     if user.is_anonymous or not user.is_high_school_manager():
@@ -705,46 +948,236 @@ def cohort_offer_subdomain(request, subdomain_id):
         .values('total')
     )
 
-    slots_list = (Slot.objects.filter(
+    total_registered_groups_count = Count(
+        'group_immersions',
+        filter=Q(group_immersions__cancellation_type__isnull=True)
+    )
+
+    slots_list = (Slot.objects
+        .prefetch_related(
+            'course__training__highschool',
+            'course__training__structures__establishment',
+            'course__structure__establishment',
+            'period__registration_start_date',
+
+            'pk',
+            'id',
+            'date',
+            'start_time',
+            'end_time',
+            'course_type',
+            'speakers',
+            'allowed_establishments',
+            'allowed_highschools',
+            'allowed_highschool_levels',
+            'allowed_post_bachelor_levels',
+            'allowed_student_levels',
+            'allowed_bachelor_types',
+            'allowed_bachelor_mentions',
+            'allowed_bachelor_teachings',
+            'campus',
+            'building'
+        )
+        .filter(
             course__training__training_subdomains=subdomain_id,
             published=True,
             date__gte=today,
             allow_group_registrations=True,
             **public_groups_filter
-        ).annotate(
+        )
+        .annotate(
+            training=F('course__training'),
+            training_id=F('course__training__id'),
+            training_label=F('course__training__label'),
+            training_url=F('course__training__url'),
+            training_highschool=F('course__training__highschool'),
+            training_highschool_badge_html_color=F('course__training__highschool__badge_html_color'),
+            training_highschool_label=F('course__training__highschool__label'),
+            training_highschool_city=F('course__training__highschool__city'),
+            establishment_label=Coalesce(
+                F('course__training__structures__establishment__label'),
+                F('course__structure__establishment__label'),
+            ),
+            establishment_badge_html_color=Coalesce(
+                F('course__training__structures__establishment__badge_html_color'),
+                F('course__structure__establishment__badge_html_color'),
+            ),
+            course_label=F('course__label'),
+            course_url=F('course__url'),
+            course_structure_label=F('course__structure__label'),
+            course_type_label=F('course_type__label'),
+
+            speaker_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        last_name=F('speakers__last_name'),
+                        first_name=F('speakers__first_name'),
+                        email=F('speakers__email'),
+                    ),
+                    filter=Q(speakers__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_establishments_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        city=F('allowed_establishments__city'),
+                        label=F('allowed_establishments__label')
+                    ),
+                    filter=Q(allowed_establishments__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        id=F('allowed_highschools__id'),
+                        city=F('allowed_highschools__city'),
+                        label=F('allowed_highschools__label')
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschool_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_highschool_levels__label'),
+                    filter=Q(allowed_highschool_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_post_bachelor_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_post_bachelor_levels__label'),
+                    filter=Q(allowed_post_bachelor_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_student_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_types_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_mentions_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_mentions__label'),
+                    filter=Q(allowed_bachelor_mentions__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_teachings_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_teachings__label'),
+                    filter=Q(allowed_bachelor_teachings__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            passed_registration_limit_date=Case(
+                When(
+                    registration_limit_date__isnull=False,
+                    registration_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
+            campus_label=F('campus__label'),
+            building_label=F('building__label'),
+            building_url=F('building__url'),
+
             group_registered_persons=Subquery(group_registered_persons_query),
+            total_registered_groups=total_registered_groups_count,
+            period_registration_start_date=F('period__registration_start_date'),
             valid_registration_start_date=Q(period__registration_start_date__lte=now),
-            valid_registration_date=Case(
-                When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
-                     then=Q(period__registration_start_date__lte=now,
-                            period__registration_end_date__gte=now)
-                     ),
-                default=Q(
-                    period__registration_start_date__lte=now,
-                    registration_limit_date__gte=now
-                )
-            )
-        ).order_by('date', 'start_time', 'end_time')
-        .select_related('course__structure__establishment', 'course__training')
+
+            course_is_displayed=Case(
+                When(
+                    Q(course__published=True) &
+                    Q(course__start_date__isnull=True) | Q(course__start_date__lte=now) &
+                    Q(course__end_date__isnull=True) | Q(course__end_date__gte=now),
+                    then=True
+                ),
+                default=Value(False),
+                output_field=BooleanField()
+            ),
+        )
+        .order_by('date', 'start_time', 'end_time')
+        .values(
+            'training',
+            'training_id',
+            'training_label',
+            'training_url',
+            'training_highschool',
+            'training_highschool_badge_html_color',
+            'training_highschool_label',
+            'training_highschool_city',
+            'establishment_label',
+            'establishment_badge_html_color',
+
+            'course_id',
+            'course_label',
+            'course_url',
+            'course_structure_label',
+
+            'pk',
+            'id',
+            'date',
+            'start_time',
+            'end_time',
+            'course_type_label',
+
+            'speaker_list',
+            'establishments_restrictions',
+            'levels_restrictions',
+            'bachelors_restrictions',
+
+            'allowed_establishments_list',
+            'allowed_highschools_list',
+            'allowed_highschool_levels_list',
+            'allowed_post_bachelor_levels_list',
+            'allowed_student_levels_list',
+            'allowed_bachelor_types_list',
+            'allowed_bachelor_mentions_list',
+            'allowed_bachelor_teachings_list',
+
+            'passed_registration_limit_date',
+            'registration_limit_date',
+
+            'campus',
+            'campus_label',
+
+            'building',
+            'building_label',
+            'building_url',
+            'room',
+            'additional_information',
+
+            'n_group_places',
+            'total_registered_groups',
+            'group_mode',
+
+            'course_is_displayed',
+        )
     )
 
-# TODO : Factorise this part into a new fun()
-########################################################################################################################
-
     for slot in slots_list:
-        training = slot.course.training
-        etab = slot.course.structure.establishment
-        course = slot.course
+        data_for_context(data, data_dict, slot)
 
-        data[training][etab][course].append(slot)
-
-        for training, etab_dict in data.items():
-            etabs = {}
-            for etab_pk, course_dict in etab_dict.items():
-                etabs[etab] = dict(course_dict)
-            data_dict[training] = etabs
-
-########################################################################################################################
+    data_dict["slot_list"] = slots_list
 
     context = {
         'subdomain': subdomain,
