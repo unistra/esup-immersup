@@ -1461,7 +1461,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         fields = []
         if obj and obj.student_records.exists():
-                fields.append('active')
+            fields.append('active')
 
         return fields
 
