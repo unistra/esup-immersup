@@ -330,7 +330,7 @@ def offer_subdomain(request, subdomain_id):
     )
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!! Update: The code changed, now relying on the database but the comment may still be interesting
-    slots_list = (Slot.objects
+    slots = (Slot.objects
         .prefetch_related(
             'course__training__highschool',
             'course__training__structures__establishment',
@@ -506,7 +506,13 @@ def offer_subdomain(request, subdomain_id):
             ),
         )
         .order_by('date', 'start_time', 'end_time')
-        .values(
+        
+    )
+    
+    # Quick and dirty fix for this to work before Events refactor
+    slots_objs = {slot.pk: slot for slot in slots}
+
+    slots_list = slots.values(
             'training',
             'training_id',
             'training_label',
@@ -563,7 +569,6 @@ def offer_subdomain(request, subdomain_id):
 
             'course_is_displayed',
         )
-    )
 
     # If the current user is a student, check whether he can register
     if student and record and remaining_regs_count:
@@ -586,14 +591,14 @@ def offer_subdomain(request, subdomain_id):
 
             # Already registered / cancelled ?
             for immersion in student.immersions.all():
-                if immersion.slot == slot:
+                if immersion.slot.pk == slot["pk"]:
                     slot['already_registered'] = True
                     slot['cancelled'] = immersion.cancellation_type is not None
 
             # Can register ?
             # not registered + free seats + dates in range + cancelled to register again
             if not slot['already_registered'] or slot['cancelled']:
-                can_register, _obj = student.can_register_slot(slot)
+                can_register, _obj = student.can_register_slot(slots_objs[slot["pk"]])
 
                 if slot['final_available_seats'] > 0 and can_register:
                     immersion_end_datetime = datetime.datetime.combine(
