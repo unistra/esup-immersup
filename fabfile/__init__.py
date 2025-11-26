@@ -135,7 +135,7 @@ def test():
     env.roledefs = {
         'web': ['django-test2.di.unistra.fr'],
         'lb': ['django-test2.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
+        'shib': ['rp-shib3-test-1.srv.unistra.fr', ],
     }
 
     # Remove this for test env
