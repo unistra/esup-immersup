@@ -873,9 +873,9 @@ class ImmersionUser(AbstractUser):
         errors = []
 
         slot_has_restrictions = any([
-            slot.establishments_restrictions,
-            slot.levels_restrictions,
-            slot.bachelors_restrictions
+            slot['establishments_restrictions'],
+            slot['levels_restrictions'],
+            slot['bachelors_restrictions']
         ])
 
         # Returns True if no restrictions are found

@@ -338,11 +338,13 @@ def offer_subdomain(request, subdomain_id):
 
             'pk',
             'id',
+            'period',
             'date',
             'start_time',
             'end_time',
             'course_type',
             'speakers',
+            'establishments_restrictions',
             'allowed_establishments',
             'allowed_highschools',
             'allowed_highschool_levels',
@@ -382,6 +384,7 @@ def offer_subdomain(request, subdomain_id):
             course_structure_label=F('course__structure__label'),
             course_type_label=F('course_type__label'),
 
+            period_pk=F('period__pk'),
             speaker_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
@@ -522,6 +525,7 @@ def offer_subdomain(request, subdomain_id):
 
             'pk',
             'id',
+            'period_pk',
             'date',
             'start_time',
             'end_time',
@@ -572,7 +576,7 @@ def offer_subdomain(request, subdomain_id):
 
             # get slot period (for dates)
             try:
-                period = Period.from_date(pk=slot.period.pk, date=slot.date)
+                period = Period.from_date(pk=slot['period_pk'], date=slot['date'])
             except Period.DoesNotExist as e:
                 logger.exception(f"Period does not exist : {e}")
                 raise
@@ -583,13 +587,13 @@ def offer_subdomain(request, subdomain_id):
             # Already registered / cancelled ?
             for immersion in student.immersions.all():
                 if immersion.slot == slot:
-                    slot.already_registered = True
-                    slot.cancelled = immersion.cancellation_type is not None
+                    slot['already_registered'] = True
+                    slot['cancelled'] = immersion.cancellation_type is not None
 
             # Can register ?
             # not registered + free seats + dates in range + cancelled to register again
-            if not slot.already_registered or slot.cancelled:
-                can_register, _ = student.can_register_slot(slot)
+            if not slot['already_registered'] or slot['cancelled']:
+                can_register, _obj = student.can_register_slot(slot)
 
                 if slot['final_available_seats'] > 0 and can_register:
                     immersion_end_datetime = datetime.datetime.combine(
@@ -598,9 +602,9 @@ def offer_subdomain(request, subdomain_id):
                     ).replace(tzinfo=now.tzinfo)
 
                     if period.registration_start_date <= now <= immersion_end_datetime \
-                            and slot.registration_limit_date >= now:
+                            and slot['registration_limit_date'] >= now:
                         slot['can_register'] = True
-                    elif now < slot.registration_limit_date:
+                    elif now < slot['registration_limit_date']:
                         slot['opening_soon'] = True
 
             data_for_context(data, data_dict, slot)
@@ -712,7 +716,7 @@ def offer_off_offer_events(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
-                can_register, _ = student.can_register_slot(event)
+                can_register, _obj = student.can_register_slot(event)
 
                 try:
                     period = Period.from_date(pk=event.period.pk, date=event.date)
@@ -967,6 +971,8 @@ def cohort_offer_subdomain(request, subdomain_id):
             'end_time',
             'course_type',
             'speakers',
+            'establishments_restrictions',
+            'allow_group_registrations',
             'allowed_establishments',
             'allowed_highschools',
             'allowed_highschool_levels',
@@ -1145,6 +1151,7 @@ def cohort_offer_subdomain(request, subdomain_id):
             'levels_restrictions',
             'bachelors_restrictions',
 
+            'allow_group_registrations',
             'allowed_establishments_list',
             'allowed_highschools_list',
             'allowed_highschool_levels_list',
@@ -1167,7 +1174,10 @@ def cohort_offer_subdomain(request, subdomain_id):
             'additional_information',
 
             'n_group_places',
+            'group_registered_persons',
             'total_registered_groups',
+            'period_registration_start_date',
+            'valid_registration_start_date',
             'group_mode',
 
             'course_is_displayed',

@@ -202,33 +202,6 @@
                                           {% endif %}
                                         </td>
                                         <td>
-                                          {% if slot.allow_individual_registrations %}
-                                            <i class="fa fas fa-user text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Individual immersions' %}"></i>
-                                            {% trans 'Individual immersions' %}
-                                            {% if slot.cancelled %}
-                                              <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                                            {% endif %}
-                                            {% if slot.can_register %}
-                                              <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
-                                              <div id="feedback_{{slot.pk}}" ></div>
-                                            {% elif slot.already_registered %}
-                                              <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                                            {% elif slot.opening_soon %}
-                                              <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                                            {% elif slot.available_seats > 0 %}
-                                              <span class="badge badge-primary badge-pill">
-                                                {% trans 'Available places' %} : {{ slot.available_seats }}
-                                              </span><br>
-                                              {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                                                {% if slot.can_register %}
-                                                  <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
-                                                  <div id="feedback_{{slot.pk}}" ></div>
-                                                {% endif %}
-                                              {% endif %}
-                                            {% else %}
-                                              <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
-                                            {% endif %}
-                                          {% endif %}
                                           {% if slot.allow_group_registrations %}
                                             <div id="group_registrations_{{ slot.pk }}">
                                               <i class="fa fas fa-group text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Cohort immersions' %}"></i>
