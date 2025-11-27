@@ -256,7 +256,7 @@
                                     <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                                     {% if authorized_groups|in_groups:'REF-LYC' %}
                                       {% if not slot.allowed_highschools.all or request.user.highschool in slot.allowed_highschools.all %}
-                                        {% if slot.valid_registration_start_date %}
+                                        {% if slot.valid_registration_date %}
                                           <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ slot.id }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
                                           <div id="feedback_{{ pk }}"></div>
                                         {% else %}
@@ -273,7 +273,7 @@
                                     <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span><br>
                                       {% if authorized_groups|in_groups:'REF-LYC' %}
                                         {% if not slot.allowed_highschools.all or request.user.highschool in slot.allowed_highschools.all %}
-                                          {% if slot.valid_registration_start_date %}
+                                          {% if slot.valid_registration_date  %}
                                             <button type="button" id="btn_register_group_{{ pk }}" class="badge badge-pill badge-primary" data-toggle="modal" onclick="current_slot_id={{ pk }}" data-target="#modal_register_group">{% trans 'Register a group' %}</button>
                                             <div id="feedback_{{ pk }}"></div>
                                           {% else %}
