@@ -334,17 +334,17 @@ def offer_subdomain(request, subdomain_id):
         .prefetch_related(
             'course__training__highschool',
             'course__training__structures__establishment',
-            'course__structure__establishment',
-
-            'pk',
-            'id',
-            'period',
-            'date',
-            'start_time',
-            'end_time',
             'course_type',
+            'course__structure__establishment',
+            'course__highschool',
+            'campus',
+            'building',
             'speakers',
-            'establishments_restrictions',
+            'event__event_type',
+            'event__establishment',
+            'event__structure__establishment',
+            'event__highschool',
+            'immersions__cancellation_type',
             'allowed_establishments',
             'allowed_highschools',
             'allowed_highschool_levels',
@@ -353,8 +353,8 @@ def offer_subdomain(request, subdomain_id):
             'allowed_bachelor_types',
             'allowed_bachelor_mentions',
             'allowed_bachelor_teachings',
-            'campus',
-            'building'
+            'group_immersions',
+            'period'
         )
         .filter(
             course__training__training_subdomains=subdomain_id,
