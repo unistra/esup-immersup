@@ -55,6 +55,17 @@
   <div class="container-fluid mt-4">
     <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ events_count }} {% trans 'available events (see below)' %}">{{ events_count }} {% trans 'available events' %}</span></p>
     {% if events %}
+    <div class="modal fade" id="fullTextModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{% trans 'Additional information' %}</h5>
+            <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+          </div>
+          <div class="modal-body" id="full_text_content"></div>
+        </div>
+      </div>
+    </div>
     <div id="accordion" class="accordion">
       {% regroup events|dictsort:"event.event_type.label" by event.event_type.label as events_types_list %}
       {% with events_types_list|length as events_types_count %}
@@ -224,7 +235,7 @@
                                           {% if s.cancelled %}
                                             <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                             {% if s.can_register %}
-                                              <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
+                                              <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">
                                               {% trans 'Register again' %}
                                              </button>
                                              <div id="feedback_{{s.pk}}"></div>
@@ -289,23 +300,12 @@
                                           {% endif %}
                                         </td>
                                         <td>
-                                          {% if slot.additional_information %}
+                                          {% if s.additional_information %}
                                             {% trans 'Additional information' %} :
-                                            <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">{{ slot.additional_information }}</div>
-                                            <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
+                                            <div class="text-truncate" id="truncated_info_{{ s.id }}" style="max-height: 4.5em; overflow: hidden;">{{ s.additional_information }}</div>
+                                            <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ s.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
                                           {% endif %}
                                         </td>
-                                        <div class="modal fade" id="fullTextModal" tabindex="-1">
-                                          <div class="modal-dialog modal-lg">
-                                            <div class="modal-content">
-                                              <div class="modal-header">
-                                                <h5 class="modal-title">{% trans 'Additional information' %}</h5>
-                                                <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
-                                              </div>
-                                              <div class="modal-body" id="full_text_content"></div>
-                                            </div>
-                                          </div>
-                                        </div>
                                       </tr>
                                     </tbody>
                                   </table>
