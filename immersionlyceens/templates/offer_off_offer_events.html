@@ -102,25 +102,31 @@
                             {% for s in slot.list %}
                               {% if s.event.is_displayed and s.published %}
                                 <div class="table-responsive">
-                                  <table class="table table-bordered">
+                                  <table class="table table-bordered" style="table-layout: fixed">
+                                    <colgroup>
+                                      <col style="width:15%">
+                                      <col style="width:10%" span="2">
+                                      <col style="width:20%">
+                                      <col style="width:15%" span="3">
+                                    </colgroup>
                                     <tbody>
                                       <tr>
-                                        <td style="width: 15%">
+                                        <td>
                                           <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
                                             title="{% trans 'Date' %}"></i>
                                           {{ s.date | date:"l d F Y"}}
                                         </td>
-                                        <td style="width: 10%">
+                                        <td>
                                           <i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
                                             title="{% trans 'Schedules' %}"></i>
                                           {{ s.start_time }} - {{ s.end_time }}
                                         </td>
-                                        <td style="width: 10%">
+                                        <td>
                                           <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
                                             title="{% trans 'Type' %}"></i>
                                           {{ s.event.event_type }}
                                         </td>
-                                        <td rowspan="2" style="width: 20%">
+                                        <td rowspan="2">
                                           <!--If there is meeting_place to be shown AND :-->
                                           <!--  The user is not connected and the meeting_place are hidden OR-->
                                           <!--  The user is connected and the meeting_place are hidden to connected users anyway-->
@@ -137,7 +143,7 @@
                                           {% trans 'Remote event' %}
                                           {% endif %}
                                         </td>
-                                        <td rowspan="2" style="width: 15%">
+                                        <td rowspan="2">
                                           {% if not hide_fields_public_area.speakers.hide_public_area %}
                                             <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
                                               title="{% trans 'Speaker(s)' %}"></i>
@@ -153,7 +159,7 @@
                                             </ul>
                                           {% endif %}
                                         </td>
-                                        <td rowspan="2" style="width: 15%">
+                                        <td rowspan="2">
                                           {% if s.establishments_restrictions or s.levels_restrictions or s.bachelors_restrictions %}
                                           <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip"
                                             title="{% trans 'Restrictions' %}"></i>
@@ -232,7 +238,7 @@
                                           {% trans "Slot open to all" %}
                                           {% endif %}
                                         </td>
-                                        <td style="width: 15%">
+                                        <td>
                                           {% if s.cancelled %}
                                             <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                             {% if s.can_register %}
@@ -264,7 +270,7 @@
                                         </td>
                                       </tr>
                                       <tr>
-                                        <td style="width: 10%">
+                                        <td>
                                           <!--If there is structure to be shown AND :-->
                                           <!--  The user is not connected and the structure are hidden OR-->
                                           <!--  The user is connected and the structure are hidden to connected users anyway-->
@@ -276,7 +282,7 @@
                                             {% endif %}
                                           {% endif %}
                                         </td>
-                                        <td style="width: 10%">
+                                        <td>
                                           {% if s.campus %}
                                           <p>
                                             <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons"
@@ -285,7 +291,7 @@
                                           </p>
                                           {% endif %}
                                         </td>
-                                        <td style="width: 10%">
+                                        <td>
                                           <!--If there is building to be shown AND :-->
                                           <!--  The user is not connected and the building are hidden OR-->
                                           <!--  The user is connected and the building are hidden to connected users anyway-->
@@ -303,8 +309,12 @@
                                         <td>
                                           {% if s.additional_information %}
                                             {% trans 'Additional information' %} :
-                                            <div class="text-truncate" id="truncated_info_{{ s.id }}" style="max-height: 4.5em; overflow: hidden;">{{ s.additional_information }}</div>
-                                            <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ s.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
+                                            <div class="text-truncate" id="truncated_info_{{ s.id }}" style="max-height: 4.5em; overflow: hidden;">
+                                              {{ s.additional_information }}
+                                            </div>
+                                            <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ s.additional_information|escapejs }}`)">
+                                              {% trans 'See more' %}
+                                            </button>
                                           {% endif %}
                                         </td>
                                       </tr>
