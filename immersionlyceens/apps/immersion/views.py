@@ -246,38 +246,29 @@ def login_choice(request, profile=None):
         }
         return render(request, 'immersion/nologin.html', context)
 
-    match profile:
-        case 'lyc':
-            federation_name = _("EduConnect")
-            intro_connection_code = "INTRO_HIGHSCHOOL_CONNECTION"
-            display_federation_login = HighSchool.agreed.filter(uses_student_federation=True).exists()
-            display_classic_login = HighSchool.agreed.filter(uses_student_federation=False).exists()
-            federation_url = educonnect_url
-            federation_txt = _("Connection with EduConnect")
-            link_title = _("Please go to Procedure / High schools to check if your high school uses ") + federation_name
-        case 'ref-lyc':
-            federation_name = _("the agent federation")
-            intro_connection_code = "INTRO_AGENT_CONNECTION"
-            display_federation_login = HighSchool.agreed.filter(uses_agent_federation=True).exists()
-            display_classic_login = HighSchool.agreed.filter(uses_agent_federation=False).exists()
-            federation_url = agents_url
-            federation_txt = _("Connection with agent")
-            link_title = _("All public high schools and private high schools under contract")
-        case 'speaker':
-            federation_name = _("the agent federation")
-            intro_connection_code = "INTRO_AGENT_CONNECTION"
-            display_federation_login = HighSchool.agreed.filter(uses_agent_federation=True).exists()
-            display_classic_login = HighSchool.agreed.filter(uses_agent_federation=False).exists()
-            federation_url = agents_url
-            federation_txt = _("Connection with agent")
-            link_title = _("All public high schools and private high schools under contract")
-        case _:
-            federation_name = ''
-            display_federation_login = False
-            display_classic_login = False
-            federation_url = ''
-            federation_txt = ''
-            link_title = ''
+    federation_name = ''
+    display_federation_login = False
+    display_classic_login = False
+    federation_url = ''
+    federation_txt = ''
+    link_title = ''
+
+    if profile == 'lyc':
+        federation_name = _("EduConnect")
+        intro_connection_code = "INTRO_HIGHSCHOOL_CONNECTION"
+        display_federation_login = HighSchool.agreed.filter(uses_student_federation=True).exists()
+        display_classic_login = HighSchool.agreed.filter(uses_student_federation=False).exists()
+        federation_url = educonnect_url
+        federation_txt = _("Connection with EduConnect")
+        link_title = _("Please go to Procedure / High schools to check if your high school uses ") + federation_name
+    elif profile in ['ref-lyc', 'speaker']:
+        federation_name = _("the agent federation")
+        intro_connection_code = "INTRO_AGENT_CONNECTION"
+        display_federation_login = HighSchool.agreed.filter(uses_agent_federation=True).exists()
+        display_classic_login = HighSchool.agreed.filter(uses_agent_federation=False).exists()
+        federation_url = agents_url
+        federation_txt = _("Connection with agent")
+        link_title = _("All public high schools and private high schools under contract")
 
     if federation_name and intro_connection_code:
         try:
