@@ -57,6 +57,18 @@
 <section class="py-5 bg-gray">
   <div class="container-fluid mt-4">
     {% if data %}
+      <div class="modal fade" id="fullTextModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{% trans 'Additional information' %}</h5>
+              <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+            </div>
+            <div class="modal-body" id="full_text_content"></div>
+          </div>
+        </div>
+      </div>
+
       <div id="accordion" class="accordion">
         {% for training_id, etabs_dict in data.items %}
         {% with training=etabs_dict.info %}
@@ -118,13 +130,18 @@
                             <div class="card-body">
                             {% for slot in slots_list %}
                               <div class="table-responsive">
-                                <table class="table table-bordered">
+                                <table class="table table-bordered" style="table-layout: fixed">
+                                  <colgroup>
+                                    <col style="width:20%" span="3">
+                                    <col style="width:10%" span="2">
+                                    <col style="width:auto">
+                                  </colgroup>
                                   <tbody>
                                     <tr>
-                                      <td style="width: 20%"><i class="fa fas fa-calendar text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
-                                      <td style="width: 20%"><i class="fa fas fa-clock-o text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
-                                      <td style="width: 20%"><i class="fa fa-book fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type_label }}</td>
-                                      <td style="width: 10%" rowspan="2">
+                                      <td><i class="fa fas fa-calendar text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
+                                      <td><i class="fa fas fa-clock-o text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
+                                      <td><i class="fa fa-book fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type_label }}</td>
+                                      <td rowspan="2">
                                         {% if not hide_fields_public_area.speakers.hide_public_area %}
                                           <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                                           {% trans 'Speaker(s)' %} :
@@ -139,7 +156,7 @@
                                           </ul>
                                         {% endif %}
                                       </td>
-                                      <td style="width: 15%" rowspan="2">
+                                      <td rowspan="2">
                                         {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                           <i class="fa fas fa-ban text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                           {% trans "Restrictions" %} :
@@ -277,21 +294,14 @@
                                       <td>
                                         {% if slot.additional_information %}
                                           {% trans 'Additional information' %} :
-                                          <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">{{ slot.additional_information }}</div>
-                                          <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
+                                          <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">
+                                            {{ slot.additional_information }}
+                                          </div>
+                                          <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">
+                                            {% trans 'See more' %}
+                                          </button>
                                         {% endif %}
                                       </td>
-                                      <div class="modal fade" id="fullTextModal" tabindex="-1">
-                                        <div class="modal-dialog modal-lg">
-                                          <div class="modal-content">
-                                            <div class="modal-header">
-                                              <h5 class="modal-title">{% trans 'Additional information' %}</h5>
-                                              <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#fullTextModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
-                                            </div>
-                                            <div class="modal-body" id="full_text_content"></div>
-                                          </div>
-                                        </div>
-                                      </div>
                                     </tr>
                                   </tbody>
                                 </table>

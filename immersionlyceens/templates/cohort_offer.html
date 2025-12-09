@@ -162,10 +162,16 @@
                                   {% for slot in slot_list %}
                                     {% if event.is_displayed %}
                                       <div class="table-responsive">
-                                        <table class="table table-bordered">
+                                        <table class="table table-bordered" style="table-layout: fixed">
+                                            <colgroup>
+                                              <col style="width:15%">
+                                              <col style="width:10%" span="2">
+                                              <col style="width:20%">
+                                              <col style="width:15%" span="3">
+                                            </colgroup>
                                           <tbody>
                                             <tr>
-                                              <td style="width: 15%">
+                                              <td>
                                                 <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
                                                 {{ slot.date|date:'l d F Y' }}
                                               </td>
@@ -186,7 +192,7 @@
                                                   {% trans 'Remote event' %}
                                                 {% endif %}
                                               </td>
-                                              <td rowspan="2" style="width: 15%">
+                                              <td rowspan="2">
                                                 <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                                                 {% trans 'Speaker(s)' %}:<ul>
                                                   {% if slot.speaker_list %}
@@ -200,7 +206,7 @@
                                                   {% endif %}
                                                 </ul>
                                               </td>
-                                              <td rowspan="2" style="width: 15%">
+                                              <td rowspan="2">
                                                 {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                                   <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                                   {% trans 'Restrictions' %}:{% if slot.allowed_establishments_list %}
@@ -344,13 +350,13 @@
                                               </td>
                                             </tr>
                                             <tr>
-                                              <td style="width: 10%">
+                                              <td>
                                                 {% if slot.event_structure_label %}
                                                   <i class="fa fas fa-institution text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Structure' %}"></i>
                                                   {{ slot.event_structure_label }} ({{ slot.establishment_label }})
                                                 {% endif %}
                                               </td>
-                                              <td style="width: 10%">
+                                              <td>
                                                 {% if slot.campus %}
                                                   <p>
                                                     <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>
@@ -358,7 +364,7 @@
                                                   </p>
                                                 {% endif %}
                                               </td>
-                                              <td style="width: 10%">
+                                              <td>
                                                 {% if slot.building %}
                                                   <i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %}: {{ slot.building_label }}
                                                 {% endif %}

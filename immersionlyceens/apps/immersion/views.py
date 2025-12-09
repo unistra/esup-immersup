@@ -216,34 +216,6 @@ def login_choice(request, profile=None):
     intro_connection = ""
     is_reg_possible, _obj, year = check_active_year()
 
-    if profile == "lyc" and (not year or not is_reg_possible):
-        messages.warning(request, _("Sorry, you can't register right now."))
-        context = {
-            'start_date': year.start_date if year else None,
-            'end_date': year.end_date if year else None,
-            'reg_date': year.registration_start_date if year else None,
-        }
-        return render(request, 'immersion/nologin.html', context)
-
-    match profile:
-        case 'lyc':
-            federation_name = _("EduConnect")
-            intro_connection_code = "INTRO_HIGHSCHOOL_CONNECTION"
-        case 'ref-lyc':
-            federation_name = _("the agent federation")
-            intro_connection_code = "INTRO_AGENT_CONNECTION"
-        case 'speaker':
-            federation_name = _("the agent federation")
-            intro_connection_code = "INTRO_AGENT_CONNECTION"
-        case _:
-            federation_name = ''
-
-    if federation_name and intro_connection_code:
-        try:
-            intro_connection = InformationText.objects.get(code=intro_connection_code, active=True).content
-        except InformationText.DoesNotExist:
-            intro_connection = ""
-
     # Build direct federation URL to prevent high school students from choosing the bad one
     # Root URL of Immersup instance
     root_url = request.build_absolute_uri("/").rstrip("/").replace("http://", "https://")
@@ -265,14 +237,57 @@ def login_choice(request, profile=None):
     except:
         logger.info("AGENT_FEDERATION_LOGIN_URL not set")
 
+    if profile == "lyc" and (not year or not is_reg_possible):
+        messages.warning(request, _("Sorry, you can't register right now."))
+        context = {
+            'start_date': year.start_date if year else None,
+            'end_date': year.end_date if year else None,
+            'reg_date': year.registration_start_date if year else None,
+        }
+        return render(request, 'immersion/nologin.html', context)
+
+    federation_name = ''
+    display_federation_login = False
+    display_classic_login = False
+    federation_url = ''
+    federation_txt = ''
+    link_title = ''
+
+    if profile == 'lyc':
+        federation_name = _("EduConnect")
+        intro_connection_code = "INTRO_HIGHSCHOOL_CONNECTION"
+        display_federation_login = HighSchool.agreed.filter(uses_student_federation=True).exists()
+        display_classic_login = HighSchool.agreed.filter(uses_student_federation=False).exists()
+        federation_url = educonnect_url
+        federation_txt = _("Connection with EduConnect")
+        link_title = _("Please go to Procedure / High schools to check if your high school uses ") + federation_name
+    elif profile in ['ref-lyc', 'speaker']:
+        federation_name = _("the agent federation")
+        intro_connection_code = "INTRO_AGENT_CONNECTION"
+        display_federation_login = HighSchool.agreed.filter(uses_agent_federation=True).exists()
+        display_classic_login = HighSchool.agreed.filter(uses_agent_federation=False).exists()
+        federation_url = agents_url
+        federation_txt = _("Connection with agent")
+        link_title = _("All public high schools and private high schools under contract")
+
+    if federation_name and intro_connection_code:
+        try:
+            intro_connection = InformationText.objects.get(code=intro_connection_code, active=True).content
+        except InformationText.DoesNotExist:
+            intro_connection = ""
+
     context = {
         "agents_federation_url": agents_url,
         "educonnect_url": educonnect_url,
         'federation_name': federation_name,
         'profile': profile,
         'intro_connection': intro_connection,
-        'has_highschool_without_student_federation': HighSchool.agreed.filter(uses_student_federation=False).exists(),
-        'has_highschool_without_agent_federation': HighSchool.agreed.filter(uses_agent_federation=False).exists()
+        'federation_url': federation_url,
+        'federation_txt': federation_txt,
+        'link_title': link_title,
+        'display_federation_login': display_federation_login,
+        'display_classic_login': display_classic_login,
+        'display_both': display_federation_login and display_classic_login,
     }
 
     template = "immersion/login_choice.html" if federation_name else "immersion/login.html"
