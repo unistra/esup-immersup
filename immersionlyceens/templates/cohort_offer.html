@@ -143,7 +143,7 @@
                       <div class="collapse {% if events_types_count == 1 %}show{% endif %}" id="eventType_{{event_type_id}}" aria-labelledby="eventType_{{event_type_id}}" data-parent="#accordion">
                         {% for event_id, data_dict in slots_dict.items %}
                         {% if event_id != 'info' %}
-                        {% with event=data_dict.info %}
+                        {% with event_info=data_dict.info %}
                         {% with slot_list=data_dict.slots %}
                         {% with slot_list|length as nb_events %}
                           {% with forloop.counter as slot_i %}
@@ -153,14 +153,14 @@
                                   <h6 class="mb-5 mb-sm-0 more-less-title">
                                     <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Event' %}"></i>
                                     <button class="btn btn-link pl-0 nav-link" data-toggle="collapse" data-target="#slot{{slot_i}}_{{event_type_id}}" aria-expanded="{% if nb_events == 1 %}true{% else %}false{% endif %}" aria-controls="slot{{slot_i}}_{{event_type_id}}">
-                                      <span class="badge badge-pill immersup-badge" style="background-color: {{ slot.list.0.get_badge_color }};margin: 2px;">{{ slot.list.0.get_establishment_or_highschool.label }}</span>
+                                      <span class="badge badge-pill immersup-badge" style="background-color: {{ slot.list.0.get_badge_color }};margin: 2px;">{{ event.list.0.get_establishment_or_highschool.label }}</span>
                                       {{ event_info.label }}
                                     </button>
                                   </h6>
                                 </div>
                                 <div class="card-body collapse pb-0 {% if nb_events == 1 %}show{% endif %}" id="slot{{slot_i}}_{{event_type_id}}">
                                   {% for slot in slot_list %}
-                                    {% if event.is_displayed %}
+                                    {% if slot.is_displayed %}
                                       <div class="table-responsive">
                                         <table class="table table-bordered" style="table-layout: fixed">
                                             <colgroup>

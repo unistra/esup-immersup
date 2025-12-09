@@ -96,7 +96,7 @@
                   {% if course_id != 'info' %}
                   {% with course=data_dict.info %}
                   {% with slots_list=data_dict.slots %}
-                    {% if course.is_displayed %}
+                    {% if slot.is_displayed %}
                       <div class="card-header">
                         <h6 class="mb-5 mb-sm-0 more-less-title">
                           <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>

@@ -101,7 +101,7 @@
                         </div>
                         <div class="card-body collapse pb-0 {% if nb_events == 1 %}show{% endif %}" id="slot{{slot_i}}_{{event_type_id}}">
                           {% for slot in slot_list %}
-                            {% if event.is_displayed and slot.published %}
+                            {% if slot.is_displayed %}
                               <div class="table-responsive">
                                 <table class="table table-bordered"style="table-layout: fixed">
                                     <colgroup>
