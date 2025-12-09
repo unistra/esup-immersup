@@ -649,15 +649,60 @@ def offer_subdomain(request, subdomain_id):
 
     return render(request, 'offer_subdomains.html', context)
 
+def data_for_context_event(data, data_dict, event):
+
+    event_type_id = event['event_type_id']
+    etab_label = event['establishment_label']
+    event_id = event['event_id']
+
+    event_type_info = {
+        'id': event['event_type_id'],
+        'label': event['event_type_label'],
+    }
+
+    etab_info = {
+        'label': event['establishment_label'],
+    }
+
+    event_info = {
+        'id': event['event_id'],
+        'label': event['event_label'],
+        'is_displayed': event['event_is_displayed'],
+    }
+
+    if 'info' not in data[event_type_id]:
+        data[event_type_id]['info'] = event_type_info
+
+    if 'info' not in data[event_type_id][etab_label]:
+        data[event_type_id][etab_label]['info'] = etab_info
+
+    if 'info' not in data[event_type_id][etab_label][event_id]:
+        data[event_type_id][etab_label][event_id]['info'] = event_info
+
+    if 'slots' not in data[event_type_id][etab_label][event_id]:
+        data[event_type_id][etab_label][event_id]['slots'] = []
+
+    data[event_type_id][etab_label][event_id]['slots'].append(event)
+
+    for event_type_id, etab_dict in data.items():
+        etabs = {}
+        for etab_label, event_dict in etab_dict.items():
+            etabs[etab_label] = dict(event_dict)
+        data_dict[event_type_id] = etabs
+
 
 def offer_off_offer_events(request):
     """ Events Offer view """
 
     filters = {}
-    today = timezone.now().date()
     student = None
     record = None
 
+    now = timezone.now()
+    today = timezone.localdate()
+
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    data_dict = {}
 
     if not request.user.is_anonymous \
         and (request.user.is_high_school_student() or request.user.is_student() or request.user.is_visitor()):
@@ -685,63 +730,321 @@ def offer_off_offer_events(request):
     filters["allow_individual_registrations"] = True
     filters["date__gte"] = today
 
-    events = (Slot.objects.prefetch_related(
-            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
-            .filter(
-                **filters
-            ).filter(
-                Q(event__start_date__lte=today) |
-                Q(event__start_date__isnull=True)
-            ).order_by('event__establishment__label', 'event__highschool__label', 'event__label', \
-                                        'date', 'start_time' ))
+    group_registered_persons_query = (
+        ImmersionGroupRecord.objects.filter(slot=OuterRef("pk"), cancellation_type__isnull=True)
+        .annotate(group_registered_persons=(F('students_count') + F('guides_count')))
+        .annotate(total=Coalesce(Func('group_registered_persons', function='SUM'), 0))
+        .values('total')
+    )
+
+    total_reserved_count = Count(
+        'immersions',
+        filter=Q(immersions__cancellation_type__isnull=True)
+    )
+
+    total_registered_groups_count = Count(
+        'group_immersions',
+        filter=Q(group_immersions__cancellation_type__isnull=True)
+    )
+
+    events = (Slot.objects
+        .prefetch_related(
+            'event__highschool',
+            'event__establishment',
+            'event__structure__establishment',
+            'event__event_type__label',
+            'period__registration_start_date',
+            'immersions',
+            
+            'pk',
+            'date',
+            'start_time',
+            'end_time',
+            'speakers',
+            'establishments_restrictions',
+            'allow_group_registrations',
+            'allowed_establishments',
+            'allowed_highschools',
+            'allowed_highschool_levels',
+            'allowed_post_bachelor_levels',
+            'allowed_student_levels',
+            'allowed_bachelor_types',
+            'allowed_bachelor_mentions',
+            'allowed_bachelor_teachings',
+            'campus',
+            'building',
+        )
+        .filter(
+            **filters
+        ).filter(
+            Q(event__start_date__lte=today) |
+            Q(event__start_date__isnull=True)
+        )
+        .annotate(
+            event_structure=F('event__structure'),
+            establishment_label=Coalesce(
+                F('event__establishment__label'),
+                F('event__structure__establishment__label'),
+            ),
+            establishment_badge_html_color=Coalesce(
+                F('event__establishment__badge_html_color'),
+                F('event__structure__establishment__badge_html_color'),
+            ),
+            event_label=F('event__label'),
+            event_structure_label=F('event__structure__label'),
+            event_type=F('event__event_type'),
+            event_type_id=F('event__event_type__id'),
+            event_type_label=F('event__event_type__label'),
+
+            speaker_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        last_name=F('speakers__last_name'),
+                        first_name=F('speakers__first_name'),
+                        email=F('speakers__email'),
+                    ),
+                    filter=Q(speakers__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_establishments_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        city=F('allowed_establishments__city'),
+                        label=F('allowed_establishments__label')
+                    ),
+                    filter=Q(allowed_establishments__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
+                        id=F('allowed_highschools__id'),
+                        city=F('allowed_highschools__city'),
+                        label=F('allowed_highschools__label')
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschool_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_highschool_levels__label'),
+                    filter=Q(allowed_highschool_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_post_bachelor_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_post_bachelor_levels__label'),
+                    filter=Q(allowed_post_bachelor_levels__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_student_levels_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_types_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_mentions_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_mentions__label'),
+                    filter=Q(allowed_bachelor_mentions__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_bachelor_teachings_list=Coalesce(
+                ArrayAgg(
+                    F('allowed_bachelor_teachings__label'),
+                    filter=Q(allowed_bachelor_teachings__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+
+            passed_registration_limit_date=Case(
+                When(
+                    registration_limit_date__isnull=False,
+                    registration_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
+
+            campus_label=F('campus__label'),
+            building_label=F('building__label'),
+            building_url=F('building__url'),
+
+            group_registered_persons=Subquery(group_registered_persons_query),
+            total_registered_groups=total_registered_groups_count,
+            period_registration_start_date=F('period__registration_start_date'),
+            valid_registration_start_date=Q(period__registration_start_date__lte=now),
+            valid_registration_date=Case(
+                When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
+                     then=Q(period__registration_start_date__lte=now,
+                            period__registration_end_date__gte=now)
+                     ),
+                default=Q(
+                    period__registration_start_date__lte=now,
+                    registration_limit_date__gte=now
+                )
+            ),
+
+            total_reserved=total_reserved_count,
+            calculated_seats=F('n_places') - F('total_reserved'),
+            final_available_seats=Case(
+                When(calculated_seats__lt=0, then=Value(0)),
+                default=F('calculated_seats'),
+                output_field=IntegerField()
+            ),
+
+            event_is_displayed=Case(
+                When(
+                    Q(event__published=True) &
+                    Q(event__start_date__isnull=True) | Q(event__start_date__lte=now) &
+                    Q(event__end_date__isnull=True) | Q(event__end_date__gte=now),
+                    then=True
+                ),
+                default=Value(False),
+                output_field=BooleanField()
+            ),
+        )
+        .order_by('event__establishment__label',
+            'event__highschool__label',
+            'event__label',
+            'date',
+            'start_time'
+        )
+        .values(
+            'event_structure',
+            'establishment_label',
+            'establishment_badge_html_color',
+
+            'event_id',
+            'event_label',
+            'event_structure_label',
+
+            'pk',
+            'date',
+            'start_time',
+            'end_time',
+            'event_type',
+            'event_type_id',
+            'event_type_label',
+
+            'speaker_list',
+            'establishments_restrictions',
+            'levels_restrictions',
+            'bachelors_restrictions',
+
+            'allow_group_registrations',
+            'allow_individual_registrations',
+            'allowed_establishments_list',
+            'allowed_highschools_list',
+            'allowed_highschool_levels_list',
+            'allowed_post_bachelor_levels_list',
+            'allowed_student_levels_list',
+            'allowed_bachelor_types_list',
+            'allowed_bachelor_mentions_list',
+            'allowed_bachelor_teachings_list',
+
+            'passed_registration_limit_date',
+            'registration_limit_date',
+
+            'campus',
+            'campus_label',
+
+            'building',
+            'building_label',
+            'building_url',
+            'room',
+            'additional_information',
+
+            'n_group_places',
+            'group_registered_persons',
+            'period_registration_start_date',
+
+            'valid_registration_start_date',
+            'valid_registration_date',
+            'group_mode',
+
+            'final_available_seats',
+            'n_places',
+
+            'event_is_displayed',
+        )
+    )
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
-    now = timezone.now()
-    today = timezone.localdate()
 
     # If the current user is a student/highschool student, check whether he can register
     if student and record:
         for event in events:
-            event.already_registered = False
-            event.can_register = False
-            event.cancelled = False
-            event.opening_soon = False
+
+            event['cancelled'] = False
+            event['can_register'] = False
+            event['already_registered'] = False
+            event['opening_soon'] = False
+
             # Already registered / cancelled ?
             for immersion in student.immersions.all():
-                if immersion.slot.pk == event.pk:
-                    event.already_registered = True
-                    event.cancelled = immersion.cancellation_type is not None
+                if immersion.slot.pk == event['pk']:
+                    event['already_registered'] = True
+                    event['cancelled'] = immersion.cancellation_type is not None
 
             # Can register ?
             # not registered + free seats + dates in range + cancelled to register again
-            if not event.already_registered or event.cancelled:
-                # TODO: refactor !!!!
+            if not event['already_registered'] or event['cancelled']:
                 can_register, _obj = student.can_register_slot(event)
 
                 try:
-                    period = Period.from_date(pk=event.period.pk, date=event.date)
+                    period = Period.from_date(pk=event['period_pk'], date=event['date'])
                 except Period.DoesNotExist as e:
                     logger.exception(f"Period does not exist : {e}")
                     raise
 
-                if event.available_seats() > 0 and can_register:
+                if event['final_available_seats'] > 0 and can_register:
                     if period.registration_start_date.date() <= today <= period.immersion_end_date \
-                            and event.registration_limit_date >= now:
-                        event.can_register = True
-                    elif now < event.registration_limit_date:
-                        event.opening_soon = True
+                            and event['registration_limit_date'] >= now:
+                        event['can_register'] = True
+                    elif now < event['registration_limit_date']:
+                        event['opening_soon'] = True
+
+            data_for_context_event(data, data_dict, event)
+
     else:
         for event in events:
-            event.cancelled = False
-            event.can_register = False
-            event.already_registered = False
+            event['cancelled'] = False
+            event['can_register'] = False
+            event['already_registered'] = False
+
+            data_for_context_event(data, data_dict, event)
+
+    data_dict["events"] = events
 
     events_count = events.count()
+
     context = {
         'events_count': events_count,
         'events_txt': events_txt,
-        'events': events,
+        'data': data_dict,
     }
+
     return render(request, 'offer_off_offer_events.html', context)
 
 
@@ -1109,6 +1412,16 @@ def cohort_offer_subdomain(request, subdomain_id):
             total_registered_groups=total_registered_groups_count,
             period_registration_start_date=F('period__registration_start_date'),
             valid_registration_start_date=Q(period__registration_start_date__lte=now),
+            valid_registration_date=Case(
+                When(period__registration_end_date_policy=Period.REGISTRATION_END_DATE_PERIOD,
+                     then=Q(period__registration_start_date__lte=now,
+                            period__registration_end_date__gte=now)
+                     ),
+                default=Q(
+                    period__registration_start_date__lte=now,
+                    registration_limit_date__gte=now
+                )
+            ),
 
             course_is_displayed=Case(
                 When(
@@ -1178,6 +1491,7 @@ def cohort_offer_subdomain(request, subdomain_id):
             'total_registered_groups',
             'period_registration_start_date',
             'valid_registration_start_date',
+            'valid_registration_date',
             'group_mode',
 
             'course_is_displayed',
