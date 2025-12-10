@@ -97,220 +97,218 @@
                   {% if course_id != 'info' %}
                   {% with course=data_dict.info %}
                   {% with slots_list=data_dict.slots %}
-                    {% if slot.is_displayed %}
-                      <div class="card-header">
-                        <h6 class="mb-5 mb-sm-0 more-less-title">
-                          <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
-                          {% if slots_list %}
-                            <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{course.id}}" aria-expanded="false" aria-controls="course{{course.id}}">
-                              {{ course.label }}
-                            </button>
-                            {% if course.url %}
-                              <a href="{{ course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
-                            {% endif %}
-                          {% else %}
+                    <div class="card-header">
+                      <h6 class="mb-5 mb-sm-0 more-less-title">
+                        <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
+                        {% if slots_list %}
+                          <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{course.id}}" aria-expanded="false" aria-controls="course{{course.id}}">
                             {{ course.label }}
-                            <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
+                          </button>
+                          {% if course.url %}
+                            <a href="{{ course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
                           {% endif %}
-                          {% if True in data.alert or data.alert == True %}
-                            {% if request.user.is_anonymous or request.user.email and course not in course_alerts and authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                              <button href="#" class="badge badge-info excluded" id='id_alert_{{ course.id }}' onclick="open_alert_modal({{ course.id }})">{% trans 'Notify me when a place is available' %}</button>
-                            {% endif %}
-                            {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                              <a href="#" class="badge badge-success pull-right" id='id_alert_set_{{ course.id }}' {% if request.user.is_anonymous or course not in course_alerts %}style='display:none;'{% endif %}>
-                                {% trans 'Availability alert set' %}
-                              </a>
-                            {% endif %}
+                        {% else %}
+                          {{ course.label }}
+                          <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
+                        {% endif %}
+                        {% if True in data.alert or data.alert == True %}
+                          {% if request.user.is_anonymous or request.user.email and course not in course_alerts and authorized_groups|in_groups:"LYC,ETU,VIS" %}
+                            <button href="#" class="badge badge-info excluded" id='id_alert_{{ course.id }}' onclick="open_alert_modal({{ course.id }})">{% trans 'Notify me when a place is available' %}</button>
                           {% endif %}
-                        </h6>
-                      </div>
-                      {% if slots_list %}
-                        <div class="collapse" id="course{{course.id}}">
-                          <div class="card">
-                            <div class="card-body">
-                            {% for slot in slots_list %}
-                              <div class="table-responsive">
-                                <table class="table table-bordered" style="table-layout: fixed">
-                                  <colgroup>
-                                    <col style="width:20%" span="3">
-                                    <col style="width:10%" span="2">
-                                    <col style="width:auto">
-                                  </colgroup>
-                                  <tbody>
-                                    <tr>
-                                      <td><i class="fa fas fa-calendar text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
-                                      <td><i class="fa fas fa-clock-o text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
-                                      <td><i class="fa fa-book fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type_label }}</td>
-                                      <td rowspan="2">
-                                        {% if not hide_fields_public_area.speakers.hide_public_area %}
-                                          <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
-                                          {% trans 'Speaker(s)' %} :
+                          {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
+                            <a href="#" class="badge badge-success pull-right" id='id_alert_set_{{ course.id }}' {% if request.user.is_anonymous or course not in course_alerts %}style='display:none;'{% endif %}>
+                              {% trans 'Availability alert set' %}
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                      </h6>
+                    </div>
+                    {% if slots_list %}
+                      <div class="collapse" id="course{{course.id}}">
+                        <div class="card">
+                          <div class="card-body">
+                          {% for slot in slots_list %}
+                            <div class="table-responsive">
+                              <table class="table table-bordered" style="table-layout: fixed">
+                                <colgroup>
+                                  <col style="width:20%" span="3">
+                                  <col style="width:10%" span="2">
+                                  <col style="width:auto">
+                                </colgroup>
+                                <tbody>
+                                  <tr>
+                                    <td><i class="fa fas fa-calendar text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
+                                    <td><i class="fa fas fa-clock-o text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
+                                    <td><i class="fa fa-book fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type_label }}</td>
+                                    <td rowspan="2">
+                                      {% if not hide_fields_public_area.speakers.hide_public_area %}
+                                        <i class="fa fas fa-users text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
+                                        {% trans 'Speaker(s)' %} :
+                                        <ul>
+                                          {% if slot.speaker_list %}
+                                            {% for speaker in slot.speaker_list %}
+                                              <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
+                                            {% endfor %}
+                                          {% else %}
+                                            <li>{% trans 'Data not available' %}</li>
+                                          {% endif %}
+                                        </ul>
+                                      {% endif %}
+                                    </td>
+                                    <td rowspan="2">
+                                      {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
+                                        <i class="fa fas fa-ban text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                                        {% trans "Restrictions" %} :
+                                        {% if slot.allowed_establishments_list %}
+                                          <h6>{% trans "Allowed establishments" %} :</h6>
                                           <ul>
-                                            {% if slot.speaker_list %}
-                                              {% for speaker in slot.speaker_list %}
-                                                <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
-                                              {% endfor %}
-                                            {% else %}
-                                              <li>{% trans 'Data not available' %}</li>
-                                            {% endif %}
+                                            {% for e in slot.allowed_establishments_list %}
+                                              <li>{{ e.label }} - {{ e.city }}</li>
+                                            {% endfor %}
                                           </ul>
                                         {% endif %}
-                                      </td>
-                                      <td rowspan="2">
-                                        {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
-                                          <i class="fa fas fa-ban text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
-                                          {% trans "Restrictions" %} :
-                                          {% if slot.allowed_establishments_list %}
-                                            <h6>{% trans "Allowed establishments" %} :</h6>
-                                            <ul>
-                                              {% for e in slot.allowed_establishments_list %}
-                                                <li>{{ e.label }} - {{ e.city }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_highschools_list %}
-                                            <h6>{% trans "Allowed highschools" %} :</h6>
-                                            <ul>
-                                              {% for h in slot.allowed_highschools_list %}
-                                                <li>{{ h.label }} - {% firstof h.city no_city %}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_highschool_levels_list %}
-                                            <h6>{% trans "Allowed highschool levels" %} :</h6>
-                                            <ul>
-                                              {% for l in slot.allowed_highschool_levels_list %}
-                                                <li>{{ l }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_student_levels_list %}
-                                            <h6>{% trans "Allowed student levels" %} :</h6>
-                                            <ul>
-                                              {% for l in slot.allowed_students_levels_list %}
-                                                <li>{{ l }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_post_bachelor_levels_list %}
-                                            <h6>{% trans "Allowed post bachelor levels" %} :</h6>
-                                            <ul>
-                                              {% for l in slot.allowed_post_bachelor_levels_list %}
-                                                <li>{{ l }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_bachelor_types_list %}
-                                            <h6>{% trans "Allowed bachelor types" %} :</h6>
-                                            <ul>
-                                              {% for t in slot.allowed_bachelor_types_list %}
-                                                <li>{{ t }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_bachelor_mentions_list %}
-                                            <h6>{% trans "Allowed bachelor mentions" %} :</h6>
-                                            <ul>
-                                              {% for m in slot.allowed_bachelor_mentions_list %}
-                                                <li>{{ m }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                          {% if slot.allowed_bachelor_teachings_list %}
-                                            <h6>{% trans "Allowed bachelor teachings" %} :</h6>
-                                            <ul>
-                                              {% for t in slot.allowed_bachelor_teachings_list %}
-                                                <li>{{ t }}</li>
-                                              {% endfor %}
-                                            </ul>
-                                          {% endif %}
-                                        {% else %}
-                                          <i class="fa fas fa-universal-access text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
-                                          {% trans "Slot open to all" %}
+                                        {% if slot.allowed_highschools_list %}
+                                          <h6>{% trans "Allowed highschools" %} :</h6>
+                                          <ul>
+                                            {% for h in slot.allowed_highschools_list %}
+                                              <li>{{ h.label }} - {% firstof h.city no_city %}</li>
+                                            {% endfor %}
+                                          </ul>
                                         {% endif %}
-                                      </td>
-                                      <td>
-                                        {% if slot.cancelled %}
-                                          <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                                        {% if slot.allowed_highschool_levels_list %}
+                                          <h6>{% trans "Allowed highschool levels" %} :</h6>
+                                          <ul>
+                                            {% for l in slot.allowed_highschool_levels_list %}
+                                              <li>{{ l }}</li>
+                                            {% endfor %}
+                                          </ul>
+                                        {% endif %}
+                                        {% if slot.allowed_student_levels_list %}
+                                          <h6>{% trans "Allowed student levels" %} :</h6>
+                                          <ul>
+                                            {% for l in slot.allowed_students_levels_list %}
+                                              <li>{{ l }}</li>
+                                            {% endfor %}
+                                          </ul>
+                                        {% endif %}
+                                        {% if slot.allowed_post_bachelor_levels_list %}
+                                          <h6>{% trans "Allowed post bachelor levels" %} :</h6>
+                                          <ul>
+                                            {% for l in slot.allowed_post_bachelor_levels_list %}
+                                              <li>{{ l }}</li>
+                                            {% endfor %}
+                                          </ul>
+                                        {% endif %}
+                                        {% if slot.allowed_bachelor_types_list %}
+                                          <h6>{% trans "Allowed bachelor types" %} :</h6>
+                                          <ul>
+                                            {% for t in slot.allowed_bachelor_types_list %}
+                                              <li>{{ t }}</li>
+                                            {% endfor %}
+                                          </ul>
+                                        {% endif %}
+                                        {% if slot.allowed_bachelor_mentions_list %}
+                                          <h6>{% trans "Allowed bachelor mentions" %} :</h6>
+                                          <ul>
+                                            {% for m in slot.allowed_bachelor_mentions_list %}
+                                              <li>{{ m }}</li>
+                                            {% endfor %}
+                                          </ul>
+                                        {% endif %}
+                                        {% if slot.allowed_bachelor_teachings_list %}
+                                          <h6>{% trans "Allowed bachelor teachings" %} :</h6>
+                                          <ul>
+                                            {% for t in slot.allowed_bachelor_teachings_list %}
+                                              <li>{{ t }}</li>
+                                            {% endfor %}
+                                          </ul>
+                                        {% endif %}
+                                      {% else %}
+                                        <i class="fa fas fa-universal-access text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                                        {% trans "Slot open to all" %}
+                                      {% endif %}
+                                    </td>
+                                    <td>
+                                      {% if slot.cancelled %}
+                                        <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                                        {% if slot.can_register %}
+                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                          <div id="feedback_{{slot.pk}}" ></div>
+                                        {% endif %}
+                                      {% elif slot.already_registered %}
+                                        <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                                      {% elif slot.opening_soon %}
+                                        <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
+                                      {% elif slot.final_available_seats > 0 %}
+                                        <span class="badge badge-primary badge-pill">
+                                          {% trans 'Available places' %} : {{ slot.final_available_seats }}
+                                        </span><br>
+                                        {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                                           {% if slot.can_register %}
-                                            <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                            <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
                                             <div id="feedback_{{slot.pk}}" ></div>
                                           {% endif %}
-                                        {% elif slot.already_registered %}
-                                          <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                                        {% elif slot.opening_soon %}
-                                          <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                                        {% elif slot.final_available_seats > 0 %}
-                                          <span class="badge badge-primary badge-pill">
-                                            {% trans 'Available places' %} : {{ slot.final_available_seats }}
-                                          </span><br>
-                                          {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
-                                            {% if slot.can_register %}
-                                              <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
-                                              <div id="feedback_{{slot.pk}}" ></div>
-                                            {% endif %}
-                                          {% endif %}
-                                          <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span>
-                                        {% else %}
-                                          <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                         {% endif %}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        {% if slot.campus %}
+                                        <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">{% trans 'Registration limit' %} : {{ slot.registration_limit_date }}</span>
+                                      {% else %}
+                                        <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                      {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      {% if slot.campus %}
+                                        <p>
+                                          <i class="fa fas fa-university text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>
+                                          {{ slot.campus_label }}
+                                        </p>
+                                      {% endif %}
+                                      {% if slot.course_structure_label %}
+                                        {% if not hide_fields_public_area.structure.hide_public_area %}
                                           <p>
-                                            <i class="fa fas fa-university text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>
-                                            {{ slot.campus_label }}
+                                            <i class="fa fas fa-address-card text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
+                                            {{ slot.course_structure_label }} ({{ etab.label }})
                                           </p>
                                         {% endif %}
-                                        {% if slot.course_structure_label %}
-                                          {% if not hide_fields_public_area.structure.hide_public_area %}
-                                            <p>
-                                              <i class="fa fas fa-address-card text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
-                                              {{ slot.course_structure_label }} ({{ etab.label }})
-                                            </p>
-                                          {% endif %}
+                                      {% endif %}
+                                    </td>
+                                    <td>
+                                      {% if not hide_fields_public_area.building.hide_public_area %}
+                                        {% if slot.building %}
+                                          <i class="fa fas fa-building text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building_label }}
                                         {% endif %}
-                                      </td>
-                                      <td>
-                                        {% if not hide_fields_public_area.building.hide_public_area %}
-                                          {% if slot.building %}
-                                            <i class="fa fas fa-building text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building_label }}
-                                          {% endif %}
-                                          {% if slot.building_url %}
-                                            <a href="{{ slot.building_url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
-                                          {% endif %}
+                                        {% if slot.building_url %}
+                                          <a href="{{ slot.building_url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
                                         {% endif %}
-                                      </td>
-                                      <td>
-                                        {% if slot.room %}
-                                          {% if not hide_fields_public_area.meeting_place.hide_public_area %}
-                                            <i class="fa fas fa-map-marker text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
-                                            {{ slot.room }}
-                                          {% endif %}
+                                      {% endif %}
+                                    </td>
+                                    <td>
+                                      {% if slot.room %}
+                                        {% if not hide_fields_public_area.meeting_place.hide_public_area %}
+                                          <i class="fa fas fa-map-marker text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
+                                          {{ slot.room }}
                                         {% endif %}
-                                      </td>
-                                      <td>
-                                        {% if slot.additional_information %}
-                                          {% trans 'Additional information' %} :
-                                          <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">
-                                            {{ slot.additional_information }}
-                                          </div>
-                                          <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">
-                                            {% trans 'See more' %}
-                                          </button>
-                                        {% endif %}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            {% endfor %}
+                                      {% endif %}
+                                    </td>
+                                    <td>
+                                      {% if slot.additional_information %}
+                                        {% trans 'Additional information' %} :
+                                        <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">
+                                          {{ slot.additional_information }}
+                                        </div>
+                                        <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">
+                                          {% trans 'See more' %}
+                                        </button>
+                                      {% endif %}
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
                             </div>
+                          {% endfor %}
                           </div>
                         </div>
-                      {% endif %}
+                      </div>
                     {% endif %}
                   {% endwith %}
                   {% endwith %}

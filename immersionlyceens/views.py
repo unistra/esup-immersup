@@ -262,7 +262,6 @@ def data_for_context(data, data_dict, slot):
         'id': slot['course_id'],
         'label': slot['course_label'],
         'url': slot['course_url'],
-        'is_displayed': slot['is_displayed'],
     }
 
     if 'info' not in data[training_id]:
@@ -330,7 +329,7 @@ def offer_subdomain(request, subdomain_id):
     )
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!! Update: The code changed, now relying on the database but the comment may still be interesting
-    slots = (Slot.objects
+    slots_list = (Slot.objects
         .prefetch_related(
             'course__training__highschool',
             'course__training__structures__establishment',
@@ -505,14 +504,11 @@ def offer_subdomain(request, subdomain_id):
                 output_field = BooleanField()
             ),
         )
+        .filter(
+            is_displayed=True,
+        )
         .order_by('date', 'start_time', 'end_time')
-        
-    )
-    
-    # Quick and dirty fix for this to work before Events refactor
-    slots_objs = {slot.pk: slot for slot in slots}
-
-    slots_list = slots.values(
+    ).values(
             'training',
             'training_id',
             'training_label',
@@ -566,14 +562,11 @@ def offer_subdomain(request, subdomain_id):
 
             'final_available_seats',
             'n_places',
-
-            'is_displayed',
         )
 
     # If the current user is a student, check whether he can register
     if student and record and remaining_regs_count:
         for slot in slots_list:
-
             slot['already_registered'] = False
             slot['can_register'] = False
             slot['cancelled'] = False
@@ -598,7 +591,7 @@ def offer_subdomain(request, subdomain_id):
             # Can register ?
             # not registered + free seats + dates in range + cancelled to register again
             if not slot['already_registered'] or slot['cancelled']:
-                can_register, _obj = student.can_register_slot(slots_objs[slot["pk"]])
+                can_register, _obj = student.can_register_slot(slot)
 
                 if slot['final_available_seats'] > 0 and can_register:
                     immersion_end_datetime = datetime.datetime.combine(
@@ -633,7 +626,7 @@ def offer_subdomain(request, subdomain_id):
             slot = Slot.objects.prefetch_related("course__training").get(pk=slot_id)
             # TODO: Check for events !!!!
             if slot.course:
-                open_training_id = slot.training_id
+                open_training_id = slot.course.training_id
                 open_course_id = slot.course_id
         except Slot.DoesNotExist:
             pass
@@ -673,7 +666,6 @@ def data_for_context_event(data, data_dict, slot):
     event_info = {
         'id': slot['event_id'],
         'label': slot['event_label'],
-        'is_displayed': slot['is_displayed'],
     }
 
     if 'info' not in data[event_type_id]:
@@ -762,7 +754,6 @@ def offer_off_offer_events(request):
             'start_time',
             'end_time',
             'speakers',
-            'establishments_restrictions',
             'allow_group_registrations',
             'allowed_establishments',
             'allowed_highschools',
@@ -796,7 +787,7 @@ def offer_off_offer_events(request):
             event_type=F('event__event_type'),
             event_type_id=F('event__event_type__id'),
             event_type_label=F('event__event_type__label'),
-
+            period_pk=F('period__pk'),
             speaker_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
@@ -886,6 +877,15 @@ def offer_off_offer_events(request):
                 default=False,
                 output_field=BooleanField()
             ),
+            passed_cancellation_limit_date=Case(
+                When(
+                    cancellation_limit_date__isnull=False,
+                    cancellation_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
 
             campus_label=F('campus__label'),
             building_label=F('building__label'),
@@ -924,6 +924,7 @@ def offer_off_offer_events(request):
                 output_field=BooleanField()
             ),
         )
+        .filter(is_displayed=True,)
         .order_by('event__establishment__label',
             'event__highschool__label',
             'event__label',
@@ -940,6 +941,7 @@ def offer_off_offer_events(request):
             'event_structure_label',
 
             'pk',
+            'period_pk',
             'date',
             'start_time',
             'end_time',
@@ -985,8 +987,6 @@ def offer_off_offer_events(request):
 
             'final_available_seats',
             'n_places',
-
-            'is_displayed',
         )
     )
 
@@ -1210,7 +1210,6 @@ def cohort_offer(request):
             'start_time',
             'end_time',
             'speakers',
-            'establishments_restrictions',
             'allow_group_registrations',
             'allowed_establishments',
             'allowed_highschools',
@@ -1331,7 +1330,15 @@ def cohort_offer(request):
                 default=False,
                 output_field=BooleanField()
             ),
-
+            passed_cancellation_limit_date=Case(
+                When(
+                    cancellation_limit_date__isnull=False,
+                    cancellation_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
             campus_label=F('campus__label'),
             building_label=F('building__label'),
             building_url=F('building__url'),
@@ -1360,6 +1367,9 @@ def cohort_offer(request):
                 default=Value(False),
                 output_field=BooleanField()
             ),
+        )
+        .filter(
+            is_displayed=True,
         )
         .order_by('event__establishment__label',
             'event__highschool__label',
@@ -1419,8 +1429,6 @@ def cohort_offer(request):
             'valid_registration_start_date',
             'valid_registration_date',
             'group_mode',
-
-            'is_displayed',
         )
     )
 
@@ -1484,7 +1492,6 @@ def cohort_offer_subdomain(request, subdomain_id):
             'end_time',
             'course_type',
             'speakers',
-            'establishments_restrictions',
             'allow_group_registrations',
             'allowed_establishments',
             'allowed_highschools',
@@ -1614,6 +1621,15 @@ def cohort_offer_subdomain(request, subdomain_id):
                 default=False,
                 output_field=BooleanField()
             ),
+            passed_cancellation_limit_date=Case(
+                When(
+                    cancellation_limit_date__isnull=False,
+                    cancellation_limit_date__lt=now,
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
             campus_label=F('campus__label'),
             building_label=F('building__label'),
             building_url=F('building__url'),
@@ -1643,6 +1659,9 @@ def cohort_offer_subdomain(request, subdomain_id):
                 default=Value(False),
                 output_field=BooleanField()
             ),
+        )
+        .filter(
+            is_displayed=True,
         )
         .order_by('date', 'start_time', 'end_time')
         .values(
@@ -1703,8 +1722,6 @@ def cohort_offer_subdomain(request, subdomain_id):
             'valid_registration_start_date',
             'valid_registration_date',
             'group_mode',
-
-            'is_displayed',
         )
     )
 
