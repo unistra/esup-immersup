@@ -336,24 +336,10 @@ def offer_subdomain(request, subdomain_id):
             'course_type',
             'course__structure__establishment',
             'course__highschool',
-            'campus',
-            'building',
-            'speakers',
             'event__event_type',
             'event__establishment',
             'event__structure__establishment',
             'event__highschool',
-            'immersions__cancellation_type',
-            'allowed_establishments',
-            'allowed_highschools',
-            'allowed_highschool_levels',
-            'allowed_post_bachelor_levels',
-            'allowed_student_levels',
-            'allowed_bachelor_types',
-            'allowed_bachelor_mentions',
-            'allowed_bachelor_teachings',
-            'group_immersions',
-            'period'
         )
         .filter(
             course__training__training_subdomains=subdomain_id,
@@ -362,7 +348,6 @@ def offer_subdomain(request, subdomain_id):
             allow_individual_registrations=True
         )
         .annotate(
-            training=F('course__training'),
             training_id=F('course__training__id'),
             training_label=F('course__training__label'),
             training_url=F('course__training__url'),
@@ -509,7 +494,6 @@ def offer_subdomain(request, subdomain_id):
         )
         .order_by('date', 'start_time', 'end_time')
     ).values(
-            'training',
             'training_id',
             'training_label',
             'training_url',
@@ -524,14 +508,13 @@ def offer_subdomain(request, subdomain_id):
             'course_label',
             'course_url',
             'course_structure_label',
+            'course_type_label',
 
             'pk',
-            'id',
             'period_pk',
             'date',
             'start_time',
             'end_time',
-            'course_type_label',
 
             'speaker_list',
             'establishments_restrictions',
@@ -561,7 +544,6 @@ def offer_subdomain(request, subdomain_id):
             'additional_information',
 
             'final_available_seats',
-            'n_places',
         )
 
     # If the current user is a student, check whether he can register
@@ -747,24 +729,6 @@ def offer_off_offer_events(request):
             'event__structure__establishment',
             'event__event_type__label',
             'period__registration_start_date',
-            'immersions',
-            
-            'pk',
-            'date',
-            'start_time',
-            'end_time',
-            'speakers',
-            'allow_group_registrations',
-            'allowed_establishments',
-            'allowed_highschools',
-            'allowed_highschool_levels',
-            'allowed_post_bachelor_levels',
-            'allowed_student_levels',
-            'allowed_bachelor_types',
-            'allowed_bachelor_mentions',
-            'allowed_bachelor_teachings',
-            'campus',
-            'building',
         )
         .filter(
             **filters
@@ -784,7 +748,6 @@ def offer_off_offer_events(request):
             ),
             event_label=F('event__label'),
             event_structure_label=F('event__structure__label'),
-            event_type=F('event__event_type'),
             event_type_id=F('event__event_type__id'),
             event_type_label=F('event__event_type__label'),
             period_pk=F('period__pk'),
@@ -939,15 +902,14 @@ def offer_off_offer_events(request):
             'event_id',
             'event_label',
             'event_structure_label',
+            'event_type_id',
+            'event_type_label',
 
             'pk',
             'period_pk',
             'date',
             'start_time',
             'end_time',
-            'event_type',
-            'event_type_id',
-            'event_type_label',
 
             'speaker_list',
             'establishments_restrictions',
@@ -976,17 +938,6 @@ def offer_off_offer_events(request):
             'building_url',
             'room',
             'additional_information',
-
-            'n_group_places',
-            'group_registered_persons',
-            'period_registration_start_date',
-
-            'valid_registration_start_date',
-            'valid_registration_date',
-            'group_mode',
-
-            'final_available_seats',
-            'n_places',
         )
     )
 
@@ -1203,24 +1154,6 @@ def cohort_offer(request):
             'event__structure__establishment',
             'event__event_type__label',
             'period__registration_start_date',
-            'immersions',
-
-            'pk',
-            'date',
-            'start_time',
-            'end_time',
-            'speakers',
-            'allow_group_registrations',
-            'allowed_establishments',
-            'allowed_highschools',
-            'allowed_highschool_levels',
-            'allowed_post_bachelor_levels',
-            'allowed_student_levels',
-            'allowed_bachelor_types',
-            'allowed_bachelor_mentions',
-            'allowed_bachelor_teachings',
-            'campus',
-            'building',
         )
         .filter(
             **filters
@@ -1237,8 +1170,6 @@ def cohort_offer(request):
             ),
             event_label=F('event__label'),
             event_structure_label=F('event__structure__label'),
-            event_type=F('event__event_type'),
-            event_type_id=F('event__event_type__id'),
             event_type_label=F('event__event_type__label'),
 
             speaker_list=Coalesce(
@@ -1380,9 +1311,7 @@ def cohort_offer(request):
         .values(
             'event_structure',
             'establishment_label',
-            'establishment_badge_html_color',
 
-            'event_id',
             'event_label',
             'event_structure_label',
 
@@ -1390,8 +1319,6 @@ def cohort_offer(request):
             'date',
             'start_time',
             'end_time',
-            'event_type',
-            'event_type_id',
             'event_type_label',
 
             'speaker_list',
@@ -1484,25 +1411,6 @@ def cohort_offer_subdomain(request, subdomain_id):
             'course__training__structures__establishment',
             'course__structure__establishment',
             'period__registration_start_date',
-
-            'pk',
-            'id',
-            'date',
-            'start_time',
-            'end_time',
-            'course_type',
-            'speakers',
-            'allow_group_registrations',
-            'allowed_establishments',
-            'allowed_highschools',
-            'allowed_highschool_levels',
-            'allowed_post_bachelor_levels',
-            'allowed_student_levels',
-            'allowed_bachelor_types',
-            'allowed_bachelor_mentions',
-            'allowed_bachelor_teachings',
-            'campus',
-            'building'
         )
         .filter(
             course__training__training_subdomains=subdomain_id,
@@ -1512,7 +1420,6 @@ def cohort_offer_subdomain(request, subdomain_id):
             **public_groups_filter
         )
         .annotate(
-            training=F('course__training'),
             training_id=F('course__training__id'),
             training_label=F('course__training__label'),
             training_url=F('course__training__url'),
@@ -1665,7 +1572,6 @@ def cohort_offer_subdomain(request, subdomain_id):
         )
         .order_by('date', 'start_time', 'end_time')
         .values(
-            'training',
             'training_id',
             'training_label',
             'training_url',
@@ -1682,7 +1588,6 @@ def cohort_offer_subdomain(request, subdomain_id):
             'course_structure_label',
 
             'pk',
-            'id',
             'date',
             'start_time',
             'end_time',

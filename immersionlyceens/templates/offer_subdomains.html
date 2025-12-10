@@ -232,7 +232,7 @@
                                       {% if slot.cancelled %}
                                         <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                         {% if slot.can_register %}
-                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.pk }})">{% trans 'Register again' %}</button>
                                           <div id="feedback_{{slot.pk}}" ></div>
                                         {% endif %}
                                       {% elif slot.already_registered %}
@@ -245,7 +245,7 @@
                                         </span><br>
                                         {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                                           {% if slot.can_register %}
-                                            <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
+                                            <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.pk }})">{% trans 'Register' %}</button>
                                             <div id="feedback_{{slot.pk}}" ></div>
                                           {% endif %}
                                         {% endif %}
@@ -293,7 +293,7 @@
                                     <td>
                                       {% if slot.additional_information %}
                                         {% trans 'Additional information' %} :
-                                        <div class="text-truncate" id="truncated_info_{{ slot.id }}" style="max-height: 4.5em; overflow: hidden;">
+                                        <div class="text-truncate" id="truncated_info_{{ slot.pk }}" style="max-height: 4.5em; overflow: hidden;">
                                           {{ slot.additional_information }}
                                         </div>
                                         <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">
