@@ -938,6 +938,7 @@ def offer_off_offer_events(request):
             'building_url',
             'room',
             'additional_information',
+            'final_available_seats',
         )
     )
 
@@ -1171,6 +1172,7 @@ def cohort_offer(request):
             event_label=F('event__label'),
             event_structure_label=F('event__structure__label'),
             event_type_label=F('event__event_type__label'),
+            event_type_id=F('event__event_type__id'),
 
             speaker_list=Coalesce(
                 ArrayAgg(
@@ -1312,8 +1314,10 @@ def cohort_offer(request):
             'event_structure',
             'establishment_label',
 
+            'event_id',
             'event_label',
             'event_structure_label',
+            'event_type_id',
 
             'pk',
             'date',
