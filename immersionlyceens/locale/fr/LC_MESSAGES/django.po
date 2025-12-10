@@ -9495,7 +9495,7 @@ msgstr "Besoin d'aide ?"
 
 #: immersionlyceens/templates/home.html:63
 msgid "Social Media"
-msgstr "Réseau social"
+msgstr "Réseaux sociaux"
 
 #: immersionlyceens/templates/immersion/activation_needed.html:3
 #: immersionlyceens/templates/immersion/activation_needed.html:10
