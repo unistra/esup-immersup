@@ -233,14 +233,14 @@ class Establishment(BaseEstablishment):
         upload_to=get_file_path,
         blank=True,
         null=True,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png, svg+xml'},
     )
     signature = models.ImageField(
         _("Signature"),
         upload_to=get_file_path,
         blank=True,
         null=True,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png, svg+xml'},
     )
 
     objects = models.Manager()  # default manager
@@ -333,14 +333,14 @@ class HighSchool(BaseEstablishment):
         upload_to=get_file_path,
         blank=True,
         null=True,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png, svg+xml'},
     )
     signature = models.ImageField(
         _("Signature"),
         upload_to=get_file_path,
         blank=True,
         null=True,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png, svg+xml'},
     )
 
     with_convention = models.BooleanField(_("Has a convention"), default=True)
@@ -3683,6 +3683,7 @@ class CertificateLogo(models.Model):
     CertificateLogo class (singleton)
     """
     ALLOWED_TYPES = {
+        'svg': "image/svg+xml",
         'png': "image/png",
         'jpeg': "image/jpeg",
         'jpg': "image/jpeg",
@@ -3694,7 +3695,7 @@ class CertificateLogo(models.Model):
         upload_to=get_file_path,
         blank=False,
         null=False,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png, svg+xml'},
     )
 
     objects = CustomDeleteManager()
@@ -3729,6 +3730,7 @@ class CertificateSignature(models.Model):
     """
 
     ALLOWED_TYPES = {
+        'svg': "image/svg+xml",
         'png': "image/png",
         'jpeg': "image/jpeg",
         'jpg': "image/jpeg",
@@ -3740,7 +3742,7 @@ class CertificateSignature(models.Model):
         upload_to=get_file_path,
         blank=False,
         null=False,
-        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png, svg+xml'},
     )
 
     objects = CustomDeleteManager()
@@ -3778,6 +3780,7 @@ class CustomThemeFile(models.Model):
     Any file used to pimp immersup theme
     """
     ALLOWED_TYPES = {
+        'svg': "image/svg+xml",
         'png': "image/png",
         'jpeg': "image/jpeg",
         'jpg': "image/jpeg",
@@ -3803,7 +3806,7 @@ class CustomThemeFile(models.Model):
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
                   % {
-                      'authorized_types': ', '.join(['png', 'jpeg', 'jpg', 'ico', 'css', 'js']),
+                      'authorized_types': ', '.join(['svg+xml', 'png', 'jpeg', 'jpg', 'ico', 'css', 'js']),
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )

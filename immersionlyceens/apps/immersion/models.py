@@ -474,7 +474,7 @@ class VisitorRecord(BaseRecord):
         (BaseRecord.TO_REVALIDATE, _('To revalidate'))
     ]
 
-    AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png"]
+    AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png", "svg+xml"]
 
     visitor = models.OneToOneField(
         core_models.ImmersionUser,
@@ -597,6 +597,7 @@ class RecordDocument(models.Model):
     """
     # FIXME : move this in settings ?
     ALLOWED_TYPES = {
+        'svg': "image/svg+xml",
         'png': "image/png",
         'jpeg': "image/jpeg",
         'jpg': "image/jpeg",
