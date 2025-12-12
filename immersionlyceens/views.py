@@ -910,6 +910,7 @@ def offer_off_offer_events(request):
             'date',
             'start_time',
             'end_time',
+            'place',
 
             'speaker_list',
             'establishments_restrictions',
@@ -1324,6 +1325,7 @@ def cohort_offer(request):
             'start_time',
             'end_time',
             'event_type_label',
+            'place',
 
             'speaker_list',
             'establishments_restrictions',

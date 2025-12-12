@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block head-javascript %}
-  <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -238,33 +238,34 @@
                                         {% trans "Slot open to all" %}
                                       {% endif %}
                                     </td>
-                                    <td >
+                                    <td>
                                       {% if slot.cancelled %}
-                                      <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                                      {% if slot.can_register %}
-                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">
-                                        {% trans 'Register again' %}
-                                      </button>
-                                      <div id="feedback_{{slot.pk}}"></div>
-                                      {% endif %}
+                                        <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                                        {% if slot.can_register %}
+                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
+                                            {% trans 'Register again' %}
+                                          </button>
+                                          <div id="feedback_{{slot.pk}}"></div>
+                                        {% endif %}
                                       {% elif slot.already_registered %}
-                                      <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                                        <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
                                       {% elif slot.opening_soon %}
-                                      <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                                      {% elif slot.available_seats > 0 %}
-                                      <span class="badge badge-primary badge-pill">
-                                        {% trans 'Available places' %} : {{ slot.available_seats }}
-                                      </span><br>
-                                      {% if authorized_groups|in_groups:"LYC,ETU,VIS" and slot.can_register %}
-                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
-                                        {% trans 'Register' %}
-                                      </button>
-                                      <div id="feedback_{{slot.pk}}"></div>
-                                      {% endif %}
-                                      <span class="badge badge-pill {% if s.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">
-                                          {% trans 'Registration limit' %} : {{ s.registration_limit_date }}
-                                        </span>{% else %}
-                                      <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                        <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
+                                      {% elif slot.final_available_seats > 0 %}
+                                        <span class="badge badge-primary badge-pill">
+                                          {% trans 'Available places' %} : {{ slot.final_available_seats }}
+                                        </span><br>
+                                        {% if authorized_groups|in_groups:"LYC,ETU,VIS" and slot.can_register %}
+                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
+                                            {% trans 'Register' %}
+                                          </button>
+                                          <div id="feedback_{{slot.pk}}"></div>
+                                        {% endif %}
+                                        <span class="badge badge-pill {% if slot.passed_registration_limit_date %}badge-danger{% else %}badge-info{% endif %}">
+                                            {% trans 'Registration limit' %} : {{ slot.registration_limit_date }}
+                                        </span>
+                                      {% else %}
+                                        <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                       {% endif %}
                                     </td>
                                   </tr>
@@ -300,13 +301,12 @@
                                       {% endif %}
                                     </td>
                                     <td>
-                                      {% if s.additional_information %}
+                                      {% if slot.additional_information %}
                                         {% trans 'Additional information' %} :
-                                        <div class="text-truncate" id="truncated_info_{{ s.id }}" style="max-height: 4.5em; overflow: hidden;">{{ s.additional_information }}</div>
-                                        <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ s.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
+                                        <div class="text-truncate" id="truncated_info_{{ slot.pk }}" style="max-height: 4.5em; overflow: hidden;">{{ slot.additional_information }}</div>
+                                        <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">{% trans 'See more' %}</button>
                                       {% endif %}
                                     </td>
-
                                   </tr>
                                 </tbody>
                               </table>
