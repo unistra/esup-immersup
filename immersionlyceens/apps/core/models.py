@@ -873,9 +873,9 @@ class ImmersionUser(AbstractUser):
         errors = []
 
         slot_has_restrictions = any([
-            slot['establishments_restrictions'],
-            slot['levels_restrictions'],
-            slot['bachelors_restrictions']
+            slot.get('establishments_restrictions', False),
+            slot.get('levels_restrictions', False),
+            slot.get('bachelors_restrictions', False),
         ])
 
         # Returns True if no restrictions are found
@@ -890,18 +890,18 @@ class ImmersionUser(AbstractUser):
                 return False, errors
 
             high_school_conditions = [
-                slot['allowed_highschools'].exists(),
-                record.highschool in slot['allowed_highschools_list']
+                slot.get('allowed_highschools', False),
+                record.highschool in slot.get('allowed_highschools_list', [])
             ]
 
             levels_conditions = [
-                slot['allowed_highschool_levels'].exists() and record.level in slot['allowed_highschool_levels_list'],
-                slot['allowed_post_bachelor_levels'].exists() and
-                    record.post_bachelor_level in slot['allowed_post_bachelor_levels_list']
+                slot.get('allowed_highschool_levels', False) and record.level in slot.get('allowed_highschool_levels_list', []),
+                slot.get('allowed_post_bachelor_levels', False) and
+                    record.post_bachelor_level in slot.get('allowed_post_bachelor_levels_list', [])
             ]
 
             bachelor_restrictions = [
-                slot['allowed_bachelor_types'].exists() and record.bachelor_type in slot['allowed_bachelor_types_list'],
+                slot.get('allowed_bachelor_types', False) and record.bachelor_type in slot.get('allowed_bachelor_types_list', []),
                 any([
                     not record.bachelor_type or not any([
                         record.bachelor_type.professional,
@@ -909,21 +909,22 @@ class ImmersionUser(AbstractUser):
                         record.bachelor_type.technological
                     ]),
                     record.bachelor_type and record.bachelor_type.professional,
-                    slot['allowed_bachelor_types'].filter(technological=True).exists()
-                    and (not slot['allowed_bachelor_mentions'].exists() or
+                    any(b_type.technological for b_type in slot.get('allowed_bachelor_types_list', []))
+                    and (not slot.get('allowed_bachelor_mentions', False) or
                          record.technological_bachelor_mention in slot['allowed_bachelor_mentions_list']),
-                    slot['allowed_bachelor_types'].filter(general=True).exists()
-                    and (not slot['allowed_bachelor_teachings'].exists() or
-                         slot['allowed_bachelor_teachings_list'].intersection(
-                             record['general_bachelor_teachings_list']).exists())
+                    any(b_type.general for b_type in slot.get('allowed_bachelor_types_list', []))
+                    and (not slot.get('allowed_bachelor_teachings', False) or
+                         set(slot.get('allowed_bachelor_teachings_list', [])).intersection(
+                             set(record.general_bachelor_teachings.all()))
+                    )
                 ])
             ]
 
-            if slot['establishments_restrictions'] and not all(high_school_conditions):
+            if slot.get('establishments_restrictions', False) and not all(high_school_conditions):
                 errors.append(_('High schools restrictions in effect'))
-            if slot['levels_restrictions'] and not any(levels_conditions):
+            if slot.get('levels_restrictions', False) and not any(levels_conditions):
                 errors.append(_('High school or post bachelor levels restrictions in effect'))
-            if slot['bachelors_restrictions'] and not all(bachelor_restrictions):
+            if slot.get('bachelors_restrictions', False) and not all(bachelor_restrictions):
                 errors.append(_('Bachelors restrictions in effect'))
 
             if errors:
@@ -939,22 +940,22 @@ class ImmersionUser(AbstractUser):
 
             # record.home_institution()[0] in slot['allowed_establishments'].values_list('label', flat=True)
             establishment_conditions = [
-                slot['allowed_establishments'].exists(),
-                establishment and establishment in slot['allowed_establishments_list']
+                slot.get('allowed_establishments', False),
+                establishment and establishment in slot.get('allowed_establishments_list', []),
             ]
 
             levels_conditions = [
-                slot['allowed_student_levels'].exists(),
-                record.level in slot['allowed_student_levels_list']
+                slot.get('allowed_student_levels', False),
+                record.level in slot.get('allowed_student_levels_list', []),
             ]
 
-            if slot['establishments_restrictions'] and not all(establishment_conditions):
+            if slot.get('establishments_restrictions', False) and not all(establishment_conditions):
                 errors.append(_('Establishments restrictions in effect'))
 
-            if slot['levels_restrictions'] and not all(levels_conditions):
+            if slot.get('levels_restrictions', False) and not all(levels_conditions):
                 errors.append(_('Student levels restrictions in effect'))
 
-            if slot['bachelors_restrictions']:
+            if slot.get('bachelors_restrictions', False):
                 errors.append(_('Bachelors restrictions in effect'))
 
             if errors:
@@ -968,7 +969,7 @@ class ImmersionUser(AbstractUser):
                 errors.append(_("Visitor record not found or not valid"))
 
             # visitors can register to "open to all" slots
-            if any([slot['levels_restrictions'], slot['establishments_restrictions'], slot['bachelors_restrictions']]):
+            if slot_has_restrictions:
                 errors.append(_('Slot restrictions in effect'))
 
             if errors:

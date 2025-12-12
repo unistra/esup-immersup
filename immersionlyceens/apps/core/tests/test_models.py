@@ -669,31 +669,31 @@ class ImmersionUserTestCase(TestCase):
         )
         course.speakers.add(speaker1)
         course_type = CourseType.objects.create(label='CM')
-        slot = Slot.objects.create(
-            course=course,
-            course_type=course_type,
-            campus=None,
-            building=None,
-            place=Slot.REMOTE,
-            url='http://www.google.fr',
-            room=None,
-            date=self.today + timedelta(days=1),
-            start_time=time(12, 0),
-            end_time=time(14, 0),
-            n_places=20,
-            published=True,
-            additional_information="Hello there!",
-            establishments_restrictions=False
-        )
+
+        slot = {
+            'course':course,
+            'course_type':course_type,
+            'campus':None,
+            'building':None,
+            'place':Slot.REMOTE,
+            'url':'http://www.google.fr',
+            'room':None,
+            'date':self.today + timedelta(days=1),
+            'start_time':time(12, 0),
+            'end_time':time(14, 0),
+            'n_places':20,
+            'published':True,
+            'additional_information':"Hello there!",
+            'establishments_restrictions':False
+        }
 
         can_register, errors = student.can_register_slot(slot)
         self.assertTrue(can_register)
         self.assertEqual(errors, [])
 
         # Add a restriction on the slot and try again
-        slot.establishments_restrictions = True
-        slot.allowed_establishments.add(self.no_si_establishment)
-        slot.save()
+        slot['establishments_restrictions'] = True
+        slot.get('allowed_establishments', []).append(self.no_si_establishment)
 
         can_register, errors = student.can_register_slot(slot)
         self.assertFalse(can_register)
