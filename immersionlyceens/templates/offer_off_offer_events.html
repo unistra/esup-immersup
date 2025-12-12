@@ -159,7 +159,7 @@
                                       {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                       <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                       {% trans "Restrictions" %} :
-                                        <dialog>
+                                        <dialog id="{{ slot.pk }}">
                                           <div class="restriction-details">
                                             <h5 class="modal-title">{% trans "Restrictions details" %}</h5>
                                             <hr>
@@ -230,9 +230,9 @@
                                             </ul>
                                             {% endif %}
                                           </div>
-                                          <button class="btn btn-link p-0 mt-1">Close</button>
+                                          <button class="btn btn-link p-0 mt-1" data-close-dialog="{{ slot.pk }}">Close</button>
                                         </dialog>
-                                        <button class="btn btn-link p-0 mt-1">{% trans "See restrictions" %}</button>
+                                        <button class="btn btn-link p-0 mt-1" data-show-dialog="{{ slot.pk }}">{% trans "See restrictions" %}</button>
                                       {% else %}
                                         <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                         {% trans "Slot open to all" %}
@@ -339,18 +339,39 @@ var feedback;
 var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
 
 //Restrictions details Modal buttons
-const dialog = document.querySelector("dialog");
-const showButton = document.querySelector("dialog + button");
-const closeButton = document.querySelector("dialog button");
+document.addEventListener("DOMContentLoaded", () => {
 
-showButton.addEventListener("click", () => {
-  dialog.showModal();
+    // See restrictions
+    document.querySelectorAll("[data-show-dialog]").forEach(showButton => {
+        showButton.addEventListener("click", () => {
+            const dialogId = showButton.dataset.showDialog;
+            const dialog = document.getElementById(dialogId);
+            if (dialog) {
+                dialog.showModal();
+            }
+        });
+    });
+
+    // Close restrictions
+    document.querySelectorAll("[data-close-dialog]").forEach(closeButton => {
+        closeButton.addEventListener("click", () => {
+            const dialogId = closeButton.dataset.closeDialog;
+            const dialog = document.getElementById(dialogId);
+            if (dialog) {
+                dialog.close();
+            }
+        });
+    });
+
+    // Backdrop restrictions
+    document.querySelectorAll("dialog").forEach(dialog => {
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog) {
+                dialog.close();
+            }
+        });
+    });
 });
-
-closeButton.addEventListener("click", () => {
-  dialog.close();
-});
-
 
 function register(slot_id) {
   $.ajax({
