@@ -422,13 +422,17 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_student_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                    F('allowed_student_levels__label'),
+                    filter=Q(allowed_student_levels__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_types_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                    F('allowed_bachelor_types__label'),
+                    filter=Q(allowed_bachelor_types__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),

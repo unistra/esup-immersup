@@ -900,6 +900,10 @@ class ImmersionUser(AbstractUser):
                     record.post_bachelor_level in slot.get('allowed_post_bachelor_levels_list', [])
             ]
 
+            allowed_bachelor_types = BachelorType.objects.filter(label__in=slot.get('allowed_bachelor_types_list', []))
+
+            print(b_type.technological for b_type in allowed_bachelor_types)
+
             bachelor_restrictions = [
                 slot.get('allowed_bachelor_types', False) and record.bachelor_type in slot.get('allowed_bachelor_types_list', []),
                 any([
@@ -909,11 +913,11 @@ class ImmersionUser(AbstractUser):
                         record.bachelor_type.technological
                     ]),
                     record.bachelor_type and record.bachelor_type.professional,
-                    any(b_type.technological for b_type in slot.get('allowed_bachelor_types_list', []))
-                    and (not slot.get('allowed_bachelor_mentions', False) or
-                         record.technological_bachelor_mention in slot['allowed_bachelor_mentions_list']),
-                    any(b_type.general for b_type in slot.get('allowed_bachelor_types_list', []))
-                    and (not slot.get('allowed_bachelor_teachings', False) or
+                    any(b_type.technological for b_type in allowed_bachelor_types)
+                    and (not slot.get('allowed_bachelor_mentions_list', False) or
+                         record.technological_bachelor_mention in slot.get('allowed_bachelor_mentions_list', [])),
+                    any(b_type.general for b_type in allowed_bachelor_types)
+                    and (not slot.get('allowed_bachelor_teachings_list', False) or
                          set(slot.get('allowed_bachelor_teachings_list', [])).intersection(
                              set(record.general_bachelor_teachings.all()))
                     )
