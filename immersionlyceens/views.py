@@ -284,7 +284,6 @@ def data_for_context(data, data_dict, slot):
             etabs[etab_label] = dict(course_dict)
         data_dict[training_id] = etabs
 
-
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
     student = None
@@ -601,9 +600,10 @@ def offer_subdomain(request, subdomain_id):
 
             data_for_context(data, data_dict, slot)
 
-    data_dict["slot_list"] = slots_list
+    data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
 
-    data_dict['alert'] = (not slots_list or all(slot['final_available_seats'] == 0 for slot in slots_list))
+    data_dict["slot_list"] = slots_list
+    data_dict["alert"] = (not slots_list or all(slot['final_available_seats'] == 0 for slot in slots_list))
 
     # For navigation
     slot_id = request.session.get("last_registration_slot_id", None)
@@ -991,6 +991,8 @@ def offer_off_offer_events(request):
 
             data_for_context_event(data, data_dict, slot)
 
+    data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
+
     data_dict["events"] = slots
 
     context = {
@@ -1371,7 +1373,10 @@ def cohort_offer(request):
 
     for slot in slots:
         data_for_context_event(data, data_dict, slot)
-        data_dict["events"] = slots
+
+    data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
+
+    data_dict["events"] = slots
 
     context = {
         'subdomains': subdomains,
@@ -1642,6 +1647,8 @@ def cohort_offer_subdomain(request, subdomain_id):
 
     for slot in slots_list:
         data_for_context(data, data_dict, slot)
+
+    data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
 
     data_dict["slot_list"] = slots_list
 
