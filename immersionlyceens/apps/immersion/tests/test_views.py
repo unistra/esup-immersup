@@ -968,6 +968,10 @@ class ImmersionViewsTestCase(TestCase):
         # as a student
         self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id)
+
+        # CI TEST
+        self.assertEqual(response.content, {})
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/pdf')
 

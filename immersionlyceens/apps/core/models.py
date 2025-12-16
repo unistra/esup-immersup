@@ -902,8 +902,6 @@ class ImmersionUser(AbstractUser):
 
             allowed_bachelor_types = BachelorType.objects.filter(label__in=slot.get('allowed_bachelor_types_list', []))
 
-            print(b_type.technological for b_type in allowed_bachelor_types)
-
             bachelor_restrictions = [
                 slot.get('allowed_bachelor_types', False) and record.bachelor_type in slot.get('allowed_bachelor_types_list', []),
                 any([

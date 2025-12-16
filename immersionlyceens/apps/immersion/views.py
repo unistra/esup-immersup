@@ -1987,7 +1987,10 @@ def immersion_attendance_students_list_download(request, slot_id):
     # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
         logger.error('Certificate download error', exc_info=e)
-        raise Http404() from e
+        from django.http import JsonResponse
+        from rest_framework import status
+        return JsonResponse({"error": e}, status=status.HTTP_404_NOT_FOUND)
+        # raise Http404() from e
 
 
 @method_decorator(groups_required('VIS', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
