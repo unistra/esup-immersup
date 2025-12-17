@@ -1320,7 +1320,7 @@ def cohort_offer(request):
         .values(
             'event_structure',
             'establishment_label',
-
+            'establishment_badge_html_color',
             'event_id',
             'event_label',
             'event_structure_label',

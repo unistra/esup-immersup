@@ -164,7 +164,7 @@
                                 <h6 class="mb-5 mb-sm-0 more-less-title">
                                   <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Event' %}"></i>
                                   <button class="btn btn-link pl-0 nav-link" data-toggle="collapse" data-target="#slot{{slot_i}}_{{event_type_id}}" aria-expanded="{% if nb_events == 1 %}true{% else %}false{% endif %}" aria-controls="slot{{slot_i}}_{{event_type_id}}">
-                                    <span class="badge badge-pill immersup-badge" style="background-color: {{ slot.list.0.get_badge_color }};margin: 2px;">{{ event.list.0.get_establishment_or_highschool.label }}</span>
+                                    <span class="badge badge-pill immersup-badge" style="background-color: {{ slot_list.0.establishment_badge_html_color }};margin: 2px;">{{ slot_list.0.establishment_label }}</span>
                                     {{ event_info.label }}
                                   </button>
                                 </h6>
