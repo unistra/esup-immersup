@@ -527,7 +527,7 @@ class FormTestCase(TestCase):
             label='Now',
             registration_start_date=self.today - datetime.timedelta(days=2),
             immersion_start_date=self.today - datetime.timedelta(days=1),
-            immersion_end_date=self.today + datetime.timedelta(days=1),
+            immersion_end_date=self.today + datetime.timedelta(days=2),
             allowed_immersions=4
         )
         invalid_data["period"] = period_now
@@ -546,6 +546,7 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
 
+        invalid_data["date"] = self.today + datetime.timedelta(days=1)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
         form = SlotForm(data=invalid_data, request=request)
