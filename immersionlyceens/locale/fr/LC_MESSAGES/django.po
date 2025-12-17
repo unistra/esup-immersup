@@ -3367,10 +3367,8 @@ msgid "%s institutes not deleted where they should have been"
 msgstr "%s référence(s) établissement aurai(en)t du être supprimée(s)"
 
 #: immersionlyceens/apps/core/management/commands/import_uai.py:37
-#, fuzzy
-#| msgid "Error: missing immersion id parameter"
 msgid "UAI update error : missing url and/or header parameters."
-msgstr "Erreur : paramètre manquant (id immersion)"
+msgstr "Erreur de mise à jour UAI : paramètre manquant (URL ou en-tête HTML)"
 
 #: immersionlyceens/apps/core/management/commands/import_uai.py:57
 #, python-format
@@ -3378,10 +3376,8 @@ msgid "UAI update error (get_json_from_url) : %s"
 msgstr ""
 
 #: immersionlyceens/apps/core/management/commands/import_uai.py:63
-#, fuzzy, python-format
-#| msgid "%s account(s) deleted"
 msgid "%s unused UAI deleted"
-msgstr "%s compte(s) supprimé(s)"
+msgstr "%s UAI inutilisés supprimés"
 
 #: immersionlyceens/apps/core/management/commands/import_uai.py:89
 #, python-format
@@ -3390,16 +3386,12 @@ msgid ""
 msgstr ""
 
 #: immersionlyceens/apps/core/management/commands/import_uai.py:93
-#, fuzzy, python-format
-#| msgid "User '{}' created"
 msgid "%s UAI created"
-msgstr "Utilisateur '{}' créé"
+msgstr "%s UAI créé(s)"
 
 #: immersionlyceens/apps/core/management/commands/import_uai.py:94
-#, fuzzy, python-format
-#| msgid "Mass update"
 msgid "%s UAI updated"
-msgstr "Modification en masse"
+msgstr "%s UAI mis à jour"
 
 #: immersionlyceens/apps/core/management/commands/send_attestation_expiration_warning.py:26
 msgid "Send attestation expiration warnings"
@@ -6320,31 +6312,22 @@ msgid "EduConnect"
 msgstr "EduConnect"
 
 #: immersionlyceens/apps/immersion/views.py:262
-#, fuzzy
-#| msgid "Use EduConnect"
 msgid "Connection with EduConnect"
-msgstr "via EduConnect"
+msgstr "Connexion via EduConnect"
 
 #: immersionlyceens/apps/immersion/views.py:263
-#, fuzzy
-#| msgid ""
-#| "Please go to Procedure / High schools to check if your high school uses "
-#| "%(federation_name)s"
 msgid ""
 "Please go to Procedure / High schools to check if your high school uses "
 msgstr ""
-"Pour savoir si votre lycée utilise %(federation_name)s, voir la page "
-"Procédure / Lycée"
+"Voir la page Procédure / Lycée pour vérifier si votre lycée utilise "
 
 #: immersionlyceens/apps/immersion/views.py:265
 msgid "the agent federation"
 msgstr "la fédération d'identité pour les agents"
 
 #: immersionlyceens/apps/immersion/views.py:270
-#, fuzzy
-#| msgid "Connection"
 msgid "Connection with agent"
-msgstr "Se connecter"
+msgstr "Connexion via la fédération Agent"
 
 #: immersionlyceens/apps/immersion/views.py:271
 msgid "All public high schools and private high schools under contract"
@@ -7466,10 +7449,8 @@ msgstr "Restrictions"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:154
 #: immersionlyceens/templates/offer_off_offer_events.html:164
 #: immersionlyceens/templates/offer_subdomains.html:165
-#, fuzzy
-#| msgid "Restrictions"
 msgid "Restrictions details"
-msgstr "Détails des restrictions"
+msgstr "Détail des restrictions"
 
 #: immersionlyceens/templates/cohort_offer.html:225
 #: immersionlyceens/templates/cohort_offer_subdomains.html:165
@@ -7489,10 +7470,8 @@ msgstr "Niveaux lycéens autorisés"
 #: immersionlyceens/templates/cohort_offer_subdomains.html:223
 #: immersionlyceens/templates/offer_off_offer_events.html:235
 #: immersionlyceens/templates/offer_subdomains.html:234
-#, fuzzy
-#| msgid "Restrictions"
 msgid "See restrictions"
-msgstr "Voir restrictions"
+msgstr "Voir les restrictions"
 
 #: immersionlyceens/templates/cohort_offer.html:291
 #: immersionlyceens/templates/cohort_offer_subdomains.html:226
@@ -9606,10 +9585,8 @@ msgstr "Courriel (confirmation)"
 #: immersionlyceens/templates/immersion/fragments/my_futur_immersions.html:8
 #: immersionlyceens/templates/immersion/fragments/my_past_immersions.html:8
 #: immersionlyceens/templates/search_slots.html:166
-#, fuzzy
-#| msgid "remote slot"
 msgid "Type of the slot"
-msgstr "créneau à distance"
+msgstr "Type de créneau"
 
 #: immersionlyceens/templates/immersion/fragments/my_events.html:9
 msgid "Events to come"
@@ -10212,10 +10189,8 @@ msgid "Guides count"
 msgstr "Nombre d'accompagnateurs"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:59
-#, fuzzy
-#| msgid "profile"
 msgid "Upload file"
-msgstr "Profil"
+msgstr "Envoyer un fichier"
 
 #: immersionlyceens/templates/modals/modal_register_group.html:69
 msgid "Contact emails"
