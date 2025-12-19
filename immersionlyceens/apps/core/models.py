@@ -890,22 +890,20 @@ class ImmersionUser(AbstractUser):
                 return False, errors
 
             high_school_conditions = [
-                slot.get('allowed_highschools', False),
-                record.highschool in slot.get('allowed_highschools_list', [])
+                slot.get('allowed_highschools_list', False),
+                record.highschool.label in [s['label'] for s in slot.get('allowed_highschools_list', [])]
             ]
 
             levels_conditions = [
-                slot.get('allowed_highschool_levels', False) and record.level in slot.get('allowed_highschool_levels_list', []),
-                slot.get('allowed_post_bachelor_levels', False) and
-                    record.post_bachelor_level in slot.get('allowed_post_bachelor_levels_list', [])
+                slot.get('allowed_highschool_levels_list', False) and record.level.label in slot.get('allowed_highschool_levels_list', []),
+                slot.get('allowed_post_bachelor_levels_list', False) and
+                    record.post_bachelor_level.label in slot.get('allowed_post_bachelor_levels_list', [])
             ]
 
             allowed_bachelor_types = BachelorType.objects.filter(label__in=slot.get('allowed_bachelor_types_list', []))
 
-            print(b_type.technological for b_type in allowed_bachelor_types)
-
             bachelor_restrictions = [
-                slot.get('allowed_bachelor_types', False) and record.bachelor_type in slot.get('allowed_bachelor_types_list', []),
+                slot.get('allowed_bachelor_types_list', False) and record.bachelor_type.label in slot.get('allowed_bachelor_types_list', []),
                 any([
                     not record.bachelor_type or not any([
                         record.bachelor_type.professional,
@@ -914,20 +912,22 @@ class ImmersionUser(AbstractUser):
                     ]),
                     record.bachelor_type and record.bachelor_type.professional,
                     any(b_type.technological for b_type in allowed_bachelor_types)
-                    and (not slot.get('allowed_bachelor_mentions_list', False) or
-                         record.technological_bachelor_mention in slot.get('allowed_bachelor_mentions_list', [])),
+                        and (not slot.get('allowed_bachelor_mentions_list', False) or
+                             record.technological_bachelor_mention.label in slot.get('allowed_bachelor_mentions_list', [])),
                     any(b_type.general for b_type in allowed_bachelor_types)
-                    and (not slot.get('allowed_bachelor_teachings_list', False) or
-                         set(slot.get('allowed_bachelor_teachings_list', [])).intersection(
-                             set(record.general_bachelor_teachings.all()))
-                    )
+                        and (not slot.get('allowed_bachelor_teachings_list', False) or
+                             set(slot.get('allowed_bachelor_teachings_list', [])).intersection(
+                                 set(record.general_bachelor_teachings.all().values_list('label', flat=True)))
+                        )
                 ])
             ]
 
             if slot.get('establishments_restrictions', False) and not all(high_school_conditions):
                 errors.append(_('High schools restrictions in effect'))
+
             if slot.get('levels_restrictions', False) and not any(levels_conditions):
                 errors.append(_('High school or post bachelor levels restrictions in effect'))
+
             if slot.get('bachelors_restrictions', False) and not all(bachelor_restrictions):
                 errors.append(_('Bachelors restrictions in effect'))
 
@@ -944,13 +944,13 @@ class ImmersionUser(AbstractUser):
 
             # record.home_institution()[0] in slot['allowed_establishments'].values_list('label', flat=True)
             establishment_conditions = [
-                slot.get('allowed_establishments', False),
-                establishment and establishment in slot.get('allowed_establishments_list', []),
+                slot.get('allowed_establishments_list', False),
+                establishment and establishment.label in [s['label'] for s in slot.get('allowed_establishments_list', [])],
             ]
 
             levels_conditions = [
-                slot.get('allowed_student_levels', False),
-                record.level in slot.get('allowed_student_levels_list', []),
+                slot.get('allowed_student_levels_list', False),
+                record.level.label in slot.get('allowed_student_levels_list', []),
             ]
 
             if slot.get('establishments_restrictions', False) and not all(establishment_conditions):
