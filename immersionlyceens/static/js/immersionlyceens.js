@@ -155,3 +155,8 @@ function openFullInfoModalHtml(content) {
   document.getElementById('full_text_content').innerText = content;
   $('#fullTextModal').modal('show');
 }
+
+function openRestrictionsModalHtml(pk) {
+  document.getElementById(`restrictions_full_text_content_${pk}`);
+  $(`#restrictionsFullTextModal_${pk}`).modal('show');
+}

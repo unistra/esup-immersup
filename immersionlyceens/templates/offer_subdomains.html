@@ -159,78 +159,85 @@
                                       {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                         <i class="fa fas fa-ban text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                         {% trans "Restrictions" %} :
-                                        <dialog id="{{ slot.pk }}">
-                                          <div class="restriction-details">
-                                            <h5 class="modal-title">{% trans "Restrictions details" %}</h5>
-                                            <hr>
-                                            {% if slot.allowed_establishments_list %}
-                                              <h6>{% trans "Allowed establishments" %} :</h6>
-                                              <ul>
-                                                {% for e in slot.allowed_establishments_list %}
+                                        <div class="modal fade" id="restrictionsFullTextModal_{{ slot.pk }}" tabindex="-1">
+                                          <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                              <div class="modal-header">
+                                                <h5 class="modal-title">{% trans "Restrictions details" %}</h5>
+                                                <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#restrictionsFullTextModal_{{ slot.pk }}').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                                              </div>
+                                              <div class="modal-body" id="restrictions_full_text_content_{{ slot.pk }}">
+                                                {% if slot.allowed_establishments_list %}
+                                                <h6>{% trans "Allowed establishments" %} :</h6>
+                                                <ul>
+                                                  {% for e in slot.allowed_establishments_list %}
                                                   <li>{{ e.label }} - {{ e.city }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_highschools_list %}
-                                              <h6>{% trans "Allowed highschools" %} :</h6>
-                                              <ul>
-                                                {% for h in slot.allowed_highschools_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_highschools_list %}
+                                                <h6>{% trans "Allowed highschools" %} :</h6>
+                                                <ul>
+                                                  {% for h in slot.allowed_highschools_list %}
                                                   <li>{{ h.label }} - {% firstof h.city no_city %}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_highschool_levels_list %}
-                                              <h6>{% trans "Allowed highschool levels" %} :</h6>
-                                              <ul>
-                                                {% for l in slot.allowed_highschool_levels_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_highschool_levels_list %}
+                                                <h6>{% trans "Allowed highschool levels" %} :</h6>
+                                                <ul>
+                                                  {% for l in slot.allowed_highschool_levels_list %}
                                                   <li>{{ l }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_student_levels_list %}
-                                              <h6>{% trans "Allowed student levels" %} :</h6>
-                                              <ul>
-                                                {% for l in slot.allowed_student_levels_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_student_levels_list %}
+                                                <h6>{% trans "Allowed student levels" %} :</h6>
+                                                <ul>
+                                                  {% for l in slot.allowed_student_levels_list %}
                                                   <li>{{ l }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_post_bachelor_levels_list %}
-                                              <h6>{% trans "Allowed post bachelor levels" %} :</h6>
-                                              <ul>
-                                                {% for l in slot.allowed_post_bachelor_levels_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_post_bachelor_levels_list %}
+                                                <h6>{% trans "Allowed post bachelor levels" %} :</h6>
+                                                <ul>
+                                                  {% for l in slot.allowed_post_bachelor_levels_list %}
                                                   <li>{{ l }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_bachelor_types_list %}
-                                              <h6>{% trans "Allowed bachelor types" %} :</h6>
-                                              <ul>
-                                                {% for t in slot.allowed_bachelor_types_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_bachelor_types_list %}
+                                                <h6>{% trans "Allowed bachelor types" %} :</h6>
+                                                <ul>
+                                                  {% for t in slot.allowed_bachelor_types_list %}
                                                   <li>{{ t }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_bachelor_mentions_list %}
-                                              <h6>{% trans "Allowed bachelor mentions" %} :</h6>
-                                              <ul>
-                                                {% for m in slot.allowed_bachelor_mentions_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_bachelor_mentions_list %}
+                                                <h6>{% trans "Allowed bachelor mentions" %} :</h6>
+                                                <ul>
+                                                  {% for m in slot.allowed_bachelor_mentions_list %}
                                                   <li>{{ m }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
-                                            {% if slot.allowed_bachelor_teachings_list %}
-                                              <h6>{% trans "Allowed bachelor teachings" %} :</h6>
-                                              <ul>
-                                                {% for t in slot.allowed_bachelor_teachings_list %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if slot.allowed_bachelor_teachings_list %}
+                                                <h6>{% trans "Allowed bachelor teachings" %} :</h6>
+                                                <ul>
+                                                  {% for t in slot.allowed_bachelor_teachings_list %}
                                                   <li>{{ t }}</li>
-                                                {% endfor %}
-                                              </ul>
-                                            {% endif %}
+                                                  {% endfor %}
+                                                </ul>
+                                                {% endif %}
+
+
+                                              </div>
+                                            </div>
                                           </div>
-                                          <button class="btn btn-link p-0 mt-1" data-close-dialog="{{ slot.pk }}">{% trans "Close" %}</button>
-                                        </dialog>
-                                        <button class="btn btn-link p-0 mt-1" data-show-dialog="{{ slot.pk }}">{% trans "See restrictions" %}</button>
+                                        </div>
+                                        <button class="btn btn-link p-0 mt-1" onclick="openRestrictionsModalHtml({{ slot.pk }})">{% trans "See restrictions" %}</button>
                                       {% else %}
                                         <i class="fa fas fa-universal-access text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                         {% trans "Slot open to all" %}

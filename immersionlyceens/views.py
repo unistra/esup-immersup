@@ -653,6 +653,7 @@ def data_for_context_event(data, data_dict, slot):
     event_info = {
         'id': slot['event_id'],
         'label': slot['event_label'],
+        'description': slot['event_description'],
     }
 
     if 'info' not in data[event_type_id]:
@@ -753,6 +754,7 @@ def offer_off_offer_events(request):
                 F('event__structure__establishment__badge_html_color'),
             ),
             event_label=F('event__label'),
+            event_description=F('event__description'),
             event_structure_label=F('event__structure__label'),
             event_type_id=F('event__event_type__id'),
             event_type_label=F('event__event_type__label'),
@@ -907,6 +909,7 @@ def offer_off_offer_events(request):
 
             'event_id',
             'event_label',
+            'event_description',
             'event_structure_label',
             'event_type_id',
             'event_type_label',
@@ -1179,6 +1182,7 @@ def cohort_offer(request):
                 F('event__structure__establishment__badge_html_color'),
             ),
             event_label=F('event__label'),
+            event_description=F('event__description'),
             event_structure_label=F('event__structure__label'),
             event_type_label=F('event__event_type__label'),
             event_type_id=F('event__event_type__id'),
@@ -1325,6 +1329,7 @@ def cohort_offer(request):
             'establishment_badge_html_color',
             'event_id',
             'event_label',
+            'event_description',
             'event_structure_label',
             'event_type_id',
 
