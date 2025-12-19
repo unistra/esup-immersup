@@ -219,7 +219,7 @@
                                           <td rowspan="2">
                                             {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                               <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
-                                              {% trans 'Restrictions' %}:
+                                              {% trans 'Restrictions' %} :
                                               <div class="modal fade" id="restrictionsFullTextModal_{{ slot.pk }}" tabindex="-1">
                                                 <div class="modal-dialog modal-lg">
                                                   <div class="modal-content">
@@ -296,6 +296,7 @@
                                                   </div>
                                                 </div>
                                               </div>
+                                              <br>
                                               <button class="btn btn-link p-0 mt-1" onclick="openRestrictionsModalHtml({{ slot.pk }})">{% trans "See restrictions" %}</button>
                                             {% else %}
                                               <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
