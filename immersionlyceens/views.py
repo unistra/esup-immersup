@@ -324,7 +324,8 @@ def offer_subdomain(request, subdomain_id):
 
     total_reserved_count = Count(
         'immersions',
-        filter=Q(immersions__cancellation_type__isnull=True)
+        filter=Q(immersions__cancellation_type__isnull=True),
+        distinct=True
     )
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!! Update: The code changed, now relying on the database but the comment may still be interesting
@@ -723,7 +724,8 @@ def offer_off_offer_events(request):
 
     total_reserved_count = Count(
         'immersions',
-        filter=Q(immersions__cancellation_type__isnull=True)
+        filter=Q(immersions__cancellation_type__isnull=True),
+        distinct=True
     )
 
     slots = (Slot.objects
@@ -1417,7 +1419,8 @@ def cohort_offer_subdomain(request, subdomain_id):
 
     total_registered_groups_count = Count(
         'group_immersions',
-        filter=Q(group_immersions__cancellation_type__isnull=True)
+        filter=Q(group_immersions__cancellation_type__isnull=True),
+        distinct=True
     )
 
     slots_list = (Slot.objects
