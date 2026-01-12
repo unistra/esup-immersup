@@ -304,19 +304,6 @@
                                             {% endif %}
                                           </td>
                                           <td>
-                                            {% if slot.allow_individual_registrations %}
-                                            <i class="fa fas fa-user text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Individual immersions' %}"></i>
-                                              {% trans 'Individual immersions' %}
-
-                                              {% if slot.opening_soon %}
-                                              <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                                              {% elif slot.final_available_seats > 0 %}
-                                              <span class="badge badge-primary badge-pill">{% trans 'Available places' %} : {{ slot.final_available_seats }}</span><br />
-                                              {% else %}
-                                              <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
-                                              {% endif %}
-                                            {% endif %}
-
                                             {% if slot.allow_group_registrations %}
                                               <div id="group_registrations_{{ slot.pk }}">
                                                 <i class="fa fas fa-group text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Cohort immersions' %}"></i>
