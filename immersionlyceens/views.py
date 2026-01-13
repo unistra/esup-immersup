@@ -498,7 +498,101 @@ def offer_subdomain(request, subdomain_id):
         )
         .order_by('date', 'start_time', 'end_time')
     ).values(
-            'training_id',
+        'training_id',
+        'training_label',
+        'training_url',
+        'training_highschool',
+        'training_highschool_badge_html_color',
+        'training_highschool_label',
+        'training_highschool_city',
+        'establishment_label',
+        'establishment_badge_html_color',
+
+        'course_id',
+        'course_label',
+        'course_url',
+        'course_structure_label',
+        'course_type_label',
+
+        'pk',
+        'period_pk',
+        'date',
+        'start_time',
+        'end_time',
+
+        'speaker_list',
+        'establishments_restrictions',
+        'levels_restrictions',
+        'bachelors_restrictions',
+
+        'allowed_establishments_list',
+        'allowed_highschools_list',
+        'allowed_highschool_levels_list',
+        'allowed_post_bachelor_levels_list',
+        'allowed_student_levels_list',
+        'allowed_bachelor_types_list',
+        'allowed_bachelor_mentions_list',
+        'allowed_bachelor_teachings_list',
+
+        'passed_registration_limit_date',
+        'passed_cancellation_limit_date',
+        'registration_limit_date',
+
+        'campus',
+        'campus_label',
+
+        'building',
+        'building_label',
+        'building_url',
+        'room',
+        'additional_information',
+
+        'final_available_seats',
+    )
+
+    course_list = (Course.objects
+        .prefetch_related(
+            'training__highschool',
+            'training__structures__establishment',
+            'structure__establishment',
+        )
+        .filter(
+            training__training_subdomains=subdomain_id,
+            slots__isnull=True,
+            published=True,
+        ).annotate(
+            training_pk=F('training__id'),
+            training_label=F('training__label'),
+            training_url=F('training__url'),
+            training_highschool=F('training__highschool'),
+            training_highschool_badge_html_color=F('training__highschool__badge_html_color'),
+            training_highschool_label=F('training__highschool__label'),
+            training_highschool_city=F('training__highschool__city'),
+            establishment_label=Coalesce(
+                F('training__structures__establishment__label'),
+                F('structure__establishment__label'),
+                F('training__highschool__label'),
+            ),
+            establishment_badge_html_color=Coalesce(
+                F('training__structures__establishment__badge_html_color'),
+                F('structure__establishment__badge_html_color'),
+            ),
+
+            is_displayed=Case(
+                When(
+                    Q(published=True) &
+                    Q(start_date__isnull=True) | Q(start_date__lte=now) &
+                    Q(end_date__isnull=True) | Q(end_date__gte=now),
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            ),
+        )
+        .filter(
+            is_displayed=True,
+        ).values(
+            'training_pk',
             'training_label',
             'training_url',
             'training_highschool',
@@ -508,47 +602,11 @@ def offer_subdomain(request, subdomain_id):
             'establishment_label',
             'establishment_badge_html_color',
 
-            'course_id',
-            'course_label',
-            'course_url',
-            'course_structure_label',
-            'course_type_label',
-
-            'pk',
-            'period_pk',
-            'date',
-            'start_time',
-            'end_time',
-
-            'speaker_list',
-            'establishments_restrictions',
-            'levels_restrictions',
-            'bachelors_restrictions',
-
-            'allowed_establishments_list',
-            'allowed_highschools_list',
-            'allowed_highschool_levels_list',
-            'allowed_post_bachelor_levels_list',
-            'allowed_student_levels_list',
-            'allowed_bachelor_types_list',
-            'allowed_bachelor_mentions_list',
-            'allowed_bachelor_teachings_list',
-
-            'passed_registration_limit_date',
-            'passed_cancellation_limit_date',
-            'registration_limit_date',
-
-            'campus',
-            'campus_label',
-
-            'building',
-            'building_label',
-            'building_url',
-            'room',
-            'additional_information',
-
-            'final_available_seats',
-        )
+            'id',
+            'label',
+            'url'
+        ).distinct()
+    )
 
     # If the current user is a student, check whether he can register
     if student and record and remaining_regs_count:
@@ -600,6 +658,54 @@ def offer_subdomain(request, subdomain_id):
             slot['cancelled'] = False
 
             data_for_context(data, data_dict, slot)
+
+    # Mimic data_for_context in order to display courses with no slots
+    # TODO: Regroup the mimic with data_for_context
+    for course in course_list:
+
+        training_id = course['training_pk']
+        etab_label = course['establishment_label'] or course['training_highschool_label']
+        course_id = course['id']
+
+        training_info = {
+            'id': course['training_pk'],
+            'label': course['training_label'],
+            'url': course['training_url'],
+            'highschool': course['training_highschool'],
+            'highschool_badge_html_color': course['training_highschool_badge_html_color'],
+            'highschool_label': course['training_highschool_label'],
+            'highschool_city': course['training_highschool_city'],
+        }
+
+        etab_info = {
+            'label': course['establishment_label'],
+            'badge_html_color': course['establishment_badge_html_color'],
+        }
+
+        c_info = {
+            'id': course['id'],
+            'label': course['label'],
+            'url': course['url'],
+        }
+
+        if 'info' not in data[training_id]:
+            data[training_id]['info'] = training_info
+
+        if 'info' not in data[training_id][etab_label]:
+            data[training_id][etab_label]['info'] = etab_info
+
+        if 'info' not in data[training_id][etab_label][course_id]:
+            data[training_id][etab_label][course_id]['info'] = c_info
+
+        data[training_id][etab_label][course_id]['slots'] = []
+
+        for training_id, etab_dict in data.items():
+            etabs = {}
+            for etab_label, course_dict in etab_dict.items():
+                etabs[etab_label] = dict(course_dict)
+            data_dict[training_id] = etabs
+
+    # End of the mimic
 
     data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
 
