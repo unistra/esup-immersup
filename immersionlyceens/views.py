@@ -32,6 +32,7 @@ from immersionlyceens.apps.core.models import (
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
     UserCourseAlert, ImmersionGroupRecord
 )
+from immersionlyceens.apps.core.views import courses_list
 from immersionlyceens.exceptions import DisplayException
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -262,6 +263,7 @@ def data_for_context(data, data_dict, slot):
         'id': slot['course_id'],
         'label': slot['course_label'],
         'url': slot['course_url'],
+        'alert': slot['final_available_seats'] <= 0,
     }
 
     if 'info' not in data[training_id]:
@@ -682,10 +684,11 @@ def offer_subdomain(request, subdomain_id):
             'badge_html_color': course['establishment_badge_html_color'],
         }
 
-        c_info = {
+        course_info = {
             'id': course['id'],
             'label': course['label'],
             'url': course['url'],
+            'alert': True,
         }
 
         if 'info' not in data[training_id]:
@@ -695,7 +698,7 @@ def offer_subdomain(request, subdomain_id):
             data[training_id][etab_label]['info'] = etab_info
 
         if 'info' not in data[training_id][etab_label][course_id]:
-            data[training_id][etab_label][course_id]['info'] = c_info
+            data[training_id][etab_label][course_id]['info'] = course_info
 
         data[training_id][etab_label][course_id]['slots'] = []
 
@@ -710,7 +713,7 @@ def offer_subdomain(request, subdomain_id):
     data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
 
     data_dict["slot_list"] = slots_list
-    data_dict["alert"] = (not slots_list or all(slot['final_available_seats'] == 0 for slot in slots_list))
+    #data_dict["alert"] = (not slots_list or all(slot['final_available_seats'] == 0 for slot in slots_list))
 
     # For navigation
     slot_id = request.session.get("last_registration_slot_id", None)
