@@ -713,7 +713,6 @@ def offer_subdomain(request, subdomain_id):
     data_dict = dict(sorted(data_dict.items(), key=lambda item: item[1]['info']['label']))
 
     data_dict["slot_list"] = slots_list
-    #data_dict["alert"] = (not slots_list or all(slot['final_available_seats'] == 0 for slot in slots_list))
 
     # For navigation
     slot_id = request.session.get("last_registration_slot_id", None)
