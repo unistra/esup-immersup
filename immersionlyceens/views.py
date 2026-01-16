@@ -1534,6 +1534,12 @@ def cohort_offer_subdomain(request, subdomain_id):
         .values('total')
     )
 
+    total_reserved_count = Count(
+        'immersions',
+        filter=Q(immersions__cancellation_type__isnull=True),
+        distinct=True
+    )
+
     total_registered_groups_count = Count(
         'group_immersions',
         filter=Q(group_immersions__cancellation_type__isnull=True),
@@ -1691,6 +1697,14 @@ def cohort_offer_subdomain(request, subdomain_id):
                 )
             ),
 
+            total_reserved=total_reserved_count,
+            calculated_seats=F('n_places') - F('total_reserved'),
+            final_available_seats=Case(
+                When(calculated_seats__lt=0, then=Value(0)),
+                default=F('calculated_seats'),
+                output_field=IntegerField()
+            ),
+
             is_displayed=Case(
                 When(
                     Q(course__published=True) &
@@ -1754,6 +1768,8 @@ def cohort_offer_subdomain(request, subdomain_id):
             'building_url',
             'room',
             'additional_information',
+
+            'final_available_seats',
 
             'n_group_places',
             'group_registered_persons',
