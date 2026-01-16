@@ -1322,10 +1322,19 @@ def cohort_offer(request):
                 ),
                 Value([]),
             ),
-            allowed_highschools_list=Coalesce(
+            allowed_highschools_ids=Coalesce(
                 ArrayAgg(
                     JSONObject(
                         id=F('allowed_highschools__id'),
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
                         city=F('allowed_highschools__city'),
                         label=F('allowed_highschools__label')
                     ),
@@ -1460,6 +1469,7 @@ def cohort_offer(request):
             'allow_group_registrations',
             'allow_individual_registrations',
             'allowed_establishments_list',
+            'allowed_highschools_ids',
             'allowed_highschools_list',
             'allowed_highschool_levels_list',
             'allowed_post_bachelor_levels_list',
@@ -1604,10 +1614,19 @@ def cohort_offer_subdomain(request, subdomain_id):
                 ),
                 Value([]),
             ),
-            allowed_highschools_list=Coalesce(
+            allowed_highschools_ids=Coalesce(
                 ArrayAgg(
                     JSONObject(
                         id=F('allowed_highschools__id'),
+                    ),
+                    filter=Q(allowed_highschools__isnull=False),
+                    distinct=True,
+                ),
+                Value([]),
+            ),
+            allowed_highschools_list=Coalesce(
+                ArrayAgg(
+                    JSONObject(
                         city=F('allowed_highschools__city'),
                         label=F('allowed_highschools__label')
                     ),
@@ -1749,6 +1768,7 @@ def cohort_offer_subdomain(request, subdomain_id):
 
             'allow_group_registrations',
             'allowed_establishments_list',
+            'allowed_highschools_ids',
             'allowed_highschools_list',
             'allowed_highschool_levels_list',
             'allowed_post_bachelor_levels_list',
