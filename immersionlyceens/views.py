@@ -560,7 +560,6 @@ def offer_subdomain(request, subdomain_id):
         )
         .filter(
             training__training_subdomains=subdomain_id,
-            slots__isnull=True,
             published=True,
         ).annotate(
             training_pk=F('training__id'),
@@ -590,9 +589,14 @@ def offer_subdomain(request, subdomain_id):
                 default=False,
                 output_field=BooleanField()
             ),
+            future_slots_count=Count(
+                'slots',
+                filter=Q(slots__date__gt=now)
+            ),
         )
         .filter(
             is_displayed=True,
+            future_slots_count=0,
         ).values(
             'training_pk',
             'training_label',
