@@ -1555,10 +1555,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
     immersions_count = {}
     for period in periods:
         immersions_count[period.pk] = student.immersions.filter(
-                slot__date__gte=period.immersion_start_date,
-                slot__date__lte=period.immersion_end_date,
-                slot__event__isnull=True,
-                cancellation_type__isnull=True
+            slot__period=period,
+            slot__event__isnull=True,
+            cancellation_type__isnull=True
         ).count()
 
     # Periods to display
@@ -1843,8 +1842,7 @@ def student_record(request, student_id=None, record_id=None):
     immersions_count = {}
     for period in periods:
         immersions_count[period.pk] = student.immersions.filter(
-            slot__date__gte=period.immersion_start_date,
-            slot__date__lte=period.immersion_end_date,
+            slot__period=period,
             slot__event__isnull=True,
             cancellation_type__isnull=True
         ).count()
@@ -2090,8 +2088,7 @@ class VisitorRecordView(FormView):
         immersions_count = {}
         for period in all_periods:
             immersions_count[period.pk] = visitor.immersions.filter(
-                slot__date__gte=period.immersion_start_date,
-                slot__date__lte=period.immersion_end_date,
+                slot__period=period,
                 slot__event__isnull=True,
                 cancellation_type__isnull=True
             ).count()
