@@ -1,15 +1,30 @@
 import logging
+import uuid
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from importlib import import_module
+from urllib.parse import urlparse, ParseResult
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.mail.message import sanitize_address
+from django.utils import timezone
 from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
+
+def generate_message_id():
+    """
+    Generate a value for Message-ID Header, based on uuid4@host format
+    """
+    try:
+        url = get_general_setting("PLATFORM_URL")
+        parsed_result = urlparse(url)
+        return f"{uuid.uuid4()}@{parsed_result.netloc}"
+    except:
+        return uuid.uuid4()
+
 
 
 def import_mail_backend():
@@ -50,6 +65,8 @@ def send_email(address, subject, body, from_addr=None, reply_to=None, copies=())
     msg['From'] = sanitize_address(from_addr, encoding)
     msg['To'] = sanitize_address(recipient, encoding)
     msg['Cc'] = ", ".join(cc)
+    msg['Message-ID'] = generate_message_id()
+    msg['Date'] = timezone.localtime().strftime("%a, %d %b %Y %H:%M:%S %z (%Z)")
 
     if reply_to:
         msg['Reply-To'] = sanitize_address(reply_to, encoding)
