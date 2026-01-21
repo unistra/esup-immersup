@@ -812,8 +812,7 @@ class ImmersionUser(AbstractUser):
 
         for period in Period.objects.all():
             registrations = self.immersions.filter(
-                slot__date__gte=period.immersion_start_date,
-                slot__date__lte=period.immersion_end_date,
+                slot__period=period,
                 cancellation_type__isnull=True,
                 slot__event__isnull=True,
             ).count()
