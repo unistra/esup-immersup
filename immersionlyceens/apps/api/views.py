@@ -1645,8 +1645,7 @@ def ajax_slot_registration(request):
 
             if not off_offer and training_quota_active:
                 training_regs_count = student.immersions.filter(
-                    slot__date__gte=period.immersion_start_date,
-                    slot__date__lte=period.immersion_end_date,
+                    slot__period=period,
                     slot__course__training=slot.course.training,
                     cancellation_type__isnull=True,
                 ).count()
@@ -5467,8 +5466,7 @@ class MailingListGlobalView(APIView):
                 period = Period.objects.get(pk=period_id)
                 extra_filter.update(
                     {
-                        "immersions__slot__date__gte": period.immersion_start_date,
-                        "immersions__slot__date__lte": period.immersion_end_date,
+                        "immersions__slot__period": period,
                     }
                 )
             except (ValueError, TypeError):
