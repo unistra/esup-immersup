@@ -78,16 +78,18 @@ def home(request):
         accomp_intro_txt = ''
 
     try:
-        social_network_url = get_general_setting("SOCIAL_NETWORK_URL")
+        social_network_url = get_general_setting("SOCIAL_ACCOUNT_URL")
     except (ValueError, NameError):
-        social_network_url = ''
+        social_network_url = {}
+
+    any_active = any(acc.get('activate', False) for acc in social_network_url.values())
 
     context = {
         'welcome_txt': welcome_txt,
         'procedure_txt': procedure_txt,
         'offer_txt': offer_txt,
         'accomp_txt': accomp_txt,
-        'social_network_url': social_network_url,
+        'any_social_active': any_active,
         'offer_intro_txt': offer_intro_txt,
         'procedure_intro_txt': procedure_intro_txt,
         'accomp_intro_txt': accomp_intro_txt,

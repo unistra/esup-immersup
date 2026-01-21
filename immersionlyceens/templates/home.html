@@ -60,7 +60,8 @@
       </div>
       {% endif %}
       <div class="col-md-3">
-        <h4>{% trans 'Social Media' %}</h4>
+        {% if any_social_active %}
+          <h4>{% trans 'Social Media' %}</h4>
           <div class="info d-flex align-items-center flex-wrap mb-2">
             {% for key, social_account in social_account_url.items %}
               {% if social_account.activate %}
@@ -70,6 +71,7 @@
               {% endif %}
             {% endfor %}
           </div>
+        {% endif %}
       </div>
     </div>
   </div>
