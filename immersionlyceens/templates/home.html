@@ -61,15 +61,17 @@
       {% endif %}
       <div class="col-md-3">
         {% if any_social_active %}
-          <h4>{% trans 'Social Media' %}</h4>
-          <div class="info d-flex align-items-center flex-wrap mb-2">
-            {% for key, social_account in social_account_url.items %}
-              {% if social_account.activate %}
-                <a href="{{ social_account.url }}" target="_blank" class="me-2 mb-1 mb-md-0" title="{{ social_account.name|default:key|capfirst }}">
-                  <img src="{{ ''|add:social_account.logo }}" alt="{{ key }}" style="width:32px; height:auto; margin-right:8px;">
-                </a>
-              {% endif %}
-            {% endfor %}
+          <div class="info-description">
+            <h4>{% trans 'Social Media' %}</h4>
+            <div class="info d-flex align-items-center flex-wrap mb-2">
+              {% for key, social_account in social_account_url.items %}
+                {% if social_account.activate %}
+                  <a href="{{ social_account.url }}" target="_blank" class="me-2 mb-1 mb-md-0" title="{{ social_account.name|default:key|capfirst }}">
+                    <img src="{{ ''|add:social_account.logo }}" alt="{{ key }}" style="width:32px; height:auto; margin-right:8px;">
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
           </div>
         {% endif %}
       </div>
