@@ -22,9 +22,9 @@ def generate_message_id():
         url = get_general_setting("PLATFORM_URL")
         parsed_result = urlparse(url)
         # return f"{uuid.uuid4()}@{parsed_result.netloc}"
-        return f"{timezone.now().timestamp()}@{parsed_result.netloc}"
+        return f"<{timezone.now().timestamp()}@{parsed_result.netloc}>"
     except:
-        return timezone.now().timestamp()
+        return f"<{timezone.now().timestamp()}>"
 
 
 
