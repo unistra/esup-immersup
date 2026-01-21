@@ -593,7 +593,7 @@ def offer_subdomain(request, subdomain_id):
             ),
             future_slots_count=Count(
                 'slots',
-                filter=Q(slots__date__gt=now)
+                filter=Q(slots__date__gt=now) & Q(slots__published=True),
             ),
         )
         .filter(
@@ -613,7 +613,7 @@ def offer_subdomain(request, subdomain_id):
             'id',
             'label',
             'url'
-        ).distinct()
+        ).order_by('label').distinct()
     )
 
     # If the current user is a student, check whether he can register
