@@ -11,6 +11,18 @@ from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
+def generate_message_id():
+    """
+    Generate a value for Message-ID Header, based on uuid4@host format
+    """
+    try:
+        url = get_general_setting("PLATFORM_URL")
+        parsed_result = urlparse(url)
+        # return f"{uuid.uuid4()}@{parsed_result.netloc}"
+        return f"{timezone.now().timestamp()}@{parsed_result.netloc}"
+    except:
+        return timezone.now().timestamp()
+
 
 def import_mail_backend():
     default = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
