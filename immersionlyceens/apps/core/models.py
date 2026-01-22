@@ -990,6 +990,21 @@ class ImmersionUser(AbstractUser):
             if errors:
                 return False, errors
 
+        # Group registrations for high school referent
+        if self.is_high_school_manager():
+            allowed_highschools = HighSchool.objects.filter(label__in=slot.get('allowed_highschools_list', []))
+
+            high_school_conditions = [
+                slot.get('allowed_highschools_list', False),
+                self.highschool and self.highschool in allowed_highschools
+            ]
+
+            if slot.get('establishments_restrictions', False) and not all(high_school_conditions):
+                errors.append(_('High schools restrictions in effect'))
+
+            if errors:
+                return False, errors
+
         return True, errors
 
 
