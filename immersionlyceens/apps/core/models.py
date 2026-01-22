@@ -888,11 +888,11 @@ class ImmersionUser(AbstractUser):
                 errors.append(_("High school record not found or not valid"))
                 return False, errors
 
-            allowed_highschools = HighSchool.objects.filter(label__in=slot.get('allowed_highschools_list', []))
-            allowed_highschool_levels = HighSchoolLevel.objects.filter(label__in=slot.get('allowed_highschool_levels_list', []))
-            allowed_post_bachelor_levels = PostBachelorLevel.objects.filter(label__in=slot.get('allowed_post_bachelor_levels_list', []))
-            allowed_bachelor_types = BachelorType.objects.filter(label__in=slot.get('allowed_bachelor_types_list', []))
-            allowed_bachelor_mentions = BachelorMention.objects.filter(label__in=slot.get('allowed_bachelor_mentions_list', []))
+            allowed_highschools = slot.get('allowed_highschools_list', [])
+            allowed_highschool_levels = slot.get('allowed_highschool_levels_list', [])
+            allowed_post_bachelor_levels = slot.get('allowed_post_bachelor_levels_list', [])
+            allowed_bachelor_types = slot.get('allowed_bachelor_types_list', [])
+            allowed_bachelor_mentions = slot.get('allowed_bachelor_mentions_list', [])
 
             high_school_conditions = [
                 slot.get('allowed_highschools_list', False),
@@ -991,15 +991,15 @@ class ImmersionUser(AbstractUser):
                 return False, errors
 
         # Group registrations for high school referent
-        if self.is_high_school_manager():
-            allowed_highschools = HighSchool.objects.filter(label__in=slot.get('allowed_highschools_list', []))
+        if self.is_high_school_manager() and slot.get('establishments_restrictions', False):
+            allowed_highschools = slot.get('allowed_highschools_list', [])
 
             high_school_conditions = [
-                slot.get('allowed_highschools_list', False),
+                len(allowed_highschools) > 0,
                 self.highschool and self.highschool in allowed_highschools
             ]
 
-            if slot.get('establishments_restrictions', False) and not all(high_school_conditions):
+            if not all(high_school_conditions):
                 errors.append(_('High schools restrictions in effect'))
 
             if errors:

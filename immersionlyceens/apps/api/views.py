@@ -5794,7 +5794,6 @@ def ajax_can_register_slot(request, slot_id=None):
         return JsonResponse(response, safe=False)
 
     else:
-
         slot_data['can_register'] = True
 
     response['data'].append(slot_data.copy())
