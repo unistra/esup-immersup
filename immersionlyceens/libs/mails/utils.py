@@ -1,5 +1,4 @@
 import logging
-import uuid
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
