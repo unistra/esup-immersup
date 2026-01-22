@@ -1,5 +1,4 @@
 import logging
-import uuid
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -21,7 +20,6 @@ def generate_message_id():
     try:
         url = get_general_setting("PLATFORM_URL")
         parsed_result = urlparse(url)
-        # return f"{uuid.uuid4()}@{parsed_result.netloc}"
         return f"<{timezone.now().timestamp()}@{parsed_result.netloc}>"
     except:
         return f"<{timezone.now().timestamp()}>"
