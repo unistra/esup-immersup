@@ -888,28 +888,32 @@ class ImmersionUser(AbstractUser):
                 errors.append(_("High school record not found or not valid"))
                 return False, errors
 
+            allowed_highschools = HighSchool.objects.filter(label__in=slot.get('allowed_highschools_list', []))
+            allowed_highschool_levels = HighSchoolLevel.objects.filter(label__in=slot.get('allowed_highschool_levels_list', []))
+            allowed_post_bachelor_levels = PostBachelorLevel.objects.filter(label__in=slot.get('allowed_post_bachelor_levels_list', []))
+            allowed_bachelor_types = BachelorType.objects.filter(label__in=slot.get('allowed_bachelor_types_list', []))
+            allowed_bachelor_mentions = BachelorMention.objects.filter(label__in=slot.get('allowed_bachelor_mentions_list', []))
+
             high_school_conditions = [
                 slot.get('allowed_highschools_list', False),
                 record.highschool
-                    and record.highschool.label in [item.label for item in slot.get('allowed_highschools_list', [])]
+                    and record.highschool in allowed_highschools
             ]
 
             levels_conditions = [
                 slot.get('allowed_highschool_levels_list', False),
                 record.level
-                    and record.level.label in [item.label for item in slot.get('allowed_highschool_levels_list', [])],
+                    and record.level in allowed_highschool_levels,
 
                 slot.get('allowed_post_bachelor_levels_list', False),
                 record.post_bachelor_level
-                    and record.post_bachelor_level.label in [item.label for item in slot.get('allowed_post_bachelor_levels_list', [])]
+                    and record.post_bachelor_level in allowed_post_bachelor_levels
             ]
-
-            allowed_bachelor_types = BachelorType.objects.filter(label__in=slot.get('allowed_bachelor_types_list', []))
 
             bachelor_restrictions = [
                 slot.get('allowed_bachelor_types_list', False),
                     record.bachelor_type
-                    and record.bachelor_type.label in [item.label for item in slot.get('allowed_bachelor_types_list', [])],
+                    and record.bachelor_type in allowed_bachelor_types,
                 any([
                     not record.bachelor_type or not any([
                         record.bachelor_type.professional,
@@ -920,7 +924,7 @@ class ImmersionUser(AbstractUser):
                     any(b_type.technological for b_type in allowed_bachelor_types)
                         and (not slot.get('allowed_bachelor_mentions_list', False) or
                              (record.technological_bachelor_mention
-                             and record.technological_bachelor_mention.label in [item.label for item in slot.get('allowed_bachelor_mentions_list', [])])),
+                             and record.technological_bachelor_mention in allowed_bachelor_mentions)),
                     any(b_type.general for b_type in allowed_bachelor_types)
                         and (not slot.get('allowed_bachelor_teachings_list', False) or
                              set(slot.get('allowed_bachelor_teachings_list', [])).intersection(
