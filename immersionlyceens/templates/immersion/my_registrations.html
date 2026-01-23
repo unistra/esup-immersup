@@ -463,8 +463,8 @@
           filteredRows.push('row_highschool');
         }
       }
-      if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
-        buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+      if (rowData[0].building !== null && rowData[0].building_url !== '') {
+        buildingFull = rowData[0].building + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
       if (rowData[0].course.training !== null && rowData[0].course.training !== '') {
         courseLabelFull = rowData[0].course.training;
@@ -854,8 +854,8 @@
       if (rowData[0].highschool_address === '' || rowData[0].highschool_address === null) {
         filteredRows.push('row_highschool_address');
       }
-      if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
-        buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+      if (rowData[0].building !== null && rowData[0].building_url !== '') {
+        buildingFull = rowData[0].building + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
       if (rowData[0].info === '' || rowData[0].info === null) {
         filteredRows.push('row_additional_information');
@@ -1191,8 +1191,8 @@
       } else {
         filteredRows.push('row_course_label', 'row_course_type', 'row_highschool');
       }
-      if (rowData[0].building_url !== null && rowData[0].building_url !== '') {
-        buildingFull = rowData[0].building_label + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
+      if (rowData[0].building !== null && rowData[0].building_url !== '') {
+        buildingFull = rowData[0].building + "&nbsp;<a href=\""+rowData[0].building_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\"  title=\"{% trans 'Show map url' %}\"><i class=\"fa fas fa-map-marker subdomains-icons\"></i></a>";
       }
       if (rowData[0].course.training_url !== null && rowData[0].course.training_url !== '') {
         courseLabelFull = rowData[0].course.training + "&nbsp;<a href=\""+rowData[0].course.training_url+"\" target=\"_blank\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"{% trans 'Click here for more informations'%}\"><i class=\"fa fas fa-info-circle subdomains-icons\"></i></a>";
