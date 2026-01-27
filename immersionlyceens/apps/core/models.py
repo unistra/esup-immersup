@@ -973,6 +973,19 @@ class ImmersionUser(AbstractUser):
             if errors:
                 return False, errors
 
+        # Group registrations for high school referent
+        if self.is_high_school_manager() and slot.establishments_restrictions:
+            high_school_conditions = [
+                slot.allowed_highschools.exists(),
+                self.highschool and self.highschool in slot.allowed_highschools.all()
+            ]
+
+            if not all(high_school_conditions):
+                errors.append(_('High schools restrictions in effect'))
+
+            if errors:
+                return False, errors
+
         return True, errors
 
 
