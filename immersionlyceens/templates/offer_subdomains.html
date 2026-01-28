@@ -78,12 +78,12 @@
             <div class="card">
               <div class="card-header card-cours" id="training{{training_id}}">
                 <h5 class="mb-0 more-less-title">
-                  {% if etab.label %}
-                    <span class="badge badge-pill immersup-badge" style="background-color: {{ etab.badge_html_color }};margin: 2px;">{{ etab.label }}</span>
-                  {% elif training.highschool %}
+                  {% if training.highschool %}
                     <span class="badge badge-pill immersup-badge" style="background-color: {{ training.highschool_badge_html_color }};margin: 2px;">
                       {{ training.highschool_label }} - {% firstof training.highschool_city no_city %}
                     </span>
+                  {% else %}
+                    <span class="badge badge-pill immersup-badge" style="background-color: {{ etab.badge_html_color }};margin: 2px;">{{ etab.label }}</span>
                   {% endif %}
                   <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training_id}}" aria-expanded="false" aria-controls="training{{training_id}}">
                     <i class="fa fa-arrow-right fa-fw text-primary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.label }}
