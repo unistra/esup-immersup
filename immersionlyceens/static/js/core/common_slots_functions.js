@@ -114,51 +114,51 @@ function display_slot_restrictions(data, type, row) {
     let bachelors_teachings = ""
 
     if(row.establishments_restrictions === true) {
-      establishments_restrictions += `${establishments_txt} :<br>`
+      establishments_restrictions += `${establishments_txt} :`
       row.allowed_establishments_list.forEach(item => {
-        establishments_restrictions += `- ${item}<br>`
+        establishments_restrictions += `- ${item}`
       })
 
       row.allowed_highschools_list.forEach(json => {
-        establishments_restrictions += `- ${json['city']} - ${json['label']}<br>`
+        establishments_restrictions += `- ${json['city']} - ${json['label']}`
       })
     }
 
     if(row.levels_restrictions === true) {
-      levels_restrictions += `${levels_txt} :<br>`
+      levels_restrictions += `${levels_txt} :`
 
       row.allowed_highschool_levels_list.forEach(item => {
-        levels_restrictions += `- ${item}<br>`
+        levels_restrictions += `- ${item}`
       })
 
       row.allowed_post_bachelor_levels_list.forEach(item => {
-        levels_restrictions += `- ${item}<br>`
+        levels_restrictions += `- ${item}`
       })
 
       row.allowed_student_levels_list.forEach(item => {
-        levels_restrictions += `- ${item}<br>`
+        levels_restrictions += `- ${item}`
       })
     }
 
     if(row.bachelors_restrictions === true) {
       if(row.allowed_bachelor_types_list.length > 0) {
-        bachelors_types += `${bachelors_txt} : <br>`
+        bachelors_types += `${bachelors_txt} :`
         row.allowed_bachelor_types_list.forEach(item => {
-          bachelors_types += `- ${item} <br>`
+          bachelors_types += `- ${item}`
         })
       }
 
       if(row.allowed_bachelor_mentions_list.length > 0) {
-        bachelors_mentions += `${allowed_mentions_txt} :<br>`
+        bachelors_mentions += `${allowed_mentions_txt} :`
         row.allowed_bachelor_mentions_list.forEach(item => {
-          bachelors_mentions += `- ${item} <br>`
+          bachelors_mentions += `- ${item}`
         })
       }
 
       if(row.allowed_bachelor_teachings_list.length > 0) {
-        bachelors_teachings += `${allowed_teachings_txt} :<br>`
+        bachelors_teachings += `${allowed_teachings_txt} :`
         row.allowed_bachelor_teachings_list.forEach(item => {
-          bachelors_teachings += `- ${item} <br>`
+          bachelors_teachings += `- ${item}`
         })
       }
     }

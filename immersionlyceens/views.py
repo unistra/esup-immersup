@@ -488,9 +488,10 @@ def offer_subdomain(request, subdomain_id):
 
             is_displayed=Case(
                 When(
-                    Q(course__published=True) &
-                    Q(course__start_date__isnull=True) | Q(course__start_date__lte=now) &
-                    Q(course__end_date__isnull=True) | Q(course__end_date__gte=now),
+                    Q(course__published=True) & (
+                        (Q(course__start_date__isnull=True) | Q(course__start_date__lte=now)) &
+                        (Q(course__end_date__isnull=True) | Q(course__end_date__gte=now))
+                    ),
                     then = True
                 ),
                 default = False,
@@ -583,9 +584,10 @@ def offer_subdomain(request, subdomain_id):
 
             is_displayed=Case(
                 When(
-                    Q(published=True) &
-                    Q(start_date__isnull=True) | Q(start_date__lte=now) &
-                    Q(end_date__isnull=True) | Q(end_date__gte=now),
+                    Q(published=True) & (
+                        (Q(start_date__isnull=True) | Q(start_date__lte=now)) &
+                        (Q(end_date__isnull=True) | Q(end_date__gte=now))
+                    ),
                     then=True
                 ),
                 default=False,
@@ -593,7 +595,7 @@ def offer_subdomain(request, subdomain_id):
             ),
             future_slots_count=Count(
                 'slots',
-                filter=Q(slots__date__gt=now) & Q(slots__published=True),
+                filter=Q(slots__date__gte=now) & Q(slots__published=True),
             ),
         )
         .filter(

@@ -891,7 +891,8 @@ class ImmersionUser(AbstractUser):
             allowed_highschools = slot.get('allowed_highschools_list', [])
             allowed_highschool_levels = slot.get('allowed_highschool_levels_list', [])
             allowed_post_bachelor_levels = slot.get('allowed_post_bachelor_levels_list', [])
-            allowed_bachelor_types = slot.get('allowed_bachelor_types_list', [])
+            allowed_bachelor_types = slot.get('allowed_bachelor_types', [])
+            allowed_bachelor_types_list = slot.get('allowed_bachelor_types_list', [])
             allowed_bachelor_mentions = slot.get('allowed_bachelor_mentions_list', [])
 
             high_school_conditions = [
@@ -913,7 +914,7 @@ class ImmersionUser(AbstractUser):
             bachelor_restrictions = [
                 slot.get('allowed_bachelor_types_list', False),
                     record.bachelor_type
-                    and record.bachelor_type in allowed_bachelor_types,
+                    and record.bachelor_type in allowed_bachelor_types_list,
                 any([
                     not record.bachelor_type or not any([
                         record.bachelor_type.professional,

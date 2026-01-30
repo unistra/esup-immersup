@@ -151,6 +151,11 @@ function openFullInfoModal() {
   $('#fullTextModal').modal('show');
 }
 
+function openFullRestrictionsModal() {
+  $('#full_all_restrictions').html($('#modal_restrictions').html());
+  $('#fullRestrictionsModal').modal('show');
+}
+
 function openFullInfoModalHtml(content) {
   document.getElementById('full_text_content').innerText = content;
   $('#fullTextModal').modal('show');
