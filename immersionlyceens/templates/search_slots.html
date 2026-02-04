@@ -701,12 +701,18 @@
         type: 'GET',
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'][0] !== undefined) {
-              restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0])
-              if (restrictions === '<ul class="list-unstyled"><>') {
+              restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0], false)
+              const fullHTML = display_slot_restrictions(null, null, data['data']['restrictions'][0], true);
+
+              if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
+                $('#show_restrictions').hide();
+              } else {
+                $('#all_restrictions').html("<div>"+fullHTML+"</div>")
+                $('#show_restrictions').show();
               }
-              $('#modal_search_slots_details #modal_restrictions').html("<div>"+restrictions+"</div>")
-            }
+              $('#modal_restrictions').html("<div>"+restrictions+"</div>")
+          }
         }
       })
 
@@ -732,7 +738,7 @@
       }
       $('#modal_search_slots_details #modal_additional_information').html(rowData[0].additional_information);
 
-      if (rowData[0].additional_information && rowData[0].additional_information.length > 300) {
+      if (rowData[0].additional_information && rowData[0].additional_information.length > 65) {
         $('#show_more_info').show();
       } else {
         $('#show_more_info').hide();

@@ -105,10 +105,9 @@ function display_slot_date(data, type, row, date_options = {year: "numeric", mon
     return `${data} ${start_time} ${end_time}`;
 }
 
-function display_slot_restrictions(data, type, row) {
+function display_slot_restrictions(data, type, row, detail = false) {
     let establishments_restrictions = ""
     let levels_restrictions = ""
-    let span_txt = ""
     let bachelors_types = ""
     let bachelors_mentions = ""
     let bachelors_teachings = ""
@@ -116,11 +115,11 @@ function display_slot_restrictions(data, type, row) {
     if(row.establishments_restrictions === true) {
       establishments_restrictions += `${establishments_txt} :`
       row.allowed_establishments_list.forEach(item => {
-        establishments_restrictions += `- ${item}`
+        establishments_restrictions += `\n - ${item}`
       })
 
       row.allowed_highschools_list.forEach(json => {
-        establishments_restrictions += `- ${json['city']} - ${json['label']}`
+        establishments_restrictions += `\n - ${json['city']} - ${json['label']}`
       })
     }
 
@@ -128,15 +127,15 @@ function display_slot_restrictions(data, type, row) {
       levels_restrictions += `${levels_txt} :`
 
       row.allowed_highschool_levels_list.forEach(item => {
-        levels_restrictions += `- ${item}`
+        levels_restrictions += `\n - ${item}`
       })
 
       row.allowed_post_bachelor_levels_list.forEach(item => {
-        levels_restrictions += `- ${item}`
+        levels_restrictions += `\n - ${item}`
       })
 
       row.allowed_student_levels_list.forEach(item => {
-        levels_restrictions += `- ${item}`
+        levels_restrictions += `\n - ${item}`
       })
     }
 
@@ -144,46 +143,57 @@ function display_slot_restrictions(data, type, row) {
       if(row.allowed_bachelor_types_list.length > 0) {
         bachelors_types += `${bachelors_txt} :`
         row.allowed_bachelor_types_list.forEach(item => {
-          bachelors_types += `- ${item}`
+          bachelors_types += `\n - ${item}`
         })
       }
 
       if(row.allowed_bachelor_mentions_list.length > 0) {
         bachelors_mentions += `${allowed_mentions_txt} :`
         row.allowed_bachelor_mentions_list.forEach(item => {
-          bachelors_mentions += `- ${item}`
+          bachelors_mentions += `\n - ${item}`
         })
       }
 
       if(row.allowed_bachelor_teachings_list.length > 0) {
         bachelors_teachings += `${allowed_teachings_txt} :`
         row.allowed_bachelor_teachings_list.forEach(item => {
-          bachelors_teachings += `- ${item}`
+          bachelors_teachings += `\n - ${item}`
         })
       }
     }
 
-    if (establishments_restrictions.length > 0) {
-      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${establishments_restrictions}"><i class="fa fas fa-info-circle fa-fw"></i> ${establishments_txt}</li>`
-    }
+    if (detail) {
+        let full_txt = ""
 
-    if (levels_restrictions.length > 0) {
-      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${levels_restrictions}"><i class="fa fas fa-info-circle fa-fw"></i> ${levels_txt}</li>`
-    }
+        if (establishments_restrictions.length > 0) full_txt += `<p><strong>${establishments_restrictions}</strong></p>`;
+        if (levels_restrictions.length > 0) full_txt += `<p><strong>${levels_restrictions}</strong></p>`;
+        if (bachelors_types.length > 0) full_txt += `<p><strong>${bachelors_types}</strong></p>`;
+        if (bachelors_mentions.length > 0) full_txt += `<p><strong>${bachelors_mentions}</strong></p>`;
+        if (bachelors_teachings.length > 0) full_txt += `<p><strong>${bachelors_teachings}</strong></p>`;
 
-    if (bachelors_types.length > 0) {
-      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_types}"><i class="fa fas fa-info-circle fa-fw"></i> ${bachelors_txt}</li>`
-    }
+        return full_txt
 
-    if (bachelors_mentions.length > 0) {
-      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_mentions}"><i class="fa fas fa-info-circle fa-fw"></i> ${allowed_mentions_txt}</li>`
-    }
+    } else {
+        let span_txt = ""
 
-    if (bachelors_teachings.length > 0) {
-      span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_teachings}"><i class="fa fas fa-info-circle fa-fw"></i> ${allowed_teachings_txt}</li>`
-    }
+        if (establishments_restrictions.length > 0) {
+            span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${establishments_restrictions}"><i class="fa fas fa-info-circle fa-fw"></i> ${establishments_txt}</li>`
+        }
+        if (levels_restrictions.length > 0) {
+            span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${levels_restrictions}"><i class="fa fas fa-info-circle fa-fw"></i> ${levels_txt}</li>`
+        }
+        if (bachelors_types.length > 0) {
+            span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_types}"><i class="fa fas fa-info-circle fa-fw"></i> ${bachelors_txt}</li>`
+        }
+        if (bachelors_mentions.length > 0) {
+            span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_mentions}"><i class="fa fas fa-info-circle fa-fw"></i> ${allowed_mentions_txt}</li>`
+        }
+        if (bachelors_teachings.length > 0) {
+            span_txt += `<li data-toggle="tooltip" data-html="true" data-container="body" title="${bachelors_teachings}"><i class="fa fas fa-info-circle fa-fw"></i> ${allowed_teachings_txt}</li>`
+        }
 
-    return `<ul class="list-unstyled">${span_txt}</ul>`
+        return `<ul class="list-unstyled">${span_txt}</ul>`
+    }
 }
 
 function display_group_informations(row) {
