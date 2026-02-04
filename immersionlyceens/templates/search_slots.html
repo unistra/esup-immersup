@@ -702,7 +702,7 @@
         success: function (data) {
           if (data['data'] !== undefined && data['data']['restrictions'][0] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0], false)
-              const fullHTML = display_slot_restrictions(null, null, data['data']['restrictions'][0], true);
+              const fullHTML = display_slot_restrictions(null, null, data['data']['restrictions'][0], true)
 
               if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";

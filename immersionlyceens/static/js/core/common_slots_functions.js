@@ -171,7 +171,7 @@ function display_slot_restrictions(data, type, row, detail = false) {
         if (bachelors_mentions.length > 0) full_txt += `<p><strong>${bachelors_mentions}</strong></p>`;
         if (bachelors_teachings.length > 0) full_txt += `<p><strong>${bachelors_teachings}</strong></p>`;
 
-        return full_txt
+        return `<ul class="list-unstyled">${full_txt}</ul>`
 
     } else {
         let span_txt = ""
