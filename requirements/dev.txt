@@ -7,4 +7,4 @@ django-debug-toolbar==4.4.6
 tox
 bandit
 pytype
-safety
+safety==3.7.0
