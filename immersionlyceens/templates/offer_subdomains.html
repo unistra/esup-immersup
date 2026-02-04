@@ -310,9 +310,11 @@
                                         <div class="text-truncate" id="truncated_info_{{ slot.pk }}" style="max-height: 4.5em; overflow: hidden;">
                                           {{ slot.additional_information }}
                                         </div>
-                                        <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">
-                                          {% trans 'See more' %}
-                                        </button>
+                                        {% if slot.additional_information|length > 40 %}
+                                          <button class="btn btn-link p-0 mt-1" onclick="openFullInfoModalHtml(`{{ slot.additional_information|escapejs }}`)">
+                                            {% trans 'See more' %}
+                                          </button>
+                                        {% endif %}
                                       {% endif %}
                                     </td>
                                   </tr>
