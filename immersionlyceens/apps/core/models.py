@@ -863,7 +863,7 @@ class ImmersionUser(AbstractUser):
         return
 
 
-    def can_register_slot(self, slot: Dict = None):
+    def can_register_slot(self, slot: dict = {}):
         """
         Slot registration check : validate only User vs Slot restrictions here,
         - NOT slot registration delay
