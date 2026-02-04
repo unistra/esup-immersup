@@ -187,7 +187,7 @@
                                                 <h6>{% trans "Allowed highschool levels" %} :</h6>
                                                 <ul>
                                                   {% for l in slot.allowed_highschool_levels_list %}
-                                                  <li>{{ l }}</li>
+                                                  <li>{{ l.label }}</li>
                                                   {% endfor %}
                                                 </ul>
                                                 {% endif %}
@@ -195,7 +195,7 @@
                                                 <h6>{% trans "Allowed student levels" %} :</h6>
                                                 <ul>
                                                   {% for l in slot.allowed_student_levels_list %}
-                                                  <li>{{ l }}</li>
+                                                  <li>{{ l.label }}</li>
                                                   {% endfor %}
                                                 </ul>
                                                 {% endif %}
@@ -203,7 +203,7 @@
                                                 <h6>{% trans "Allowed post bachelor levels" %} :</h6>
                                                 <ul>
                                                   {% for l in slot.allowed_post_bachelor_levels_list %}
-                                                  <li>{{ l }}</li>
+                                                  <li>{{ l.label }}</li>
                                                   {% endfor %}
                                                 </ul>
                                                 {% endif %}
@@ -211,7 +211,7 @@
                                                 <h6>{% trans "Allowed bachelor types" %} :</h6>
                                                 <ul>
                                                   {% for t in slot.allowed_bachelor_types_list %}
-                                                  <li>{{ t }}</li>
+                                                  <li>{{ t.label }}</li>
                                                   {% endfor %}
                                                 </ul>
                                                 {% endif %}
@@ -219,7 +219,7 @@
                                                 <h6>{% trans "Allowed bachelor mentions" %} :</h6>
                                                 <ul>
                                                   {% for m in slot.allowed_bachelor_mentions_list %}
-                                                  <li>{{ m }}</li>
+                                                  <li>{{ m.label }}</li>
                                                   {% endfor %}
                                                 </ul>
                                                 {% endif %}
@@ -227,7 +227,7 @@
                                                 <h6>{% trans "Allowed bachelor teachings" %} :</h6>
                                                 <ul>
                                                   {% for t in slot.allowed_bachelor_teachings_list %}
-                                                  <li>{{ t }}</li>
+                                                  <li>{{ t.label }}</li>
                                                   {% endfor %}
                                                 </ul>
                                                 {% endif %}

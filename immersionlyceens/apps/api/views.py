@@ -1409,27 +1409,24 @@ def ajax_set_group_attendance(request):
     return JsonResponse(response, safe=False)
 
 
-def create_slot_dict(slot):
+def create_slot_dict(slot: Slot) -> Dict:
+    """
+    :param slot: a Slot instance
+    :return: a formated dict
+    """
     slot_dict = {
+        'pk': slot.pk,
         'establishments_restrictions': slot.establishments_restrictions,
         'levels_restrictions': slot.levels_restrictions,
         'bachelors_restrictions': slot.bachelors_restrictions,
-        'allowed_highschools': slot.allowed_highschools,
-        'allowed_highschools_list': list(slot.allowed_highschools.all()),
-        'allowed_highschool_levels': slot.allowed_highschool_levels,
-        'allowed_highschool_levels_list': list(slot.allowed_highschool_levels.all()),
-        'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
-        'allowed_post_bachelor_levels_list': list(slot.allowed_post_bachelor_levels.all()),
-        'allowed_bachelor_types': slot.allowed_bachelor_types,
-        'allowed_bachelor_types_list': list(slot.allowed_bachelor_types.all()),
-        'allowed_bachelor_mentions': slot.allowed_bachelor_mentions,
-        'allowed_bachelor_mentions_list': list(slot.allowed_bachelor_mentions.all()),
-        'allowed_bachelor_teachings': slot.allowed_bachelor_teachings,
-        'allowed_bachelor_teachings_list': set(slot.allowed_bachelor_teachings.all()),
-        'allowed_establishments': slot.allowed_establishments,
-        'allowed_establishments_list': list(slot.allowed_establishments.all()),
-        'allowed_student_levels': slot.allowed_student_levels,
-        'allowed_student_levels_list': list(slot.allowed_student_levels.all()),
+        'allowed_highschools_list': list(slot.allowed_highschools.values('id')),
+        'allowed_highschool_levels_list': list(slot.allowed_highschool_levels.values('id')),
+        'allowed_post_bachelor_levels_list': list(slot.allowed_post_bachelor_levels.values('id')),
+        'allowed_bachelor_types_list': list(slot.allowed_bachelor_types.values('id', 'technological', 'general')),
+        'allowed_bachelor_mentions_list': list(slot.allowed_bachelor_mentions.values('id')),
+        'allowed_bachelor_teachings_list': list(slot.allowed_bachelor_teachings.values('id')),
+        'allowed_establishments_list': list(slot.allowed_establishments.values('id')),
+        'allowed_student_levels_list': list(slot.allowed_student_levels.values('id'))
     }
 
     return slot_dict

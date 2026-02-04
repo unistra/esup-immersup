@@ -693,7 +693,7 @@ class ImmersionUserTestCase(TestCase):
 
         # Add a restriction on the slot and try again
         slot['establishments_restrictions'] = True
-        slot.get('allowed_establishments', []).append(self.no_si_establishment)
+        slot['allowed_establishments_list'] = [{"id": self.no_si_establishment.pk}]
 
         can_register, errors = student.can_register_slot(slot)
         self.assertFalse(can_register)

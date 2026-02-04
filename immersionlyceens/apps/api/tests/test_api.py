@@ -2872,10 +2872,14 @@ class APITestCase(TestCase):
         # Delete a previously created immersion
         self.immersion3.delete()
 
+        # highschool_user has :
+        # - 0 immersion in past_period, remaining = 2 (custom record quota = 2)
+        # - 0 immersion in period, remaining = 1 (custom record quota = 1)
+        # - 1 immersion in period2, remaining = 3 (period quota = 4)
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
             {
-                self.past_period.pk: 1,
+                self.past_period.pk: 2,
                 self.period.pk: 1,
                 self.period2.pk: 3
             }
@@ -2884,7 +2888,7 @@ class APITestCase(TestCase):
         client = Client()
         client.login(username=self.highschool_user.username, password='pass')
 
-        # Should work
+        # Add a new registration for 'period'
         data = {
             'slot_id': self.slot3.id,
             'student_id': self.highschool_user.id
@@ -2895,10 +2899,15 @@ class APITestCase(TestCase):
 
         # FIXME Careful, the following test may fail if the message template has syntax errors (use "assertIn" ?)
         self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
+
+        # highschool_user now has :
+        # - 0 immersion in past_period, remaining = 2 (custom record quota = 2)
+        # - 1 immersion in period, remaining = 0 (custom record quota = 1)
+        # - 1 immersion in period2, remaining = 3 (period quota = 4)
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
             {
-                self.past_period.pk: 1,
+                self.past_period.pk: 2,
                 self.period.pk: 0,
                 self.period2.pk: 3
             }
@@ -2987,6 +2996,7 @@ class APITestCase(TestCase):
             **self.header,
             follow=True
         )
+
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
 

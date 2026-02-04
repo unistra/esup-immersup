@@ -16,7 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
-from typing import Any, Optional, List
+from typing import Any, Dict, Optional, List
 
 from hijack.signals import hijack_started, hijack_ended
 from ipware import get_client_ip
@@ -863,7 +863,7 @@ class ImmersionUser(AbstractUser):
         return
 
 
-    def can_register_slot(self, slot=None):
+    def can_register_slot(self, slot: Dict = None):
         """
         Slot registration check : validate only User vs Slot restrictions here,
         - NOT slot registration delay
@@ -877,6 +877,9 @@ class ImmersionUser(AbstractUser):
             slot.get('bachelors_restrictions', False),
         ])
 
+        allowed_highschools = slot.get('allowed_highschools_list', [])
+        allowed_highschools_ids = [h['id'] for h in allowed_highschools]
+
         # Returns True if no restrictions are found
         if not slot or not slot_has_restrictions:
             return True, errors
@@ -888,33 +891,43 @@ class ImmersionUser(AbstractUser):
                 errors.append(_("High school record not found or not valid"))
                 return False, errors
 
-            allowed_highschools = slot.get('allowed_highschools_list', [])
             allowed_highschool_levels = slot.get('allowed_highschool_levels_list', [])
+            allowed_highschool_levels_ids = [l['id'] for l in allowed_highschool_levels]
+
             allowed_post_bachelor_levels = slot.get('allowed_post_bachelor_levels_list', [])
-            allowed_bachelor_types = slot.get('allowed_bachelor_types', [])
-            allowed_bachelor_types_list = slot.get('allowed_bachelor_types_list', [])
+            allowed_post_bachelor_levels_ids = [l['id'] for l in allowed_post_bachelor_levels]
+
+            allowed_bachelor_types = slot.get('allowed_bachelor_types_list', [])
+            allowed_bachelor_types_ids = [t['id'] for t in allowed_bachelor_types]
+
             allowed_bachelor_mentions = slot.get('allowed_bachelor_mentions_list', [])
+            allowed_bachelor_mentions_ids = [m['id'] for m in allowed_bachelor_mentions]
 
-            high_school_conditions = [
-                slot.get('allowed_highschools_list', False),
-                record.highschool
-                    and record.highschool in allowed_highschools
-            ]
+            allowed_bachelor_teachings = slot.get('allowed_bachelor_teachings_list', [])
+            allowed_bachelor_teachings_ids = [m['id'] for m in allowed_bachelor_teachings]
 
-            levels_conditions = [
-                slot.get('allowed_highschool_levels_list', False),
-                record.level
-                    and record.level in allowed_highschool_levels,
+            # if True : restriction is valid
+            high_school_conditions = (
+                allowed_highschools == []
+                or (record.highschool and record.highschool.pk in allowed_highschools_ids)
+            )
 
-                slot.get('allowed_post_bachelor_levels_list', False),
-                record.post_bachelor_level
-                    and record.post_bachelor_level in allowed_post_bachelor_levels
-            ]
+            highschool_level_condition = (
+                allowed_highschool_levels == []
+                or (record.level and record.level.pk in allowed_highschool_levels_ids)
+            )
+
+            post_bachelor_level_condition = (
+                allowed_post_bachelor_levels == []
+                or (record.post_bachelor_level and record.post_bachelor_level.pk in allowed_post_bachelor_levels_ids)
+            )
+
+            # if True : restriction is valid
+            levels_conditions = all([highschool_level_condition, post_bachelor_level_condition])
 
             bachelor_restrictions = [
-                slot.get('allowed_bachelor_types_list', False),
-                    record.bachelor_type
-                    and record.bachelor_type in allowed_bachelor_types_list,
+                allowed_bachelor_types != [],
+                record.bachelor_type and record.bachelor_type.id in allowed_bachelor_types_ids,
                 any([
                     not record.bachelor_type or not any([
                         record.bachelor_type.professional,
@@ -922,22 +935,22 @@ class ImmersionUser(AbstractUser):
                         record.bachelor_type.technological
                     ]),
                     record.bachelor_type and record.bachelor_type.professional,
-                    any(b_type.technological for b_type in allowed_bachelor_types)
+                    any(b_type.get("technological", False) for b_type in allowed_bachelor_types)
                         and (not slot.get('allowed_bachelor_mentions_list', False) or
                              (record.technological_bachelor_mention
-                             and record.technological_bachelor_mention in allowed_bachelor_mentions)),
-                    any(b_type.general for b_type in allowed_bachelor_types)
+                             and record.technological_bachelor_mention.id in allowed_bachelor_mentions_ids)),
+                    any(b_type.get("general", False) for b_type in allowed_bachelor_types)
                         and (not slot.get('allowed_bachelor_teachings_list', False) or
-                             set(slot.get('allowed_bachelor_teachings_list', [])).intersection(
-                                 set(record.general_bachelor_teachings.all().values_list('label', flat=True)))
+                             set(allowed_bachelor_teachings_ids).intersection(
+                                 set(record.general_bachelor_teachings.all().values_list('id', flat=True)))
                         )
                 ])
             ]
 
-            if slot.get('establishments_restrictions', False) and not all(high_school_conditions):
+            if slot.get('establishments_restrictions', False) and not high_school_conditions:
                 errors.append(_('High schools restrictions in effect'))
 
-            if slot.get('levels_restrictions', False) and not any(levels_conditions):
+            if slot.get('levels_restrictions', False) and not levels_conditions:
                 errors.append(_('High school or post bachelor levels restrictions in effect'))
 
             if slot.get('bachelors_restrictions', False) and not all(bachelor_restrictions):
@@ -950,25 +963,30 @@ class ImmersionUser(AbstractUser):
             establishment = self.get_student_establishment()
             record = self.get_student_record()
 
+            allowed_establishments = slot.get('allowed_establishments_list', [])
+            allowed_establishments_ids = [e['id'] for e in allowed_establishments]
+            allowed_student_levels = slot.get('allowed_student_levels_list', [])
+            allowed_student_levels_ids = [l['id'] for l in allowed_student_levels]
+
             if not record:
                 errors.append(_("Student record not found"))
                 return False, errors
 
             # record.home_institution()[0] in slot['allowed_establishments'].values_list('label', flat=True)
-            establishment_conditions = [
-                slot.get('allowed_establishments_list', False),
-                establishment and establishment.label in [s['label'] for s in slot.get('allowed_establishments_list', [])],
-            ]
+            establishment_conditions = (
+                allowed_establishments == []
+                or (establishment and establishment.id in allowed_establishments_ids)
+            )
 
             levels_conditions = [
-                slot.get('allowed_student_levels_list', False),
-                record.level and record.level.label in slot.get('allowed_student_levels_list', []),
+                allowed_student_levels == []
+                or (record.level and record.level.id in allowed_student_levels_ids,)
             ]
 
-            if slot.get('establishments_restrictions', False) and not all(establishment_conditions):
+            if slot.get('establishments_restrictions', False) and not establishment_conditions:
                 errors.append(_('Establishments restrictions in effect'))
 
-            if slot.get('levels_restrictions', False) and not all(levels_conditions):
+            if slot.get('levels_restrictions', False) and not levels_conditions:
                 errors.append(_('Student levels restrictions in effect'))
 
             if slot.get('bachelors_restrictions', False):
@@ -993,14 +1011,12 @@ class ImmersionUser(AbstractUser):
 
         # Group registrations for high school referent
         if self.is_high_school_manager() and slot.get('establishments_restrictions', False):
-            allowed_highschools = slot.get('allowed_highschools_list', [])
-
             high_school_conditions = [
-                len(allowed_highschools) > 0,
-                self.highschool and self.highschool in allowed_highschools
+                allowed_highschools == []
+                or self.highschool and self.highschool in allowed_highschools_ids
             ]
 
-            if not all(high_school_conditions):
+            if not high_school_conditions:
                 errors.append(_('High schools restrictions in effect'))
 
             if errors:

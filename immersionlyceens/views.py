@@ -388,6 +388,7 @@ def offer_subdomain(request, subdomain_id):
             allowed_establishments_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
+                        id=F('allowed_establishments__id'),
                         city=F('allowed_establishments__city'),
                         label=F('allowed_establishments__label')
                     ),
@@ -410,7 +411,10 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_highschool_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_highschool_levels__label'),
+                    JSONObject(
+                        id=F('allowed_highschool_levels__id'),
+                        label=F('allowed_highschool_levels__label')
+                    ),
                     filter=Q(allowed_highschool_levels__isnull=False),
                     distinct=True,
                 ),
@@ -418,7 +422,10 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_post_bachelor_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_post_bachelor_levels__label'),
+                    JSONObject(
+                        id=F('allowed_post_bachelor_levels__id'),
+                        label=F('allowed_post_bachelor_levels__label'),
+                    ),
                     filter=Q(allowed_post_bachelor_levels__isnull=False),
                     distinct=True,
                 ),
@@ -426,7 +433,10 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_student_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_student_levels__label'),
+                    JSONObject(
+                        id=F('allowed_student_levels__id'),
+                        label=F('allowed_student_levels__label')
+                    ),
                     filter=Q(allowed_student_levels__isnull=False),
                     distinct=True
                 ),
@@ -434,7 +444,12 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_bachelor_types_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_types__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_types__id'),
+                        label=F('allowed_bachelor_types__label'),
+                        technological=F('allowed_bachelor_types__technological'),
+                        general=F('allowed_bachelor_types__general'),
+                    ),
                     filter=Q(allowed_bachelor_types__isnull=False),
                     distinct=True
                 ),
@@ -442,7 +457,10 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_bachelor_mentions_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_mentions__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_mentions__id'),
+                        label=F('allowed_bachelor_mentions__label'),
+                    ),
                     filter=Q(allowed_bachelor_mentions__isnull=False),
                     distinct=True,
                 ),
@@ -450,7 +468,10 @@ def offer_subdomain(request, subdomain_id):
             ),
             allowed_bachelor_teachings_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_teachings__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_teachings__id'),
+                        label=F('allowed_bachelor_teachings__label'),
+                    ),
                     filter=Q(allowed_bachelor_teachings__isnull=False),
                     distinct=True,
                 ),
@@ -890,6 +911,7 @@ def offer_off_offer_events(request):
             allowed_establishments_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
+                        id=F('allowed_establishments__id'),
                         city=F('allowed_establishments__city'),
                         label=F('allowed_establishments__label')
                     ),
@@ -912,7 +934,10 @@ def offer_off_offer_events(request):
             ),
             allowed_highschool_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_highschool_levels__label'),
+                    JSONObject(
+                        id=F('allowed_highschool_levels__id'),
+                        label=F('allowed_highschool_levels__label')
+                    ),
                     filter=Q(allowed_highschool_levels__isnull=False),
                     distinct=True,
                 ),
@@ -920,7 +945,10 @@ def offer_off_offer_events(request):
             ),
             allowed_post_bachelor_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_post_bachelor_levels__label'),
+                    JSONObject(
+                        id=F('allowed_post_bachelor_levels__id'),
+                        label=F('allowed_post_bachelor_levels__label'),
+                    ),
                     filter=Q(allowed_post_bachelor_levels__isnull=False),
                     distinct=True,
                 ),
@@ -928,19 +956,34 @@ def offer_off_offer_events(request):
             ),
             allowed_student_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                    JSONObject(
+                        id=F('allowed_student_levels__id'),
+                        label=F('allowed_student_levels__label')
+                    ),
+                    filter=Q(allowed_student_levels__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_types_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                    JSONObject(
+                        id=F('allowed_bachelor_types__id'),
+                        label=F('allowed_bachelor_types__label'),
+                        technological=F('allowed_bachelor_types__technological'),
+                        general=F('allowed_bachelor_types__general'),
+                    ),
+                    filter=Q(allowed_bachelor_types__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_mentions_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_mentions__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_mentions__id'),
+                        label=F('allowed_bachelor_mentions__label'),
+                    ),
                     filter=Q(allowed_bachelor_mentions__isnull=False),
                     distinct=True,
                 ),
@@ -948,7 +991,10 @@ def offer_off_offer_events(request):
             ),
             allowed_bachelor_teachings_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_teachings__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_teachings__id'),
+                        label=F('allowed_bachelor_teachings__label'),
+                    ),
                     filter=Q(allowed_bachelor_teachings__isnull=False),
                     distinct=True,
                 ),
@@ -1318,6 +1364,7 @@ def cohort_offer(request):
             allowed_establishments_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
+                        id=F('allowed_establishments__id'),
                         city=F('allowed_establishments__city'),
                         label=F('allowed_establishments__label')
                     ),
@@ -1339,6 +1386,7 @@ def cohort_offer(request):
             allowed_highschools_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
+                        id=F('allowed_highschools__id'),
                         city=F('allowed_highschools__city'),
                         label=F('allowed_highschools__label')
                     ),
@@ -1349,7 +1397,10 @@ def cohort_offer(request):
             ),
             allowed_highschool_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_highschool_levels__label'),
+                    JSONObject(
+                        id=F('allowed_highschool_levels__id'),
+                        label=F('allowed_highschool_levels__label')
+                    ),
                     filter=Q(allowed_highschool_levels__isnull=False),
                     distinct=True,
                 ),
@@ -1357,7 +1408,10 @@ def cohort_offer(request):
             ),
             allowed_post_bachelor_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_post_bachelor_levels__label'),
+                    JSONObject(
+                        id=F('allowed_post_bachelor_levels__id'),
+                        label=F('allowed_post_bachelor_levels__label'),
+                    ),
                     filter=Q(allowed_post_bachelor_levels__isnull=False),
                     distinct=True,
                 ),
@@ -1365,19 +1419,34 @@ def cohort_offer(request):
             ),
             allowed_student_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                    JSONObject(
+                        id=F('allowed_student_levels__id'),
+                        label=F('allowed_student_levels__label')
+                    ),
+                    filter=Q(allowed_student_levels__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_types_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                    JSONObject(
+                        id=F('allowed_bachelor_types__id'),
+                        label=F('allowed_bachelor_types__label'),
+                        technological=F('allowed_bachelor_types__technological'),
+                        general=F('allowed_bachelor_types__general'),
+                    ),
+                    filter=Q(allowed_bachelor_types__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_mentions_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_mentions__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_mentions__id'),
+                        label=F('allowed_bachelor_mentions__label'),
+                    ),
                     filter=Q(allowed_bachelor_mentions__isnull=False),
                     distinct=True,
                 ),
@@ -1385,7 +1454,10 @@ def cohort_offer(request):
             ),
             allowed_bachelor_teachings_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_teachings__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_teachings__id'),
+                        label=F('allowed_bachelor_teachings__label'),
+                    ),
                     filter=Q(allowed_bachelor_teachings__isnull=False),
                     distinct=True,
                 ),
@@ -1610,6 +1682,7 @@ def cohort_offer_subdomain(request, subdomain_id):
             allowed_establishments_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
+                        id=F('allowed_establishments__id'),
                         city=F('allowed_establishments__city'),
                         label=F('allowed_establishments__label')
                     ),
@@ -1631,6 +1704,7 @@ def cohort_offer_subdomain(request, subdomain_id):
             allowed_highschools_list=Coalesce(
                 ArrayAgg(
                     JSONObject(
+                        id=F('allowed_highschools__id'),
                         city=F('allowed_highschools__city'),
                         label=F('allowed_highschools__label')
                     ),
@@ -1641,7 +1715,10 @@ def cohort_offer_subdomain(request, subdomain_id):
             ),
             allowed_highschool_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_highschool_levels__label'),
+                    JSONObject(
+                        id=F('allowed_highschool_levels__id'),
+                        label=F('allowed_highschool_levels__label')
+                    ),
                     filter=Q(allowed_highschool_levels__isnull=False),
                     distinct=True,
                 ),
@@ -1649,7 +1726,10 @@ def cohort_offer_subdomain(request, subdomain_id):
             ),
             allowed_post_bachelor_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_post_bachelor_levels__label'),
+                    JSONObject(
+                        id=F('allowed_post_bachelor_levels__id'),
+                        label=F('allowed_post_bachelor_levels__label'),
+                    ),
                     filter=Q(allowed_post_bachelor_levels__isnull=False),
                     distinct=True,
                 ),
@@ -1657,19 +1737,34 @@ def cohort_offer_subdomain(request, subdomain_id):
             ),
             allowed_student_levels_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_student_levels__label'), filter=Q(allowed_student_levels__isnull=False), distinct=True
+                    JSONObject(
+                        id=F('allowed_student_levels__id'),
+                        label=F('allowed_student_levels__label')
+                    ),
+                    filter=Q(allowed_student_levels__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_types_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_types__label'), filter=Q(allowed_bachelor_types__isnull=False), distinct=True
+                    JSONObject(
+                        id=F('allowed_bachelor_types__id'),
+                        label=F('allowed_bachelor_types__label'),
+                        technological=F('allowed_bachelor_types__technological'),
+                        general=F('allowed_bachelor_types__general'),
+                    ),
+                    filter=Q(allowed_bachelor_types__isnull=False),
+                    distinct=True
                 ),
                 Value([]),
             ),
             allowed_bachelor_mentions_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_mentions__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_mentions__id'),
+                        label=F('allowed_bachelor_mentions__label'),
+                    ),
                     filter=Q(allowed_bachelor_mentions__isnull=False),
                     distinct=True,
                 ),
@@ -1677,7 +1772,10 @@ def cohort_offer_subdomain(request, subdomain_id):
             ),
             allowed_bachelor_teachings_list=Coalesce(
                 ArrayAgg(
-                    F('allowed_bachelor_teachings__label'),
+                    JSONObject(
+                        id=F('allowed_bachelor_teachings__id'),
+                        label=F('allowed_bachelor_teachings__label'),
+                    ),
                     filter=Q(allowed_bachelor_teachings__isnull=False),
                     distinct=True,
                 ),
