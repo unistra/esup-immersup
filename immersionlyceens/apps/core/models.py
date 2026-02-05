@@ -909,35 +909,38 @@ class ImmersionUser(AbstractUser):
             # if True : restriction is valid
             high_school_conditions = (
                 allowed_highschools == []
-                or (record.highschool and record.highschool.pk in allowed_highschools_ids)
+                or (record.highschool is not None
+                    and record.highschool.pk in allowed_highschools_ids)
             )
 
             highschool_level_condition = (
                 allowed_highschool_levels == []
-                or (record.level and record.level.pk in allowed_highschool_levels_ids)
+                or (record.level is not None
+                    and record.level.pk in allowed_highschool_levels_ids)
             )
 
             post_bachelor_level_condition = (
                 allowed_post_bachelor_levels == []
-                or (record.post_bachelor_level and record.post_bachelor_level.pk in allowed_post_bachelor_levels_ids)
+                or (record.post_bachelor_level is not None
+                    and record.post_bachelor_level.pk in allowed_post_bachelor_levels_ids)
             )
 
             # if True : restriction is valid
-            levels_conditions = all([highschool_level_condition, post_bachelor_level_condition])
+            levels_conditions = any([highschool_level_condition, post_bachelor_level_condition])
 
             bachelor_restrictions = [
                 allowed_bachelor_types != [],
-                record.bachelor_type and record.bachelor_type.id in allowed_bachelor_types_ids,
+                record.bachelor_type is not None and record.bachelor_type.id in allowed_bachelor_types_ids,
                 any([
                     not record.bachelor_type or not any([
                         record.bachelor_type.professional,
                         record.bachelor_type.general,
                         record.bachelor_type.technological
                     ]),
-                    record.bachelor_type and record.bachelor_type.professional,
+                    record.bachelor_type is not None and record.bachelor_type.professional,
                     any(b_type.get("technological", False) for b_type in allowed_bachelor_types)
                         and (not slot.get('allowed_bachelor_mentions_list', False) or
-                             (record.technological_bachelor_mention
+                             (record.technological_bachelor_mention is not None
                              and record.technological_bachelor_mention.id in allowed_bachelor_mentions_ids)),
                     any(b_type.get("general", False) for b_type in allowed_bachelor_types)
                         and (not slot.get('allowed_bachelor_teachings_list', False) or
@@ -975,12 +978,12 @@ class ImmersionUser(AbstractUser):
             # record.home_institution()[0] in slot['allowed_establishments'].values_list('label', flat=True)
             establishment_conditions = (
                 allowed_establishments == []
-                or (establishment and establishment.id in allowed_establishments_ids)
+                or (establishment is not None and establishment.id in allowed_establishments_ids)
             )
 
             levels_conditions = [
                 allowed_student_levels == []
-                or (record.level and record.level.id in allowed_student_levels_ids,)
+                or (record.level is not None and record.level.id in allowed_student_levels_ids)
             ]
 
             if slot.get('establishments_restrictions', False) and not establishment_conditions:
@@ -1013,7 +1016,7 @@ class ImmersionUser(AbstractUser):
         if self.is_high_school_manager() and slot.get('establishments_restrictions', False):
             high_school_conditions = [
                 allowed_highschools == []
-                or self.highschool and self.highschool in allowed_highschools_ids
+                or (self.highschool is not None and self.highschool in allowed_highschools_ids)
             ]
 
             if not high_school_conditions:
