@@ -238,7 +238,9 @@ CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
 CAS_RETRY_LOGIN = True
 
 CAS_FORCE_SSL_SERVICE_URL = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = FALSE
+SESSION_COOKIE_AGE = 20 * 60  # 20 minutes
+
 
 #####################
 # Url configuration #
