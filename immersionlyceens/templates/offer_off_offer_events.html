@@ -159,12 +159,12 @@
                                       {% if slot.establishments_restrictions or slot.levels_restrictions or slot.bachelors_restrictions %}
                                         <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                                         {% trans "Restrictions" %} :
-                                        <div class="modal fade" id="restrictionsModal" tabindex="-1">
+                                        <div class="modal fade" id="restrictionsModal_{{ slot.pk }}" tabindex="-1">
                                           <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
                                               <div class="modal-header">
                                                 <h5 class="modal-title">{% trans "Restrictions details" %}</h5>
-                                                <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#restrictionsModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                                                <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$(`#restrictionsModal_${slot.pk}`).modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
                                               </div>
                                               <div class="modal-body" id="all_restrictions">
                                                 {% if slot.allowed_establishments_list %}

@@ -151,8 +151,8 @@ function openFullInfoModal() {
   $('#fullTextModal').modal('show');
 }
 
-function openRestrictionsModal() {
-  $('#restrictionsModal').modal('show');
+function openRestrictionsModal(id) {
+  $(`#restrictionsModal_${id ?? ''}`).modal('show');
 }
 
 function openFullInfoModalHtml(content) {

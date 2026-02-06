@@ -120,12 +120,12 @@
                   <button id="show_restrictions" class="btn btn-link p-0 mt-1" onclick="openRestrictionsModal()">{% trans 'See more' %}</button>
                 </div>
               </div>
-              <div class="modal fade" id="restrictionsModal" tabindex="-1">
+              <div class="modal fade" id="restrictionsModal_" tabindex="-1">
                 <div class="modal-dialog modal-lg">
                   <div class="modal-content">
                     <div class="modal-header">
                       <h5 class="modal-title">{% trans 'Restrictions details' %}</h5>
-                      <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$('#restrictionsModal').modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
+                      <button type="button" class="btn badge badge-pill badge-secondary pull-right" onclick="$(`#restrictionsModal_`).modal('hide')" aria-label="{% trans 'Close' %}">{% trans 'Close' %}</button>
                     </div>
                     <div class="modal-body" id="all_restrictions"></div>
                   </div>
