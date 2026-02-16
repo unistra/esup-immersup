@@ -527,9 +527,6 @@
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0], false)
               const fullHTML = display_slot_restrictions(null, null, data['data']['restrictions'][0], true)
 
-              console.log("+++++++++++++++++++++++++++++++++++++++++")
-              console.log(restrictions)
-
               if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
                 $('#show_restrictions').hide();
@@ -888,9 +885,6 @@
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0], false)
               const fullHTML = display_slot_restrictions(null, null, data['data']['restrictions'][0], true);
 
-              console.log("+++++++++++++++++++++++++++++++++++++++++")
-              console.log(restrictions)
-
               if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
                 $('#show_restrictions').hide();
@@ -1247,9 +1241,6 @@
           if (data['data'] !== undefined && data['data']['restrictions'] !== undefined) {
               restrictions = display_slot_restrictions(null, null, data['data']['restrictions'][0], false)
               const fullHTML = display_slot_restrictions(null, null, data['data']['restrictions'][0], true);
-
-              console.log("+++++++++++++++++++++++++++++++++++++++++")
-              console.log(restrictions)
 
               if (restrictions === '<ul class="list-unstyled"></ul>') {
                 restrictions = "<p>{% trans "Slot open to all" %}</p>";
