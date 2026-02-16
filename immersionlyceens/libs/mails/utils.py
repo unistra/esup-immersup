@@ -58,6 +58,9 @@ def send_email(address, subject, body, from_addr=None, reply_to=None, copies=())
         logger.warning("Cannot send mail (no email address specified)")
         return
 
+    # add this to Cc list to bypass some limitations
+    cc.append(from_addr)
+
     # Email data
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
