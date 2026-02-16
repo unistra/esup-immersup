@@ -276,6 +276,9 @@ def data_for_context(data, data_dict, slot):
 
     if 'info' not in data[training_id][etab_label][course_id]:
         data[training_id][etab_label][course_id]['info'] = course_info
+    else:
+        if slot['final_available_seats'] > 0:
+            data[training_id][etab_label][course_id]['info']['alert'] = False
 
     if 'slots' not in data[training_id][etab_label][course_id]:
         data[training_id][etab_label][course_id]['slots'] = []
@@ -712,6 +715,8 @@ def offer_subdomain(request, subdomain_id):
             'label': course['establishment_label'],
             'badge_html_color': course['establishment_badge_html_color'],
         }
+
+        print(course)
 
         course_info = {
             'id': course['id'],
