@@ -111,11 +111,25 @@
                   $("#contactus_feedback").html('');
                 }, {%  settings_get 'MESSAGES_TIMEOUT' %});
             } else {
-                $("#contactus_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
+                $("#modal_contact_us").modal('hide');
+                $("#contact_us_form")[0].reset();
+                $("#contactus_feedback").html('');
+
+                const msgText = "{% trans 'Message successfully sent' %}";
+                const newAlert = `
+                    <div class="messages alert alert-success alert-dismissible shadow-sm" style="pointer-events: auto; margin-bottom: 5px;">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        ${msgText}
+                    </div>
+                `;
+                $("#messages").show();
+                $("#messages").append(newAlert);
+
                 setTimeout(function() {
-                  $("#contactus_feedback").html('');
-                  $("#modal_contact_us").modal('hide');
-                  $("#contact_us_form")[0].reset();
+                    $("#messages .alert").last().fadeOut(500, function() {
+                        $(this).remove();
+                        $("#messages").hide();
+                    });
                 }, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
           },
