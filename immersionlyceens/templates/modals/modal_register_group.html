@@ -38,6 +38,14 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
+                <label for="manager">{% trans 'Manager' %}</label>
+                <textarea id="manager" name="manager" class="form-control">{{ user }}</textarea>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
                 <label for="students_count">{% trans 'Students count' %} *</label>
                 <input id="students_count" type="number" name="students_count" class="form-control" required="required">
               </div>
@@ -98,6 +106,7 @@
     formData.append('id', $("#id_group_registration").val());
     formData.append('slot_id', current_slot_id);
     formData.append('highschool_id', $("#id_group_highschool").val());
+    formData.append('manager', "{{ request.user }}")
     formData.append('students_count', $("#students_count").val());
     formData.append('guides_count', $("#guides_count").val());
     formData.append('comments', $("#comments").val());

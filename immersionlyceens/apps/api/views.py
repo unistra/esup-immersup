@@ -1225,6 +1225,7 @@ def ajax_get_slot_groups_registrations(request, slot_id):
             immersion_data = {
                 'id': immersion.id,
                 'highschool_id': immersion.highschool.id,
+                'manager': immersion.manager,
                 'school': immersion.highschool.label,
                 'city': immersion.highschool.city,
                 'students_count': immersion.students_count,
@@ -1803,6 +1804,7 @@ def ajax_group_slot_registration(request):
     _id = request.POST.get('id', None)
     slot_id = request.POST.get('slot_id', None)
     highschool_id = request.POST.get('highschool_id', None)
+    manager = request.POST.get('manager', None)
     students_count = request.POST.get('students_count', None)
     guides_count = request.POST.get('guides_count', None)
     file = request.FILES.get('file', None)
@@ -1921,6 +1923,7 @@ def ajax_group_slot_registration(request):
 
     if immersion_group_record:
         immersion_group_record.highschool_id = user_highschool.id if user.is_high_school_manager() else highschool_id
+        immersion_group_record.manager = manager
         immersion_group_record.students_count = students_count
         immersion_group_record.guides_count = guides_count
         immersion_group_record.comments = comments
@@ -1939,6 +1942,7 @@ def ajax_group_slot_registration(request):
             immersion_group_record = ImmersionGroupRecord.objects.create(
                 slot=slot,
                 highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
+                manager=manager,
                 students_count=students_count,
                 guides_count=guides_count,
                 comments=comments,
