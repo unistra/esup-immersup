@@ -1835,7 +1835,7 @@ $(document).ready(function(){
 
   initFeedback();
   // reset feedback
-  setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+  setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
 
   dateDialog = $("#date-dialog-form").dialog({
     autoOpen: false,

@@ -624,7 +624,7 @@ class SlotForm(forms.ModelForm):
                             new_slot_template.allowed_bachelor_mentions.add(*slot_allowed_bachelor_mentions)
                             new_slot_template.allowed_bachelor_teachings.add(*slot_allowed_bachelor_teachings)
 
-                            messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+                messages.success(self.request, _("The slots were successfully created with %d copies.") % len(new_dates))
 
         if activity and instance.published:
             if slot_min:

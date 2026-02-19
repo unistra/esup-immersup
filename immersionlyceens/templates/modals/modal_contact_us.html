@@ -107,9 +107,6 @@
           success: function (json) {
             if(json['error']) {
                 $("#contactus_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-                setTimeout(function() {
-                  $("#contactus_feedback").html('');
-                }, {%  settings_get 'MESSAGES_TIMEOUT' %});
             } else {
                 $("#modal_contact_us").modal('hide');
                 $("#contact_us_form")[0].reset();
@@ -124,13 +121,6 @@
                 `;
                 $("#messages").show();
                 $("#messages").append(newAlert);
-
-                setTimeout(function() {
-                    $("#messages .alert").last().fadeOut(500, function() {
-                        $(this).remove();
-                        $("#messages").hide();
-                    });
-                }, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
           },
           error: function (json) {

@@ -13,6 +13,7 @@ Le projet a été initialement conçu dans le cadre du projet _Noria_, lancé pa
 
 ## Contributeurs
 
+- Victor Beaucourt
 - Thomas Baguet
 - Christophe Boccheciampe
 - Alexandre Combeau

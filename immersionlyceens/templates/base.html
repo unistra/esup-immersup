@@ -61,6 +61,8 @@
 
     {% block section_title %}{% endblock %}
 
+    {% block content %}{% endblock %}
+
     <div id="messages" class="container sticky-top" style="top: 50px;padding: 10px;">
       {% if messages %}
         {% for message in messages %}
@@ -72,7 +74,6 @@
         {% endfor %}
       {% endif %}
     </div>
-    {% block content %}{% endblock %}
 
     {% include './modals/modal_credits.html'%}
     {% include './modals/modal_legal.html'%}
@@ -83,14 +84,6 @@
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/scripts.min.js' %}"></script>
     <script>
-    // hide notifications messages after x seconds (see settings to set value)
-    var messages = document.getElementById("messages");
-    if(messages) {
-      setTimeout(function(){
-        messages.style.display = "none";
-      }, {%  settings_get 'MESSAGES_TIMEOUT' %} );
-    }
-
     {% if stage != 'Prod' and stage != 'Dev' %}
     const markTemplate = (name) => {
       return `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='110px' width='110px'><text transform='translate(20, 100) rotate(-40)' fill='rgb(245,45,45)' font-size='22'>${name}</text></svg>`;

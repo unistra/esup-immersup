@@ -873,7 +873,7 @@ function cancel_rejection(visitor_record_id) {
                     $('#fail_message').hide();
                 }
             )
-        }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        }, {% settings_get 'MESSAGES_TIMEOUT' %});
     }
   });
 }

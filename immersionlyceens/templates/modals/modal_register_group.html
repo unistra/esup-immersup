@@ -39,7 +39,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label for="manager">{% trans 'Manager' %}</label>
-                <textarea id="manager" name="manager" class="form-control">{{ user }}</textarea>
+                <input type="text" id="manager_input" name="manager" class="form-control" value="{{ user }}">
               </div>
             </div>
           </div>
@@ -106,7 +106,7 @@
     formData.append('id', $("#id_group_registration").val());
     formData.append('slot_id', current_slot_id);
     formData.append('highschool_id', $("#id_group_highschool").val());
-    formData.append('manager', "{{ request.user }}")
+    formData.append('manager', $("#manager_input").val())
     formData.append('students_count', $("#students_count").val());
     formData.append('guides_count', $("#guides_count").val());
     formData.append('comments', $("#comments").val());
