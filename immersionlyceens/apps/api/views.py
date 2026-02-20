@@ -1922,9 +1922,14 @@ def ajax_group_slot_registration(request):
         else:
             emails = ",".join(cleaned_emails)
 
+    try:
+        manager_obj = ImmersionUser.objects.get(pk=manager_id)
+    except (ImmersionUser.DoesNotExist, ValueError):
+        manager_obj = None
+
     if immersion_group_record:
         immersion_group_record.highschool_id = user_highschool.id if user.is_high_school_manager() else highschool_id
-        immersion_group_record.manager = ImmersionUser.objects.get(pk=manager_id)
+        immersion_group_record.manager = manager_obj
         immersion_group_record.students_count = students_count
         immersion_group_record.guides_count = guides_count
         immersion_group_record.comments = comments
@@ -1943,7 +1948,7 @@ def ajax_group_slot_registration(request):
             immersion_group_record = ImmersionGroupRecord.objects.create(
                 slot=slot,
                 highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
-                manager=ImmersionUser.objects.get(pk=manager_id),
+                manager=manager_obj,
                 students_count=students_count,
                 guides_count=guides_count,
                 comments=comments,
