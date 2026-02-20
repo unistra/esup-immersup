@@ -1213,7 +1213,7 @@ def ajax_get_slot_groups_registrations(request, slot_id):
         response['msg'] = gettext("Error : invalid slot id")
 
     if slot:
-        immersions = ImmersionGroupRecord.objects.prefetch_related('highschool').filter(
+        immersions = ImmersionGroupRecord.objects.prefetch_related('highschool', 'manager').filter(
             slot=slot, cancellation_type__isnull=True
         )
 
@@ -1225,7 +1225,8 @@ def ajax_get_slot_groups_registrations(request, slot_id):
             immersion_data = {
                 'id': immersion.id,
                 'highschool_id': immersion.highschool.id,
-                'manager': immersion.manager,
+                'manager': str(immersion.manager),
+                'manager_id': immersion.manager_id,
                 'school': immersion.highschool.label,
                 'city': immersion.highschool.city,
                 'students_count': immersion.students_count,
@@ -1804,7 +1805,7 @@ def ajax_group_slot_registration(request):
     _id = request.POST.get('id', None)
     slot_id = request.POST.get('slot_id', None)
     highschool_id = request.POST.get('highschool_id', None)
-    manager = request.POST.get('manager', None)
+    manager_id = request.POST.get('manager', None)
     students_count = request.POST.get('students_count', None)
     guides_count = request.POST.get('guides_count', None)
     file = request.FILES.get('file', None)
@@ -1923,7 +1924,7 @@ def ajax_group_slot_registration(request):
 
     if immersion_group_record:
         immersion_group_record.highschool_id = user_highschool.id if user.is_high_school_manager() else highschool_id
-        immersion_group_record.manager = manager
+        immersion_group_record.manager = ImmersionUser.objects.get(pk=manager_id)
         immersion_group_record.students_count = students_count
         immersion_group_record.guides_count = guides_count
         immersion_group_record.comments = comments
@@ -1942,7 +1943,7 @@ def ajax_group_slot_registration(request):
             immersion_group_record = ImmersionGroupRecord.objects.create(
                 slot=slot,
                 highschool_id=user_highschool.id if user.is_high_school_manager() else highschool_id,
-                manager=manager,
+                manager=ImmersionUser.objects.get(pk=manager_id),
                 students_count=students_count,
                 guides_count=guides_count,
                 comments=comments,

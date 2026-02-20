@@ -3559,7 +3559,14 @@ class ImmersionGroupRecord(models.Model):
         related_name="group_immersions",
     )
 
-    manager = models.TextField(_("Manager"), blank=False, null=False, default="")
+    manager = models.ForeignKey(
+        ImmersionUser,
+        limit_choices_to={'_groups': 'REF-LYC'},
+        verbose_name=_("Manager"),
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="group_immersions",
+    )
 
     students_count = models.SmallIntegerField(_("Registered students count"), null=False, blank=False)
     guides_count = models.SmallIntegerField(_("Student guides count"), null=False, blank=False)

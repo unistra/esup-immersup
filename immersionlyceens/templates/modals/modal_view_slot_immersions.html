@@ -351,6 +351,8 @@ function open_group_modal(id, highschool_id, manager, students_count, guides_cou
   $('#emails').val(emails)
   $('#comments').val(decodeURI(comments))
 
+  updateManagerList(highschool_id, manager);
+
   $('button[name="register"]').html(update_group_txt)
   $('#modal_register_group').modal('show');
 }

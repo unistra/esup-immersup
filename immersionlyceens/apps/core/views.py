@@ -913,6 +913,7 @@ class CourseSlotList(generic.TemplateView):
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
             "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+            "group_managers": ImmersionUser.objects.filter(groups__name='REF-LYC').select_related('highschool'),
             "establishment_id": kwargs.get(
                 'establishment_id',
                 get_session_value(self.request, "courses", "current_establishment_id")
@@ -1965,6 +1966,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
         context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True)
         context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
+        context["group_managers"] = ImmersionUser.objects.filter(groups__name='REF-LYC').select_related('highschool')
         context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
         # Defaults
@@ -2448,6 +2450,7 @@ class HighSchoolCohortsEventsList(generic.TemplateView):
         context["cancel_types"] = CancelType.objects.filter(active=True, students=True)
         context["groups_cancel_types"] = CancelType.objects.filter(active=True, groups=True, managers=False)
         context["group_highschools"] = HighSchool.agreed.order_by('city', 'label')
+        context["group_managers"] = ImmersionUser.objects.filter(groups__name='REF-LYC').select_related('highschool')
         context["group_file_help_text"] = ImmersionGroupRecord.file.field.help_text
 
         # Defaults
@@ -2518,6 +2521,7 @@ class HighSchoolCohortsCoursesList(generic.TemplateView):
                 "structures": Structure.activated.all(),
                 "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
                 "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+                "group_managers": ImmersionUser.objects.filter(groups__name='REF-LYC').select_related('highschool'),
                 "establishment_id": kwargs.get(
                     'establishment_id', get_session_value(self.request, "cohorts_courses", "current_establishment_id")
                 ),
@@ -2572,6 +2576,7 @@ class HighSchoolCohortsRegistrations(generic.TemplateView):
             "structures": Structure.activated.all(),
             "highschools": HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label'),
             "group_highschools": HighSchool.agreed.order_by('city', 'label'),
+            "group_managers": ImmersionUser.objects.filter(groups__name='REF-LYC').select_related('highschool'),
             "establishment_id": kwargs.get(
                 'establishment_id', get_session_value(self.request, "cohorts_courses", "current_establishment_id")
             ),

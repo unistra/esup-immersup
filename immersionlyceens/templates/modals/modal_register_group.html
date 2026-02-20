@@ -38,8 +38,19 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="manager">{% trans 'Manager' %}</label>
-                <input type="text" id="manager_input" name="manager" class="form-control" value="{{ user }}">
+                <label for="id_group_manager">{% trans 'Manager' %}</label>
+                <select id="id_group_manager" class="form-control" required="required">
+                  <option value="">------------</option>
+                </select>
+              </div>
+
+              <div id="manager_data_store" style="display:none;">
+                {% for manager in group_managers %}
+                    <span data-id="{{ manager.id }}"
+                          data-name="{{ manager }}"
+                          data-highschool="{{ manager.highschool_id }}">
+                    </span>
+                {% endfor %}
               </div>
             </div>
           </div>
@@ -106,7 +117,7 @@
     formData.append('id', $("#id_group_registration").val());
     formData.append('slot_id', current_slot_id);
     formData.append('highschool_id', $("#id_group_highschool").val());
-    formData.append('manager', $("#manager_input").val())
+    formData.append('manager', $("#id_group_manager").val())
     formData.append('students_count', $("#students_count").val());
     formData.append('guides_count', $("#guides_count").val());
     formData.append('comments', $("#comments").val());
@@ -188,6 +199,35 @@
       }
     })
   };
+
+  function updateManagerList(selectedHighschoolId, selectedManager = null) {
+      const $managerSelect = $('#id_group_manager');
+      $managerSelect.empty();
+
+      if (selectedHighschoolId) {
+          $managerSelect.append('<option value="">------------</option>');
+
+          $('#manager_data_store span').each(function() {
+              const highschoolId = $(this).data('highschool');
+              if (highschoolId == selectedHighschoolId) {
+                  const managerId = $(this).data('id');
+                  const manager = $(this).data('name');
+
+                  const isSelected = (selectedManager && manager == selectedManager) ? 'selected' : '';
+
+                  $managerSelect.append(
+                      `<option value="${managerId}" ${isSelected}>${manager}</option>`
+                  );
+              }
+          });
+      } else {
+          $managerSelect.append('<option value="">------------</option>');
+      }
+  }
+
+  $('#id_group_highschool').on('change', function() {
+      updateManagerList($(this).val());
+  });
 
   $('#modal_register_group').on('show.bs.modal', function (e) {
     if(!$("#id_group_registration").val()) {
