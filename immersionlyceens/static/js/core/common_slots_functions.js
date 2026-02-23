@@ -1,6 +1,6 @@
 function display_additional_information(data) {
     if(data) {
-      data = data.replace(/(?:\r\n|\r|\n)/g, '<br>').replace(/"/g, '\'');
+      data = data.replaceAll('(?:\r\n|\r|\n)', '<br>').replaceAll('"', '\'');
       return `<span
         data-toggle="tooltip"
         data-html="true"

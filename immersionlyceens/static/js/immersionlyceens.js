@@ -50,7 +50,7 @@ function initBadge() {
     let g = colors[2]
     let b = colors[3]
 
-    let o = Math.round(((parseInt(r) * 299) + (parseInt(g) * 587) + (parseInt(b) * 114)) / 1000)
+    let o = Math.round(((Number.parseInt(r) * 299) + (Number.parseInt(g) * 587) + (Number.parseInt(b) * 114)) / 1000)
 
     if (o > 125) {
       $(this).css('color', 'black')
@@ -92,7 +92,7 @@ Display a string with a limit and a tooltip with the full string
 */
 function displayLongString(string, limit = 50, html = false) {
   // remove html tags from string
-  let cleanedString = string.replace(/<[^>]*>/g, ' ')
+  let cleanedString = string.replaceAll('<[^>]*>', ' ')
   if (html && cleanedString.length > limit) {
     if (findBootstrapEnvironment() === 'xs' || findBootstrapEnvironment() === 'sm') {
       return string

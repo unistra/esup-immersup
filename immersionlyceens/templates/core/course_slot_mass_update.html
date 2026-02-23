@@ -641,7 +641,7 @@
     var has_immersions = "{{ has_immersions }}" === "True";
     var has_group_immersions = "{{ has_group_immersions }}" === "True";
 
-    let speakers_list = "{{ form.speakers.value|safe }}".replace(/'/g, '')
+    let speakers_list = "{{ form.speakers.value|safe }}".replaceAll("'", '')
     let speakers = is_set(speakers_list) ? JSON.parse(speakers_list) : Array();
 
     var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"

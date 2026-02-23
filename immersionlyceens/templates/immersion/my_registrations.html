@@ -225,7 +225,7 @@
           className: 'text-center',
           width: '20px',
           "render": function(data, type, full, meta) {
-              slotType = full['type'][0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              slotType = full['type'][0].toLowerCase().normalize("NFD").replaceAll('[\u0300-\u036f]', "");
               if (slotType === 'c') {
                   label = '<i class="fa fa-graduation-cap slot-type-c" data-toggle="tooltip" title="{% trans "Course" %}"></i>';
               } else {

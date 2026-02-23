@@ -5,7 +5,7 @@ $(document).ready(function() {
       type: 'GET',
       success(data) {
         let options = '<option value="">---------</option>'
-        const campusId = parseInt($('#id_campus').val());
+        const campusId = Number.parseInt($('#id_campus').val());
         for (const item of data) {
           const selected = campusId === item.id ? "selected" : "";
           options += `<option ${selected} value="${item.id}">${item.label}</option>`;

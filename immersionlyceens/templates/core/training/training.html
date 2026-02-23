@@ -140,7 +140,7 @@
 
           $("#id_training").children().each(function() {
             var $this = $(this);
-            var opt_value = parseInt($this.val());
+            var opt_value = Number.parseInt($this.val());
 
             if($.inArray(opt_value, trainings_list) === -1) {
               $this.hide();
