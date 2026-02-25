@@ -48,7 +48,6 @@
         </ol>
       </nav>
     </div>
-    <div id="feedback" class="container"></div>
   </section>
   {% if intro_offer_search %}
     <section class="py-5">
@@ -178,7 +177,7 @@
     </div>
   </section>
 <script>
-  var feedback;
+  let messages;
   var dt;
   let establishments_txt = "{% trans 'Establishments' %}"
   let levels_txt = "{% trans 'Levels' %}"
@@ -211,22 +210,21 @@
         $('#modal_search_slots_details').modal("hide");
 
         if (error) {
-          feedback.trigger("showFeedback", [[msg, "danger"]]);
+          messages.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
           if(notify_disability === "on_demand") {
             open_notify_disability_modal(slot_id).then(() => {
-              feedback.trigger("showFeedback", [[msg, "success"]]);
+              messages.trigger("showFeedback", [[msg, "success"]]);
               dt.ajax.reload(null, false);
             })
           }
           else {
-            feedback.trigger("showFeedback", [[msg, "success"]]);
+            messages.trigger("showFeedback", [[msg, "success"]]);
             dt.ajax.reload(null, false);
           }
         }
         $(document.body).scrollTop($('#message').offset().top);
-        setTimeout(function() { $("#feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       },
       error: function (json) {
         console.log(json);
@@ -236,7 +234,7 @@
 
   $(document).ready(function() {
     initFeedback();
-    feedback = $("#feedback");
+    messages = $("#messages");
     $.fn.dataTable.ext.search.push(
       function( settings, searchData, index, rowData, counter ) {
         // "place" values

@@ -19,7 +19,6 @@
 {% block content %}
 {% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
 
-<div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   {% block confirm_slot_creation %}{% endblock %}
   {% block confirm_publication %}{% endblock %}
@@ -1833,10 +1832,6 @@ $(document).ready(function(){
     $('#id_url').attr('required', 'required');
   }
 
-  initFeedback();
-  // reset feedback
-  setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
-
   dateDialog = $("#date-dialog-form").dialog({
     autoOpen: false,
     closeOnEscape: false,
@@ -2070,17 +2065,6 @@ $(document).ready(function(){
 
   toggle_group_fields();
 
-  {% if slot or request.POST.structure %}
-    {% if slot %}
-      setTimeout(function() {
-        $('#ok_modify').fadeOut(1000, function(){
-          $('#ok_modify').hide();
-        });
-      },
-      {% settings_get 'MESSAGES_TIMEOUT' %}
-      );
-    {% endif %}
-  {% endif %}
 });
 </script>
 {% endblock %}

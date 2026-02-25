@@ -31,7 +31,6 @@
 {% include '../modals/modal_view_slot_immersions.html' %}
 {% include '../modals/modal_register_group.html' %}
 {% include '../modals/modal_contact.html' %}
-<div id="feedback" class="container sticky-top"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 98%;">
   {% block slot_deletion %}{% endblock %}
   <br>
@@ -418,9 +417,6 @@
 
 <script>
 $(document).ready(function(){
-  // reset feedback
-  setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
-  initFeedback();
 
   function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));

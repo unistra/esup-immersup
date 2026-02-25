@@ -1081,17 +1081,6 @@
 
         toggle_group_fields();
 
-        {% if slot or request.POST.structure %}
-          {% if slot %}
-          setTimeout(function() {
-                  $('#ok_modify').fadeOut(1000, function(){
-                      $('#ok_modify').hide();
-                  });
-              },
-              {% settings_get 'MESSAGES_TIMEOUT' %}
-          );
-          {% endif %}
-        {% endif %}
     });
 </script>
 {% endblock %}

@@ -49,6 +49,13 @@
     editor.setData('')
   });
 
+  $(document).ready(function () {
+    $('.modal').on('hidden.bs.modal', function () {
+      $("#contact_feedback").html('');
+      $("#id_subject").val("");
+    });
+  });
+
   function send_email(slot_id) {
     let is_checked = $('#id_send_copy').is(":checked");
 
@@ -66,10 +73,8 @@
       success: function (json) {
         if(json['error']) {
             $("#contact_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-            setTimeout(function() { $("#contact_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
         } else {
             $("#contact_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
-            setTimeout(function() { $("#contact_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
             $("#id_subject").val("");
             editor.setData('')
         }

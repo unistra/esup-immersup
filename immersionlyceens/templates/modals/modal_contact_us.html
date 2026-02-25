@@ -152,5 +152,15 @@
         $('.modal').on('shown.bs.modal', function(){
           $('input:first').focus()
         });
+
+        $('.modal').on('hidden.bs.modal', function () {
+          $("#contactus_feedback").html('');
+          $("#firstname").val("");
+          $("#lastname").val("");
+          $("#email").val("");
+          $("#subject").val("");
+          $("#message").val("");
+          $("#are_u_human").val("");
+        });
     });
 </script>
