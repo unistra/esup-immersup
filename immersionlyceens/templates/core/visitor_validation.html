@@ -51,16 +51,6 @@
       {% trans "Visitor profiles" %}
     </div>
     <div class="card-body">
-      <div class="alert alert-danger hide" id="fail_message">
-        {% trans "An error occurred. The validation or rejection failed." %}
-      </div>
-      <div class="alert alert-success hide" id="validate_message">
-        {% trans "Visitor validated" %}
-      </div>
-      <div class="alert alert-success hide" id="reject_message">
-        {% trans "Visitor rejected" %}
-      </div>
-
       <div>
         <!-- TO REVALIDATE -->
         <div class="card mb-4">
@@ -186,7 +176,7 @@
   </div>
 </div>
 <script type="text/javascript">
-var t1, t2;
+let msgText;
 var dts = {};
 var vdialog, cdialog, rdialog;
 var date_options = { dateStyle: 'short', timeStyle: 'short' };
@@ -773,44 +763,39 @@ function validate_student(visitor_record_id, documents_validity_date) {
             reload_validated();
             reload_rejected();
 
+            msgText = '{% trans "Visitor validated" %}'
+
             if(data["msg"]) {
-              $('#validate_message').append(`<br> ${data["msg"]}`)
+              msgText += `<br> ${data["msg"]}`
             }
 
-            $('#validate_message').show();
 
-            if (t1) { clearTimeout(t1); }
-
-            t1 = setTimeout(function() {
-              $('#validate_message').fadeOut(1000, function(){
-                $('#validate_message').hide();
-              });
-              },
-              {% settings_get 'MESSAGES_TIMEOUT' %}
-            )
         } else {
-            $('#fail_message').show();
-
-            setTimeout(function(){
-                $('#fail_message').fadeOut(
-                    1000,
-                    function() {
-                        $('#fail_message').hide();
-                    }
-                )
-            }, {% settings_get 'MESSAGES_TIMEOUT' %});
+            msgText = '{% trans "An error occurred. The validation or rejection failed." %}'
         }
+
+        const newAlert = `
+                  <div class="messages alert alert-success alert-dismissible">
+                      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                      ${msgText}
+                  </div>
+            `;
+
+        $("#messages").show();
+        $("#messages").append(newAlert);
     },
     error: function() {
-        $('#fail_message').show();
-        setTimeout(function(){
-            $('#fail_message').fadeOut(
-                1000,
-                function() {
-                    $('#fail_message').hide();
-                }
-            )
-        }, {% settings_get 'MESSAGES_TIMEOUT' %});
+        msgText = '{% trans "An error occurred. The validation or rejection failed." %}'
+
+        const newAlert = `
+                  <div class="messages alert alert-success alert-dismissible">
+                      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                      ${msgText}
+                  </div>
+            `;
+
+        $("#messages").show();
+        $("#messages").append(newAlert);
     }
   });
 }
@@ -826,54 +811,39 @@ function cancel_rejection(visitor_record_id) {
         reload_to_validate();
         reload_rejected();
 
-        $('#cancel_rejection_message').show();
+        msgText = '{% trans "Rejection cancelled" %}'
 
-        if (t1) {
-          clearTimeout(t1);
-        }
-
-        t1 = setTimeout(function() {
-            $('#cancel_rejection_message').fadeOut(1000, function(){
-              $('#cancel_rejection_message').hide();
-            });
-          },
-          {% settings_get 'MESSAGES_TIMEOUT' %}
-        )
       }
       else {
+        msgText = '{% trans "An error occurred. The validation or rejection failed." %}'
+
         if(is_set(obj.msg)) {
-          $('#fail_message').html(obj.msg)
+          msgText += obj.msg
         }
-        else {
-          $('#fail_message').html(
-            "{% trans 'An error occurred. The operation has failed.' %}"
-          )
-        }
-
-        $('#fail_message').show();
-
-        setTimeout(function() {
-            $('#fail_message').fadeOut(
-              1000,
-              function() {
-                $('#fail_message').hide();
-              }
-            )
-          },
-          {% settings_get 'MESSAGES_TIMEOUT' %}
-        );
       }
+
+      const newAlert = `
+                <div class="messages alert alert-success alert-dismissible">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    ${msgText}
+                </div>
+          `;
+
+      $("#messages").show();
+      $("#messages").append(newAlert);
     },
     error: function() {
-        $('#fail_message').show();
-        setTimeout(function(){
-            $('#fail_message').fadeOut(
-                1000,
-                function() {
-                    $('#fail_message').hide();
-                }
-            )
-        }, {% settings_get 'MESSAGES_TIMEOUT' %});
+      msgText = '{% trans "An error occurred. The validation or rejection failed." %}'
+
+      const newAlert = `
+                <div class="messages alert alert-success alert-dismissible">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    ${msgText}
+                </div>
+          `;
+
+      $("#messages").show();
+      $("#messages").append(newAlert);
     }
   });
 }
@@ -892,19 +862,11 @@ function reject_student(visitor_record_id, reason) {
               reload_validated();
               reload_rejected();
 
-              if(data["msg"]) {
-                $('#reject_message').append(`<br> ${data["msg"]}`)
-              }
+              msgText = '{% trans "Visitor rejected" %}'
 
-              $('#reject_message').show();
-              if (t2) { clearTimeout(t2); }
-              t2 = setTimeout(function(){
-                      $('#reject_message').fadeOut(1000, function(){
-                          $('#reject_message').hide();
-                      });
-                  },
-                  {% settings_get 'MESSAGES_TIMEOUT' %}
-              );
+              if(data["msg"]) {
+                msgText += `<br> ${data["msg"]}`
+              }
 
               let elem = $('#btn_reject_' + visitor_record_id + '').parent().parent();
               elem.fadeOut(
@@ -916,27 +878,31 @@ function reject_student(visitor_record_id, reason) {
               );
 
           } else {
-              $('#fail_message').show();
-              setTimeout(function(){
-                  $('#fail_message').fadeOut(
-                      1000,
-                      function() {
-                          $('#fail_message').hide();
-                      }
-                  )
-              }, {% settings_get 'MESSAGES_TIMEOUT' %});
+            msgText = '{% trans "An error occurred. The validation or rejection failed." %}'
           }
+
+          const newAlert = `
+                    <div class="messages alert alert-success alert-dismissible">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        ${msgText}
+                    </div>
+              `;
+
+          $("#messages").show();
+          $("#messages").append(newAlert);
       },
       error: function() {
-          $('#fail_message').show();
-          setTimeout(function(){
-              $('#fail_message').fadeOut(
-                  1000,
-                  function() {
-                      $('#fail_message').hide();
-                  }
-              )
-          }, {% settings_get 'MESSAGES_TIMEOUT' %});
+          msgText = '{% trans "An error occurred. The validation or rejection failed." %}'
+
+          const newAlert = `
+                    <div class="messages alert alert-success alert-dismissible">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        ${msgText}
+                    </div>
+              `;
+
+          $("#messages").show();
+          $("#messages").append(newAlert);
       }
   });
 }

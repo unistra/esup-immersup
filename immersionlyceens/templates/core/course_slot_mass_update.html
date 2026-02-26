@@ -19,7 +19,6 @@
 {% block content %}
 {% general_settings_get 'ACTIVATE_COHORT' as enabled_groups_registrations %}
 
-<div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   <div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course publication" %}'>
     <span>
@@ -958,10 +957,6 @@
             $("#id_div_url").show()
             $('#id_url').attr('required', 'required');
         }
-
-        initFeedback();
-        // reset feedback
-        setTimeout(function(){$('#feedback').html('')}, {% settings_get 'MESSAGES_TIMEOUT' %});
 
         publicationDialog = $("#publication-dialog-form").dialog({
             autoOpen: false,
