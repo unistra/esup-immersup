@@ -45,7 +45,6 @@
       </ol>
     </nav>
   </div>
-  <div id="feedback" class="container"></div>
 </section>
 <section class="py-5">
   <div class="row m-0">
@@ -101,7 +100,7 @@
 {% endblock %}
 {% block foot-javascript %}
 <script>
-  var feedback;
+  var messages;
   var current_immersion_id;
   var user_id = {{ request.user.id }};
   var dt_future;
@@ -160,10 +159,10 @@
           let error = json['error'];
 
           if(error) {
-            feedback.trigger("showFeedback", [[msg, "danger"]]);
+            messages.trigger("showFeedback", [[msg, "danger"]]);
           }
           else {
-            feedback.trigger("showFeedback", [[msg, "success"]]);
+            messages.trigger("showFeedback", [[msg, "success"]]);
             dt_future.ajax.reload();
             dt_past.ajax.reload();
             dt_cancelled.ajax.reload();
@@ -177,7 +176,7 @@
 
   $(document).ready(function() {
     initFeedback();
-    feedback = $("#feedback");
+    messages = $("#messages");
     $.fn.dataTableExt.errMode = 'console';
 
     /* Immersions to come */

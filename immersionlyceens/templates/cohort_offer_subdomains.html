@@ -457,7 +457,6 @@ function csrfSafeMethod(method) {
 $(document).ready(function() {
   initFeedback();
   initBadge();
-  feedback = $("#feedback");
   $.ajaxSetup({
     beforeSend: function(xhr, settings) {
       if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
