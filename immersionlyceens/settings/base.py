@@ -659,10 +659,6 @@ INSTITUTES_URL = (
     + "&rows=%s&start=%s"
 )  # don't forget to add rows and start values in requests for pagination
 
-
-# Notifications display time (milliseconds)
-MESSAGES_TIMEOUT = 8000
-
 # Ignored queries for 404 error
 IGNORABLE_404_URLS = [
     re.compile(r'^/apple-touch-icon.*\.png$'),

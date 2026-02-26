@@ -137,6 +137,7 @@
                   </tr>
                   <tr id="id_groups_attendances">
                     <th scope="row" colspan='6'></th>
+                    <th scope="row"></th>
                     <th scope="row">
                       <div id="id_groups_update_attendances" style="display:none">
                         <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_groups_attendances(1)" title="{% trans 'Set all present' %}">
@@ -232,7 +233,6 @@ function set_attendance(immersion_id, value) {
     success: function (json) {
       if(json['error']) {
         $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
-        setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
       dtr.ajax.reload();
 
@@ -257,7 +257,6 @@ function set_group_attendance(immersion_group_id, value) {
     success: function (json) {
       if(json['error']) {
         $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
-        setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
       groups_dtr.ajax.reload();
 
@@ -289,7 +288,6 @@ function set_all_attendances(value) {
     success: function (json) {
       if(json['error']) {
         $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
-        setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
       reload_table();
       dt.ajax.reload();
@@ -319,7 +317,6 @@ function set_all_groups_attendances(value) {
     success: function (json) {
       if(json['error']) {
         $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
-        setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
       }
       reload_groups_table();
       dt.ajax.reload();
@@ -873,7 +870,6 @@ $(document).ready(function(){
           success: function (json) {
             if(json['error']) {
               $("#cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-              setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
               $('#checkall').prop('checked', false);
               dtr.ajax.reload();
               dt.ajax.reload();
@@ -883,7 +879,6 @@ $(document).ready(function(){
               $('#checkall').prop('checked', false);
               $('#select_cancel_type').val('');
               $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
-              setTimeout(function() { $("#cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
             }
           },
           error: function(json) {
@@ -912,7 +907,6 @@ $(document).ready(function(){
           success: function (json) {
             if(json['error']) {
               $("#groups_cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-              setTimeout(function() { $("#groups_cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
               $('#groups_checkall').prop('checked', false);
               groups_dtr.ajax.reload();
               dt.ajax.reload();
@@ -922,7 +916,6 @@ $(document).ready(function(){
               $('#groups_checkall').prop('checked', false);
               $('#groups_select_cancel_type').val('');
               $("#groups_cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
-              setTimeout(function() { $("#groups_cancel_feedback").html('');}, {% settings_get 'MESSAGES_TIMEOUT' %});
             }
           },
           error: function(json) {
