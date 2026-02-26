@@ -28,7 +28,6 @@
     </nav>
   </div>
 </section>
-<div id="feedback" class="container"></div>
 <div class="container">
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
@@ -97,11 +96,11 @@
             },
             success: function (response) {
               if(is_set(response.msg)) {
-                feedback.trigger("showFeedback", [[response.msg, "success"]]);
+                messages.trigger("showFeedback", [[response.msg, "success"]]);
               }
             },
             error: function (response) {
-              feedback.trigger("showFeedback", [[response.msg, "danger"]])
+              messages.trigger("showFeedback", [[response.msg, "danger"]])
             }
           })
 

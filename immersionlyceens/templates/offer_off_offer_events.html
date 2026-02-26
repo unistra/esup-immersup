@@ -339,7 +339,7 @@
   </div>
 </section>
 <script>
-var feedback;
+var messages;
 var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
 
 //Restrictions details Modal buttons
@@ -391,8 +391,8 @@ function register(slot_id) {
         notify_disability = json['notify_disability'];
 
         if(error) {
-          feedback = $("#feedback_"+slot_id);
-          feedback.trigger("showFeedback", [[msg, "danger"]]);
+          messages = $("#feedback_"+slot_id);
+          messages.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
           if(notify_disability === "on_demand") {

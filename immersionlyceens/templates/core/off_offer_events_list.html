@@ -17,7 +17,6 @@
 {% endblock %}
 
 {% block content %}
-<div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top:20px;">
   <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
     <span>
@@ -126,7 +125,7 @@
   var dt;
   var updatable = "{{ can_update_events }}";
   var year_is_valid = "{{ year_is_valid }}" === "True";
-  var feedback;
+  var messages;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
@@ -155,10 +154,10 @@
         let error = json['error'];
 
         if(error !== undefined && error !== '') {
-          feedback.trigger("showFeedback", [[error, "danger"]]);
+          messages.trigger("showFeedback", [[error, "danger"]]);
         }
         else if(msg !== undefined && msg !== '') {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
+          messages.trigger("showFeedback", [[msg, "success"]]);
         }
 
         load_events();
@@ -284,7 +283,7 @@
 
   $(document).ready(function() {
     initFeedback();
-    feedback = $("#feedback");
+    messages = $("#messages");
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
