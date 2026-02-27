@@ -201,6 +201,10 @@ def ajax_get_person(request):
             response['msg'] = gettext("Sorry, high school not found")
             return JsonResponse(response, safe=False)
 
+        if not (highschool.convention_start_date <= timezone.now() <= highschool.convention_end_date):
+            response['msg'] = gettext("Your school does not have a valid agreement, so you cannot create an account at this time.")
+            return JsonResponse(response, safe=False)
+
     if establishment:
         if establishment.data_source_plugin:
             try:
