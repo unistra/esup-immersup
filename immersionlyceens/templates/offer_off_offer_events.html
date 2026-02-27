@@ -246,7 +246,7 @@
                                       {% if slot.cancelled %}
                                         <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                         {% if slot.can_register %}
-                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
+                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.pk }})">
                                             {% trans 'Register again' %}
                                           </button>
                                           <div id="feedback_{{slot.pk}}"></div>
@@ -260,7 +260,7 @@
                                           {% trans 'Available places' %} : {{ slot.final_available_seats }}
                                         </span><br>
                                         {% if authorized_groups|in_groups:"LYC,ETU,VIS" and slot.can_register %}
-                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">
+                                          <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.pk }})">
                                             {% trans 'Register' %}
                                           </button>
                                           <div id="feedback_{{slot.pk}}"></div>
