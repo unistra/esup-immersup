@@ -23,20 +23,35 @@ function initFeedback(obj) {
   $(document).on('showFeedback', function (event, ...messages) {
     let $target = $(event.target).empty()
     messages.forEach(function (element) {
-      $target.append(
-        $('<div/>', {
-          'class': 'messages alert alert-dismissible alert-' + element[1],
-          'text': element[0]
-        }).append(
-          $('<a>', {
-            'href': '#',
-            'class': 'close',
-            'data-dismiss': 'alert',
-            'aria-label': 'close',
-            'text': '×'
-          })
-        )
-      )
+      const messageText = element[0];
+      const alertType = element[1];
+
+      let $alertDiv = $('<div/>', {
+        'class': 'messages alert alert-dismissible alert-' + alertType,
+        'role': 'alert',
+        'tabindex': '-1'
+      });
+
+      let content = "";
+
+      if (alertType === 'danger' || alertType === 'error') {
+        content += '<i class="fa fa-exclamation-triangle" style="margin-right:8px;"></i> ';
+      }
+
+      content += $('<span>').text(messageText).html();
+      $alertDiv.html(content);
+
+      $alertDiv.append(
+        $('<a>', {
+          'href': '#',
+          'class': 'close',
+          'data-dismiss': 'alert',
+          'aria-label': 'close',
+          'html': '&times;'
+        })
+      );
+
+      $target.append($alertDiv);
     })
   })
 }

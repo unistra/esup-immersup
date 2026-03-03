@@ -61,19 +61,22 @@
 
     {% block section_title %}{% endblock %}
 
-    {% block content %}{% endblock %}
-
     <div id="messages" class="container sticky-top" style="top: 50px;padding: 10px;">
       {% if messages %}
         {% for message in messages %}
         {% get_bootstrap_alert_msg_css_name message.tags as alert_tag %}
         <div class="messages{% if alert_tag %} alert alert-{{ alert_tag }}{% endif %} alert-dismissible">
+          {% if alert_tag == "danger" or alert_tag == "error" %}
+          <i class="fa fa-exclamation-triangle" style="margin-right:8px;"></i>
+          {% endif %}
           <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
           {{ message|safe }}
         </div>
         {% endfor %}
       {% endif %}
     </div>
+
+    {% block content %}{% endblock %}
 
     {% include './modals/modal_credits.html'%}
     {% include './modals/modal_legal.html'%}
